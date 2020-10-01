@@ -914,7 +914,12 @@ class Manipulator:
             minMass = 10.0
             if len(unfrozen) > 1:
                 maxMass = min([self.M.masses[p] for p in unfrozen if p != self.M.LSP])
-
+        # an artificial wall because the maps are bounded from below
+        walledpids = [ 1000001, 1000002, 1000003, 1000004, 1000021 ]
+        # walledpids += [ 1000005, 1000006, 2000005, 2000006 ]
+        wallmass = 310.
+        if abs(pid) in walledpids:
+            minMass = max ( wallmass, minMass )
 
         ret = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass, maxMass=maxMass )
 
@@ -922,6 +927,17 @@ class Manipulator:
         self.removeAllOffshell(rescaleSSMs=True)
 
         return ret
+
+    def inCorridorRegion ( self, mstop, mlsp ):
+        """ are we in the top corridor region, i.e. (mstop - mlsp) \approx mtop?
+            i.e. mstop < 280 and 150 < (mstop - mlsp) < 200
+        :returns: true, if in corridor region
+        """
+        if mstop>280:
+            return False
+        if 150 < (mstop-mlsp) < 200:
+            return True
+        return False
 
     def randomlyChangeMassOf ( self, pid, dx=None, minMass = None, maxMass = None ):
         """ randomly change the mass of pid
@@ -940,12 +956,26 @@ class Manipulator:
             minMass = self.M.masses[self.M.LSP]
         if not maxMass:
             maxMass = self.M.maxMass
-        tmpmass = self.M.masses[pid]+random.uniform(-dx,dx)
-        #Enforce mass interval:
-        if tmpmass > maxMass:
-            tmpmass = maxMass-1.0
-        if tmpmass < minMass:
-            tmpmass = minMass+1.
+        massIsLegal = False
+        while not massIsLegal:
+            massIsLegal = True
+            tmpmass = self.M.masses[pid]+random.uniform(-dx,dx)
+            #Enforce mass interval:
+            if pid in [ 1000006, 2000006 ] and \
+                    self.inCorridorRegion ( tmpmass, self.M.masses[self.M.LSP] ):
+                massIsLegal = False
+            if pid == self.M.LSP and 1000006 in self.M.masses and \
+                    self.inCorridorRegion ( self.M.masses[1000006], tmpmass ):
+                massIsLegal = False
+            if tmpmass > maxMass: ## check again if we are legal
+                # tmpmass = maxMass-1.0
+                # not ok, rerun
+                massIsLegal = False
+            if tmpmass < minMass: # check again if we are legal
+                # not ok, rerun
+                # tmpmass = minMass+1.
+                massIsLegal = False
+            dx = dx * 1.2 ## to make sure we always get out of this
         self.M.masses[pid]=tmpmass
 
         return 1
