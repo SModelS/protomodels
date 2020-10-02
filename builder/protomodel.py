@@ -180,7 +180,7 @@ class ProtoModel:
         #If xsecMasses has not been defined or differs from current masses,
         #recompute xsecs
         if self.masses == self._xsecMasses and self.ssmultipliers == self._xsecSSMs:
-            if self._stored_xsecs:
+            if self._stored_xsecs and len(self._stored_xsecs)>0:
                 return self._stored_xsecs
 
         self.delXSecs()
@@ -365,6 +365,7 @@ class ProtoModel:
         hasComputed = False
         countAttempts = 0
         while not hasComputed:
+            tmpSLHA = ""
             try:
                 xsecs = []
                 #Create temporary file with the current model (without cross-sections)
@@ -394,9 +395,13 @@ class ProtoModel:
                 self._xsecMasses = dict([[pid,m] for pid,m in self.masses.items()])
                 self._xsecSSMs = dict([[pid,ssm] for pid,ssm in self.ssmultipliers.items()])
                 hasComputed = True
+                if not keep_slha and os.path.exists ( tmpSLHA ): ## remove
+                    os.remove( tmpSLHA )
                 break
                 #Remove temp file
             except Exception as e:
+                if not keep_slha and os.path.exists ( tmpSLHA ): ## remove
+                    os.remove( tmpSLHA )
                 countAttempts += 1
                 if countAttempts > 1:
                     self.log( "error computing cross-sections: %s, attempt # %d" % \
@@ -408,8 +413,6 @@ class ProtoModel:
 
         if keep_slha:
             self.createSLHAFile( self.currentSLHA, addXsecs = True )
-        if not keep_slha and os.path.exists ( tmpSLHA ): ## always remove
-            os.remove( tmpSLHA )
 
     def rescaleXSecsBy(self, s):
         """rescale the stored cross-sections by a factor s"""
@@ -456,6 +459,7 @@ class ProtoModel:
 
         :return: Name of the SLHA file created
         """
+        self.delCurrentSLHA()
 
         #If output is not defined, create file and store in self.currentSLHA
         if outputSLHA is None:
@@ -506,16 +510,28 @@ class ProtoModel:
                 outF.write(l)
         outF.close()
 
+        ctAttempts = 0
+        hasXSecs = False
         #Add cross-sections:
         if addXsecs:
-            xsecs = self.getXsecs() #Cross-sections will be computed if something has changed
-            #print ( "[protomodels] adding xsecs to", outputSLHA )
-            #for xsec in xsecs[0]:
-            #    print ( "[protomodel] adding xsec", str(xsec) )
-            if len(xsecs)>0:
-                self.computer.addXSecToFile( xsecs[0], outputSLHA )
-                self.computer.addMultipliersToFile ( self.ssmultipliers, outputSLHA )
-                self.computer.addCommentToFile ( xsecs[1], outputSLHA )
+            while not hasXSecs:
+                # Cross-sections will be computed if something has changed
+                xsecs = self.getXsecs()
+                #print ( "[protomodels] adding xsecs to", outputSLHA )
+                #for xsec in xsecs[0]:
+                #    print ( "[protomodel] adding xsec", str(xsec) )
+                if len(xsecs)>0:
+                    self.computer.addXSecToFile( xsecs[0], outputSLHA )
+                    self.computer.addMultipliersToFile ( self.ssmultipliers, outputSLHA )
+                    self.computer.addCommentToFile ( xsecs[1], outputSLHA )
+                    hasXSecs = True
+                else:
+                    ctAttempts += 1
+                    self.pprint ( "empty cross section container at attempt %d? whats going on?" % ctAttempts )
+                    self.delXSecs()
+                    if ctAttempts > 5:
+                        break
+                    time.sleep ( random.uniform ( 0.5, 2.*ctAttempts ) )
 
         return outputSLHA
 
