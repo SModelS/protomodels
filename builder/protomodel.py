@@ -512,9 +512,10 @@ class ProtoModel:
             #print ( "[protomodels] adding xsecs to", outputSLHA )
             #for xsec in xsecs[0]:
             #    print ( "[protomodel] adding xsec", str(xsec) )
-            self.computer.addXSecToFile( xsecs[0], outputSLHA )
-            self.computer.addMultipliersToFile ( self.ssmultipliers, outputSLHA )
-            self.computer.addCommentToFile ( xsecs[1], outputSLHA )
+            if len(xsecs)>0:
+                self.computer.addXSecToFile( xsecs[0], outputSLHA )
+                self.computer.addMultipliersToFile ( self.ssmultipliers, outputSLHA )
+                self.computer.addCommentToFile ( xsecs[1], outputSLHA )
 
         return outputSLHA
 
