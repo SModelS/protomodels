@@ -6,6 +6,8 @@ import random, tempfile, os, time, colorama, copy, sys, pickle, random
 from tester.combiner import Combiner
 sys.path.insert(0,"../")
 from tools import helpers
+from smodels.tools.wrapperBase import WrapperBase
+WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 from smodels.tools.xsecComputer import XSecComputer, NLL
 from smodels.tools.physicsUnits import TeV
 
