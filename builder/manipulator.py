@@ -530,7 +530,8 @@ class Manipulator:
         self.M.getXsecs()
 
     def randomlyUnfreezeParticle ( self, sigma=0.5, force = False ):
-        """ Unfreezes a (random) frozen particle according to gaussian distribution with width sigma.
+        """ Unfreezes a (random) frozen particle according to gaussian distribution
+            with a width of <sigma>.
 
         :param sigma: Width of the gaussian distribution
         :param force: If True force the unfreezing.
@@ -905,9 +906,11 @@ class Manipulator:
         #make sure the mass ordering is respected:
         for pids in self.canonicalOrder:
             if pid == pids[0] and pids[1] in unfrozen:
-                maxMass = self.M.masses[pids[1]] #Do not allow for masses above the heavier state
+                # Do not allow for masses above the heavier state
+                maxMass = self.M.masses[pids[1]]
             elif pid == pids[1] and pids[0] in unfrozen:
-                minMass = self.M.masses[pids[0]] #Do not allow for masses below the ligher state
+                # Do not allow for masses below the ligher state
+                minMass = self.M.masses[pids[0]]
 
         #If the particle is the LSP, make sure its mass remains the lightest, but relax the lower limit
         if pid == self.M.LSP:
@@ -935,16 +938,16 @@ class Manipulator:
         """
         if mstop>280:
             return False
-        if 150 < (mstop-mlsp) < 200:
-            return True
-        return False
+        return 150. < (mstop-mlsp) < 200.
 
     def randomlyChangeMassOf ( self, pid, dx=None, minMass = None, maxMass = None ):
         """ randomly change the mass of pid
         :param dx: the delta x to change. If none, then use a model-dependent
                    default
-        :param minMass: minimum allowed mass for the particle. If not defined, use the LSP mass
-        :param maxMass: maximum allowed mass for the particle. If not defined, use the protomodel maxMass
+        :param minMass: minimum allowed mass for the particle.
+                        If not defined, use the LSP mass.
+        :param maxMass: maximum allowed mass for the particle.
+                        If not defined, use the protomodel maxMass.
         """
         if dx == None:
             denom = self.M.Z + 1.
@@ -960,12 +963,15 @@ class Manipulator:
         while not massIsLegal:
             massIsLegal = True
             tmpmass = self.M.masses[pid]+random.uniform(-dx,dx)
-            #Enforce mass interval:
+            # Enforce mass interval:
             if pid in [ 1000006, 2000006 ] and \
                     self.inCorridorRegion ( tmpmass, self.M.masses[self.M.LSP] ):
                 massIsLegal = False
             if pid == self.M.LSP and 1000006 in self.M.masses and \
                     self.inCorridorRegion ( self.M.masses[1000006], tmpmass ):
+                massIsLegal = False
+            if pid == self.M.LSP and 2000006 in self.M.masses and \
+                    self.inCorridorRegion ( self.M.masses[2000006], tmpmass ):
                 massIsLegal = False
             if tmpmass > maxMass: ## check again if we are legal
                 # tmpmass = maxMass-1.0
@@ -976,17 +982,17 @@ class Manipulator:
                 # tmpmass = minMass+1.
                 massIsLegal = False
             dx = dx * 1.2 ## to make sure we always get out of this
+        self.pprint ( "randomly changing mass of %s to %.1f" % \
+                      ( helpers.getAsciiName ( pid ), tmpmass ) )
         self.M.masses[pid]=tmpmass
 
         return 1
 
     def simplifyModel ( self, dm= 200. ):
-        """ Try to simpĺify model, merging pair of candidate particles with similar masses.
-
+        """ Try to simplify model, merging pair of candidate particles with similar masses.
         :param dm: Maximum mass difference for merging
-
-        :returns: None, if no mergable particle pair exists, else returns new protomodel with all possible
-                  particles merged.
+        :returns: None, if no mergable particle pair exists, else returns new protomodel
+                  with all possible particles merged.
         """
 
 
@@ -1041,6 +1047,12 @@ class Manipulator:
             if self.M.masses[pidA] > self.M.masses[pidB]:
                 self.pprint("can not merge particles with wrong mass hierarchy (%d > %d)" %(pidA,pidB))
                 return False
+            if pidA in [ 1000006, 2000006 ] and pidB in [ 1000006, 2000006 ]:
+                ## merging stops. check if we would end up in corridor.
+                avgM = self.computeAvgMass ( (pidA,pidB) )
+                if self.inCorridorRegion ( avgM, self.M.masses[self.M.LSP] ):
+                    self.pprint ( "wont merge the stops since we would end up in corridor region!" )
+                    return False
             self.merge((pidA,pidB),protomodel)
             return True
         else:
@@ -1071,7 +1083,8 @@ class Manipulator:
         pair = list(pair)
         pair.sort()
         p1,p2 = pair[0], pair[1]
-        self.pprint ( "merging %d and %d" % ( p1, p2 ) )
+        self.pprint ( "merging %s and %s" % \
+                ( helpers.getAsciiName(p1), helpers.getAsciiName( p2 ) ) )
         self.log ( "masses before merger: %.2f, %.2f" % \
                    ( protomodel.masses[p1], protomodel.masses[p2] ) )
         avgM = self.computeAvgMass ( pair )
