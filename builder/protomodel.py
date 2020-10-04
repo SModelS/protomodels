@@ -355,8 +355,8 @@ class ProtoModel:
     def computeXSecs ( self, nevents = None, keep_slha = False ):
         """ compute xsecs given the masses and signal strenght multipliers of the model.
          The results are stored in self._stored_xsecs and should be accessed through getXsecs.
-        :param nevents: If defined, cross-sections will be computed with this number of MC events,
-                        if None, the value used is self.nevents.
+        :param nevents: If defined, cross-sections will be computed with this number of 
+                        MC events, if None, the value used is self.nevents.
         :param keep_slha: if true, then keep slha file at the end
 
         """
@@ -452,6 +452,48 @@ class ProtoModel:
                     self.templateSLHA = trySLHA
                     return
 
+    def writeSLHAFile ( self, outputSLHA ):
+        """ write the slha file, plug in protomodel params """
+        #Get template data:
+        with open( self.templateSLHA ) as f:
+            lines=f.readlines()
+        unfrozen = self.unFrozenParticles()
+
+        with open(outputSLHA,'wt') as outF:
+            for i,l in enumerate(lines):
+                for pid in self.particles:
+                    #Skip lines which have no mass or decay tags
+                    if not "M%d" % pid in l and not "D%d" %pid in l:
+                        continue
+
+                    #Get information for particle
+                    if pid in unfrozen:
+                        mass = self.masses[pid]
+                        decays = self.decays[pid]
+                    else:
+                        mass = 1e6 #decoupled mass
+                        decays = {} #no decays to frozen particles
+
+                    #Replace mass tag:
+                    if "M%d" % pid in l:
+                        l = l.replace("M%d" % pid,"%.1f" % mass )
+                    else:
+                        decayTag = l.strip().split()[0]
+                        decayPids = decayTag.replace('D','').split('_')
+                        dpids = tuple([int(p) for p in decayPids[1:]]) #daughter pids
+                        if len(dpids) == 1:
+                            dpids = dpids[0]
+                        if dpids in decays:
+                            br = decays[dpids]
+                            l = l.replace(decayTag, "%.5f" %br)
+                        else:
+                            l = ""
+
+                #Only write line if it is not empty
+                if l:
+                    outF.write(l)
+            outF.close()
+
     def createSLHAFile ( self, outputSLHA = None, addXsecs = True ):
         """ Creates the SLHA file with the masses, decays and cross-sections stored in the model.
 
@@ -471,46 +513,8 @@ class ProtoModel:
         #Set template file (if not yet defined)
         self.checkTemplateSLHA()
 
-        #Get template data:
-        with open( self.templateSLHA ) as f:
-            lines=f.readlines()
-
         #Replace masses and decays with values for the unFrozenParticles:
-        unfrozen = self.unFrozenParticles()
-        outF = open(outputSLHA,'w')
-        for i,l in enumerate(lines):
-            for pid in self.particles:
-                #Skip lines which have no mass or decay tags
-                if not "M%d" % pid in l and not "D%d" %pid in l:
-                    continue
-
-                #Get information for particle
-                if pid in unfrozen:
-                    mass = self.masses[pid]
-                    decays = self.decays[pid]
-                else:
-                    mass = 1e6 #decoupled mass
-                    decays = {} #no decays to frozen particles
-
-                #Replace mass tag:
-                if "M%d" % pid in l:
-                    l = l.replace("M%d" % pid,"%.1f" % mass )
-                else:
-                    decayTag = l.strip().split()[0]
-                    decayPids = decayTag.replace('D','').split('_')
-                    dpids = tuple([int(p) for p in decayPids[1:]]) #daughter pids
-                    if len(dpids) == 1:
-                        dpids = dpids[0]
-                    if dpids in decays:
-                        br = decays[dpids]
-                        l = l.replace(decayTag, "%.5f" %br)
-                    else:
-                        l = ""
-
-            #Only write line if it is not empty
-            if l:
-                outF.write(l)
-        outF.close()
+        self.writeSLHAFile ( outputSLHA )
 
         ctAttempts = 0
         hasXSecs = False
@@ -523,6 +527,8 @@ class ProtoModel:
                 #for xsec in xsecs[0]:
                 #    print ( "[protomodel] adding xsec", str(xsec) )
                 if len(xsecs)>0:
+                    if not os.path.exists ( outputSLHA ):
+                        self.writeSLHAFile ( outputSLHA )
                     self.computer.addXSecToFile( xsecs[0], outputSLHA )
                     self.computer.addMultipliersToFile ( self.ssmultipliers, outputSLHA )
                     self.computer.addCommentToFile ( xsecs[1], outputSLHA )

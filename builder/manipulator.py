@@ -1259,7 +1259,10 @@ class Manipulator:
         xsecs = self.simplifyXSecs( fbmin )
         for sqrts in xsecs.keys():
             print ( "%d TeV:" % sqrts )
-            for pid,xsec in xsecs[sqrts].items():
+            pids = list ( xsecs[sqrts].keys() )
+            pids.sort()
+            for pid in pids:
+                xsec = xsecs[sqrts][pid]
                 print ( " %22s: %s" % \
                         ( pid, xsec.value ) )
 

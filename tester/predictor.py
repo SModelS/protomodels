@@ -309,6 +309,7 @@ class Predictor:
         return mumax
 
     def computeSignificance(self, protomodel, predictions, strategy):
+        """ compute the K and Z values, and attach them to the protomodel """
 
         self.log ( "now find highest significance for %d predictions" % len(predictions) )
         ## find highest observed significance
