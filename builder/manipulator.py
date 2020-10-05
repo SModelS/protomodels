@@ -18,6 +18,10 @@ from smodels.theory.crossSection import LO
 
 class Manipulator:
     """ contains the protomodel manipulation algorithms. """
+    walledpids = [ 1000001, 1000002, 1000003, 1000004, 1000021 ]
+    # walledpids += [ 1000005, 1000006, 2000005, 2000006 ]
+    wallmass = 310.
+
     def __init__ ( self, protomodel, strategy: str = "aggressive",
                    verbose = False ):
         self.M = protomodel
@@ -566,7 +570,7 @@ class Manipulator:
                 pid = pids[0] #Unfreeze the lighter state
                 break
 
-        self.log ( "Unfreezing %s:" % ( SParticleNa.asciiName(pid) ) )
+        self.log ( "Unfreezing %s:" % ( SParticleNames().asciiName(pid) ) )
         return self.unFreezeParticle(pid)
 
     def randomlyChangeBranchings ( self, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05 ):
@@ -866,6 +870,7 @@ class Manipulator:
         #Absolute mass range:
         maxMass = protomodel.maxMass
         minMass = protomodel.masses[protomodel.LSP]
+
         #Redefine mass range if necessary to make sure the mass ordering is respected:
         for pids in self.canonicalOrder:
             if pid == pids[0] and not (pids[1] in frozen):
@@ -874,6 +879,10 @@ class Manipulator:
             elif pid == pids[1] and not (pids[0] in frozen):
                 if pids[0] in protomodel.masses:
                     minMass = protomodel.masses[pids[0]] #Do not allow for masses below the ligher state
+
+        if pid in self.walledpids:
+            ## heed the wall!
+            minMass = max ( self.wallmass, minMass )
 
         #Randomly select mass of unfrozen particle:
         protomodel.masses[pid] = random.uniform ( minMass, maxMass )
@@ -922,11 +931,9 @@ class Manipulator:
             if len(unfrozen) > 1:
                 maxMass = min([self.M.masses[p] for p in unfrozen if p != self.M.LSP])
         # an artificial wall because the maps are bounded from below
-        walledpids = [ 1000001, 1000002, 1000003, 1000004, 1000021 ]
-        # walledpids += [ 1000005, 1000006, 2000005, 2000006 ]
-        wallmass = 310.
-        if abs(pid) in walledpids:
-            minMass = max ( wallmass, minMass )
+        if abs(pid) in self.walledpids:
+            ## heed the wall!
+            minMass = max ( self.wallmass, minMass )
 
         ret = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass, maxMass=maxMass )
 
