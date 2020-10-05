@@ -132,6 +132,7 @@ class Manipulator:
         D["timestamp"]=time.asctime()
         D["Z"]=round(self.M.Z,3)
         D["K"]=round(self.M.K,3)
+        D["walkerid"]=self.M.walkerid
         D["step"]=self.M.step
         D["codever"]=self.M.codeversion
         D["dbver"]=self.M.dbversion
