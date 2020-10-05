@@ -10,7 +10,7 @@
 
 #import sys
 #sys.path.insert(0,"../")
-from tools import helpers
+from tools.sparticleNames import SParticleNames
 import colorama
 import copy, random, numpy, time, os, sys, itertools
 from smodels.tools.physicsUnits import fb, TeV
@@ -566,7 +566,7 @@ class Manipulator:
                 pid = pids[0] #Unfreeze the lighter state
                 break
 
-        self.log ( "Unfreezing %s:" % ( helpers.getAsciiName(pid) ) )
+        self.log ( "Unfreezing %s:" % ( SParticleNa.asciiName(pid) ) )
         return self.unFreezeParticle(pid)
 
     def randomlyChangeBranchings ( self, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05 ):
@@ -642,7 +642,7 @@ class Manipulator:
         #Make sure BRs add up to 1:
         self.normalizeBranchings(pid)
 
-        self.log ( "changed branchings of %s" % (helpers.getAsciiName(pid) ) )
+        self.log ( "changed branchings of %s" % (SParticleNames().asciiName(pid) ) )
         return 1
 
     def randomlyChangeSignalStrengths ( self, prob=0.25, probSingle=0.8, ssmSigma=0.1):
@@ -679,8 +679,9 @@ class Manipulator:
         if newSSM < 0.:
             newSSM = 0.
         self.changeSSM(pair,newSSM)
-        self.log ( "changing signal strength multiplier of %s,%s: %.2f." % (helpers.getAsciiName(pair[0]),
-                        helpers.getAsciiName(pair[1]), newSSM ) )
+        namer = SParticleNames ( False )
+        self.log ( "changing signal strength multiplier of %s,%s: %.2f." % \
+                   ( namer.asciiName(pair[0]), namer.asciiName(pair[1]), newSSM ) )
         return 1
 
     def randomlyChangeSSOfOneParticle ( self, pid = None ):
@@ -711,7 +712,7 @@ class Manipulator:
             return 1
         f = random.uniform ( .8, 1.2 )
         self.log ( "randomly changing ssms of %s by a factor of %.2f" % \
-                     ( helpers.getAsciiName ( p ), f ) )
+                     ( SParticleNames ( False ).asciiName ( p ), f ) )
         ssms = []
         for dpd,v in self.M.ssmultipliers.items():
             if p in dpd or -p in dpd:
@@ -721,7 +722,8 @@ class Manipulator:
                 # self.M.ssmultipliers[dpd]= newssm
                 self.changeSSM ( dpd, newssm )
                 ssms.append ( newssm )
-        self.log ( " `- %s: ssms are now %.2f+/-%.2f" % ( helpers.getAsciiName(p), numpy.mean ( ssms ), numpy.std ( ssms) ) )
+        self.log ( " `- %s: ssms are now %.2f+/-%.2f" % \
+                 ( SParticleNames().asciiName(p), numpy.mean ( ssms ), numpy.std ( ssms) ) )
         return 1
 
     def changeSSM ( self, pids, newssm ):
@@ -798,7 +800,8 @@ class Manipulator:
                 minmass = protomodel.masses[i]
                 pid = i
         # p = random.choice ( unfrozen )
-        protomodel.log ( "Freezing most massive %s (%.1f)" % ( helpers.getAsciiName(pid), minmass ) )
+        protomodel.log ( "Freezing most massive %s (%.1f)" % \
+                        ( SParticleNames().asciiName(pid), minmass ) )
         self.freezeParticle ( pid, protomodel = protomodel )
         return 1
 
@@ -826,7 +829,7 @@ class Manipulator:
             for pids in self.canonicalOrder:
                 if pid == pids[0] and pids[1] in unfrozen:
                     return 0
-        protomodel.log ( "Freezing %s." % ( helpers.getAsciiName(pid) ) )
+        protomodel.log ( "Freezing %s." % ( SParticleNames(False).asciiName(pid) ) )
         #Remove pid from masses, decays and signal multipliers:
         if  pid in protomodel.masses:
             protomodel.masses.pop(pid)
@@ -984,7 +987,7 @@ class Manipulator:
                 massIsLegal = False
             dx = dx * 1.2 ## to make sure we always get out of this
         self.pprint ( "randomly changing mass of %s to %.1f" % \
-                      ( helpers.getAsciiName ( pid ), tmpmass ) )
+                      ( SParticleNames(False).asciiName ( pid ), tmpmass ) )
         self.M.masses[pid]=tmpmass
 
         return 1
@@ -1084,8 +1087,9 @@ class Manipulator:
         pair = list(pair)
         pair.sort()
         p1,p2 = pair[0], pair[1]
+        namer = SParticleNames ( False )
         self.pprint ( "merging %s and %s" % \
-                ( helpers.getAsciiName(p1), helpers.getAsciiName( p2 ) ) )
+                ( namer.asciiName(p1), namer.asciiName( p2 ) ) )
         self.log ( "masses before merger: %.2f, %.2f" % \
                    ( protomodel.masses[p1], protomodel.masses[p2] ) )
         avgM = self.computeAvgMass ( pair )
