@@ -9,7 +9,7 @@ from builder.manipulator import Manipulator
 from tester.combiner import  Combiner
 from tools import helpers
 from tools.csetup import setup
-from walker import sparticleNames
+from tools import sparticleNames
 
 class Hiscore:
     """ encapsulates the hiscore list. """

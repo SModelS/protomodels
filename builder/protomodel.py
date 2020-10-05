@@ -5,12 +5,12 @@
 import random, tempfile, os, time, colorama, copy, sys, pickle, random
 from tester.combiner import Combiner
 sys.path.insert(0,"../")
-from tools import helpers
 from smodels.tools.wrapperBase import WrapperBase
 WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 from smodels.tools.xsecComputer import XSecComputer, NLL
 from smodels.tools.physicsUnits import TeV
-
+from tools.sparticleNames import SParticleNames
+from tools import helpers
 
 class ProtoModel:
     """ encodes one theoretical model, i.e. the particles, their masses, their
@@ -129,8 +129,9 @@ class ProtoModel:
     def __str__(self):
         """ return basic information on model
         """
+        namer = SParticleNames ( susy=False )
 
-        pNames = [helpers.getParticleName ( pid, Ascii=True ) for pid in self.unFrozenParticles()]
+        pNames = [namer.asciiName ( pid ) for pid in self.unFrozenParticles()]
         pNames = ','.join(pNames)
         pStr = 'ProtoModel (%s):' %(pNames)
         if self.K:
@@ -346,10 +347,11 @@ class ProtoModel:
     def printMasses( self ):
         """ convenience function to print masses with particle names """
         particles = []
+        namer = SParticleNames ( susy=False )
         for pid,m in self.masses.items():
             if m > 99000:
                 continue
-            particles.append ( "%s: %d" % (  helpers.getAsciiName ( pid ), m ) )
+            particles.append ( "%s: %d" % (  namer.asciiName ( pid ), m ) )
         print ( ", ".join ( particles ) )
 
     def computeXSecs ( self, nevents = None, keep_slha = False ):
@@ -390,7 +392,8 @@ class ProtoModel:
                 comment = "produced at step %d" % ( self.step )
                 pidsp = self.unFrozenParticles()
                 pidsp.sort()
-                prtcles = ", ".join ( map ( helpers.getAsciiName, pidsp ) )
+                namer = SParticleNames ( susy=False )
+                prtcles = ", ".join ( map ( namer.asciiName, pidsp ) )
                 self.log ( "done computing %d xsecs for pids %s" % \
                            ( len(xsecs), prtcles ) )
                 self._stored_xsecs = ( xsecs, comment )
