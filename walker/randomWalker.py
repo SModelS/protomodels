@@ -17,7 +17,7 @@ from walker.hiscore import Hiscore
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
-from tools import helpers
+from tools.sparticleNames import SParticleNames
 from pympler.asizeof import asizeof
 
 def cleanDirectory ():
@@ -165,11 +165,12 @@ class RandomWalker:
         nTotal = len ( self.protomodel.particles )
         pidsp = self.protomodel.unFrozenParticles()
         pidsp.sort()
+        namer = SParticleNames ( False )
 
-        prtcles = ", ".join ( map ( helpers.getAsciiName, pidsp ) )
+        prtcles = ", ".join ( map ( namer.asciiName, pidsp ) )
         pidsbc = list ( self.manipulator.getAllPidsOfBestCombo() )
         pidsbc.sort()
-        prtclesbc = ", ".join ( map ( helpers.getAsciiName, pidsbc ) )
+        prtclesbc = ", ".join ( map ( namer.asciiName, pidsbc ) )
         self.pprint ( "Step %d has %d/%d unfrozen particles: %s [in best combo: %s]" % \
               ( self.protomodel.step, nUnfrozen, nTotal, \
                 prtcles, prtclesbc ) )
