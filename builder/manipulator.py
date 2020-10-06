@@ -884,8 +884,25 @@ class Manipulator:
             ## heed the wall!
             minMass = max ( self.wallmass, minMass )
 
+        tmpMass = random.uniform ( minMass, maxMass )
+        ctr = 0
+        while pid in [ 1000006, 2000006 ] and \
+                self.inCorridorRegion ( tmpMass, protomodel.masses[protomodel.LSP] ):
+            # if in corridor region, redraw!
+            tmpMass = random.uniform ( minMass, maxMass )
+            ctr += 1
+            if ctr > 5: ## seems like the air is too thin. make more space.
+                mstop2 = 2000.
+                if 2000006 in protomodel.masses:
+                    mstop2 = protomodel.masses[2000006]
+                protomodel.masses[2000006] = mstop2 + 20.
+                if pid == 1000006:
+                    maxMass = mstop2 + 20.
+
         #Randomly select mass of unfrozen particle:
-        protomodel.masses[pid] = random.uniform ( minMass, maxMass )
+        protomodel.masses[pid] = tmpMass
+        self.pprint ( "Unfroze mass of %s to %.1f" % \
+                ( SParticleNames().asciiName(pid), protomodel.masses[pid] ) )
 
         #Set random branchings
         self.setRandomBranchings(pid)
