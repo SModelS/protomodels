@@ -156,7 +156,7 @@ class Hiscore:
                      manipulator.M.masses[pid],(cpid+1),len(unfrozen) ) )
 
             #Remove particle and recompute SLHA file:
-            manipulator.freezeParticle(pid)
+            manipulator.freezeParticle(pid, force=True )
             #Recompute cross-secions:
             manipulator.M.getXsecs()
             manipulator.M.K = 0.0
