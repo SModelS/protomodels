@@ -159,6 +159,8 @@ class Hiscore:
             manipulator.freezeParticle(pid)
             #Recompute cross-secions:
             manipulator.M.getXsecs()
+            manipulator.M.K = 0.0
+            manipulator.M.Z = 0.0
             self.predictor.predict( manipulator.M )
             if manipulator.M.K is None:
                 self.pprint ( "when removing %s, K could not longer be computed. Setting to zero"% ( self.namer.asciiName(pid)))
