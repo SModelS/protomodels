@@ -10,7 +10,7 @@
 
 #import sys
 #sys.path.insert(0,"../")
-from tools.sparticleNames import SParticleNames
+from ptools.sparticleNames import SParticleNames
 import colorama
 import copy, random, numpy, time, os, sys, itertools
 from smodels.tools.physicsUnits import fb, TeV
@@ -60,7 +60,7 @@ class Manipulator:
             fresh with the hiscore model. """
         fname = "states.dict"
         if not os.path.exists ( fname ):
-            from tools.csetup import setup
+            from ptools.csetup import setup
             rundir = setup()
             fname = rundir + "/states.dict"
             if not os.path.exists ( fname ):

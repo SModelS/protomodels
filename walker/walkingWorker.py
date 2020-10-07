@@ -7,7 +7,7 @@ except:
     import multiprocessing
 
 def _run ( walker, catchem, seed=None ):
-    from tools import helpers
+    from ptools import helpers
     #Set random seed
     if seed is not None:
         helpers.seedRandomNumbers(seed)

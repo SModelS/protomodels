@@ -7,9 +7,9 @@ import random, copy, pickle, os, fcntl, time, subprocess, colorama
 from scipy import stats
 from builder.manipulator import Manipulator
 from tester.combiner import  Combiner
-from tools import helpers
-from tools.csetup import setup
-from tools import sparticleNames
+from ptools import helpers
+from ptools.csetup import setup
+from ptools import sparticleNames
 
 class Hiscore:
     """ encapsulates the hiscore list. """

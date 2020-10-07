@@ -3,14 +3,14 @@
 """ Class that encapsulates a BSM model. """
 
 import random, tempfile, os, time, colorama, copy, sys, pickle, random
-from tester.combiner import Combiner
 sys.path.insert(0,"../")
 from smodels.tools.wrapperBase import WrapperBase
 WrapperBase.defaulttempdir="./" ## keep the temps in our folder
+from tester.combiner import Combiner
 from smodels.tools.xsecComputer import XSecComputer, NLL
 from smodels.tools.physicsUnits import TeV
-from tools.sparticleNames import SParticleNames
-from tools import helpers
+from ptools import helpers
+from ptools.sparticleNames import SParticleNames
 
 class ProtoModel:
     """ encodes one theoretical model, i.e. the particles, their masses, their

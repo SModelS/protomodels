@@ -13,8 +13,7 @@ import sys,os
 sys.path.insert(0,"../")
 import unittest
 from walker.randomWalker import RandomWalker
-from tools import helpers
-
+from ptools import helpers
 
 class VerticalTest(unittest.TestCase):
 

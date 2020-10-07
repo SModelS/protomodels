@@ -9,7 +9,9 @@ expected from background, by sampling the background model. """
 import copy, os, sys, time, subprocess, math, numpy, shutil
 import scipy.spatial
 sys.path.insert( 0, "../" )
-sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/protomodels/")
+from csetup import setup
+setup()
+#sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/protomodels/")
 from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
@@ -20,7 +22,6 @@ from smodels.particlesLoader import BSMList
 from smodels.theory.theoryPrediction import theoryPredictionsFor
 from smodels.tools.simplifiedLikelihoods import Data, UpperLimitComputer
 from smodels.theory import decomposer
-from tools.csetup import setup
 
 class ExpResModifier:
     def __init__ ( self, dbpath, Zmax, rundir, keep, nproc, fudge,

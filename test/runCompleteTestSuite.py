@@ -15,7 +15,7 @@ sys.path.insert(0,"../")
 try:
     import smodels
 except:
-    from tools import setPath
+    from ptools import setPath
 from smodels.tools.colors import colors
 colors.on = True
 

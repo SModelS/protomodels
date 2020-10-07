@@ -13,10 +13,10 @@ sys.path.insert(0,"../")
 try:
     import smodels
 except:
-    from tools import setPath
+    from ptools import setPath
 import unittest
 import pickle,copy
-from tools import helpers
+from ptools import helpers
 from builder.manipulator import Manipulator
 
 class PredictionsTest(unittest.TestCase):

@@ -13,7 +13,7 @@ sys.path.insert(0,"../")
 try:
     import smodels
 except:
-    from tools import setPath
+    from ptools import setPath
 import unittest
 import pickle
 from tester.predictor import Predictor

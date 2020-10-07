@@ -11,13 +11,13 @@ import numpy, colorama
 try:
     import smodels
 except:
-    from tools import setPath
+    from ptools import setPath
 sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/smodels-utils/protomodels/")
 from walker.hiscore import Hiscore
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
-from tools.sparticleNames import SParticleNames
+from ptools.sparticleNames import SParticleNames
 from pympler.asizeof import asizeof
 
 def cleanDirectory ():
