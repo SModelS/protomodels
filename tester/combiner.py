@@ -517,7 +517,14 @@ class Combiner:
         ## every non-trivial signal strength multiplier costs something
         cssms = {}
         pun1 = 0. # punishment for ssm=1, we prefer zeroes!
-        modelXSecs = protomodel.getXsecs()[0]
+        xsecs = protomodel.getXsecs()
+        if len(xsecs)==0:
+            self.pprint( "could not get xsecs for protomodel with masses %s" % \
+                         str(protomodel.masses) )
+            if nll:
+                return -float("inf")
+            return 0.
+        modelXSecs = xsecs[0]
         for pids,ssm in protomodel.ssmultipliers.items():
             if (abs(pids[0]) not in unfrozen) or (abs(pids[1]) not in unfrozen):
                 continue
