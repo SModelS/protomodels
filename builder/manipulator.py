@@ -242,10 +242,11 @@ class Manipulator:
         return ret
 
 
-    def initFromDict ( self, D, filename="" ):
+    def initFromDict ( self, D, filename="", initTestStats=False ):
         """ setup the protomodel from dictionary D.
         :param D: dictionary, as defined in pmodel*.py files.
         :param filename: name of origin. not necessary, only for logging.
+        :param initTestStats: if True, set also test statistics K and Z
         """
         scom = ""
         if "comment" in D:
@@ -265,6 +266,11 @@ class Manipulator:
                 self.M.decays[mpid][dpid]=v
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
+        if initTestStats:
+            if "Z" in D:
+                self.M.Z = D["Z"]
+            if "K" in D:
+                self.M.K = D["K"]
 
     def cheat ( self, mode = 0 ):
         ## cheating, i.e. starting with models that are known to work well

@@ -80,7 +80,7 @@ class ExpResModifier:
                            "expectedUpperLimit" ]:
                     if hasattr ( info, i ):
                         D[i] = getattr ( info, i )
-                self.stats[ label ] = D
+                self.addToStats ( label, D )
 
     def computeNewObserved ( self, txname, globalInfo ):
         """ given expected upper limit, compute a fake observed limit
@@ -112,6 +112,15 @@ class ExpResModifier:
                 #D["sigma_exp"]= sigma_exp
                 ## now lets shift, observed limit = expected limit + dx
                 obs = y + sigma_exp * x ## shift the expected by the random fake signal
+                if i == 0:
+                    D["y0old"] = observed.y_values[i]
+                    D["y0exp"] = y
+                    D["sigma_exp0"] = sigma_exp
+                    D["y0new"] = obs
+                    self.comments["y0old"]="the old observed y value for first entry in UL map"
+                    self.comments["y0exp"]="the expected y value for first entry in UL map"
+                    self.comments["y0new"]="the fake new observed bg y value for first entry in UL map"
+                    self.comments["sigma_exp0"]="the computed sigma for first entry in UL map"
                 #D["y"]= obs ## we keep only last entry, but thats ok
                 if obs <= 0.:
                     ## try again
@@ -123,7 +132,7 @@ class ExpResModifier:
 
         label = globalInfo.id + ":ul:" + txname.txName
         D["fudge"]=self.fudge
-        self.stats[label]=D
+        self.addToStats ( label, D )
         self.log ( "computed new UL result %s:%s, x=%.2f" % \
                    ( globalInfo.id, txname.txName, x ) )
         if x > 3.5:
@@ -200,7 +209,7 @@ class ExpResModifier:
         ma = Manipulator ( M )
         with open ( filename, "rt" ) as f:
             m = eval ( f.read() )
-        ma.initFromDict ( m )
+        ma.initFromDict ( m, initTestStats=True )
         ma.M.computeXSecs( keep_slha = True )
         self.log ( f"xsecs produced {ma.M.currentSLHA}" )
         self.log ( " `- does currentslha exist? %s" % \
@@ -270,7 +279,7 @@ class ExpResModifier:
         self.comments["S"]="the significance of the observation"
         D["origS"]=origS
         self.comments["origS"]="the significance of the original observation"
-        self.comments["lmbda"]="lambda of the fake background"
+        self.comments["lmbda"]="Poissonian lambda of the fake background"
         D["lmbda"]=lmbda
         D["newObs"]=obs
         self.comments["newObs"]="the new fake observation"
@@ -280,7 +289,7 @@ class ExpResModifier:
         ## origN stores the n_observed of the original database
         dataset.dataInfo.origN = orig
         label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
-        self.stats[ label ] = D
+        self.addToStats ( label, D )
         return dataset
 
     def addSignalForEfficiencyMap ( self, dataset, tpred, lumi ):
@@ -291,21 +300,23 @@ class ExpResModifier:
                 ( tpred.analysisId(), tpred.dataId(), ",".join(txns), \
                   tpred.xsection.value ) )
         label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
-        if not label in self.stats:
-            self.stats[ label ]= {}
         orig = dataset.dataInfo.observedN
         sigLambda = float ( tpred.xsection.value * lumi )
-        self.stats[label]["sigLambda"]=sigLambda
+        D={}
+        D["sigLambda"]=sigLambda
+        self.comments["sigLambda"]="the lambda for the signal"
         sigN = stats.poisson.rvs ( sigLambda )
-        if not "sigN" in self.stats[label]:
+        D["sigN"]=0
+        if "sigN" in self.stats[label]:
             ## sigN is the total number of added signals
             ## they may be from multiple topologies
-            self.stats[label]["sigN"]=0
-        self.stats[label]["sigN"]=self.stats[label]["sigN"]+sigN
+            D["sigN"]=self.stats[label]["sigN"]
+        D["sigN"]=D["sigN"]+sigN
+        self.comments["sigN"]="the number of events from the added signal"
         txnsc = "_".join( txns )
         ## sigNT<x> denotes the contributions from the individual theory preds
-        self.stats[label]["sigN%s" % txnsc ] = sigN
-        self.stats[label]["obsBg"]=self.stats[label]["newObs"]
+        D["sigN%s" % txnsc ] = sigN
+        D["obsBg"]=self.stats[label]["newObs"]
         err = dataset.dataInfo.bgError * self.fudge
         dataset.dataInfo.sigN = sigN ## keep track of signal
         if sigN == 0:
@@ -325,7 +336,7 @@ class ExpResModifier:
                    ( sigN, orig ) )
         dataset.dataInfo.trueBG = orig ## keep track of true bg
         dataset.dataInfo.observedN = orig + sigN
-        self.stats[label]["newObs"]=dataset.dataInfo.observedN
+        D["newObs"]=dataset.dataInfo.observedN
 
         ## now recompute the limits!!
         alpha = .05
@@ -340,7 +351,7 @@ class ExpResModifier:
         dataset.dataInfo.upperLimit = maxSignalXsec
         maxSignalXsec = computer.ulSigma(m, marginalize=True, expected=True ) / lumi
         dataset.dataInfo.expectedUpperLimit = maxSignalXsec
-
+        self.addToStats ( label, D )
         return dataset
 
     def txNameIsIn ( self, txname, tpred ):
@@ -353,11 +364,22 @@ class ExpResModifier:
                 return True
         return False
 
+    def addToStats ( self, label, Dict ):
+        """ add the content of dictionary Dict to the stats,
+            under the label "label" """
+        if not label in self.stats:
+            # we dont yet have an entry, so lets start
+            self.stats[label]=Dict
+            return
+        # we have an entry, so we add
+        for k,v in Dict.items():
+            self.stats[label][k]=v
+
     def addSignalForULMap ( self, dataset, tpred, lumi ):
         """ add a signal to this UL result. background sampling is
             already taken care of """
         txns = list ( map ( str, tpred.txnames ) )
-        self.log ( "add UL matching tpred %s: %s[%s] -- %s" % \
+        self.log ( "add UL matching tpred %s: <%s> %s {%s}" % \
                 ( tpred.analysisId(), tpred.xsection.value, \
                   tpred.PIDs, ",".join(txns) ) )
         #print ( " `- add UL matching tpred %s: %s[%s] ds:%s" % \
@@ -365,6 +387,11 @@ class ExpResModifier:
         #          tpred.PIDs, dataset ) )
         ## so we simply add the theory predicted cross section to the limit
         sigmaN = tpred.xsection.value.asNumber(fb)
+        label = tpred.analysisId() + ":ul:" + ",".join(txns)
+        D={}
+        D["sigmaN"]=sigmaN
+        D["txns"]=",".join(txns)
+        self.comments["sigmaN"]="the added theory preduction (in fb), for UL maps"
         ## sigmaN is the predicted production cross section of the signal,
         ## in fb
         def distance ( v1, v2 ):
@@ -384,19 +411,40 @@ class ExpResModifier:
             #print ( "  `-- adding %s to %s" % ( sigmaN, txname ) )
             txnd = txname.txnameData
             etxnd = txname.txnameDataExp
-            coordsTpred = txnd.dataToCoordinates ( tpred.mass ) ## coordinates of tpred
+            coordsTpred = txnd.dataToCoordinates ( tpred.mass, txnd._V, txnd.delta_x ) ## coordinates of tpred
+            minDist = float("inf") ## for the closest point we store the numbers
             for yi,y in enumerate(txnd.y_values):
                 pt = txnd.tri.points[yi] ## the point in the rotated coords
                 dist = distance ( pt, coordsTpred )
                 if dist > 400.: ## change y_values only in vicinity of protomodel
                     continue
                 oldv = txnd.y_values[yi]
+                oldo = txnd.y_values[yi]
+                hasExpected=False
                 if etxnd != None and len(txnd.y_values) == len(etxnd.y_values):
                     dt = ( ( txnd.delta_x - etxnd.delta_x )**2 ).sum()
                     if dt < 1e-2:
+                        hasExpected=True
                         oldv = etxnd.y_values[yi] ## FIXME more checks pls
+                if dist < minDist:
+                    ## remember the candidate
+                    minDist = dist
+                    D={}## remove
+                    D["yold"]=oldo
+                    D["dist"]=dist
+                    self.comments["dist"]="distance of closest point to protomodel"
+                    #D["ptFXME"]=pt
+                    #D["coordstpredFXME"]=coordsTpred
+                    D["mass"]=str(tpred.mass) ## store as string
+                    if hasExpected:
+                        D["yexp"]=oldv
+                        self.comments["yexp"]="expected y value (fb) closest to signal protomodel for UL map"
+                    self.comments["yold"]="old y value (fb) closest to signal protomodel for UL map"
+                    self.comments["ynew"]="new y value (fb) closest to signal protomodel for UL map"
+                    D["ynew"]=oldv+sigmaN
                 # print ( "    `--- adding %s %s" % ( oldv, sigmaN ) )
                 txnd.y_values[yi]=oldv + sigmaN
+            self.addToStats ( label, D )
             dataset.txnameList[i].txnameData = txnd
             dataset.txnameList[i].sigmaN = sigmaN
         return dataset
@@ -411,6 +459,9 @@ class ExpResModifier:
                  "protomodel": '"%s"' % self.protomodel, "timestamp": time.asctime() }
         with open ( filename,"wt" ) as f:
             f.write ( str(meta)+"\n" )
+            if len(self.comments)>0:
+                f.write ( "# explanations on the used variables:\n" )
+                f.write ( "# =====================================\n" )
             for k,v in self.comments.items():
                 f.write ( f"# {k}: {v}\n" )
             f.write ( '{' )
@@ -552,7 +603,7 @@ class ExpResModifier:
 
     def cleanTxNameData ( self, txnd ):
         txnd.y_values=numpy.array ( txnd.y_values, dtype=numpy.float32 )
-            
+
         if txnd.dimensionality == 1:
             return txnd
         txnd.tri._points = numpy.array ( txnd.tri._points, dtype=numpy.float32 )
