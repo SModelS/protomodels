@@ -2,6 +2,8 @@
 
 """ Code that decides which analyses can be combined and which cannot """
 
+from smodels.theory import theoryPrediction
+theoryPrediction.TheoryPrediction.drmax = 3.
 from smodels.theory.theoryPrediction import TheoryPrediction
 import fnmatch
 
