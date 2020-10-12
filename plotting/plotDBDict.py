@@ -9,12 +9,14 @@ import scipy.stats
 import matplotlib.mlab as mlab
 
 class Plotter:
-    def __init__ ( self, pathname, filtervalue: float, comment ):
+    def __init__ ( self, pathname, filtervalue: float, comment, lognormal = True ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
         :param comment: an optional comment, to write in the plot
+        :param lognormal: if False, use Gauss, else lognormal
         """
+        self.lognormal = lognormal ## False: gauss, True: lognormal
         self.filenames = []
         if comment in [ "None", "", "none" ]:
             comment = None
@@ -70,9 +72,13 @@ class Plotter:
         fakes = []
         bigger = 0
         n= 10000
-        lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
-        # lmbda[np.where(lmbda<0.)] = 0.
-        lmbda = lmbda[lmbda>0.]
+        if self.lognormal: ## lognormal
+            loc = bg**2 / np.sqrt ( bg**2 + bgerr**2 )
+            stderr = np.sqrt ( np.log ( 1 + bgerr**2 / bg**2 ) )
+            lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
+        else: ## Gauss
+            lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
+            lmbda = lmbda[lmbda>0.]
         fakeobs = scipy.stats.poisson.rvs ( lmbda )
         return sum(fakeobs>obs) / len(fakeobs)
 
@@ -185,12 +191,12 @@ def main():
             type=str, default='./pDatabase.png' )
     argparser.add_argument ( '-c', '--comment', nargs='?',
             help='an optional comment, to put in the plot [None]',
-            type=str, default=None )
+            type=str, default="(lognormal)" )
     argparser.add_argument ( '-f', '--filter', nargs='?',
             help='filter out signal regions with expectedBG<x [x=-1.]',
             type=float, default=-1. )
     args=argparser.parse_args()
-    plotter = Plotter ( args.dictfile, args.filter, args.comment )
+    plotter = Plotter ( args.dictfile, args.filter, args.comment, True )
     plotter.plot( "origS", "S", args.outfile )
 
 if __name__ == "__main__":
