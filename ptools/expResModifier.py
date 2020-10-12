@@ -487,8 +487,14 @@ class ExpResModifier:
             return listOfExpRes
         ret = []
         self.produceTopoList()
-        self.log ( "now add the signals from %s, %d topos" % \
-                   ( self.getPModelName(), len(self.topos) ) )
+        ctr,els = 0, ""
+        for topo in self.topos:
+            for el in topo.elementList:
+                ctr+=1
+                els += str(el) + ", "
+        els=els[:-2]
+        self.log ( "now add the signals from %s, %d topologies: %s" % \
+                   ( self.getPModelName(), ctr, els ) )
         addedUL, addedEM = 0, 0
         print ( f"{len(listOfExpRes)} results: ", end="" )
         for l,expRes in enumerate(listOfExpRes):
