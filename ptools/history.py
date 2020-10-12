@@ -14,7 +14,7 @@ class History:
         self.handle = open ( outfile, "wt" )
         self.handle.write ( f"# history recording {time.asctime()}\n" )
         self.handle.write ( "[" )
-        self.pprint ( f"staring history recorder at {self.outfile}." )
+        self.pprint ( f"starting history recorder at {self.outfile}." )
 
     def add ( self, protomodel ):
         """ add protomodel from step """
