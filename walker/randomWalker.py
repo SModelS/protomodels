@@ -270,7 +270,6 @@ class RandomWalker:
         self.log ( "done check for result to go into hiscore list" )
         self.log ( "Step %d/%s finished." % ( self.protomodel.step, smaxstp ) )
 
-
     def checkIfToTeleport ( self, pmax=0.1, norm = 10.0 ):
         """ check if we should teleport to a high score model. If yes, then we
             should then also perform the teleportation. The teleportation is
@@ -351,6 +350,13 @@ class RandomWalker:
         with open( "%s/walker%d.log" % ( self.rundir, self.walkerid ), "a" ) as f:
             f.write ( "[randomWalker-%s] %s\n" % ( time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
+    def record ( self ):
+        """ if recorder is defined, then record. """
+        ## do we have a history recorder?
+        if not hasattr ( self, "recorder" ):
+            return
+        self.recorder.add ( self.manipulator.M )
+
     def walk ( self, catchem=False ):
         """ Now perform the random walk """
         # self.printStats ( substep = 2 )
@@ -364,9 +370,11 @@ class RandomWalker:
 
             if not catchem:
                 self.onestep()
+                self.record()
             else:
                 try:
                     self.onestep()
+                    self.record()
                 except Exception as e:
                     # https://bioinfoexpert.com/2016/01/18/tracing-exceptions-in-multiprocessing-in-python/
                     self.pprint ( "taking a step resulted in exception: %s, %s" % (type(e), e ) )
