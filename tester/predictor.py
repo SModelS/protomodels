@@ -285,7 +285,8 @@ class Predictor:
                 self.pprint ( "I received %s as r. What do I do with this?" % r )
                 r = 23.
             rexp = theorypred.getRValue(expected=True)
-            tpList.append( (r, rexp, self.combiner.removeDataFromTheoryPred ( theorypred ) ) )
+            # tpList.append( (r, rexp, self.combiner.removeDataFromTheoryPred ( theorypred ) ) )
+            tpList.append( (r, rexp, theorypred ) )
             rvalues.append(r)
         while len(rvalues)<2:
             rvalues.append(0.)
