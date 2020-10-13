@@ -1,0 +1,34 @@
+#: table_doi: 10.17182/hepdata.85726.v1/t27
+#: name: Expected limit 1lbb 1D massless
+#: description: The expected cross-section exclusion as a function of the $\tilde{\chi}_{1}^{\pm}$/$\tilde{\chi}_{2}^{0}$ masses for the $1lb\bar{b}$ analysis for signal models assuming $m(\tilde{\chi}_{1}^{0}) = 0$ GeV.
+#: data_file: 1D_massless_1D_bb_exp.yaml
+#: data_license:   
+#: keyword reactions: P P --> CHARGINO1 NEUTRALINO2 X
+#: keyword observables: 
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Electroweak | Limit | Expected | Leptonic | Chargino | Neutralino | Proton-Proton Scattering
+#: SQRT(S) [GEV],13000.0
+M(CHARGINO1/NEUTRALINO2) [GEV],M(LIMIT) [GEV]
+150.0,0.6513
+175.0,0.6405
+250.0,0.5138
+275.0,0.5448
+300.0,0.5024
+325.0,0.457
+350.0,0.5035
+375.0,0.5029
+400.0,0.5222
+425.0,0.5184
+450.0,0.5597
+475.0,0.6369
+500.0,0.7291
+525.0,0.8186
+550.0,0.9372
+600.0,1.1736
+625.0,1.3748
+650.0,1.5507
+675.0,1.6353
+700.0,1.9783
+750.0,2.6557
+800.0,3.5937
+

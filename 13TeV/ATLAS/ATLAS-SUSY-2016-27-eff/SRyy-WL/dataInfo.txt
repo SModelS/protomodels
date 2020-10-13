@@ -1,0 +1,7 @@
+dataId: SRyy-WL
+dataType: efficiencyMap
+observedN: 6
+expectedBG: 3.7
+bgError: 1.1
+upperLimit: 0.243*fb
+expectedUpperLimit: 0.18*fb

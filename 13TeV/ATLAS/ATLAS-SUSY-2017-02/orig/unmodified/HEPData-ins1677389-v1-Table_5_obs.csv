@@ -1,0 +1,24 @@
+#: table_doi: 10.17182/hepdata.83418.v1/t5
+#: name: Table 5
+#: description: Observed and expected 95% limits in the m(higgsino) vs BR(higgsino to higgs+gravitino) plane. The regions above the lines are excluded by the analyses.
+#: data_file: excluded_BR.yaml
+#: keyword reactions: P P --> HIGGSINO HIGGSINO X --> HIGGS HIGGS NEUTRALINO NEUTRALINO X --> BQ BQBAR BQ BQBAR X
+#: keyword observables: SIG
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Proton-Proton Scattering | Supersymmetry | SUSY | Higgs | Higgsino | Higgs pair Production | Beauty
+#: RE,P P --> HIGGSINO HIGGSINO X --> HIGGS HIGGS NEUTRALINO NEUTRALINO X --> BQ BQBAR BQ BQBAR X
+Mass of HIGGSINO [GEV],"Excluded BR to higgs, Observed []"
+130.0,38.86968641317603
+150.0,62.915388676665174
+200.0,90.05382004587211
+250.0,108.30606321590027
+300.0,57.11333616007301
+400.0,44.72460096099074
+500.0,48.39627215788627
+600.0,54.47138261649219
+700.0,64.16484963159739
+750.0,71.33271122381468
+800.0,81.20479254640651
+900.0,102.54419167162683
+1000.0,119.70468689475464
+

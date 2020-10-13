@@ -1,0 +1,8 @@
+dataId: SRE
+dataType: efficiencyMap
+observedN: 3
+expectedBG: 3.64
+bgError: 0.79
+upperLimit: 0.17*fb	# official number taken from ATLAS (table 14) (calculated value: 0.145*fb)
+expectedUpperLimit: 0.177*fb	# official number taken from ATLAS (table 14) (calculated value: 0.175*fb)
+

@@ -1,0 +1,36 @@
+#: table_doi: 10.17182/hepdata.91374.v1/t73
+#: name: Figure 36a
+#: description: Acceptance (note the $z$-axis is in units of $10^{-4}$) for the N2C1m VBF higgsino process in the SR-VBF-high region.  Truth dilepton invariant mass is constrained to be within the range [1,40] GeV.
+#: data_file: figure_36a.yaml
+#: keyword reactions: P P --> HIGGSINO HIGGSINO JET JET
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Proton-Proton Scattering
+$m(\tilde{\chi}_{2}^{0})$ [GeV],"$\Delta m(\tilde{\chi}_{2}^{0},\tilde{\chi}_{1}^{0})$ [GeV]",Acceptance (note the $z$-axis is in units of $10^{-4}$)
+40.0,2.0,0.12966
+40.0,3.0,0.56621
+40.0,5.0,0.90274
+40.0,10.0,0.61477
+40.0,20.0,0.22357
+40.0,40.0,0.029239
+60.0,2.0,0.38146
+60.0,3.0,1.2734
+60.0,5.0,2.3133
+60.0,10.0,2.8525
+60.0,20.0,1.4602
+60.0,40.0,0.34312
+80.0,2.0,0.31332
+80.0,3.0,1.202
+80.0,5.0,3.1972
+80.0,10.0,3.943
+80.0,20.0,2.8234
+80.0,40.0,0.91408
+120.0,2.0,0.21484
+120.0,3.0,0.99291
+120.0,5.0,2.7787
+120.0,10.0,5.4698
+120.0,20.0,4.6613
+120.0,40.0,2.584
+100.0,2.0,0.28214
+100.0,3.0,1.1085
+100.0,5.0,2.8669
+

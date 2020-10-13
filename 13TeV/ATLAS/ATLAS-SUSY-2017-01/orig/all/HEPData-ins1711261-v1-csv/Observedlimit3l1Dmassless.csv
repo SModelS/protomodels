@@ -1,0 +1,16 @@
+#: table_doi: 10.17182/hepdata.85726.v1/t32
+#: name: Observed limit 3l 1D massless
+#: description: The observed cross-section exclusion as a function of the $\tilde{\chi}_{1}^{\pm}$/$\tilde{\chi}_{2}^{0}$ masses for the $3l$ analysis for signal models assuming $m(\tilde{\chi}_{1}^{0}) = 0$ GeV.
+#: data_file: 1D_massless_1D_3l_obs.yaml
+#: data_license:   
+#: keyword reactions: P P --> CHARGINO1 NEUTRALINO2 X
+#: keyword observables: 
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Electroweak | Limit | Observed | Three Lepton | Chargino | Neutralino | Proton-Proton Scattering
+#: SQRT(S) [GEV],13000.0
+M(CHARGINO1/NEUTRALINO2) [GEV],M(LIMIT) [GEV]
+150.0,0.9317
+175.0,1.4019
+225.0,2.4934
+250.0,4.0082
+

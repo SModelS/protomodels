@@ -1,0 +1,20 @@
+#: table_doi: 10.17182/hepdata.85726.v1/t20
+#: name: Observed limit 1lyy 1D diagonal
+#: description: The observed cross-section exclusion as a function of the $\tilde{\chi}_{1}^{\pm}$/$\tilde{\chi}_{2}^{0}$ masses for the $1l\gamma\gamma$ analysis for signal models with $m(\tilde{\chi}_{2}^{0}) - m(\tilde{\chi}_{1}^{0}) = 130$ GeV.
+#: data_file: 1D_diagonal_1D_yy_obs.yaml
+#: data_license:   
+#: keyword reactions: P P --> CHARGINO1 NEUTRALINO2 X
+#: keyword observables: 
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Electroweak | Limit | Observed | Photon | Chargino | Neutralino | Proton-Proton Scattering
+#: SQRT(S) [GEV],13000.0
+M(CHARGINO1/NEUTRALINO2) [GEV],M(LIMIT) [GEV]
+152.5,1.3925
+165.0,1.913
+177.5,2.2904
+190.0,2.7463
+202.5,3.7242
+215.0,4.3008
+227.0,5.0051
+240.0,5.7867
+

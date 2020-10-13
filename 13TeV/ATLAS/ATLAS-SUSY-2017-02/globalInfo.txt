@@ -1,0 +1,12 @@
+id: ATLAS-SUSY-2017-02
+sqrts: 13*TeV
+lumi: 36.1/fb
+prettyName: 0L + jets + Etmiss
+url: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/SUSY-2017-02/
+arxiv: https://arxiv.org/abs/1806.04030
+publication: https://journals.aps.org/prd/abstract/10.1103/PhysRevD.98.092002
+contact: atlas-phys-susy-conveners@cern.ch
+comment: Low-mass results (figaux 2) have been added to the upper limit map of the high-mass analysis (figaux 3) for higgsino masses <= 300GeV.
+private: False
+implementedBy: Philipp Neuhuber
+lastUpdate: 2020/3/30

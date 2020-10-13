@@ -1,0 +1,39 @@
+#: table_doi: 10.17182/hepdata.83418.v1/t6
+#: name: Table 6
+#: description: The observed and expected 95% upper limits on the total pair production cross section for degenerate higgsinos as a function of m(higgsino) for the high-mass search. Only the high-mass analysis results are used in this figure. 
+#: data_file: GGMupperLimit_HM.yaml
+#: keyword reactions: P P --> HIGGSINO HIGGSINO X --> HIGGS HIGGS NEUTRALINO NEUTRALINO X --> BQ BQBAR BQ BQBAR X
+#: keyword observables: SIG
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Proton-Proton Scattering | Supersymmetry | SUSY | Higgs | Higgsino | Higgs pair Production | Beauty
+#: RE,P P --> HIGGSINO HIGGSINO X --> HIGGS HIGGS NEUTRALINO NEUTRALINO X --> BQ BQBAR BQ BQBAR X
+#: Mass of HIGGSINO [GEV],"Excluded cross section, Expected [fb] []"
+130.0,1.0,1893.1219243974278
+150.0,1.0,2219.6064284659137
+200.0,1.0,746.3764888934703
+250.0,1.0,287.0955725979245
+300.0,1.0,118.48294426753185
+400.0,1.0,23.796579958517626
+500.0,1.0,11.167964293321608
+600.0,1.0,5.9048501549016645
+700.0,1.0,3.9159058324295906
+750.0,1.0,3.4391936843973294
+800.0,1.0,2.938207087757502
+900.0,1.0,2.5210781501427832
+1000.0,1.0,2.551603414354766
+130.0,0.0,1893.1219243974278
+150.0,0.0,2219.6064284659137
+200.0,0.0,746.3764888934703
+250.0,0.0,287.0955725979245
+300.0,0.0,118.48294426753185
+400.0,0.0,23.796579958517626
+500.0,0.0,11.167964293321608
+600.0,0.0,5.9048501549016645
+700.0,0.0,3.9159058324295906
+750.0,0.0,3.4391936843973294
+800.0,0.0,2.938207087757502
+900.0,0.0,2.5210781501427832
+1000.0,0.0,2.551603414354766
+
+
+

@@ -1,0 +1,8 @@
+dataId: SRATW
+dataType: efficiencyMap
+observedN: 9
+expectedBG: 9.3
+bgError: 2.2
+upperLimit: 0.27*fb	# official number taken from ATLAS (table 14) (calculated value: 0.243*fb)
+expectedUpperLimit: 0.266*fb	# official number taken from ATLAS (table 14) (calculated value: 0.243*fb)
+

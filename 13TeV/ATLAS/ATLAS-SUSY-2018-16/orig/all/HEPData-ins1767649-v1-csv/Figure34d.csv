@@ -1,0 +1,36 @@
+#: table_doi: 10.17182/hepdata.91374.v1/t64
+#: name: Figure 34d
+#: description: Efficiency for the N2N1 VBF higgsino process in the SR-VBF-low region.  Truth dilepton invariant mass is constrained to be within the range [1,40] GeV.
+#: data_file: figure_34d.yaml
+#: keyword reactions: P P --> HIGGSINO HIGGSINO JET JET
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Proton-Proton Scattering
+$m(\tilde{\chi}_{2}^{0})$ [GeV],"$\Delta m(\tilde{\chi}_{2}^{0},\tilde{\chi}_{1}^{0})$ [GeV]",Efficiency
+40.0,2.0,0.39425
+40.0,3.0,0.49858
+40.0,5.0,0.49447
+40.0,10.0,0.48689
+40.0,20.0,0.43548
+40.0,40.0,0.53464
+60.0,2.0,0.47648
+60.0,3.0,0.50239
+60.0,5.0,0.39627
+60.0,10.0,0.4326
+60.0,20.0,0.46374
+60.0,40.0,0.49186
+80.0,2.0,0.47587
+80.0,3.0,0.46353
+80.0,5.0,0.44046
+80.0,10.0,0.42114
+80.0,20.0,0.44555
+80.0,40.0,0.49626
+120.0,2.0,0.32988
+120.0,3.0,0.4553
+120.0,5.0,0.45906
+120.0,10.0,0.40759
+120.0,20.0,0.42165
+120.0,40.0,0.44406
+100.0,2.0,0.40042
+100.0,3.0,0.45525
+100.0,5.0,0.46874
+

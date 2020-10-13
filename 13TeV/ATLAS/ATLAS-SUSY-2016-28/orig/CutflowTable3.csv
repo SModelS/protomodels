@@ -1,0 +1,53 @@
+#: table_doi: 10.17182/hepdata.79165.v2/t98
+#: name: Cutflow Table 3
+#: description: Cutflow table in b0L-SRC for a pair produced bottom squark of 450 GeV decaying into a 430 GeV neutralino in a symmetric decay scenario.
+#: data_file: data135.yaml
+#: data_license:   
+#: keyword reactions: P P --> SBOTTOM SBOTTOMBAR X
+#: keyword observables: Cutflow
+#: keyword phrases: Proton-Proton Scattering | Supersymmetry | SUSY
+#: keyword cmenergies: 13000.0
+#: RE,P P --> SBOTTOM SBOTTOMBAR X
+#: SQRT(S) [GEV],13000.0
+REQUIREMENT,UNWEIGHTED COUNTS
+Total,
+Generator filter ($E^{\mathrm{miss}}_T>200$ GeV),90000.0
+Production filter,51218.0
+$E^{\mathrm{miss}}_T$ trigger,51197.0
+Event cleaning,50608.0
+0 leptons,49878.0
+2-5 jets ($p_T>20$ GeV),40490.0
+Leading light jet,37908.0
+"$\Delta\phi(j_1,E^{\mathrm{miss}}_T)$>2.5",36429.0
+"$\Delta\phi(j_2,E^{\mathrm{miss}}_T)$>0.2",34018.0
+Subleading jet b-tagged,11175.0
+2 b-jets,2513.0
+$H_T^4<70$ GeV,2440.0
+$E^{\mathrm{miss}}_T>500$ GeV,399.0
+$p_T(j_1$)$>500$ GeV,359.0
+$m_{eff}>1300$ GeV,239.0
+${\cal A}>0.8$,194.0
+$m_{jj}>200$ GeV,189.0
+
+#: RE,P P --> SBOTTOM SBOTTOMBAR X
+#: SQRT(S) [GEV],13000.0
+REQUIREMENT,WEIGHTED COUNTS
+Total,34234.82
+Generator filter ($E^{\mathrm{miss}}_T>200$ GeV),5238.42
+Production filter,3181.28
+$E^{\mathrm{miss}}_T$ trigger,3179.77
+Event cleaning,3143.16
+0 leptons,3105.05
+2-5 jets ($p_T>20$ GeV),2519.22
+Leading light jet,2345.56
+"$\Delta\phi(j_1,E^{\mathrm{miss}}_T)$>2.5",2246.92
+"$\Delta\phi(j_2,E^{\mathrm{miss}}_T)$>0.2",2101.19
+Subleading jet b-tagged,696.88
+2 b-jets,159.58
+$H_T^4<70$ GeV,154.62
+$E^{\mathrm{miss}}_T>500$ GeV,23.91
+$p_T(j_1$)$>500$ GeV,21.53
+$m_{eff}>1300$ GeV,14.5
+${\cal A}>0.8$,11.53
+$m_{jj}>200$ GeV,11.2
+

@@ -1,0 +1,19 @@
+#: table_doi: 10.17182/hepdata.85726.v1/t17
+#: name: Expected limit 3l 1D diagonal
+#: description: The expected cross-section exclusion as a function of the $\tilde{\chi}_{1}^{\pm}$/$\tilde{\chi}_{2}^{0}$ masses for the $3l$ analysis for signal models with $m(\tilde{\chi}_{2}^{0}) - m(\tilde{\chi}_{1}^{0}) = 130$ GeV.
+#: data_file: 1D_diagonal_1D_3l_exp.yaml
+#: data_license:   
+#: keyword reactions: P P --> CHARGINO1 NEUTRALINO2 X
+#: keyword observables: 
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Electroweak | Limit | Expected | Three Lepton | Chargino | Neutralino | Proton-Proton Scattering
+#: SQRT(S) [GEV],13000.0
+M(CHARGINO1/NEUTRALINO2) [GEV],M(LIMIT) [GEV]
+152.5,1.8643
+177.5,1.8756
+190.0,2.1442
+202.5,3.4382
+215.0,3.3925
+227.0,4.7315
+240.0,4.0235
+

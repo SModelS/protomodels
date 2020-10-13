@@ -1,0 +1,8 @@
+dataId: SR2-DF-150
+dataType: efficiencyMap
+observedN: 11
+expectedBG: 11.5
+bgError: 3.1
+upperLimit: 0.32*fb	# official number taken from ATLAS (calculated value: 0.283*fb)
+expectedUpperLimit: 0.337*fb	# official number taken from ATLAS (calculated value: 0.321*fb)
+

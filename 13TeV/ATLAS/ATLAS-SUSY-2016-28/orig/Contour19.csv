@@ -1,0 +1,53 @@
+#: table_doi: 10.17182/hepdata.79165.v2/t48
+#: name: Contour 19
+#: description: Expected exclusion limit for best b0L SR for sbottom pair production with asymmetric decay into a bottom quark and a neutralino or a top quark and a chargino.
+#: data_file: data47.yaml
+#: data_license:   
+#: keyword reactions: P P --> SBOTTOM SBOTTOMBAR X
+#: keyword observables: EXCLUSION LIMIT
+#: keyword phrases: Proton-Proton Scattering | Supersymmetry | SUSY
+#: keyword cmenergies: 13000.0
+#: RE,P P --> SBOTTOM SBOTTOMBAR X
+#: SQRT(S) [GEV],13000.0
+M(SBOTTOM) [GEV],M(NEUTRALINO1) [GEV]
+716.6,306.2
+735.6,297.3
+740.4,293.8
+757.3,281.2
+761.9,277.9
+769.2,268.8
+777.3,256.2
+784.1,243.8
+788.1,235.9
+791.1,231.2
+799.2,218.8
+806.2,206.2
+810.5,193.8
+812.0,181.2
+814.1,168.8
+814.4,167.1
+816.2,156.2
+817.9,143.8
+819.1,131.2
+820.1,118.8
+820.7,106.2
+820.7,100.0
+296.7,100.0
+296.7,106.2
+289.4,109.4
+282.5,112.5
+473.9,303.9
+498.4,306.2
+499.4,306.5
+525.6,308.3
+533.8,306.2
+551.9,296.5
+578.1,296.2
+604.4,295.3
+629.8,306.2
+630.6,306.7
+656.9,312.3
+683.1,312.7
+709.4,308.8
+716.6,306.2
+

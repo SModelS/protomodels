@@ -1,0 +1,70 @@
+#: table_doi: 10.17182/hepdata.77891.v5/t29
+#: name: Exclusion contour(obs.) 1  : Meff
+#: description: Observed 95% CL exclusion contours from Meff-based searches on the light-flavor squark and lightest neutralino masses in a SUSY scenario where squarks are produced in pairs and decay directly into the lightest neutralino, $\tilde{q} \rightarrow q \tilde{\chi}_{1}^{0}$.
+#: data_file: data29.yaml
+#: data_license:   
+#: keyword reactions: P P --> SQUARK SQUARK X
+#: keyword observables: CLS
+#: keyword phrases: 
+#: keyword cmenergies: 13000.0
+#: SQRT(S) [GEV],13000.0
+M(SQUARK) [GEV],M(NEUTRALINO1) [GEV]
+410.4,410.4
+425.0,425.0
+434.1,434.1
+461.2,461.2
+475.0,475.0
+497.4,497.4
+525.0,525.0
+547.3,536.2
+575.0,553.0
+605.1,563.8
+625.0,572.5
+675.0,572.2
+699.9,563.8
+725.0,549.9
+757.2,536.2
+775.0,530.8
+825.0,518.3
+866.4,508.8
+875.0,507.4
+925.0,503.1
+975.0,506.8
+981.9,508.8
+1025.0,523.6
+1054.0,536.2
+1075.0,544.5
+1125.0,563.4
+1126.0,563.8
+1175.0,587.4
+1187.0,591.2
+1225.0,609.8
+1275.0,612.1
+1325.0,604.5
+1375.0,594.6
+1382.0,591.2
+1425.0,567.9
+1430.0,563.8
+1457.0,536.2
+1475.0,512.3
+1478.0,508.8
+1494.0,481.2
+1501.0,453.8
+1503.0,426.2
+1505.0,398.8
+1510.0,371.2
+1517.0,343.8
+1524.0,316.2
+1525.0,305.8
+1527.0,288.8
+1528.0,261.2
+1528.0,233.8
+1529.0,206.2
+1531.0,178.8
+1533.0,151.2
+1534.0,123.8
+1533.0,96.25
+1527.0,68.75
+1525.0,63.38
+1516.0,41.25
+

@@ -1,0 +1,20 @@
+txName: T2ttoff
+constraint: [[[b, W]],[[b, W]]]
+condition: None
+conditionDescription: None
+susyProcess: pp --> stop stop, stop  --> top^* lsp
+checked: False
+figureUrl: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/SUSY-2016-15/figaux_10c.png
+dataUrl: https://www.hepdata.net/record/ins1623207?version=7&table=EffSRC3
+source: ATLAS
+validated: False
+axes: [[x, y], [x, y]]
+finalState: ['MET', 'MET']
+efficiencyMap: [[[[3.0000E+02*GeV,1.8800E+02*GeV],[3.0000E+02*GeV,1.8800E+02*GeV]],0.067351],
+[[[3.0000E+02*GeV,1.7300E+02*GeV],[3.0000E+02*GeV,1.7300E+02*GeV]],0.059875],
+[[[3.5000E+02*GeV,2.0000E+02*GeV],[3.5000E+02*GeV,2.0000E+02*GeV]],0.17192],
+[[[3.5000E+02*GeV,1.8800E+02*GeV],[3.5000E+02*GeV,1.8800E+02*GeV]],0.19153],
+[[[2.5000E+02*GeV,1.5000E+02*GeV],[2.5000E+02*GeV,1.5000E+02*GeV]],0.026501],
+[[[2.5000E+02*GeV,1.2000E+02*GeV],[2.5000E+02*GeV,1.2000E+02*GeV]],0.038963],
+[[[2.5000E+02*GeV,9.0000E+01*GeV],[2.5000E+02*GeV,9.0000E+01*GeV]],0.0079757],
+[[[3.0000E+02*GeV,1.5000E+02*GeV],[3.0000E+02*GeV,1.5000E+02*GeV]],0.067201]]

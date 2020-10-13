@@ -1,0 +1,8 @@
+dataId: SRDlow
+dataType: efficiencyMap
+observedN: 27
+expectedBG: 25.1
+bgError: 6.2
+upperLimit: 0.5*fb	# official number taken from ATLAS (table 14) (calculated value: 0.55*fb)
+expectedUpperLimit: 0.454*fb	# official number taken from ATLAS (table 14) (calculated value: 0.491*fb)
+

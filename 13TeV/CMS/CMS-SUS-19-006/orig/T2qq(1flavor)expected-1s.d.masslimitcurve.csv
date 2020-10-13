@@ -1,0 +1,43 @@
+#: table_doi: 10.17182/hepdata.90835.v1/t72
+#: name: T2qq (1 flavor) expected - 1 s.d. mass limit curve
+#: description: Exclusion limits assuming the approximate-NNLO+NNLL cross sections (single flavor)
+#: data_file: t2qq_(1_flavor)_expected_-_1_s.d._mass_limit_curve.yaml
+#: keyword observables: CLS
+#: keyword phrases: SUSY | Supersymmetry
+#: keyword cmenergies: 13000
+#: keyword reactions: P P --> SQUARK SQUARK | SQUARK --> Q NEUTRALINO1
+#: LUMINOSITY [fb$^{-1}$],137
+#: Limit boundary,Expected - 1 s.d.
+M(SQUARK) [GeV],M(NEUTRALINO1) [GeV]
+500.0,474.9
+550.0,455.87
+555.76,450.0
+574.86,424.86
+600.0,405.25
+602.56,402.56
+610.66,400.0
+638.1,388.1
+650.0,388.18
+662.0,388.0
+700.0,387.78
+713.58,386.42
+750.0,388.75
+766.23,383.77
+800.0,375.9
+818.5,368.5
+850.0,353.13
+855.04,350.0
+900.0,314.87
+908.55,308.55
+920.69,300.0
+950.0,257.83
+952.5,252.5
+962.53,237.47
+988.35,200.0
+992.24,184.48
+1000.0,156.0
+1007.9,115.87
+1012.3,100.0
+1018.2,36.951
+1021.5,1.0
+

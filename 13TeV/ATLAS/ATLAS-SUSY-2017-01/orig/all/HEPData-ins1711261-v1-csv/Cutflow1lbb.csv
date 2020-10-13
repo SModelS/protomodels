@@ -1,0 +1,66 @@
+#: table_doi: 10.17182/hepdata.85726.v1/t70
+#: name: Cutflow 1lbb
+#: description: Event selection cutflow for SM background (pre-fit) and representative signal samples for the $1lb\bar{b}$ channel. The masses of next-lightest-neutralinos and LSPs are reported. Only statistical uncertainties are shown. The MC statistics for the signal samples is 28K, 29K and 29K events, respectively. Samples are produced with generator filters which selects $h \rightarrow b\bar{b}$ and $W \rightarrow l \nu$ decays. ``All events" for SUSY scenarios represent the total number of signal events for the models considered taking into account the BR of $W \rightarrow l \nu$ (0.324) and $h \rightarrow b\bar{b}$ (0.582).
+#: data_file: cutflow_1Lbb.yaml
+#: data_license:   
+#: keyword reactions: P P --> CHARGINO1 NEUTRALINO2 X
+#: keyword observables: 
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Electroweak | Cutflow | Leptonic | Chargino | Neutralino | Proton-Proton | Scattering
+#: SQRT(S) [GEV],13000.0
+Cut [],"Wh(225,50) []",stat +,stat -
+All events,7931.1,0,0
+$N_{\mathrm{leptons}} \geq$ 1,3945,43.3,-43.3
+$N_{\mathrm{jets}} (p_{\mathrm{T}} >25~GeV) \leq$4,2846.3,36.7,-36.7
+$E_{\mathrm{T}}^{\mathrm{miss}} > $40GeV,2515.3,34.8,-34.8
+$m_{\mathrm{T}}>$40GeV,2147.8,32.6,-32.6
+$E_{\mathrm{T}}^{\mathrm{miss}}>$100GeV+$E_{\mathrm{T}}^{\mathrm{miss}}$-Trigger,833.2,20.2,-20.2
+$N_{\mathrm{leptons}} = 1$,719.9,18.7,-18.7
+$N_{\mathrm{jets}} (p_{\mathrm{T}} >25~GeV) = $2 or 3,1866.7,29.9,-29.9
+$N_{b-\mathrm{jets}} = $2,672.9,18.7,-18.7
+$m_{b\bar{b}}>$50GeV,665.8,18.6,-18.6
+105$<m_{b\bar{b}}<$135GeV,367.8,14.0,-14.0
+$m_{\mathrm{CT}}>$160GeV,44.1,5.21,-5.21
+$E_{\mathrm{T}}^{\mathrm{miss}}>$200GeV,29.8,3.3,-3.3
+100$<m_{\mathrm{T}}<$140GeV,9.89,2.01,-2.01
+140$<m_{\mathrm{T}}<$200GeV,7.20,1.6,-1.6
+$m_{\mathrm{T}}>$200GeV,0.73,0.4,-0.4
+
+#: SQRT(S) [GEV],13000.0
+Cut [],"Wh(300,25) []",stat +,stat -
+All events,2634.2,0,0
+$N_{\mathrm{leptons}} \geq$ 1,1427.1,14.5,-14.5
+$N_{\mathrm{jets}} (p_{\mathrm{T}} >25~GeV) \leq$4,1066.1,12.7,-12.7
+$E_{\mathrm{T}}^{\mathrm{miss}} > $40GeV,1006.1,12.7,-12.7
+$m_{\mathrm{T}}>$40GeV,896.5,11.8,-11.8
+$E_{\mathrm{T}}^{\mathrm{miss}}>$100GeV+$E_{\mathrm{T}}^{\mathrm{miss}}$-Trigger,520.6,8.8,-8.8
+$N_{\mathrm{leptons}} = 1$,455.6,8.3,-8.3
+$N_{\mathrm{jets}} (p_{\mathrm{T}} >25~GeV) = $2 or 3,767.1,10.69,-10.69
+$N_{b-\mathrm{jets}} = $2,283.1,6.5,-6.5
+$m_{b\bar{b}}>$50GeV,279.7,6.4,-6.4
+105$<m_{b\bar{b}}<$135GeV,157.2,4.89,-4.89
+$m_{\mathrm{CT}}>$160GeV,37.9,2.21,-2.21
+$E_{\mathrm{T}}^{\mathrm{miss}}>$200GeV,26.3,1.9,-1.9
+100$<m_{\mathrm{T}}<$140GeV,4.44,0.71,-0.71
+140$<m_{\mathrm{T}}<$200GeV,6.98,1.2,-1.2
+$m_{\mathrm{T}}>$200GeV,7.38,0.88,-0.88
+
+#: SQRT(S) [GEV],13000.0
+Cut [],"Wh(600,0) []",stat +,stat -
+All events,137,0,0
+$N_{\mathrm{leptons}} \geq$ 1,68.9,0.63,-0.63
+$N_{\mathrm{jets}} (p_{\mathrm{T}} >25~GeV) \leq$4,56.6,0.57,-0.57
+$E_{\mathrm{T}}^{\mathrm{miss}} > $40GeV,55.9,0.57,-0.57
+$m_{\mathrm{T}}>$40GeV,52.4,0.55,-0.55
+$E_{\mathrm{T}}^{\mathrm{miss}}>$100GeV+$E_{\mathrm{T}}^{\mathrm{miss}}$-Trigger,46.3,0.52,-0.52
+$N_{\mathrm{leptons}} = 1$,43.8,0.51,-0.51
+$N_{\mathrm{jets}} (p_{\mathrm{T}} >25~GeV) = $2 or 3,43.5,0.5,-0.5
+$N_{b-\mathrm{jets}} = $2,19.5,0.34,-0.34
+$m_{b\bar{b}}>$50GeV,19.4,0.34,-0.34
+105$<m_{b\bar{b}}<$135GeV,11.96,0.26,-0.26
+$m_{\mathrm{CT}}>$160GeV,7.84,0.21,-0.21
+$E_{\mathrm{T}}^{\mathrm{miss}}>$200GeV,7.13,0.2,-0.2
+100$<m_{\mathrm{T}}<$140GeV,0.48,0.05,-0.05
+140$<m_{\mathrm{T}}<$200GeV,0.79,0.06,-0.06
+$m_{\mathrm{T}}>$200GeV,5.16,0.17,-0.17
+

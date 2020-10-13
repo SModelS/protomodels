@@ -1,0 +1,30 @@
+#: table_doi: 10.17182/hepdata.85726.v1/t30
+#: name: Observed limit SS 1D massless
+#: description: The observed cross-section exclusion as a function of the $\tilde{\chi}_{1}^{\pm}$/$\tilde{\chi}_{2}^{0}$ masses for the $l^{\pm}l^{\pm}$ analysis for signal models assuming $m(\tilde{\chi}_{1}^{0}) = 0$ GeV.
+#: data_file: 1D_massless_1D_ss_obs.yaml
+#: data_license:   
+#: keyword reactions: P P --> CHARGINO1 NEUTRALINO2 X
+#: keyword observables: 
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Electroweak | Limit | Observed | Same-Sign | Chargino | Neutralino | Proton-Proton Scattering
+#: SQRT(S) [GEV],13000.0
+M(CHARGINO1/NEUTRALINO2) [GEV],M(LIMIT) [GEV]
+150.0,1.0072
+175.0,0.7377
+200.0,0.8642
+225.0,1.0245
+250.0,0.9427
+275.0,1.1756
+300.0,1.4725
+325.0,1.7967
+350.0,2.2454
+375.0,2.6164
+400.0,3.642
+425.0,4.7593
+450.0,5.1794
+475.0,6.7648
+500.0,8.4018
+525.0,8.8413
+550.0,11.4796
+575.0,13.5388
+

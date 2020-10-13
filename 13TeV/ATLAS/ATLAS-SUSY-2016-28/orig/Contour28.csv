@@ -1,0 +1,72 @@
+#: table_doi: 10.17182/hepdata.79165.v2/t57
+#: name: Contour 28
+#: description: Observed exclusion limit for b1L-SRA750 for sbottom pair production with asymmetric decay into a bottom quark and a neutralino or a top quark and a chargino.
+#: data_file: data56.yaml
+#: data_license:   
+#: keyword reactions: P P --> SBOTTOM SBOTTOMBAR X
+#: keyword observables: EXCLUSION LIMIT
+#: keyword phrases: Proton-Proton Scattering | Supersymmetry | SUSY
+#: keyword cmenergies: 13000.0
+#: RE,P P --> SBOTTOM SBOTTOMBAR X
+#: SQRT(S) [GEV],13000.0
+M(SBOTTOM) [GEV],M(NEUTRALINO1) [GEV]
+762.5,295.1
+764.1,293.8
+773.2,281.2
+777.8,268.8
+779.9,256.2
+782.7,243.8
+786.6,231.2
+787.5,227.6
+790.0,218.8
+793.2,206.2
+796.5,193.8
+802.2,181.2
+809.0,168.8
+812.5,162.3
+815.8,156.2
+820.7,143.8
+822.2,131.2
+822.4,118.8
+821.1,106.2
+821.1,100.0
+373.2,100.0
+373.2,106.2
+387.5,117.8
+388.8,118.8
+407.0,131.2
+412.5,135.0
+428.1,143.8
+437.5,151.3
+444.3,156.2
+452.0,168.8
+460.6,181.2
+462.5,184.0
+468.9,193.8
+479.5,206.2
+487.5,213.9
+492.5,218.8
+505.2,231.2
+512.5,238.4
+517.8,243.8
+531.0,256.2
+537.5,262.0
+546.8,268.8
+562.5,280.1
+565.4,281.2
+587.0,293.8
+587.5,294.1
+612.5,304.2
+617.4,306.2
+637.5,312.1
+653.2,318.8
+662.5,322.7
+684.0,331.2
+687.5,333.3
+700.3,331.2
+712.5,327.7
+730.0,318.8
+737.5,314.3
+749.2,306.2
+762.5,295.1
+

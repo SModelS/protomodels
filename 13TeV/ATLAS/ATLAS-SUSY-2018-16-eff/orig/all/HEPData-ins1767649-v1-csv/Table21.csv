@@ -1,0 +1,37 @@
+#: table_doi: 10.17182/hepdata.91374.v1/t95
+#: name: Table 21
+#: description: Number of signal events in SR-E-med for the (m($\tilde{\chi}_{2}^{0}$),m($\tilde{\chi}_{1}^{0}$)) = (155 GeV, 150 GeV) Higgsino signal model at different stages of selection before and after weighting events to correspond to 140/fb.
+#: data_file: table_21.yaml
+#: keyword reactions: P P --> HIGGSINO HIGGSINO
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Proton-Proton Scattering
+Selection,Raw Events,Weighted Events
+Initial number of events ($\mathcal{L}\times\sigma$),--,256690.0
+Initial number of events ($\mathcal{L}\times\sigma_{\geq 1 \textrm{jet}}$),--,59885.0
+Initial number of events ($\mathcal{L}\times\sigma_{\geq 1 \textrm{jet}}\times\mathcal{B}$),--,5909.0
+Generator Filters,240000,1273.41
+$E_{\text{T}}^{\text{miss}}$ trigger,141002,714.99
+2 leptons,20832,105.2
+veto $3 \text{GeV} < m_{\ell\ell} < 3.2 \text{GeV}$,19694,99.26
+Lepton author 16 veto,19668,99.11
+"${\min(\Delta\phi(\mathrm{any~jet},\mathbf{p}_{\mathrm{T}}^{\mathrm{miss}}))} > 0.4$",18876,95.4
+"${\Delta\phi(j_1,\mathbf{p}_{\mathrm{T}}^{\mathrm{miss}})} > 2.0$",18638,94.36
+lepton truth matching,18452,93.45
+$1 < {m_{\ell\ell}} < 60$ GeV,16526,83.9
+"$\Delta R_{ee} >$ 0.30, $\Delta R_{\mu\mu} >$ 0.05, $\Delta R_{e\mu} >$ 0.20",14726,73.31
+Leading lepton $p_{\mathrm{T}}$ $>$ 5 GeV,11959,59.96
+Number of jets $\geq$ 1,11872,59.39
+Leading jet $p_{\mathrm{T}}$ $>$100 GeV,10934,53.89
+Number of b-tagged jets = 0,9372,46.28
+$m_{\tau\tau}$ $<$ 0 or $>$ 160 GeV,7856,39.15
+ee or $\mu\mu$,7536,37.46
+$120 < {E_{\mathrm{T}}^{\mathrm{miss}}} < 200$ GeV,2879,14.84
+${E_{\mathrm{T}}^{\mathrm{miss}}}/{H_{\mathrm{T}}^{\smash{\mathrm{lep}}}} > 10$,2130,10.65
+${M_{\mathrm{T}}^{\mathrm{S}}} <50$ GeV,1365,6.71
+$m_{\ell\ell} < 30$ GeV,1365,6.71
+$m_{\ell\ell} < 20$ GeV,1365,6.71
+$m_{\ell\ell} < 10$ GeV,1361,6.7
+$m_{\ell\ell} < 5$ GeV,1358,6.68
+$m_{\ell\ell} < 3$ GeV,1013,4.96
+$m_{\ell\ell} < 2$ GeV,500,2.48
+

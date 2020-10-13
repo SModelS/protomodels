@@ -1,0 +1,27 @@
+#: table_doi: 10.17182/hepdata.85726.v1/t29
+#: name: Expected limit 1lyy 1D massless
+#: description: The expected cross-section exclusion as a function of the $\tilde{\chi}_{1}^{\pm}$/$\tilde{\chi}_{2}^{0}$ masses for the $1l\gamma\gamma$ analysis for signal models assuming $m(\tilde{\chi}_{1}^{0}) = 0$ GeV.
+#: data_file: 1D_massless_1D_yy_exp.yaml
+#: data_license:   
+#: keyword reactions: P P --> CHARGINO1 NEUTRALINO2 X
+#: keyword observables: 
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Electroweak | Limit | Expected | Photon | Chargino | Neutralino | Proton-Proton Scattering
+#: SQRT(S) [GEV],13000.0
+M(CHARGINO1/NEUTRALINO2) [GEV],M(LIMIT) [GEV]
+150.0,0.6363
+175.0,0.9206
+200.0,1.1336
+225.0,1.6747
+250.0,2.2842
+275.0,2.9936
+300.0,3.4843
+325.0,4.6192
+350.0,5.5019
+375.0,6.6998
+400.0,8.4229
+425.0,9.1848
+450.0,15.5402
+475.0,15.6516
+500.0,18.3222
+

@@ -1,0 +1,3 @@
+comment_by: Wolfgang Waltenberger
+date: Thu 25 Jul 2019 03:15:03 PM CEST
+comment: "Took out the T6WW and T6ZZ constraints to avoid double counting. I dont yet understand why this seems to have no effect on validation."

@@ -1,0 +1,53 @@
+#: table_doi: 10.17182/hepdata.79165.v2/t96
+#: name: Cutflow Table 1
+#: description: Cutflow table in b0L-SRA for a pair produced bottom squark of 1 TeV decaying into a 1 GeV neutralino in a symmetric decay scenario.
+#: data_file: data133.yaml
+#: data_license:   
+#: keyword reactions: P P --> SBOTTOM SBOTTOMBAR X
+#: keyword observables: Cutflow
+#: keyword phrases: Proton-Proton Scattering | Supersymmetry | SUSY
+#: keyword cmenergies: 13000.0
+#: RE,P P --> SBOTTOM SBOTTOMBAR X
+#: SQRT(S) [GEV],13000.0
+REQUIREMENT,UNWEIGHTED COUNTS
+Total,5000.0
+Production filter,4814.0
+$E^{\mathrm{miss}}_T$ trigger,4661.0
+Event cleaning,4614.0
+$E^{\mathrm{miss}}_T>250$ GeV,4070.0
+"$\min[\Delta\phi({\mathrm{jet}}_{1-4},E^{\mathrm{miss}}_T)]> 0.4$",3369.0
+$(E^{\mathrm{miss}}_T / m_{eff}) >0.25$,3133.0
+2-4 jets ($p_T>35$ GeV),2498.0
+$p_T(j_1)>130$ GeV,2496.0
+$p_T(j_2)>50$ GeV,2474.0
+$p_T(j_4)<50$ GeV,2071.0
+0 leptons,2055.0
+2 b-jets,698.0
+2 leading b-jets,587.0
+$m_{bb}>200$ GeV,576.0
+$m_{ct}>350$ GeV,419.0
+$m_{ct}>450$ GeV,330.0
+$m_{ct}>550$ GeV,243.0
+
+#: RE,P P --> SBOTTOM SBOTTOMBAR X
+#: SQRT(S) [GEV],13000.0
+REQUIREMENT,WEIGHTED COUNTS
+Total,222.06
+Production filter,210.64
+$E^{\mathrm{miss}}_T$ trigger,204.1
+Event cleaning,202.22
+$E^{\mathrm{miss}}_T>250$ GeV,177.45
+"$\min[\Delta\phi({\mathrm{jet}}_{1-4},E^{\mathrm{miss}}_T)]> 0.4$",146.61
+$(E^{\mathrm{miss}}_T / m_{eff}) >0.25$,136.06
+2-4 jets ($p_T>35$ GeV),108.97
+$p_T(j_1)>130$ GeV,108.91
+$p_T(j_2)>50$ GeV,108.07
+$p_T(j_4)<50$ GeV,90.18
+0 leptons,89.57
+2 b-jets,28.32
+2 leading b-jets,23.61
+$m_{bb}>200$ GeV,23.08
+$m_{ct}>350$ GeV,16.21
+$m_{ct}>450$ GeV,12.3
+$m_{ct}>550$ GeV,9.03
+

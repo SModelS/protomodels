@@ -1,0 +1,36 @@
+#: table_doi: 10.17182/hepdata.91374.v1/t60
+#: name: Figure 33f
+#: description: Efficiency for the C1C1 VBF higgsino process in the SR-VBF region.  Truth dilepton invariant mass is constrained to be within the range [1,40] GeV.
+#: data_file: figure_33f.yaml
+#: keyword reactions: P P --> HIGGSINO HIGGSINO JET JET
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Proton-Proton Scattering
+$m(\tilde{\chi}_{2}^{0})$ [GeV],"$\Delta m(\tilde{\chi}_{2}^{0},\tilde{\chi}_{1}^{0})$ [GeV]",Efficiency
+40.0,2.0,0.39517
+40.0,3.0,0.5266
+40.0,5.0,0.53693
+40.0,10.0,0.47214
+40.0,20.0,0.48028
+40.0,40.0,0.53249
+60.0,2.0,0.43871
+60.0,3.0,0.37984
+60.0,5.0,0.4047
+60.0,10.0,0.39786
+60.0,20.0,0.47195
+60.0,40.0,0.49145
+80.0,2.0,0.30873
+80.0,3.0,0.39247
+80.0,5.0,0.36259
+80.0,10.0,0.44316
+80.0,20.0,0.44369
+80.0,40.0,0.4439
+120.0,2.0,0.63659
+120.0,3.0,0.41221
+120.0,5.0,0.48723
+120.0,10.0,0.38891
+120.0,20.0,0.43162
+120.0,40.0,0.39453
+100.0,2.0,0.33579
+100.0,3.0,0.45499
+100.0,5.0,0.38223
+

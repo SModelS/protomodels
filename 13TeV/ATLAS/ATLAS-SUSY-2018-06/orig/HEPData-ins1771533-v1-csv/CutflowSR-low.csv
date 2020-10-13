@@ -1,0 +1,26 @@
+#: table_doi: 10.17182/hepdata.91127.v1/t29
+#: name: Cutflow SR-low
+#: description: Full list of event selections and MC generator-weighted yields and in $\text{SR-low}$ for the main $WZ$ background and a representative $\tilde{\chi}^{\pm}_{1}\tilde{\chi}^{0}_{2}$ signal point of mass 200 GeV and mass splitting $\Delta m = 100$ GeV normalized to 139 fb$^{-1}$. 40000 events were generated.
+#: data_file: Cutflow_SR-low.yaml
+#: keyword reaction: P P --> CHARGINO NEUTRALINO
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Supersymmetry | Electroweak | Proton-Proton Scattering
+#: cmenergies [GeV],13000
+#: reaction,P P --> CHARGINO NEUTRALINO
+#: region,SR-low
+Cut,"$\left(m(\tilde{\chi}^\pm_1/\tilde{\chi}^0_2),m(\tilde{\chi}^0_1)\right)=(200,100)$ GeV",error +,error -
+Initial number of events ($\mathcal{L} \times \sigma$),251230.0,,-
+Initial number of events ($\mathcal{L} \times \sigma \times \mathcal{B}$),8206.0,,-
+Generator filters ($\mathcal{L} \times \sigma \times \mathcal{B} \times \epsilon$),6017.0,,-
+"3 leptons with at least one same flavor, opposite-charge pair",1370.0,,-
+Dilepton triggers,1343.0,,-
+$b$-jet veto,1319.0,,-
+$m_{3\ell} >105$ GeV,1280.0,,-
+"lepton $p_\text{T} >$60,40,30 GeV",451.0,,-
+"$m_{\ell\ell}\in[75,105]$ GeV",443.0,,-
+jet veto,215.0,,-
+$H^{\text{boost}} > 250$ GeV,153.0,,-
+$p_{\text{T}}^{\text{soft}}/(p_{\text{T}}^{\text{soft}} + m_\text{eff}^{3\ell}) < 0.05$,109.0,,-
+$m_\text{eff}^{3\ell}/H^{\text{boost}} > 0.9$,71.0,,-
+$m_{\text{T}} >100$ GeV,27.8,,-
+

@@ -1,0 +1,50 @@
+#: table_doi: 10.17182/hepdata.77719.v1/t1
+#: name: Exclusion contour 1 (obs.)
+#: description: Observed 95% CL exclusion contours on the gluino and lightest neutralino masses in a SUSY scenario where gluinos are produced in pairs and decay directly into the lightest neutralino via an offshell top squark, $\tilde g\to t\bar{t}\tilde{\chi}_1^0$.
+#: data_file: limitsFig04aObs.yaml
+#: data_license:   
+#: keyword reactions: P P --> GLUINO GLUINO X
+#: keyword observables: 
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Inclusive | Limits | Exclusion | Gluino | Neutralino | Proton-Proton Scattering
+#: SQRT(S) [GEV],13000.0
+'M(GLUINO) [GEV]','M(NEUTRALINO1) [GEV]'
+721,504
+740,526
+764,554
+783,576
+806,604
+891,687
+1001,792
+1103,876
+1200,943
+1316,970
+1359,948
+1401,960
+1444,960
+1486,942
+1494,926
+1516,876
+1529,838
+1532,826
+1552,776
+1571,743
+1586,726
+1614,693
+1649,676
+1656,669
+1682,626
+1699,590
+1705,576
+1720,526
+1734,476
+1739,426
+1741,405
+1744,376
+1747,326
+1751,276
+1753,226
+1754,176
+1754,126
+1752,0
+
