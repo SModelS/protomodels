@@ -25,13 +25,15 @@ from smodels.theory import decomposer
 
 class ExpResModifier:
     def __init__ ( self, dbpath, Zmax, rundir, keep, nproc, fudge,
-                   suffix: str ):
+                   suffix: str, lognormal = False ):
         """
         :param dbpath: path to database
         :param Zmax: upper limit on an individual excess
         :param suffix: suffix to use, e.g. fake, signal, etc
+        :param lognormal: if True, use lognormal for nuisances, else Gaussian
         """
         self.comments = {} ## comments on entries in dict
+        self.lognormal = lognormal
         self.dbpath = dbpath
         self.protomodel = None
         self.rundir = setup( rundir )
@@ -82,6 +84,19 @@ class ExpResModifier:
                         D[i] = getattr ( info, i )
                 self.addToStats ( label, D )
 
+    def drawNuisance ( self, mu = 0., sigma = 1. ):
+        """ draw from the nuisance model.
+        :param mu: the expecation value of the distribution
+        :param sigma: the standard deviation of the distribution
+        :returns: a single fake observation
+        """
+        if not self.lognormal:
+            return stats.norm.rvs ( mu, sigma )
+        loc = mu**2 / numpy.sqrt ( mu**2 + sigma**2 )
+        stderr = numpy.sqrt ( numpy.log ( 1 + sigma**2 / mu**2 ) )
+        ret = stats.lognorm.rvs ( s=stderr, scale=loc )
+        return ret
+
     def computeNewObserved ( self, txname, globalInfo ):
         """ given expected upper limit, compute a fake observed limit
             by sampling the non-truncated Gaussian likelihood """
@@ -100,7 +115,8 @@ class ExpResModifier:
             x = float("inf")
             D = {}
             while x > self.Zmax:
-                x = stats.norm.rvs() * self.fudge # draw but once from standard-normal
+                x = self.drawNuisance() * self.fudge # draw but once from standard-normal
+                # x = stats.norm.rvs() * self.fudge # draw but once from standard-normal
                 D["x"] = x
             allpositive = True
             for i,y in enumerate( expected.y_values ):
@@ -259,7 +275,8 @@ class ExpResModifier:
         D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge }
         S, origS = float("inf"), float("nan")
         while S > self.Zmax:
-            lmbda = stats.norm.rvs ( exp, err )
+            # lmbda = stats.norm.rvs ( exp, err )
+            lmbda = self.drawNuisance ( exp, err )
             dataset.dataInfo.lmbda = lmbda
             if lmbda < 0.:
                 lmbda = 0.
@@ -784,6 +801,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '--dontsample',
             help='do not sample at all, only filter',
             action='store_true' )
+    argparser.add_argument ( '-l', '--lognormal',
+            help='use lognormal, not Gaussian for nuisances',
+            action='store_true' )
     argparser.add_argument ( '-M', '--max',
             help='upper limit on significance of individual excess [None]',
             type=float, default=None )
@@ -825,7 +845,7 @@ if __name__ == "__main__":
         args.outfile = args.suffix+".pcl"
     from smodels.experiment.databaseObj import Database
     modifier = ExpResModifier( args.database, args.max, args.rundir, args.keep, \
-                               args.nproc, args.fudge, args.suffix )
+                               args.nproc, args.fudge, args.suffix, args.lognormal )
 
     if not args.outfile.endswith(".pcl"):
         print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % args.outfile )
