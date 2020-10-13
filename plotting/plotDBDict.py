@@ -213,8 +213,8 @@ def main():
             help='likelihood: gauss, gauss+poisson, or lognormal+poisson [lognormal+poisson]',
             type=str, default="lognormal+poisson" )
     argparser.add_argument ( '-f', '--filter', nargs='?',
-            help='filter out signal regions with expectedBG<x [x=-1.]',
-            type=float, default=-1. )
+            help='filter out signal regions with expectedBG<x [x=3.5]',
+            type=float, default=3.5 )
     args=argparser.parse_args()
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, args.reset )
     plotter.plot( "origS", "S", args.outfile )
