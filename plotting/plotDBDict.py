@@ -31,6 +31,8 @@ class Plotter:
             comment = None
         self.comment = comment
         for pname in pathname:
+            if os.path.isdir ( pname ):
+                pname = pname + "/db*dict"
             self.filenames += glob.glob ( pname )
         self.filter = filtervalue
         self.meta = {}
@@ -199,8 +201,8 @@ def main():
     import argparse
     argparser = argparse.ArgumentParser(description="meta statistics plotter, i.e. the thing that plots pDatabase.png")
     argparser.add_argument ( '-d', '--dictfile', nargs='*',
-            help='input dictionary file [./database.dict]',
-            type=str, default='./database.dict' )
+            help='input dictionary file(s) [../data/database/]',
+            type=str, default='.,/data/database/' )
     argparser.add_argument ( '-o', '--outfile', nargs='?',
             help='output file [./pDatabase.png]',
             type=str, default='./pDatabase.png' )
