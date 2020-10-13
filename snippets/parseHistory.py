@@ -24,7 +24,7 @@ def parse( inputfile = "../ptools/history.list" ):
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser( description="parse the history files" )
-    argparser.add_argument ( '-i', '--inputfile', help="input history file",
+    argparser.add_argument ( '-i', '--inputfile', help="input history file [../ptools/history.list]",
                             type=str, default="../ptools/history.list" )
     args = argparser.parse_args()
 
