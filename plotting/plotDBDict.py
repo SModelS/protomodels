@@ -4,19 +4,28 @@
 
 from matplotlib import pyplot as plt
 import numpy as np
-import os, glob, pickle
+import os, glob, pickle, sys
 import scipy.stats
 import matplotlib.mlab as mlab
 
 class Plotter:
-    def __init__ ( self, pathname, filtervalue: float, comment, lognormal = True ):
+    def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str, reset ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
         :param comment: an optional comment, to write in the plot
-        :param lognormal: if False, use Gauss, else lognormal
+        :param likelihood: form of likelihood: "gauss", "gauss+poisson", or 
+                           "lognormal+poisson"
+                           "gauss" means only a Gaussian for everything
+                           "gauss+poisson" means Gauss * Poisson
+                           "lognormal+poisson" means Lognormal * Poisson
+        :param reset: if true, then dont recycle pickle files
         """
-        self.lognormal = lognormal ## False: gauss, True: lognormal
+        if likelihood not in [ "gauss", "gauss+poisson", "lognormal+poisson" ]:
+            print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
+            sys.exit()
+        self.likelihood = likelihood ## False: gauss, True: lognormal
+        self.reset = reset
         self.filenames = []
         if comment in [ "None", "", "none" ]:
             comment = None
@@ -59,7 +68,8 @@ class Plotter:
 
     def computeP ( self, obs, bg, bgerr ):
         """ compute p value, for now we assume Gaussanity """
-        simple = False ## approximation as Gaussian
+        #simple = False ## approximation as Gaussian
+        simple = ( self.likelihood == "gauss" )
         if simple:
             x = (obs - bg ) / np.sqrt ( bgerr**2 + bg )
             p = scipy.stats.norm.cdf ( x )
@@ -72,7 +82,7 @@ class Plotter:
         fakes = []
         bigger = 0
         n= 10000
-        if self.lognormal: ## lognormal
+        if "lognormal" in self.likelihood:
             loc = bg**2 / np.sqrt ( bg**2 + bgerr**2 )
             stderr = np.sqrt ( np.log ( 1 + bgerr**2 / bg**2 ) )
             lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
@@ -88,9 +98,10 @@ class Plotter:
         for filename in self.filenames:
             selfbase = os.path.basename ( filename )
             fname = selfbase.replace(".dict",".pcl")
-            print ( f"[plotDBDict] looking for {fname}" )
             hasPickle = False
-            if os.path.exists ( fname ):
+            if not self.reset:
+                print ( f"[plotDBDict] looking for {fname}" )
+            if os.path.exists ( fname ) and not self.reset:
                 print ( f"[plotDBDict] found {fname}. Using data therein." )
                 with open ( fname, "rb" ) as f:
                     pname = os.path.basename ( pickle.load ( f ) )
@@ -170,6 +181,10 @@ class Plotter:
         print ( "fake Ps %d entries at %.3f +/- %.2f" % 
                 ( len(Pfake), np.mean(Pfake), np.std(Pfake) ) )
         plt.legend()
+        if self.likelihood == "lognormal+poisson":
+            title += " (lognormal)"
+        if self.likelihood == "gauss":
+            title += " (simple)"
         plt.title  ( title )
         plt.xlabel ( "$p$-values" )
         plt.ylabel ( "# Signal Regions" )
@@ -191,12 +206,17 @@ def main():
             type=str, default='./pDatabase.png' )
     argparser.add_argument ( '-c', '--comment', nargs='?',
             help='an optional comment, to put in the plot [None]',
-            type=str, default="(lognormal)" )
+            type=str, default=None )
+    argparser.add_argument ( '-r', '--reset', 
+            help='reset, dont recycle pickle files', action='store_true' )
+    argparser.add_argument ( '-l', '--likelihood', nargs='?',
+            help='likelihood: gauss, gauss+poisson, or lognormal+poisson [lognormal+poisson]',
+            type=str, default="lognormal+poisson" )
     argparser.add_argument ( '-f', '--filter', nargs='?',
             help='filter out signal regions with expectedBG<x [x=-1.]',
             type=float, default=-1. )
     args=argparser.parse_args()
-    plotter = Plotter ( args.dictfile, args.filter, args.comment, True )
+    plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, args.reset )
     plotter.plot( "origS", "S", args.outfile )
 
 if __name__ == "__main__":
