@@ -32,7 +32,7 @@ class RandomWalker:
                    dbpath = "./database.pcl", expected = False,
                    select = "all", catch_exceptions = True,
                    rundir = None, nevents = 100000,
-                   do_combine = False ):
+                   do_combine = False, record_history = False ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 is no cheating, 1 is with ranges, 2
@@ -43,6 +43,7 @@ class RandomWalker:
         :param nevents: number of MC events when computing cross-sections
         :param do_combine: if true, then also perform combinations, either via
                            simplified likelihoods or via pyhf
+        :param record_history: if true, attach a history recorder class
         """
         if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
             self.pprint ( "Wrong call of constructor: %s, %s, %s" % ( walkerid, nsteps, strategy ) )
@@ -69,6 +70,9 @@ class RandomWalker:
         self.catch_exceptions = catch_exceptions
         self.maxsteps = nsteps
         self.accelerator = None
+        if record_history:
+            from ptools.history import History
+            self.recorder = History ( f"{self.rundir}/history{walkerid}.list" )
         jobid = "unknown"
         if "SLURM_JOBID" in os.environ:
             jobid = os.environ["SLURM_JOBID"]

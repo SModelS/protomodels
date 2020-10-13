@@ -50,8 +50,6 @@ if __name__ == "__main__":
     import csetup
     csetup.setup()
     from walker.randomWalker import RandomWalker
-    hi = History()
-    walker = RandomWalker ( 0, 2000, "aggressive", False, 0, args.database )
-    walker.recorder = hi
+    walker = RandomWalker ( 0, 2000, "aggressive", False, 0, args.database, record_history=True )
     walker.walk()
     hi.save()

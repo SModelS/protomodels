@@ -41,7 +41,7 @@ def main( nmin, nmax, cont,
           dbpath = "<rundir>/database.pcl",
           cheatcode = 0, dump_training = False, rundir=None, maxsteps = 10000,
           nevents = 100000, seed = None,  catchem=True, select="all",
-          do_combine = False ):
+          do_combine = False, record_history = False ):
     """ a worker node to set up to run walkers
     :param nmin: the walker id of the first walker
     :param nmax: the walker id + 1 of the last walker
@@ -56,6 +56,7 @@ def main( nmin, nmax, cont,
     :param select: select only subset of results (all for all, em for efficiency maps only, ul for upper limits only, alternatively select for txnames via e.g. "txnames:T1,T2"
     :param do_combine: if true, then also perform combinations, either via
                        simplified likelihoods or via pyhf
+    :param record_history: if True, then use history recorders
     """
 
     if rundir != None and "<rundir>" in dbpath:
@@ -92,7 +93,8 @@ def main( nmin, nmax, cont,
             w = RandomWalker( walkerid=i, nsteps = maxsteps, 
                               dump_training = dump_training,
                               dbpath=dbpath, cheatcode=cheatcode, select=select, 
-                              rundir=rundir, nevents=nevents, do_combine = do_combine )
+                              rundir=rundir, nevents=nevents, do_combine = do_combine,
+                              record_history=record_history )
             walkers.append ( w )
         elif pfile.endswith(".hi") or pfdile.endswith(".pcl"):
             nstates = len(states )
@@ -101,7 +103,7 @@ def main( nmin, nmax, cont,
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
                     walkerid = i, nsteps = maxsteps, dump_training=dump_training, 
                     expected = False, select = select, dbpath = dbpath, 
-                    rundir = rundir, do_combine = do_combine )
+                    rundir = rundir, do_combine = do_combine, record_history = record_history )
             walkers.append ( w )
         else:
             nstates = len(states )
@@ -111,7 +113,7 @@ def main( nmin, nmax, cont,
                     strategy = "aggressive", walkerid = i, 
                     dump_training=dump_training, dbpath = dbpath, expected = False, 
                     select = select, rundir = rundir, nevents = nevents,
-                    do_combine = do_combine )
+                    do_combine = do_combine, record_history = record_history )
             walkers.append ( w )
     startWalkers ( walkers, seed=seed, catchem=catchem )
 
