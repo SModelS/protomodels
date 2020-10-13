@@ -355,7 +355,7 @@ def writeTex ( protomodel, keep_tex ):
     else:
         print ( "[plotHiscore] protomodel has no ``particleContributions'' defined." )
 
-    from ptools import tex2png
+    from plotting import tex2png
     src = getExtremeSSMs ( ssm, largest=True, nm = 7 )
     src += "\\\\"
     nsmallest = min( 7, len(ssm)-7 )
