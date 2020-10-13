@@ -410,7 +410,7 @@ class ExpResModifier:
         D={}
         D["sigmaN"]=sigmaN
         D["txns"]=",".join(txns)
-        self.comments["sigmaN"]="the added theory preduction (in fb), for UL maps"
+        self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
         ## sigmaN is the predicted production cross section of the signal,
         ## in fb
         def distance ( v1, v2 ):
