@@ -1,0 +1,36 @@
+#: table_doi: 10.17182/hepdata.85726.v1/t74
+#: name: Cutflow 3L
+#: description: Event selection cut-flow is presented for one signal scenario for each signal regions. The model with next-to-lightest neutralino mass of 150 GeV and massless LSP with 100 \% BR is considered. The MC statistics for the signal samples is 123K events. Samples are produced with a generator filter which selects events with at least two leptons with pT $>$ 7 GeV. ``3L+Trigger" indicates three-lepton and trigger requirements. ``Preselection" includes the veto on bjets, ETmiss above 20 GeV and invariant mass of the three leptons above 20 GeV.
+#: data_file: cutflow_3L.yaml
+#: data_license:   
+#: keyword reactions: P P --> CHARGINO1 NEUTRALINO2 X
+#: keyword observables: 
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Electroweak | Cutflow | Three Lepton | Chargino | Neutralino | Proton-Proton | Scattering
+#: SQRT(S) [GEV],13000.0
+Selection [],"Signal(150,0) []",stat +,stat -
+All events,187029.1,0,0
+3L+Trigger,	66.03,3.63,-3.63
+Preselection,	61.02,3.53,-3.53
+DFOS,	9.97,1.23,-1.23
+SFOS,	51.06,3.31,-3.31
+N jets = 0($p_{\mathrm{T}} > 20 GeV$),	3.87,0.73,-0.73
+$E_{\mathrm{T}}^{\mathrm{miss}}>$60 GeV,	1.85,0.47,-0.47
+$m_{l_{\mathrm{DFOS}}+l_{\mathrm{near}}}<$90 GeV,	1.84,0.47,-0.47
+N jets $>$ 0($p_{\mathrm{T}} > 20$~GeV),	6.1,0.98,-0.98
+$E_{\mathrm{T}}^{\mathrm{miss}}$ [30-100] GeV,	2.98,0.71,-0.71
+$m_{l_{\mathrm{DFOS}}+l_{\mathrm{near}}}<$ 60 GeV,	2.63,0.65,-0.65
+"$\Delta R_{\mathrm{OS,near}}<$ 1.4",	2.43,0.63,-0.63
+$E_{\mathrm{T}}^{\mathrm{miss}} > $ 100 GeV,	2.87,0.66,-0.66
+$m_{l_{\mathrm{DFOS}}+l_{\mathrm{near}}}<$ 70 GeV,	2.69,0.64,-0.64
+"$\Delta R_{\mathrm{OS,near}}<$ 1.4",	2.57,0.62,-0.62
+$\Delta \phi_{SS}<$ 2.8,	1.81,0.54,-0.54
+SFOS Preselection,	17.83,1.97,-1.97
+N jets = 0 ($p_{\mathrm{T}}>20$~GeV),	5.28,0.94,-0.94
+$m_{\mathrm{T}}^{\mathrm{min}}>$110 GeV,	2.04,0.61,-0.61
+"$E_{\mathrm{T}}^{\mathrm{miss}} \in$ [80,120] GeV",	1.58,0.54,-0.54
+$E_{\mathrm{T}}^{\mathrm{miss}} > $ 120 GeV,	0.46,0.28,-0.28
+N jets $>$ 0 ($p_{\mathrm{T}} >20$~GeV),	12.54,1.73,-1.73
+$m_{\mathrm{T}}>$ 110 GeV,	2.09,0.54,-0.54
+$E_{\mathrm{T}}^{\mathrm{miss}} > $ 110 GeV,	3.25,0.97,-0.97
+

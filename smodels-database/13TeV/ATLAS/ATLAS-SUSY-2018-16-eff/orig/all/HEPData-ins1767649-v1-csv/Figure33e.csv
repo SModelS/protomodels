@@ -1,0 +1,36 @@
+#: table_doi: 10.17182/hepdata.91374.v1/t59
+#: name: Figure 33e
+#: description: Acceptance (note the $z$-axis is in units of $10^{-4}$) for the C1C1 VBF higgsino process in the SR-VBF region.  Truth dilepton invariant mass is constrained to be within the range [1,40] GeV.
+#: data_file: figure_33e.yaml
+#: keyword reactions: P P --> HIGGSINO HIGGSINO JET JET
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Proton-Proton Scattering
+$m(\tilde{\chi}_{2}^{0})$ [GeV],"$\Delta m(\tilde{\chi}_{2}^{0},\tilde{\chi}_{1}^{0})$ [GeV]",Acceptance (note the $z$-axis is in units of $10^{-4}$)
+40.0,2.0,0.056012
+40.0,3.0,0.27406
+40.0,5.0,1.1131
+40.0,10.0,1.4118
+40.0,20.0,1.0514
+40.0,40.0,0.43417
+60.0,2.0,0.064559
+60.0,3.0,0.40012
+60.0,5.0,1.1569
+60.0,10.0,1.9711
+60.0,20.0,2.161
+60.0,40.0,1.3504
+80.0,2.0,0.033271
+80.0,3.0,0.23684
+80.0,5.0,1.0626
+80.0,10.0,2.0704
+80.0,20.0,2.524
+80.0,40.0,2.2128
+120.0,2.0,0.010884
+120.0,3.0,0.093546
+120.0,5.0,0.59515
+120.0,10.0,1.6728
+120.0,20.0,3.1466
+120.0,40.0,3.6551
+100.0,2.0,0.021379
+100.0,3.0,0.15417
+100.0,5.0,0.72085
+

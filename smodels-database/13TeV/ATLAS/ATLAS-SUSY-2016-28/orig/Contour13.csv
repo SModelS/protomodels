@@ -1,0 +1,43 @@
+#: table_doi: 10.17182/hepdata.79165.v2/t42
+#: name: Contour 13
+#: description: Expected exclusion limit for b0L-SRB for sbottom pair production with asymmetric decay into a bottom quark and a neutralino or a top quark and a chargino.
+#: data_file: data41.yaml
+#: data_license:   
+#: keyword reactions: P P --> SBOTTOM SBOTTOMBAR X
+#: keyword observables: EXCLUSION LIMIT
+#: keyword phrases: Proton-Proton Scattering | Supersymmetry | SUSY
+#: keyword cmenergies: 13000.0
+#: RE,P P --> SBOTTOM SBOTTOMBAR X
+#: SQRT(S) [GEV],13000.0
+M(SBOTTOM) [GEV],M(NEUTRALINO1) [GEV]
+533.8,306.2
+549.0,293.8
+551.9,290.4
+555.9,281.2
+562.2,268.8
+568.2,256.2
+573.2,243.8
+577.2,231.2
+578.1,228.3
+581.1,218.8
+585.0,206.2
+592.0,193.8
+603.4,181.2
+604.4,180.2
+611.1,168.8
+615.1,156.2
+612.0,143.8
+605.2,131.2
+604.4,129.7
+597.0,118.8
+588.4,106.2
+588.4,100.0
+296.7,100.0
+296.7,106.2
+279.4,109.4
+473.9,303.9
+498.4,306.2
+499.4,306.5
+525.6,308.3
+533.8,306.2
+

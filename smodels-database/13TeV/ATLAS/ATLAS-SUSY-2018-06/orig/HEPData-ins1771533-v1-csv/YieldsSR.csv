@@ -1,0 +1,29 @@
+#: table_doi: 10.17182/hepdata.91127.v1/t25
+#: name: Yields SR
+#: description: The observed and expected yields after the background-only fit in the SRs. The normalization factors of the $WZ$ sample for the low-mass and ISR regions are different and are treated separately in the combined fit. \The "Top-quark like" category contains the tt&#772;, Wt, and WW processes while the "Others" category contains backgrounds from triboson production and processes that include a Higgs boson, 3 or more tops, and tops produced in association with W or Z bosons. Combined statistical and systematic uncertainties are presented. The individual uncertainties can be correlated and do not necessarily add in quadrature to equal the total background uncertainty.
+#: data_file: Yields_SR.yaml
+#: keyword reaction: P P --> CHARGINO NEUTRALINO
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Supersymmetry | Electroweak | Proton-Proton Scattering
+#: cmenergies [GeV],13000
+#: reaction,P P --> CHARGINO NEUTRALINO
+,$\text{SR-low}$,error +,error -
+Observed events,51.0,,-
+Fitted SM events,46.0,5.0,-5.0
+$WZ$,38.0,5.0,-5.0
+$ZZ$,4.9,0.6,-0.6
+Others,1.6,0.8,-0.8
+Top-quark like,0.03,0.18,0.03
+Fake/non-prompt leptons,1.6,1.3,-1.3
+
+#: cmenergies [GeV],13000
+#: reaction,P P --> CHARGINO NEUTRALINO
+,$\text{SR-ISR}$,error +,error -
+Observed events,30.0,,-
+Fitted SM events,23.4,2.1,-2.1
+$WZ$,19.7,2.0,-2.0
+$ZZ$,0.38,0.08,-0.08
+Others,1.5,0.8,-0.8
+Top-quark like,1.9,0.8,-0.8
+Fake/non-prompt leptons,0.01,0.05,0.01
+

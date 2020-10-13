@@ -1,0 +1,46 @@
+#: table_doi: 10.17182/hepdata.77891.v5/t65
+#: name: X-section U.L. & best SR 9  : Meff
+#: description: Observed 95% CL upper limit on the signal cross-section from Meff-based searches in a SUSY scenario where gluinos are produced in pairs and decay via an intermediate lightest chargino or second lightest neutralino to the lightest neutralino, $\tilde{g} \rightarrow qq \tilde{\chi}_{1}^{\pm} \rightarrow qq W^{\pm} \tilde{\chi}_{1}^{0}$, or $\tilde{g} \rightarrow qq \tilde{\chi}_{2}^{0} \rightarrow qq Z/h \tilde{\chi}_{1}^{0}$.
+#: data_file: data65.yaml
+#: data_license:   
+#: keyword reactions: P P --> GLUINO GLUINO X
+#: keyword observables: SIG
+#: keyword phrases: 
+#: keyword cmenergies: 13000.0
+#: SQRT(S) [GEV],13000.0
+#M(GLUINO) [GEV],X,CROSS-SECTION UPPER LIMIT 95%CL (FB)
+800.0,0.175676,92.64
+800.0,0.405405,50.2463
+800.0,0.72973,26.2689
+800.0,0.932432,109.682
+1000.0,0.138298,34.2196
+1000.0,0.425532,26.0796
+1000.0,0.680851,15.2287
+1000.0,0.946809,28.9877
+1200.0,0.114035,23.9743
+1200.0,0.385965,8.77218
+1200.0,0.701754,11.6714
+1200.0,0.95614,13.3861
+1400.0,0.097015,8.17587
+1400.0,0.373134,5.18455
+1400.0,0.671642,5.56458
+1400.0,0.962687,4.9415
+1600.0,0.084416,5.1255
+1600.0,0.38961,1.79135
+1600.0,0.714286,4.39715
+1600.0,0.967532,2.9949
+1800.0,0.074713,5.0064
+1800.0,0.402299,1.03621
+1800.0,0.689655,1.36438
+1800.0,0.942529,3.90401
+2000.0,0.06701,5.24396
+2000.0,0.412371,1.07095
+2000.0,0.721649,1.34877
+2000.0,0.948454,2.83409
+2200.0,0.060748,8.07375
+2200.0,0.233645,1.38979
+2200.0,0.420561,0.87142
+2200.0,0.607477,0.821215
+2200.0,0.794393,1.65664
+2200.0,0.953271,2.19307
+

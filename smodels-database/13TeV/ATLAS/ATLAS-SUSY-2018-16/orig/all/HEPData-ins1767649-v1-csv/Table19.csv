@@ -1,0 +1,40 @@
+#: table_doi: 10.17182/hepdata.91374.v1/t93
+#: name: Table 19
+#: description: Number of signal events in SR-E-high for the (m($\tilde{\chi}_{2}^{0}$),m($\tilde{\chi}_{1}^{0}$)) = (155 GeV, 150 GeV) Higgsino signal model at different stages of selection before and after weighting events to correspond to 140/fb.
+#: data_file: table_19.yaml
+#: keyword reactions: P P --> HIGGSINO HIGGSINO
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Proton-Proton Scattering
+Selection,Raw Events,Weighted Events
+Initial number of events ($\mathcal{L}\times\sigma$),--,256690.0
+Initial number of events ($\mathcal{L}\times\sigma_{\geq 1 \textrm{jet}}$),--,59885.0
+Initial number of events ($\mathcal{L}\times\sigma_{\geq 1 \textrm{jet}}\times\mathcal{B}$),--,5909.0
+Generator Filters,240000,1273.41
+$E_{\text{T}}^{\text{miss}}$ trigger,141002,714.99
+2 leptons,20832,105.2
+veto $3 \text{GeV} < m_{\ell\ell} < 3.2 \text{GeV}$,19694,99.26
+Lepton author 16 veto,19668,99.11
+"${\min(\Delta\phi(\mathrm{any~jet},\mathbf{p}_{\mathrm{T}}^{\mathrm{miss}}))} > 0.4$",18876,95.4
+"${\Delta\phi(j_1,\mathbf{p}_{\mathrm{T}}^{\mathrm{miss}})} > 2.0$",18638,94.36
+lepton truth matching,18452,93.45
+$1 < {m_{\ell\ell}} < 60$ GeV,16526,83.9
+"$\Delta R_{ee} >$ 0.30, $\Delta R_{\mu\mu} >$ 0.05, $\Delta R_{e\mu} >$ 0.20",14726,73.31
+Leading lepton $p_{\mathrm{T}}$ $>$ 5 GeV,11959,59.96
+Number of jets $\geq$ 1,11872,59.39
+Leading jet $p_{\mathrm{T}}$ $>$100 GeV,10934,53.89
+Number of b-tagged jets = 0,9372,46.28
+$m_{\tau\tau}$ $<$ 0 or $>$ 160 GeV,7856,39.15
+ee or $\mu\mu$,7536,37.46
+${m_{\mathrm{T}}^{\ell_1}} < 60$ GeV,6651,32.67
+${E_{\mathrm{T}}^{\mathrm{miss}}}$ $>$ 200,3513,16.59
+"$\max(0.85, 0.98-0.02\times m_{\ell\ell}) < {R_{\mathrm{ISR}}} < 1.0$",2627,12.45
+"sub-leading lepton $p_{\mathrm{T}} > \min(10, 2 + {m_{\ell\ell}}/3)$",2535,11.99
+$m_{\ell\ell} < 60$ GeV,2535,11.99
+$m_{\ell\ell} < 40$ GeV,2535,11.99
+$m_{\ell\ell} < 30$ GeV,2535,11.99
+$m_{\ell\ell} < 20$ GeV,2535,11.99
+$m_{\ell\ell} < 10$ GeV,2531,11.98
+$m_{\ell\ell} < 5$ GeV,2520,11.91
+$m_{\ell\ell} < 3$ GeV,1720,8.03
+$m_{\ell\ell} < 2$ GeV,734,3.38
+

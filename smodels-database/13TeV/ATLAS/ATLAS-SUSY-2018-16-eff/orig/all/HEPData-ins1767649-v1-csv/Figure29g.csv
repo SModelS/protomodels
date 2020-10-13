@@ -1,0 +1,27 @@
+#: table_doi: 10.17182/hepdata.91374.v1/t31
+#: name: Figure 29g
+#: description: Acceptance (note the $z$-axis is in units of $10^{-4}$) for the N2N1 higgsino process in the SR-E-1l1T region.  Truth dilepton invariant mass is constrained to be within the range [0.5,60] GeV.
+#: data_file: figure_29g.yaml
+#: keyword reactions: P P --> HIGGSINO HIGGSINO
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Proton-Proton Scattering
+$m(\tilde{\chi}_{2}^{0})$ [GeV],"$\Delta m(\tilde{\chi}_{2}^{0},\tilde{\chi}_{1}^{0})$ [GeV]",Acceptance (note the $z$-axis is in units of $10^{-4}$)
+81.0,1.0,0.15883
+81.5,1.5,0.70427
+82.0,2.0,0.96333
+83.0,3.0,1.119
+85.0,5.0,0.65725
+101.0,1.0,0.15149
+101.5,1.5,0.68249
+102.0,2.0,1.2019
+103.0,3.0,1.5977
+105.0,5.0,1.0802
+126.0,1.0,0.11123
+126.5,1.5,0.46564
+127.0,2.0,1.347
+128.0,3.0,2.1544
+130.0,5.0,1.6203
+152.0,2.0,1.4203
+155.0,5.0,2.0377
+153.0,3.0,2.5843
+

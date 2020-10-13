@@ -1,0 +1,35 @@
+#: table_doi: 10.17182/hepdata.79304.v4/t28
+#: name: Table 28
+#: description: $\textbf{Exclusion contour 5 (exp.) } -$ Expected 95% excluded regions in the plane of m(STOP) versus m(NEUTRALINO) for direct stop pair production assuming b C1 decay with a branching ratio of 100%. The chargino mass is assumed to be close to the stop mass, m(C1) = m(STOP) - 10 GeV.
+
+#: data_file: cont_bveto-exp.yaml
+#: keyword cmenergies: 13000.0
+M(STOP) [GeV],M(NEUTRALINO) [GeV]
+811.74,298.55
+818.47,255.65
+820.47,212.75
+828.19,169.85
+830.0,159.66
+837.28,126.95
+841.15,84.05
+843.71,41.15
+309.57,84.05
+310.0,84.69
+354.01,126.95
+362.0,134.0
+403.92,169.85
+414.0,183.51
+427.43,212.75
+460.06,255.65
+466.0,258.94
+518.0,277.5
+555.74,298.55
+570.0,319.44
+622.0,333.75
+648.97,341.45
+674.0,349.87
+726.0,361.69
+778.0,358.51
+793.64,341.45
+811.74,298.55
+

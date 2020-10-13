@@ -1,0 +1,12 @@
+id: CMS-SUS-17-005
+sqrts: 13*TeV
+lumi: 35.9/fb
+prettyName: 1L + multijets + Etmiss, top tagging
+url: https://cms-results.web.cern.ch/cms-results/public-results/publications/SUS-17-005/
+arxiv: https://arxiv.org/abs/1805.05784
+publication: JHEP 1809 (2018) 065
+contact: cms-phys-conveners-sus@cern.ch
+comment: using 1l cut and count analysis
+private: False
+implementedBy: ck
+lastUpdate: 2020/4/1

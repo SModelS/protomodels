@@ -1,0 +1,54 @@
+#: table_doi: 10.17182/hepdata.78219.v1/t34
+#: name: Exclusion contour (obs) 1
+#: description: Observed exclusion limits at 95% CL for a simplified model assuming $\tilde{t}_{1}$ pair production, decaying via $\tilde{t}_{1}\rightarrow t+\tilde{\chi}_{1}^{0}$ with 100% branching ratio.
+#: data_file: Figure9_obs.yaml
+#: data_license:   
+#: keyword Reactions: P P --> STOP1 STOP1 | STOP1 --> TOP NEUTRALINO1
+#: keyword Observables: OBS Exclusion
+#: keyword Phrases: SUSY | Third Generation | squark | stop
+#: keyword Cmenergies: 13000.0
+#: $\sqrt{s}$ [GEV],13000.0
+#'m($\tilde{t}_{1}$) [GEV]','m($\tilde{\chi}_{1}^{0}$) [GEV]'
+675.2,238.0
+686.0,213.1
+687.5,209.5
+700.8,188.1
+712.5,170.2
+715.7,163.2
+723.2,138.2
+729.7,113.3
+721.9,88.3
+724.1,63.4
+726.0,38.4
+722.5,13.5
+283.0,13.5
+287.5,20.1
+296.3,38.4
+311.4,63.4
+312.5,66.5
+320.2,88.3
+333.2,113.3
+337.5,119.2
+350.9,138.2
+362.5,146.6
+370.4,163.2
+387.5,180.2
+396.7,188.1
+412.5,200.8
+431.2,213.1
+437.5,218.9
+462.5,234.9
+469.1,238.0
+487.5,249.0
+512.0,263.0
+512.5,263.3
+537.5,279.6
+558.0,287.9
+562.5,289.9
+587.5,294.2
+612.5,295.6
+637.5,299.9
+658.5,287.9
+662.5,271.3
+664.5,263.0
+675.2,238.0

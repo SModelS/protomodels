@@ -1,0 +1,49 @@
+#: table_doi: 10.17182/hepdata.91127.v1/t26
+#: name: Results SR
+#: description: Summary of the expected background and data yields in $\text{SR-low}$ and $\text{SR-ISR}$. The second and third columns show the data and total expected background with systematic uncertainties. The fourth column gives the model-independent upper limits at 95\% CL on the visible cross section ($\sigma_\text{vis}$). The fifth and sixth columns give the visible number of observed ($S^{95}_\text{obs}$) and expected ($S^{95}_\text{exp}$) events of a generic beyond-the-SM process, where uncertainties on $S^{95}_\text{exp}$ reflect the $\pm 1 \sigma$ uncertainties on the background estimation. The last column shows the discovery $p$-value and Gaussian significance $Z$ assuming no signal.
+#: data_file: Results_SR.yaml
+#: keyword reaction: P P --> CHARGINO NEUTRALINO
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Supersymmetry | Electroweak | Proton-Proton Scattering
+#: cmenergies [GeV],13000
+#: reaction,P P --> CHARGINO NEUTRALINO
+Signal channel,$N_\text{obs}$,error +,error -
+$\text{SR-low}$,51.0,,-
+$\text{SR-ISR}$,30.0,,-
+
+#: cmenergies [GeV],13000
+#: reaction,P P --> CHARGINO NEUTRALINO
+Signal channel,$N_\text{exp}$,error +,error -
+$\text{SR-low}$,46.0,5.0,-5.0
+$\text{SR-ISR}$,23.4,2.1,-2.1
+
+#: cmenergies [GeV],13000
+#: reaction,P P --> CHARGINO NEUTRALINO
+Signal channel,$\sigma_\text{vis}$[fb],error +,error -
+$\text{SR-low}$,0.16,,-
+$\text{SR-ISR}$,0.13,,-
+
+#: cmenergies [GeV],13000
+#: reaction,P P --> CHARGINO NEUTRALINO
+Signal channel,$S_\text{obs}^{95}$,error +,error -
+$\text{SR-low}$,22.1,,-
+$\text{SR-ISR}$,17.8,,-
+
+#: cmenergies [GeV],13000
+#: reaction,P P --> CHARGINO NEUTRALINO
+Signal channel,$S_\text{exp}^{95}$,error +,error -
+$\text{SR-low}$,19.9,7.8,-3.6
+$\text{SR-ISR}$,12.0,5.3,-1.8
+
+#: cmenergies [GeV],13000
+#: reaction,P P --> CHARGINO NEUTRALINO
+Signal channel,$p(s=0)$,error +,error -
+$\text{SR-low}$,0.27,,-
+$\text{SR-ISR}$,0.11,,-
+
+#: cmenergies [GeV],13000
+#: reaction,P P --> CHARGINO NEUTRALINO
+Signal channel,$Z$,error +,error -
+$\text{SR-low}$,0.61,,-
+$\text{SR-ISR}$,1.21,,-
+

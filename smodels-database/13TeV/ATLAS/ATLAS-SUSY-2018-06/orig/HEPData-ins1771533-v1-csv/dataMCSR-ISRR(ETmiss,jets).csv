@@ -1,0 +1,79 @@
+#: table_doi: 10.17182/hepdata.91127.v1/t6
+#: name: dataMC SR-ISR R(ETmiss,jets)
+#: description: Distributions in SR-ISR of the data and post-fit background prediction for R(E<sub>T</sub><sup>miss</sup>,jets). The SR-ISR event selections are applied for each distribution except for the variable shown, where the selection is indicated by a red arrow. The normalization factor for the WZ background is derived from the background-only estimation described in Section 7. The expected distribution for a benchmark signal model is included for comparison. The first (last) bin includes underflow (overflow). The "Top-quark like" category contains the tt&#772;, Wt, and WW processes while the "Others" category contains backgrounds from triboson production and processes that include a Higgs boson, 3 or more tops, and tops produced in association with W or Z bosons. The bottom panel shows the ratio of the data to the post-fit background prediction. The hatched bands indicate the combined theoretical, experimental, and MC statistical uncertainties. 
+#: data_file: dataMC_SR-ISR_R(ETmiss,jets).yaml
+#: keyword reaction: P P --> CHARGINO NEUTRALINO
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Supersymmetry | Electroweak | Proton-Proton Scattering
+#: cmenergies [GeV],,,13000
+#: reaction,,,P P --> CHARGINO NEUTRALINO
+#: region,,,SR-ISR
+#: .,,,DATA
+"$R(E_{T}^{miss},jets)$","$R(E_{T}^{miss},jets)$ LOW","$R(E_{T}^{miss},jets)$ HIGH",Events / ( 0.05 ),error +,error -
+0.125,0.1,0.15,2.0,1.41,-1.41
+0.175,0.15,0.2,1.0,1.0,-1.0
+0.225,0.2,0.25,3.0,1.73,-1.73
+0.275,0.25,0.3,5.0,2.24,-2.24
+0.325,0.3,0.35,3.0,1.73,-1.73
+0.375,0.35,0.4,4.0,2.0,-2.0
+0.425,0.4,0.45,3.0,1.73,-1.73
+0.475,0.45,0.5,4.0,2.0,-2.0
+0.525,0.5,0.55,4.0,2.0,-2.0
+0.575,0.55,0.6,5.0,2.24,-2.24
+0.625,0.6,0.65,5.0,2.24,-2.24
+0.675,0.65,0.7,5.0,2.24,-2.24
+0.725,0.7,0.75,1.0,1.0,-1.0
+0.775,0.75,0.8,5.0,2.24,-2.24
+0.825,0.8,0.85,1.0,1.0,-1.0
+0.875,0.85,0.9,2.0,1.41,-1.41
+0.925,0.9,0.95,2.0,1.41,-1.41
+0.975,0.95,1.0,12.0,3.46,-3.46
+
+#: cmenergies [GeV],,,13000
+#: reaction,,,P P --> CHARGINO NEUTRALINO
+#: region,,,SR-ISR
+#: .,,,BACKGROUND
+"$R(E_{T}^{miss},jets)$","$R(E_{T}^{miss},jets)$ LOW","$R(E_{T}^{miss},jets)$ HIGH",Events / ( 0.05 ),error +,error -
+0.125,0.1,0.15,1.66,0.25,-0.25
+0.175,0.15,0.2,2.39,0.377,-0.377
+0.225,0.2,0.25,3.04,0.485,-0.485
+0.275,0.25,0.3,3.37,0.515,-0.515
+0.325,0.3,0.35,3.86,0.857,-0.857
+0.375,0.35,0.4,3.78,0.529,-0.529
+0.425,0.4,0.45,3.96,0.768,-0.768
+0.475,0.45,0.5,4.41,0.665,-0.665
+0.525,0.5,0.55,3.92,0.808,-0.808
+0.575,0.55,0.6,4.15,0.904,-0.904
+0.625,0.6,0.65,3.53,0.439,-0.439
+0.675,0.65,0.7,3.27,0.684,-0.684
+0.725,0.7,0.75,3.23,0.883,-0.883
+0.775,0.75,0.8,2.84,0.693,-0.693
+0.825,0.8,0.85,2.28,0.377,-0.377
+0.875,0.85,0.9,1.75,0.596,-0.596
+0.925,0.9,0.95,1.87,0.392,-0.392
+0.975,0.95,1.0,8.23,0.927,-0.927
+
+#: cmenergies [GeV],,,13000
+#: reaction,,,P P --> CHARGINO NEUTRALINO
+#: region,,,SR-ISR
+#: .,,,SIGNAL (m($\tilde{\chi}^{\pm}_{1}$),m($\tilde{\chi}^{0}_{1}$)) = (200,100) GeV
+"$R(E_{T}^{miss},jets)$","$R(E_{T}^{miss},jets)$ LOW","$R(E_{T}^{miss},jets)$ HIGH",Events / ( 0.05 ),error +,error -
+0.125,0.1,0.15,0.0,0.0,-0.0
+0.175,0.15,0.2,0.0,0.0,-0.0
+0.225,0.2,0.25,0.0,0.0,-0.0
+0.275,0.25,0.3,0.172,0.172,-0.172
+0.325,0.3,0.35,0.749,0.386,-0.386
+0.375,0.35,0.4,1.31,0.492,-0.492
+0.425,0.4,0.45,0.597,0.305,-0.305
+0.475,0.45,0.5,2.13,0.607,-0.607
+0.525,0.5,0.55,1.96,0.552,-0.552
+0.575,0.55,0.6,2.29,0.643,-0.643
+0.625,0.6,0.65,2.17,0.642,-0.642
+0.675,0.65,0.7,2.06,0.57,-0.57
+0.725,0.7,0.75,1.83,0.573,-0.573
+0.775,0.75,0.8,2.41,0.641,-0.641
+0.825,0.8,0.85,2.46,0.625,-0.625
+0.875,0.85,0.9,2.46,0.648,-0.648
+0.925,0.9,0.95,0.936,0.428,-0.428
+0.975,0.95,1.0,6.77,1.07,-1.07
+

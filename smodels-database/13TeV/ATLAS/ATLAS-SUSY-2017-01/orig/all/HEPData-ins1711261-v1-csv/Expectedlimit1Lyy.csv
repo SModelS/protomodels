@@ -1,0 +1,46 @@
+#: table_doi: 10.17182/hepdata.85726.v1/t13
+#: name: Expected limit 1Lyy
+#: description: The expected exclusion for the $1l\gamma\gamma$ channel. Experimental and theoretical systematic uncertainties are applied to background and signal samples and illustrated by the yellow band and the red dotted contour lines, respectively. The red dotted lines indicate the $\pm$ 1 standard-deviation variation on the observed exclusion limit due to theoretical uncertainties in the signal cross-section.
+#: data_file: 1Lyy_Exp_0.yaml
+#: data_license:   
+#: keyword reactions: P P --> CHARGINO1 NEUTRALINO2 X
+#: keyword observables: 
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Electroweak | Limit | Observed | Photon | Chargino | Neutralino | Proton-Proton Scattering
+#: SQRT(S) [GEV],13000.0
+M(CHARGINO1/NEUTRALINO2) [GEV],M(NEUTRALINO1) [GEV]
+184.524,0.0
+184.129,3.788
+184.0555,7.576
+183.8216,11.3639
+184.0864,15.1519
+184.1172,18.9399
+183.5311,22.7279
+183.4957,26.5159
+183.7346,30.3038
+182.4536,34.0918
+181.7927,35.0493
+178.0045,36.8819
+174.2164,36.1911
+170.4282,35.4325
+166.64,34.7265
+165.9166,34.0918
+166.0488,30.3038
+163.5793,26.5159
+162.8518,26.1684
+159.0636,24.5863
+155.2755,23.966
+151.4873,23.4275
+150.1017,22.7279
+147.6991,19.1995
+147.4099,18.9399
+145.1821,15.1519
+143.9109,13.3189
+142.0796,11.3639
+140.1227,9.2394
+138.3238,7.576
+136.3345,5.3591
+134.7588,3.788
+132.5464,0.8099
+131.8553,0.0
+

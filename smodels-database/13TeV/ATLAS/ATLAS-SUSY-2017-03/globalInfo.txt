@@ -1,0 +1,11 @@
+id: ATLAS-SUSY-2017-03
+sqrts: 13*TeV
+lumi: 36.1/fb
+prettyName: Multilepton EWK searches
+url: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/SUSY-2017-03/
+arxiv: https://arxiv.org/abs/1806.02293
+publication: Submitted to PRD
+contact: ATLAS collaboration
+private: False
+implementedBy: neuphi
+lastUpdate: 2018/8/13

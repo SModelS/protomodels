@@ -1,0 +1,88 @@
+#: table_doi: 10.17182/hepdata.79538.v7/t31
+#: name: Expected exclusion contour Gtc
+#: description: Expected exclusion limits at 95% CL exclusion as a function of $\tilde{g}$ and $\tilde{t}$ masses in the scenario where both gluinos decay via $\tilde{g}\to t \tilde{t}\to t\tilde{\chi^{0}_{1}}+$soft and $\Delta m(\tilde{t},\tilde{\chi^{0}_{1}})=5$ GeV.
+#: data_file: Figure13Exp.yaml
+#: data_license:   
+#: keyword phrases: Proton-Proton Scattering | Supersymmetry | SUSY
+#: keyword reactions: P P -->  STOP STOP X
+#: keyword observables: SIG
+#: keyword phrases: 
+#: keyword cmenergies: 13000.0
+#: RE,P P -->  GLUINO GLUINO X
+#: SQRT(S) [GEV],13000.0
+M(GLUINO) [GEV],M(NEUTRALINO1) [GEV]
+1535,996.4
+1565,1002
+1592,1006
+1595,1007
+1599,1006
+1625,1000
+1655,988.4
+1676,978.8
+1685,973.9
+1711,951.2
+1715,948.1
+1733,923.8
+1745,902
+1748,896.2
+1760,868.8
+1766,841.2
+1770,813.8
+1773,786.2
+1775,760.6
+1775,758.8
+1777,731.2
+1778,703.8
+1783,676.2
+1788,648.8
+1793,621.2
+1796,593.8
+1797,566.2
+1798,538.8
+1799,511.2
+1797,483.8
+1794,456.2
+1791,428.8
+1789,401.2
+1785,373.8
+1781,346.2
+1777,318.8
+877.3,566.2
+897.3,593.8
+905,600.5
+928.3,621.2
+935,623.9
+965,630.5
+995,643.5
+1000,648.8
+1025,673.5
+1028,676.2
+1055,692.2
+1085,703.6
+1085,703.8
+1115,731.2
+1115,731.7
+1141,758.8
+1145,762.1
+1175,776.7
+1193,786.2
+1205,793.4
+1230,813.8
+1235,819
+1257,841.2
+1265,845.8
+1295,850.2
+1322,868.8
+1325,870.4
+1355,893.8
+1358,896.2
+1375,923.8
+1385,931.9
+1415,943.2
+1427,951.2
+1445,962.7
+1471,978.8
+1475,981.7
+1505,991.3
+1535,996.4
+

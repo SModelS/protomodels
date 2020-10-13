@@ -1,0 +1,77 @@
+#: table_doi: 10.17182/hepdata.79165.v2/t62
+#: name: Contour 33
+#: description: Expected exclusion limit for A-LowMass combination for sbottom pair production with asymmetric decay into a bottom quark and a neutralino or a top quark and a chargino.
+#: data_file: data61.yaml
+#: data_license:   
+#: keyword reactions: P P --> SBOTTOM SBOTTOMBAR X
+#: keyword observables: EXCLUSION LIMIT
+#: keyword phrases: Proton-Proton Scattering | Supersymmetry | SUSY
+#: keyword cmenergies: 13000.0
+#: RE,P P --> SBOTTOM SBOTTOMBAR X
+#: SQRT(S) [GEV],13000.0
+M(SBOTTOM) [GEV],M(NEUTRALINO1) [GEV]
+768.4,331.2
+777.2,318.8
+783.8,306.2
+787.5,297.0
+789.1,293.8
+793.5,281.2
+797.4,268.8
+800.4,256.2
+802.5,243.8
+804.5,231.2
+806.3,218.8
+808.0,206.2
+810.5,193.8
+812.5,187.6
+814.8,181.2
+819.6,168.8
+824.1,156.2
+826.4,143.8
+825.6,131.2
+824.4,118.8
+822.8,106.2
+822.8,100.0
+353.0,100.0
+353.0,106.2
+362.5,114.1
+368.1,118.8
+383.1,131.2
+387.5,134.9
+399.0,143.8
+412.5,155.8
+413.1,156.2
+425.7,168.8
+437.5,180.0
+438.7,181.2
+450.7,193.8
+462.5,205.7
+463.0,206.2
+474.6,218.8
+486.0,231.2
+487.5,232.8
+499.4,243.8
+512.5,255.8
+513.0,256.2
+530.0,268.8
+537.5,274.3
+547.6,281.2
+562.5,291.5
+566.0,293.8
+584.5,306.2
+587.5,308.4
+605.4,318.8
+612.5,322.9
+635.5,331.2
+637.5,332.1
+662.5,340.3
+670.2,343.8
+687.5,353.6
+698.7,356.2
+712.5,361.2
+731.3,356.2
+737.5,354.4
+755.3,343.8
+762.5,337.9
+768.4,331.2
+

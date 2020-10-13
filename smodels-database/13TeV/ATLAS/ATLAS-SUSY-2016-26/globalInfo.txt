@@ -1,0 +1,11 @@
+id: ATLAS-SUSY-2016-26
+sqrts: 13*TeV
+lumi: 36.1/fb
+prettyName: >=2 c jets + Etmiss
+url: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/SUSY-2016-26/
+arxiv: https://arxiv.org/abs/1805.01649
+publication: JHEP 09 (2018) 050
+contact: ATLAS collaboration
+private: False
+implementedBy: neuphi
+lastUpdate: 2018/8/9

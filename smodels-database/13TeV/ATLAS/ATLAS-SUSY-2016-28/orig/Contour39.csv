@@ -1,0 +1,62 @@
+#: table_doi: 10.17182/hepdata.79165.v2/t68
+#: name: Contour 39
+#: description: Expected exclusion limit for best combination for sbottom pair production with asymmetric decay into a bottom quark and a neutralino or a top quark and a chargino.
+#: data_file: data67.yaml
+#: data_license:   
+#: keyword reactions: P P --> SBOTTOM SBOTTOMBAR X
+#: keyword observables: EXCLUSION LIMIT
+#: keyword phrases: Proton-Proton Scattering | Supersymmetry | SUSY
+#: keyword cmenergies: 13000.0
+#: RE,P P --> SBOTTOM SBOTTOMBAR X
+#: SQRT(S) [GEV],13000.0
+M(SBOTTOM) [GEV],M(NEUTRALINO1) [GEV]
+759.9,343.8
+761.9,342.7
+778.6,331.2
+788.1,324.8
+806.3,318.8
+814.4,314.4
+822.3,306.2
+830.1,293.8
+836.2,281.2
+840.6,270.3
+841.3,268.8
+845.2,256.2
+849.7,243.8
+855.2,231.2
+859.9,218.8
+864.6,206.2
+866.9,199.6
+868.8,193.8
+872.0,181.2
+874.7,168.8
+875.7,156.2
+877.2,143.8
+879.1,131.2
+879.2,118.8
+879.2,106.2
+879.2,100.0
+296.8,100.0
+296.8,106.2
+289.4,109.4
+282.7,112.7
+476.4,306.4
+482.4,306.2
+499.4,305.5
+504.0,306.2
+525.6,309.2
+551.9,313.3
+578.1,318.7
+578.1,318.8
+604.4,325.3
+630.6,331.0
+631.6,331.2
+656.9,337.8
+670.2,343.8
+683.1,351.1
+698.2,356.2
+709.4,361.7
+731.3,356.2
+735.6,355.0
+759.9,343.8
+

@@ -1,0 +1,37 @@
+#: table_doi: 10.17182/hepdata.91374.v1/t97
+#: name: Table 23
+#: description: Number of signal events in SR-S-low for the (m($\tilde{\ell}$),m($\tilde{\chi}_{1}^{0}$)) = (150 GeV, 140 GeV) Slepton signal model at different stages of selection before and after weighting events to correspond to 140/fb.
+#: data_file: table_23.yaml
+#: keyword reactions: P P --> SLEPTON SLEPTON
+#: keyword cmenergies: 13000
+#: keyword phrases: SUSY | Proton-Proton Scattering
+Selection,Raw Events,Weighted Events
+Initial number of events ($\mathcal{L}\times\sigma$),--,24069.0
+Generator Filters,30000,4492.21
+$E_{\text{T}}^{\text{miss}}$ trigger,16688,2355.37
+2 leptons,7256,1014.55
+veto $3 \text{GeV} < m_{\ell\ell} < 3.2 \text{GeV}$,7246,1013.21
+Lepton author 16 veto,7222,1009.48
+"${\min(\Delta\phi(\mathrm{any~jet},\mathbf{p}_{\mathrm{T}}^{\mathrm{miss}}))} > 0.4$",6926,970.36
+"${\Delta\phi(j_1,\mathbf{p}_{\mathrm{T}}^{\mathrm{miss}})} > 2.0$",6848,961.15
+lepton truth matching,6832,958.99
+$1 < {m_{\ell\ell}} < 60$ GeV,6011,827.86
+"$\Delta R_{ee} >$ 0.30, $\Delta R_{\mu\mu} >$ 0.05, $\Delta R_{e\mu} >$ 0.20",5999,826.19
+Leading lepton $p_{\mathrm{T}}$ $>$ 5 GeV,5979,823.7
+Number of jets $\geq$ 1,5887,810.59
+Leading jet $p_{T}$ $>$100 GeV,5204,705.86
+Number of b-tagged jets = 0,4531,611.05
+$m_{\tau\tau}$ $<$ 0 or $>$ 160 GeV,3951,533.29
+ee or $\mu\mu$,3945,532.33
+$150 < {E_{\mathrm{T}}^{\mathrm{miss}}} <200$ GeV,1046,146.36
+$0.8 < {R_{\mathrm{ISR}}} < 1.0$,765,107.82
+"sub-leading lepton $p_{\mathrm{T}} > \min(15.0, 7.5 + 0.75\times(m_{\text{T2}}^{100}-100))$",369,52.74
+$m_{\text{T2}}^{100} < 140$ GeV,369,52.74
+$m_{\text{T2}}^{100} < 130$ GeV,369,52.74
+$m_{\text{T2}}^{100} < 120$ GeV,369,52.74
+$m_{\text{T2}}^{100} < 110$ GeV,368,52.64
+$m_{\text{T2}}^{100} < 105$ GeV,271,38.05
+$m_{\text{T2}}^{100} < 102$ GeV,121,16.66
+$m_{\text{T2}}^{100} < 101$ GeV,65,8.7
+$m_{\text{T2}}^{100} < 100.5$ GeV,30,4.39
+

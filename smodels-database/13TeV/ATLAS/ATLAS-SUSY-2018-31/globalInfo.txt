@@ -1,0 +1,10 @@
+id: ATLAS-SUSY-2018-31
+sqrts: 13*TeV
+lumi: 139.0/fb
+prettyName: 2b + 2H(bb) + Etmiss
+url: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/SUSY-2018-31/
+arxiv: arXiv:1908.03122
+contact: atlas-phys-susy-conveners@cern.ch
+private: False
+implementedBy: Wolfgang Waltenberger
+lastUpdate: 2019/12/4

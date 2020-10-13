@@ -1,0 +1,12 @@
+id: CMS-SUS-17-003
+sqrts: 13*TeV
+lumi: 35.9/fb
+prettyName: 2 taus + Etmiss
+url: https://cms-results.web.cern.ch/cms-results/public-results/publications/SUS-17-003/
+arxiv: https://arxiv.org/abs/1807.02048
+publication: JHEP 1811 (2018) 151
+contact: cms-phys-conveners-sus@cern.ch
+comment: the direct stau pair production followed by each stau decaying to a tau lepton and neutralino, has not been included because corresponding higher luminosity ATLAS result is already implemented
+private: False
+implementedBy: ck
+lastUpdate: 2020/3/25

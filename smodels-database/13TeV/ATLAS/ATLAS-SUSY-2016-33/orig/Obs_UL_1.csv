@@ -1,0 +1,61 @@
+#: table_doi: 10.17182/hepdata.81726.v1/t27
+#: name: Cross section UL 1
+#: description: The grey numbers show the 95% CL upper limits on the production cross section at each model point, derived from the best expected combination of results in the on-Z $m_{ll}$ windows of SR-medium and SR-high, SUSY scenario where gluinos are produced in pairs and decay to an on-shell Z-boson and a 1 GeV lightest neutralino.
+
+#: data_file: ulFig19a.yaml
+#: keyword cmenergies: 13000.0
+#: keyword phrases: Supersymmetry | SUSY
+#: SQRT(S) [GEV],13000.0
+'M(GLUINO) [GEV]','M(NEUTRALINO2) [GEV]','X-section U.L. [fb]'
+640.0,360.0,76
+740.0,260.0,86
+610.0,540.0,34
+715.0,435.0,32
+815.0,335.0,39
+920.0,230.0,31
+1745.0,1055.0,5
+685.0,615.0,21
+790.0,510.0,20
+890.0,410.0,25
+995.0,305.0,23
+1095.0,205.0,18
+835.0,765.0,12
+940.0,660.0,11
+1040.0,560.0,13
+1145.0,455.0,16
+1245.0,355.0,13
+1350.0,250.0,11
+985.0,915.0,10
+1090.0,810.0,8
+1190.0,710.0,8
+1295.0,605.0,10
+1395.0,505.0,11
+1500.0,400.0,9
+1600.0,300.0,10
+1135.0,1065.0,8
+1240.0,960.0,7
+1340.0,860.0,8
+1445.0,755.0,7
+1545.0,655.0,9
+1650.0,550.0,8
+1750.0,450.0,8
+1285.0,1215.0,8
+1390.0,1110.0,7
+1490.0,1010.0,6
+1595.0,905.0,6
+1695.0,805.0,8
+1800.0,700.0,8
+1540.0,1260.0,7
+1640.0,1160.0,5
+1435.0,1365.0,8
+1690.0,1410.0,7
+1790.0,1310.0,5
+1940.0,1460.0,12
+1895.0,1205.0,10
+1845.0,955.0,8
+1995.0,1105.0,7
+1950.0,850.0,6
+1900.0,600.0,8
+1855.0,345.0,10
+1960.0,250.0,10
+

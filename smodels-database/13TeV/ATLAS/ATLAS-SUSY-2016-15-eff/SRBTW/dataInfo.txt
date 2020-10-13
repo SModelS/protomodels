@@ -1,0 +1,8 @@
+dataId: SRBTW
+dataType: efficiencyMap
+observedN: 53
+expectedBG: 52.4
+bgError: 7.4
+upperLimit: 0.6*fb	# official number taken from ATLAS (table 14) (calculated value: 0.652*fb)
+expectedUpperLimit: 0.582*fb	# official number taken from ATLAS (table 14) (calculated value: 0.618*fb)
+
