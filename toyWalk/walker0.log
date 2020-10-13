@@ -1,0 +1,2335 @@
+[randomWalker-20:51:57] Step 1 begins.
+[randomWalker-20:51:57] Step 1 has 2/20 unfrozen particles: Xnumu, XZ1 [in best combo: ]
+[randomWalker-20:51:57] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:51:57]  `- froze 0 particles not in best combo
+[randomWalker-20:52:19] Step 2 begins.
+[randomWalker-20:52:19] Step 2 has 2/20 unfrozen particles: Xnumu, XZ1 [in best combo: ]
+[randomWalker-20:52:19] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:52:19]  `- froze 0 particles not in best combo
+[randomWalker-20:52:40] Step 3 begins.
+[randomWalker-20:52:40] Step 3 has 2/20 unfrozen particles: Xnumu, XZ1 [in best combo: ]
+[randomWalker-20:52:40] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:52:40]  `- froze 0 particles not in best combo
+[randomWalker-20:52:57] Step 4 begins.
+[randomWalker-20:52:57] Step 4 has 2/20 unfrozen particles: Xnumu, XZ1 [in best combo: ]
+[randomWalker-20:52:57] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:52:57]  `- froze 0 particles not in best combo
+[randomWalker-20:53:11] Step 5 begins.
+[randomWalker-20:53:11] Step 5 has 2/20 unfrozen particles: Xnumu, XZ1 [in best combo: ]
+[randomWalker-20:53:11] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:53:11]  `- froze 0 particles not in best combo
+[randomWalker-20:53:33] Step 6 begins.
+[randomWalker-20:53:33] Step 6 has 2/20 unfrozen particles: Xnumu, XZ1 [in best combo: ]
+[randomWalker-20:53:33] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:53:33]  `- froze 0 particles not in best combo
+[randomWalker-20:53:55] Step 7 begins.
+[randomWalker-20:53:55] Step 7 has 2/20 unfrozen particles: Xnumu, XZ1 [in best combo: ]
+[randomWalker-20:53:55] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:53:55]  `- froze 0 particles not in best combo
+[randomWalker-20:54:11] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:54:11] Step 7: found highest Z: 0.76
+[randomWalker-20:54:11] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-2.68, Z=0.76, 3 unfrozen]
+[randomWalker-20:54:11] bestK is smaller than one. no teleporting.
+[randomWalker-20:54:11] Step 7 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:54:11] Step 7 check if result goes into hiscore list
+[randomWalker-20:54:11] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:54:11] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:54:11] done check for result to go into hiscore list
+[randomWalker-20:54:11] Step 7/200 finished.
+[randomWalker-20:54:11] Step 8 begins.
+[randomWalker-20:54:11] Step 8 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:54:11] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:54:11]  `- froze 1 particles not in best combo
+[randomWalker-20:54:26] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:54:26] Step 8: found highest Z: 0.76
+[randomWalker-20:54:26] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-1.68, Z=0.76, 2 unfrozen]
+[randomWalker-20:54:26] bestK is smaller than one. no teleporting.
+[randomWalker-20:54:26] Step 8 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:54:26] Step 8 check if result goes into hiscore list
+[randomWalker-20:54:26] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:54:26] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:54:26] done check for result to go into hiscore list
+[randomWalker-20:54:26] Step 8/200 finished.
+[randomWalker-20:54:26] Step 9 begins.
+[randomWalker-20:54:26] Step 9 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:54:26] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:54:26]  `- froze 0 particles not in best combo
+[randomWalker-20:54:52] Step 10 begins.
+[randomWalker-20:54:52] Step 10 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:54:52] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:54:52]  `- froze 0 particles not in best combo
+[randomWalker-20:55:07] Step 11 begins.
+[randomWalker-20:55:07] Step 11 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:07] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:55:07]  `- froze 0 particles not in best combo
+[randomWalker-20:55:23] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:55:23] Step 11: found highest Z: 0.76
+[randomWalker-20:55:23] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-2.95, Z=0.76, 3 unfrozen]
+[randomWalker-20:55:23] bestK is smaller than one. no teleporting.
+[randomWalker-20:55:23] Step 11 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:23] Step 11 check if result goes into hiscore list
+[randomWalker-20:55:23] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:55:23] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:55:23] done check for result to go into hiscore list
+[randomWalker-20:55:23] Step 11/200 finished.
+[randomWalker-20:55:23] u=0.67 > 0.53; K: -1.68 -> -2.95: revert.
+[randomWalker-20:55:23] Step 12 begins.
+[randomWalker-20:55:23] Step 12 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:23] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:55:23]  `- froze 0 particles not in best combo
+[randomWalker-20:55:41] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:55:41] Step 12: found highest Z: 2.42
+[randomWalker-20:55:41] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.62, Z=2.42, 2 unfrozen]
+[randomWalker-20:55:41] bestK is smaller than one. no teleporting.
+[randomWalker-20:55:41] Step 12 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:41] Step 12 check if result goes into hiscore list
+[randomWalker-20:55:41] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:42] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:42] done check for result to go into hiscore list
+[randomWalker-20:55:42] Step 12/200 finished.
+[randomWalker-20:55:42] Step 13 begins.
+[randomWalker-20:55:42] Step 13 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:42] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:55:42]  `- froze 0 particles not in best combo
+[randomWalker-20:55:42] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:55:42] Step 13: found highest Z: 2.42
+[randomWalker-20:55:42] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.62, Z=2.42, 2 unfrozen]
+[randomWalker-20:55:42] check if to teleport, Kmax=3.62, ours is=3.62, p=0.00, a=0.01: dont teleport.
+[randomWalker-20:55:42] Step 13 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:42] Step 13 check if result goes into hiscore list
+[randomWalker-20:55:42] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:42] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:42] done check for result to go into hiscore list
+[randomWalker-20:55:42] Step 13/200 finished.
+[randomWalker-20:55:42] u=0.12 <= 1.00 ; 3.62 -> 2.42: take the step, even though old is better.
+[randomWalker-20:55:42] Step 14 begins.
+[randomWalker-20:55:42] Step 14 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:42] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:55:42]  `- froze 0 particles not in best combo
+[randomWalker-20:55:44] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:55:44] Step 14: found highest Z: 2.42
+[randomWalker-20:55:44] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.37, Z=2.42, 3 unfrozen]
+[randomWalker-20:55:44] check if to teleport, Kmax=3.62, ours is=2.37, p=0.06, a=0.87: dont teleport.
+[randomWalker-20:55:44] Step 14 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:44] Step 14 check if result goes into hiscore list
+[randomWalker-20:55:44] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:44] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:44] done check for result to go into hiscore list
+[randomWalker-20:55:44] Step 14/200 finished.
+[randomWalker-20:55:44] u=0.00 <= 0.54 ; 3.62 -> 2.42: take the step, even though old is better.
+[randomWalker-20:55:45] Step 15 begins.
+[randomWalker-20:55:45] Step 15 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:45] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:55:45]  `- froze 1 particles not in best combo
+[randomWalker-20:55:47] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:55:47] Step 15: found highest Z: 2.42
+[randomWalker-20:55:47] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.62, Z=2.42, 2 unfrozen]
+[randomWalker-20:55:47] check if to teleport, Kmax=3.62, ours is=3.62, p=0.00, a=0.20: dont teleport.
+[randomWalker-20:55:47] Step 15 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:47] Step 15 check if result goes into hiscore list
+[randomWalker-20:55:47] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:47] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:47] done check for result to go into hiscore list
+[randomWalker-20:55:47] Step 15/200 finished.
+[randomWalker-20:55:47] Step 16 begins.
+[randomWalker-20:55:47] Step 16 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:47] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:55:47]  `- froze 0 particles not in best combo
+[randomWalker-20:55:49] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:55:49] Step 16: found highest Z: 2.42
+[randomWalker-20:55:49] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.37, Z=2.42, 3 unfrozen]
+[randomWalker-20:55:49] check if to teleport, Kmax=3.62, ours is=2.37, p=0.06, a=0.43: dont teleport.
+[randomWalker-20:55:49] Step 16 has 3/20 unfrozen particles: Xt, Xtau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:49] Step 16 check if result goes into hiscore list
+[randomWalker-20:55:49] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:49] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:49] done check for result to go into hiscore list
+[randomWalker-20:55:49] Step 16/200 finished.
+[randomWalker-20:55:49] u=0.46 <= 0.54 ; 3.62 -> 2.42: take the step, even though old is better.
+[randomWalker-20:55:49] Step 17 begins.
+[randomWalker-20:55:49] Step 17 has 3/20 unfrozen particles: Xt, Xtau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:49] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:55:49]  `- froze 1 particles not in best combo
+[randomWalker-20:55:51] Top r values after rescaling are: 0.62, 0.14
+[randomWalker-20:55:51] Step 17: found highest Z: 0.80
+[randomWalker-20:55:51] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-1.61, Z=0.80, 2 unfrozen]
+[randomWalker-20:55:51] check if to teleport, Kmax=3.62, ours is=-1.61, p=0.20, a=0.87: dont teleport.
+[randomWalker-20:55:51] Step 17 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:51] Step 17 check if result goes into hiscore list
+[randomWalker-20:55:51] r values before calling .newResult are at 0.62, 0.14, 0.09
+[randomWalker-20:55:51] r values after calling .newResult are at 0.62, 0.14, 0.09
+[randomWalker-20:55:51] done check for result to go into hiscore list
+[randomWalker-20:55:51] Step 17/200 finished.
+[randomWalker-20:55:51] u=0.23 > 0.14; K: 2.37 -> -1.61: revert.
+[randomWalker-20:55:51] Step 18 begins.
+[randomWalker-20:55:51] Step 18 has 3/20 unfrozen particles: Xt, Xtau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:51] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:55:51]  `- froze 1 particles not in best combo
+[randomWalker-20:55:53] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:55:53] Step 18: found highest Z: 2.42
+[randomWalker-20:55:53] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.62, Z=2.42, 3 unfrozen]
+[randomWalker-20:55:53] check if to teleport, Kmax=3.62, ours is=2.62, p=0.05, a=0.22: dont teleport.
+[randomWalker-20:55:53] Step 18 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:53] Step 18 check if result goes into hiscore list
+[randomWalker-20:55:53] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:53] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:55:53] done check for result to go into hiscore list
+[randomWalker-20:55:53] Step 18/200 finished.
+[randomWalker-20:55:53] Step 19 begins.
+[randomWalker-20:55:53] Step 19 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:53] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:55:53]  `- froze 1 particles not in best combo
+[randomWalker-20:55:59] Top r values after rescaling are: 1.30, 0.09
+[randomWalker-20:55:59] Step 19: found highest Z: 0.74
+[randomWalker-20:55:59] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-4.46, Z=0.74, 3 unfrozen]
+[randomWalker-20:55:59] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.49: dont teleport.
+[randomWalker-20:55:59] Step 19 has 3/20 unfrozen particles: Xt, Xg, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:59] Step 19 check if result goes into hiscore list
+[randomWalker-20:55:59] r values before calling .newResult are at 1.30, 0.09, 0.08
+[randomWalker-20:55:59] r values after calling .newResult are at 1.30, 0.09, 0.08
+[randomWalker-20:55:59] done check for result to go into hiscore list
+[randomWalker-20:55:59] Step 19/200 finished.
+[randomWalker-20:55:59] u=0.98 > 0.03; K: 2.62 -> -4.46: revert.
+[randomWalker-20:55:59] Step 20 begins.
+[randomWalker-20:55:59] Step 20 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:55:59] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:55:59]  `- froze 1 particles not in best combo
+[randomWalker-20:56:01] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:56:01] Step 20: found highest Z: 2.42
+[randomWalker-20:56:01] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.62, Z=2.42, 2 unfrozen]
+[randomWalker-20:56:01] check if to teleport, Kmax=3.62, ours is=3.62, p=0.00, a=0.38: dont teleport.
+[randomWalker-20:56:01] Step 20 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:01] Step 20 check if result goes into hiscore list
+[randomWalker-20:56:01] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:01] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:01] done check for result to go into hiscore list
+[randomWalker-20:56:01] Step 20/200 finished.
+[randomWalker-20:56:01] Step 21 begins.
+[randomWalker-20:56:01] Step 21 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:01] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:01]  `- froze 0 particles not in best combo
+[randomWalker-20:56:04] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:56:04] Step 21: found highest Z: 2.42
+[randomWalker-20:56:04] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.37, Z=2.42, 3 unfrozen]
+[randomWalker-20:56:04] check if to teleport, Kmax=3.62, ours is=2.37, p=0.06, a=0.06: dont teleport.
+[randomWalker-20:56:04] Step 21 has 3/20 unfrozen particles: Xt, Xtau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:04] Step 21 check if result goes into hiscore list
+[randomWalker-20:56:04] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:04] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:04] done check for result to go into hiscore list
+[randomWalker-20:56:04] Step 21/200 finished.
+[randomWalker-20:56:04] u=0.94 > 0.54; K: 3.62 -> 2.37: revert.
+[randomWalker-20:56:04] Step 22 begins.
+[randomWalker-20:56:04] Step 22 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:04] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:04]  `- froze 0 particles not in best combo
+[randomWalker-20:56:06] Step 23 begins.
+[randomWalker-20:56:06] Step 23 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:06] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:06]  `- froze 0 particles not in best combo
+[randomWalker-20:56:08] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:56:08] Step 23: found highest Z: 2.42
+[randomWalker-20:56:08] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.62, Z=2.42, 2 unfrozen]
+[randomWalker-20:56:08] check if to teleport, Kmax=3.62, ours is=3.62, p=0.00, a=0.15: dont teleport.
+[randomWalker-20:56:08] Step 23 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:08] Step 23 check if result goes into hiscore list
+[randomWalker-20:56:08] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:08] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:08] done check for result to go into hiscore list
+[randomWalker-20:56:08] Step 23/200 finished.
+[randomWalker-20:56:08] Step 24 begins.
+[randomWalker-20:56:08] Step 24 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:08] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:08]  `- froze 0 particles not in best combo
+[randomWalker-20:56:11] Top r values after rescaling are: 1.03, 0.51
+[randomWalker-20:56:11] Step 24: found highest Z: 1.49
+[randomWalker-20:56:11] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-0.03, Z=1.49, 2 unfrozen]
+[randomWalker-20:56:11] check if to teleport, Kmax=3.62, ours is=-0.03, p=0.15, a=0.21: dont teleport.
+[randomWalker-20:56:11] Step 24 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:11] Step 24 check if result goes into hiscore list
+[randomWalker-20:56:11] r values before calling .newResult are at 1.03, 0.51, 0.21
+[randomWalker-20:56:11] r values after calling .newResult are at 1.03, 0.51, 0.21
+[randomWalker-20:56:11] done check for result to go into hiscore list
+[randomWalker-20:56:11] Step 24/200 finished.
+[randomWalker-20:56:11] u=0.44 > 0.16; K: 3.62 -> -0.03: revert.
+[randomWalker-20:56:11] Step 25 begins.
+[randomWalker-20:56:11] Step 25 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:11] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:11]  `- froze 0 particles not in best combo
+[randomWalker-20:56:13] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:56:13] Step 25: found highest Z: 2.42
+[randomWalker-20:56:13] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.35, Z=2.42, 3 unfrozen]
+[randomWalker-20:56:13] check if to teleport, Kmax=3.62, ours is=2.35, p=0.06, a=0.65: dont teleport.
+[randomWalker-20:56:13] Step 25 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:13] Step 25 check if result goes into hiscore list
+[randomWalker-20:56:13] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:13] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:13] done check for result to go into hiscore list
+[randomWalker-20:56:13] Step 25/200 finished.
+[randomWalker-20:56:13] u=0.60 > 0.53; K: 3.62 -> 2.35: revert.
+[randomWalker-20:56:13] Step 26 begins.
+[randomWalker-20:56:13] Step 26 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:13] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:13]  `- froze 0 particles not in best combo
+[randomWalker-20:56:15] Step 27 begins.
+[randomWalker-20:56:15] Step 27 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:15] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:15]  `- froze 0 particles not in best combo
+[randomWalker-20:56:18] Top r values after rescaling are: 1.30, 1.08
+[randomWalker-20:56:18] Step 27: found highest Z: 2.29
+[randomWalker-20:56:18] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.15, Z=2.29, 3 unfrozen]
+[randomWalker-20:56:18] check if to teleport, Kmax=3.62, ours is=1.15, p=0.11, a=0.46: dont teleport.
+[randomWalker-20:56:18] Step 27 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:18] Step 27 check if result goes into hiscore list
+[randomWalker-20:56:18] r values before calling .newResult are at 1.30, 1.08, 0.28
+[randomWalker-20:56:18] r values after calling .newResult are at 1.30, 1.08, 0.28
+[randomWalker-20:56:18] done check for result to go into hiscore list
+[randomWalker-20:56:18] Step 27/200 finished.
+[randomWalker-20:56:18] u=0.15 <= 0.29 ; 3.62 -> 2.29: take the step, even though old is better.
+[randomWalker-20:56:18] Step 28 begins.
+[randomWalker-20:56:18] Step 28 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:18] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:18]  `- froze 1 particles not in best combo
+[randomWalker-20:56:22] Top r values after rescaling are: 1.30, 1.12
+[randomWalker-20:56:22] Step 28: found highest Z: 2.32
+[randomWalker-20:56:22] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-0.12, Z=2.32, 3 unfrozen]
+[randomWalker-20:56:22] check if to teleport, Kmax=3.62, ours is=-0.12, p=0.16, a=0.78: dont teleport.
+[randomWalker-20:56:22] Step 28 has 3/20 unfrozen particles: Xt, Xg, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:22] Step 28 check if result goes into hiscore list
+[randomWalker-20:56:22] r values before calling .newResult are at 1.30, 1.12, 0.30
+[randomWalker-20:56:22] r values after calling .newResult are at 1.30, 1.12, 0.30
+[randomWalker-20:56:22] done check for result to go into hiscore list
+[randomWalker-20:56:22] Step 28/200 finished.
+[randomWalker-20:56:22] u=0.40 <= 0.53 ; 1.15 -> 2.32: take the step, even though old is better.
+[randomWalker-20:56:22] Step 29 begins.
+[randomWalker-20:56:22] Step 29 has 3/20 unfrozen particles: Xt, Xg, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:22] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:22]  `- froze 1 particles not in best combo
+[randomWalker-20:56:24] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:56:24] Step 29: found highest Z: 2.42
+[randomWalker-20:56:24] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.32, Z=2.42, 3 unfrozen]
+[randomWalker-20:56:24] check if to teleport, Kmax=3.62, ours is=2.32, p=0.06, a=0.32: dont teleport.
+[randomWalker-20:56:24] Step 29 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:56:24] Step 29 check if result goes into hiscore list
+[randomWalker-20:56:24] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:24] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:24] done check for result to go into hiscore list
+[randomWalker-20:56:24] Step 29/200 finished.
+[randomWalker-20:56:24] Step 30 begins.
+[randomWalker-20:56:24] Step 30 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:56:24] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:24]  `- froze 1 particles not in best combo
+[randomWalker-20:56:26] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:56:26] Step 30: found highest Z: 2.42
+[randomWalker-20:56:26] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.62, Z=2.42, 2 unfrozen]
+[randomWalker-20:56:26] Step 30 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:26] Step 30 check if result goes into hiscore list
+[randomWalker-20:56:26] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:26] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:26] done check for result to go into hiscore list
+[randomWalker-20:56:26] Step 30/200 finished.
+[randomWalker-20:56:26] Step 31 begins.
+[randomWalker-20:56:26] Step 31 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:26] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:26]  `- froze 0 particles not in best combo
+[randomWalker-20:56:29] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:56:29] Step 31: found highest Z: 2.42
+[randomWalker-20:56:29] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.62, Z=2.42, 3 unfrozen]
+[randomWalker-20:56:29] check if to teleport, Kmax=3.62, ours is=2.62, p=0.05, a=0.51: dont teleport.
+[randomWalker-20:56:29] Step 31 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:29] Step 31 check if result goes into hiscore list
+[randomWalker-20:56:29] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:29] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:29] done check for result to go into hiscore list
+[randomWalker-20:56:29] Step 31/200 finished.
+[randomWalker-20:56:29] u=0.27 <= 0.61 ; 3.62 -> 2.42: take the step, even though old is better.
+[randomWalker-20:56:29] Step 32 begins.
+[randomWalker-20:56:29] Step 32 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:29] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:29]  `- froze 1 particles not in best combo
+[randomWalker-20:56:31] Top r values after rescaling are: 1.30, 0.66
+[randomWalker-20:56:31] Step 32: found highest Z: 1.90
+[randomWalker-20:56:31] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.02, Z=1.90, 3 unfrozen]
+[randomWalker-20:56:31] check if to teleport, Kmax=3.62, ours is=0.02, p=0.15, a=0.15: dont teleport.
+[randomWalker-20:56:31] Step 32 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:31] Step 32 check if result goes into hiscore list
+[randomWalker-20:56:31] r values before calling .newResult are at 1.30, 0.66, 0.17
+[randomWalker-20:56:31] r values after calling .newResult are at 1.30, 0.66, 0.17
+[randomWalker-20:56:31] done check for result to go into hiscore list
+[randomWalker-20:56:31] Step 32/200 finished.
+[randomWalker-20:56:31] u=0.61 > 0.27; K: 2.62 -> 0.02: revert.
+[randomWalker-20:56:31] Step 33 begins.
+[randomWalker-20:56:31] Step 33 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:31] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:31]  `- froze 1 particles not in best combo
+[randomWalker-20:56:33] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:56:33] Step 33: found highest Z: 2.42
+[randomWalker-20:56:33] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.62, Z=2.42, 3 unfrozen]
+[randomWalker-20:56:33] check if to teleport, Kmax=3.62, ours is=2.62, p=0.05, a=0.72: dont teleport.
+[randomWalker-20:56:33] Step 33 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:33] Step 33 check if result goes into hiscore list
+[randomWalker-20:56:33] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:33] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:33] done check for result to go into hiscore list
+[randomWalker-20:56:33] Step 33/200 finished.
+[randomWalker-20:56:33] Step 34 begins.
+[randomWalker-20:56:33] Step 34 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:33] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:33]  `- froze 1 particles not in best combo
+[randomWalker-20:56:36] Step 35 begins.
+[randomWalker-20:56:36] Step 35 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:36] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:36]  `- froze 1 particles not in best combo
+[randomWalker-20:56:38] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:56:38] Step 35: found highest Z: 2.42
+[randomWalker-20:56:38] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.62, Z=2.42, 2 unfrozen]
+[randomWalker-20:56:38] check if to teleport, Kmax=3.62, ours is=3.62, p=0.00, a=0.24: dont teleport.
+[randomWalker-20:56:38] Step 35 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:38] Step 35 check if result goes into hiscore list
+[randomWalker-20:56:38] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:38] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:56:38] done check for result to go into hiscore list
+[randomWalker-20:56:38] Step 35/200 finished.
+[randomWalker-20:56:38] Step 36 begins.
+[randomWalker-20:56:38] Step 36 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:38] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:38]  `- froze 0 particles not in best combo
+[randomWalker-20:56:40] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-20:56:40] Step 36: found highest Z: 2.39
+[randomWalker-20:56:40] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.44, Z=2.39, 2 unfrozen]
+[randomWalker-20:56:40] check if to teleport, Kmax=3.62, ours is=3.44, p=0.01, a=0.79: dont teleport.
+[randomWalker-20:56:40] Step 36 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:40] Step 36 check if result goes into hiscore list
+[randomWalker-20:56:40] r values before calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:56:40] r values after calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:56:40] done check for result to go into hiscore list
+[randomWalker-20:56:40] Step 36/200 finished.
+[randomWalker-20:56:40] u=0.17 <= 0.91 ; 3.62 -> 2.39: take the step, even though old is better.
+[randomWalker-20:56:40] Step 37 begins.
+[randomWalker-20:56:40] Step 37 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:40] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:40]  `- froze 0 particles not in best combo
+[randomWalker-20:56:42] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-20:56:42] Step 37: found highest Z: 2.39
+[randomWalker-20:56:42] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.44, Z=2.39, 3 unfrozen]
+[randomWalker-20:56:42] check if to teleport, Kmax=3.62, ours is=2.44, p=0.06, a=0.72: dont teleport.
+[randomWalker-20:56:42] Step 37 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:42] Step 37 check if result goes into hiscore list
+[randomWalker-20:56:42] r values before calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:56:42] r values after calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:56:42] done check for result to go into hiscore list
+[randomWalker-20:56:42] Step 37/200 finished.
+[randomWalker-20:56:42] u=0.17 <= 0.61 ; 3.44 -> 2.39: take the step, even though old is better.
+[randomWalker-20:56:43] Step 38 begins.
+[randomWalker-20:56:43] Step 38 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:43] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:43]  `- froze 1 particles not in best combo
+[randomWalker-20:56:45] Step 39 begins.
+[randomWalker-20:56:45] Step 39 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:45] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:45]  `- froze 1 particles not in best combo
+[randomWalker-20:56:48] Top r values after rescaling are: 1.30, 0.17
+[randomWalker-20:56:48] Step 39: found highest Z: 1.92
+[randomWalker-20:56:48] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.42, Z=1.92, 2 unfrozen]
+[randomWalker-20:56:48] check if to teleport, Kmax=3.62, ours is=1.42, p=0.10, a=0.87: dont teleport.
+[randomWalker-20:56:48] Step 39 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:48] Step 39 check if result goes into hiscore list
+[randomWalker-20:56:48] r values before calling .newResult are at 1.30, 0.17, 0.10
+[randomWalker-20:56:48] r values after calling .newResult are at 1.30, 0.17, 0.10
+[randomWalker-20:56:48] done check for result to go into hiscore list
+[randomWalker-20:56:48] Step 39/200 finished.
+[randomWalker-20:56:48] u=0.79 > 0.60; K: 2.44 -> 1.42: revert.
+[randomWalker-20:56:48] Step 40 begins.
+[randomWalker-20:56:48] Step 40 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:48] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:48]  `- froze 1 particles not in best combo
+[randomWalker-20:56:50] Top r values after rescaling are: 1.11, 0.51
+[randomWalker-20:56:50] Step 40: found highest Z: 1.55
+[randomWalker-20:56:50] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.16, Z=1.55, 2 unfrozen]
+[randomWalker-20:56:50] check if to teleport, Kmax=3.62, ours is=0.16, p=0.15, a=0.58: dont teleport.
+[randomWalker-20:56:50] Step 40 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:50] Step 40 check if result goes into hiscore list
+[randomWalker-20:56:50] r values before calling .newResult are at 1.11, 0.51, 0.25
+[randomWalker-20:56:50] r values after calling .newResult are at 1.11, 0.51, 0.25
+[randomWalker-20:56:50] done check for result to go into hiscore list
+[randomWalker-20:56:50] Step 40/200 finished.
+[randomWalker-20:56:50] u=0.72 > 0.32; K: 2.44 -> 0.16: revert.
+[randomWalker-20:56:50] Step 41 begins.
+[randomWalker-20:56:50] Step 41 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:50] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:50]  `- froze 1 particles not in best combo
+[randomWalker-20:56:52] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-20:56:52] Step 41: found highest Z: 2.39
+[randomWalker-20:56:52] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.44, Z=2.39, 3 unfrozen]
+[randomWalker-20:56:52] check if to teleport, Kmax=3.62, ours is=2.44, p=0.06, a=0.74: dont teleport.
+[randomWalker-20:56:52] Step 41 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:52] Step 41 check if result goes into hiscore list
+[randomWalker-20:56:52] r values before calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:56:52] r values after calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:56:52] done check for result to go into hiscore list
+[randomWalker-20:56:52] Step 41/200 finished.
+[randomWalker-20:56:53] Step 42 begins.
+[randomWalker-20:56:53] Step 42 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:53] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:53]  `- froze 1 particles not in best combo
+[randomWalker-20:56:55] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-20:56:55] Step 42: found highest Z: 2.39
+[randomWalker-20:56:55] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.17, Z=2.39, 3 unfrozen]
+[randomWalker-20:56:55] check if to teleport, Kmax=3.62, ours is=2.17, p=0.07, a=0.58: dont teleport.
+[randomWalker-20:56:55] Step 42 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:55] Step 42 check if result goes into hiscore list
+[randomWalker-20:56:55] r values before calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:56:55] r values after calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:56:55] done check for result to go into hiscore list
+[randomWalker-20:56:55] Step 42/200 finished.
+[randomWalker-20:56:55] u=0.53 <= 0.87 ; 2.44 -> 2.39: take the step, even though old is better.
+[randomWalker-20:56:55] Step 43 begins.
+[randomWalker-20:56:55] Step 43 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:55] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:55]  `- froze 1 particles not in best combo
+[randomWalker-20:56:57] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-20:56:57] Step 43: found highest Z: 2.39
+[randomWalker-20:56:57] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.44, Z=2.39, 3 unfrozen]
+[randomWalker-20:56:57] check if to teleport, Kmax=3.62, ours is=2.44, p=0.06, a=0.40: dont teleport.
+[randomWalker-20:56:57] Step 43 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:57] Step 43 check if result goes into hiscore list
+[randomWalker-20:56:57] r values before calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:56:57] r values after calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:56:57] done check for result to go into hiscore list
+[randomWalker-20:56:57] Step 43/200 finished.
+[randomWalker-20:56:57] Step 44 begins.
+[randomWalker-20:56:57] Step 44 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:57] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:57]  `- froze 1 particles not in best combo
+[randomWalker-20:56:59] Step 45 begins.
+[randomWalker-20:56:59] Step 45 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:56:59] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:56:59]  `- froze 1 particles not in best combo
+[randomWalker-20:57:01] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-20:57:01] Step 45: found highest Z: 2.39
+[randomWalker-20:57:01] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.44, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:01] check if to teleport, Kmax=3.62, ours is=3.44, p=0.01, a=0.61: dont teleport.
+[randomWalker-20:57:01] Step 45 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:01] Step 45 check if result goes into hiscore list
+[randomWalker-20:57:01] r values before calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:57:01] r values after calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:57:01] done check for result to go into hiscore list
+[randomWalker-20:57:01] Step 45/200 finished.
+[randomWalker-20:57:02] Step 46 begins.
+[randomWalker-20:57:02] Step 46 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:02] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:02]  `- froze 0 particles not in best combo
+[randomWalker-20:57:04] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-20:57:04] Step 46: found highest Z: 2.39
+[randomWalker-20:57:04] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.17, Z=2.39, 3 unfrozen]
+[randomWalker-20:57:04] check if to teleport, Kmax=3.62, ours is=2.17, p=0.07, a=0.17: dont teleport.
+[randomWalker-20:57:04] Step 46 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:04] Step 46 check if result goes into hiscore list
+[randomWalker-20:57:04] r values before calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:57:04] r values after calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:57:04] done check for result to go into hiscore list
+[randomWalker-20:57:04] Step 46/200 finished.
+[randomWalker-20:57:04] u=0.96 > 0.53; K: 3.44 -> 2.17: revert.
+[randomWalker-20:57:04] Step 47 begins.
+[randomWalker-20:57:04] Step 47 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:04] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:04]  `- froze 0 particles not in best combo
+[randomWalker-20:57:06] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-20:57:06] Step 47: found highest Z: 2.39
+[randomWalker-20:57:06] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.17, Z=2.39, 3 unfrozen]
+[randomWalker-20:57:06] check if to teleport, Kmax=3.62, ours is=2.17, p=0.07, a=0.71: dont teleport.
+[randomWalker-20:57:06] Step 47 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:57:06] Step 47 check if result goes into hiscore list
+[randomWalker-20:57:06] r values before calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:57:06] r values after calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:57:06] done check for result to go into hiscore list
+[randomWalker-20:57:06] Step 47/200 finished.
+[randomWalker-20:57:06] u=0.90 > 0.53; K: 3.44 -> 2.17: revert.
+[randomWalker-20:57:06] Step 48 begins.
+[randomWalker-20:57:06] Step 48 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:06] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:06]  `- froze 0 particles not in best combo
+[randomWalker-20:57:08] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-20:57:08] Step 48: found highest Z: 2.39
+[randomWalker-20:57:08] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.44, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:08] check if to teleport, Kmax=3.62, ours is=3.44, p=0.01, a=0.67: dont teleport.
+[randomWalker-20:57:08] Step 48 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:08] Step 48 check if result goes into hiscore list
+[randomWalker-20:57:08] r values before calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:57:08] r values after calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:57:08] done check for result to go into hiscore list
+[randomWalker-20:57:08] Step 48/200 finished.
+[randomWalker-20:57:08] Step 49 begins.
+[randomWalker-20:57:08] Step 49 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:08] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:08]  `- froze 0 particles not in best combo
+[randomWalker-20:57:11] Step 50 begins.
+[randomWalker-20:57:11] Step 50 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:11] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:11]  `- froze 0 particles not in best combo
+[randomWalker-20:57:11] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-20:57:11] Step 50: found highest Z: 2.39
+[randomWalker-20:57:11] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.44, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:11] check if to teleport, Kmax=3.62, ours is=3.44, p=0.01, a=0.65: dont teleport.
+[randomWalker-20:57:11] Step 50 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:11] Step 50 check if result goes into hiscore list
+[randomWalker-20:57:11] r values before calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:57:11] r values after calling .newResult are at 1.30, 0.35, 0.29
+[randomWalker-20:57:11] done check for result to go into hiscore list
+[randomWalker-20:57:11] Step 50/200 finished.
+[randomWalker-20:57:12] Step 51 begins.
+[randomWalker-20:57:12] Step 51 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:12] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:12]  `- froze 0 particles not in best combo
+[randomWalker-20:57:14] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:14] Step 51: found highest Z: 2.39
+[randomWalker-20:57:14] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.45, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:14] check if to teleport, Kmax=3.62, ours is=3.45, p=0.01, a=0.95: dont teleport.
+[randomWalker-20:57:14] Step 51 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:14] Step 51 check if result goes into hiscore list
+[randomWalker-20:57:14] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:14] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:14] done check for result to go into hiscore list
+[randomWalker-20:57:14] Step 51/200 finished.
+[randomWalker-20:57:14] Step 52 begins.
+[randomWalker-20:57:14] Step 52 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:14] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:14]  `- froze 0 particles not in best combo
+[randomWalker-20:57:17] Step 53 begins.
+[randomWalker-20:57:17] Step 53 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:17] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:17]  `- froze 0 particles not in best combo
+[randomWalker-20:57:17] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:17] Step 53: found highest Z: 2.39
+[randomWalker-20:57:17] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.45, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:17] check if to teleport, Kmax=3.62, ours is=3.45, p=0.01, a=0.17: dont teleport.
+[randomWalker-20:57:17] Step 53 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:17] Step 53 check if result goes into hiscore list
+[randomWalker-20:57:17] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:17] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:17] done check for result to go into hiscore list
+[randomWalker-20:57:17] Step 53/200 finished.
+[randomWalker-20:57:17] u=0.44 <= 1.00 ; 3.45 -> 2.39: take the step, even though old is better.
+[randomWalker-20:57:17] Step 54 begins.
+[randomWalker-20:57:17] Step 54 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:17] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:17]  `- froze 0 particles not in best combo
+[randomWalker-20:57:19] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:19] Step 54: found highest Z: 2.39
+[randomWalker-20:57:19] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.20, Z=2.39, 3 unfrozen]
+[randomWalker-20:57:19] check if to teleport, Kmax=3.62, ours is=2.20, p=0.07, a=0.11: dont teleport.
+[randomWalker-20:57:19] Step 54 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:19] Step 54 check if result goes into hiscore list
+[randomWalker-20:57:19] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:19] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:19] done check for result to go into hiscore list
+[randomWalker-20:57:19] Step 54/200 finished.
+[randomWalker-20:57:19] u=0.86 > 0.54; K: 3.45 -> 2.20: revert.
+[randomWalker-20:57:19] Step 55 begins.
+[randomWalker-20:57:19] Step 55 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:19] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:19]  `- froze 0 particles not in best combo
+[randomWalker-20:57:22] Step 56 begins.
+[randomWalker-20:57:22] Step 56 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:22] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:22]  `- froze 0 particles not in best combo
+[randomWalker-20:57:24] Top r values after rescaling are: 1.21, 0.52
+[randomWalker-20:57:24] Step 56: found highest Z: 1.77
+[randomWalker-20:57:24] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.90, Z=1.77, 2 unfrozen]
+[randomWalker-20:57:24] check if to teleport, Kmax=3.62, ours is=0.90, p=0.12, a=0.89: dont teleport.
+[randomWalker-20:57:24] Step 56 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:24] Step 56 check if result goes into hiscore list
+[randomWalker-20:57:24] r values before calling .newResult are at 1.21, 0.52, 0.32
+[randomWalker-20:57:24] r values after calling .newResult are at 1.21, 0.52, 0.32
+[randomWalker-20:57:24] done check for result to go into hiscore list
+[randomWalker-20:57:24] Step 56/200 finished.
+[randomWalker-20:57:24] u=0.83 > 0.28; K: 3.45 -> 0.90: revert.
+[randomWalker-20:57:24] Step 57 begins.
+[randomWalker-20:57:24] Step 57 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:24] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:24]  `- froze 0 particles not in best combo
+[randomWalker-20:57:24] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:24] Step 57: found highest Z: 2.39
+[randomWalker-20:57:24] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.45, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:24] check if to teleport, Kmax=3.62, ours is=3.45, p=0.01, a=0.95: dont teleport.
+[randomWalker-20:57:24] Step 57 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:24] Step 57 check if result goes into hiscore list
+[randomWalker-20:57:24] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:24] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:24] done check for result to go into hiscore list
+[randomWalker-20:57:24] Step 57/200 finished.
+[randomWalker-20:57:25] Step 58 begins.
+[randomWalker-20:57:25] Step 58 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:25] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:25]  `- froze 0 particles not in best combo
+[randomWalker-20:57:25] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:25] Step 58: found highest Z: 2.39
+[randomWalker-20:57:25] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.45, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:25] check if to teleport, Kmax=3.62, ours is=3.45, p=0.01, a=0.31: dont teleport.
+[randomWalker-20:57:25] Step 58 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:25] Step 58 check if result goes into hiscore list
+[randomWalker-20:57:25] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:25] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:25] done check for result to go into hiscore list
+[randomWalker-20:57:25] Step 58/200 finished.
+[randomWalker-20:57:25] Step 59 begins.
+[randomWalker-20:57:25] Step 59 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:25] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:25]  `- froze 0 particles not in best combo
+[randomWalker-20:57:27] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:27] Step 59: found highest Z: 2.39
+[randomWalker-20:57:27] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.20, Z=2.39, 3 unfrozen]
+[randomWalker-20:57:27] check if to teleport, Kmax=3.62, ours is=2.20, p=0.07, a=0.54: dont teleport.
+[randomWalker-20:57:27] Step 59 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:27] Step 59 check if result goes into hiscore list
+[randomWalker-20:57:27] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:27] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:27] done check for result to go into hiscore list
+[randomWalker-20:57:27] Step 59/200 finished.
+[randomWalker-20:57:27] u=0.82 > 0.54; K: 3.45 -> 2.20: revert.
+[randomWalker-20:57:27] Step 60 begins.
+[randomWalker-20:57:27] Step 60 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:27] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:27]  `- froze 0 particles not in best combo
+[randomWalker-20:57:29] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:29] Step 60: found highest Z: 2.39
+[randomWalker-20:57:29] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.95, Z=2.39, 3 unfrozen]
+[randomWalker-20:57:29] check if to teleport, Kmax=3.62, ours is=1.95, p=0.08, a=0.88: dont teleport.
+[randomWalker-20:57:29] Step 60 has 3/20 unfrozen particles: Xt, XZ1, XZ2 [in best combo: Xt, XZ1]
+[randomWalker-20:57:29] Step 60 check if result goes into hiscore list
+[randomWalker-20:57:29] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:29] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:29] done check for result to go into hiscore list
+[randomWalker-20:57:29] Step 60/200 finished.
+[randomWalker-20:57:29] u=0.81 > 0.47; K: 3.45 -> 1.95: revert.
+[randomWalker-20:57:29] Step 61 begins.
+[randomWalker-20:57:29] Step 61 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:29] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:29]  `- froze 0 particles not in best combo
+[randomWalker-20:57:29] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:29] Step 61: found highest Z: 2.39
+[randomWalker-20:57:29] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.45, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:29] check if to teleport, Kmax=3.62, ours is=3.45, p=0.01, a=0.48: dont teleport.
+[randomWalker-20:57:29] Step 61 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:29] Step 61 check if result goes into hiscore list
+[randomWalker-20:57:29] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:29] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:29] done check for result to go into hiscore list
+[randomWalker-20:57:29] Step 61/200 finished.
+[randomWalker-20:57:30] Step 62 begins.
+[randomWalker-20:57:30] Step 62 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:30] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:30]  `- froze 0 particles not in best combo
+[randomWalker-20:57:30] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:30] Step 62: found highest Z: 2.39
+[randomWalker-20:57:30] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.45, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:30] check if to teleport, Kmax=3.62, ours is=3.45, p=0.01, a=0.80: dont teleport.
+[randomWalker-20:57:30] Step 62 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:30] Step 62 check if result goes into hiscore list
+[randomWalker-20:57:30] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:30] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:30] done check for result to go into hiscore list
+[randomWalker-20:57:30] Step 62/200 finished.
+[randomWalker-20:57:30] Step 63 begins.
+[randomWalker-20:57:30] Step 63 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:30] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:30]  `- froze 0 particles not in best combo
+[randomWalker-20:57:33] Step 64 begins.
+[randomWalker-20:57:33] Step 64 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:33] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:33]  `- froze 0 particles not in best combo
+[randomWalker-20:57:35] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:35] Step 64: found highest Z: 2.39
+[randomWalker-20:57:35] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.45, Z=2.39, 3 unfrozen]
+[randomWalker-20:57:35] check if to teleport, Kmax=3.62, ours is=2.45, p=0.06, a=0.44: dont teleport.
+[randomWalker-20:57:35] Step 64 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:35] Step 64 check if result goes into hiscore list
+[randomWalker-20:57:35] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:35] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:35] done check for result to go into hiscore list
+[randomWalker-20:57:35] Step 64/200 finished.
+[randomWalker-20:57:35] u=0.46 <= 0.61 ; 3.45 -> 2.39: take the step, even though old is better.
+[randomWalker-20:57:35] Step 65 begins.
+[randomWalker-20:57:35] Step 65 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:35] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:35]  `- froze 1 particles not in best combo
+[randomWalker-20:57:37] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:37] Step 65: found highest Z: 2.39
+[randomWalker-20:57:37] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.45, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:37] check if to teleport, Kmax=3.62, ours is=3.45, p=0.01, a=0.29: dont teleport.
+[randomWalker-20:57:37] Step 65 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:37] Step 65 check if result goes into hiscore list
+[randomWalker-20:57:37] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:37] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:37] done check for result to go into hiscore list
+[randomWalker-20:57:37] Step 65/200 finished.
+[randomWalker-20:57:37] Step 66 begins.
+[randomWalker-20:57:37] Step 66 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:37] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:37]  `- froze 0 particles not in best combo
+[randomWalker-20:57:37] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:37] Step 66: found highest Z: 2.39
+[randomWalker-20:57:37] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.45, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:37] check if to teleport, Kmax=3.62, ours is=3.45, p=0.01, a=0.24: dont teleport.
+[randomWalker-20:57:37] Step 66 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:37] Step 66 check if result goes into hiscore list
+[randomWalker-20:57:37] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:37] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:37] done check for result to go into hiscore list
+[randomWalker-20:57:37] Step 66/200 finished.
+[randomWalker-20:57:37] Step 67 begins.
+[randomWalker-20:57:37] Step 67 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:37] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:37]  `- froze 0 particles not in best combo
+[randomWalker-20:57:37] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-20:57:37] Step 67: found highest Z: 2.39
+[randomWalker-20:57:37] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.45, Z=2.39, 2 unfrozen]
+[randomWalker-20:57:37] check if to teleport, Kmax=3.62, ours is=3.45, p=0.01, a=0.17: dont teleport.
+[randomWalker-20:57:37] Step 67 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:37] Step 67 check if result goes into hiscore list
+[randomWalker-20:57:37] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:37] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-20:57:37] done check for result to go into hiscore list
+[randomWalker-20:57:37] Step 67/200 finished.
+[randomWalker-20:57:37] Step 68 begins.
+[randomWalker-20:57:37] Step 68 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:37] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:37]  `- froze 0 particles not in best combo
+[randomWalker-20:57:40] Step 69 begins.
+[randomWalker-20:57:40] Step 69 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:40] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:40]  `- froze 0 particles not in best combo
+[randomWalker-20:57:44] Step 70 begins.
+[randomWalker-20:57:44] Step 70 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:44] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:44]  `- froze 0 particles not in best combo
+[randomWalker-20:57:46] Top r values after rescaling are: 1.30, 0.19
+[randomWalker-20:57:46] Step 70: found highest Z: 2.08
+[randomWalker-20:57:46] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.10, Z=2.08, 2 unfrozen]
+[randomWalker-20:57:46] check if to teleport, Kmax=3.62, ours is=2.10, p=0.07, a=0.10: dont teleport.
+[randomWalker-20:57:46] Step 70 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:46] Step 70 check if result goes into hiscore list
+[randomWalker-20:57:46] r values before calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:57:46] r values after calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:57:46] done check for result to go into hiscore list
+[randomWalker-20:57:46] Step 70/200 finished.
+[randomWalker-20:57:46] u=0.49 <= 0.51 ; 3.45 -> 2.08: take the step, even though old is better.
+[randomWalker-20:57:46] Step 71 begins.
+[randomWalker-20:57:46] Step 71 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:46] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:46]  `- froze 0 particles not in best combo
+[randomWalker-20:57:48] Top r values after rescaling are: 1.30, 0.19
+[randomWalker-20:57:48] Step 71: found highest Z: 2.08
+[randomWalker-20:57:48] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.85, Z=2.08, 3 unfrozen]
+[randomWalker-20:57:48] check if to teleport, Kmax=3.62, ours is=0.85, p=0.12, a=0.66: dont teleport.
+[randomWalker-20:57:48] Step 71 has 3/20 unfrozen particles: Xt, XZ1, Xt2 [in best combo: Xt, XZ1]
+[randomWalker-20:57:48] Step 71 check if result goes into hiscore list
+[randomWalker-20:57:48] r values before calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:57:48] r values after calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:57:48] done check for result to go into hiscore list
+[randomWalker-20:57:48] Step 71/200 finished.
+[randomWalker-20:57:48] u=0.96 > 0.54; K: 2.10 -> 0.85: revert.
+[randomWalker-20:57:48] Step 72 begins.
+[randomWalker-20:57:48] Step 72 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:48] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:48]  `- froze 0 particles not in best combo
+[randomWalker-20:57:50] Top r values after rescaling are: 1.30, 0.19
+[randomWalker-20:57:50] Step 72: found highest Z: 2.08
+[randomWalker-20:57:50] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.77, Z=2.08, 3 unfrozen]
+[randomWalker-20:57:50] check if to teleport, Kmax=3.62, ours is=0.77, p=0.12, a=0.28: dont teleport.
+[randomWalker-20:57:50] Step 72 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:57:50] Step 72 check if result goes into hiscore list
+[randomWalker-20:57:50] r values before calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:57:50] r values after calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:57:50] done check for result to go into hiscore list
+[randomWalker-20:57:50] Step 72/200 finished.
+[randomWalker-20:57:50] u=0.87 > 0.52; K: 2.10 -> 0.77: revert.
+[randomWalker-20:57:51] Step 73 begins.
+[randomWalker-20:57:51] Step 73 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:51] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:51]  `- froze 0 particles not in best combo
+[randomWalker-20:57:53] Step 74 begins.
+[randomWalker-20:57:53] Step 74 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:53] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:53]  `- froze 0 particles not in best combo
+[randomWalker-20:57:55] Top r values after rescaling are: 1.30, 0.56
+[randomWalker-20:57:55] Step 74: found highest Z: 2.08
+[randomWalker-20:57:55] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-1.65, Z=2.08, 3 unfrozen]
+[randomWalker-20:57:55] check if to teleport, Kmax=3.62, ours is=-1.65, p=0.21, a=0.48: dont teleport.
+[randomWalker-20:57:55] Step 74 has 3/20 unfrozen particles: Xt, Xg, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:55] Step 74 check if result goes into hiscore list
+[randomWalker-20:57:55] r values before calling .newResult are at 1.30, 0.56, 0.27
+[randomWalker-20:57:55] r values after calling .newResult are at 1.30, 0.56, 0.27
+[randomWalker-20:57:55] done check for result to go into hiscore list
+[randomWalker-20:57:55] Step 74/200 finished.
+[randomWalker-20:57:55] u=0.58 > 0.15; K: 2.10 -> -1.65: revert.
+[randomWalker-20:57:55] Step 75 begins.
+[randomWalker-20:57:55] Step 75 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:55] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:55]  `- froze 0 particles not in best combo
+[randomWalker-20:57:57] Top r values after rescaling are: 1.30, 0.19
+[randomWalker-20:57:57] Step 75: found highest Z: 2.08
+[randomWalker-20:57:57] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.10, Z=2.08, 3 unfrozen]
+[randomWalker-20:57:57] check if to teleport, Kmax=3.62, ours is=1.10, p=0.11, a=0.15: dont teleport.
+[randomWalker-20:57:57] Step 75 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:57] Step 75 check if result goes into hiscore list
+[randomWalker-20:57:57] r values before calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:57:57] r values after calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:57:57] done check for result to go into hiscore list
+[randomWalker-20:57:57] Step 75/200 finished.
+[randomWalker-20:57:57] u=0.87 > 0.61; K: 2.10 -> 1.10: revert.
+[randomWalker-20:57:58] Step 76 begins.
+[randomWalker-20:57:58] Step 76 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:57:58] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:57:58]  `- froze 0 particles not in best combo
+[randomWalker-20:58:00] Step 77 begins.
+[randomWalker-20:58:00] Step 77 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:00] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:00]  `- froze 0 particles not in best combo
+[randomWalker-20:58:00] Top r values after rescaling are: 1.30, 0.19
+[randomWalker-20:58:00] Step 77: found highest Z: 2.08
+[randomWalker-20:58:00] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.10, Z=2.08, 2 unfrozen]
+[randomWalker-20:58:00] check if to teleport, Kmax=3.62, ours is=2.10, p=0.07, a=0.03: do teleport.
+[randomWalker-20:58:00] Step 78 begins.
+[randomWalker-20:58:00] Step 78 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:00] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:00]  `- froze 0 particles not in best combo
+[randomWalker-20:58:03] Step 79 begins.
+[randomWalker-20:58:03] Step 79 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:03] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:03]  `- froze 0 particles not in best combo
+[randomWalker-20:58:03] Top r values after rescaling are: 1.30, 0.19
+[randomWalker-20:58:03] Step 79: found highest Z: 2.08
+[randomWalker-20:58:03] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.10, Z=2.08, 2 unfrozen]
+[randomWalker-20:58:03] check if to teleport, Kmax=3.62, ours is=2.10, p=0.07, a=0.46: dont teleport.
+[randomWalker-20:58:03] Step 79 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:03] Step 79 check if result goes into hiscore list
+[randomWalker-20:58:03] r values before calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:58:03] r values after calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:58:03] done check for result to go into hiscore list
+[randomWalker-20:58:03] Step 79/200 finished.
+[randomWalker-20:58:04] Step 80 begins.
+[randomWalker-20:58:04] Step 80 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:04] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:04]  `- froze 0 particles not in best combo
+[randomWalker-20:58:06] Top r values after rescaling are: 1.30, 0.19
+[randomWalker-20:58:06] Step 80: found highest Z: 2.08
+[randomWalker-20:58:06] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.85, Z=2.08, 3 unfrozen]
+[randomWalker-20:58:06] check if to teleport, Kmax=3.62, ours is=0.85, p=0.12, a=0.79: dont teleport.
+[randomWalker-20:58:06] Step 80 has 3/20 unfrozen particles: Xt, Xtau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:06] Step 80 check if result goes into hiscore list
+[randomWalker-20:58:06] r values before calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:58:06] r values after calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:58:06] done check for result to go into hiscore list
+[randomWalker-20:58:06] Step 80/200 finished.
+[randomWalker-20:58:06] u=0.11 <= 0.54 ; 2.10 -> 2.08: take the step, even though old is better.
+[randomWalker-20:58:06] Step 81 begins.
+[randomWalker-20:58:06] Step 81 has 3/20 unfrozen particles: Xt, Xtau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:06] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:06]  `- froze 1 particles not in best combo
+[randomWalker-20:58:08] Top r values after rescaling are: 1.30, 0.19
+[randomWalker-20:58:08] Step 81: found highest Z: 2.08
+[randomWalker-20:58:08] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.10, Z=2.08, 2 unfrozen]
+[randomWalker-20:58:08] check if to teleport, Kmax=3.62, ours is=2.10, p=0.07, a=0.94: dont teleport.
+[randomWalker-20:58:08] Step 81 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:08] Step 81 check if result goes into hiscore list
+[randomWalker-20:58:08] r values before calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:58:08] r values after calling .newResult are at 1.30, 0.19, 0.18
+[randomWalker-20:58:08] done check for result to go into hiscore list
+[randomWalker-20:58:08] Step 81/200 finished.
+[randomWalker-20:58:08] Step 82 begins.
+[randomWalker-20:58:08] Step 82 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:08] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:08]  `- froze 0 particles not in best combo
+[randomWalker-20:58:10] Top r values after rescaling are: 1.30, 0.82
+[randomWalker-20:58:10] Step 82: found highest Z: 2.08
+[randomWalker-20:58:10] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.77, Z=2.08, 3 unfrozen]
+[randomWalker-20:58:10] check if to teleport, Kmax=3.62, ours is=0.77, p=0.12, a=0.95: dont teleport.
+[randomWalker-20:58:10] Step 82 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:10] Step 82 check if result goes into hiscore list
+[randomWalker-20:58:10] r values before calling .newResult are at 1.30, 0.82, 0.19
+[randomWalker-20:58:10] r values after calling .newResult are at 1.30, 0.82, 0.19
+[randomWalker-20:58:10] done check for result to go into hiscore list
+[randomWalker-20:58:10] Step 82/200 finished.
+[randomWalker-20:58:10] u=0.93 > 0.52; K: 2.10 -> 0.77: revert.
+[randomWalker-20:58:10] Step 83 begins.
+[randomWalker-20:58:10] Step 83 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:10] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:10]  `- froze 0 particles not in best combo
+[randomWalker-20:58:12] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:12] Step 83: found highest Z: 0.76
+[randomWalker-20:58:12] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-1.67, Z=0.76, 2 unfrozen]
+[randomWalker-20:58:12] check if to teleport, Kmax=3.62, ours is=-1.67, p=0.21, a=0.85: dont teleport.
+[randomWalker-20:58:12] Step 83 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:12] Step 83 check if result goes into hiscore list
+[randomWalker-20:58:12] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:12] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:12] done check for result to go into hiscore list
+[randomWalker-20:58:12] Step 83/200 finished.
+[randomWalker-20:58:12] u=0.05 <= 0.15 ; 2.10 -> 0.76: take the step, even though old is better.
+[randomWalker-20:58:13] Step 84 begins.
+[randomWalker-20:58:13] Step 84 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:13] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:13]  `- froze 0 particles not in best combo
+[randomWalker-20:58:15] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:15] Step 84: found highest Z: 0.76
+[randomWalker-20:58:15] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-3.17, Z=0.76, 3 unfrozen]
+[randomWalker-20:58:15] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.92: dont teleport.
+[randomWalker-20:58:15] Step 84 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:58:15] Step 84 check if result goes into hiscore list
+[randomWalker-20:58:15] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:15] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:15] done check for result to go into hiscore list
+[randomWalker-20:58:15] Step 84/200 finished.
+[randomWalker-20:58:15] u=0.42 <= 0.47 ; -1.67 -> 0.76: take the step, even though old is better.
+[randomWalker-20:58:15] Step 85 begins.
+[randomWalker-20:58:15] Step 85 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:58:15] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:15]  `- froze 1 particles not in best combo
+[randomWalker-20:58:17] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:17] Step 85: found highest Z: 0.76
+[randomWalker-20:58:17] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-2.67, Z=0.76, 3 unfrozen]
+[randomWalker-20:58:17] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.90: dont teleport.
+[randomWalker-20:58:17] Step 85 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:17] Step 85 check if result goes into hiscore list
+[randomWalker-20:58:17] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:17] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:17] done check for result to go into hiscore list
+[randomWalker-20:58:17] Step 85/200 finished.
+[randomWalker-20:58:17] Step 86 begins.
+[randomWalker-20:58:17] Step 86 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:17] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:17]  `- froze 1 particles not in best combo
+[randomWalker-20:58:19] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:19] Step 86: found highest Z: 0.76
+[randomWalker-20:58:19] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-3.19, Z=0.76, 3 unfrozen]
+[randomWalker-20:58:19] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.75: dont teleport.
+[randomWalker-20:58:19] Step 86 has 3/20 unfrozen particles: Xt, XZ1, Xt2 [in best combo: Xt, XZ1]
+[randomWalker-20:58:19] Step 86 check if result goes into hiscore list
+[randomWalker-20:58:19] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:19] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:19] done check for result to go into hiscore list
+[randomWalker-20:58:19] Step 86/200 finished.
+[randomWalker-20:58:19] u=0.97 > 0.77; K: -2.67 -> -3.19: revert.
+[randomWalker-20:58:19] Step 87 begins.
+[randomWalker-20:58:19] Step 87 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:19] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:19]  `- froze 1 particles not in best combo
+[randomWalker-20:58:21] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:21] Step 87: found highest Z: 0.76
+[randomWalker-20:58:21] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-1.67, Z=0.76, 2 unfrozen]
+[randomWalker-20:58:21] check if to teleport, Kmax=3.62, ours is=-1.67, p=0.21, a=0.77: dont teleport.
+[randomWalker-20:58:21] Step 87 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:21] Step 87 check if result goes into hiscore list
+[randomWalker-20:58:21] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:21] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:21] done check for result to go into hiscore list
+[randomWalker-20:58:21] Step 87/200 finished.
+[randomWalker-20:58:22] Step 88 begins.
+[randomWalker-20:58:22] Step 88 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:22] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:22]  `- froze 0 particles not in best combo
+[randomWalker-20:58:22] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:22] Step 88: found highest Z: 0.76
+[randomWalker-20:58:22] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-1.67, Z=0.76, 2 unfrozen]
+[randomWalker-20:58:22] check if to teleport, Kmax=3.62, ours is=-1.67, p=0.21, a=0.77: dont teleport.
+[randomWalker-20:58:22] Step 88 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:22] Step 88 check if result goes into hiscore list
+[randomWalker-20:58:22] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:22] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:22] done check for result to go into hiscore list
+[randomWalker-20:58:22] Step 88/200 finished.
+[randomWalker-20:58:22] Step 89 begins.
+[randomWalker-20:58:22] Step 89 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:22] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:22]  `- froze 0 particles not in best combo
+[randomWalker-20:58:24] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:24] Step 89: found highest Z: 0.76
+[randomWalker-20:58:24] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-3.22, Z=0.76, 3 unfrozen]
+[randomWalker-20:58:24] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.07: do teleport.
+[randomWalker-20:58:24] u=0.01 <= 0.46 ; -1.67 -> 0.76: take the step, even though old is better.
+[randomWalker-20:58:24] Step 90 begins.
+[randomWalker-20:58:24] Step 90 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:58:24] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:24]  `- froze 1 particles not in best combo
+[randomWalker-20:58:26] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:26] Step 90: found highest Z: 0.76
+[randomWalker-20:58:26] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-2.92, Z=0.76, 3 unfrozen]
+[randomWalker-20:58:26] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.55: dont teleport.
+[randomWalker-20:58:26] Step 90 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:26] Step 90 check if result goes into hiscore list
+[randomWalker-20:58:26] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:26] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:26] done check for result to go into hiscore list
+[randomWalker-20:58:26] Step 90/200 finished.
+[randomWalker-20:58:27] Step 91 begins.
+[randomWalker-20:58:27] Step 91 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:27] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:27]  `- froze 1 particles not in best combo
+[randomWalker-20:58:29] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:29] Step 91: found highest Z: 0.76
+[randomWalker-20:58:29] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-2.67, Z=0.76, 3 unfrozen]
+[randomWalker-20:58:29] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.58: dont teleport.
+[randomWalker-20:58:29] Step 91 has 3/20 unfrozen particles: Xt, Xtau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:29] Step 91 check if result goes into hiscore list
+[randomWalker-20:58:29] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:29] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:29] done check for result to go into hiscore list
+[randomWalker-20:58:29] Step 91/200 finished.
+[randomWalker-20:58:29] Step 92 begins.
+[randomWalker-20:58:29] Step 92 has 3/20 unfrozen particles: Xt, Xtau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:29] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:29]  `- froze 1 particles not in best combo
+[randomWalker-20:58:31] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:31] Step 92: found highest Z: 0.76
+[randomWalker-20:58:31] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-2.67, Z=0.76, 3 unfrozen]
+[randomWalker-20:58:31] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.60: dont teleport.
+[randomWalker-20:58:31] Step 92 has 3/20 unfrozen particles: Xt, Xe, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:31] Step 92 check if result goes into hiscore list
+[randomWalker-20:58:31] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:31] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:31] done check for result to go into hiscore list
+[randomWalker-20:58:31] Step 92/200 finished.
+[randomWalker-20:58:31] Step 93 begins.
+[randomWalker-20:58:31] Step 93 has 3/20 unfrozen particles: Xt, Xe, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:31] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:31]  `- froze 1 particles not in best combo
+[randomWalker-20:58:33] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:33] Step 93: found highest Z: 0.76
+[randomWalker-20:58:33] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-1.67, Z=0.76, 2 unfrozen]
+[randomWalker-20:58:33] check if to teleport, Kmax=3.62, ours is=-1.67, p=0.21, a=0.07: do teleport.
+[randomWalker-20:58:33] Step 94 begins.
+[randomWalker-20:58:33] Step 94 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:33] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:33]  `- froze 0 particles not in best combo
+[randomWalker-20:58:36] Top r values after rescaling are: 0.28, 0.28
+[randomWalker-20:58:36] Step 94: found highest Z: 0.52
+[randomWalker-20:58:36] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-3.31, Z=0.52, 3 unfrozen]
+[randomWalker-20:58:36] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.84: dont teleport.
+[randomWalker-20:58:36] Step 94 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xd, Xt, XZ1]
+[randomWalker-20:58:36] Step 94 check if result goes into hiscore list
+[randomWalker-20:58:36] r values before calling .newResult are at 0.28, 0.28, 0.06
+[randomWalker-20:58:36] r values after calling .newResult are at 0.28, 0.28, 0.06
+[randomWalker-20:58:36] done check for result to go into hiscore list
+[randomWalker-20:58:36] Step 94/200 finished.
+[randomWalker-20:58:36] u=0.72 > 0.44; K: -1.67 -> -3.31: revert.
+[randomWalker-20:58:36] Step 95 begins.
+[randomWalker-20:58:36] Step 95 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:36] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:36]  `- froze 0 particles not in best combo
+[randomWalker-20:58:38] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:38] Step 95: found highest Z: 0.76
+[randomWalker-20:58:38] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-2.67, Z=0.76, 3 unfrozen]
+[randomWalker-20:58:38] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.86: dont teleport.
+[randomWalker-20:58:38] Step 95 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:38] Step 95 check if result goes into hiscore list
+[randomWalker-20:58:38] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:38] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:38] done check for result to go into hiscore list
+[randomWalker-20:58:38] Step 95/200 finished.
+[randomWalker-20:58:38] u=0.12 <= 0.61 ; -1.67 -> 0.76: take the step, even though old is better.
+[randomWalker-20:58:38] Step 96 begins.
+[randomWalker-20:58:38] Step 96 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:38] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:38]  `- froze 1 particles not in best combo
+[randomWalker-20:58:40] Top r values after rescaling are: 0.60, 0.13
+[randomWalker-20:58:40] Step 96: found highest Z: 0.76
+[randomWalker-20:58:40] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-19-006(ul): [K=-2.67, Z=0.76, 3 unfrozen]
+[randomWalker-20:58:40] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.72: dont teleport.
+[randomWalker-20:58:40] Step 96 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:40] Step 96 check if result goes into hiscore list
+[randomWalker-20:58:40] r values before calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:40] r values after calling .newResult are at 0.60, 0.13, 0.09
+[randomWalker-20:58:40] done check for result to go into hiscore list
+[randomWalker-20:58:40] Step 96/200 finished.
+[randomWalker-20:58:40] Step 97 begins.
+[randomWalker-20:58:40] Step 97 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:40] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:40]  `- froze 1 particles not in best combo
+[randomWalker-20:58:43] Top r values after rescaling are: 1.09, 0.51
+[randomWalker-20:58:43] Step 97: found highest Z: 1.53
+[randomWalker-20:58:43] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.09, Z=1.53, 2 unfrozen]
+[randomWalker-20:58:43] check if to teleport, Kmax=3.62, ours is=0.09, p=0.15, a=0.09: do teleport.
+[randomWalker-20:58:43] Step 98 begins.
+[randomWalker-20:58:43] Step 98 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:43] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:43]  `- froze 0 particles not in best combo
+[randomWalker-20:58:45] Top r values after rescaling are: 1.09, 0.51
+[randomWalker-20:58:45] Step 98: found highest Z: 1.53
+[randomWalker-20:58:45] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-1.16, Z=1.53, 3 unfrozen]
+[randomWalker-20:58:45] check if to teleport, Kmax=3.62, ours is=-1.16, p=0.19, a=0.13: do teleport.
+[randomWalker-20:58:45] u=0.89 > 0.54; K: 0.09 -> -1.16: revert.
+[randomWalker-20:58:45] Step 99 begins.
+[randomWalker-20:58:45] Step 99 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:45] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:45]  `- froze 0 particles not in best combo
+[randomWalker-20:58:48] Step 100 begins.
+[randomWalker-20:58:48] Step 100 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:48] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:48]  `- froze 0 particles not in best combo
+[randomWalker-20:58:50] Top r values after rescaling are: 1.09, 0.51
+[randomWalker-20:58:50] Step 100: found highest Z: 1.53
+[randomWalker-20:58:50] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-1.21, Z=1.53, 3 unfrozen]
+[randomWalker-20:58:50] check if to teleport, Kmax=3.62, ours is=-1.21, p=0.19, a=0.13: do teleport.
+[randomWalker-20:58:50] u=0.69 > 0.52; K: 0.09 -> -1.21: revert.
+[randomWalker-20:58:50] Step 101 begins.
+[randomWalker-20:58:50] Step 101 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:50] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:50]  `- froze 0 particles not in best combo
+[randomWalker-20:58:52] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:58:52] Step 101: found highest Z: 1.57
+[randomWalker-20:58:52] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.21, Z=1.57, 2 unfrozen]
+[randomWalker-20:58:52] check if to teleport, Kmax=3.62, ours is=0.21, p=0.14, a=0.66: dont teleport.
+[randomWalker-20:58:52] Step 101 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:52] Step 101 check if result goes into hiscore list
+[randomWalker-20:58:52] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:58:52] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:58:52] done check for result to go into hiscore list
+[randomWalker-20:58:52] Step 101/200 finished.
+[randomWalker-20:58:52] Step 102 begins.
+[randomWalker-20:58:52] Step 102 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:52] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:52]  `- froze 0 particles not in best combo
+[randomWalker-20:58:55] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:58:55] Step 102: found highest Z: 1.57
+[randomWalker-20:58:55] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-1.04, Z=1.57, 3 unfrozen]
+[randomWalker-20:58:55] check if to teleport, Kmax=3.62, ours is=-1.04, p=0.19, a=0.49: dont teleport.
+[randomWalker-20:58:55] Step 102 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:58:55] Step 102 check if result goes into hiscore list
+[randomWalker-20:58:55] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:58:55] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:58:55] done check for result to go into hiscore list
+[randomWalker-20:58:55] Step 102/200 finished.
+[randomWalker-20:58:55] u=0.50 <= 0.54 ; 0.21 -> 1.57: take the step, even though old is better.
+[randomWalker-20:58:55] Step 103 begins.
+[randomWalker-20:58:55] Step 103 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:58:55] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:55]  `- froze 1 particles not in best combo
+[randomWalker-20:58:57] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:58:57] Step 103: found highest Z: 1.57
+[randomWalker-20:58:57] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-0.79, Z=1.57, 3 unfrozen]
+[randomWalker-20:58:57] check if to teleport, Kmax=3.62, ours is=-0.79, p=0.18, a=0.26: dont teleport.
+[randomWalker-20:58:57] Step 103 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:57] Step 103 check if result goes into hiscore list
+[randomWalker-20:58:57] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:58:57] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:58:57] done check for result to go into hiscore list
+[randomWalker-20:58:57] Step 103/200 finished.
+[randomWalker-20:58:57] Step 104 begins.
+[randomWalker-20:58:57] Step 104 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:57] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:57]  `- froze 1 particles not in best combo
+[randomWalker-20:58:59] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:58:59] Step 104: found highest Z: 1.57
+[randomWalker-20:58:59] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.21, Z=1.57, 2 unfrozen]
+[randomWalker-20:58:59] check if to teleport, Kmax=3.62, ours is=0.21, p=0.14, a=0.76: dont teleport.
+[randomWalker-20:58:59] Step 104 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:59] Step 104 check if result goes into hiscore list
+[randomWalker-20:58:59] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:58:59] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:58:59] done check for result to go into hiscore list
+[randomWalker-20:58:59] Step 104/200 finished.
+[randomWalker-20:58:59] Step 105 begins.
+[randomWalker-20:58:59] Step 105 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:58:59] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:58:59]  `- froze 0 particles not in best combo
+[randomWalker-20:59:02] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:59:02] Step 105: found highest Z: 1.57
+[randomWalker-20:59:02] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-1.09, Z=1.57, 3 unfrozen]
+[randomWalker-20:59:02] check if to teleport, Kmax=3.62, ours is=-1.09, p=0.19, a=0.15: do teleport.
+[randomWalker-20:59:02] u=0.13 <= 0.52 ; 0.21 -> 1.57: take the step, even though old is better.
+[randomWalker-20:59:02] Step 106 begins.
+[randomWalker-20:59:02] Step 106 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:59:02] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:02]  `- froze 1 particles not in best combo
+[randomWalker-20:59:04] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:59:04] Step 106: found highest Z: 1.57
+[randomWalker-20:59:04] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-1.29, Z=1.57, 3 unfrozen]
+[randomWalker-20:59:04] check if to teleport, Kmax=3.62, ours is=-1.29, p=0.19, a=0.67: dont teleport.
+[randomWalker-20:59:04] Step 106 has 3/20 unfrozen particles: Xt, XZ1, XZ2 [in best combo: Xt, XZ1]
+[randomWalker-20:59:04] Step 106 check if result goes into hiscore list
+[randomWalker-20:59:04] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:04] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:04] done check for result to go into hiscore list
+[randomWalker-20:59:04] Step 106/200 finished.
+[randomWalker-20:59:04] u=0.92 > 0.90; K: -1.09 -> -1.29: revert.
+[randomWalker-20:59:04] Step 107 begins.
+[randomWalker-20:59:04] Step 107 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:59:04] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:04]  `- froze 1 particles not in best combo
+[randomWalker-20:59:06] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:59:06] Step 107: found highest Z: 1.57
+[randomWalker-20:59:06] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-1.04, Z=1.57, 3 unfrozen]
+[randomWalker-20:59:06] check if to teleport, Kmax=3.62, ours is=-1.04, p=0.19, a=0.31: dont teleport.
+[randomWalker-20:59:06] Step 107 has 3/20 unfrozen particles: Xc, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:06] Step 107 check if result goes into hiscore list
+[randomWalker-20:59:06] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:06] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:06] done check for result to go into hiscore list
+[randomWalker-20:59:06] Step 107/200 finished.
+[randomWalker-20:59:07] Step 108 begins.
+[randomWalker-20:59:07] Step 108 has 3/20 unfrozen particles: Xc, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:07] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:07]  `- froze 1 particles not in best combo
+[randomWalker-20:59:09] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:59:09] Step 108: found highest Z: 1.57
+[randomWalker-20:59:09] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-1.04, Z=1.57, 3 unfrozen]
+[randomWalker-20:59:09] check if to teleport, Kmax=3.62, ours is=-1.04, p=0.19, a=0.34: dont teleport.
+[randomWalker-20:59:09] Step 108 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:59:09] Step 108 check if result goes into hiscore list
+[randomWalker-20:59:09] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:09] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:09] done check for result to go into hiscore list
+[randomWalker-20:59:09] Step 108/200 finished.
+[randomWalker-20:59:09] Step 109 begins.
+[randomWalker-20:59:09] Step 109 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:59:09] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:09]  `- froze 1 particles not in best combo
+[randomWalker-20:59:11] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:59:11] Step 109: found highest Z: 1.57
+[randomWalker-20:59:11] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-0.79, Z=1.57, 3 unfrozen]
+[randomWalker-20:59:11] check if to teleport, Kmax=3.62, ours is=-0.79, p=0.18, a=0.14: do teleport.
+[randomWalker-20:59:11] Step 110 begins.
+[randomWalker-20:59:11] Step 110 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:11] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:11]  `- froze 1 particles not in best combo
+[randomWalker-20:59:14] Step 111 begins.
+[randomWalker-20:59:14] Step 111 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:14] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:14]  `- froze 1 particles not in best combo
+[randomWalker-20:59:16] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:59:16] Step 111: found highest Z: 1.57
+[randomWalker-20:59:16] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.21, Z=1.57, 2 unfrozen]
+[randomWalker-20:59:16] check if to teleport, Kmax=3.62, ours is=0.21, p=0.14, a=0.36: dont teleport.
+[randomWalker-20:59:16] Step 111 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:16] Step 111 check if result goes into hiscore list
+[randomWalker-20:59:16] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:16] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:16] done check for result to go into hiscore list
+[randomWalker-20:59:16] Step 111/200 finished.
+[randomWalker-20:59:16] Step 112 begins.
+[randomWalker-20:59:16] Step 112 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:16] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:16]  `- froze 0 particles not in best combo
+[randomWalker-20:59:19] Step 113 begins.
+[randomWalker-20:59:19] Step 113 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:19] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:19]  `- froze 0 particles not in best combo
+[randomWalker-20:59:21] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:59:21] Step 113: found highest Z: 1.57
+[randomWalker-20:59:21] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.21, Z=1.57, 2 unfrozen]
+[randomWalker-20:59:21] check if to teleport, Kmax=3.62, ours is=0.21, p=0.14, a=0.95: dont teleport.
+[randomWalker-20:59:21] Step 113 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:21] Step 113 check if result goes into hiscore list
+[randomWalker-20:59:21] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:21] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:21] done check for result to go into hiscore list
+[randomWalker-20:59:21] Step 113/200 finished.
+[randomWalker-20:59:21] Step 114 begins.
+[randomWalker-20:59:21] Step 114 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:21] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:21]  `- froze 0 particles not in best combo
+[randomWalker-20:59:24] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:59:24] Step 114: found highest Z: 1.57
+[randomWalker-20:59:24] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-0.79, Z=1.57, 3 unfrozen]
+[randomWalker-20:59:24] check if to teleport, Kmax=3.62, ours is=-0.79, p=0.18, a=0.45: dont teleport.
+[randomWalker-20:59:24] Step 114 has 3/20 unfrozen particles: Xt, Xe, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:24] Step 114 check if result goes into hiscore list
+[randomWalker-20:59:24] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:24] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:24] done check for result to go into hiscore list
+[randomWalker-20:59:24] Step 114/200 finished.
+[randomWalker-20:59:24] u=0.16 <= 0.61 ; 0.21 -> 1.57: take the step, even though old is better.
+[randomWalker-20:59:24] Step 115 begins.
+[randomWalker-20:59:24] Step 115 has 3/20 unfrozen particles: Xt, Xe, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:24] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:24]  `- froze 1 particles not in best combo
+[randomWalker-20:59:26] Top r values after rescaling are: 1.12, 0.51
+[randomWalker-20:59:26] Step 115: found highest Z: 1.57
+[randomWalker-20:59:26] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-1.07, Z=1.57, 3 unfrozen]
+[randomWalker-20:59:26] check if to teleport, Kmax=3.62, ours is=-1.07, p=0.19, a=0.66: dont teleport.
+[randomWalker-20:59:26] Step 115 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:26] Step 115 check if result goes into hiscore list
+[randomWalker-20:59:26] r values before calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:26] r values after calling .newResult are at 1.12, 0.51, 0.25
+[randomWalker-20:59:26] done check for result to go into hiscore list
+[randomWalker-20:59:26] Step 115/200 finished.
+[randomWalker-20:59:26] u=0.34 <= 0.87 ; -0.79 -> 1.57: take the step, even though old is better.
+[randomWalker-20:59:26] Step 116 begins.
+[randomWalker-20:59:26] Step 116 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:26] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:26]  `- froze 1 particles not in best combo
+[randomWalker-20:59:29] Top r values after rescaling are: 1.13, 0.51
+[randomWalker-20:59:29] Step 116: found highest Z: 1.57
+[randomWalker-20:59:29] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.22, Z=1.57, 2 unfrozen]
+[randomWalker-20:59:29] check if to teleport, Kmax=3.62, ours is=0.22, p=0.14, a=0.90: dont teleport.
+[randomWalker-20:59:29] Step 116 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:29] Step 116 check if result goes into hiscore list
+[randomWalker-20:59:29] r values before calling .newResult are at 1.13, 0.51, 0.25
+[randomWalker-20:59:29] r values after calling .newResult are at 1.13, 0.51, 0.25
+[randomWalker-20:59:29] done check for result to go into hiscore list
+[randomWalker-20:59:29] Step 116/200 finished.
+[randomWalker-20:59:29] Step 117 begins.
+[randomWalker-20:59:29] Step 117 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:29] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:29]  `- froze 0 particles not in best combo
+[randomWalker-20:59:31] Top r values after rescaling are: 1.13, 0.51
+[randomWalker-20:59:31] Step 117: found highest Z: 1.57
+[randomWalker-20:59:31] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-0.78, Z=1.57, 3 unfrozen]
+[randomWalker-20:59:31] check if to teleport, Kmax=3.62, ours is=-0.78, p=0.18, a=0.13: do teleport.
+[randomWalker-20:59:31] u=0.21 <= 0.61 ; 0.22 -> 1.57: take the step, even though old is better.
+[randomWalker-20:59:31] Step 118 begins.
+[randomWalker-20:59:31] Step 118 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:31] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:31]  `- froze 1 particles not in best combo
+[randomWalker-20:59:33] Step 119 begins.
+[randomWalker-20:59:33] Step 119 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:33] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:33]  `- froze 1 particles not in best combo
+[randomWalker-20:59:36] Step 120 begins.
+[randomWalker-20:59:36] Step 120 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:36] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:36]  `- froze 1 particles not in best combo
+[randomWalker-20:59:39] Top r values after rescaling are: 1.13, 0.51
+[randomWalker-20:59:39] Step 120: found highest Z: 1.57
+[randomWalker-20:59:39] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-1.08, Z=1.57, 3 unfrozen]
+[randomWalker-20:59:39] check if to teleport, Kmax=3.62, ours is=-1.08, p=0.19, a=0.24: dont teleport.
+[randomWalker-20:59:39] Step 120 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:59:39] Step 120 check if result goes into hiscore list
+[randomWalker-20:59:39] r values before calling .newResult are at 1.13, 0.51, 0.25
+[randomWalker-20:59:39] r values after calling .newResult are at 1.13, 0.51, 0.25
+[randomWalker-20:59:39] done check for result to go into hiscore list
+[randomWalker-20:59:39] Step 120/200 finished.
+[randomWalker-20:59:39] u=0.30 <= 0.86 ; -0.78 -> 1.57: take the step, even though old is better.
+[randomWalker-20:59:39] Step 121 begins.
+[randomWalker-20:59:39] Step 121 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-20:59:39] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:39]  `- froze 1 particles not in best combo
+[randomWalker-20:59:41] Top r values after rescaling are: 1.13, 0.51
+[randomWalker-20:59:41] Step 121: found highest Z: 1.57
+[randomWalker-20:59:41] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-0.78, Z=1.57, 3 unfrozen]
+[randomWalker-20:59:41] check if to teleport, Kmax=3.62, ours is=-0.78, p=0.18, a=0.92: dont teleport.
+[randomWalker-20:59:41] Step 121 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:41] Step 121 check if result goes into hiscore list
+[randomWalker-20:59:41] r values before calling .newResult are at 1.13, 0.51, 0.25
+[randomWalker-20:59:41] r values after calling .newResult are at 1.13, 0.51, 0.25
+[randomWalker-20:59:41] done check for result to go into hiscore list
+[randomWalker-20:59:41] Step 121/200 finished.
+[randomWalker-20:59:41] Step 122 begins.
+[randomWalker-20:59:41] Step 122 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:41] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:41]  `- froze 1 particles not in best combo
+[randomWalker-20:59:43] Top r values after rescaling are: 1.06, 0.53
+[randomWalker-20:59:43] Step 122: found highest Z: 1.87
+[randomWalker-20:59:43] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.26, Z=1.87, 2 unfrozen]
+[randomWalker-20:59:43] check if to teleport, Kmax=3.62, ours is=1.26, p=0.11, a=0.12: dont teleport.
+[randomWalker-20:59:43] Step 122 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:43] Step 122 check if result goes into hiscore list
+[randomWalker-20:59:43] r values before calling .newResult are at 1.06, 0.53, 0.25
+[randomWalker-20:59:43] r values after calling .newResult are at 1.06, 0.53, 0.25
+[randomWalker-20:59:43] done check for result to go into hiscore list
+[randomWalker-20:59:43] Step 122/200 finished.
+[randomWalker-20:59:43] Step 123 begins.
+[randomWalker-20:59:43] Step 123 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:43] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:43]  `- froze 0 particles not in best combo
+[randomWalker-20:59:46] Step 124 begins.
+[randomWalker-20:59:46] Step 124 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:46] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:46]  `- froze 0 particles not in best combo
+[randomWalker-20:59:48] Top r values after rescaling are: 1.06, 0.53
+[randomWalker-20:59:48] Step 124: found highest Z: 1.87
+[randomWalker-20:59:48] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-0.01, Z=1.87, 3 unfrozen]
+[randomWalker-20:59:48] check if to teleport, Kmax=3.62, ours is=-0.01, p=0.15, a=0.84: dont teleport.
+[randomWalker-20:59:48] Step 124 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:48] Step 124 check if result goes into hiscore list
+[randomWalker-20:59:48] r values before calling .newResult are at 1.06, 0.53, 0.25
+[randomWalker-20:59:48] r values after calling .newResult are at 1.06, 0.53, 0.25
+[randomWalker-20:59:48] done check for result to go into hiscore list
+[randomWalker-20:59:48] Step 124/200 finished.
+[randomWalker-20:59:48] u=0.41 <= 0.53 ; 1.26 -> 1.87: take the step, even though old is better.
+[randomWalker-20:59:48] Step 125 begins.
+[randomWalker-20:59:48] Step 125 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:48] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:48]  `- froze 1 particles not in best combo
+[randomWalker-20:59:51] Top r values after rescaling are: 1.06, 0.53
+[randomWalker-20:59:51] Step 125: found highest Z: 1.87
+[randomWalker-20:59:51] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.26, Z=1.87, 2 unfrozen]
+[randomWalker-20:59:51] check if to teleport, Kmax=3.62, ours is=1.26, p=0.11, a=0.46: dont teleport.
+[randomWalker-20:59:51] Step 125 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:51] Step 125 check if result goes into hiscore list
+[randomWalker-20:59:51] r values before calling .newResult are at 1.06, 0.53, 0.25
+[randomWalker-20:59:51] r values after calling .newResult are at 1.06, 0.53, 0.25
+[randomWalker-20:59:51] done check for result to go into hiscore list
+[randomWalker-20:59:51] Step 125/200 finished.
+[randomWalker-20:59:51] Step 126 begins.
+[randomWalker-20:59:51] Step 126 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:51] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:51]  `- froze 0 particles not in best combo
+[randomWalker-20:59:53] Step 127 begins.
+[randomWalker-20:59:53] Step 127 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:53] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:53]  `- froze 0 particles not in best combo
+[randomWalker-20:59:53] Top r values after rescaling are: 1.06, 0.53
+[randomWalker-20:59:53] Step 127: found highest Z: 1.87
+[randomWalker-20:59:53] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.26, Z=1.87, 2 unfrozen]
+[randomWalker-20:59:53] check if to teleport, Kmax=3.62, ours is=1.26, p=0.11, a=0.11: dont teleport.
+[randomWalker-20:59:53] Step 127 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:53] Step 127 check if result goes into hiscore list
+[randomWalker-20:59:53] r values before calling .newResult are at 1.06, 0.53, 0.25
+[randomWalker-20:59:53] r values after calling .newResult are at 1.06, 0.53, 0.25
+[randomWalker-20:59:53] done check for result to go into hiscore list
+[randomWalker-20:59:53] Step 127/200 finished.
+[randomWalker-20:59:53] u=0.73 <= 1.00 ; 1.26 -> 1.87: take the step, even though old is better.
+[randomWalker-20:59:54] Step 128 begins.
+[randomWalker-20:59:54] Step 128 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:54] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:54]  `- froze 0 particles not in best combo
+[randomWalker-20:59:56] Step 129 begins.
+[randomWalker-20:59:56] Step 129 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:56] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:56]  `- froze 0 particles not in best combo
+[randomWalker-20:59:58] Top r values after rescaling are: 1.03, 0.52
+[randomWalker-20:59:58] Step 129: found highest Z: 1.77
+[randomWalker-20:59:58] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.89, Z=1.77, 2 unfrozen]
+[randomWalker-20:59:58] check if to teleport, Kmax=3.62, ours is=0.89, p=0.12, a=0.69: dont teleport.
+[randomWalker-20:59:58] Step 129 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:58] Step 129 check if result goes into hiscore list
+[randomWalker-20:59:58] r values before calling .newResult are at 1.03, 0.52, 0.24
+[randomWalker-20:59:58] r values after calling .newResult are at 1.03, 0.52, 0.24
+[randomWalker-20:59:58] done check for result to go into hiscore list
+[randomWalker-20:59:58] Step 129/200 finished.
+[randomWalker-20:59:58] u=0.04 <= 0.83 ; 1.26 -> 1.77: take the step, even though old is better.
+[randomWalker-20:59:59] Step 130 begins.
+[randomWalker-20:59:59] Step 130 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:59] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:59]  `- froze 0 particles not in best combo
+[randomWalker-20:59:59] Top r values after rescaling are: 1.03, 0.52
+[randomWalker-20:59:59] Step 130: found highest Z: 1.77
+[randomWalker-20:59:59] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.89, Z=1.77, 2 unfrozen]
+[randomWalker-20:59:59] check if to teleport, Kmax=3.62, ours is=0.89, p=0.12, a=0.40: dont teleport.
+[randomWalker-20:59:59] Step 130 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:59] Step 130 check if result goes into hiscore list
+[randomWalker-20:59:59] r values before calling .newResult are at 1.03, 0.52, 0.24
+[randomWalker-20:59:59] r values after calling .newResult are at 1.03, 0.52, 0.24
+[randomWalker-20:59:59] done check for result to go into hiscore list
+[randomWalker-20:59:59] Step 130/200 finished.
+[randomWalker-20:59:59] u=0.80 <= 1.00 ; 0.89 -> 1.77: take the step, even though old is better.
+[randomWalker-20:59:59] Step 131 begins.
+[randomWalker-20:59:59] Step 131 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-20:59:59] freeze pids that arent in best combo, we dont need them:
+[randomWalker-20:59:59]  `- froze 0 particles not in best combo
+[randomWalker-21:00:02] Step 132 begins.
+[randomWalker-21:00:02] Step 132 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:02] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:02]  `- froze 0 particles not in best combo
+[randomWalker-21:00:02] Top r values after rescaling are: 1.03, 0.52
+[randomWalker-21:00:02] Step 132: found highest Z: 1.77
+[randomWalker-21:00:02] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=0.89, Z=1.77, 2 unfrozen]
+[randomWalker-21:00:02] check if to teleport, Kmax=3.62, ours is=0.89, p=0.12, a=0.66: dont teleport.
+[randomWalker-21:00:02] Step 132 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:02] Step 132 check if result goes into hiscore list
+[randomWalker-21:00:02] r values before calling .newResult are at 1.03, 0.52, 0.24
+[randomWalker-21:00:02] r values after calling .newResult are at 1.03, 0.52, 0.24
+[randomWalker-21:00:02] done check for result to go into hiscore list
+[randomWalker-21:00:02] Step 132/200 finished.
+[randomWalker-21:00:02] Step 133 begins.
+[randomWalker-21:00:02] Step 133 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:02] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:02]  `- froze 0 particles not in best combo
+[randomWalker-21:00:04] Top r values after rescaling are: 1.03, 0.52
+[randomWalker-21:00:04] Step 133: found highest Z: 1.77
+[randomWalker-21:00:04] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-0.39, Z=1.77, 3 unfrozen]
+[randomWalker-21:00:04] check if to teleport, Kmax=3.62, ours is=-0.39, p=0.17, a=0.93: dont teleport.
+[randomWalker-21:00:04] Step 133 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-21:00:04] Step 133 check if result goes into hiscore list
+[randomWalker-21:00:04] r values before calling .newResult are at 1.03, 0.52, 0.24
+[randomWalker-21:00:04] r values after calling .newResult are at 1.03, 0.52, 0.24
+[randomWalker-21:00:04] done check for result to go into hiscore list
+[randomWalker-21:00:04] Step 133/200 finished.
+[randomWalker-21:00:04] u=0.25 <= 0.53 ; 0.89 -> 1.77: take the step, even though old is better.
+[randomWalker-21:00:04] Step 134 begins.
+[randomWalker-21:00:04] Step 134 has 3/20 unfrozen particles: Xt, XZ1, XW [in best combo: Xt, XZ1]
+[randomWalker-21:00:04] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:04]  `- froze 1 particles not in best combo
+[randomWalker-21:00:07] Top r values after rescaling are: 1.03, 0.52
+[randomWalker-21:00:07] Step 134: found highest Z: 1.77
+[randomWalker-21:00:07] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-0.11, Z=1.77, 3 unfrozen]
+[randomWalker-21:00:07] check if to teleport, Kmax=3.62, ours is=-0.11, p=0.16, a=0.99: dont teleport.
+[randomWalker-21:00:07] Step 134 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:07] Step 134 check if result goes into hiscore list
+[randomWalker-21:00:07] r values before calling .newResult are at 1.03, 0.52, 0.24
+[randomWalker-21:00:07] r values after calling .newResult are at 1.03, 0.52, 0.24
+[randomWalker-21:00:07] done check for result to go into hiscore list
+[randomWalker-21:00:07] Step 134/200 finished.
+[randomWalker-21:00:07] Step 135 begins.
+[randomWalker-21:00:07] Step 135 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:07] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:07]  `- froze 1 particles not in best combo
+[randomWalker-21:00:09] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-21:00:09] Step 135: found highest Z: 2.28
+[randomWalker-21:00:09] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.96, Z=2.28, 2 unfrozen]
+[randomWalker-21:00:09] check if to teleport, Kmax=3.62, ours is=2.96, p=0.03, a=0.42: dont teleport.
+[randomWalker-21:00:09] Step 135 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:09] Step 135 check if result goes into hiscore list
+[randomWalker-21:00:09] r values before calling .newResult are at 1.30, 0.35, 0.33
+[randomWalker-21:00:09] r values after calling .newResult are at 1.30, 0.35, 0.33
+[randomWalker-21:00:09] done check for result to go into hiscore list
+[randomWalker-21:00:09] Step 135/200 finished.
+[randomWalker-21:00:09] Step 136 begins.
+[randomWalker-21:00:09] Step 136 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:09] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:09]  `- froze 0 particles not in best combo
+[randomWalker-21:00:12] Step 137 begins.
+[randomWalker-21:00:12] Step 137 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:12] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:12]  `- froze 0 particles not in best combo
+[randomWalker-21:00:14] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-21:00:14] Step 137: found highest Z: 2.28
+[randomWalker-21:00:14] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.68, Z=2.28, 3 unfrozen]
+[randomWalker-21:00:14] check if to teleport, Kmax=3.62, ours is=1.68, p=0.09, a=0.62: dont teleport.
+[randomWalker-21:00:14] Step 137 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:14] Step 137 check if result goes into hiscore list
+[randomWalker-21:00:14] r values before calling .newResult are at 1.30, 0.35, 0.33
+[randomWalker-21:00:14] r values after calling .newResult are at 1.30, 0.35, 0.33
+[randomWalker-21:00:14] done check for result to go into hiscore list
+[randomWalker-21:00:14] Step 137/200 finished.
+[randomWalker-21:00:14] u=0.24 <= 0.53 ; 2.96 -> 2.28: take the step, even though old is better.
+[randomWalker-21:00:14] Step 138 begins.
+[randomWalker-21:00:14] Step 138 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:14] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:14]  `- froze 1 particles not in best combo
+[randomWalker-21:00:17] Step 139 begins.
+[randomWalker-21:00:17] Step 139 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:17] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:17]  `- froze 1 particles not in best combo
+[randomWalker-21:00:20] Step 140 begins.
+[randomWalker-21:00:20] Step 140 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:20] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:20]  `- froze 1 particles not in best combo
+[randomWalker-21:00:25] Top r values after rescaling are: 1.30, 0.06
+[randomWalker-21:00:25] Step 140: found highest Z: 0.61
+[randomWalker-21:00:25] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=-4.63, Z=0.61, 3 unfrozen]
+[randomWalker-21:00:25] check if to teleport, Kmax=3.62, ours is=-2.00, p=0.22, a=0.10: do teleport.
+[randomWalker-21:00:25] u=0.64 > 0.04; K: 1.68 -> -4.63: revert.
+[randomWalker-21:00:25] Step 141 begins.
+[randomWalker-21:00:25] Step 141 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:25] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:25]  `- froze 1 particles not in best combo
+[randomWalker-21:00:28] Top r values after rescaling are: 1.30, 0.45
+[randomWalker-21:00:28] Step 141: found highest Z: 2.28
+[randomWalker-21:00:28] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.66, Z=2.28, 3 unfrozen]
+[randomWalker-21:00:28] check if to teleport, Kmax=3.62, ours is=1.66, p=0.09, a=0.27: dont teleport.
+[randomWalker-21:00:28] Step 141 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:28] Step 141 check if result goes into hiscore list
+[randomWalker-21:00:28] r values before calling .newResult are at 1.30, 0.45, 0.35
+[randomWalker-21:00:28] r values after calling .newResult are at 1.30, 0.45, 0.35
+[randomWalker-21:00:28] done check for result to go into hiscore list
+[randomWalker-21:00:28] Step 141/200 finished.
+[randomWalker-21:00:28] u=0.87 <= 0.99 ; 1.68 -> 2.28: take the step, even though old is better.
+[randomWalker-21:00:28] Step 142 begins.
+[randomWalker-21:00:28] Step 142 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:28] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:28]  `- froze 1 particles not in best combo
+[randomWalker-21:00:30] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-21:00:30] Step 142: found highest Z: 2.28
+[randomWalker-21:00:30] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.46, Z=2.28, 3 unfrozen]
+[randomWalker-21:00:30] check if to teleport, Kmax=3.62, ours is=1.46, p=0.10, a=0.58: dont teleport.
+[randomWalker-21:00:30] Step 142 has 3/20 unfrozen particles: Xt, XZ1, XZ2 [in best combo: Xt, XZ1]
+[randomWalker-21:00:30] Step 142 check if result goes into hiscore list
+[randomWalker-21:00:30] r values before calling .newResult are at 1.30, 0.35, 0.33
+[randomWalker-21:00:30] r values after calling .newResult are at 1.30, 0.35, 0.33
+[randomWalker-21:00:30] done check for result to go into hiscore list
+[randomWalker-21:00:30] Step 142/200 finished.
+[randomWalker-21:00:30] u=0.70 <= 0.90 ; 1.66 -> 2.28: take the step, even though old is better.
+[randomWalker-21:00:30] Step 143 begins.
+[randomWalker-21:00:30] Step 143 has 3/20 unfrozen particles: Xt, XZ1, XZ2 [in best combo: Xt, XZ1]
+[randomWalker-21:00:30] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:30]  `- froze 1 particles not in best combo
+[randomWalker-21:00:32] Top r values after rescaling are: 1.30, 0.35
+[randomWalker-21:00:32] Step 143: found highest Z: 2.28
+[randomWalker-21:00:32] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.66, Z=2.28, 3 unfrozen]
+[randomWalker-21:00:32] check if to teleport, Kmax=3.62, ours is=1.66, p=0.09, a=0.16: dont teleport.
+[randomWalker-21:00:32] Step 143 has 3/20 unfrozen particles: Xt, XZ1, Xt2 [in best combo: Xt, XZ1]
+[randomWalker-21:00:32] Step 143 check if result goes into hiscore list
+[randomWalker-21:00:32] r values before calling .newResult are at 1.30, 0.35, 0.33
+[randomWalker-21:00:32] r values after calling .newResult are at 1.30, 0.35, 0.33
+[randomWalker-21:00:32] done check for result to go into hiscore list
+[randomWalker-21:00:32] Step 143/200 finished.
+[randomWalker-21:00:32] Step 144 begins.
+[randomWalker-21:00:32] Step 144 has 3/20 unfrozen particles: Xt, XZ1, Xt2 [in best combo: Xt, XZ1]
+[randomWalker-21:00:32] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:32]  `- froze 1 particles not in best combo
+[randomWalker-21:00:35] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:00:35] Step 144: found highest Z: 2.50
+[randomWalker-21:00:35] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.01, Z=2.50, 2 unfrozen]
+[randomWalker-21:00:35] Step 144 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:35] Step 144 check if result goes into hiscore list
+[randomWalker-21:00:35] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:35] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:35] done check for result to go into hiscore list
+[randomWalker-21:00:35] Step 144/200 finished.
+[randomWalker-21:00:35] Step 145 begins.
+[randomWalker-21:00:35] Step 145 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:35] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:35]  `- froze 0 particles not in best combo
+[randomWalker-21:00:37] Top r values after rescaling are: 1.30, 0.19
+[randomWalker-21:00:37] Step 145: found highest Z: 1.99
+[randomWalker-21:00:37] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=1.72, Z=1.99, 2 unfrozen]
+[randomWalker-21:00:37] check if to teleport, Kmax=4.01, ours is=1.72, p=0.10, a=0.88: dont teleport.
+[randomWalker-21:00:37] Step 145 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:37] Step 145 check if result goes into hiscore list
+[randomWalker-21:00:37] r values before calling .newResult are at 1.30, 0.19, 0.12
+[randomWalker-21:00:37] r values after calling .newResult are at 1.30, 0.19, 0.12
+[randomWalker-21:00:37] done check for result to go into hiscore list
+[randomWalker-21:00:37] Step 145/200 finished.
+[randomWalker-21:00:37] u=0.92 > 0.32; K: 4.01 -> 1.72: revert.
+[randomWalker-21:00:37] Step 146 begins.
+[randomWalker-21:00:37] Step 146 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:37] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:37]  `- froze 0 particles not in best combo
+[randomWalker-21:00:40] Top r values after rescaling are: 1.30, 0.43
+[randomWalker-21:00:40] Step 146: found highest Z: 2.50
+[randomWalker-21:00:40] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.71, Z=2.50, 3 unfrozen]
+[randomWalker-21:00:40] check if to teleport, Kmax=4.01, ours is=2.71, p=0.06, a=0.37: dont teleport.
+[randomWalker-21:00:40] Step 146 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:40] Step 146 check if result goes into hiscore list
+[randomWalker-21:00:40] r values before calling .newResult are at 1.30, 0.43, 0.34
+[randomWalker-21:00:40] r values after calling .newResult are at 1.30, 0.43, 0.34
+[randomWalker-21:00:40] done check for result to go into hiscore list
+[randomWalker-21:00:40] Step 146/200 finished.
+[randomWalker-21:00:40] u=0.03 <= 0.52 ; 4.01 -> 2.50: take the step, even though old is better.
+[randomWalker-21:00:40] Step 147 begins.
+[randomWalker-21:00:40] Step 147 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:40] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:40]  `- froze 1 particles not in best combo
+[randomWalker-21:00:42] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:00:42] Step 147: found highest Z: 2.50
+[randomWalker-21:00:42] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.01, Z=2.50, 2 unfrozen]
+[randomWalker-21:00:42] check if to teleport, Kmax=4.01, ours is=4.01, p=0.00, a=0.54: dont teleport.
+[randomWalker-21:00:42] Step 147 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:42] Step 147 check if result goes into hiscore list
+[randomWalker-21:00:42] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:42] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:42] done check for result to go into hiscore list
+[randomWalker-21:00:42] Step 147/200 finished.
+[randomWalker-21:00:42] Step 148 begins.
+[randomWalker-21:00:42] Step 148 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:42] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:42]  `- froze 0 particles not in best combo
+[randomWalker-21:00:44] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:00:44] Step 148: found highest Z: 2.50
+[randomWalker-21:00:44] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.76, Z=2.50, 3 unfrozen]
+[randomWalker-21:00:44] check if to teleport, Kmax=4.01, ours is=2.76, p=0.06, a=0.30: dont teleport.
+[randomWalker-21:00:44] Step 148 has 3/20 unfrozen particles: Xt, Xtau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:44] Step 148 check if result goes into hiscore list
+[randomWalker-21:00:44] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:44] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:44] done check for result to go into hiscore list
+[randomWalker-21:00:44] Step 148/200 finished.
+[randomWalker-21:00:44] u=0.88 > 0.54; K: 4.01 -> 2.76: revert.
+[randomWalker-21:00:44] Step 149 begins.
+[randomWalker-21:00:44] Step 149 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:44] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:44]  `- froze 0 particles not in best combo
+[randomWalker-21:00:46] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:00:46] Step 149: found highest Z: 2.50
+[randomWalker-21:00:46] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.01, Z=2.50, 2 unfrozen]
+[randomWalker-21:00:46] Step 149 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:46] Step 149 check if result goes into hiscore list
+[randomWalker-21:00:46] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:46] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:46] done check for result to go into hiscore list
+[randomWalker-21:00:46] Step 149/200 finished.
+[randomWalker-21:00:46] Step 150 begins.
+[randomWalker-21:00:46] Step 150 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:46] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:46]  `- froze 0 particles not in best combo
+[randomWalker-21:00:48] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:00:48] Step 150: found highest Z: 2.50
+[randomWalker-21:00:48] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.01, Z=2.50, 2 unfrozen]
+[randomWalker-21:00:48] Step 150 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:48] Step 150 check if result goes into hiscore list
+[randomWalker-21:00:48] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:48] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:48] done check for result to go into hiscore list
+[randomWalker-21:00:48] Step 150/200 finished.
+[randomWalker-21:00:49] Step 151 begins.
+[randomWalker-21:00:49] Step 151 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:49] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:49]  `- froze 0 particles not in best combo
+[randomWalker-21:00:51] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:00:51] Step 151: found highest Z: 2.50
+[randomWalker-21:00:51] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.76, Z=2.50, 3 unfrozen]
+[randomWalker-21:00:51] check if to teleport, Kmax=4.01, ours is=2.76, p=0.06, a=0.49: dont teleport.
+[randomWalker-21:00:51] Step 151 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:51] Step 151 check if result goes into hiscore list
+[randomWalker-21:00:51] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:51] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:51] done check for result to go into hiscore list
+[randomWalker-21:00:51] Step 151/200 finished.
+[randomWalker-21:00:51] u=0.68 > 0.54; K: 4.01 -> 2.76: revert.
+[randomWalker-21:00:51] Step 152 begins.
+[randomWalker-21:00:51] Step 152 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:51] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:51]  `- froze 0 particles not in best combo
+[randomWalker-21:00:51] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:00:51] Step 152: found highest Z: 2.50
+[randomWalker-21:00:51] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.01, Z=2.50, 2 unfrozen]
+[randomWalker-21:00:51] Step 152 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:51] Step 152 check if result goes into hiscore list
+[randomWalker-21:00:51] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:51] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:51] done check for result to go into hiscore list
+[randomWalker-21:00:51] Step 152/200 finished.
+[randomWalker-21:00:51] Step 153 begins.
+[randomWalker-21:00:51] Step 153 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:51] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:51]  `- froze 0 particles not in best combo
+[randomWalker-21:00:53] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:00:53] Step 153: found highest Z: 2.50
+[randomWalker-21:00:53] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.76, Z=2.50, 3 unfrozen]
+[randomWalker-21:00:53] check if to teleport, Kmax=4.01, ours is=2.76, p=0.06, a=0.46: dont teleport.
+[randomWalker-21:00:53] Step 153 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:53] Step 153 check if result goes into hiscore list
+[randomWalker-21:00:53] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:53] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:53] done check for result to go into hiscore list
+[randomWalker-21:00:53] Step 153/200 finished.
+[randomWalker-21:00:53] u=0.14 <= 0.54 ; 4.01 -> 2.50: take the step, even though old is better.
+[randomWalker-21:00:53] Step 154 begins.
+[randomWalker-21:00:53] Step 154 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:53] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:53]  `- froze 1 particles not in best combo
+[randomWalker-21:00:55] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:00:55] Step 154: found highest Z: 2.50
+[randomWalker-21:00:55] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.01, Z=2.50, 2 unfrozen]
+[randomWalker-21:00:55] check if to teleport, Kmax=4.01, ours is=4.01, p=0.00, a=0.69: dont teleport.
+[randomWalker-21:00:55] Step 154 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:55] Step 154 check if result goes into hiscore list
+[randomWalker-21:00:55] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:55] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:55] done check for result to go into hiscore list
+[randomWalker-21:00:55] Step 154/200 finished.
+[randomWalker-21:00:55] Step 155 begins.
+[randomWalker-21:00:55] Step 155 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:55] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:55]  `- froze 0 particles not in best combo
+[randomWalker-21:00:58] Step 156 begins.
+[randomWalker-21:00:58] Step 156 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:58] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:58]  `- froze 0 particles not in best combo
+[randomWalker-21:00:58] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:00:58] Step 156: found highest Z: 2.50
+[randomWalker-21:00:58] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.01, Z=2.50, 2 unfrozen]
+[randomWalker-21:00:58] Step 156 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:58] Step 156 check if result goes into hiscore list
+[randomWalker-21:00:58] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:58] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:00:58] done check for result to go into hiscore list
+[randomWalker-21:00:58] Step 156/200 finished.
+[randomWalker-21:00:58] Step 157 begins.
+[randomWalker-21:00:58] Step 157 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:00:58] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:00:58]  `- froze 0 particles not in best combo
+[randomWalker-21:01:12] Step 158 begins.
+[randomWalker-21:01:12] Step 158 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:12] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:12]  `- froze 0 particles not in best combo
+[randomWalker-21:01:12] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:12] Step 158: found highest Z: 2.50
+[randomWalker-21:01:12] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.01, Z=2.50, 2 unfrozen]
+[randomWalker-21:01:12] Step 158 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:12] Step 158 check if result goes into hiscore list
+[randomWalker-21:01:12] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:12] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:12] done check for result to go into hiscore list
+[randomWalker-21:01:12] Step 158/200 finished.
+[randomWalker-21:01:12] Step 159 begins.
+[randomWalker-21:01:12] Step 159 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:12] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:12]  `- froze 0 particles not in best combo
+[randomWalker-21:01:14] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:14] Step 159: found highest Z: 2.50
+[randomWalker-21:01:14] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.01, Z=2.50, 3 unfrozen]
+[randomWalker-21:01:14] check if to teleport, Kmax=4.01, ours is=3.01, p=0.05, a=0.81: dont teleport.
+[randomWalker-21:01:14] Step 159 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:14] Step 159 check if result goes into hiscore list
+[randomWalker-21:01:14] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:14] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:14] done check for result to go into hiscore list
+[randomWalker-21:01:14] Step 159/200 finished.
+[randomWalker-21:01:14] u=0.86 > 0.61; K: 4.01 -> 3.01: revert.
+[randomWalker-21:01:15] Step 160 begins.
+[randomWalker-21:01:15] Step 160 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:15] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:15]  `- froze 0 particles not in best combo
+[randomWalker-21:01:18] Step 161 begins.
+[randomWalker-21:01:18] Step 161 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:18] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:18]  `- froze 0 particles not in best combo
+[randomWalker-21:01:20] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:20] Step 161: found highest Z: 2.51
+[randomWalker-21:01:20] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:01:20] Step 161 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:20] Step 161 check if result goes into hiscore list
+[randomWalker-21:01:20] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:20] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:20] done check for result to go into hiscore list
+[randomWalker-21:01:20] Step 161/200 finished.
+[randomWalker-21:01:20] Step 162 begins.
+[randomWalker-21:01:20] Step 162 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:20] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:20]  `- froze 0 particles not in best combo
+[randomWalker-21:01:20] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:20] Step 162: found highest Z: 2.51
+[randomWalker-21:01:20] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:01:20] Step 162 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:20] Step 162 check if result goes into hiscore list
+[randomWalker-21:01:20] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:20] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:20] done check for result to go into hiscore list
+[randomWalker-21:01:20] Step 162/200 finished.
+[randomWalker-21:01:20] Step 163 begins.
+[randomWalker-21:01:20] Step 163 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:20] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:20]  `- froze 0 particles not in best combo
+[randomWalker-21:01:22] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:22] Step 163: found highest Z: 2.51
+[randomWalker-21:01:22] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.05, Z=2.51, 3 unfrozen]
+[randomWalker-21:01:22] check if to teleport, Kmax=4.05, ours is=3.05, p=0.05, a=0.11: dont teleport.
+[randomWalker-21:01:22] Step 163 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:22] Step 163 check if result goes into hiscore list
+[randomWalker-21:01:22] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:22] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:22] done check for result to go into hiscore list
+[randomWalker-21:01:22] Step 163/200 finished.
+[randomWalker-21:01:22] u=0.30 <= 0.61 ; 4.05 -> 2.51: take the step, even though old is better.
+[randomWalker-21:01:23] Step 164 begins.
+[randomWalker-21:01:23] Step 164 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:23] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:23]  `- froze 1 particles not in best combo
+[randomWalker-21:01:25] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:25] Step 164: found highest Z: 2.51
+[randomWalker-21:01:25] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.05, Z=2.51, 3 unfrozen]
+[randomWalker-21:01:25] check if to teleport, Kmax=4.05, ours is=3.05, p=0.05, a=0.46: dont teleport.
+[randomWalker-21:01:25] Step 164 has 3/20 unfrozen particles: Xt, XZ1, XZ2 [in best combo: Xt, XZ1]
+[randomWalker-21:01:25] Step 164 check if result goes into hiscore list
+[randomWalker-21:01:25] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:25] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:25] done check for result to go into hiscore list
+[randomWalker-21:01:25] Step 164/200 finished.
+[randomWalker-21:01:25] Step 165 begins.
+[randomWalker-21:01:25] Step 165 has 3/20 unfrozen particles: Xt, XZ1, XZ2 [in best combo: Xt, XZ1]
+[randomWalker-21:01:25] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:25]  `- froze 1 particles not in best combo
+[randomWalker-21:01:27] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:27] Step 165: found highest Z: 2.51
+[randomWalker-21:01:27] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.80, Z=2.51, 3 unfrozen]
+[randomWalker-21:01:27] check if to teleport, Kmax=4.05, ours is=2.80, p=0.06, a=0.78: dont teleport.
+[randomWalker-21:01:27] Step 165 has 3/20 unfrozen particles: Xt, Xtau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:27] Step 165 check if result goes into hiscore list
+[randomWalker-21:01:27] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:27] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:27] done check for result to go into hiscore list
+[randomWalker-21:01:27] Step 165/200 finished.
+[randomWalker-21:01:27] u=0.90 > 0.88; K: 3.05 -> 2.80: revert.
+[randomWalker-21:01:27] Step 166 begins.
+[randomWalker-21:01:27] Step 166 has 3/20 unfrozen particles: Xt, XZ1, XZ2 [in best combo: Xt, XZ1]
+[randomWalker-21:01:27] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:27]  `- froze 1 particles not in best combo
+[randomWalker-21:01:29] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:29] Step 166: found highest Z: 2.51
+[randomWalker-21:01:29] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:01:29] Step 166 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:29] Step 166 check if result goes into hiscore list
+[randomWalker-21:01:29] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:29] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:29] done check for result to go into hiscore list
+[randomWalker-21:01:29] Step 166/200 finished.
+[randomWalker-21:01:30] Step 167 begins.
+[randomWalker-21:01:30] Step 167 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:30] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:30]  `- froze 0 particles not in best combo
+[randomWalker-21:01:30] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:30] Step 167: found highest Z: 2.51
+[randomWalker-21:01:30] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:01:30] Step 167 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:30] Step 167 check if result goes into hiscore list
+[randomWalker-21:01:30] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:30] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:30] done check for result to go into hiscore list
+[randomWalker-21:01:30] Step 167/200 finished.
+[randomWalker-21:01:30] Step 168 begins.
+[randomWalker-21:01:30] Step 168 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:30] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:30]  `- froze 0 particles not in best combo
+[randomWalker-21:01:34] Step 169 begins.
+[randomWalker-21:01:34] Step 169 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:34] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:34]  `- froze 0 particles not in best combo
+[randomWalker-21:01:34] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:34] Step 169: found highest Z: 2.51
+[randomWalker-21:01:34] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:01:34] Step 169 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:34] Step 169 check if result goes into hiscore list
+[randomWalker-21:01:34] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:34] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:34] done check for result to go into hiscore list
+[randomWalker-21:01:34] Step 169/200 finished.
+[randomWalker-21:01:34] Step 170 begins.
+[randomWalker-21:01:34] Step 170 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:34] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:34]  `- froze 0 particles not in best combo
+[randomWalker-21:01:34] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:34] Step 170: found highest Z: 2.51
+[randomWalker-21:01:34] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:01:34] Step 170 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:34] Step 170 check if result goes into hiscore list
+[randomWalker-21:01:34] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:34] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:34] done check for result to go into hiscore list
+[randomWalker-21:01:34] Step 170/200 finished.
+[randomWalker-21:01:34] Step 171 begins.
+[randomWalker-21:01:34] Step 171 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:34] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:34]  `- froze 0 particles not in best combo
+[randomWalker-21:01:37] Step 172 begins.
+[randomWalker-21:01:37] Step 172 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:37] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:37]  `- froze 0 particles not in best combo
+[randomWalker-21:01:39] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:39] Step 172: found highest Z: 2.51
+[randomWalker-21:01:39] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:01:39] check if to teleport, Kmax=4.05, ours is=4.05, p=0.00, a=0.00: dont teleport.
+[randomWalker-21:01:39] Step 172 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:39] Step 172 check if result goes into hiscore list
+[randomWalker-21:01:39] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:39] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:39] done check for result to go into hiscore list
+[randomWalker-21:01:39] Step 172/200 finished.
+[randomWalker-21:01:39] u=0.40 <= 1.00 ; 4.05 -> 2.51: take the step, even though old is better.
+[randomWalker-21:01:39] Step 173 begins.
+[randomWalker-21:01:39] Step 173 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:39] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:39]  `- froze 0 particles not in best combo
+[randomWalker-21:01:42] Step 174 begins.
+[randomWalker-21:01:42] Step 174 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:42] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:42]  `- froze 0 particles not in best combo
+[randomWalker-21:01:44] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:44] Step 174: found highest Z: 2.51
+[randomWalker-21:01:44] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.77, Z=2.51, 3 unfrozen]
+[randomWalker-21:01:44] check if to teleport, Kmax=4.05, ours is=2.77, p=0.06, a=0.65: dont teleport.
+[randomWalker-21:01:44] Step 174 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:44] Step 174 check if result goes into hiscore list
+[randomWalker-21:01:44] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:44] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:44] done check for result to go into hiscore list
+[randomWalker-21:01:44] Step 174/200 finished.
+[randomWalker-21:01:44] u=0.58 > 0.53; K: 4.05 -> 2.77: revert.
+[randomWalker-21:01:44] Step 175 begins.
+[randomWalker-21:01:44] Step 175 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:44] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:44]  `- froze 0 particles not in best combo
+[randomWalker-21:01:44] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:44] Step 175: found highest Z: 2.51
+[randomWalker-21:01:44] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:01:44] Step 175 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:44] Step 175 check if result goes into hiscore list
+[randomWalker-21:01:44] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:44] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:44] done check for result to go into hiscore list
+[randomWalker-21:01:44] Step 175/200 finished.
+[randomWalker-21:01:44] Step 176 begins.
+[randomWalker-21:01:44] Step 176 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:44] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:44]  `- froze 0 particles not in best combo
+[randomWalker-21:01:46] Top r values after rescaling are: 1.30, 0.18
+[randomWalker-21:01:46] Step 176: found highest Z: 2.12
+[randomWalker-21:01:46] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.23, Z=2.12, 2 unfrozen]
+[randomWalker-21:01:46] check if to teleport, Kmax=4.05, ours is=2.23, p=0.08, a=0.51: dont teleport.
+[randomWalker-21:01:46] Step 176 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:46] Step 176 check if result goes into hiscore list
+[randomWalker-21:01:46] r values before calling .newResult are at 1.30, 0.18, 0.10
+[randomWalker-21:01:46] r values after calling .newResult are at 1.30, 0.18, 0.10
+[randomWalker-21:01:46] done check for result to go into hiscore list
+[randomWalker-21:01:46] Step 176/200 finished.
+[randomWalker-21:01:46] u=0.91 > 0.40; K: 4.05 -> 2.23: revert.
+[randomWalker-21:01:47] Step 177 begins.
+[randomWalker-21:01:47] Step 177 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:47] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:47]  `- froze 0 particles not in best combo
+[randomWalker-21:01:47] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:47] Step 177: found highest Z: 2.51
+[randomWalker-21:01:47] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:01:47] Step 177 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:47] Step 177 check if result goes into hiscore list
+[randomWalker-21:01:47] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:47] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:47] done check for result to go into hiscore list
+[randomWalker-21:01:47] Step 177/200 finished.
+[randomWalker-21:01:47] Step 178 begins.
+[randomWalker-21:01:47] Step 178 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:47] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:47]  `- froze 0 particles not in best combo
+[randomWalker-21:01:49] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:49] Step 178: found highest Z: 2.51
+[randomWalker-21:01:49] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.80, Z=2.51, 3 unfrozen]
+[randomWalker-21:01:49] check if to teleport, Kmax=4.05, ours is=2.80, p=0.06, a=0.66: dont teleport.
+[randomWalker-21:01:49] Step 178 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:49] Step 178 check if result goes into hiscore list
+[randomWalker-21:01:49] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:49] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:49] done check for result to go into hiscore list
+[randomWalker-21:01:49] Step 178/200 finished.
+[randomWalker-21:01:49] u=0.97 > 0.54; K: 4.05 -> 2.80: revert.
+[randomWalker-21:01:49] Step 179 begins.
+[randomWalker-21:01:49] Step 179 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:49] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:49]  `- froze 0 particles not in best combo
+[randomWalker-21:01:51] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:51] Step 179: found highest Z: 2.51
+[randomWalker-21:01:51] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.77, Z=2.51, 3 unfrozen]
+[randomWalker-21:01:51] check if to teleport, Kmax=4.05, ours is=2.77, p=0.06, a=0.33: dont teleport.
+[randomWalker-21:01:51] Step 179 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:51] Step 179 check if result goes into hiscore list
+[randomWalker-21:01:51] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:51] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:51] done check for result to go into hiscore list
+[randomWalker-21:01:51] Step 179/200 finished.
+[randomWalker-21:01:51] u=0.34 <= 0.53 ; 4.05 -> 2.51: take the step, even though old is better.
+[randomWalker-21:01:51] Step 180 begins.
+[randomWalker-21:01:51] Step 180 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:51] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:51]  `- froze 1 particles not in best combo
+[randomWalker-21:01:54] Step 181 begins.
+[randomWalker-21:01:54] Step 181 has 3/20 unfrozen particles: Xd, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:54] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:54]  `- froze 1 particles not in best combo
+[randomWalker-21:01:57] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:57] Step 181: found highest Z: 2.51
+[randomWalker-21:01:57] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.05, Z=2.51, 3 unfrozen]
+[randomWalker-21:01:57] check if to teleport, Kmax=4.05, ours is=3.05, p=0.05, a=0.91: dont teleport.
+[randomWalker-21:01:57] Step 181 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:57] Step 181 check if result goes into hiscore list
+[randomWalker-21:01:57] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:57] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:57] done check for result to go into hiscore list
+[randomWalker-21:01:57] Step 181/200 finished.
+[randomWalker-21:01:57] Step 182 begins.
+[randomWalker-21:01:57] Step 182 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:57] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:57]  `- froze 1 particles not in best combo
+[randomWalker-21:01:59] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:01:59] Step 182: found highest Z: 2.51
+[randomWalker-21:01:59] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:01:59] check if to teleport, Kmax=4.05, ours is=4.05, p=0.00, a=0.69: dont teleport.
+[randomWalker-21:01:59] Step 182 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:59] Step 182 check if result goes into hiscore list
+[randomWalker-21:01:59] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:59] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:01:59] done check for result to go into hiscore list
+[randomWalker-21:01:59] Step 182/200 finished.
+[randomWalker-21:01:59] Step 183 begins.
+[randomWalker-21:01:59] Step 183 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:01:59] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:01:59]  `- froze 0 particles not in best combo
+[randomWalker-21:02:01] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:01] Step 183: found highest Z: 2.51
+[randomWalker-21:02:01] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.05, Z=2.51, 3 unfrozen]
+[randomWalker-21:02:01] check if to teleport, Kmax=4.05, ours is=3.05, p=0.05, a=0.62: dont teleport.
+[randomWalker-21:02:01] Step 183 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:01] Step 183 check if result goes into hiscore list
+[randomWalker-21:02:01] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:01] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:01] done check for result to go into hiscore list
+[randomWalker-21:02:01] Step 183/200 finished.
+[randomWalker-21:02:01] u=0.40 <= 0.61 ; 4.05 -> 2.51: take the step, even though old is better.
+[randomWalker-21:02:01] Step 184 begins.
+[randomWalker-21:02:01] Step 184 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:01] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:01]  `- froze 1 particles not in best combo
+[randomWalker-21:02:03] Step 185 begins.
+[randomWalker-21:02:03] Step 185 has 3/20 unfrozen particles: Xt, Xmu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:03] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:03]  `- froze 1 particles not in best combo
+[randomWalker-21:02:06] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:06] Step 185: found highest Z: 2.51
+[randomWalker-21:02:06] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.55, Z=2.51, 3 unfrozen]
+[randomWalker-21:02:06] check if to teleport, Kmax=4.05, ours is=2.55, p=0.07, a=0.54: dont teleport.
+[randomWalker-21:02:06] Step 185 has 3/20 unfrozen particles: Xt, XZ1, XZ2 [in best combo: Xt, XZ1]
+[randomWalker-21:02:06] Step 185 check if result goes into hiscore list
+[randomWalker-21:02:06] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:06] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:06] done check for result to go into hiscore list
+[randomWalker-21:02:06] Step 185/200 finished.
+[randomWalker-21:02:06] u=0.33 <= 0.78 ; 3.05 -> 2.51: take the step, even though old is better.
+[randomWalker-21:02:06] Step 186 begins.
+[randomWalker-21:02:06] Step 186 has 3/20 unfrozen particles: Xt, XZ1, XZ2 [in best combo: Xt, XZ1]
+[randomWalker-21:02:06] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:06]  `- froze 1 particles not in best combo
+[randomWalker-21:02:08] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:08] Step 186: found highest Z: 2.51
+[randomWalker-21:02:08] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:02:08] Step 186 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:08] Step 186 check if result goes into hiscore list
+[randomWalker-21:02:08] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:08] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:08] done check for result to go into hiscore list
+[randomWalker-21:02:08] Step 186/200 finished.
+[randomWalker-21:02:08] Step 187 begins.
+[randomWalker-21:02:08] Step 187 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:08] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:08]  `- froze 0 particles not in best combo
+[randomWalker-21:02:11] Step 188 begins.
+[randomWalker-21:02:11] Step 188 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:11] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:11]  `- froze 0 particles not in best combo
+[randomWalker-21:02:11] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:11] Step 188: found highest Z: 2.51
+[randomWalker-21:02:11] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:02:11] Step 188 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:11] Step 188 check if result goes into hiscore list
+[randomWalker-21:02:11] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:11] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:11] done check for result to go into hiscore list
+[randomWalker-21:02:11] Step 188/200 finished.
+[randomWalker-21:02:11] Step 189 begins.
+[randomWalker-21:02:11] Step 189 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:11] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:11]  `- froze 0 particles not in best combo
+[randomWalker-21:02:11] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:11] Step 189: found highest Z: 2.51
+[randomWalker-21:02:11] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:02:11] Step 189 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:11] Step 189 check if result goes into hiscore list
+[randomWalker-21:02:11] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:11] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:11] done check for result to go into hiscore list
+[randomWalker-21:02:11] Step 189/200 finished.
+[randomWalker-21:02:11] Step 190 begins.
+[randomWalker-21:02:11] Step 190 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:11] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:11]  `- froze 0 particles not in best combo
+[randomWalker-21:02:13] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:13] Step 190: found highest Z: 2.51
+[randomWalker-21:02:13] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.05, Z=2.51, 3 unfrozen]
+[randomWalker-21:02:13] check if to teleport, Kmax=4.05, ours is=3.05, p=0.05, a=0.48: dont teleport.
+[randomWalker-21:02:13] Step 190 has 3/20 unfrozen particles: Xt, Xnumu, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:13] Step 190 check if result goes into hiscore list
+[randomWalker-21:02:13] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:13] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:13] done check for result to go into hiscore list
+[randomWalker-21:02:13] Step 190/200 finished.
+[randomWalker-21:02:13] u=0.91 > 0.61; K: 4.05 -> 3.05: revert.
+[randomWalker-21:02:13] Step 191 begins.
+[randomWalker-21:02:13] Step 191 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:13] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:13]  `- froze 0 particles not in best combo
+[randomWalker-21:02:16] Step 192 begins.
+[randomWalker-21:02:16] Step 192 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:16] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:16]  `- froze 0 particles not in best combo
+[randomWalker-21:02:18] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:18] Step 192: found highest Z: 2.51
+[randomWalker-21:02:18] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.05, Z=2.51, 3 unfrozen]
+[randomWalker-21:02:18] check if to teleport, Kmax=4.05, ours is=3.05, p=0.05, a=0.14: dont teleport.
+[randomWalker-21:02:18] Step 192 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:18] Step 192 check if result goes into hiscore list
+[randomWalker-21:02:18] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:18] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:18] done check for result to go into hiscore list
+[randomWalker-21:02:18] Step 192/200 finished.
+[randomWalker-21:02:18] u=0.13 <= 0.61 ; 4.05 -> 2.51: take the step, even though old is better.
+[randomWalker-21:02:18] Step 193 begins.
+[randomWalker-21:02:18] Step 193 has 3/20 unfrozen particles: Xt, Xnutau, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:18] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:18]  `- froze 1 particles not in best combo
+[randomWalker-21:02:20] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:20] Step 193: found highest Z: 2.51
+[randomWalker-21:02:20] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=2.72, Z=2.51, 3 unfrozen]
+[randomWalker-21:02:20] check if to teleport, Kmax=4.05, ours is=2.72, p=0.06, a=0.31: dont teleport.
+[randomWalker-21:02:20] Step 193 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:20] Step 193 check if result goes into hiscore list
+[randomWalker-21:02:20] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:20] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:20] done check for result to go into hiscore list
+[randomWalker-21:02:20] Step 193/200 finished.
+[randomWalker-21:02:20] u=0.31 <= 0.85 ; 3.05 -> 2.51: take the step, even though old is better.
+[randomWalker-21:02:20] Step 194 begins.
+[randomWalker-21:02:20] Step 194 has 3/20 unfrozen particles: Xb, Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:20] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:20]  `- froze 1 particles not in best combo
+[randomWalker-21:02:22] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:22] Step 194: found highest Z: 2.51
+[randomWalker-21:02:22] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:02:22] Step 194 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:22] Step 194 check if result goes into hiscore list
+[randomWalker-21:02:22] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:22] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:22] done check for result to go into hiscore list
+[randomWalker-21:02:22] Step 194/200 finished.
+[randomWalker-21:02:22] Step 195 begins.
+[randomWalker-21:02:22] Step 195 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:22] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:22]  `- froze 0 particles not in best combo
+[randomWalker-21:02:23] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:23] Step 195: found highest Z: 2.51
+[randomWalker-21:02:23] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:02:23] Step 195 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:23] Step 195 check if result goes into hiscore list
+[randomWalker-21:02:23] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:23] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:23] done check for result to go into hiscore list
+[randomWalker-21:02:23] Step 195/200 finished.
+[randomWalker-21:02:23] Step 196 begins.
+[randomWalker-21:02:23] Step 196 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:23] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:23]  `- froze 0 particles not in best combo
+[randomWalker-21:02:25] Step 197 begins.
+[randomWalker-21:02:25] Step 197 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:25] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:25]  `- froze 0 particles not in best combo
+[randomWalker-21:02:27] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:27] Step 197: found highest Z: 2.51
+[randomWalker-21:02:27] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=3.05, Z=2.51, 3 unfrozen]
+[randomWalker-21:02:27] check if to teleport, Kmax=4.05, ours is=3.05, p=0.05, a=0.47: dont teleport.
+[randomWalker-21:02:27] Step 197 has 3/20 unfrozen particles: Xt, Xnue, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:27] Step 197 check if result goes into hiscore list
+[randomWalker-21:02:27] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:27] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:27] done check for result to go into hiscore list
+[randomWalker-21:02:27] Step 197/200 finished.
+[randomWalker-21:02:27] u=0.78 > 0.61; K: 4.05 -> 3.05: revert.
+[randomWalker-21:02:27] Step 198 begins.
+[randomWalker-21:02:27] Step 198 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:27] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:27]  `- froze 0 particles not in best combo
+[randomWalker-21:02:28] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:28] Step 198: found highest Z: 2.51
+[randomWalker-21:02:28] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:02:28] Step 198 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:28] Step 198 check if result goes into hiscore list
+[randomWalker-21:02:28] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:28] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:28] done check for result to go into hiscore list
+[randomWalker-21:02:28] Step 198/200 finished.
+[randomWalker-21:02:28] Step 199 begins.
+[randomWalker-21:02:28] Step 199 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:28] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:28]  `- froze 0 particles not in best combo
+[randomWalker-21:02:28] Top r values after rescaling are: 1.30, 0.34
+[randomWalker-21:02:28] Step 199: found highest Z: 2.51
+[randomWalker-21:02:28] best combo for strategy ``aggressive'' is AB: ATLAS-SUSY-2016-16(em),CMS-SUS-16-050(ul): [K=4.05, Z=2.51, 2 unfrozen]
+[randomWalker-21:02:28] Step 199 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:28] Step 199 check if result goes into hiscore list
+[randomWalker-21:02:28] r values before calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:28] r values after calling .newResult are at 1.30, 0.34, 0.28
+[randomWalker-21:02:28] done check for result to go into hiscore list
+[randomWalker-21:02:28] Step 199/200 finished.
+[randomWalker-21:02:28] Step 200 begins.
+[randomWalker-21:02:28] Step 200 has 2/20 unfrozen particles: Xt, XZ1 [in best combo: Xt, XZ1]
+[randomWalker-21:02:28] freeze pids that arent in best combo, we dont need them:
+[randomWalker-21:02:28]  `- froze 0 particles not in best combo
+[randomWalker-21:02:30] Was asked to stop after 200 steps
