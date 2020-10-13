@@ -13,7 +13,9 @@ def parse( inputfile = "../ptools/history.list" ):
     g.close()
 
     f=open("end.list","rt")
-    L=eval(f.read())
+    txt=f.read()
+    txt=txt.replace("nan","'nan'")
+    L=eval(txt)
     Kmax,maxstep=-90.,None
     for l in L:
         K,step=l["K"],l["step"]
