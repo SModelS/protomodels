@@ -90,7 +90,9 @@ class ExpResModifier:
         :param sigma: the standard deviation of the distribution
         :returns: a single fake observation
         """
-        if not self.lognormal:
+        ## if lognormal is not selected, or mu is very small
+        ## (as the lognormal cannot really produce mu=0)
+        if not self.lognormal or abs(mu)<(sigma/4.):
             return stats.norm.rvs ( mu, sigma )
         loc = mu**2 / numpy.sqrt ( mu**2 + sigma**2 )
         stderr = numpy.sqrt ( numpy.log ( 1 + sigma**2 / mu**2 ) )
@@ -473,7 +475,8 @@ class ExpResModifier:
         self.log ( f"saving stats to {filename}" )
         meta = { "dbpath": self.dbpath, "Zmax": self.Zmax,
                  "database": self.dbversion, "fudge": self.fudge,
-                 "protomodel": '"%s"' % self.protomodel, "timestamp": time.asctime() }
+                 "protomodel": '"%s"' % self.protomodel, "timestamp": time.asctime(),
+                 "lognormal": self.lognormal }
         with open ( filename,"wt" ) as f:
             f.write ( str(meta)+"\n" )
             if len(self.comments)>0:
