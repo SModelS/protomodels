@@ -2,7 +2,7 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-import sys,os,copy, pickle, glob, subprocess
+import sys,os,copy, pickle, glob, subprocess, math
 import numpy as np
 sys.path.append(os.path.abspath('../../smodels'))
 sys.path.append(os.path.abspath('../'))
@@ -48,7 +48,6 @@ particles = []
 for p in modelList:
     particles += p["masses"].keys()
 particles = list(set(particles))
-print ( "particle", particles )
 
 #Build useful dataset:
 steps = np.array([p["step"] for p in modelList])
@@ -109,7 +108,10 @@ for firststep in range ( maxstep ):
     plt.title ( 'K=%.2f' % Ks[firststep], loc="left" )
     plt.xlabel('step', fontsize=23)
     plt.ylabel('Mass [GeV]', fontsize=23)
-    plt.xticks(df['step'][firststep:laststep:1*nsteps])
+    dstep = 10 ## 2
+    #plt.xticks(df['step'][firststep:laststep:2*nsteps])
+    nextstep = math.ceil((firststep+1)/dstep)*dstep-1
+    plt.xticks(df['step'][nextstep:laststep:dstep])
     # plt.xlim(-5,198)
     plt.grid(axis='x') 
     plt.legend(loc=(.8,.75),bbox_to_anchor=(0.6,0.5,.2,.25), 
