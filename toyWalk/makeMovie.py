@@ -79,6 +79,8 @@ maxstep = 500
 #maxstep = 10
 #maxstep = 200
 
+maxK=0.
+
 for firststep in range ( maxstep ):
     laststep=firststep+20
 
@@ -105,7 +107,10 @@ for firststep in range ( maxstep ):
         plt.plot(df['step'][firststep:laststep:nsteps],m[firststep:laststep:nsteps],'-',linewidth=2, color = c)
 
     plt.ylim(0.,2500.0)
-    plt.title ( 'K=%.2f' % Ks[firststep], loc="left" )
+    K=Ks[firststep]
+    if K > maxK:
+        maxK = K
+    plt.title ( '$K_{max}=%.1f$' % maxK, loc="left" )
     plt.xlabel('step', fontsize=23)
     plt.ylabel('Mass [GeV]', fontsize=23)
     dstep = 10 ## 2
