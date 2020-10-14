@@ -8821,3 +8821,1403 @@
 [hiscore-Oct 13 09:26:47] contributionsK of 4 reads 11.088503776249864
 [hiscore-Oct 13 09:26:47] contributionsK of 5 reads 4.443780680003783
 [hiscore-Oct 13 09:26:47] stored 6 analyses contributions
+[predictor-11:49:34] decomposed model into 1 topologies.
+[predictor-11:49:34] returning 3 predictions, best preds
+[predictor-11:49:34] top r values before rescaling are: 1.09, 0.55, 0.34
+[predictor-11:49:34] decomposed model into 1 topologies.
+[predictor-11:49:34] returning 6 predictions, all preds, llhds only
+[predictor-11:49:34] now find highest significance for 6 predictions
+[predictor-11:49:34] done with prediction. best Z=2.28 (muhat=1.00)
+[predictor-11:49:34] decomposed model into 0 topologies.
+[predictor-11:49:34] returning 0 predictions, best preds
+[predictor-11:49:34] top r values before rescaling are: 0.00, 0.00
+[predictor-11:49:34] decomposed model into 0 topologies.
+[predictor-11:49:34] returning 0 predictions, all preds, llhds only
+[predictor-11:49:34] now find highest significance for 0 predictions
+[predictor-11:49:34] done with prediction. Could not find combinations (Z=None)
+[predictor-11:49:34] decomposed model into 1 topologies.
+[predictor-11:49:34] returning 3 predictions, best preds
+[predictor-11:49:34] top r values before rescaling are: 1.11, 0.56, 0.34
+[predictor-11:49:34] decomposed model into 1 topologies.
+[predictor-11:49:34] returning 6 predictions, all preds, llhds only
+[predictor-11:49:34] now find highest significance for 6 predictions
+[predictor-11:49:35] done with prediction. best Z=2.28 (muhat=0.98)
+[predictor-11:49:35] decomposed model into 2 topologies.
+[predictor-11:49:35] returning 3 predictions, best preds
+[predictor-11:49:35] top r values before rescaling are: 1.05, 0.51, 0.23
+[predictor-11:49:35] decomposed model into 2 topologies.
+[predictor-11:49:35] returning 6 predictions, all preds, llhds only
+[predictor-11:49:35] now find highest significance for 6 predictions
+[predictor-11:49:35] done with prediction. best Z=1.53 (muhat=0.99)
+[predictor-11:49:35] decomposed model into 1 topologies.
+[predictor-11:49:35] returning 3 predictions, best preds
+[predictor-11:49:35] top r values before rescaling are: 1.33, 0.57, 0.36
+[predictor-11:49:35] decomposed model into 1 topologies.
+[predictor-11:49:35] returning 6 predictions, all preds, llhds only
+[predictor-11:49:35] now find highest significance for 6 predictions
+[predictor-11:49:35] done with prediction. best Z=1.81 (muhat=0.91)
+[predictor-11:49:35] decomposed model into 2 topologies.
+[predictor-11:49:36] returning 4 predictions, best preds
+[predictor-11:49:36] top r values before rescaling are: 1.92, 1.06, 0.52
+[predictor-11:49:36] decomposed model into 2 topologies.
+[predictor-11:49:36] returning 8 predictions, all preds, llhds only
+[predictor-11:49:36] now find highest significance for 8 predictions
+[predictor-11:49:36] done with prediction. best Z=1.47 (muhat=0.68)
+[predictor-11:49:36] decomposed model into 0 topologies.
+[predictor-11:49:36] returning 0 predictions, best preds
+[predictor-11:49:36] top r values before rescaling are: 0.00, 0.00
+[predictor-11:49:36] decomposed model into 0 topologies.
+[predictor-11:49:36] returning 0 predictions, all preds, llhds only
+[predictor-11:49:36] now find highest significance for 0 predictions
+[predictor-11:49:36] done with prediction. Could not find combinations (Z=None)
+[predictor-11:49:36] decomposed model into 1 topologies.
+[predictor-11:49:36] returning 3 predictions, best preds
+[predictor-11:49:36] top r values before rescaling are: 0.74, 0.33, 0.22
+[predictor-11:49:36] decomposed model into 1 topologies.
+[predictor-11:49:36] returning 6 predictions, all preds, llhds only
+[predictor-11:49:36] now find highest significance for 6 predictions
+[predictor-11:49:36] done with prediction. best Z=2.53 (muhat=1.69)
+[predictor-11:49:36] decomposed model into 1 topologies.
+[predictor-11:49:36] returning 5 predictions, best preds
+[predictor-11:49:36] top r values before rescaling are: 1.04, 0.79, 0.51
+[predictor-11:49:37] decomposed model into 1 topologies.
+[predictor-11:49:37] returning 12 predictions, all preds, llhds only
+[predictor-11:49:37] now find highest significance for 12 predictions
+[predictor-11:49:37] done with prediction. best Z=2.40 (muhat=1.25)
+[predictor-11:49:37] decomposed model into 1 topologies.
+[predictor-11:49:37] returning 3 predictions, best preds
+[predictor-11:49:37] top r values before rescaling are: 1.13, 0.54, 0.32
+[predictor-11:49:37] decomposed model into 1 topologies.
+[predictor-11:49:37] returning 8 predictions, all preds, llhds only
+[predictor-11:49:37] now find highest significance for 8 predictions
+[predictor-11:49:37] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:49:37] decomposed model into 1 topologies.
+[predictor-11:49:37] returning 3 predictions, best preds
+[predictor-11:49:37] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:49:37] decomposed model into 1 topologies.
+[predictor-11:49:37] returning 6 predictions, all preds, llhds only
+[predictor-11:49:37] now find highest significance for 6 predictions
+[predictor-11:49:37] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:49:37] decomposed model into 1 topologies.
+[predictor-11:49:38] returning 3 predictions, best preds
+[predictor-11:49:38] top r values before rescaling are: 1.20, 0.51, 0.33
+[predictor-11:49:38] decomposed model into 1 topologies.
+[predictor-11:49:38] returning 6 predictions, all preds, llhds only
+[predictor-11:49:38] now find highest significance for 6 predictions
+[predictor-11:49:38] done with prediction. best Z=1.81 (muhat=1.01)
+[predictor-11:49:38] decomposed model into 1 topologies.
+[predictor-11:49:38] returning 3 predictions, best preds
+[predictor-11:49:38] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:49:38] decomposed model into 1 topologies.
+[predictor-11:49:38] returning 8 predictions, all preds, llhds only
+[predictor-11:49:38] now find highest significance for 8 predictions
+[predictor-11:49:38] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:49:38] decomposed model into 1 topologies.
+[predictor-11:49:38] returning 3 predictions, best preds
+[predictor-11:49:38] top r values before rescaling are: 1.15, 0.53, 0.36
+[predictor-11:49:38] decomposed model into 1 topologies.
+[predictor-11:49:38] returning 6 predictions, all preds, llhds only
+[predictor-11:49:38] now find highest significance for 6 predictions
+[predictor-11:49:38] done with prediction. best Z=2.43 (muhat=1.04)
+[predictor-11:49:38] decomposed model into 2 topologies.
+[predictor-11:49:39] returning 4 predictions, best preds
+[predictor-11:49:39] top r values before rescaling are: 1.36, 0.42, 0.37
+[predictor-11:49:39] decomposed model into 2 topologies.
+[predictor-11:49:39] returning 8 predictions, all preds, llhds only
+[predictor-11:49:39] now find highest significance for 8 predictions
+[predictor-11:49:39] done with prediction. best Z=1.98 (muhat=0.96)
+[predictor-11:49:39] decomposed model into 1 topologies.
+[predictor-11:49:39] returning 3 predictions, best preds
+[predictor-11:49:39] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:49:39] decomposed model into 1 topologies.
+[predictor-11:49:39] returning 6 predictions, all preds, llhds only
+[predictor-11:49:39] now find highest significance for 6 predictions
+[predictor-11:49:39] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:49:39] decomposed model into 1 topologies.
+[predictor-11:49:40] returning 3 predictions, best preds
+[predictor-11:49:40] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:49:40] decomposed model into 1 topologies.
+[predictor-11:49:40] returning 6 predictions, all preds, llhds only
+[predictor-11:49:40] now find highest significance for 6 predictions
+[predictor-11:49:40] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:49:40] decomposed model into 1 topologies.
+[predictor-11:49:40] returning 3 predictions, best preds
+[predictor-11:49:40] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:49:40] decomposed model into 1 topologies.
+[predictor-11:49:40] returning 6 predictions, all preds, llhds only
+[predictor-11:49:40] now find highest significance for 6 predictions
+[predictor-11:49:40] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:49:40] decomposed model into 1 topologies.
+[predictor-11:49:40] returning 3 predictions, best preds
+[predictor-11:49:40] top r values before rescaling are: 1.20, 0.60, 0.38
+[predictor-11:49:40] decomposed model into 1 topologies.
+[predictor-11:49:40] returning 6 predictions, all preds, llhds only
+[predictor-11:49:40] now find highest significance for 6 predictions
+[predictor-11:49:40] done with prediction. best Z=2.19 (muhat=0.89)
+[predictor-11:49:41] decomposed model into 3 topologies.
+[predictor-11:49:41] returning 4 predictions, best preds
+[predictor-11:49:41] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:49:41] decomposed model into 3 topologies.
+[predictor-11:49:41] returning 8 predictions, all preds, llhds only
+[predictor-11:49:41] now find highest significance for 8 predictions
+[predictor-11:49:41] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:49:41] decomposed model into 1 topologies.
+[predictor-11:49:41] returning 0 predictions, best preds
+[predictor-11:49:41] top r values before rescaling are: 0.00, 0.00
+[predictor-11:49:41] decomposed model into 1 topologies.
+[predictor-11:49:41] returning 0 predictions, all preds, llhds only
+[predictor-11:49:41] now find highest significance for 0 predictions
+[predictor-11:49:41] done with prediction. Could not find combinations (Z=None)
+[predictor-11:49:41] decomposed model into 1 topologies.
+[predictor-11:49:41] returning 3 predictions, best preds
+[predictor-11:49:41] top r values before rescaling are: 1.08, 0.52, 0.22
+[predictor-11:49:42] decomposed model into 1 topologies.
+[predictor-11:49:42] returning 6 predictions, all preds, llhds only
+[predictor-11:49:42] now find highest significance for 6 predictions
+[predictor-11:49:42] done with prediction. best Z=1.58 (muhat=1.00)
+[predictor-11:49:42] decomposed model into 1 topologies.
+[predictor-11:49:42] returning 3 predictions, best preds
+[predictor-11:49:42] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:49:42] decomposed model into 1 topologies.
+[predictor-11:49:42] returning 6 predictions, all preds, llhds only
+[predictor-11:49:42] now find highest significance for 6 predictions
+[predictor-11:49:42] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:49:42] decomposed model into 1 topologies.
+[predictor-11:49:42] returning 3 predictions, best preds
+[predictor-11:49:42] top r values before rescaling are: 1.21, 0.51, 0.33
+[predictor-11:49:42] decomposed model into 1 topologies.
+[predictor-11:49:42] returning 6 predictions, all preds, llhds only
+[predictor-11:49:42] now find highest significance for 6 predictions
+[predictor-11:49:42] done with prediction. best Z=1.81 (muhat=1.00)
+[predictor-11:49:42] decomposed model into 1 topologies.
+[predictor-11:49:43] returning 3 predictions, best preds
+[predictor-11:49:43] top r values before rescaling are: 1.18, 0.52, 0.32
+[predictor-11:49:43] decomposed model into 1 topologies.
+[predictor-11:49:43] returning 6 predictions, all preds, llhds only
+[predictor-11:49:43] now find highest significance for 6 predictions
+[predictor-11:49:43] done with prediction. best Z=1.76 (muhat=1.00)
+[predictor-11:49:43] decomposed model into 1 topologies.
+[predictor-11:49:43] returning 3 predictions, best preds
+[predictor-11:49:43] top r values before rescaling are: 0.50, 0.24, 0.14
+[predictor-11:49:43] decomposed model into 1 topologies.
+[predictor-11:49:43] returning 8 predictions, all preds, llhds only
+[predictor-11:49:43] now find highest significance for 8 predictions
+[predictor-11:49:43] done with prediction. best Z=2.17 (muhat=2.29)
+[predictor-11:49:43] decomposed model into 1 topologies.
+[predictor-11:49:43] returning 3 predictions, best preds
+[predictor-11:49:43] top r values before rescaling are: 1.25, 0.56, 0.38
+[predictor-11:49:43] decomposed model into 1 topologies.
+[predictor-11:49:43] returning 6 predictions, all preds, llhds only
+[predictor-11:49:43] now find highest significance for 6 predictions
+[predictor-11:49:43] done with prediction. best Z=2.53 (muhat=1.00)
+[predictor-11:49:43] decomposed model into 2 topologies.
+[predictor-11:49:43] returning 0 predictions, best preds
+[predictor-11:49:43] top r values before rescaling are: 0.00, 0.00
+[predictor-11:49:44] decomposed model into 2 topologies.
+[predictor-11:49:44] returning 0 predictions, all preds, llhds only
+[predictor-11:49:44] now find highest significance for 0 predictions
+[predictor-11:49:44] done with prediction. Could not find combinations (Z=None)
+[predictor-11:49:44] decomposed model into 1 topologies.
+[predictor-11:49:44] returning 3 predictions, best preds
+[predictor-11:49:44] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:49:44] decomposed model into 1 topologies.
+[predictor-11:49:44] returning 8 predictions, all preds, llhds only
+[predictor-11:49:44] now find highest significance for 8 predictions
+[predictor-11:49:44] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:49:44] decomposed model into 1 topologies.
+[predictor-11:49:44] returning 3 predictions, best preds
+[predictor-11:49:44] top r values before rescaling are: 1.13, 0.52, 0.24
+[predictor-11:49:44] decomposed model into 1 topologies.
+[predictor-11:49:44] returning 6 predictions, all preds, llhds only
+[predictor-11:49:44] now find highest significance for 6 predictions
+[predictor-11:49:44] done with prediction. best Z=1.60 (muhat=1.00)
+[predictor-11:49:44] decomposed model into 1 topologies.
+[predictor-11:49:45] returning 3 predictions, best preds
+[predictor-11:49:45] top r values before rescaling are: 1.01, 0.51, 0.29
+[predictor-11:49:45] decomposed model into 1 topologies.
+[predictor-11:49:45] returning 6 predictions, all preds, llhds only
+[predictor-11:49:45] now find highest significance for 6 predictions
+[predictor-11:49:45] done with prediction. best Z=2.29 (muhat=1.10)
+[predictor-11:49:45] decomposed model into 3 topologies.
+[predictor-11:49:45] returning 3 predictions, best preds
+[predictor-11:49:45] top r values before rescaling are: 1.21, 0.52, 0.33
+[predictor-11:49:45] decomposed model into 3 topologies.
+[predictor-11:49:45] returning 6 predictions, all preds, llhds only
+[predictor-11:49:45] now find highest significance for 6 predictions
+[predictor-11:49:45] done with prediction. best Z=1.81 (muhat=0.99)
+[predictor-11:49:45] decomposed model into 1 topologies.
+[predictor-11:49:45] returning 3 predictions, best preds
+[predictor-11:49:45] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:49:45] decomposed model into 1 topologies.
+[predictor-11:49:45] returning 8 predictions, all preds, llhds only
+[predictor-11:49:45] now find highest significance for 8 predictions
+[predictor-11:49:45] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:49:45] decomposed model into 2 topologies.
+[predictor-11:49:46] returning 4 predictions, best preds
+[predictor-11:49:46] top r values before rescaling are: 5.59, 1.26, 0.56
+[predictor-11:49:46] decomposed model into 2 topologies.
+[predictor-11:49:46] returning 8 predictions, all preds, llhds only
+[predictor-11:49:46] now find highest significance for 8 predictions
+[predictor-11:49:46] done with prediction. best Z=1.63 (muhat=0.23)
+[predictor-11:49:46] decomposed model into 1 topologies.
+[predictor-11:49:46] returning 3 predictions, best preds
+[predictor-11:49:46] top r values before rescaling are: 1.52, 0.47, 0.42
+[predictor-11:49:46] decomposed model into 1 topologies.
+[predictor-11:49:46] returning 6 predictions, all preds, llhds only
+[predictor-11:49:46] now find highest significance for 6 predictions
+[predictor-11:49:46] done with prediction. best Z=1.98 (muhat=0.86)
+[predictor-11:49:46] decomposed model into 1 topologies.
+[predictor-11:49:47] returning 3 predictions, best preds
+[predictor-11:49:47] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:49:47] decomposed model into 1 topologies.
+[predictor-11:49:47] returning 6 predictions, all preds, llhds only
+[predictor-11:49:47] now find highest significance for 6 predictions
+[predictor-11:49:47] done with prediction. best Z=1.54 (muhat=1.00)
+[predictor-11:49:47] decomposed model into 1 topologies.
+[predictor-11:49:47] returning 3 predictions, best preds
+[predictor-11:49:47] top r values before rescaling are: 1.07, 0.53, 0.34
+[predictor-11:49:47] decomposed model into 1 topologies.
+[predictor-11:49:47] returning 6 predictions, all preds, llhds only
+[predictor-11:49:47] now find highest significance for 6 predictions
+[predictor-11:49:47] done with prediction. best Z=2.19 (muhat=1.00)
+[predictor-11:49:47] decomposed model into 1 topologies.
+[predictor-11:49:47] returning 3 predictions, best preds
+[predictor-11:49:47] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:49:48] decomposed model into 1 topologies.
+[predictor-11:49:48] returning 6 predictions, all preds, llhds only
+[predictor-11:49:48] now find highest significance for 6 predictions
+[predictor-11:49:48] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:49:48] decomposed model into 1 topologies.
+[predictor-11:49:48] returning 3 predictions, best preds
+[predictor-11:49:48] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:49:48] decomposed model into 1 topologies.
+[predictor-11:49:48] returning 6 predictions, all preds, llhds only
+[predictor-11:49:48] now find highest significance for 6 predictions
+[predictor-11:49:48] done with prediction. best Z=1.54 (muhat=1.00)
+[predictor-11:49:48] decomposed model into 1 topologies.
+[predictor-11:49:48] returning 5 predictions, best preds
+[predictor-11:49:48] top r values before rescaling are: 1.30, 0.98, 0.64
+[predictor-11:49:48] decomposed model into 1 topologies.
+[predictor-11:49:48] returning 12 predictions, all preds, llhds only
+[predictor-11:49:48] now find highest significance for 12 predictions
+[predictor-11:49:48] done with prediction. best Z=2.40 (muhat=1.00)
+[predictor-11:49:49] decomposed model into 3 topologies.
+[predictor-11:49:49] returning 3 predictions, best preds
+[predictor-11:49:49] top r values before rescaling are: 0.50, 0.16, 0.14
+[predictor-11:49:49] decomposed model into 3 topologies.
+[predictor-11:49:49] returning 6 predictions, all preds, llhds only
+[predictor-11:49:49] now find highest significance for 6 predictions
+[predictor-11:49:49] done with prediction. best Z=1.98 (muhat=2.59)
+[predictor-11:49:49] decomposed model into 1 topologies.
+[predictor-11:49:50] returning 3 predictions, best preds
+[predictor-11:49:50] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:49:50] decomposed model into 1 topologies.
+[predictor-11:49:50] returning 8 predictions, all preds, llhds only
+[predictor-11:49:50] now find highest significance for 8 predictions
+[predictor-11:49:50] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:49:50] decomposed model into 1 topologies.
+[predictor-11:49:50] returning 3 predictions, best preds
+[predictor-11:49:50] top r values before rescaling are: 1.26, 0.56, 0.38
+[predictor-11:49:50] decomposed model into 1 topologies.
+[predictor-11:49:50] returning 6 predictions, all preds, llhds only
+[predictor-11:49:50] now find highest significance for 6 predictions
+[predictor-11:49:50] done with prediction. best Z=2.53 (muhat=1.00)
+[predictor-11:49:50] decomposed model into 1 topologies.
+[predictor-11:49:51] returning 3 predictions, best preds
+[predictor-11:49:51] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:49:51] decomposed model into 1 topologies.
+[predictor-11:49:51] returning 6 predictions, all preds, llhds only
+[predictor-11:49:51] now find highest significance for 6 predictions
+[predictor-11:49:51] done with prediction. best Z=1.54 (muhat=1.00)
+[predictor-11:49:51] decomposed model into 1 topologies.
+[predictor-11:49:51] returning 3 predictions, best preds
+[predictor-11:49:51] top r values before rescaling are: 0.81, 0.41, 0.25
+[predictor-11:49:51] decomposed model into 1 topologies.
+[predictor-11:49:51] returning 6 predictions, all preds, llhds only
+[predictor-11:49:51] now find highest significance for 6 predictions
+[predictor-11:49:51] done with prediction. best Z=2.28 (muhat=1.34)
+[predictor-11:49:51] decomposed model into 0 topologies.
+[predictor-11:49:51] returning 0 predictions, best preds
+[predictor-11:49:51] top r values before rescaling are: 0.00, 0.00
+[predictor-11:49:51] decomposed model into 0 topologies.
+[predictor-11:49:51] returning 0 predictions, all preds, llhds only
+[predictor-11:49:51] now find highest significance for 0 predictions
+[predictor-11:49:51] done with prediction. Could not find combinations (Z=None)
+[predictor-11:49:52] decomposed model into 2 topologies.
+[predictor-11:49:52] returning 4 predictions, best preds
+[predictor-11:49:52] top r values before rescaling are: 2.12, 1.09, 0.52
+[predictor-11:49:52] decomposed model into 2 topologies.
+[predictor-11:49:52] returning 8 predictions, all preds, llhds only
+[predictor-11:49:52] now find highest significance for 8 predictions
+[predictor-11:49:52] done with prediction. best Z=1.47 (muhat=0.61)
+[predictor-11:49:52] decomposed model into 1 topologies.
+[predictor-11:49:53] returning 3 predictions, best preds
+[predictor-11:49:53] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:49:53] decomposed model into 1 topologies.
+[predictor-11:49:53] returning 6 predictions, all preds, llhds only
+[predictor-11:49:53] now find highest significance for 6 predictions
+[predictor-11:49:53] done with prediction. best Z=1.54 (muhat=1.00)
+[predictor-11:49:53] decomposed model into 2 topologies.
+[predictor-11:49:53] returning 3 predictions, best preds
+[predictor-11:49:53] top r values before rescaling are: 1.28, 0.57, 0.37
+[predictor-11:49:53] decomposed model into 2 topologies.
+[predictor-11:49:53] returning 6 predictions, all preds, llhds only
+[predictor-11:49:53] now find highest significance for 6 predictions
+[predictor-11:49:53] done with prediction. best Z=2.51 (muhat=1.00)
+[predictor-11:49:53] decomposed model into 2 topologies.
+[predictor-11:49:54] returning 4 predictions, best preds
+[predictor-11:49:54] top r values before rescaling are: 1.87, 1.14, 0.56
+[predictor-11:49:54] decomposed model into 2 topologies.
+[predictor-11:49:54] returning 8 predictions, all preds, llhds only
+[predictor-11:49:54] now find highest significance for 8 predictions
+[predictor-11:49:54] done with prediction. best Z=1.50 (muhat=0.69)
+[predictor-11:49:54] decomposed model into 0 topologies.
+[predictor-11:49:54] returning 0 predictions, best preds
+[predictor-11:49:54] top r values before rescaling are: 0.00, 0.00
+[predictor-11:49:54] decomposed model into 0 topologies.
+[predictor-11:49:54] returning 0 predictions, all preds, llhds only
+[predictor-11:49:54] now find highest significance for 0 predictions
+[predictor-11:49:54] done with prediction. Could not find combinations (Z=None)
+[predictor-11:49:54] decomposed model into 2 topologies.
+[predictor-11:49:55] returning 3 predictions, best preds
+[predictor-11:49:55] top r values before rescaling are: 1.09, 0.55, 0.34
+[predictor-11:49:55] decomposed model into 2 topologies.
+[predictor-11:49:55] returning 6 predictions, all preds, llhds only
+[predictor-11:49:55] now find highest significance for 6 predictions
+[predictor-11:49:55] done with prediction. best Z=2.28 (muhat=1.00)
+[predictor-11:49:55] decomposed model into 2 topologies.
+[predictor-11:49:55] returning 1 predictions, best preds
+[predictor-11:49:55] top r values before rescaling are: 1.93, 0.00
+[predictor-11:49:55] decomposed model into 2 topologies.
+[predictor-11:49:55] returning 2 predictions, all preds, llhds only
+[predictor-11:49:55] now find highest significance for 2 predictions
+[predictor-11:49:55] done with prediction. Could not find combinations (Z=None)
+[predictor-11:49:55] decomposed model into 1 topologies.
+[predictor-11:49:56] returning 3 predictions, best preds
+[predictor-11:49:56] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:49:56] decomposed model into 1 topologies.
+[predictor-11:49:56] returning 6 predictions, all preds, llhds only
+[predictor-11:49:56] now find highest significance for 6 predictions
+[predictor-11:49:56] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:49:56] decomposed model into 2 topologies.
+[predictor-11:49:56] returning 3 predictions, best preds
+[predictor-11:49:56] top r values before rescaling are: 1.09, 0.53, 0.32
+[predictor-11:49:56] decomposed model into 2 topologies.
+[predictor-11:49:56] returning 6 predictions, all preds, llhds only
+[predictor-11:49:56] now find highest significance for 6 predictions
+[predictor-11:49:56] done with prediction. best Z=2.12 (muhat=1.00)
+[predictor-11:49:56] decomposed model into 1 topologies.
+[predictor-11:49:57] returning 2 predictions, best preds
+[predictor-11:49:57] top r values before rescaling are: 0.92, 0.26
+[predictor-11:49:57] decomposed model into 1 topologies.
+[predictor-11:49:57] returning 4 predictions, all preds, llhds only
+[predictor-11:49:57] now find highest significance for 4 predictions
+[predictor-11:49:57] done with prediction. best Z=0.91 (muhat=0.41)
+[predictor-11:49:57] decomposed model into 3 topologies.
+[predictor-11:49:58] returning 1 predictions, best preds
+[predictor-11:49:58] top r values before rescaling are: 13.46, 0.00
+[predictor-11:49:58] decomposed model into 3 topologies.
+[predictor-11:49:58] returning 2 predictions, all preds, llhds only
+[predictor-11:49:58] now find highest significance for 2 predictions
+[predictor-11:49:58] done with prediction. Could not find combinations (Z=None)
+[predictor-11:49:58] decomposed model into 1 topologies.
+[predictor-11:49:58] returning 3 predictions, best preds
+[predictor-11:49:58] top r values before rescaling are: 1.09, 0.53, 0.32
+[predictor-11:49:58] decomposed model into 1 topologies.
+[predictor-11:49:58] returning 6 predictions, all preds, llhds only
+[predictor-11:49:58] now find highest significance for 6 predictions
+[predictor-11:49:58] done with prediction. best Z=2.12 (muhat=1.00)
+[predictor-11:49:58] decomposed model into 1 topologies.
+[predictor-11:49:58] returning 0 predictions, best preds
+[predictor-11:49:58] top r values before rescaling are: 0.00, 0.00
+[predictor-11:49:58] decomposed model into 1 topologies.
+[predictor-11:49:58] returning 0 predictions, all preds, llhds only
+[predictor-11:49:58] now find highest significance for 0 predictions
+[predictor-11:49:58] done with prediction. Could not find combinations (Z=None)
+[predictor-11:49:58] decomposed model into 1 topologies.
+[predictor-11:49:59] returning 3 predictions, best preds
+[predictor-11:49:59] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:49:59] decomposed model into 1 topologies.
+[predictor-11:49:59] returning 6 predictions, all preds, llhds only
+[predictor-11:49:59] now find highest significance for 6 predictions
+[predictor-11:49:59] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:49:59] decomposed model into 1 topologies.
+[predictor-11:50:00] returning 4 predictions, best preds
+[predictor-11:50:00] top r values before rescaling are: 1.21, 0.51, 0.33
+[predictor-11:50:00] decomposed model into 1 topologies.
+[predictor-11:50:00] returning 8 predictions, all preds, llhds only
+[predictor-11:50:00] now find highest significance for 8 predictions
+[predictor-11:50:00] done with prediction. best Z=1.81 (muhat=1.00)
+[predictor-11:50:00] decomposed model into 1 topologies.
+[predictor-11:50:00] returning 3 predictions, best preds
+[predictor-11:50:00] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:50:00] decomposed model into 1 topologies.
+[predictor-11:50:00] returning 8 predictions, all preds, llhds only
+[predictor-11:50:00] now find highest significance for 8 predictions
+[predictor-11:50:00] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:50:01] decomposed model into 1 topologies.
+[predictor-11:50:01] returning 3 predictions, best preds
+[predictor-11:50:01] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:50:01] decomposed model into 1 topologies.
+[predictor-11:50:01] returning 6 predictions, all preds, llhds only
+[predictor-11:50:01] now find highest significance for 6 predictions
+[predictor-11:50:01] done with prediction. best Z=1.54 (muhat=1.00)
+[predictor-11:50:01] decomposed model into 0 topologies.
+[predictor-11:50:01] returning 0 predictions, best preds
+[predictor-11:50:01] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:01] decomposed model into 0 topologies.
+[predictor-11:50:01] returning 0 predictions, all preds, llhds only
+[predictor-11:50:01] now find highest significance for 0 predictions
+[predictor-11:50:01] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:01] decomposed model into 2 topologies.
+[predictor-11:50:02] returning 3 predictions, best preds
+[predictor-11:50:02] top r values before rescaling are: 1.28, 0.56, 0.37
+[predictor-11:50:02] decomposed model into 2 topologies.
+[predictor-11:50:02] returning 6 predictions, all preds, llhds only
+[predictor-11:50:02] now find highest significance for 6 predictions
+[predictor-11:50:02] done with prediction. best Z=2.51 (muhat=1.00)
+[predictor-11:50:02] decomposed model into 1 topologies.
+[predictor-11:50:02] returning 0 predictions, best preds
+[predictor-11:50:02] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:02] decomposed model into 1 topologies.
+[predictor-11:50:02] returning 0 predictions, all preds, llhds only
+[predictor-11:50:02] now find highest significance for 0 predictions
+[predictor-11:50:02] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:02] decomposed model into 2 topologies.
+[predictor-11:50:02] returning 3 predictions, best preds
+[predictor-11:50:02] top r values before rescaling are: 1.28, 0.57, 0.37
+[predictor-11:50:02] decomposed model into 2 topologies.
+[predictor-11:50:03] returning 6 predictions, all preds, llhds only
+[predictor-11:50:03] now find highest significance for 6 predictions
+[predictor-11:50:03] done with prediction. best Z=2.51 (muhat=1.00)
+[predictor-11:50:03] decomposed model into 1 topologies.
+[predictor-11:50:03] returning 0 predictions, best preds
+[predictor-11:50:03] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:03] decomposed model into 1 topologies.
+[predictor-11:50:03] returning 0 predictions, all preds, llhds only
+[predictor-11:50:03] now find highest significance for 0 predictions
+[predictor-11:50:03] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:03] decomposed model into 1 topologies.
+[predictor-11:50:03] returning 3 predictions, best preds
+[predictor-11:50:03] top r values before rescaling are: 1.09, 0.53, 0.32
+[predictor-11:50:03] decomposed model into 1 topologies.
+[predictor-11:50:03] returning 6 predictions, all preds, llhds only
+[predictor-11:50:03] now find highest significance for 6 predictions
+[predictor-11:50:03] done with prediction. best Z=2.12 (muhat=1.00)
+[predictor-11:50:03] decomposed model into 1 topologies.
+[predictor-11:50:04] returning 3 predictions, best preds
+[predictor-11:50:04] top r values before rescaling are: 1.07, 0.53, 0.34
+[predictor-11:50:04] decomposed model into 1 topologies.
+[predictor-11:50:04] returning 6 predictions, all preds, llhds only
+[predictor-11:50:04] now find highest significance for 6 predictions
+[predictor-11:50:04] done with prediction. best Z=2.19 (muhat=1.00)
+[predictor-11:50:04] decomposed model into 1 topologies.
+[predictor-11:50:04] returning 3 predictions, best preds
+[predictor-11:50:04] top r values before rescaling are: 1.26, 0.56, 0.38
+[predictor-11:50:04] decomposed model into 1 topologies.
+[predictor-11:50:04] returning 6 predictions, all preds, llhds only
+[predictor-11:50:04] now find highest significance for 6 predictions
+[predictor-11:50:04] done with prediction. best Z=2.53 (muhat=1.00)
+[predictor-11:50:05] decomposed model into 1 topologies.
+[predictor-11:50:05] returning 3 predictions, best preds
+[predictor-11:50:05] top r values before rescaling are: 0.73, 0.24, 0.20
+[predictor-11:50:05] decomposed model into 1 topologies.
+[predictor-11:50:05] returning 8 predictions, all preds, llhds only
+[predictor-11:50:05] now find highest significance for 8 predictions
+[predictor-11:50:05] done with prediction. best Z=0.72 (muhat=0.95)
+[predictor-11:50:05] decomposed model into 1 topologies.
+[predictor-11:50:06] returning 3 predictions, best preds
+[predictor-11:50:06] top r values before rescaling are: 1.08, 0.52, 0.22
+[predictor-11:50:06] decomposed model into 1 topologies.
+[predictor-11:50:06] returning 6 predictions, all preds, llhds only
+[predictor-11:50:06] now find highest significance for 6 predictions
+[predictor-11:50:06] done with prediction. best Z=1.58 (muhat=1.00)
+[predictor-11:50:06] decomposed model into 1 topologies.
+[predictor-11:50:06] returning 3 predictions, best preds
+[predictor-11:50:06] top r values before rescaling are: 1.13, 0.52, 0.24
+[predictor-11:50:06] decomposed model into 1 topologies.
+[predictor-11:50:06] returning 6 predictions, all preds, llhds only
+[predictor-11:50:06] now find highest significance for 6 predictions
+[predictor-11:50:06] done with prediction. best Z=1.60 (muhat=1.00)
+[predictor-11:50:06] decomposed model into 2 topologies.
+[predictor-11:50:07] returning 3 predictions, best preds
+[predictor-11:50:07] top r values before rescaling are: 1.15, 0.56, 0.26
+[predictor-11:50:07] decomposed model into 2 topologies.
+[predictor-11:50:07] returning 6 predictions, all preds, llhds only
+[predictor-11:50:07] now find highest significance for 6 predictions
+[predictor-11:50:07] done with prediction. best Z=1.53 (muhat=0.91)
+[predictor-11:50:07] decomposed model into 1 topologies.
+[predictor-11:50:07] returning 3 predictions, best preds
+[predictor-11:50:07] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:50:08] decomposed model into 1 topologies.
+[predictor-11:50:08] returning 6 predictions, all preds, llhds only
+[predictor-11:50:08] now find highest significance for 6 predictions
+[predictor-11:50:08] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:50:08] decomposed model into 2 topologies.
+[predictor-11:50:08] returning 3 predictions, best preds
+[predictor-11:50:08] top r values before rescaling are: 1.55, 0.69, 0.45
+[predictor-11:50:08] decomposed model into 2 topologies.
+[predictor-11:50:08] returning 6 predictions, all preds, llhds only
+[predictor-11:50:08] now find highest significance for 6 predictions
+[predictor-11:50:08] done with prediction. best Z=2.51 (muhat=0.82)
+[predictor-11:50:09] decomposed model into 3 topologies.
+[predictor-11:50:10] returning 3 predictions, best preds
+[predictor-11:50:10] top r values before rescaling are: 0.85, 0.42, 0.26
+[predictor-11:50:10] decomposed model into 3 topologies.
+[predictor-11:50:10] returning 6 predictions, all preds, llhds only
+[predictor-11:50:10] now find highest significance for 6 predictions
+[predictor-11:50:10] done with prediction. best Z=2.28 (muhat=1.29)
+[predictor-11:50:10] decomposed model into 1 topologies.
+[predictor-11:50:10] returning 3 predictions, best preds
+[predictor-11:50:10] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:50:10] decomposed model into 1 topologies.
+[predictor-11:50:10] returning 6 predictions, all preds, llhds only
+[predictor-11:50:10] now find highest significance for 6 predictions
+[predictor-11:50:10] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:50:10] decomposed model into 0 topologies.
+[predictor-11:50:10] returning 0 predictions, best preds
+[predictor-11:50:10] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:10] decomposed model into 0 topologies.
+[predictor-11:50:10] returning 0 predictions, all preds, llhds only
+[predictor-11:50:10] now find highest significance for 0 predictions
+[predictor-11:50:10] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:11] decomposed model into 1 topologies.
+[predictor-11:50:11] returning 3 predictions, best preds
+[predictor-11:50:11] top r values before rescaling are: 1.09, 0.55, 0.34
+[predictor-11:50:11] decomposed model into 1 topologies.
+[predictor-11:50:11] returning 6 predictions, all preds, llhds only
+[predictor-11:50:11] now find highest significance for 6 predictions
+[predictor-11:50:11] done with prediction. best Z=2.28 (muhat=1.00)
+[predictor-11:50:11] decomposed model into 0 topologies.
+[predictor-11:50:11] returning 0 predictions, best preds
+[predictor-11:50:11] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:11] decomposed model into 0 topologies.
+[predictor-11:50:11] returning 0 predictions, all preds, llhds only
+[predictor-11:50:11] now find highest significance for 0 predictions
+[predictor-11:50:11] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:11] decomposed model into 1 topologies.
+[predictor-11:50:12] returning 3 predictions, best preds
+[predictor-11:50:12] top r values before rescaling are: 1.43, 0.45, 0.39
+[predictor-11:50:12] decomposed model into 1 topologies.
+[predictor-11:50:12] returning 6 predictions, all preds, llhds only
+[predictor-11:50:12] now find highest significance for 6 predictions
+[predictor-11:50:12] done with prediction. best Z=1.98 (muhat=0.91)
+[predictor-11:50:12] decomposed model into 1 topologies.
+[predictor-11:50:12] returning 4 predictions, best preds
+[predictor-11:50:12] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:50:12] decomposed model into 1 topologies.
+[predictor-11:50:12] returning 8 predictions, all preds, llhds only
+[predictor-11:50:12] now find highest significance for 8 predictions
+[predictor-11:50:12] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:50:13] decomposed model into 1 topologies.
+[predictor-11:50:13] returning 3 predictions, best preds
+[predictor-11:50:13] top r values before rescaling are: 1.23, 0.60, 0.27
+[predictor-11:50:13] decomposed model into 1 topologies.
+[predictor-11:50:13] returning 6 predictions, all preds, llhds only
+[predictor-11:50:13] now find highest significance for 6 predictions
+[predictor-11:50:13] done with prediction. best Z=1.53 (muhat=0.85)
+[predictor-11:50:13] decomposed model into 1 topologies.
+[predictor-11:50:13] returning 3 predictions, best preds
+[predictor-11:50:13] top r values before rescaling are: 1.09, 0.55, 0.34
+[predictor-11:50:13] decomposed model into 1 topologies.
+[predictor-11:50:13] returning 6 predictions, all preds, llhds only
+[predictor-11:50:13] now find highest significance for 6 predictions
+[predictor-11:50:13] done with prediction. best Z=2.28 (muhat=1.00)
+[predictor-11:50:14] decomposed model into 1 topologies.
+[predictor-11:50:14] returning 3 predictions, best preds
+[predictor-11:50:14] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:50:14] decomposed model into 1 topologies.
+[predictor-11:50:14] returning 6 predictions, all preds, llhds only
+[predictor-11:50:14] now find highest significance for 6 predictions
+[predictor-11:50:14] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:50:14] decomposed model into 2 topologies.
+[predictor-11:50:15] returning 4 predictions, best preds
+[predictor-11:50:15] top r values before rescaling are: 1.07, 0.53, 0.34
+[predictor-11:50:15] decomposed model into 2 topologies.
+[predictor-11:50:15] returning 8 predictions, all preds, llhds only
+[predictor-11:50:15] now find highest significance for 8 predictions
+[predictor-11:50:15] done with prediction. best Z=2.19 (muhat=1.00)
+[predictor-11:50:15] decomposed model into 1 topologies.
+[predictor-11:50:15] returning 3 predictions, best preds
+[predictor-11:50:15] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:50:16] decomposed model into 1 topologies.
+[predictor-11:50:16] returning 6 predictions, all preds, llhds only
+[predictor-11:50:16] now find highest significance for 6 predictions
+[predictor-11:50:16] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:50:16] decomposed model into 1 topologies.
+[predictor-11:50:16] returning 0 predictions, best preds
+[predictor-11:50:16] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:16] decomposed model into 1 topologies.
+[predictor-11:50:16] returning 0 predictions, all preds, llhds only
+[predictor-11:50:16] now find highest significance for 0 predictions
+[predictor-11:50:16] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:16] decomposed model into 1 topologies.
+[predictor-11:50:16] returning 3 predictions, best preds
+[predictor-11:50:16] top r values before rescaling are: 2.22, 1.06, 0.47
+[predictor-11:50:16] decomposed model into 1 topologies.
+[predictor-11:50:16] returning 6 predictions, all preds, llhds only
+[predictor-11:50:16] now find highest significance for 6 predictions
+[predictor-11:50:16] done with prediction. best Z=1.58 (muhat=0.49)
+[predictor-11:50:16] decomposed model into 1 topologies.
+[predictor-11:50:17] returning 5 predictions, best preds
+[predictor-11:50:17] top r values before rescaling are: 1.30, 0.98, 0.64
+[predictor-11:50:17] decomposed model into 1 topologies.
+[predictor-11:50:17] returning 12 predictions, all preds, llhds only
+[predictor-11:50:17] now find highest significance for 12 predictions
+[predictor-11:50:17] done with prediction. best Z=2.40 (muhat=1.00)
+[predictor-11:50:17] decomposed model into 1 topologies.
+[predictor-11:50:17] returning 3 predictions, best preds
+[predictor-11:50:17] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:50:17] decomposed model into 1 topologies.
+[predictor-11:50:17] returning 6 predictions, all preds, llhds only
+[predictor-11:50:17] now find highest significance for 6 predictions
+[predictor-11:50:17] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:50:18] decomposed model into 2 topologies.
+[predictor-11:50:18] returning 1 predictions, best preds
+[predictor-11:50:18] top r values before rescaling are: 1.13, 0.00
+[predictor-11:50:18] decomposed model into 2 topologies.
+[predictor-11:50:18] returning 2 predictions, all preds, llhds only
+[predictor-11:50:18] now find highest significance for 2 predictions
+[predictor-11:50:18] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:18] decomposed model into 1 topologies.
+[predictor-11:50:18] returning 3 predictions, best preds
+[predictor-11:50:18] top r values before rescaling are: 1.27, 0.62, 0.39
+[predictor-11:50:18] decomposed model into 1 topologies.
+[predictor-11:50:18] returning 6 predictions, all preds, llhds only
+[predictor-11:50:18] now find highest significance for 6 predictions
+[predictor-11:50:19] done with prediction. best Z=2.40 (muhat=0.90)
+[predictor-11:50:19] decomposed model into 1 topologies.
+[predictor-11:50:19] returning 3 predictions, best preds
+[predictor-11:50:19] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:50:19] decomposed model into 1 topologies.
+[predictor-11:50:19] returning 8 predictions, all preds, llhds only
+[predictor-11:50:19] now find highest significance for 8 predictions
+[predictor-11:50:19] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:50:19] decomposed model into 2 topologies.
+[predictor-11:50:20] returning 3 predictions, best preds
+[predictor-11:50:20] top r values before rescaling are: 1.27, 0.56, 0.37
+[predictor-11:50:20] decomposed model into 2 topologies.
+[predictor-11:50:20] returning 6 predictions, all preds, llhds only
+[predictor-11:50:20] now find highest significance for 6 predictions
+[predictor-11:50:20] done with prediction. best Z=2.51 (muhat=1.01)
+[predictor-11:50:20] decomposed model into 1 topologies.
+[predictor-11:50:20] returning 3 predictions, best preds
+[predictor-11:50:20] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:50:20] decomposed model into 1 topologies.
+[predictor-11:50:20] returning 6 predictions, all preds, llhds only
+[predictor-11:50:20] now find highest significance for 6 predictions
+[predictor-11:50:20] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:50:20] decomposed model into 1 topologies.
+[predictor-11:50:21] returning 3 predictions, best preds
+[predictor-11:50:21] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:50:21] decomposed model into 1 topologies.
+[predictor-11:50:21] returning 6 predictions, all preds, llhds only
+[predictor-11:50:21] now find highest significance for 6 predictions
+[predictor-11:50:21] done with prediction. best Z=1.53 (muhat=1.00)
+[predictor-11:50:21] decomposed model into 0 topologies.
+[predictor-11:50:21] returning 0 predictions, best preds
+[predictor-11:50:21] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:21] decomposed model into 0 topologies.
+[predictor-11:50:21] returning 0 predictions, all preds, llhds only
+[predictor-11:50:21] now find highest significance for 0 predictions
+[predictor-11:50:21] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:21] decomposed model into 1 topologies.
+[predictor-11:50:21] returning 3 predictions, best preds
+[predictor-11:50:21] top r values before rescaling are: 1.30, 0.64, 0.29
+[predictor-11:50:21] decomposed model into 1 topologies.
+[predictor-11:50:22] returning 6 predictions, all preds, llhds only
+[predictor-11:50:22] now find highest significance for 6 predictions
+[predictor-11:50:22] done with prediction. best Z=1.54 (muhat=0.80)
+[predictor-11:50:22] decomposed model into 1 topologies.
+[predictor-11:50:22] returning 3 predictions, best preds
+[predictor-11:50:22] top r values before rescaling are: 1.07, 0.53, 0.34
+[predictor-11:50:22] decomposed model into 1 topologies.
+[predictor-11:50:22] returning 6 predictions, all preds, llhds only
+[predictor-11:50:22] now find highest significance for 6 predictions
+[predictor-11:50:22] done with prediction. best Z=2.19 (muhat=1.00)
+[predictor-11:50:22] decomposed model into 1 topologies.
+[predictor-11:50:23] returning 5 predictions, best preds
+[predictor-11:50:23] top r values before rescaling are: 1.30, 0.98, 0.64
+[predictor-11:50:23] decomposed model into 1 topologies.
+[predictor-11:50:23] returning 12 predictions, all preds, llhds only
+[predictor-11:50:23] now find highest significance for 12 predictions
+[predictor-11:50:23] done with prediction. best Z=2.40 (muhat=1.00)
+[predictor-11:50:23] decomposed model into 2 topologies.
+[predictor-11:50:23] returning 3 predictions, best preds
+[predictor-11:50:23] top r values before rescaling are: 1.26, 0.56, 0.38
+[predictor-11:50:23] decomposed model into 2 topologies.
+[predictor-11:50:23] returning 6 predictions, all preds, llhds only
+[predictor-11:50:23] now find highest significance for 6 predictions
+[predictor-11:50:24] done with prediction. best Z=2.53 (muhat=1.00)
+[predictor-11:50:24] decomposed model into 1 topologies.
+[predictor-11:50:24] returning 3 predictions, best preds
+[predictor-11:50:24] top r values before rescaling are: 1.74, 0.54, 0.48
+[predictor-11:50:24] decomposed model into 1 topologies.
+[predictor-11:50:24] returning 6 predictions, all preds, llhds only
+[predictor-11:50:24] now find highest significance for 6 predictions
+[predictor-11:50:24] done with prediction. best Z=1.98 (muhat=0.75)
+[predictor-11:50:24] decomposed model into 1 topologies.
+[predictor-11:50:24] returning 3 predictions, best preds
+[predictor-11:50:24] top r values before rescaling are: 1.26, 0.56, 0.38
+[predictor-11:50:25] decomposed model into 1 topologies.
+[predictor-11:50:25] returning 6 predictions, all preds, llhds only
+[predictor-11:50:25] now find highest significance for 6 predictions
+[predictor-11:50:25] done with prediction. best Z=2.53 (muhat=1.00)
+[predictor-11:50:25] decomposed model into 1 topologies.
+[predictor-11:50:25] returning 3 predictions, best preds
+[predictor-11:50:25] top r values before rescaling are: 1.29, 0.64, 0.41
+[predictor-11:50:25] decomposed model into 1 topologies.
+[predictor-11:50:25] returning 6 predictions, all preds, llhds only
+[predictor-11:50:25] now find highest significance for 6 predictions
+[predictor-11:50:25] done with prediction. best Z=2.19 (muhat=0.82)
+[predictor-11:50:25] decomposed model into 2 topologies.
+[predictor-11:50:26] returning 3 predictions, best preds
+[predictor-11:50:26] top r values before rescaling are: 1.06, 0.51, 0.22
+[predictor-11:50:26] decomposed model into 2 topologies.
+[predictor-11:50:26] returning 6 predictions, all preds, llhds only
+[predictor-11:50:26] now find highest significance for 6 predictions
+[predictor-11:50:26] done with prediction. best Z=1.58 (muhat=1.02)
+[predictor-11:50:26] decomposed model into 1 topologies.
+[predictor-11:50:26] returning 5 predictions, best preds
+[predictor-11:50:26] top r values before rescaling are: 1.30, 0.98, 0.64
+[predictor-11:50:26] decomposed model into 1 topologies.
+[predictor-11:50:26] returning 12 predictions, all preds, llhds only
+[predictor-11:50:26] now find highest significance for 12 predictions
+[predictor-11:50:27] done with prediction. best Z=2.40 (muhat=1.00)
+[predictor-11:50:27] decomposed model into 1 topologies.
+[predictor-11:50:27] returning 3 predictions, best preds
+[predictor-11:50:27] top r values before rescaling are: 0.70, 0.34, 0.16
+[predictor-11:50:27] decomposed model into 1 topologies.
+[predictor-11:50:27] returning 6 predictions, all preds, llhds only
+[predictor-11:50:27] now find highest significance for 6 predictions
+[predictor-11:50:27] done with prediction. best Z=1.54 (muhat=1.49)
+[predictor-11:50:27] decomposed model into 1 topologies.
+[predictor-11:50:27] returning 0 predictions, best preds
+[predictor-11:50:27] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:27] decomposed model into 1 topologies.
+[predictor-11:50:27] returning 0 predictions, all preds, llhds only
+[predictor-11:50:27] now find highest significance for 0 predictions
+[predictor-11:50:27] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:27] decomposed model into 1 topologies.
+[predictor-11:50:28] returning 3 predictions, best preds
+[predictor-11:50:28] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:50:28] decomposed model into 1 topologies.
+[predictor-11:50:28] returning 6 predictions, all preds, llhds only
+[predictor-11:50:28] now find highest significance for 6 predictions
+[predictor-11:50:28] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:50:28] decomposed model into 1 topologies.
+[predictor-11:50:28] returning 4 predictions, best preds
+[predictor-11:50:28] top r values before rescaling are: 1.26, 0.56, 0.38
+[predictor-11:50:28] decomposed model into 1 topologies.
+[predictor-11:50:28] returning 8 predictions, all preds, llhds only
+[predictor-11:50:28] now find highest significance for 8 predictions
+[predictor-11:50:28] done with prediction. best Z=2.53 (muhat=1.00)
+[predictor-11:50:28] decomposed model into 1 topologies.
+[predictor-11:50:29] returning 3 predictions, best preds
+[predictor-11:50:29] top r values before rescaling are: 1.41, 0.71, 0.44
+[predictor-11:50:29] decomposed model into 1 topologies.
+[predictor-11:50:29] returning 6 predictions, all preds, llhds only
+[predictor-11:50:29] now find highest significance for 6 predictions
+[predictor-11:50:29] done with prediction. best Z=2.28 (muhat=0.78)
+[predictor-11:50:29] decomposed model into 1 topologies.
+[predictor-11:50:29] returning 3 predictions, best preds
+[predictor-11:50:29] top r values before rescaling are: 1.09, 0.53, 0.32
+[predictor-11:50:29] decomposed model into 1 topologies.
+[predictor-11:50:29] returning 6 predictions, all preds, llhds only
+[predictor-11:50:29] now find highest significance for 6 predictions
+[predictor-11:50:29] done with prediction. best Z=2.12 (muhat=1.00)
+[predictor-11:50:29] decomposed model into 1 topologies.
+[predictor-11:50:30] returning 3 predictions, best preds
+[predictor-11:50:30] top r values before rescaling are: 1.02, 0.51, 0.32
+[predictor-11:50:30] decomposed model into 1 topologies.
+[predictor-11:50:30] returning 6 predictions, all preds, llhds only
+[predictor-11:50:30] now find highest significance for 6 predictions
+[predictor-11:50:30] done with prediction. best Z=2.14 (muhat=1.04)
+[predictor-11:50:30] decomposed model into 0 topologies.
+[predictor-11:50:30] returning 0 predictions, best preds
+[predictor-11:50:30] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:30] decomposed model into 0 topologies.
+[predictor-11:50:30] returning 0 predictions, all preds, llhds only
+[predictor-11:50:30] now find highest significance for 0 predictions
+[predictor-11:50:30] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:30] decomposed model into 2 topologies.
+[predictor-11:50:30] returning 3 predictions, best preds
+[predictor-11:50:30] top r values before rescaling are: 1.28, 0.56, 0.37
+[predictor-11:50:31] decomposed model into 2 topologies.
+[predictor-11:50:31] returning 6 predictions, all preds, llhds only
+[predictor-11:50:31] now find highest significance for 6 predictions
+[predictor-11:50:31] done with prediction. best Z=2.51 (muhat=1.00)
+[predictor-11:50:31] decomposed model into 0 topologies.
+[predictor-11:50:31] returning 0 predictions, best preds
+[predictor-11:50:31] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:31] decomposed model into 0 topologies.
+[predictor-11:50:31] returning 0 predictions, all preds, llhds only
+[predictor-11:50:31] now find highest significance for 0 predictions
+[predictor-11:50:31] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:31] decomposed model into 1 topologies.
+[predictor-11:50:32] returning 2 predictions, best preds
+[predictor-11:50:32] top r values before rescaling are: 0.56, 0.17
+[predictor-11:50:32] decomposed model into 1 topologies.
+[predictor-11:50:32] returning 4 predictions, all preds, llhds only
+[predictor-11:50:32] now find highest significance for 4 predictions
+[predictor-11:50:32] done with prediction. best Z=0.93 (muhat=0.67)
+[predictor-11:50:32] decomposed model into 1 topologies.
+[predictor-11:50:32] returning 3 predictions, best preds
+[predictor-11:50:32] top r values before rescaling are: 1.09, 0.55, 0.34
+[predictor-11:50:32] decomposed model into 1 topologies.
+[predictor-11:50:32] returning 6 predictions, all preds, llhds only
+[predictor-11:50:32] now find highest significance for 6 predictions
+[predictor-11:50:32] done with prediction. best Z=2.28 (muhat=1.00)
+[predictor-11:50:33] decomposed model into 1 topologies.
+[predictor-11:50:33] returning 3 predictions, best preds
+[predictor-11:50:33] top r values before rescaling are: 1.21, 0.51, 0.33
+[predictor-11:50:33] decomposed model into 1 topologies.
+[predictor-11:50:33] returning 6 predictions, all preds, llhds only
+[predictor-11:50:33] now find highest significance for 6 predictions
+[predictor-11:50:33] done with prediction. best Z=1.81 (muhat=1.00)
+[predictor-11:50:33] decomposed model into 1 topologies.
+[predictor-11:50:33] returning 3 predictions, best preds
+[predictor-11:50:33] top r values before rescaling are: 1.40, 0.44, 0.38
+[predictor-11:50:33] decomposed model into 1 topologies.
+[predictor-11:50:34] returning 6 predictions, all preds, llhds only
+[predictor-11:50:34] now find highest significance for 6 predictions
+[predictor-11:50:34] done with prediction. best Z=1.98 (muhat=0.93)
+[predictor-11:50:34] decomposed model into 0 topologies.
+[predictor-11:50:34] returning 0 predictions, best preds
+[predictor-11:50:34] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:34] decomposed model into 0 topologies.
+[predictor-11:50:34] returning 0 predictions, all preds, llhds only
+[predictor-11:50:34] now find highest significance for 0 predictions
+[predictor-11:50:34] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:34] decomposed model into 1 topologies.
+[predictor-11:50:34] returning 3 predictions, best preds
+[predictor-11:50:34] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:50:34] decomposed model into 1 topologies.
+[predictor-11:50:34] returning 8 predictions, all preds, llhds only
+[predictor-11:50:34] now find highest significance for 8 predictions
+[predictor-11:50:34] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:50:34] decomposed model into 1 topologies.
+[predictor-11:50:35] returning 3 predictions, best preds
+[predictor-11:50:35] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:50:35] decomposed model into 1 topologies.
+[predictor-11:50:35] returning 8 predictions, all preds, llhds only
+[predictor-11:50:35] now find highest significance for 8 predictions
+[predictor-11:50:35] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:50:35] decomposed model into 1 topologies.
+[predictor-11:50:35] returning 3 predictions, best preds
+[predictor-11:50:35] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:50:35] decomposed model into 1 topologies.
+[predictor-11:50:35] returning 8 predictions, all preds, llhds only
+[predictor-11:50:35] now find highest significance for 8 predictions
+[predictor-11:50:35] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:50:36] decomposed model into 2 topologies.
+[predictor-11:50:36] returning 4 predictions, best preds
+[predictor-11:50:36] top r values before rescaling are: 1.30, 0.64, 0.29
+[predictor-11:50:36] decomposed model into 2 topologies.
+[predictor-11:50:36] returning 8 predictions, all preds, llhds only
+[predictor-11:50:36] now find highest significance for 8 predictions
+[predictor-11:50:36] done with prediction. best Z=1.54 (muhat=0.80)
+[predictor-11:50:36] decomposed model into 1 topologies.
+[predictor-11:50:37] returning 3 predictions, best preds
+[predictor-11:50:37] top r values before rescaling are: 4.79, 1.50, 1.32
+[predictor-11:50:37] decomposed model into 1 topologies.
+[predictor-11:50:37] returning 6 predictions, all preds, llhds only
+[predictor-11:50:37] now find highest significance for 6 predictions
+[predictor-11:50:37] done with prediction. best Z=1.98 (muhat=0.27)
+[predictor-11:50:37] decomposed model into 1 topologies.
+[predictor-11:50:37] returning 3 predictions, best preds
+[predictor-11:50:37] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:50:37] decomposed model into 1 topologies.
+[predictor-11:50:37] returning 6 predictions, all preds, llhds only
+[predictor-11:50:37] now find highest significance for 6 predictions
+[predictor-11:50:37] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:50:37] decomposed model into 1 topologies.
+[predictor-11:50:38] returning 3 predictions, best preds
+[predictor-11:50:38] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:50:38] decomposed model into 1 topologies.
+[predictor-11:50:38] returning 8 predictions, all preds, llhds only
+[predictor-11:50:38] now find highest significance for 8 predictions
+[predictor-11:50:38] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:50:38] decomposed model into 3 topologies.
+[predictor-11:50:38] returning 0 predictions, best preds
+[predictor-11:50:38] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:39] decomposed model into 3 topologies.
+[predictor-11:50:39] returning 0 predictions, all preds, llhds only
+[predictor-11:50:39] now find highest significance for 0 predictions
+[predictor-11:50:39] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:39] decomposed model into 1 topologies.
+[predictor-11:50:39] returning 0 predictions, best preds
+[predictor-11:50:39] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:39] decomposed model into 1 topologies.
+[predictor-11:50:39] returning 0 predictions, all preds, llhds only
+[predictor-11:50:39] now find highest significance for 0 predictions
+[predictor-11:50:39] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:39] decomposed model into 1 topologies.
+[predictor-11:50:39] returning 3 predictions, best preds
+[predictor-11:50:39] top r values before rescaling are: 1.26, 0.56, 0.38
+[predictor-11:50:39] decomposed model into 1 topologies.
+[predictor-11:50:39] returning 6 predictions, all preds, llhds only
+[predictor-11:50:39] now find highest significance for 6 predictions
+[predictor-11:50:39] done with prediction. best Z=2.53 (muhat=1.00)
+[predictor-11:50:40] decomposed model into 2 topologies.
+[predictor-11:50:40] returning 0 predictions, best preds
+[predictor-11:50:40] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:40] decomposed model into 2 topologies.
+[predictor-11:50:40] returning 0 predictions, all preds, llhds only
+[predictor-11:50:40] now find highest significance for 0 predictions
+[predictor-11:50:40] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:40] decomposed model into 2 topologies.
+[predictor-11:50:40] returning 0 predictions, best preds
+[predictor-11:50:40] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:40] decomposed model into 2 topologies.
+[predictor-11:50:40] returning 0 predictions, all preds, llhds only
+[predictor-11:50:40] now find highest significance for 0 predictions
+[predictor-11:50:40] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:40] decomposed model into 1 topologies.
+[predictor-11:50:40] returning 3 predictions, best preds
+[predictor-11:50:40] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:50:41] decomposed model into 1 topologies.
+[predictor-11:50:41] returning 6 predictions, all preds, llhds only
+[predictor-11:50:41] now find highest significance for 6 predictions
+[predictor-11:50:41] done with prediction. best Z=1.54 (muhat=1.00)
+[predictor-11:50:41] decomposed model into 3 topologies.
+[predictor-11:50:41] returning 3 predictions, best preds
+[predictor-11:50:41] top r values before rescaling are: 1.07, 0.52, 0.22
+[predictor-11:50:41] decomposed model into 3 topologies.
+[predictor-11:50:41] returning 6 predictions, all preds, llhds only
+[predictor-11:50:41] now find highest significance for 6 predictions
+[predictor-11:50:41] done with prediction. best Z=1.58 (muhat=1.01)
+[predictor-11:50:41] decomposed model into 1 topologies.
+[predictor-11:50:42] returning 3 predictions, best preds
+[predictor-11:50:42] top r values before rescaling are: 1.10, 0.55, 0.34
+[predictor-11:50:42] decomposed model into 1 topologies.
+[predictor-11:50:42] returning 6 predictions, all preds, llhds only
+[predictor-11:50:42] now find highest significance for 6 predictions
+[predictor-11:50:42] done with prediction. best Z=2.28 (muhat=0.99)
+[predictor-11:50:42] decomposed model into 1 topologies.
+[predictor-11:50:42] returning 3 predictions, best preds
+[predictor-11:50:42] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:50:42] decomposed model into 1 topologies.
+[predictor-11:50:43] returning 8 predictions, all preds, llhds only
+[predictor-11:50:43] now find highest significance for 8 predictions
+[predictor-11:50:43] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:50:43] decomposed model into 1 topologies.
+[predictor-11:50:43] returning 4 predictions, best preds
+[predictor-11:50:43] top r values before rescaling are: 1.30, 0.64, 0.29
+[predictor-11:50:43] decomposed model into 1 topologies.
+[predictor-11:50:43] returning 8 predictions, all preds, llhds only
+[predictor-11:50:43] now find highest significance for 8 predictions
+[predictor-11:50:43] done with prediction. best Z=1.54 (muhat=0.80)
+[predictor-11:50:44] decomposed model into 1 topologies.
+[predictor-11:50:44] returning 3 predictions, best preds
+[predictor-11:50:44] top r values before rescaling are: 1.09, 0.55, 0.34
+[predictor-11:50:44] decomposed model into 1 topologies.
+[predictor-11:50:44] returning 6 predictions, all preds, llhds only
+[predictor-11:50:44] now find highest significance for 6 predictions
+[predictor-11:50:44] done with prediction. best Z=2.28 (muhat=1.00)
+[predictor-11:50:44] decomposed model into 1 topologies.
+[predictor-11:50:44] returning 3 predictions, best preds
+[predictor-11:50:44] top r values before rescaling are: 1.09, 0.55, 0.34
+[predictor-11:50:45] decomposed model into 1 topologies.
+[predictor-11:50:45] returning 6 predictions, all preds, llhds only
+[predictor-11:50:45] now find highest significance for 6 predictions
+[predictor-11:50:45] done with prediction. best Z=2.28 (muhat=1.00)
+[predictor-11:50:45] decomposed model into 1 topologies.
+[predictor-11:50:45] returning 4 predictions, best preds
+[predictor-11:50:45] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:50:45] decomposed model into 1 topologies.
+[predictor-11:50:46] returning 8 predictions, all preds, llhds only
+[predictor-11:50:46] now find highest significance for 8 predictions
+[predictor-11:50:46] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:50:46] decomposed model into 1 topologies.
+[predictor-11:50:46] returning 3 predictions, best preds
+[predictor-11:50:46] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:50:46] decomposed model into 1 topologies.
+[predictor-11:50:46] returning 6 predictions, all preds, llhds only
+[predictor-11:50:46] now find highest significance for 6 predictions
+[predictor-11:50:46] done with prediction. best Z=1.53 (muhat=1.00)
+[predictor-11:50:46] decomposed model into 1 topologies.
+[predictor-11:50:47] returning 3 predictions, best preds
+[predictor-11:50:47] top r values before rescaling are: 1.21, 0.51, 0.33
+[predictor-11:50:47] decomposed model into 1 topologies.
+[predictor-11:50:47] returning 6 predictions, all preds, llhds only
+[predictor-11:50:47] now find highest significance for 6 predictions
+[predictor-11:50:47] done with prediction. best Z=1.81 (muhat=1.00)
+[predictor-11:50:47] decomposed model into 2 topologies.
+[predictor-11:50:47] returning 0 predictions, best preds
+[predictor-11:50:47] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:47] decomposed model into 2 topologies.
+[predictor-11:50:47] returning 0 predictions, all preds, llhds only
+[predictor-11:50:47] now find highest significance for 0 predictions
+[predictor-11:50:47] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:47] decomposed model into 0 topologies.
+[predictor-11:50:47] returning 0 predictions, best preds
+[predictor-11:50:47] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:47] decomposed model into 0 topologies.
+[predictor-11:50:47] returning 0 predictions, all preds, llhds only
+[predictor-11:50:47] now find highest significance for 0 predictions
+[predictor-11:50:47] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:47] decomposed model into 0 topologies.
+[predictor-11:50:47] returning 0 predictions, best preds
+[predictor-11:50:47] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:47] decomposed model into 0 topologies.
+[predictor-11:50:47] returning 0 predictions, all preds, llhds only
+[predictor-11:50:47] now find highest significance for 0 predictions
+[predictor-11:50:47] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:47] decomposed model into 1 topologies.
+[predictor-11:50:48] returning 3 predictions, best preds
+[predictor-11:50:48] top r values before rescaling are: 0.66, 0.32, 0.14
+[predictor-11:50:48] decomposed model into 1 topologies.
+[predictor-11:50:48] returning 6 predictions, all preds, llhds only
+[predictor-11:50:48] now find highest significance for 6 predictions
+[predictor-11:50:48] done with prediction. best Z=1.58 (muhat=1.64)
+[predictor-11:50:48] decomposed model into 1 topologies.
+[predictor-11:50:48] returning 0 predictions, best preds
+[predictor-11:50:48] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:48] decomposed model into 1 topologies.
+[predictor-11:50:48] returning 0 predictions, all preds, llhds only
+[predictor-11:50:48] now find highest significance for 0 predictions
+[predictor-11:50:48] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:48] decomposed model into 1 topologies.
+[predictor-11:50:48] returning 3 predictions, best preds
+[predictor-11:50:48] top r values before rescaling are: 1.26, 0.56, 0.38
+[predictor-11:50:48] decomposed model into 1 topologies.
+[predictor-11:50:48] returning 6 predictions, all preds, llhds only
+[predictor-11:50:48] now find highest significance for 6 predictions
+[predictor-11:50:48] done with prediction. best Z=2.53 (muhat=1.00)
+[predictor-11:50:49] decomposed model into 1 topologies.
+[predictor-11:50:49] returning 3 predictions, best preds
+[predictor-11:50:49] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:50:49] decomposed model into 1 topologies.
+[predictor-11:50:49] returning 6 predictions, all preds, llhds only
+[predictor-11:50:49] now find highest significance for 6 predictions
+[predictor-11:50:49] done with prediction. best Z=1.54 (muhat=1.00)
+[predictor-11:50:49] decomposed model into 1 topologies.
+[predictor-11:50:49] returning 3 predictions, best preds
+[predictor-11:50:49] top r values before rescaling are: 1.07, 0.53, 0.34
+[predictor-11:50:49] decomposed model into 1 topologies.
+[predictor-11:50:49] returning 6 predictions, all preds, llhds only
+[predictor-11:50:49] now find highest significance for 6 predictions
+[predictor-11:50:50] done with prediction. best Z=2.19 (muhat=1.00)
+[predictor-11:50:50] decomposed model into 1 topologies.
+[predictor-11:50:50] returning 3 predictions, best preds
+[predictor-11:50:50] top r values before rescaling are: 0.95, 0.47, 0.28
+[predictor-11:50:50] decomposed model into 1 topologies.
+[predictor-11:50:50] returning 6 predictions, all preds, llhds only
+[predictor-11:50:50] now find highest significance for 6 predictions
+[predictor-11:50:50] done with prediction. best Z=2.12 (muhat=1.14)
+[predictor-11:50:50] decomposed model into 1 topologies.
+[predictor-11:50:51] returning 2 predictions, best preds
+[predictor-11:50:51] top r values before rescaling are: 0.99, 0.21
+[predictor-11:50:51] decomposed model into 1 topologies.
+[predictor-11:50:51] returning 4 predictions, all preds, llhds only
+[predictor-11:50:51] now find highest significance for 4 predictions
+[predictor-11:50:51] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:51] decomposed model into 2 topologies.
+[predictor-11:50:51] returning 3 predictions, best preds
+[predictor-11:50:51] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:50:51] decomposed model into 2 topologies.
+[predictor-11:50:51] returning 6 predictions, all preds, llhds only
+[predictor-11:50:51] now find highest significance for 6 predictions
+[predictor-11:50:51] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:50:51] decomposed model into 1 topologies.
+[predictor-11:50:52] returning 3 predictions, best preds
+[predictor-11:50:52] top r values before rescaling are: 1.24, 0.61, 0.28
+[predictor-11:50:52] decomposed model into 1 topologies.
+[predictor-11:50:52] returning 6 predictions, all preds, llhds only
+[predictor-11:50:52] now find highest significance for 6 predictions
+[predictor-11:50:52] done with prediction. best Z=1.54 (muhat=0.84)
+[predictor-11:50:52] decomposed model into 2 topologies.
+[predictor-11:50:52] returning 3 predictions, best preds
+[predictor-11:50:52] top r values before rescaling are: 1.28, 0.56, 0.37
+[predictor-11:50:52] decomposed model into 2 topologies.
+[predictor-11:50:52] returning 6 predictions, all preds, llhds only
+[predictor-11:50:52] now find highest significance for 6 predictions
+[predictor-11:50:52] done with prediction. best Z=2.51 (muhat=1.00)
+[predictor-11:50:52] decomposed model into 1 topologies.
+[predictor-11:50:53] returning 6 predictions, best preds
+[predictor-11:50:53] top r values before rescaling are: 1.30, 0.97, 0.64
+[predictor-11:50:53] decomposed model into 1 topologies.
+[predictor-11:50:53] returning 14 predictions, all preds, llhds only
+[predictor-11:50:53] now find highest significance for 14 predictions
+[predictor-11:50:53] done with prediction. best Z=2.40 (muhat=1.00)
+[predictor-11:50:53] decomposed model into 1 topologies.
+[predictor-11:50:54] returning 3 predictions, best preds
+[predictor-11:50:54] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:50:54] decomposed model into 1 topologies.
+[predictor-11:50:54] returning 6 predictions, all preds, llhds only
+[predictor-11:50:54] now find highest significance for 6 predictions
+[predictor-11:50:54] done with prediction. best Z=1.54 (muhat=1.00)
+[predictor-11:50:54] decomposed model into 1 topologies.
+[predictor-11:50:54] returning 3 predictions, best preds
+[predictor-11:50:54] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:50:54] decomposed model into 1 topologies.
+[predictor-11:50:54] returning 6 predictions, all preds, llhds only
+[predictor-11:50:54] now find highest significance for 6 predictions
+[predictor-11:50:54] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:50:54] decomposed model into 0 topologies.
+[predictor-11:50:54] returning 0 predictions, best preds
+[predictor-11:50:54] top r values before rescaling are: 0.00, 0.00
+[predictor-11:50:54] decomposed model into 0 topologies.
+[predictor-11:50:54] returning 0 predictions, all preds, llhds only
+[predictor-11:50:54] now find highest significance for 0 predictions
+[predictor-11:50:54] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:55] decomposed model into 1 topologies.
+[predictor-11:50:55] returning 3 predictions, best preds
+[predictor-11:50:55] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:50:55] decomposed model into 1 topologies.
+[predictor-11:50:55] returning 6 predictions, all preds, llhds only
+[predictor-11:50:55] now find highest significance for 6 predictions
+[predictor-11:50:55] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:50:55] decomposed model into 3 topologies.
+[predictor-11:50:55] returning 3 predictions, best preds
+[predictor-11:50:55] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:50:55] decomposed model into 3 topologies.
+[predictor-11:50:55] returning 8 predictions, all preds, llhds only
+[predictor-11:50:55] now find highest significance for 8 predictions
+[predictor-11:50:56] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:50:56] decomposed model into 1 topologies.
+[predictor-11:50:56] returning 3 predictions, best preds
+[predictor-11:50:56] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:50:56] decomposed model into 1 topologies.
+[predictor-11:50:56] returning 6 predictions, all preds, llhds only
+[predictor-11:50:56] now find highest significance for 6 predictions
+[predictor-11:50:56] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:50:56] decomposed model into 1 topologies.
+[predictor-11:50:56] returning 3 predictions, best preds
+[predictor-11:50:56] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:50:56] decomposed model into 1 topologies.
+[predictor-11:50:56] returning 6 predictions, all preds, llhds only
+[predictor-11:50:56] now find highest significance for 6 predictions
+[predictor-11:50:56] done with prediction. best Z=1.54 (muhat=1.00)
+[predictor-11:50:57] decomposed model into 2 topologies.
+[predictor-11:50:57] returning 4 predictions, best preds
+[predictor-11:50:57] top r values before rescaling are: 1.26, 0.56, 0.38
+[predictor-11:50:57] decomposed model into 2 topologies.
+[predictor-11:50:57] returning 8 predictions, all preds, llhds only
+[predictor-11:50:57] now find highest significance for 8 predictions
+[predictor-11:50:57] done with prediction. best Z=2.53 (muhat=1.00)
+[predictor-11:50:57] decomposed model into 3 topologies.
+[predictor-11:50:58] returning 1 predictions, best preds
+[predictor-11:50:58] top r values before rescaling are: 8.27, 0.00
+[predictor-11:50:58] decomposed model into 3 topologies.
+[predictor-11:50:58] returning 2 predictions, all preds, llhds only
+[predictor-11:50:58] now find highest significance for 2 predictions
+[predictor-11:50:58] done with prediction. Could not find combinations (Z=None)
+[predictor-11:50:58] decomposed model into 2 topologies.
+[predictor-11:50:58] returning 4 predictions, best preds
+[predictor-11:50:58] top r values before rescaling are: 4.50, 1.09, 0.55
+[predictor-11:50:59] decomposed model into 2 topologies.
+[predictor-11:50:59] returning 8 predictions, all preds, llhds only
+[predictor-11:50:59] now find highest significance for 8 predictions
+[predictor-11:50:59] done with prediction. best Z=1.58 (muhat=0.29)
+[predictor-11:50:59] decomposed model into 1 topologies.
+[predictor-11:50:59] returning 3 predictions, best preds
+[predictor-11:50:59] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:50:59] decomposed model into 1 topologies.
+[predictor-11:50:59] returning 6 predictions, all preds, llhds only
+[predictor-11:50:59] now find highest significance for 6 predictions
+[predictor-11:50:59] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:50:59] decomposed model into 1 topologies.
+[predictor-11:51:00] returning 3 predictions, best preds
+[predictor-11:51:00] top r values before rescaling are: 0.85, 0.41, 0.17
+[predictor-11:51:00] decomposed model into 1 topologies.
+[predictor-11:51:00] returning 6 predictions, all preds, llhds only
+[predictor-11:51:00] now find highest significance for 6 predictions
+[predictor-11:51:00] done with prediction. best Z=1.58 (muhat=1.27)
+[predictor-11:51:00] decomposed model into 1 topologies.
+[predictor-11:51:00] returning 3 predictions, best preds
+[predictor-11:51:00] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:51:00] decomposed model into 1 topologies.
+[predictor-11:51:00] returning 8 predictions, all preds, llhds only
+[predictor-11:51:00] now find highest significance for 8 predictions
+[predictor-11:51:00] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:51:01] decomposed model into 1 topologies.
+[predictor-11:51:01] returning 3 predictions, best preds
+[predictor-11:51:01] top r values before rescaling are: 3.32, 1.50, 0.92
+[predictor-11:51:01] decomposed model into 1 topologies.
+[predictor-11:51:01] returning 6 predictions, all preds, llhds only
+[predictor-11:51:01] now find highest significance for 6 predictions
+[predictor-11:51:01] done with prediction. best Z=1.68 (muhat=0.33)
+[predictor-11:51:01] decomposed model into 1 topologies.
+[predictor-11:51:01] returning 3 predictions, best preds
+[predictor-11:51:01] top r values before rescaling are: 1.32, 0.41, 0.36
+[predictor-11:51:01] decomposed model into 1 topologies.
+[predictor-11:51:01] returning 6 predictions, all preds, llhds only
+[predictor-11:51:01] now find highest significance for 6 predictions
+[predictor-11:51:01] done with prediction. best Z=1.98 (muhat=0.99)
+[predictor-11:51:02] decomposed model into 1 topologies.
+[predictor-11:51:02] returning 3 predictions, best preds
+[predictor-11:51:02] top r values before rescaling are: 1.19, 0.55, 0.37
+[predictor-11:51:02] decomposed model into 1 topologies.
+[predictor-11:51:02] returning 6 predictions, all preds, llhds only
+[predictor-11:51:02] now find highest significance for 6 predictions
+[predictor-11:51:02] done with prediction. best Z=2.43 (muhat=1.00)
+[predictor-11:51:02] decomposed model into 1 topologies.
+[predictor-11:51:02] returning 3 predictions, best preds
+[predictor-11:51:02] top r values before rescaling are: 1.25, 0.56, 0.38
+[predictor-11:51:03] decomposed model into 1 topologies.
+[predictor-11:51:03] returning 6 predictions, all preds, llhds only
+[predictor-11:51:03] now find highest significance for 6 predictions
+[predictor-11:51:03] done with prediction. best Z=2.53 (muhat=1.01)
+[predictor-11:51:03] decomposed model into 1 topologies.
+[predictor-11:51:03] returning 3 predictions, best preds
+[predictor-11:51:03] top r values before rescaling are: 1.26, 0.56, 0.38
+[predictor-11:51:03] decomposed model into 1 topologies.
+[predictor-11:51:03] returning 6 predictions, all preds, llhds only
+[predictor-11:51:03] now find highest significance for 6 predictions
+[predictor-11:51:03] done with prediction. best Z=2.53 (muhat=1.00)
+[predictor-11:51:03] decomposed model into 1 topologies.
+[predictor-11:51:04] returning 3 predictions, best preds
+[predictor-11:51:04] top r values before rescaling are: 1.21, 0.38, 0.33
+[predictor-11:51:04] decomposed model into 1 topologies.
+[predictor-11:51:04] returning 6 predictions, all preds, llhds only
+[predictor-11:51:04] now find highest significance for 6 predictions
+[predictor-11:51:04] done with prediction. best Z=1.98 (muhat=1.07)
+[predictor-11:51:04] decomposed model into 1 topologies.
+[predictor-11:51:04] returning 3 predictions, best preds
+[predictor-11:51:04] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:51:04] decomposed model into 1 topologies.
+[predictor-11:51:04] returning 6 predictions, all preds, llhds only
+[predictor-11:51:04] now find highest significance for 6 predictions
+[predictor-11:51:04] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:51:05] decomposed model into 1 topologies.
+[predictor-11:51:05] returning 3 predictions, best preds
+[predictor-11:51:05] top r values before rescaling are: 1.04, 0.51, 0.23
+[predictor-11:51:05] decomposed model into 1 topologies.
+[predictor-11:51:05] returning 6 predictions, all preds, llhds only
+[predictor-11:51:05] now find highest significance for 6 predictions
+[predictor-11:51:05] done with prediction. best Z=1.53 (muhat=1.00)
+[predictor-11:51:05] decomposed model into 1 topologies.
+[predictor-11:51:05] returning 3 predictions, best preds
+[predictor-11:51:05] top r values before rescaling are: 1.11, 0.54, 0.23
+[predictor-11:51:05] decomposed model into 1 topologies.
+[predictor-11:51:05] returning 6 predictions, all preds, llhds only
+[predictor-11:51:05] now find highest significance for 6 predictions
+[predictor-11:51:05] done with prediction. best Z=1.58 (muhat=0.98)
+[predictor-11:51:06] decomposed model into 1 topologies.
+[predictor-11:51:06] returning 5 predictions, best preds
+[predictor-11:51:06] top r values before rescaling are: 1.30, 0.98, 0.64
+[predictor-11:51:06] decomposed model into 1 topologies.
+[predictor-11:51:06] returning 12 predictions, all preds, llhds only
+[predictor-11:51:06] now find highest significance for 12 predictions
+[predictor-11:51:06] done with prediction. best Z=2.40 (muhat=1.00)
+[predictor-11:51:06] decomposed model into 1 topologies.
+[predictor-11:51:07] returning 3 predictions, best preds
+[predictor-11:51:07] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:51:07] decomposed model into 1 topologies.
+[predictor-11:51:07] returning 6 predictions, all preds, llhds only
+[predictor-11:51:07] now find highest significance for 6 predictions
+[predictor-11:51:07] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:51:07] decomposed model into 2 topologies.
+[predictor-11:51:07] returning 6 predictions, best preds
+[predictor-11:51:07] top r values before rescaling are: 1.73, 1.32, 0.97
+[predictor-11:51:07] decomposed model into 2 topologies.
+[predictor-11:51:07] returning 14 predictions, all preds, llhds only
+[predictor-11:51:07] now find highest significance for 14 predictions
+[predictor-11:51:08] done with prediction. best Z=2.25 (muhat=0.75)
+[predictor-11:51:08] decomposed model into 1 topologies.
+[predictor-11:51:08] returning 3 predictions, best preds
+[predictor-11:51:08] top r values before rescaling are: 1.02, 0.47, 0.22
+[predictor-11:51:08] decomposed model into 1 topologies.
+[predictor-11:51:08] returning 6 predictions, all preds, llhds only
+[predictor-11:51:08] now find highest significance for 6 predictions
+[predictor-11:51:08] done with prediction. best Z=1.60 (muhat=1.10)
+[predictor-11:51:08] decomposed model into 2 topologies.
+[predictor-11:51:09] returning 4 predictions, best preds
+[predictor-11:51:09] top r values before rescaling are: 3.31, 1.30, 0.41
+[predictor-11:51:09] decomposed model into 2 topologies.
+[predictor-11:51:09] returning 8 predictions, all preds, llhds only
+[predictor-11:51:09] now find highest significance for 8 predictions
+[predictor-11:51:09] done with prediction. best Z=1.50 (muhat=0.39)
+[predictor-11:51:09] decomposed model into 0 topologies.
+[predictor-11:51:09] returning 0 predictions, best preds
+[predictor-11:51:09] top r values before rescaling are: 0.00, 0.00
+[predictor-11:51:09] decomposed model into 0 topologies.
+[predictor-11:51:09] returning 0 predictions, all preds, llhds only
+[predictor-11:51:09] now find highest significance for 0 predictions
+[predictor-11:51:09] done with prediction. Could not find combinations (Z=None)
+[predictor-11:51:10] decomposed model into 1 topologies.
+[predictor-11:51:10] returning 3 predictions, best preds
+[predictor-11:51:10] top r values before rescaling are: 1.07, 0.53, 0.34
+[predictor-11:51:10] decomposed model into 1 topologies.
+[predictor-11:51:10] returning 6 predictions, all preds, llhds only
+[predictor-11:51:10] now find highest significance for 6 predictions
+[predictor-11:51:10] done with prediction. best Z=2.19 (muhat=1.00)
+[predictor-11:51:10] decomposed model into 0 topologies.
+[predictor-11:51:10] returning 0 predictions, best preds
+[predictor-11:51:10] top r values before rescaling are: 0.00, 0.00
+[predictor-11:51:10] decomposed model into 0 topologies.
+[predictor-11:51:10] returning 0 predictions, all preds, llhds only
+[predictor-11:51:10] now find highest significance for 0 predictions
+[predictor-11:51:10] done with prediction. Could not find combinations (Z=None)
+[predictor-11:51:10] decomposed model into 1 topologies.
+[predictor-11:51:11] returning 3 predictions, best preds
+[predictor-11:51:11] top r values before rescaling are: 1.21, 0.51, 0.33
+[predictor-11:51:11] decomposed model into 1 topologies.
+[predictor-11:51:11] returning 6 predictions, all preds, llhds only
+[predictor-11:51:11] now find highest significance for 6 predictions
+[predictor-11:51:11] done with prediction. best Z=1.81 (muhat=1.00)
+[predictor-11:51:11] decomposed model into 1 topologies.
+[predictor-11:51:11] returning 3 predictions, best preds
+[predictor-11:51:11] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:51:11] decomposed model into 1 topologies.
+[predictor-11:51:11] returning 6 predictions, all preds, llhds only
+[predictor-11:51:11] now find highest significance for 6 predictions
+[predictor-11:51:11] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:51:12] decomposed model into 1 topologies.
+[predictor-11:51:12] returning 3 predictions, best preds
+[predictor-11:51:12] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:51:12] decomposed model into 1 topologies.
+[predictor-11:51:12] returning 6 predictions, all preds, llhds only
+[predictor-11:51:12] now find highest significance for 6 predictions
+[predictor-11:51:12] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:51:12] decomposed model into 1 topologies.
+[predictor-11:51:12] returning 3 predictions, best preds
+[predictor-11:51:12] top r values before rescaling are: 1.30, 0.41, 0.36
+[predictor-11:51:12] decomposed model into 1 topologies.
+[predictor-11:51:12] returning 6 predictions, all preds, llhds only
+[predictor-11:51:12] now find highest significance for 6 predictions
+[predictor-11:51:12] done with prediction. best Z=1.98 (muhat=1.00)
+[predictor-11:51:13] decomposed model into 1 topologies.
+[predictor-11:51:13] returning 3 predictions, best preds
+[predictor-11:51:13] top r values before rescaling are: 1.37, 0.60, 0.37
+[predictor-11:51:13] decomposed model into 1 topologies.
+[predictor-11:51:13] returning 6 predictions, all preds, llhds only
+[predictor-11:51:13] now find highest significance for 6 predictions
+[predictor-11:51:13] done with prediction. best Z=1.76 (muhat=0.86)
+[predictor-11:51:13] decomposed model into 1 topologies.
+[predictor-11:51:14] returning 5 predictions, best preds
+[predictor-11:51:14] top r values before rescaling are: 1.30, 0.98, 0.64
+[predictor-11:51:14] decomposed model into 1 topologies.
+[predictor-11:51:14] returning 12 predictions, all preds, llhds only
+[predictor-11:51:14] now find highest significance for 12 predictions
+[predictor-11:51:14] done with prediction. best Z=2.40 (muhat=1.00)
+[predictor-11:51:14] decomposed model into 1 topologies.
+[predictor-11:51:14] returning 3 predictions, best preds
+[predictor-11:51:14] top r values before rescaling are: 1.14, 0.54, 0.32
+[predictor-11:51:14] decomposed model into 1 topologies.
+[predictor-11:51:14] returning 8 predictions, all preds, llhds only
+[predictor-11:51:14] now find highest significance for 8 predictions
+[predictor-11:51:14] done with prediction. best Z=2.17 (muhat=1.00)
+[predictor-11:51:15] decomposed model into 1 topologies.
+[predictor-11:51:15] returning 3 predictions, best preds
+[predictor-11:51:15] top r values before rescaling are: 1.11, 0.56, 0.32
+[predictor-11:51:15] decomposed model into 1 topologies.
+[predictor-11:51:15] returning 6 predictions, all preds, llhds only
+[predictor-11:51:15] now find highest significance for 6 predictions
+[predictor-11:51:15] done with prediction. best Z=2.29 (muhat=1.00)
+[predictor-11:51:15] decomposed model into 1 topologies.
+[predictor-11:51:16] returning 3 predictions, best preds
+[predictor-11:51:16] top r values before rescaling are: 1.25, 0.39, 0.34
+[predictor-11:51:16] decomposed model into 1 topologies.
+[predictor-11:51:16] returning 6 predictions, all preds, llhds only
+[predictor-11:51:16] now find highest significance for 6 predictions
+[predictor-11:51:16] done with prediction. best Z=1.98 (muhat=1.04)
+[predictor-11:51:16] decomposed model into 1 topologies.
+[predictor-11:51:17] returning 3 predictions, best preds
+[predictor-11:51:17] top r values before rescaling are: 1.30, 0.64, 0.29
+[predictor-11:51:17] decomposed model into 1 topologies.
+[predictor-11:51:17] returning 6 predictions, all preds, llhds only
+[predictor-11:51:17] now find highest significance for 6 predictions
+[predictor-11:51:17] done with prediction. best Z=1.54 (muhat=0.80)
