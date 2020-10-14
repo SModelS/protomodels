@@ -185,7 +185,7 @@ def writeRawNumbersHtml ( protomodel ):
             #                              addBrackets = False )
             particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
             f.write ( '<td>-</td><td>%s</td><td> %.1f fb </td><td> %.1f fb</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
-                    ( topos, tp.upperLimit.asNumber(fb), tp.expectedUL.asNumber(fb), 
+                    ( topos, tp.upperLimit.asNumber(fb), tp.expectedUL.asNumber(fb),
                       S, particles ) )
             if hassigs:
                 sig = "-"
@@ -246,7 +246,7 @@ def writeRawNumbersLatex ( protomodel ):
                             p = abs(pid[0])
                             if p!=1000022:
                                 pids.add ( p )
-            particles = namer.texName ( pids, addDollars=True, addSign = False, 
+            particles = namer.texName ( pids, addDollars=True, addSign = False,
                                           addBrackets = False )
             obs = dI.observedN
             if obs == 0.:
@@ -400,6 +400,61 @@ def anaNameAndUrl ( ana, forPdf=False, protomodel=None ):
         return "<a href=%s>%s</a>" % \
                ( ana.dataset.globalInfo.url, ana.analysisId() )
 
+def writeRValuesTexOld ( rvalues ):
+    ### kept only for reference
+    g=open("rvalues.tex","wt")
+    g.write ( "\\begin{tabular}{l|c|r|r}\n" )
+    g.write ( "\\bf{Analysis Name} & \\bf{Topo} & $r_{\mathrm{obs}}$ & $r_{\mathrm{exp}}$ \\\\\n" )
+    g.write ( "\\hline\n" )
+    for rv in rvalues[:5]:
+        srv="N/A"
+        if type(rv[1])==float:
+            srv="%.2f" % rv[1]
+        g.write ( "%s & %s & %.2f & %s\\\\\n" % ( rv[2].analysisId(), ",".join ( map(str,rv[2].txnames) ), rv[0], srv ) )
+    g.write ( "\\end{tabular}\n" )
+    g.close()
+
+def writeRValuesTex ( rvalues ):
+    namer = SParticleNames ( False )
+    g=open("rvalues.tex","wt")
+    g.write ( "\\begin{tabular}{l|c|c|c|c|c}\n" )
+    g.write ( "\\bf{Analysis Name} & \\bf{Production} & $\sigma_{XX}$ (fb) & $\sigma^\mathrm{UL}_\mathrm{obs}$ (fb) & $\sigma^\mathrm{UL}_\mathrm{exp}$ (fb) & $r$ \\\\\n" )
+    #g.write ( "\\begin{tabular}{l|c|r|r}\n" )
+    #g.write ( "\\bf{Analysis Name} & \\bf{Topo} & $r_{\mathrm{obs}}$ & $r_{\mathrm{exp}}$ \\\\\n" )
+    g.write ( "\\hline\n" )
+    bibtex = BibtexWriter()
+    for rv in rvalues[:5]:
+        srv="N/A"
+        if type(rv[1])==float:
+            srv="%.2f" % rv[1]
+        anaId = rv[2].analysisId()
+        ref = bibtex.query ( anaId )
+        txnames = ",".join ( map(str,rv[2].txnames) )
+        allpids = rv[2].PIDs
+        pids=[]
+        for p in allpids:
+            tmp=[]
+            for b in p:
+                if type(b[0])==int:
+                    tmp.append(b[0])
+                else:
+                    tmp.append(b[0][0])
+            pids.append(tuple(tmp))
+        prod = []
+        for p in pids:
+            tmp = namer.texName ( p, addDollars=True, addSign = False,
+                                   addBrackets = True )
+            prod.append (tmp)
+        prod = "; ".join(prod)
+        sigmapred = "20.13"
+        sigmapred = rv[2].xsection.value.asNumber(fb)
+        sigmaexp = rv[2].expectedUL.asNumber(fb)
+        sigmaobs = rv[2].upperLimit.asNumber(fb)
+        g.write ( "%s~\\cite{%s} & %s & %.2f & %.2f & %.2f & %.2f\\\\\n" % \
+                ( anaId,    ref,  prod, sigmapred, sigmaobs, sigmaexp, rv[0] ) )
+    g.write ( "\\end{tabular}\n" )
+    g.close()
+
 def writeIndexTex ( protomodel, texdoc ):
     """ write the index.tex file
     :param texdoc: the source that goes into texdoc.png
@@ -425,17 +480,8 @@ def writeIndexTex ( protomodel, texdoc ):
     if hasattr ( protomodel, "tpList" ):
         rvalues=protomodel.tpList
         rvalues.sort(key=lambda x: x[0],reverse=True )
-        g=open("rvalues.tex","wt")
-        g.write ( "\\begin{tabular}{l|c|r|r}\n" )
-        g.write ( "\\bf{Analysis Name} & \\bf{Topo} & $r_{\mathrm{obs}}$ & $r_{\mathrm{exp}}$ \\\\\n" )
-        g.write ( "\\hline\n" )
-        for rv in rvalues[:5]:
-            srv="N/A"
-            if type(rv[1])==float:
-                srv="%.2f" % rv[1]
-            g.write ( "%s & %s & %.2f & %s\\\\\n" % ( rv[2].analysisId(), ",".join ( map(str,rv[2].txnames) ), rv[0], srv ) )
-        g.write ( "\\end{tabular}\n" )
-        g.close()
+        writeRValuesTex ( rvalues )
+        #writeRValuesTexOld ( rvalues )
     else:
         print ( "[plotHiscore] protomodel has no r values!" )
 
@@ -749,7 +795,7 @@ def plotDecays ( protomodel, verbosity, outfile="decays.png" ):
 def plot ( number, verbosity, picklefile, options, dbpath ):
     ## plot hiscore number "number"
     protomodel = obtain ( number, picklefile )
-    
+
     protoslha = protomodel.createSLHAFile ()
     subprocess.getoutput ( "cp %s hiscore.slha" % protoslha )
     m = Manipulator ( protomodel )
