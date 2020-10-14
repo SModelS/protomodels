@@ -82,6 +82,9 @@ maxstep = 1000
 
 maxK,stepatmax=0.,0
 
+if maxstep > len(Ks):
+    maxstep=len(Ks)
+
 for firststep in range ( maxstep ):
     fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, gridspec_kw={'width_ratios': [1, 10]} ) 
     laststep=firststep+20
@@ -138,9 +141,10 @@ for firststep in range ( maxstep ):
                framealpha=1.0,ncol=3,labelspacing=0.1,
                handlelength=0.4,handletextpad=0.35,markerscale=0.8,columnspacing=1.0)
     # plt.tight_layout()
-    plt.savefig('walk%d.png' % firststep )
+    step = firststep + 1 ## make all one-indexed, ok?
+    plt.savefig('walk%.3d.png' % step )
     # plt.show()
     plt.clf()
 
-cmd = 'ffmpeg -y -i "walk%d.png" walk.mp4'
+cmd = 'ffmpeg -y -i "walk%3d.png" walk.mp4'
 subprocess.getoutput ( cmd )
