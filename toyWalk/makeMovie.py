@@ -115,7 +115,7 @@ for firststep in range ( maxstep ):
         #        tName=""
         sns.scatterplot(x=data['step'],y=data[pid], size=data['K'], sizes = (80,400),
                         label= tName , color=c, legend=False, ax=ax2 )
-        s= (1+2*maxK)*80. ## no idea why
+        s= (1+1.3*maxK)*80. ## no idea why
         sns.scatterplot(x=datamax['step'],y=datamax[pid], s=s, sizes = (80,400),
                         label= tName , color=c, legend=False, ax=ax1 )
         m = np.where(masses[pid] > 0, masses[pid],np.nan) #Fix for avoid plotting to negative values
