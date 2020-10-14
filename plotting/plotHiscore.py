@@ -198,8 +198,9 @@ def writeRawNumbersHtml ( protomodel ):
     f.write("</table>\n" )
     f.close()
 
-def writeRawNumbersLatex ( protomodel ):
-    """ write out the raw numbers of the excess, in latex """
+def writeRawNumbersLatexOld ( protomodel ):
+    """ write out the raw numbers of the excess, in latex.
+        old version, has no theory pred column """
     print ( "raw numbers of excess" )
     print ( "=====================" )
     f=open("rawnumbers.tex","wt")
@@ -279,6 +280,94 @@ def writeRawNumbersLatex ( protomodel ):
                                         addBrackets = False )
             print ( "  `- observed %s, expected %s" % ( tp.upperLimit, tp.expectedUL ) )
             f.write ( " & %.1f fb & %.1f fb & %s & %s \\\\ \n" % ( tp.upperLimit.asNumber(fb), tp.expectedUL.asNumber(fb), S, particles  ) )
+    f.write("\end{tabular}\n" )
+    f.close()
+
+def writeRawNumbersLatex ( protomodel ):
+    """ write out the raw numbers of the excess, in latex """
+    print ( "raw numbers of excess" )
+    print ( "=====================" )
+    f=open("rawnumbers.tex","wt")
+    f.write("\\begin{tabular}{l|c|r|r|c|r|r}\n" )
+    f.write("\\bf{Analysis Name} & \\bf{Dataset} & \\bf{Obs} & \\bf{Expected} & \\bf{Z} & \\bf{Particle} & \\bf{Signal} \\\\\n" )
+    f.write("\\hline\n" )
+    namer = SParticleNames ( susy = False )
+    bibtex = BibtexWriter()
+    for tp in protomodel.bestCombo:
+        anaId = tp.analysisId()
+        dtype = tp.dataType()
+        print ( "[plotHiscore] item %s (%s)" % ( anaId, dtype ) )
+        dt = { "upperLimit": "ul", "efficiencyMap": "em" }
+        # f.write ( "%s & %s & " % ( anaId, dt[dtype] ) )
+        ref = bibtex.query ( anaId )
+        f.write ( "%s~\\cite{%s} & " % ( anaId, ref ) )
+        if dtype == "efficiencyMap":
+            dI = tp.dataset.dataInfo
+            obsN = dI.observedN
+            if ( obsN - int(obsN) ) < 1e-6:
+                obsN=int(obsN)
+            print ( "  `- %s: observedN %s, bg %s +/- %s" % \
+                    ( dI.dataId, obsN, dI.expectedBG, dI.bgError ) )
+            did = dI.dataId.replace("_","\_")
+            if len(did)>9:
+                did=did[:6]+" ..."
+            eBG = dI.expectedBG
+            if eBG == int(eBG):
+                eBG=int(eBG)
+            bgErr = dI.bgError
+            if bgErr == int(bgErr):
+                bgErr=int(bgErr)
+            toterr = math.sqrt ( bgErr**2 + eBG )
+            if toterr > 0.:
+                S = "%.1f $\sigma$" % ( (dI.observedN - eBG ) / toterr )
+            # pids = tp.PIDs
+            pids = set()
+            for prod in tp.PIDs:
+                for branch in prod:
+                    for pid in branch:
+                        if type(pid) == int and abs(pid)!=1000022:
+                            pids.add ( abs(pid) )
+                        if type(pid) in [ list, tuple ]:
+                            p = abs(pid[0])
+                            if p!=1000022:
+                                pids.add ( p )
+            particles = namer.texName ( pids, addDollars=True, addSign = False,
+                                          addBrackets = False )
+            obs = dI.observedN
+            if obs == 0.:
+                obs = 0
+            else:
+                if abs ( obs - int(obs) ) / obs < 1e-6:
+                    obs = int ( obs )
+            sigN = tp.xsection.value.asNumber(fb) * tp.dataset.globalInfo.lumi.asNumber(1/fb)
+            #sigmapred="%.2f fb" % ( tp.xsection.value.asNumber(fb) )
+            sigmapred="%.2f" % sigN
+            f.write ( "%s & %s & %s $\\pm$ %s & %s & %s & %s \\\\ \n" % \
+                      ( did, obs, eBG, bgErr, S, particles, sigmapred ) )
+        if dtype == "upperLimit":
+            S = "?"
+            llhd,chi2 = tp.likelihoodFromLimits( expected=False, chi2also=True )
+            eUL = tp.expectedUL.asNumber(fb)
+            oUL = tp.upperLimit.asNumber(fb)
+            sigma_exp = eUL / 1.96 # the expected scale, sigma
+            Z = ( oUL - eUL ) / sigma_exp
+            # Z = math.sqrt ( chi2 )
+            S = "%.1f $\sigma$" % Z
+            pids = set()
+            for prod in tp.PIDs:
+                for branch in prod:
+                    for pid in branch:
+                        if type(pid)==int and abs(pid)!=1000022:
+                            pids.add ( abs(pid) )
+                        if type(pid) in [ tuple, list ]:
+                            for p in pid:
+                                if type(p)==int and abs(p)!=1000022:
+                                    pids.add ( abs(p) )
+            particles = namer.texName ( pids, addDollars=True, addSign = False,
+                                        addBrackets = False )
+            sigmapred="%.2f fb" % ( tp.xsection.value.asNumber(fb) )
+            print ( "  `- observed %s, expected %s" % ( tp.upperLimit, tp.expectedUL ) )
+            f.write ( " & %.1f fb & %.1f fb & %s & %s & %s \\\\ \n" % ( tp.upperLimit.asNumber(fb), tp.expectedUL.asNumber(fb), S, particles, sigmapred  ) )
     f.write("\end{tabular}\n" )
     f.close()
 
