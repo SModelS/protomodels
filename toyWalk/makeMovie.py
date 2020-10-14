@@ -4,6 +4,7 @@ warnings.filterwarnings("ignore")
 
 import sys,os,copy, pickle, glob, subprocess, math
 import numpy as np
+import IPython
 sys.path.append(os.path.abspath('../../smodels'))
 sys.path.append(os.path.abspath('../'))
 from builder.protomodel import ProtoModel
@@ -20,7 +21,7 @@ import pandas as pd
 # sns.set() #Set style
 # sns.set_style('ticks')
 sns.set_style('ticks',{'font.family':'Times New Roman', 'font.serif':'Times New Roman'})
-sns.set_context('paper', font_scale=2.0)
+sns.set_context('paper', font_scale=1.8)
 # sns.set_palette(sns.color_palette("Paired"))
 sns.set_palette(sns.color_palette("deep"))
 
@@ -75,13 +76,14 @@ dataDict.update(masses)
 df = pd.DataFrame(dataDict)
 fig = plt.figure(figsize=(10, 6))
 nsteps = 1
-maxstep = 500
-#maxstep = 10
+maxstep = 1000
+#maxstep = 2
 #maxstep = 200
 
-maxK=0.
+maxK,stepatmax=0.,0
 
 for firststep in range ( maxstep ):
+    fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, gridspec_kw={'width_ratios': [1, 10]} ) 
     laststep=firststep+20
 
     nvalues = {}
@@ -93,33 +95,46 @@ for firststep in range ( maxstep ):
     pids = sorted(masses.keys(), key = lambda pid: nvalues[pid] )
     #pids = sorted(masses.keys(), key = lambda pid: np.sum(np.where(masses[pid][::nsteps] <= 0.)))
     ctentries=0
+    K=Ks[firststep]
+    if K < 0.:
+        K = 0.
+    if K > maxK:
+        maxK = K
+        stepatmax = firststep
     for pid in pids:
         if max(masses[pid][firststep:laststep:nsteps]) <= 0.0: continue
         ctentries+=1
         data = df[firststep:laststep:nsteps]
+        datamax = df[stepatmax:stepatmax+1]
         tName = r'$%s$' % namer.texName(pid)
         c = colorDict[pid]
         #if ctentries>9:
         #        tName=""
         sns.scatterplot(x=data['step'],y=data[pid], size=data['K'], sizes = (80,400),
-                        label= tName , color=c, legend=False)
+                        label= tName , color=c, legend=False, ax=ax2 )
+        s= (1+2*maxK)*80. ## no idea why
+        sns.scatterplot(x=datamax['step'],y=datamax[pid], s=s, sizes = (80,400),
+                        label= tName , color=c, legend=False, ax=ax1 )
         m = np.where(masses[pid] > 0, masses[pid],np.nan) #Fix for avoid plotting to negative values
         plt.plot(df['step'][firststep:laststep:nsteps],m[firststep:laststep:nsteps],'-',linewidth=2, color = c)
 
     plt.ylim(0.,2500.0)
-    K=Ks[firststep]
-    if K > maxK:
-        maxK = K
-    plt.title ( '$K_{max}=%.1f$' % maxK, loc="left" )
-    plt.xlabel('step', fontsize=23)
-    plt.ylabel('Mass [GeV]', fontsize=23)
+    #plt.title ( '$K_{max}=%.1f, K_{current}=%.1f$' % ( maxK, K ), loc="left" )
+    ax2.set_title ( ' $\;K_{cur}=%.1f$' % ( K ), fontsize=18, pad=15., loc="left" )
+    ax1.set_title ( '$K_{max}=%.1f$' % ( maxK ), fontsize=18, pad=15. )
+    ax2.set_xlabel('step', fontsize=20, labelpad=-3. )
+    ax1.set_xlabel('', fontsize=21 )
+    ax1.set_xticks([])
+    plt.ylabel('Mass [GeV]', fontsize=21 )
+    ax2.set_ylabel('Mass [GeV]', fontsize=21 )
+    ax1.set_ylabel('Mass [GeV]', fontsize=21, labelpad=-5. )
     dstep = 10 ## 2
     #plt.xticks(df['step'][firststep:laststep:2*nsteps])
     nextstep = math.ceil((firststep+1)/dstep)*dstep-1
     plt.xticks(df['step'][nextstep:laststep:dstep])
     # plt.xlim(-5,198)
     plt.grid(axis='x') 
-    plt.legend(loc=(.8,.75),bbox_to_anchor=(0.6,0.5,.2,.25), 
+    plt.legend(loc=(.6,.7),# bbox_to_anchor=(0.6,0.5,.2,.25), 
                framealpha=1.0,ncol=3,labelspacing=0.1,
                handlelength=0.4,handletextpad=0.35,markerscale=0.8,columnspacing=1.0)
     # plt.tight_layout()
