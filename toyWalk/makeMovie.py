@@ -34,8 +34,8 @@ subprocess.getoutput( cmd )
 namer = SParticleNames ( susy = False )
 #Replace default colors:
 colorPalette = 'deep' #Set color palette for particles, if None use default
-allpids = [ 1000001, 1000002, 1000003, 1000004, 1000005, 1000006,          
-2000005, 2000006, 1000011, 1000012, 1000013, 1000014, 1000015,          
+allpids = [ 1000001, 1000002, 1000003, 1000004, 1000005, 1000006,
+2000005, 2000006, 1000011, 1000012, 1000013, 1000014, 1000015,
 1000016, 1000021, 1000022, 1000023, 1000025, 1000024, 1000037 ]
 colorDict = dict(zip( allpids,sns.color_palette(palette=colorPalette,n_colors=len(namer.names))))
 
@@ -49,6 +49,8 @@ argparser.add_argument ( '-m', '--maxsteps',
         type=int, default=1000 )
 args = argparser.parse_args()
 
+maxstep = args.maxsteps
+
 f=open(args.history,"rt")
 txt=f.read()
 f.close()
@@ -57,6 +59,12 @@ if not "]" in txt[-3:]:
     txt+="]\n"
 
 modelList=eval(txt)
+
+while False: # len(modelList)<maxstep+21:
+    lm = modelList[-1]
+    lm["step"]=lm["step"]+1
+    print ( "lm", lm )
+    modelList.append ( lm )
 
 #Get all particles which appears in all steps:
 particles = []
@@ -89,13 +97,12 @@ for p in modelList:
             masses[pid].append(-100.0)
 for pid in masses:
     masses[pid] = np.array(masses[pid])
-dataDict = {'step' : steps, 'K' : Kvalues, 'Z' : Zvalues, 
+dataDict = {'step' : steps, 'K' : Kvalues, 'Z' : Zvalues,
                    'nparticles' : nparticles}
-dataDict.update(masses) 
+dataDict.update(masses)
 df = pd.DataFrame(dataDict)
 fig = plt.figure(figsize=(10, 6))
 nsteps = 1
-maxstep = args.maxsteps
 #maxstep = 200
 
 maxK,stepatmax=0.,0
@@ -104,7 +111,7 @@ if maxstep > len(Ks):
     maxstep=len(Ks)
 
 for firststep in range ( maxstep ):
-    fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, gridspec_kw={'width_ratios': [1, 10]} ) 
+    fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, gridspec_kw={'width_ratios': [1, 10]} )
     if firststep % 10 == 0:
         print ( "step %d" % firststep )
     laststep=firststep+20
@@ -156,15 +163,15 @@ for firststep in range ( maxstep ):
     nextstep = math.ceil((firststep+1)/dstep)*dstep-1
     plt.xticks(df['step'][nextstep:laststep:dstep])
     # plt.xlim(-5,198)
-    plt.grid(axis='x') 
+    plt.grid(axis='x')
     ac=actions[firststep]
     lac = len(ac)
     while len(ac)<3:
         ac.append ( "" )
     if lac>0:
         ss = math.ceil ( len(ac)/3 )
-        txt="\n".join(ac[::ss])
-        plt.text ( -8+firststep, -320, txt, c="gray", size=8 )
+        txt="\n".join([ x.replace("->","$\\rightarrow$") for x in ac[::ss] ])
+        plt.text ( -8+firststep, -320, txt, c="gray", size=7 )
     bc=bcs[firststep]
     lbc=len(bc)
     #while len(bc)<6:
@@ -172,12 +179,16 @@ for firststep in range ( maxstep ):
     if lbc>0:
         ss = math.ceil ( len(bc)/6 )
         txt="\n".join([ x[:x.find(":")] for x in bc[::ss] ] )
-        plt.text ( 20.5+firststep, 10, txt, size=10, horizontalalignment="right", verticalalignment="bottom", c="gray" )
-        
-    plt.legend(loc=(.6,.7),# bbox_to_anchor=(0.6,0.5,.2,.25), 
+        bbox = None
+        bbox=dict(boxstyle="round", ec=(1., 0.5, 0.5), fc=(1., 0.8, 0.8),)
+        plt.text ( 20.5+firststep, 10, txt, size=10, horizontalalignment="right", verticalalignment="bottom", c="gray", bbox=bbox, rotation=10. )
+
+    plt.legend(loc=(.6,.7),# bbox_to_anchor=(0.6,0.5,.2,.25),
                framealpha=1.0,ncol=3,labelspacing=0.1,
                handlelength=0.4,handletextpad=0.35,markerscale=0.8,columnspacing=1.0)
     # plt.tight_layout()
+    plt.text ( -3+firststep, 1250, "hiscore", rotation=90., c="pink", alpha=.5, size=30,
+            horizontalalignment='center', verticalalignment='center' )
     step = firststep + 1 ## make all one-indexed, ok?
     plt.savefig('walk%.3d.png' % step, dpi=300 )
     # plt.show()
