@@ -64,14 +64,11 @@ class Manipulator:
     def teleportToHiscore ( self ):
         """ without further ado, discard your current model and start
             fresh with the hiscore model. """
-        fname = "states.dict"
+        ## FIXME this is currently not used.
+        fname = "hiscores.dict"
         if not os.path.exists ( fname ):
-            from ptools.csetup import setup
-            rundir = setup()
-            fname = rundir + "/states.dict"
-            if not os.path.exists ( fname ):
-                self.pprint ( "no other walkers found (could not find states.dict)" )
-                return
+            self.pprint ( "no other walkers found (could not find hiscores.dict)" )
+            return
         try:
             with open ( fname, "rt" ) as f:
                 dicts = eval ( f.read() )
@@ -868,7 +865,8 @@ class Manipulator:
             for pids in self.canonicalOrder:
                 if pid == pids[0] and pids[1] in unfrozen:
                     return 0
-        protomodel.log ( "Freezing %s." % ( SParticleNames(False).asciiName(pid) ) )
+        protomodel.log ( "Freezing %s." % ( self.namer.asciiName(pid) ) )
+        self.record ( "Freeze %s" % ( self.namer.texName(pid,addDollars=True) ) )
         #Remove pid from masses, decays and signal multipliers:
         if  pid in protomodel.masses:
             protomodel.masses.pop(pid)
@@ -934,6 +932,8 @@ class Manipulator:
                 if pid == 1000006:
                     maxMass = mstop2 + 20.
 
+        self.record ( "Unfreeze %s to %.1f" % \
+                      ( self.namer.texName(pid,addDollars=True), tmpMass ) )
         #Randomly select mass of unfrozen particle:
         protomodel.masses[pid] = tmpMass
         self.pprint ( "Unfroze mass of %s to %.1f" % \
