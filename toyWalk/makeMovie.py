@@ -20,6 +20,8 @@ from ptools.sparticleNames import SParticleNames
 import pandas as pd
 # sns.set() #Set style
 # sns.set_style('ticks')
+
+
 sns.set_style('ticks',{'font.family':'Times New Roman', 'font.serif':'Times New Roman'})
 sns.set_context('paper', font_scale=1.8)
 # sns.set_palette(sns.color_palette("Paired"))
@@ -37,10 +39,22 @@ allpids = [ 1000001, 1000002, 1000003, 1000004, 1000005, 1000006,
 1000016, 1000021, 1000022, 1000023, 1000025, 1000024, 1000037 ]
 colorDict = dict(zip( allpids,sns.color_palette(palette=colorPalette,n_colors=len(namer.names))))
 
-f=open("history.list","rt")
+import argparse
+argparser = argparse.ArgumentParser( description="movie maker" )
+argparser.add_argument ( '-f', '--history',
+        help='history file to use [history.list]',
+        type=str, default="history.list" )
+argparser.add_argument ( '-m', '--maxsteps',
+        help='maximum steps [1000]',
+        type=int, default=1000 )
+args = argparser.parse_args()
+
+f=open(args.history,"rt")
 txt=f.read()
-txt=txt.replace("nan","'nan'")
 f.close()
+txt=txt.replace("nan","'nan'")
+if not "]" in txt[-3:]:
+    txt+="]\n"
 
 modelList=eval(txt)
 
@@ -56,12 +70,17 @@ nparticles = np.array([len(p["masses"]) for p in modelList])
 Kvalues = np.array([p["K"] if (p["K"] and p["K"] > 0) else 0.0 for p in modelList])
 Zvalues = np.array([p["Z"] if (p["Z"] and p["Z"] > 0) else 0.0 for p in modelList])
 masses = dict([[pid,[]] for pid in particles])
-Ks=[]
+Ks,actions,bcs=[],[],[]
 for p in modelList:
     K=p["K"]
     if K == None:
         K=0.
     Ks.append(K)
+    ac = []
+    if "actions" in p:
+        ac = p["actions"]
+    actions.append(ac)
+    bcs.append(p["bestCombo"])
     for pid in masses:
         if pid in p["masses"]:
             masses[pid].append(float(p["masses"][pid]))
@@ -76,8 +95,7 @@ dataDict.update(masses)
 df = pd.DataFrame(dataDict)
 fig = plt.figure(figsize=(10, 6))
 nsteps = 1
-maxstep = 1000
-#maxstep = 2
+maxstep = args.maxsteps
 #maxstep = 200
 
 maxK,stepatmax=0.,0
@@ -87,6 +105,8 @@ if maxstep > len(Ks):
 
 for firststep in range ( maxstep ):
     fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, gridspec_kw={'width_ratios': [1, 10]} ) 
+    if firststep % 10 == 0:
+        print ( "step %d" % firststep )
     laststep=firststep+20
 
     nvalues = {}
@@ -137,12 +157,29 @@ for firststep in range ( maxstep ):
     plt.xticks(df['step'][nextstep:laststep:dstep])
     # plt.xlim(-5,198)
     plt.grid(axis='x') 
+    ac=actions[firststep]
+    lac = len(ac)
+    while len(ac)<3:
+        ac.append ( "" )
+    if lac>0:
+        ss = math.ceil ( len(ac)/3 )
+        txt="\n".join(ac[::ss])
+        plt.text ( -8+firststep, -320, txt, c="gray", size=8 )
+    bc=bcs[firststep]
+    lbc=len(bc)
+    #while len(bc)<6:
+    #    bc.append( "" )
+    if lbc>0:
+        ss = math.ceil ( len(bc)/6 )
+        txt="\n".join([ x[:x.find(":")] for x in bc[::ss] ] )
+        plt.text ( 20.5+firststep, 10, txt, size=10, horizontalalignment="right", verticalalignment="bottom", c="gray" )
+        
     plt.legend(loc=(.6,.7),# bbox_to_anchor=(0.6,0.5,.2,.25), 
                framealpha=1.0,ncol=3,labelspacing=0.1,
                handlelength=0.4,handletextpad=0.35,markerscale=0.8,columnspacing=1.0)
     # plt.tight_layout()
     step = firststep + 1 ## make all one-indexed, ok?
-    plt.savefig('walk%.3d.png' % step )
+    plt.savefig('walk%.3d.png' % step, dpi=300 )
     # plt.show()
     plt.clf()
 

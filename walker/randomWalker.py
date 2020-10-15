@@ -66,13 +66,14 @@ class RandomWalker:
         protomodel = ProtoModel( self.walkerid, keep_meta = True,
                 nevents = nevents, dbversion = self.predictor.database.databaseVersion )
 
-        self.manipulator = Manipulator ( protomodel, strategy )
+        self.manipulator = Manipulator ( protomodel, strategy, do_record = record_history )
         self.catch_exceptions = catch_exceptions
         self.maxsteps = nsteps
         self.accelerator = None
         if record_history:
             from ptools.history import History
             self.recorder = History ( f"{self.rundir}/history{walkerid}.list" )
+            self.manipulator.do_record = True
         jobid = "unknown"
         if "SLURM_JOBID" in os.environ:
             jobid = os.environ["SLURM_JOBID"]
@@ -359,7 +360,7 @@ class RandomWalker:
         ## do we have a history recorder?
         if not hasattr ( self, "recorder" ):
             return
-        self.recorder.add ( self.manipulator.M )
+        self.recorder.add ( self.manipulator )
 
     def walk ( self, catchem=False ):
         """ Now perform the random walk """

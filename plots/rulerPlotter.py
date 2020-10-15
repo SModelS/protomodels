@@ -14,7 +14,8 @@ from __future__ import print_function
 import os, math, sys, tempfile, numpy, subprocess
 import logging
 import pyslha
-from smodels_utils.helper.sparticleNames import SParticleNames
+sys.path.insert(0,"../")
+from ptools.sparticleNames import SParticleNames
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['figure.dpi'] = 300
@@ -331,7 +332,7 @@ class RulerPlot:
 
 if __name__ == "__main__":
     import argparse, types
-    import setPath
+    # import setPath
     from smodels_utils import SModelSUtils
     argparser = argparse.ArgumentParser(description='Draws a "ruler-plot", i.e. particles arranged by their masses. See http://smodels.github.io/pics/example_ruler.png.')
     argparser.add_argument('inputfile', type=str, nargs=1,
