@@ -286,6 +286,7 @@ class RandomWalker:
         :param pmax: Maximum probability for teleportation.
         :param norm: Normalization for K distance.
         """
+        ## for now we turn off teleportation
         bestK = self.hiscoreList.globalMaxK()
         if bestK < 1.:
             self.log ( "bestK is smaller than one. no teleporting." )
