@@ -26,11 +26,12 @@ class History:
         D["Z"]=protomodel.Z
         D["step"]=protomodel.step
         bc=[]
-        for tp in protomodel.bestCombo:
-            dI = tp.dataId()
-            if dI == None:
-                dI="ul"
-            bc.append ( tp.analysisId()+":"+dI )
+        if protomodel.bestCombo != None:
+            for tp in protomodel.bestCombo:
+                dI = tp.dataId()
+                if dI == None:
+                    dI="ul"
+                bc.append ( tp.analysisId()+":"+dI )
         D["bestCombo"]=bc
         if len(ma.recording)>0:
             D["actions"]=ma.recording
