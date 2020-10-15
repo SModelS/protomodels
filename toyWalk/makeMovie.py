@@ -155,6 +155,7 @@ for firststep in range ( maxstep ):
     if K > maxK:
         maxK = K
         stepatmax = firststep+currentstep
+    # arrow = plt.arrow ( currentstep, -50, -currentstep-2, 0, width=20, clip_on=False, transform=ax2.transData, color="black" )
     # arrow = patches.FancyArrowPatch((.1, .5), (.1, .5), clip_on=False,
     #arrow = patches.FancyArrowPatch((firststep+currentstep-5-nstart, firststep-nstart), ( 50, 50), 
     #    clip_on=False, connectionstyle="arc3,rad=.1", **kw, transform=ax2.transData )

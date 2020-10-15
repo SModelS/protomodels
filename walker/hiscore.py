@@ -90,6 +90,20 @@ class Hiscore:
                 f.close()
         return ret
 
+    def writeToHiscoreFile ( self, m ):
+        """ we have a new hiscore, write to hiscore.dict
+        :param m: manipulator
+        """
+        fname = "hiscores.dict"
+        self.pprint ( f"write model to {fname}" )
+        with open ( fname, "wt" ) as f:
+            D=m.M.dict()
+            f.write ( "[ %s ]\n" % ( D ) )
+            f.close()
+        with open ( "Kold.conf", "wt" ) as f:
+            f.write ( "%f\n" % m.M.K  )
+            f.close()
+
     def addResult ( self, protomodel ):
         """ add a result to the list
         :returns: true, if result was added
@@ -101,7 +115,9 @@ class Hiscore:
             return False ## just to be sure, should be taken care of above, though
 
         Kold = self.globalMaxK()
+        # self.pprint ( f"adding results Kold is {Kold} Knew is {m.M.K}" )
         if m.M.K > Kold:
+            self.writeToHiscoreFile( m )
             ## we have a new hiscore?
             ## compute the particle contributions
             #if not hasattr ( m.M, "particleContributions" ):
