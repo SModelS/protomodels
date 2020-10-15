@@ -98,6 +98,10 @@ class Hiscore:
         self.pprint ( f"write model to {fname}" )
         with open ( fname, "wt" ) as f:
             D=m.M.dict()
+            D["K"]=m.M.K
+            D["Z"]=m.M.Z
+            D["step"]=m.M.step
+            D["walkerid"]=m.M.walkerid
             f.write ( "[ %s ]\n" % ( D ) )
             f.close()
         with open ( "Kold.conf", "wt" ) as f:
