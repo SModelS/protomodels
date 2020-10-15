@@ -23,7 +23,10 @@ class Manipulator:
     wallmass = 310.
 
     def __init__ ( self, protomodel, strategy: str = "aggressive",
-                   verbose = False ):
+                   verbose = False, do_record = False ):
+        """
+        :param do_record: do record actions taken
+        """
         self.M = protomodel
         self.strategy = strategy
         self.verbose = verbose
@@ -38,6 +41,8 @@ class Manipulator:
         self.mergerCandidates =   [ (1000001, 1000002, 1000003, 1000004 ),
                                     ( 1000005, 2000005 ), (1000006, 2000006),
                                     ( 1000024, 1000037 ), ( 1000023, 1000025 )  ]
+        self.do_record = do_record ## if True, then record changes
+        self.recording = [] ## just in case
 
     def getClosestPair ( self, pids ):
         """ of <n> PIDs, identify the two that are closest in mass """
@@ -84,6 +89,7 @@ class Manipulator:
         self.pprint ( "choosing the %dth entry, it has a K of %.2f" % \
                       ( ith, dicts[ith]["K"] ) )
         step = self.M.step
+        self.record ( "teleporting to hiscore" )
         self.initFromDict ( dicts[ith] )
         self.M.step = step ## continue counting!
         self.M.bestCombo = None
@@ -362,6 +368,7 @@ class Manipulator:
         BRtot = sum(self.M.decays[pid].values())
         if BRtot == 0.0 and len(openChannels)>0:
             chan = random.choice(list(openChannels))
+            self.record ( f"change decay of {pid}:{chan} to 1.0" )
             self.M.decays[pid][chan] = 1.0
             BRtot = 1.0
 
@@ -420,6 +427,7 @@ class Manipulator:
         for pidpair in itertools.product(pBlist,pBlist):
             ppair = tuple(sorted(pidpair))
             if not ppair in self.M.ssmultipliers:
+                self.record ( f"change ssm of {ppair} to 1.0" )
                 self.M.ssmultipliers[ppair] = 1.0
 
         #Set SSM multipliers to 1 for all associated productions with pid
@@ -432,6 +440,7 @@ class Manipulator:
             for pidpair in itertools.product(pAlist,pBlist):
                 ppair = tuple(sorted(pidpair))
                 if not ppair in self.M.ssmultipliers:
+                    self.record ( f"change ssm of {ppair} to 1.0" )
                     self.M.ssmultipliers[ppair] = 1.0
 
     def describe ( self, all=False ):
@@ -601,6 +610,17 @@ class Manipulator:
 
         return self.randomlyChangeBranchingOfPid ( p, zeroBRprob, singleBRprob )
 
+    def record ( self, change : str ):
+        """ log the changes that have been performed on the model
+        :param change: a string that describes my latest action
+        """
+        if not self.do_record:
+            return
+        self.recording.append ( change )
+        if len(self.recording)>20: ## make sure this never explodes
+            self.recording = self.recording[-20:]
+
+
     def randomlyChangeBranchingOfPid ( self, pid, zeroBRprob = 0.05, singleBRprob = 0.05):
         """ randomly change the branching a particle pid """
 
@@ -619,6 +639,7 @@ class Manipulator:
         if uSingle < singleBRprob:
             #Choose random channel:
             chan = random.choice(list(openChannels))
+            self.record ( f"change decay of {pid}:{chan} to 1.0" )
             self.M.decays[pid] = {chan: 1.0}
             return 1
 
@@ -633,12 +654,14 @@ class Manipulator:
             if oldbr > 0:
                 uZero = random.uniform( 0., 1. )
                 if uZero < zeroBRprob:
+                    self.record ( f"change decay of {pid}:{dpid} to 0." )
                     self.M.decays[pid][dpid] = 0.
                     continue
 
             #Randomly change BR around old value
             Min,Max = max(0.,oldbr-dx), min(oldbr+dx,1.)
             br = random.uniform ( Min, Max )
+            self.record ( f"change branching of {pid}:{dpid} to {br}" )
             self.M.decays[pid][dpid] = br
 
 
@@ -646,6 +669,7 @@ class Manipulator:
         BRtot = sum(self.M.decays[pid].values())
         if BRtot == 0.0:
             chan = random.choice(list(openChannels))
+            self.record ( f"change branching of {pid}:{chan} to 1.0" )
             self.M.decays[pid][chan] = 1.0
             BRtot = 1.0
 
@@ -684,6 +708,7 @@ class Manipulator:
             q = -q
         pair = self.M.toTuple(p,q)
         if not pair in self.M.ssmultipliers:
+            self.record ( f"change ssm of {pair} to 1.0" )
             self.M.ssmultipliers[pair]=1.
         newSSM=self.M.ssmultipliers[pair]*random.gauss(1.,ssmSigma) + random.gauss(.1,.1)
         if newSSM < 0.:
@@ -709,15 +734,18 @@ class Manipulator:
         a = random.uniform ( 0., 1. )
         if a > .9: ## sometimes, just knock out a random SSM
             randomProd = random.choice ( list ( self.M.ssmultipliers.keys() ) )
+            self.record ( f"change ssm of {randomProd} to 0.00001" )
             self.M.ssmultipliers[randomProd]=0.00001
             return 1
         if a < .1: ## sometimes, just try to set to 1.
             randomProd = random.choice ( list ( self.M.ssmultipliers.keys() ) )
+            self.record ( f"change ssm of {randomProd} to 1." )
             self.M.ssmultipliers[randomProd]=1.
             return 1
         if .1 < a < .2: ## sometimes, just try to set to ssm of different particle
             randomProd = random.choice ( list ( self.M.ssmultipliers.keys() ) )
             v = random.choice ( list ( self.M.ssmultipliers.values() ) )
+            self.record ( f"change ssm of {randomProd} to {v}" )
             self.M.ssmultipliers[randomProd]=v
             return 1
         f = random.uniform ( .8, 1.2 )
@@ -755,6 +783,7 @@ class Manipulator:
         oldssm = self.M.ssmultipliers[pids]
         if newssm > 10000.:
             newssm = 10000.
+        self.record ( f"change ssm of {pids} to {newssm}" )
         self.M.ssmultipliers[pids]=newssm
         self.highlight ( "info", "changing ssm of %s from %.2f to %.2f" % \
                                    ( str(pids), oldssm, newssm ) )
@@ -1018,6 +1047,7 @@ class Manipulator:
             dx = dx * 1.2 ## to make sure we always get out of this
         self.pprint ( "randomly changing mass of %s to %.1f" % \
                       ( SParticleNames(False).asciiName ( pid ), tmpmass ) )
+        self.record ( f"change mass of {pid} to {tmpmass}" )
         self.M.masses[pid]=tmpmass
 
         return 1

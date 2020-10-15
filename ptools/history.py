@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" a class meant for recording the history of a walk. 
+""" a class meant for recording the history of a walk.
 When executed, it runs a typical walker with the history recorder. """
 
 import colorama, time
@@ -16,12 +16,25 @@ class History:
         self.handle.write ( "[" )
         self.pprint ( f"starting history recorder at {self.outfile}." )
 
-    def add ( self, protomodel ):
-        """ add protomodel from step """
+    def add ( self, ma ):
+        """ add protomodel from step
+        :param ma: manipulator object
+        """
+        protomodel = ma.M
         D = protomodel.dict()
         D["K"]=protomodel.K
         D["Z"]=protomodel.Z
         D["step"]=protomodel.step
+        bc=[]
+        for tp in protomodel.bestCombo:
+            dI = tp.dataId()
+            if dI == None:
+                dI="ul"
+            bc.append ( tp.analysisId()+":"+dI )
+        D["bestCombo"]=bc
+        if len(ma.recording)>0:
+            D["actions"]=ma.recording
+            ma.recording=[]
         self.pprint ( f"adding protomodel to {self.outfile}." )
         self.handle.write ( str(D)+",\n" )
         self.handle.flush()
