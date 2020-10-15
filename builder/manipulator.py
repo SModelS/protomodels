@@ -715,9 +715,8 @@ class Manipulator:
         if newSSM < 0.:
             newSSM = 0.
         self.changeSSM(pair,newSSM)
-        namer = SParticleNames ( False )
         self.log ( "changing signal strength multiplier of %s,%s: %.2f." % \
-                   ( namer.asciiName(pair[0]), namer.asciiName(pair[1]), newSSM ) )
+                   ( self.namer.asciiName(pair[0]), self.namer.asciiName(pair[1]), newSSM ) )
         return 1
 
     def randomlyChangeSSOfOneParticle ( self, pid = None ):
@@ -1149,7 +1148,7 @@ class Manipulator:
         pair.sort()
         p1,p2 = pair[0], pair[1]
         self.pprint ( "merging %s and %s" % \
-                ( namer.asciiName(p1), namer.asciiName( p2 ) ) )
+                ( self.namer.asciiName(p1), self.namer.asciiName( p2 ) ) )
         self.log ( "masses before merger: %.2f, %.2f" % \
                    ( protomodel.masses[p1], protomodel.masses[p2] ) )
         avgM = self.computeAvgMass ( pair )
