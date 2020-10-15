@@ -2,7 +2,7 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-import sys,os,copy, pickle, glob, subprocess, math
+import sys,os,copy, pickle, glob, subprocess, math, time, copy
 import numpy as np
 import IPython
 sys.path.append(os.path.abspath('../../smodels'))
@@ -14,6 +14,7 @@ from smodels.experiment.databaseObj import Database
 from smodels.tools import runtime
 runtime._experimental = True
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import seaborn as sns
 # from names import particleLabels
 from ptools.sparticleNames import SParticleNames
@@ -27,8 +28,26 @@ sns.set_context('paper', font_scale=1.8)
 # sns.set_palette(sns.color_palette("Paired"))
 sns.set_palette(sns.color_palette("deep"))
 
-cmd = 'rm -f walk*.png'
-subprocess.getoutput( cmd )
+import argparse
+argparser = argparse.ArgumentParser( description="movie maker" )
+argparser.add_argument ( '-f', '--history',
+        help='history file to use [history.list]',
+        type=str, default="history.list" )
+argparser.add_argument ( '-m', '--maxsteps',
+        help='maximum steps [1000]',
+        type=int, default=1000 )
+argparser.add_argument ( '-D', '--dont_clean',
+        help='dont clean up old files',
+        action="store_true" )
+argparser.add_argument ( '-t', '--timestamp',
+        help='put timestamp on pic',
+        action="store_true" )
+args = argparser.parse_args()
+
+
+if not args.dont_clean:
+    cmd = 'rm -f walk*.png'
+    subprocess.getoutput( cmd )
 
 #Set colors:
 namer = SParticleNames ( susy = False )
@@ -38,16 +57,6 @@ allpids = [ 1000001, 1000002, 1000003, 1000004, 1000005, 1000006,
 2000005, 2000006, 1000011, 1000012, 1000013, 1000014, 1000015,
 1000016, 1000021, 1000022, 1000023, 1000025, 1000024, 1000037 ]
 colorDict = dict(zip( allpids,sns.color_palette(palette=colorPalette,n_colors=len(namer.names))))
-
-import argparse
-argparser = argparse.ArgumentParser( description="movie maker" )
-argparser.add_argument ( '-f', '--history',
-        help='history file to use [history.list]',
-        type=str, default="history.list" )
-argparser.add_argument ( '-m', '--maxsteps',
-        help='maximum steps [1000]',
-        type=int, default=1000 )
-args = argparser.parse_args()
 
 maxstep = args.maxsteps
 
@@ -59,6 +68,14 @@ if not "]" in txt[-3:]:
     txt+="]\n"
 
 modelList=eval(txt)
+
+emptymodel = { "masses": {}, "step": 0, "bestCombo": [], "actions": [], "K": -200., "Z": -200. }
+nstart=0
+for i in range(19):
+    nstart+=1
+    em = copy.deepcopy( emptymodel )
+    em["step"]=0-i
+    modelList.insert(0,em)
 
 while False: # len(modelList)<maxstep+21:
     lm = modelList[-1]
@@ -105,10 +122,15 @@ fig = plt.figure(figsize=(10, 6))
 nsteps = 1
 #maxstep = 200
 
-maxK,stepatmax=0.,0
+maxK,stepatmax=-90.,0
 
-if maxstep > len(Ks):
-    maxstep=len(Ks)
+currentstep = 8
+
+if maxstep > len(Ks)-currentstep:
+    maxstep=len(Ks)-currentstep
+
+style = "Simple, tail_width=0.5, head_width=4, head_length=8"
+kw = dict(arrowstyle=style, color="k")
 
 for firststep in range ( maxstep ):
     fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, gridspec_kw={'width_ratios': [1, 10]} )
@@ -125,32 +147,52 @@ for firststep in range ( maxstep ):
     pids = sorted(masses.keys(), key = lambda pid: nvalues[pid] )
     #pids = sorted(masses.keys(), key = lambda pid: np.sum(np.where(masses[pid][::nsteps] <= 0.)))
     ctentries=0
-    K=Ks[firststep]
-    if K < 0.:
-        K = 0.
+    K=Ks[firststep+currentstep]
+    #if K < 0.:
+    #    K = 0.
+    plt.text ( -3+firststep-nstart, 1250, "hiscore", rotation=90., c="pink", alpha=.5, size=30,
+            horizontalalignment='center', verticalalignment='center', zorder=5 )
     if K > maxK:
         maxK = K
-        stepatmax = firststep
+        stepatmax = firststep+currentstep
+    # arrow = patches.FancyArrowPatch((.1, .5), (.1, .5), clip_on=False,
+    #arrow = patches.FancyArrowPatch((firststep+currentstep-5-nstart, firststep-nstart), ( 50, 50), 
+    #    clip_on=False, connectionstyle="arc3,rad=.1", **kw, transform=ax2.transData )
+    # plt.gca().add_patch ( arrow )
+
     for pid in pids:
         if max(masses[pid][firststep:laststep:nsteps]) <= 0.0: continue
         ctentries+=1
         data = df[firststep:laststep:nsteps]
         datamax = df[stepatmax:stepatmax+1]
+        datacur = df[firststep+currentstep:firststep+currentstep+1]
         tName = r'$%s$' % namer.texName(pid)
         c = colorDict[pid]
         #if ctentries>9:
         #        tName=""
-        sns.scatterplot(x=data['step'],y=data[pid], size=data['K'], sizes = (80,400),
-                        label= tName , color=c, legend=False, ax=ax2 )
-        s= (1+1.25*maxK)*80. ## no idea why
-        sns.scatterplot(x=datamax['step'],y=datamax[pid], s=s, sizes = (80,400),
-                        label= tName , color=c, legend=False, ax=ax1 )
         m = np.where(masses[pid] > 0, masses[pid],np.nan) #Fix for avoid plotting to negative values
-        plt.plot(df['step'][firststep:laststep:nsteps],m[firststep:laststep:nsteps],'-',linewidth=2, color = c)
-
+        plt.plot(df['step'][firststep:laststep:nsteps],m[firststep:laststep:nsteps],'-',linewidth=2, color = c, alpha=.5 )
+        sizes = []
+        def getSize ( k ):
+            if k < 0.: k = 0.
+            return (1+k)*80
+        for s in data["K"]:
+            sizes.append( getSize ( s ) )
+        sns.scatterplot(x=data['step'],y=data[pid], s=sizes, sizes = (80,400),
+                        label= tName, color=c, legend=False, ax=ax2, alpha=.5 )
+        # s= (1+1.25*maxK)*80. ## no idea why
+        smax= getSize ( maxK ) ## no idea why
+        s = getSize ( K ) ## no idea why
+        sns.scatterplot(x=datacur['step'],y=datacur[pid], s=1.1*s+40, sizes = (80,400),
+                        label= "", color="black", legend=False, ax=ax2 )
+        sns.scatterplot(x=datacur['step'],y=datacur[pid], s=s, sizes = (80,400),
+                        label= "", color=c, legend=False, ax=ax2 )
+        sns.scatterplot(x=datamax['step'],y=datamax[pid], s=smax, sizes = (80,400),
+                        label= tName , color=c, legend=False, ax=ax1, zorder=10)
     plt.ylim(0.,2500.0)
     #plt.title ( '$K_{max}=%.1f, K_{current}=%.1f$' % ( maxK, K ), loc="left" )
-    ax2.set_title ( ' $\;K_{cur}=%.1f$' % ( K ), fontsize=18, pad=15., loc="left" )
+    ax2.set_title ( '$K_{current}=%.1f\;\,$   $\;$ $\;\;\;\;\;\,$ $\;$ $\;$ $\;$ ' % ( K ), 
+                    fontsize=18, pad=15., horizontalalignment="center" )# , loc="left" )
     ax1.set_title ( '$K_{max}=%.1f$' % ( maxK ), fontsize=18, pad=15. )
     ax2.set_xlabel('step', fontsize=20, labelpad=-3. )
     ax1.set_xlabel('', fontsize=21 )
@@ -161,18 +203,25 @@ for firststep in range ( maxstep ):
     dstep = 10 ## 2
     #plt.xticks(df['step'][firststep:laststep:2*nsteps])
     nextstep = math.ceil((firststep+1)/dstep)*dstep-1
-    plt.xticks(df['step'][nextstep:laststep:dstep])
+    ticks=[]
+    for t in df['step'][nextstep:laststep:dstep]:
+        if t < 1:
+            continue
+            # t = 0
+        ticks.append ( t )
+    plt.xticks( ticks )
+    # plt.xticks(df['step'][nextstep:laststep:dstep])
     # plt.xlim(-5,198)
     plt.grid(axis='x')
-    ac=actions[firststep]
+    ac=actions[firststep+currentstep]
     lac = len(ac)
     while len(ac)<3:
         ac.append ( "" )
     if lac>0:
         ss = math.ceil ( len(ac)/3 )
         txt="\n".join([ x.replace("->","$\\rightarrow$") for x in ac[::ss] ])
-        plt.text ( -8+firststep, -320, txt, c="gray", size=7 )
-    bc=bcs[firststep]
+        plt.text ( -8+firststep-nstart, -320, txt, c="gray", size=7 )
+    bc=bcs[firststep+currentstep]
     lbc=len(bc)
     #while len(bc)<6:
     #    bc.append( "" )
@@ -181,18 +230,20 @@ for firststep in range ( maxstep ):
         txt="\n".join([ x[:x.find(":")] for x in bc[::ss] ] )
         bbox = None
         bbox=dict(boxstyle="round", ec=(1., 0.5, 0.5), fc=(1., 0.8, 0.8),)
-        plt.text ( 20.5+firststep, 10, txt, size=10, horizontalalignment="right", verticalalignment="bottom", c="gray", bbox=bbox, rotation=10. )
+        plt.text ( 18+firststep-nstart, 10, txt, size=10, horizontalalignment="right", verticalalignment="bottom", c="gray", bbox=bbox, rotation=10. )
 
     plt.legend(loc=(.6,.7),# bbox_to_anchor=(0.6,0.5,.2,.25),
                framealpha=1.0,ncol=3,labelspacing=0.1,
                handlelength=0.4,handletextpad=0.35,markerscale=0.8,columnspacing=1.0)
     # plt.tight_layout()
-    plt.text ( -3+firststep, 1250, "hiscore", rotation=90., c="pink", alpha=.5, size=30,
-            horizontalalignment='center', verticalalignment='center' )
+    if args.timestamp:
+        plt.text ( 15+firststep-nstart, -280, time.asctime(), size=8, alpha=.5, c="gray" )
     step = firststep + 1 ## make all one-indexed, ok?
     plt.savefig('walk%.3d.png' % step, dpi=300 )
     # plt.show()
     plt.clf()
 
-cmd = 'ffmpeg -y -i "walk%3d.png" walk.mp4'
+#cmd = 'ffmpeg -y -i "walk%3d.png" -filter:v "setpts=3.0*PTS, minterpolate=\'mi_mode=mci:mc_mode=aobmc:vsbmc=1:fps=25\'" walk.mp4'
+cmd = 'ffmpeg -y -i "walk%3d.png" -filter:v "setpts=6.0*PTS" walk.mp4'
+# cmd = 'ffmpeg -y -i "walk%3d.png" walk.mp4'
 subprocess.getoutput ( cmd )
