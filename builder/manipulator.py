@@ -369,7 +369,7 @@ class Manipulator:
         BRtot = sum(self.M.decays[pid].values())
         if BRtot == 0.0 and len(openChannels)>0:
             chan = random.choice(list(openChannels))
-            self.record ( f"change decay of {self.namer.asciiName(pid)}:{self.namer.asciiName(chan)} to 1.0" )
+            self.record ( f"change decay of {self.namer.texName(pid,True)} -> {self.namer.texName(chan,True)} to 1.0" )
             self.M.decays[pid][chan] = 1.0
             BRtot = 1.0
 
@@ -428,7 +428,7 @@ class Manipulator:
         for pidpair in itertools.product(pBlist,pBlist):
             ppair = tuple(sorted(pidpair))
             if not ppair in self.M.ssmultipliers:
-                self.record ( f"change ssm of {self.namer.asciiName(ppair)} to 1.0" )
+                self.record ( f"change ssm of {self.namer.texName(ppair,True)} to 1.0" )
                 self.M.ssmultipliers[ppair] = 1.0
 
         #Set SSM multipliers to 1 for all associated productions with pid
@@ -441,7 +441,7 @@ class Manipulator:
             for pidpair in itertools.product(pAlist,pBlist):
                 ppair = tuple(sorted(pidpair))
                 if not ppair in self.M.ssmultipliers:
-                    self.record ( f"change ssm of {self.namer.asciiName(ppair)} to 1.0" )
+                    self.record ( f"change ssm of {self.namer.texName(ppair,True)} to 1.0" )
                     self.M.ssmultipliers[ppair] = 1.0
 
     def describe ( self, all=False ):
@@ -640,7 +640,7 @@ class Manipulator:
         if uSingle < singleBRprob:
             #Choose random channel:
             chan = random.choice(list(openChannels))
-            self.record ( f"change decay of {self.namer.asciiName(pid)}:{self.namer.asciiName(chan)} to 1.0" )
+            self.record ( f"change decay of {self.namer.texName(pid,True)} -> {self.namer.texName(chan,True)} to 1.0" )
             self.M.decays[pid] = {chan: 1.0}
             return 1
 
@@ -655,14 +655,14 @@ class Manipulator:
             if oldbr > 0:
                 uZero = random.uniform( 0., 1. )
                 if uZero < zeroBRprob:
-                    self.record ( f"change decay of {self.namer.asciiName(pid)}:{self.namer.asciiName(dpid)} to 0." )
+                    self.record ( f"change decay of {self.namer.texName(pid,True)} -> {self.namer.texName(dpid,True)} to 0." )
                     self.M.decays[pid][dpid] = 0.
                     continue
 
             #Randomly change BR around old value
             Min,Max = max(0.,oldbr-dx), min(oldbr+dx,1.)
             br = random.uniform ( Min, Max )
-            self.record ( f"change branching of {self.namer.asciiName(pid)}:{self.namer.asciiName(dpid)} to {br:.2f}" )
+            self.record ( f"change branching of {self.namer.texName(pid,True)} -> {self.namer.texName(dpid,True)} to {br:.2f}" )
             self.M.decays[pid][dpid] = br
 
 
@@ -670,7 +670,7 @@ class Manipulator:
         BRtot = sum(self.M.decays[pid].values())
         if BRtot == 0.0:
             chan = random.choice(list(openChannels))
-            self.record ( f"change branching of {self.namer.asciiName(pid)}:{self.namer.asciiName(chan)} to 1.0" )
+            self.record ( f"change branching of {self.namer.texName(pid,True)} -> {self.namer.texName(chan,True)} to 1.0" )
             self.M.decays[pid][chan] = 1.0
             BRtot = 1.0
 
@@ -709,7 +709,7 @@ class Manipulator:
             q = -q
         pair = self.M.toTuple(p,q)
         if not pair in self.M.ssmultipliers:
-            self.record ( f"change ssm of {self.namer.asciiName(pair)} to 1.0" )
+            self.record ( f"change ssm of {self.namer.texName(pair,True)} to 1.0" )
             self.M.ssmultipliers[pair]=1.
         newSSM=self.M.ssmultipliers[pair]*random.gauss(1.,ssmSigma) + random.gauss(.1,.1)
         if newSSM < 0.:
@@ -735,18 +735,18 @@ class Manipulator:
         a = random.uniform ( 0., 1. )
         if a > .9: ## sometimes, just knock out a random SSM
             randomProd = random.choice ( list ( self.M.ssmultipliers.keys() ) )
-            self.record ( f"change ssm of {self.namer.asciiName(randomProd)} to 1e-5" )
+            self.record ( f"change ssm of {self.namer.texName(randomProd,True)} to 1e-5" )
             self.M.ssmultipliers[randomProd]=0.00001
             return 1
         if a < .1: ## sometimes, just try to set to 1.
             randomProd = random.choice ( list ( self.M.ssmultipliers.keys() ) )
-            self.record ( f"change ssm of {self.namer.asciiName(randomProd)} to 1." )
+            self.record ( f"change ssm of {self.namer.texName(randomProd,True)} to 1." )
             self.M.ssmultipliers[randomProd]=1.
             return 1
         if .1 < a < .2: ## sometimes, just try to set to ssm of different particle
             randomProd = random.choice ( list ( self.M.ssmultipliers.keys() ) )
             v = random.choice ( list ( self.M.ssmultipliers.values() ) )
-            self.record ( f"change ssm of {self.namer.asciiName(randomProd)} to {v:.2f}" )
+            self.record ( f"change ssm of {self.namer.texName(randomProd,True)} to {v:.2f}" )
             self.M.ssmultipliers[randomProd]=v
             return 1
         f = random.uniform ( .8, 1.2 )
@@ -784,7 +784,7 @@ class Manipulator:
         oldssm = self.M.ssmultipliers[pids]
         if newssm > 10000.:
             newssm = 10000.
-        self.record ( f"change ssm of {self.namer.asciiName(pids)} to {newssm:.2f}" )
+        self.record ( f"change ssm of {self.namer.texName(pids,True)} to {newssm:.2f}" )
         self.M.ssmultipliers[pids]=newssm
         self.highlight ( "info", "changing ssm of %s from %.2f to %.2f" % \
                                    ( str(pids), oldssm, newssm ) )
@@ -1048,7 +1048,7 @@ class Manipulator:
             dx = dx * 1.2 ## to make sure we always get out of this
         self.pprint ( "randomly changing mass of %s to %.1f" % \
                       ( SParticleNames(False).asciiName ( pid ), tmpmass ) )
-        self.record ( f"change mass of {pid} to {tmpmass:.1f}" )
+        self.record ( f"change mass of {self.namer.texName(pid,True)} to {tmpmass:.1f}" )
         self.M.masses[pid]=tmpmass
 
         return 1
