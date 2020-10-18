@@ -13,8 +13,9 @@ def main():
     oldDict = {}
     t0 = time.time()
     oldt = t0
-    if os.path.exists ( "old.dict" ):
-        with open ( "old.dict", "rt" ) as f:
+    oldfile = f"{args.pattern}.old"
+    if os.path.exists ( oldfile ):
+        with open ( oldfile, "rt" ) as f:
             oldDict = eval ( f.read() )
             if "t" in oldDict:
                 oldt = oldDict["t"]
@@ -55,11 +56,11 @@ def main():
             line += " (was %5d)" % nold
         print ( line )
         os.chdir ( "/scratch-cbe/users/wolfgan.waltenberger/" )
-    print ( "total %d/%d jobs finished" % ( nfinishedjobs, njobs ) )
+    print ( "total %d/%d jobs finished: %d%s" % ( nfinishedjobs, njobs, (nfinishedjobs*100/njobs), "%" ) )
     print ( "total %dk/%dk: %d%s" % ( ntot/1000, assumed/1000, ntot/assumed*100, "%" ) )
     Dicts["t"]=time.time()
     if dt > 1800: ## older than 30 minutes?
-        with open ( "old.dict", "wt" ) as f:
+        with open ( oldfile, "wt" ) as f:
             f.write ( "%s\n" % Dicts )
             f.close()
 main()
