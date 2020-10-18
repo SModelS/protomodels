@@ -22,7 +22,6 @@ import pandas as pd
 # sns.set() #Set style
 # sns.set_style('ticks')
 
-
 sns.set_style('ticks',{'font.family':'Times New Roman', 'font.serif':'Times New Roman'})
 sns.set_context('paper', font_scale=1.8)
 # sns.set_palette(sns.color_palette("Paired"))
@@ -78,9 +77,9 @@ for i in range(19):
     modelList.insert(0,em)
 
 while False: # len(modelList)<maxstep+21:
-    lm = modelList[-1]
+    lastModel = modelList[-1]
+    lm = copy.deepcopy ( lastModel )
     lm["step"]=lm["step"]+1
-    print ( "lm", lm )
     modelList.append ( lm )
 
 #Get all particles which appears in all steps:
@@ -103,7 +102,26 @@ for p in modelList:
     Ks.append(K)
     ac = []
     if "actions" in p:
-        ac = p["actions"]
+        for a in p["actions"]:
+            t=a.replace("Unfreeze","unfreeze")
+            t=t.replace("Freeze","freeze")
+            t=t.replace("->","$\\rightarrow$")
+            ac.append ( t )
+    def sortMsgs ( x ):
+        if "teleport" in x:
+            return 1
+        if "unfreeze" in x:
+            return 2
+        if "freeze" in x:
+            return 3
+        if "mass" in x:
+            return 4
+        if "decay" in x:
+            return 4
+        if "ssm" in x:
+            return 100
+        return 0
+    ac.sort ( key=sortMsgs )
     actions.append(ac)
     bcs.append(p["bestCombo"])
     for pid in masses:
@@ -120,14 +138,15 @@ dataDict.update(masses)
 df = pd.DataFrame(dataDict)
 fig = plt.figure(figsize=(10, 6))
 nsteps = 1
-#maxstep = 200
 
 maxK,stepatmax=-90.,0
 
 currentstep = 8
 
-if maxstep > len(Ks)-currentstep:
-    maxstep=len(Ks)-currentstep
+if maxstep > len(Ks)-currentstep-20:
+    maxstep=len(Ks)-currentstep-20
+
+print ( "[movieMaker] setting maxstep to %d" % maxstep )
 
 style = "Simple, tail_width=0.5, head_width=4, head_length=8"
 kw = dict(arrowstyle=style, color="k")
@@ -155,6 +174,7 @@ for firststep in range ( maxstep ):
     if K > maxK:
         maxK = K
         stepatmax = firststep+currentstep
+        plt.text ( 10+firststep-nstart, 1000, "hiscore!", c="pink", alpha=.5, size=30, zorder=5 )
     # arrow = plt.arrow ( currentstep, -50, -currentstep-2, 0, width=20, clip_on=False, transform=ax2.transData, color="black" )
     # arrow = patches.FancyArrowPatch((.1, .5), (.1, .5), clip_on=False,
     #arrow = patches.FancyArrowPatch((firststep+currentstep-5-nstart, firststep-nstart), ( 50, 50), 
@@ -176,7 +196,7 @@ for firststep in range ( maxstep ):
         sizes = []
         def getSize ( k ):
             if k < 0.: k = 0.
-            return (1+k)*80
+            return (1+.6*k)*80
         for s in data["K"]:
             sizes.append( getSize ( s ) )
         sns.scatterplot(x=data['step'],y=data[pid], s=sizes, sizes = (80,400),
@@ -184,10 +204,12 @@ for firststep in range ( maxstep ):
         # s= (1+1.25*maxK)*80. ## no idea why
         smax= getSize ( maxK ) ## no idea why
         s = getSize ( K ) ## no idea why
-        sns.scatterplot(x=datacur['step'],y=datacur[pid], s=1.1*s+40, sizes = (80,400),
-                        label= "", color="black", legend=False, ax=ax2 )
+        sns.scatterplot(x=datacur['step'],y=datacur[pid], s=1.2*s+40, sizes = (80,400),
+                        label= "", color="black", legend=False, ax=ax2, edgecolor="none",
+                        linewidth=0 )
         sns.scatterplot(x=datacur['step'],y=datacur[pid], s=s, sizes = (80,400),
-                        label= "", color=c, legend=False, ax=ax2 )
+                        label= "", linewidth=0, edgecolor="none", color=c, 
+                        legend=False, ax=ax2 )
         sns.scatterplot(x=datamax['step'],y=datamax[pid], s=smax, sizes = (80,400),
                         label= tName , color=c, legend=False, ax=ax1, zorder=10)
     plt.ylim(0.,2500.0)
@@ -220,7 +242,8 @@ for firststep in range ( maxstep ):
         ac.append ( "" )
     if lac>0:
         ss = math.ceil ( len(ac)/3 )
-        txt="\n".join([ x.replace("->","$\\rightarrow$") for x in ac[::ss] ])
+        txt="\n".join( ac[:3] )
+        # txt="\n".join([ x.replace("->","$\\rightarrow$") for x in ac[::ss] ])
         plt.text ( -8+firststep-nstart, -320, txt, c="gray", size=7 )
     bc=bcs[firststep+currentstep]
     lbc=len(bc)
