@@ -866,7 +866,7 @@ class Manipulator:
                 if pid == pids[0] and pids[1] in unfrozen:
                     return 0
         protomodel.log ( "Freezing %s." % ( self.namer.asciiName(pid) ) )
-        self.record ( "Freeze %s" % ( self.namer.texName(pid,addDollars=True) ) )
+        self.record ( "freeze %s" % ( self.namer.texName(pid,addDollars=True) ) )
         #Remove pid from masses, decays and signal multipliers:
         if  pid in protomodel.masses:
             protomodel.masses.pop(pid)
@@ -932,7 +932,7 @@ class Manipulator:
                 if pid == 1000006:
                     maxMass = mstop2 + 20.
 
-        self.record ( "Unfreeze %s to %.1f" % \
+        self.record ( "unfreeze %s to %.1f" % \
                       ( self.namer.texName(pid,addDollars=True), tmpMass ) )
         #Randomly select mass of unfrozen particle:
         protomodel.masses[pid] = tmpMass
@@ -1014,9 +1014,11 @@ class Manipulator:
         """
         if dx == None:
             denom = self.M.Z + 1.
-            if denom < 1.:
+            if denom < 1. or denom == None:
                 denom = 1.
             dx = 40. / numpy.sqrt ( len(self.M.unFrozenParticles() ) ) / denom
+        if dx in [ float("nan"), float("inf"), None ]:
+            dx=40.
 
         if not minMass:
             minMass = self.M.masses[self.M.LSP]
@@ -1043,6 +1045,8 @@ class Manipulator:
             if tmpmass < minMass: # check again if we are legal
                 # not ok, rerun
                 # tmpmass = minMass+1.
+                massIsLegal = False
+            if tmpmass in [ float("nan"), float("inf"), None ]:
                 massIsLegal = False
             dx = dx * 1.2 ## to make sure we always get out of this
         self.pprint ( "randomly changing mass of %s to %.1f" % \
