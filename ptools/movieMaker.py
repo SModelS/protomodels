@@ -32,9 +32,15 @@ argparser = argparse.ArgumentParser( description="movie maker" )
 argparser.add_argument ( '-f', '--history',
         help='history file to use [history.list]',
         type=str, default="history.list" )
+argparser.add_argument ( '-o', '--outfile',
+        help='output file name [walk.mp4]',
+        type=str, default="history.list" )
 argparser.add_argument ( '-m', '--maxsteps',
         help='maximum steps [1000]',
         type=int, default=1000 )
+argparser.add_argument ( '-n', '--start',
+        help='step to start with [0]',
+        type=int, default=0 )
 argparser.add_argument ( '-D', '--dont_clean',
         help='dont clean up old files',
         action="store_true" )
@@ -60,9 +66,19 @@ colorDict = dict(zip( allpids,sns.color_palette(palette=colorPalette,n_colors=le
 maxstep = args.maxsteps
 
 f=open(args.history,"rt")
-txt=f.read()
+lines=f.readlines()
 f.close()
-txt=txt.replace("nan","'nan'")
+txt=""
+for line in lines:
+    if line.startswith("#"):
+        continue
+    #line = line.replace("nan","'nan'")
+    #line = line.replace("'nan''",'"nan"\'')
+    line = line.replace("nan","-300.") ## FIXME
+    line = line.replace("'nan''","-300.'") ## ugly!!
+    txt+=line+"\n"
+if "[" in txt[-3:]:
+    txt=txt[:-3]
 if not "]" in txt[-3:]:
     txt+="]\n"
 
@@ -151,7 +167,7 @@ print ( "[movieMaker] setting maxstep to %d" % maxstep )
 style = "Simple, tail_width=0.5, head_width=4, head_length=8"
 kw = dict(arrowstyle=style, color="k")
 
-for firststep in range ( maxstep ):
+for firststep in range ( args.start, maxstep ):
     fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, gridspec_kw={'width_ratios': [1, 10]} )
     if firststep % 10 == 0:
         print ( "step %d" % firststep )
@@ -174,7 +190,7 @@ for firststep in range ( maxstep ):
     if K > maxK:
         maxK = K
         stepatmax = firststep+currentstep
-        plt.text ( 10+firststep-nstart, 1000, "hiscore!", c="pink", alpha=.5, size=30, zorder=5 )
+        plt.text ( .5+firststep-nstart, 2200, "hiscore!", c="red", size=30, clip_on=False )
     # arrow = plt.arrow ( currentstep, -50, -currentstep-2, 0, width=20, clip_on=False, transform=ax2.transData, color="black" )
     # arrow = patches.FancyArrowPatch((.1, .5), (.1, .5), clip_on=False,
     #arrow = patches.FancyArrowPatch((firststep+currentstep-5-nstart, firststep-nstart), ( 50, 50), 
@@ -196,6 +212,8 @@ for firststep in range ( maxstep ):
         sizes = []
         def getSize ( k ):
             if k < 0.: k = 0.
+            if k in [ None, float("nan"), float("inf") ]:
+                k = 0.
             return (1+.6*k)*80
         for s in data["K"]:
             sizes.append( getSize ( s ) )
@@ -214,9 +232,14 @@ for firststep in range ( maxstep ):
                         label= tName , color=c, legend=False, ax=ax1, zorder=10)
     plt.ylim(0.,2500.0)
     #plt.title ( '$K_{max}=%.1f, K_{current}=%.1f$' % ( maxK, K ), loc="left" )
-    ax2.set_title ( '$K_{current}=%.1f\;\,$   $\;$ $\;\;\;\;\;\,$ $\;$ $\;$ $\;$ ' % ( K ), 
-                    fontsize=18, pad=15., horizontalalignment="center" )# , loc="left" )
-    ax1.set_title ( '$K_{max}=%.1f$' % ( maxK ), fontsize=18, pad=15. )
+    title='$K_{current}=%.1f\;\,$   $\;$ $\;\;\;\;\;\,$ $\;$ $\;$ $\;$ ' % ( K )
+    if K < -50.:
+        title=""
+    ax2.set_title ( title, fontsize=18, pad=15., horizontalalignment="center" )
+    ax1title = '$K_{max}=%.1f$' % ( maxK )
+    if maxK < -50.:
+        ax1title = ""
+    ax1.set_title ( ax1title, fontsize=18, pad=15. )
     ax2.set_xlabel('step', fontsize=20, labelpad=-3. )
     ax1.set_xlabel('', fontsize=21 )
     ax1.set_xticks([])
@@ -263,7 +286,7 @@ for firststep in range ( maxstep ):
     if args.timestamp:
         plt.text ( 15+firststep-nstart, -280, time.asctime(), size=8, alpha=.5, c="gray" )
     step = firststep + 1 ## make all one-indexed, ok?
-    plt.savefig('walk%.3d.png' % step, dpi=300 )
+    plt.savefig('walk%.3d.png' % step, dpi=200 )
     # plt.show()
     plt.clf()
 
