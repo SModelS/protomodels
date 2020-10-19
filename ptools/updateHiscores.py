@@ -45,13 +45,20 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
         h = open ( f, "rt" )
         lines = h.readlines()
         h.close()
-        for line in lines[::-1]:
+        slurmid = 0
+        if "slurm jobid" in lines[0]:
+            p = lines[0].rfind ( "jobid " )
+            slurmid = int ( lines[0][p+6:] )
+        for cl, line in enumerate ( lines[::-1] ):
             if "Step" in line:
                 laststep = line[line.find("Step")+5:]
                 for c in [ "/", ":", " has", " " ]:
                     if c in laststep:
                         laststep = laststep[:laststep.find(c)]
                 laststep = int ( laststep.strip() )
+                slurmfile = ""
+                if slurmid > 0:
+                    slurmfile = f"/scratch-cbe/users/wolfgan.waltenberger/outputs/walk-{slurmid}.out"
                 #print ( nr, laststep )
                 steps[nr]=laststep
                 if writeSubmitFile and laststep < 1000:
@@ -62,6 +69,9 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
                     rundir = rundir[p+1:]
                     g.write ( "./slurm.py -R %s -n %d -N %d -M 1000\n" % \
                               ( rundir, nr, nr+1 ) )
+                    g.write ( f"rm -rf /scratch-cbe/users/wolfgan.waltenberger/{rundir}/H{nr}.hi\n" )
+                    if slurmfile != "":
+                        g.write ( f"rm -rf {slurmfile}\n" )
                 break
     keys = list ( steps.keys() )
     keys.sort()
