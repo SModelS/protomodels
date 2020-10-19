@@ -67,9 +67,9 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
                         rundir=rundir[:-1]
                     p = rundir.rfind("/")
                     rundir = rundir[p+1:]
+                    g.write ( f"rm -rf /scratch-cbe/users/wolfgan.waltenberger/{rundir}/H{nr}.hi\n" )
                     g.write ( "./slurm.py -R %s -n %d -N %d -M 1000\n" % \
                               ( rundir, nr, nr+1 ) )
-                    g.write ( f"rm -rf /scratch-cbe/users/wolfgan.waltenberger/{rundir}/H{nr}.hi\n" )
                     if slurmfile != "":
                         g.write ( f"rm -rf {slurmfile}\n" )
                 break
