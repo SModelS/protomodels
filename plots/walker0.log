@@ -10221,3 +10221,46 @@
 [predictor-11:51:17] returning 6 predictions, all preds, llhds only
 [predictor-11:51:17] now find highest significance for 6 predictions
 [predictor-11:51:17] done with prediction. best Z=1.54 (muhat=0.80)
+[predictor-09:26:17] decomposed model into 1 topologies.
+[predictor-09:26:18] returning 32 predictions, best preds
+[predictor-09:26:18] top r values before rescaling are: 1.30, 1.28, 1.19
+[predictor-09:26:18] decomposed model into 1 topologies.
+[predictor-09:26:20] returning 262 predictions, all preds, llhds only
+[predictor-09:26:20] now find highest significance for 262 predictions
+[predictor-09:26:46] done with prediction. best Z=3.34 (muhat=1.00)
+[predictor-09:26:49] decomposed model into 1 topologies.
+[predictor-09:26:49] returning 32 predictions, best preds
+[predictor-09:26:49] top r values before rescaling are: 1.30, 1.28, 1.19
+[predictor-09:26:49] decomposed model into 1 topologies.
+[predictor-09:26:51] returning 262 predictions, all preds, llhds only
+[predictor-09:26:51] now find highest significance for 262 predictions
+[predictor-09:27:18] done with prediction. best Z=3.34 (muhat=1.00)
+[hiscore-Oct 20 09:27:20] computing contribution of Xc (930.0): [1/2]
+[predictor-09:27:23] decomposed model into 1 topologies.
+[predictor-09:27:23] returning 20 predictions, best preds
+[predictor-09:27:23] top r values before rescaling are: 1.20, 0.73, 0.68
+[predictor-09:27:23] decomposed model into 1 topologies.
+[predictor-09:27:23] returning 162 predictions, all preds, llhds only
+[predictor-09:27:23] now find highest significance for 162 predictions
+[predictor-09:27:26] done with prediction. best Z=2.75 (muhat=1.09)
+[hiscore-Oct 20 09:27:26] when removing Xc, K changed: 7.653 -> 5.318 (-30.5%), Z: 3.343 -> 2.751 (100000 evts)
+[hiscore-Oct 20 09:27:28] computing contribution of Xt (792.8): [2/2]
+[predictor-09:27:31] decomposed model into 1 topologies.
+[predictor-09:27:31] returning 14 predictions, best preds
+[predictor-09:27:31] top r values before rescaling are: 1.30, 1.28, 1.00
+[predictor-09:27:32] decomposed model into 1 topologies.
+[predictor-09:27:33] returning 192 predictions, all preds, llhds only
+[predictor-09:27:33] now find highest significance for 192 predictions
+[predictor-09:27:34] done with prediction. best Z=2.17 (muhat=1.00)
+[hiscore-Oct 20 09:27:34] when removing Xt, K changed: 7.653 -> 2.421 (-68.4%), Z: 3.343 -> 2.173 (100000 evts)
+[hiscore-Oct 20 09:27:36] stored 2 particle contributions
+[hiscore-Oct 20 09:27:36] Now computing analysis contributions
+[hiscore-Oct 20 09:27:36] Recompute the score. Old one at K=7.65, Z=3.34
+[hiscore-Oct 20 09:27:37] finished computing contributions
+[hiscore-Oct 20 09:27:37] contributionsK of 0 reads 11.948546980526565
+[hiscore-Oct 20 09:27:37] contributionsK of 1 reads 11.564252306117869
+[hiscore-Oct 20 09:27:37] contributionsK of 2 reads 7.47605288477296
+[hiscore-Oct 20 09:27:37] contributionsK of 3 reads 10.55996264634212
+[hiscore-Oct 20 09:27:37] contributionsK of 4 reads 11.088503776249864
+[hiscore-Oct 20 09:27:37] contributionsK of 5 reads 4.443780680003783
+[hiscore-Oct 20 09:27:37] stored 6 analyses contributions
