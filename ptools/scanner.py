@@ -390,16 +390,17 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
             y2_ = float("nan")
         y.append ( y0 )
         yr.append ( y2_ )
-    pname = namer.texName ( pid, addDollars=True )
+    pname = namer.texName ( pid, addDollars=False )
     if isSSMPlot():
-        pname = namer.texName ( pid, addDollars=True, addSign=True )+","+\
-                namer.texName ( pid2, addDollars=True, addSign=True )
+        pname = namer.texName ( pid, addDollars=False, addSign=True )+","+\
+                namer.texName ( pid2, addDollars=False, addSign=True )
     fig,ax1 = plt.subplots()
     plt.plot ( x, ydashed, linewidth=.3, c="tab:blue", zorder=0 )
-    plt.plot ( x, yr, linewidth=2., label="K(%s), %d events" % ( pname, nevents ), c="tab:blue", zorder=0 )
-    ax1.tick_params ( axis="y", labelcolor="tab:blue", labelleft=True )
-    ax1.set_ylabel ( "K", c="tab:blue" )
-    ax1.set_xlabel ( "m [GeV]" )
+    plt.plot ( x, yr, linewidth=2., label="$K(%s)$, %d events" % ( pname, nevents ), c="tab:blue", zorder=0 )
+    ax1.tick_params ( axis="y", labelcolor="tab:blue", labelsize=12, labelleft=True )
+    ax1.tick_params ( axis="x", labelsize=12 )
+    ax1.set_ylabel ( "K", c="tab:blue", fontsize=13 )
+    ax1.set_xlabel ( "m [GeV]", fontsize=13 )
     maxyr = numpy.nanmax(ydashed)
     # print ( "ydashed", ydashed )
     ax1.set_ylim ( bottom = 2., top=maxyr*1.03 )
@@ -409,9 +410,9 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         ax2 = ax1.twinx()
         ax1.plot ([], [], label="$r_\mathrm{max}$", c="tab:red", zorder=1 )
         ax2.plot ( x, rs, label="$r_\mathrm{max}$", c="tab:red", zorder=2 )
-        ax2.tick_params ( axis="y", labelcolor="tab:red" )
+        ax2.tick_params ( axis="y", labelcolor="tab:red", labelsize=12 )
         ax2.set_ylim ( bottom=min(rs)*.7, top = 1.9 )
-        ax2.set_ylabel ( "$r_\mathrm{max}$", c="tab:red" )
+        ax2.set_ylabel ( "$r_\mathrm{max}$", c="tab:red", fontsize=14 )
     if len(rsarea) == len(x) and plotrmax:
         # ax3 = ax1.twinx()
         ax2.fill ( x, rsarea, lw=0, edgecolor="white", alpha=.2, facecolor="tab:red", zorder=-1 )
@@ -431,15 +432,15 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
     if type(Zmax)==tuple:
         Zmax=Zmax[idx]
     ax1.scatter ( [ cmass ], [ Zmax ], label="proto-model, K(%s)=%.2f" % (param, Zmax ), marker="*", s=130, c="g", zorder=10 )
-    plt.title ( "Test statistic K=K(%s)" % pname )
+    plt.title ( "Test statistic $K=K(%s)$" % pname, fontsize=14 )
     # plt.text ( .8 * max(x),-.21, timestamp )
     # plt.text ( .8 * max(x),.55*min(rs), timestamp, facecolor="gray", transform = ax1.transAxes )
     if drawtimestamp:
         plt.text ( .7, -.12, timestamp, c="gray", transform = ax1.transAxes )
     ax1.legend()
     if isSSMPlot():
-        plt.xlabel ( "ssm(%s) [GeV]" % pname )
-        ax1.set_xlabel ( "ssm(%s) [GeV]" % pname )
+        plt.xlabel ( "$\\mu\\kappa(%s)$" % pname )
+        ax1.set_xlabel ( "$\\mu\\kappa(%s)$" % pname )
     else:
         plt.xlabel ( "m(%s) [GeV]" % pname )
 

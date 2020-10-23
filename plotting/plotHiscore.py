@@ -503,6 +503,20 @@ def writeRValuesTexOld ( rvalues ):
     g.write ( "\\end{tabular}\n" )
     g.close()
 
+def getPrettyName ( rv ):
+    if hasattr ( rv.dataset.globalInfo, "prettyName" ):
+        prettyName = rv.dataset.globalInfo.prettyName
+        return prettyName
+    anaId = rv.analysisId()
+    pnames = { "CMS-SUS-19-006": "0L + jets, MHT",
+               "CMS-SUS-16-033": "0L + jets + Etmiss (using MHT)",
+               "CMS-SUS-16-036": "0L + jets + Etmiss (using MT2)",
+               "CMS-SUS-16-049": "All hadronic stop"
+    }
+    if anaId in pnames:
+        return pnames[anaId]
+    return anaId
+
 def writeRValuesTex ( rvalues ):
     namer = SParticleNames ( False )
     g=open("rvalues.tex","wt")
@@ -517,6 +531,7 @@ def writeRValuesTex ( rvalues ):
         if type(rv[1])==float:
             srv="%.2f" % rv[1]
         anaId = rv[2].analysisId()
+        prettyName = getPrettyName( rv[2] )
         ref = bibtex.query ( anaId )
         txnames = ",".join ( map(str,rv[2].txnames) )
         allpids = rv[2].PIDs
@@ -540,7 +555,7 @@ def writeRValuesTex ( rvalues ):
         sigmaexp = rv[2].expectedUL.asNumber(fb)
         sigmaobs = rv[2].upperLimit.asNumber(fb)
         g.write ( "%s~\\cite{%s} & %s & %.2f & %.2f & %.2f & %.2f\\\\\n" % \
-                ( anaId,    ref,  prod, sigmapred, sigmaobs, sigmaexp, rv[0] ) )
+                ( prettyName, ref, prod, sigmapred, sigmaobs, sigmaexp, rv[0] ) )
     g.write ( "\\end{tabular}\n" )
     g.close()
 
