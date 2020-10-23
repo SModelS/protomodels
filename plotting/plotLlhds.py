@@ -521,7 +521,7 @@ class LlhdPlot:
         plt.ylabel ( "m(%s) [GeV]" % namer.texName(self.pid2, addSign=False, addDollars=True), fontsize=13 )
         circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label='excluded by critic', edgecolor="black" )
         handles.append ( circ1 )
-        plt.legend( handles=handles, loc="upper left" )
+        plt.legend( handles=handles, loc="upper left", fontsize=12 )
         figname = "%s/llhd%d.png" % ( self.rundir, pid1 )
         self.pprint ( "saving to %s" % figname )
         plt.savefig ( figname )
