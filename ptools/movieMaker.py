@@ -33,7 +33,7 @@ argparser.add_argument ( '-f', '--history',
         help='history file to use [history.list]',
         type=str, default="history.list" )
 argparser.add_argument ( '-o', '--outfile',
-        help='output file name [walk.mp4]',
+        help='output file name [walk.webm]',
         type=str, default="history.list" )
 argparser.add_argument ( '-m', '--maxsteps',
         help='maximum steps [1000]',
@@ -48,12 +48,12 @@ argparser.add_argument ( '-t', '--timestamp',
         help='put timestamp on pic',
         action="store_true" )
 args = argparser.parse_args()
-
+prefix = args.outfile.replace(".mp4","").replace(".webm","")
     
 intermediateSteps = True ## do 10 rendering steps per one random walk step
 
 if not args.dont_clean:
-    cmd = 'rm -f walk*.png'
+    cmd = f'rm -f {prefix}*.png'
     subprocess.getoutput( cmd )
 
 #Set colors:
@@ -169,14 +169,21 @@ print ( "[movieMaker] setting maxstep to %d" % maxstep )
 style = "Simple, tail_width=0.5, head_width=4, head_length=8"
 kw = dict(arrowstyle=style, color="k")
 
+cmd = f'ffmpeg -y -i "{prefix}%3d.png" -filter:v "setpts=6.0*PTS" {args.outfile}'
+if intermediateSteps:
+    cmd = f'ffmpeg -y -r 150 -i "{prefix}%5d.png" {args.outfile}'
+    #cmd = f'ffmpeg -y -i "{prefix}%5d.png" {args.outfile}'
+print ( "the command for movie making will be:" )
+print ( cmd )
 
+imgnr=0
 for firststep in range ( args.start, maxstep ):
     if firststep % 10 == 0:
         print ( "step %d" % firststep )
     lastingHS = 0 ## the "hiscore!" label should last a bit
     alloffs = [ 0. ]
     if intermediateSteps:
-        alloffs = np.arange(0,1.,.1)
+        alloffs = np.arange(0,1.,.025)
 
     for offs in alloffs:
         fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, gridspec_kw={'width_ratios': [1, 10]} )
@@ -196,7 +203,7 @@ for firststep in range ( args.start, maxstep ):
         #    K = 0.
         plt.text ( -3+firststep-nstart+offs, 1250, "hiscore", rotation=90., c="pink", alpha=.5, size=30,
                 horizontalalignment='center', verticalalignment='center', zorder=5 )
-        maxHS = 9
+        maxHS = 19
         if K > maxK:
             lastingHS = maxHS ## keep it for 9 frames
             maxK = K
@@ -217,7 +224,7 @@ for firststep in range ( args.start, maxstep ):
         for pid in pids:
             if max(masses[pid][firststep:laststep:nsteps]) <= 0.0: continue
             ctentries+=1
-            data = df[firststep:laststep:nsteps]
+            data = df[firststep:laststep+1:nsteps]
             datamax = df[stepatmax:stepatmax+1]
             datacur = df[firststep+currentstep:firststep+currentstep+1]
             tName = r'$%s$' % namer.texName(pid)
@@ -308,16 +315,15 @@ for firststep in range ( args.start, maxstep ):
         off1 = firststep-nstart+.05+offs
         ax2.set_xlim ( off1, off1 + 21 )
         if intermediateSteps:
-            plt.savefig('walk%.3d%d.png' % (firststep, int(offs*len(alloffs))), dpi=200 )
+            plt.savefig('%s%.5d.png' % \
+                    ( prefix, imgnr ), dpi=200 )
         else:
-            plt.savefig('walk%.3d.png' % step, dpi=200 )
+            plt.savefig('%s%.3d.png' % (prefix, step ), dpi=200 )
+        imgnr+=1
         # plt.show()
         plt.clf()
 
-cmd = 'ffmpeg -y -i "walk%3d.png" -filter:v "setpts=6.0*PTS" walk.mp4'
-if intermediateSteps:
-    cmd = 'ffmpeg -y -i "walk%4d.png" walk.webm'
-    #cmd = 'ffmpeg -y -i "walk%4d.png" -filter:v "setpts=0.5*PTS" walk.webm'
+#cmd = 'ffmpeg -y -i "walk%4d.png" -filter:v "setpts=0.5*PTS" walk.webm'
 #cmd = 'ffmpeg -y -i "walk%3d.png" -filter:v "setpts=3.0*PTS, minterpolate=\'mi_mode=mci:mc_mode=aobmc:vsbmc=1:fps=25\'" walk.mp4'
 # cmd = 'ffmpeg -y -i "walk%3d.png" walk.mp4'
 subprocess.getoutput ( cmd )
