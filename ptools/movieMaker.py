@@ -308,7 +308,7 @@ for firststep in range ( args.start, maxstep ):
         off1 = firststep-nstart+.05+offs
         ax2.set_xlim ( off1, off1 + 21 )
         if intermediateSteps:
-            plt.savefig('walk%.3d%d.png' % (firststep, int(offs*10)), dpi=200 )
+            plt.savefig('walk%.3d%d.png' % (firststep, int(offs*len(alloffs))), dpi=200 )
         else:
             plt.savefig('walk%.3d.png' % step, dpi=200 )
         # plt.show()
@@ -317,6 +317,7 @@ for firststep in range ( args.start, maxstep ):
 cmd = 'ffmpeg -y -i "walk%3d.png" -filter:v "setpts=6.0*PTS" walk.mp4'
 if intermediateSteps:
     cmd = 'ffmpeg -y -i "walk%4d.png" walk.webm'
+    #cmd = 'ffmpeg -y -i "walk%4d.png" -filter:v "setpts=0.5*PTS" walk.webm'
 #cmd = 'ffmpeg -y -i "walk%3d.png" -filter:v "setpts=3.0*PTS, minterpolate=\'mi_mode=mci:mc_mode=aobmc:vsbmc=1:fps=25\'" walk.mp4'
 # cmd = 'ffmpeg -y -i "walk%3d.png" walk.mp4'
 subprocess.getoutput ( cmd )
