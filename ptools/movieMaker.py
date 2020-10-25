@@ -196,13 +196,17 @@ for firststep in range ( args.start, maxstep ):
         #    K = 0.
         plt.text ( -3+firststep-nstart+offs, 1250, "hiscore", rotation=90., c="pink", alpha=.5, size=30,
                 horizontalalignment='center', verticalalignment='center', zorder=5 )
+        maxHS = 9
         if K > maxK:
-            lastingHS = 5 ## keep it for 5 frames
+            lastingHS = maxHS ## keep it for 9 frames
             maxK = K
         if lastingHS>0:
             maxK = K
             stepatmax = firststep+currentstep
-            plt.text ( .5+firststep-nstart+offs, 2200, "hiscore!", c="red", size=30, clip_on=False )
+            # red="red"
+            # red=(1.-(maxHS-lastingHS)*.05,0,0)
+            red=(1., (maxHS-lastingHS)/maxHS, (maxHS-lastingHS)/maxHS )
+            plt.text ( .5+firststep-nstart+offs, 2200, "hiscore!", c=red, size=30, clip_on=False )
             lastingHS-=1 ## count down to zero
         # arrow = plt.arrow ( currentstep, -50, -currentstep-2, 0, width=20, clip_on=False, transform=ax2.transData, color="black" )
         # arrow = patches.FancyArrowPatch((.1, .5), (.1, .5), clip_on=False,
@@ -298,7 +302,8 @@ for firststep in range ( args.start, maxstep ):
                    handlelength=0.4,handletextpad=0.35,markerscale=0.8,columnspacing=1.0)
         # plt.tight_layout()
         if args.timestamp:
-            plt.text ( 15+firststep-nstart, -280, time.asctime(), size=8, alpha=.5, c="gray" )
+            plt.text ( 15+firststep-nstart+offs, -280, time.asctime(), size=8, 
+                       alpha=.5, c="gray" )
         step = firststep + 1 ## make all one-indexed, ok?
         off1 = firststep-nstart+.05+offs
         ax2.set_xlim ( off1, off1 + 21 )
