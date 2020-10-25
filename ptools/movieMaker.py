@@ -2,17 +2,13 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-import sys,os,copy, pickle, glob, subprocess, math, time, copy
+import sys, os, pickle, glob, subprocess, math, time, copy, multiprocessing
 import numpy as np
 import IPython
 sys.path.append(os.path.abspath('../../smodels'))
 sys.path.append(os.path.abspath('../'))
-from builder.protomodel import ProtoModel
-from tester.predictor import Predictor
-from tester.combiner import Combiner
-from smodels.experiment.databaseObj import Database
-from smodels.tools import runtime
-runtime._experimental = True
+#from smodels.tools import runtime
+#runtime._experimental = True
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import seaborn as sns
@@ -177,41 +173,46 @@ print ( "the command for movie making will be:" )
 print ( cmd )
 
 imgnr=0
+maxHS = 19
+
+def onePic ( firststep, offs, Kmax ):
+    """ make a single picture """
+    return
+
 for firststep in range ( args.start, maxstep ):
     if firststep % 10 == 0:
-        print ( "step %d" % firststep )
+        print ( "step %d: %s" % ( firststep, time.asctime() ) )
     lastingHS = 0 ## the "hiscore!" label should last a bit
     alloffs = [ 0. ]
     if intermediateSteps:
         alloffs = np.arange(0,1.,.025)
+    
+    laststep=firststep+20
+    K=Ks[firststep+currentstep]
+
+    nvalues = {}
+    for k,v in masses.items():
+        nvalues[k]=0
+        for i in v:
+            if float(i)>0:
+                    nvalues[k]+=1
+    pids = sorted(masses.keys(), key = lambda pid: nvalues[pid] )
 
     for offs in alloffs:
-        fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, gridspec_kw={'width_ratios': [1, 10]} )
-        laststep=firststep+20
-
-        nvalues = {}
-        for k,v in masses.items():
-            nvalues[k]=0
-            for i in v:
-                if float(i)>0:
-                        nvalues[k]+=1
-        pids = sorted(masses.keys(), key = lambda pid: nvalues[pid] )
+        fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, 
+                          gridspec_kw={'width_ratios': [1, 10]} )
         #pids = sorted(masses.keys(), key = lambda pid: np.sum(np.where(masses[pid][::nsteps] <= 0.)))
         ctentries=0
-        K=Ks[firststep+currentstep]
         #if K < 0.:
         #    K = 0.
         plt.text ( -3+firststep-nstart+offs, 1250, "hiscore", rotation=90., c="pink", alpha=.5, size=30,
                 horizontalalignment='center', verticalalignment='center', zorder=5 )
-        maxHS = 19
         if K > maxK:
             lastingHS = maxHS ## keep it for 9 frames
             maxK = K
         if lastingHS>0:
             maxK = K
             stepatmax = firststep+currentstep
-            # red="red"
-            # red=(1.-(maxHS-lastingHS)*.05,0,0)
             red=(1., (maxHS-lastingHS)/maxHS, (maxHS-lastingHS)/maxHS )
             plt.text ( .5+firststep-nstart+offs, 2200, "hiscore!", c=red, size=30, clip_on=False )
             lastingHS-=1 ## count down to zero
@@ -256,7 +257,6 @@ for firststep in range ( args.start, maxstep ):
             sns.scatterplot(x=datamax['step'],y=datamax[pid], s=smax, sizes = (80,400),
                             label= tName , color=c, legend=False, ax=ax1, zorder=10)
         plt.ylim(0.,2500.0)
-        #plt.title ( '$K_{max}=%.1f, K_{current}=%.1f$' % ( maxK, K ), loc="left" )
         title='$K_{current}=%.1f\;\,$   $\;$ $\;\;\;\;\;\,$ $\;$ $\;$ $\;$ ' % ( K )
         if K < -50.:
             title=""
@@ -323,7 +323,4 @@ for firststep in range ( args.start, maxstep ):
         # plt.show()
         plt.clf()
 
-#cmd = 'ffmpeg -y -i "walk%4d.png" -filter:v "setpts=0.5*PTS" walk.webm'
-#cmd = 'ffmpeg -y -i "walk%3d.png" -filter:v "setpts=3.0*PTS, minterpolate=\'mi_mode=mci:mc_mode=aobmc:vsbmc=1:fps=25\'" walk.mp4'
-# cmd = 'ffmpeg -y -i "walk%3d.png" walk.mp4'
 subprocess.getoutput ( cmd )
