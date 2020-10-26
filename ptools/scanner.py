@@ -396,7 +396,10 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
                 namer.texName ( pid2, addDollars=False, addSign=True )
     fig,ax1 = plt.subplots()
     plt.plot ( x, ydashed, linewidth=.3, c="tab:blue", zorder=0 )
-    plt.plot ( x, yr, linewidth=2., label="$K(%s)$, %dk events" % ( pname, nevents/1000 ), c="tab:blue", zorder=0 )
+    plt.plot ( x, yr, linewidth=2., label="$K(%s)$" % ( pname ), 
+               c="tab:blue", zorder=0 )
+    #plt.plot ( x, yr, linewidth=2., label="$K(%s)$, %dk events" % ( pname, nevents/1000 ), 
+    #           c="tab:blue", zorder=0 )
     ax1.tick_params ( axis="y", labelcolor="tab:blue", labelsize=12, labelleft=True )
     ax1.tick_params ( axis="x", labelsize=12 )
     ax1.set_ylabel ( "K", c="tab:blue", fontsize=13 )
@@ -422,7 +425,9 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
     param="%d GeV" % xmax
     if isSSMPlot():
         param="%.3f" % xmax
-    ax1.scatter ( [ xmax ], [ ymax ], label="maximum K\n K(%s)=%.2f" % (param, ymax ), s=130, c="k", marker="*", zorder=5 )
+    # label = "maximum K\n K(%s)=%.2f" % (param, ymax )
+    label = "maximum K"
+    ax1.scatter ( [ xmax ], [ ymax ], label=label, s=130, c="k", marker="*", zorder=5 )
     if type(cmass)==tuple:
         cmass = x[int(len(x)/2)]
     param = "%d GeV" % cmass
@@ -431,7 +436,9 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
     Zmax = Zs[cmass]
     if type(Zmax)==tuple:
         Zmax=Zmax[idx]
-    ax1.scatter ( [ cmass ], [ Zmax ], label="proto-model\n K(%s)=%.2f" % (param, Zmax ), marker="*", s=130, c="g", zorder=10 )
+    # label = "proto-model\n K(%s)=%.2f" % (param, Zmax )
+    label = "proto-model"
+    ax1.scatter ( [ cmass ], [ Zmax ], label=label, marker="*", s=130, c="g", zorder=10 )
     plt.title ( "Test statistic $K=K(%s)$" % pname, fontsize=14 )
     # plt.text ( .8 * max(x),-.21, timestamp )
     # plt.text ( .8 * max(x),.55*min(rs), timestamp, facecolor="gray", transform = ax1.transAxes )
@@ -439,8 +446,8 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         plt.text ( .7, -.12, timestamp, c="gray", transform = ax1.transAxes )
     ax1.legend( fontsize = 12 )
     if isSSMPlot():
-        plt.xlabel ( "$\\mu\\kappa(%s)$" % pname )
-        ax1.set_xlabel ( "$\\mu\\kappa(%s)$" % pname )
+        plt.xlabel ( "$\\hat\\mu\\kappa(%s)$" % pname )
+        ax1.set_xlabel ( "$\\hat\\mu\\kappa(%s)$" % pname )
     else:
         plt.xlabel ( "m(%s) [GeV]" % pname )
 
