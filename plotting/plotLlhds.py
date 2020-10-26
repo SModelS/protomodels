@@ -516,9 +516,9 @@ class LlhdPlot:
         handles.append ( c )
         if sr == None:
             sr = "UL"
-        plt.title ( "HPD regions, %s [%s]" % ( namer.texName(pid1, addSign=False, addDollars=True), self.topo ), fontsize=14 )
-        plt.xlabel ( "m(%s) [GeV]" % namer.texName(pid1,addSign=False, addDollars=True), fontsize=13 )
-        plt.ylabel ( "m(%s) [GeV]" % namer.texName(self.pid2, addSign=False, addDollars=True), fontsize=13 )
+        # plt.title ( "HPD regions, %s [%s]" % ( namer.texName(pid1, addSign=False, addDollars=True), self.topo ), fontsize=14 )
+        plt.xlabel ( "m(%s) [GeV]" % namer.texName(pid1,addSign=False, addDollars=True), fontsize=14 )
+        plt.ylabel ( "m(%s) [GeV]" % namer.texName(self.pid2, addSign=False, addDollars=True), fontsize=14 )
         circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label='excluded by critic', edgecolor="black" )
         handles.append ( circ1 )
         plt.legend( handles=handles, loc="upper left", fontsize=12 )

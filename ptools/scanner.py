@@ -392,8 +392,10 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         yr.append ( y2_ )
     pname = namer.texName ( pid, addDollars=False )
     if isSSMPlot():
-        pname = namer.texName ( pid, addDollars=False, addSign=True )+","+\
-                namer.texName ( pid2, addDollars=False, addSign=True )
+        #pname = namer.texName ( pid, addDollars=False, addSign=True )+","+\
+        #        namer.texName ( pid2, addDollars=False, addSign=True )
+        pname = namer.texName ( pid2, addDollars=False, addSign=True )+\
+                namer.texName ( pid, addDollars=False, addSign=True )
     fig,ax1 = plt.subplots()
     plt.plot ( x, ydashed, linewidth=.3, c="tab:blue", zorder=0 )
     plt.plot ( x, yr, linewidth=2., label="$K(%s)$" % ( pname ), 
@@ -402,11 +404,13 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
     #           c="tab:blue", zorder=0 )
     ax1.tick_params ( axis="y", labelcolor="tab:blue", labelsize=12, labelleft=True )
     ax1.tick_params ( axis="x", labelsize=12 )
-    ax1.set_ylabel ( "K", c="tab:blue", fontsize=13 )
-    ax1.set_xlabel ( "m [GeV]", fontsize=13 )
+    ax1.set_ylabel ( "K", c="tab:blue", fontsize=15 )
+    # ax1.set_xlabel ( "m [GeV]", fontsize=13 )
+    ax1.set_xlabel ( "m($%s$) [GeV]" % pname, fontsize=16 )
     maxyr = numpy.nanmax(ydashed)
     # print ( "ydashed", ydashed )
-    ax1.set_ylim ( bottom = 2., top=maxyr*1.03 )
+    ax1.set_ylim ( bottom = 2., top=8.4 )
+    #ax1.set_ylim ( bottom = 2., top=maxyr*1.03 )
     rsarea[0]=0.
     rsarea[-1]=0.
     if len(rs) == len(x) and plotrmax:
@@ -414,11 +418,13 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         ax1.plot ([], [], label="$r_\mathrm{max}$", c="tab:red", zorder=1 )
         ax2.plot ( x, rs, label="$r_\mathrm{max}$", c="tab:red", zorder=2 )
         ax2.tick_params ( axis="y", labelcolor="tab:red", labelsize=12 )
-        ax2.set_ylim ( bottom=min(rs)*.7, top = 1.9 )
-        ax2.set_ylabel ( "$r_\mathrm{max}$", c="tab:red", fontsize=14 )
+        #ax2.set_ylim ( bottom=min(rs)*.7, top = 1.9 )
+        ax2.set_ylim ( bottom=0.6, top = 1.9 )
+        ax2.set_ylabel ( "$r_\mathrm{max}$", c="tab:red", fontsize=16 )
     if len(rsarea) == len(x) and plotrmax:
         # ax3 = ax1.twinx()
-        ax2.fill ( x, rsarea, lw=0, edgecolor="white", alpha=.2, facecolor="tab:red", zorder=-1 )
+        ax2.fill ( x, rsarea, lw=0, edgecolor="white", alpha=.2, 
+                   facecolor="tab:red", zorder=-1 )
     ymax = max(y)
     imax = y.index ( ymax )
     xmax = x[imax]
@@ -427,7 +433,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         param="%.3f" % xmax
     # label = "maximum K\n K(%s)=%.2f" % (param, ymax )
     label = "maximum K"
-    ax1.scatter ( [ xmax ], [ ymax ], label=label, s=130, c="k", marker="*", zorder=5 )
+    ax1.scatter ( [ xmax ], [ ymax ], label=label, s=130, c="k", marker="v", zorder=5 )
     if type(cmass)==tuple:
         cmass = x[int(len(x)/2)]
     param = "%d GeV" % cmass
@@ -438,18 +444,17 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         Zmax=Zmax[idx]
     # label = "proto-model\n K(%s)=%.2f" % (param, Zmax )
     label = "proto-model"
-    ax1.scatter ( [ cmass ], [ Zmax ], label=label, marker="*", s=130, c="g", zorder=10 )
-    plt.title ( "Test statistic $K=K(%s)$" % pname, fontsize=14 )
-    # plt.text ( .8 * max(x),-.21, timestamp )
-    # plt.text ( .8 * max(x),.55*min(rs), timestamp, facecolor="gray", transform = ax1.transAxes )
+    ax1.scatter ( [ cmass ], [ Zmax ], label=label, marker="^", s=130, c="g", zorder=10 )
+    # plt.title ( "Test statistic $K=K(%s)$" % pname, fontsize=14 )
     if drawtimestamp:
         plt.text ( .7, -.12, timestamp, c="gray", transform = ax1.transAxes )
-    ax1.legend( fontsize = 12 )
     if isSSMPlot():
-        plt.xlabel ( "$\\hat\\mu\\kappa(%s)$" % pname )
-        ax1.set_xlabel ( "$\\hat\\mu\\kappa(%s)$" % pname )
+        plt.xlabel ( "$\\hat\\mu\\kappa(%s)$" % pname, fontsize=17 )
+        ax1.set_xlabel ( "$\\hat\\mu\\kappa(%s)$" % pname, fontsize=17 )
+        ax1.legend( fontsize = 12, loc= "lower left" )
     else:
-        plt.xlabel ( "m(%s) [GeV]" % pname )
+        ax1.legend( fontsize = 12 )
+        plt.xlabel ( "m(%s) [GeV]" % pname, fontsize=16 )
 
     # plt.text ( .9*min(x)+.1*(max(x)-min(x)), 1.*max(y), "%d events" % nevents )
     figname = "M%d.png" % pid
@@ -466,6 +471,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         return
 
     print ( "[scanner] creating %s" % figname )
+    plt.tight_layout()
     plt.savefig ( figname )
     plt.close()
     if copy:
