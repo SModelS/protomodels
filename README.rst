@@ -1,3 +1,5 @@
+.. image:: protomodel_lego.png
+
 This repository contains all the core code for the artificial protomodeller.
 
 walker
