@@ -1,4 +1,4 @@
-.. image:: protomodel_lego.png
+.. image:: logo_small.png
 
 This repository contains all the core code for the artificial protomodeller.
 
