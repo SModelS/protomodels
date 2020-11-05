@@ -550,11 +550,12 @@ if __name__ == "__main__":
     if args.draw:
         if args.pid != 0:
             draw( pids, args.interactive, args.pid2, args.copy, drawtimestamp, rundir, \
-                  rthreshold, upload = args.upload )
+                  plotrmax = False, rthreshold = rthreshold, upload = args.upload )
         else:
             for pid in allpids:
                 try:
                     draw( pid, args.interactive, args.pid2, args.copy, drawtimestamp,
-                          rundir, rthreshold, upload = args.upload )
+                          rundir, plotrmax = False, rthreshold = rthreshold, 
+                          upload = args.upload )
                 except Exception as e:
                     print ( "[scanner] skipping %d: %s" % ( pid, e ) )
