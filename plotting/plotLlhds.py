@@ -2,6 +2,7 @@
 
 """ the plotting script for the llhd scans """
 
+from smodels.tools.physicsUnits import TeV
 import pickle, sys, copy, subprocess, os, colorama, time, glob, math
 import IPython
 import numpy as np
@@ -325,6 +326,45 @@ class LlhdPlot:
                 vmin = v
         return vmin
 
+    def getPrettyName ( self, anaid ):
+        """ get pretty name of ana id """
+        if not hasattr ( self, "database" ):
+            from smodels.experiment.databaseObj import Database
+            dbname = "./original.pcl" 
+            dbname = "/home/walten/git/smodels-database"
+            dbname = "/scratch-cbe/users/wolfgan.waltenberger/rundir/db31.pcl"
+            self.database = Database ( dbname )
+        from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
+        if ":" in anaid:
+            anaid = anaid[:anaid.find(":")]
+        ers = self.database.getExpResults ( analysisIDs = [ anaid ] )
+        for er in ers:
+           if hasattr ( er.globalInfo, "prettyName" ):
+              pn = er.globalInfo.prettyName
+              sqrts = er.globalInfo.sqrts.asNumber(TeV)
+              coll = "CMS"
+              if "ATLAS" in er.globalInfo.id:
+                coll = "ATL"
+              prettyNames = { "ATLAS-SUSY-2013-02": "ATL multijet, 8 TeV", 
+                              "ATLAS-SUSY-2013-15": "ATL 1$\ell$ stop, 8 TeV",
+                              "ATLAS-SUSY-2016-07": "ATL multijet, 13 TeV",
+                              "ATLAS-SUSY-2016-16": "ATL 1$\ell$ stop, 13 TeV",
+                              "CMS-SUS-13-012": "CMS multijet, 8 TeV",
+                              "CMS-SUS-16-050": "CMS $0\ell$ stop, 13 TeV"
+              }
+              if anaid in prettyNames:
+                  ret = prettyNames[anaid]
+              else:
+                  ret = prettyTexAnalysisName ( pn, sqrts, dropEtmiss = True,
+                                                collaboration = coll )
+                  # for the 2020 paper to be consistent
+                  ret = ret.replace( "+ top tag", "stop" )
+                  ret = ret.replace( "+ 4 (1 b-)jets", "multijet" )
+                  # ret += " -> " + anaid
+              return ret
+        print ( "found no pretty name", er[0].globalInfo )
+        return anaid
+
     def plot ( self, ulSeparately=True, pid1=None ):
         """ a summary plot, overlaying all contributing analyses 
         :param ulSeparately: if true, then plot UL results on their own
@@ -468,7 +508,9 @@ class LlhdPlot:
                 minXY = ( minXY[0]+8., minXY[1]+8., minXY[2] )
             a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=180, color="black", zorder=20 )
             anan = ana.replace(":None",":UL") # + " (%.2f)" % (minXY[2])
-            a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=110, color=color, label=anan, alpha=1., zorder=20 )
+            label = self.getPrettyName ( ana )
+            a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=110, color=color, 
+                            label=label, alpha=1., zorder=20 )
             existingPoints.append ( minXY )
             handles.append ( a )
         ZCOMB = float("nan")*X
