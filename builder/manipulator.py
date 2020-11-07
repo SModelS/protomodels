@@ -87,8 +87,12 @@ class Manipulator:
         self.pprint ( "choosing the %dth entry, it has a K of %.2f" % \
                       ( ith, dicts[ith]["K"] ) )
         step = self.M.step
-        self.record ( "teleporting to hiscore" )
-        self.initFromDict ( dicts[ith] )
+        nth = "%dth" % ith
+        longforms = { 1: "first", 2: "second", 3: "third" }
+        if ith in longforms:
+            nth = longforms[ith]
+        self.record ( "teleporting to %s hiscore" % nth )
+        self.initFromDict ( dicts[ith], initTestStats=True )
         self.M.step = step ## continue counting!
         self.M.bestCombo = None
 
@@ -255,7 +259,14 @@ class Manipulator:
         scom = ""
         if "comment" in D:
                 scom = ": " + D["comment"]
-        self.highlight ( "info", "starting with %s/%s%s" % ( os.getcwd(), filename, scom ) )
+        if filename == "":
+            line = "initializing from dictionary: "
+            for k,v in D["masses"].items():
+                line += self.namer.asciiName(k)+ ", "
+            line = line[:-2]
+            self.pprint ( line )
+        else:
+            self.highlight ( "info", "starting with %s/%s%s" % ( os.getcwd(), filename, scom ) )
         #Reset all model attributes:
         self.M.initializeModel()
         #Set attributes to dictionary values:
@@ -415,17 +426,17 @@ class Manipulator:
                 continue
             protomodel.ssmultipliers[pidpair]=newssm
 
-    def setSSMFor(self, pid):
-
+    def initSSMFor(self, pid):
+        """ Set SSM multipliers to 1 (for pair production of particle/anti-particle):
+        """
         unfrozen = self.M.unFrozenParticles()
-        #Set SSM multipliers to 1 (for pair production of particle/anti-particle):
         pBlist = [pid]
         if self.M.hasAntiParticle(pid):
             pBlist.append(-pid)
         for pidpair in itertools.product(pBlist,pBlist):
             ppair = tuple(sorted(pidpair))
             if not ppair in self.M.ssmultipliers:
-                self.record ( f"change ssm of {self.namer.texName(ppair,addDollars=True)} to 1.0" )
+                # self.record ( f"change ssm of {self.namer.texName(ppair,addDollars=True)} to 1.0" )
                 self.M.ssmultipliers[ppair] = 1.0
 
         #Set SSM multipliers to 1 for all associated productions with pid
@@ -438,7 +449,7 @@ class Manipulator:
             for pidpair in itertools.product(pAlist,pBlist):
                 ppair = tuple(sorted(pidpair))
                 if not ppair in self.M.ssmultipliers:
-                    self.record ( f"change ssm of {self.namer.texName(ppair,addDollars=True)} to 1.0" )
+                    # self.record ( f"change ssm of {self.namer.texName(ppair,addDollars=True)} to 1.0" )
                     self.M.ssmultipliers[ppair] = 1.0
 
     def describe ( self, all=False ):
@@ -583,7 +594,7 @@ class Manipulator:
                 pid = pids[0] #Unfreeze the lighter state
                 break
 
-        self.log ( "Unfreezing %s:" % ( SParticleNames().asciiName(pid) ) )
+        self.log ( "Unfreezing %s:" % ( self.namer.asciiName(pid) ) )
         return self.unFreezeParticle(pid)
 
     def randomlyChangeBranchings ( self, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05 ):
@@ -674,7 +685,7 @@ class Manipulator:
         #Make sure BRs add up to 1:
         self.normalizeBranchings(pid)
 
-        self.log ( "changed branchings of %s" % (SParticleNames().asciiName(pid) ) )
+        self.log ( "changed branchings of %s" % (self.namer.asciiName(pid) ) )
         return 1
 
     def randomlyChangeSignalStrengths ( self, prob=0.25, probSingle=0.8, ssmSigma=0.1):
@@ -714,6 +725,8 @@ class Manipulator:
         self.changeSSM(pair,newSSM)
         self.log ( "changing signal strength multiplier of %s,%s: %.2f." % \
                    ( self.namer.asciiName(pair[0]), self.namer.asciiName(pair[1]), newSSM ) )
+        self.record ( "change ssm of %s,%s to %.2f." % \
+                    ( self.namer.texName(pair[0]), self.namer.texName(pair[1]), newSSM ) )
         return 1
 
     def randomlyChangeSSOfOneParticle ( self, pid = None ):
@@ -747,7 +760,7 @@ class Manipulator:
             return 1
         f = random.uniform ( .8, 1.2 )
         self.log ( "randomly changing ssms of %s by a factor of %.2f" % \
-                     ( SParticleNames ( False ).asciiName ( p ), f ) )
+                     ( self.namer.asciiName ( p ), f ) )
         ssms = []
         for dpd,v in self.M.ssmultipliers.items():
             if p in dpd or -p in dpd:
@@ -758,7 +771,7 @@ class Manipulator:
                 self.changeSSM ( dpd, newssm )
                 ssms.append ( newssm )
         self.log ( " `- %s: ssms are now %.2f+/-%.2f" % \
-                 ( SParticleNames().asciiName(p), numpy.mean ( ssms ), numpy.std ( ssms) ) )
+                 ( self.namer.asciiName(p), numpy.mean ( ssms ), numpy.std ( ssms) ) )
         return 1
 
     def changeSSM ( self, pids, newssm ):
@@ -789,7 +802,7 @@ class Manipulator:
         """ freezes a random unfrozen particle according to gaussian distribution with width sigma.
 
         :param sigma: Width of the gaussian distribution
-        :param probMassive: Probability for freezen the most massive particle
+        :param probMassive: Probability for freezing the most massive particle
         """
 
         nUnfrozen = len( self.M.unFrozenParticles() )
@@ -837,7 +850,7 @@ class Manipulator:
                 pid = i
         # p = random.choice ( unfrozen )
         protomodel.log ( "Freezing most massive %s (%.1f)" % \
-                        ( SParticleNames().asciiName(pid), minmass ) )
+                        ( self.namer.asciiName(pid), minmass ) )
         self.freezeParticle ( pid, protomodel = protomodel )
         return 1
 
@@ -937,13 +950,13 @@ class Manipulator:
         #Randomly select mass of unfrozen particle:
         protomodel.masses[pid] = tmpMass
         self.pprint ( "Unfroze mass of %s to %.1f" % \
-                ( SParticleNames().asciiName(pid), protomodel.masses[pid] ) )
+                ( self.namer.asciiName(pid), protomodel.masses[pid] ) )
 
         #Set random branchings
         self.setRandomBranchings(pid)
 
         #Add pid pair production and associated production to protomodel.ssmmultipliers:
-        self.setSSMFor(pid)
+        self.initSSMFor(pid)
 
         return 1
 
@@ -1050,7 +1063,7 @@ class Manipulator:
                 massIsLegal = False
             dx = dx * 1.2 ## to make sure we always get out of this
         self.pprint ( "randomly changing mass of %s to %.1f" % \
-                      ( SParticleNames(False).asciiName ( pid ), tmpmass ) )
+                      ( self.namer.asciiName ( pid ), tmpmass ) )
         self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
         self.M.masses[pid]=tmpmass
 
@@ -1486,10 +1499,12 @@ class Manipulator:
                          "_xsecSSMs" : copy.deepcopy(self.M._xsecSSMs),
                          }
 
-    def restoreModel ( self ):
+    def restoreModel ( self, reportReversion=False ):
         """ restore from the backup """
         if not hasattr ( self, "_backup" ):
             raise Exception ( "no backup available" )
+        if reportReversion:
+            self.record ( "revert step" )
         for k,v in self._backup.items(): ## do not!! shallow copy here
             setattr ( self.M, k, copy.deepcopy(v) )
 

@@ -287,6 +287,8 @@ class RandomWalker:
         :param norm: Normalization for K distance.
         """
         ## for now we turn off teleportation
+        self.log ( "teleportation turned off" )
+        return False
         bestK = self.hiscoreList.globalMaxK()
         if bestK < 1.:
             self.log ( "bestK is smaller than one. no teleporting." )
@@ -301,10 +303,10 @@ class RandomWalker:
         prob = pmax*(1. - math.exp( dK ))
         a = random.uniform ( 0., 1. )
         doTP = ( a < prob ) ## do teleport, yes or no
-        sDoTP = "dont teleport."
+        sDoTP = "a>p: dont teleport."
         if doTP:
-            sDoTP = "do teleport."
-        self.log ( "check if to teleport, Kmax=%.2f, ours is=%.2f, p=%.2f, a=%.2f: %s" % \
+            sDoTP = "a<p: do teleport."
+        self.log ( "check if to teleport, Kmax=%.2f, ours is=%.2f, p=%.2f, a=%.2f, %s" % \
                    ( bestK, ourK, prob, a, sDoTP ) )
         if doTP:
             self.manipulator.teleportToHiscore()
@@ -317,6 +319,7 @@ class RandomWalker:
         # Update current K and Z values
         self.currentK = self.protomodel.K
         self.currentZ = self.protomodel.Z
+        self.manipulator.record( "take step" )
 
     def highlight ( self, msgType = "info", *args ):
         """ logging, hilit """
@@ -344,7 +347,7 @@ class RandomWalker:
             if u > ratio:
                 self.pprint ( "u=%.2f > %.2f; K: %.2f -> %.2f: revert." % (u,ratio,self.currentK,
                                 self.protomodel.K) )
-                self.manipulator.restoreModel()
+                self.manipulator.restoreModel( reportReversion=True )
                 if hasattr ( self, "oldgrad" ) and self.accelerator != None:
                     self.accelerator.grad = self.oldgrad
             else:
@@ -383,7 +386,8 @@ class RandomWalker:
                     self.record()
                 except Exception as e:
                     # https://bioinfoexpert.com/2016/01/18/tracing-exceptions-in-multiprocessing-in-python/
-                    self.pprint ( "taking a step resulted in exception: %s, %s" % (type(e), e ) )
+                    self.pprint ( "taking a step resulted in exception: %s, %s" % \
+                                  (type(e), e ) )
                     import traceback
                     traceback.print_stack( limit=None )
                     except_type, except_class, tb = sys.exc_info()
@@ -391,8 +395,10 @@ class RandomWalker:
                     for point in extracted:
                         self.pprint ( "extracted: %s" % point )
                     with open("%s/exceptions.log" % self.rundir,"a") as f:
-                        f.write ( "%s: taking a step resulted in exception: %s, %s\n" % (time.asctime(), type(e), e ) )
-                        f.write ( "   `- exception occured in walker #%s\n" % self.protomodel.walkerid )
+                        f.write ( "%s: taking a step resulted in exception: %s, %s\n" % \
+                                  (time.asctime(), type(e), e ) )
+                        f.write ( "   `- exception occured in walker #%s\n" % \
+                                  self.protomodel.walkerid )
                     sys.exit(-1)
 
             #If no combination was found, go back
