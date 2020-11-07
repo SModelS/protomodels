@@ -8,10 +8,10 @@ import matplotlib
 
 matplotlib.use('agg')
 
-def read( which="fake" ):
+def read( which="fake", datadir="./" ):
     pattern = { "fake": "fake*dict", "real": "real?.dict", "realf": "realf*dict",
                 "signal": "signal?.dict", "signalf": "signal*f.dict" }
-    files = glob.glob( pattern[which] )
+    files = glob.glob( datadir + pattern[which] )
     Ks=[]
     for f in files:
         h=open(f,"rt")
@@ -21,22 +21,23 @@ def read( which="fake" ):
         Ks.append(D[0]["K"])
     return Ks
 
-def plot( opts: dict, outputfile ):
+def plot( opts: dict, outputfile, datadir ):
     """ plot the money plot.
-    :param opts: dictionary detailing what to plot, e.g { "signals": True, 
+    :param opts: dictionary detailing what to plot, e.g { "signals": True,
           "fastlim": True, "real": True }
-    :param outputfile: the filename of outputfile, eg Kvalues.png 
+    :param outputfile: the filename of outputfile, eg Kvalues.png
+    :param datadir: directory of the data dict files, eg ./
     """
-    Ks=read( "fake" )
-    Kreal = read ( "real" )
-    Ksig = read ( "signal" )
-    Ksigf = read ( "realf" )
+    Ks=read ( "fake", datadir )
+    Kreal = read ( "real", datadir )
+    Ksig = read ( "signal", datadir )
+    Ksigf = read ( "realf", datadir )
     allK = copy.deepcopy ( Ks )
     fmin, fmax, npoints = .3, 1.2, 100
     if opts["real"]:
         allK += Kreal
     if opts["signal"]:
-        allK += Ksig 
+        allK += Ksig
         fmax = 1.1
     if opts["fastlim"]:
         allK += Ksigf
@@ -84,12 +85,12 @@ def plot( opts: dict, outputfile ):
     # fromMean = [ Krealmean ] + fromMean + [ 1.1*maxKs ]
     # yFromMean = [ 0] + yFromMean + [0]
     # plt.plot ( fromMean, yFromMean, linewidth=.3, c="tab:orange", label="p", zorder=5 )
-        plt.fill_between ( fromMean, yFromMean, 0, linewidth=.3, label="$p$", 
+        plt.fill_between ( fromMean, yFromMean, 0, linewidth=.3, label="$p$",
                            facecolor="tab:green", alpha=.5, zorder=-1 )
         plt.title ( "Determination of $p(\\mathrm{global}) \\approx %.2f$" % p  )
     else:
         plt.title ( "Determination of the Density of $K_\\mathrm{fake}$" )
-        
+
     plt.ylabel ( "$\\rho(K)$" )
     plt.xlabel ( "$K$" )
     plt.legend ()
@@ -99,16 +100,19 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser( description="plot the money plots" )
     argparser.add_argument ( '-s', '--signals', help="add the fake signals",
                              action="store_true" )
-    argparser.add_argument ( '-b', '--fakes', 
+    argparser.add_argument ( '-b', '--fakes',
                              help="add points for the fake backgrounds",
                              action="store_true" )
     argparser.add_argument ( '-f', '--fastlim', help="add the fastlim real runs",
                              action="store_true" )
     argparser.add_argument ( '-r', '--real', help="add the real Ks",
                              action="store_true" )
+    argparser.add_argument ( '-D', '--datadir',
+                             help="specify the directory of the dict files [./]",
+                             type=str, default="./" )
     argparser.add_argument ( '-o', '--outputfile', help="specify the outputfile",
                              type=str, default="Kvalues.png" )
     args = argparser.parse_args()
     opts = { "signal": args.signals, "fastlim": args.fastlim, "real": args.real,
              "fakes": args.fakes }
-    plot( opts, args.outputfile )
+    plot( opts, args.outputfile, args.datadir )
