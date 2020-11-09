@@ -75,9 +75,11 @@ def count():
 def fetch():
     """ fetch states.dict files from the individual runs """
     Dir = "/scratch-cbe/users/wolfgan.waltenberger/"
-    files = glob.glob ( f"{Dir}/rundir.*/states.dict" )
+    dictfiles = "states.dict"
+    dictfiles = "hiscores.dict"
+    files = glob.glob ( f"{Dir}/rundir.*/{dictfiles}" )
     for f in files:
-        name = f.replace( Dir, "" ).replace("/states.dict","").replace("rundir.","")
+        name = f.replace( Dir, "" ).replace("/"+dictfiles,"").replace("rundir.","")
         cmd = f"cp {f} {name}.dict"
         print ( cmd )
         subprocess.getoutput ( cmd )
