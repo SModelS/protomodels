@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from prototools.moretools.updateHiscores import countSteps
+from ptools.updateHiscores import countSteps
 import glob, os, colorama, time, argparse
 
 def main():
