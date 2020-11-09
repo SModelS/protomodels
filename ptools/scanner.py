@@ -390,7 +390,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
             y2_ = float("nan")
         y.append ( y0 )
         yr.append ( y2_ )
-    pname = namer.texName ( pid, addDollars=False )
+    pname = namer.texName ( pid, addDollars=True )
     if isSSMPlot():
         #pname = namer.texName ( pid, addDollars=False, addSign=True )+","+\
         #        namer.texName ( pid2, addDollars=False, addSign=True )

@@ -20,6 +20,14 @@ def sortBySqrts ( results, sqrts ):
             ret.append ( res )
     return ret
 
+def noFastlim ( results ):
+    ret = []
+    for res in results:
+        if hasattr ( res.globalInfo, "contact" ) and "fastlim" in res.globalInfo.contact:
+            continue
+        ret.append ( res )
+    return ret
+
 def sortOutDupes ( results ):
     """ If an analysis id appears more than once in the list,
     keep only the one with likelihoods. """
@@ -57,7 +65,7 @@ def sortOutDupes ( results ):
     return ret
 
 def draw( strategy, databasepath, trianglePlot, miscol,
-          diagcol, experiment, S, drawtimestamp, outputfile ):
+          diagcol, experiment, S, drawtimestamp, outputfile, nofastlim ):
     """
     :param trianglePlot: if True, then only plot the upper triangle of this
                          symmetrical matrix
@@ -67,6 +75,7 @@ def draw( strategy, databasepath, trianglePlot, miscol,
     :param S: draw only for specific sqrts ( "8", "13", "all" )
     :param drawtimestamp: if true, put a timestamp on plot
     :param outputfile: file name of output file (matrix.png)
+    :param nofastlim: if True, discard fastlim results
     """
     ROOT.gStyle.SetOptStat(0000)
 
@@ -94,6 +103,8 @@ def draw( strategy, databasepath, trianglePlot, miscol,
         analysisIds = [ experiment+"*" ]
         exps = [ experiment ]
     results = d.getExpResults( analysisIDs = analysisIds )
+    if nofastlim:
+        results = noFastlim ( results )
     results = sortOutDupes ( results )
     if S in [ "8", "13" ]:
         results = sortBySqrts ( results, int(S) )
@@ -269,8 +280,8 @@ if __name__ == "__main__":
     argparser.add_argument ( '-S', '--strategy', nargs='?',
             help='combination strategy [aggressive]', type=str, default='aggressive' )
     argparser.add_argument ( '-d', '--database', nargs='?',
-            help='path to database [../../../smodels-database]',
-            type=str, default='../../../smodels-database' )
+            help='path to database [../../smodels-database]',
+            type=str, default='../../smodels-database' )
     argparser.add_argument ( '-e', '--experiment', nargs='?',
             help='plot only specific experiment CMS,ATLAS,all [all]',
             type=str, default='all' )
@@ -283,6 +294,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-t', '--triangular',
             help='plot as lower triangle matrix?',
             action="store_true" )
+    argparser.add_argument ( '-n', '--nofastlim',
+            help='discard fastlim results',
+            action="store_true" )
     argparser.add_argument ( '-N', '--notimestamp',
             help='dont put a timestamp on it',
             action="store_true" )
@@ -293,4 +307,4 @@ if __name__ == "__main__":
     diagcol = ROOT.kBlack
     diagcol = ROOT.kGray
     draw( args.strategy, args.database, args.triangular, miscol, diagcol,
-          args.experiment, args.sqrts, drawtimestamp, args.outputfile )
+          args.experiment, args.sqrts, drawtimestamp, args.outputfile, args.nofastlim )

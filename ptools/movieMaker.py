@@ -30,7 +30,7 @@ argparser.add_argument ( '-f', '--history',
         type=str, default="history.list" )
 argparser.add_argument ( '-o', '--outfile',
         help='output file name [walk.webm]',
-        type=str, default="history.list" )
+        type=str, default="walk.webm" )
 argparser.add_argument ( '-m', '--maxsteps',
         help='maximum steps [1000]',
         type=int, default=1000 )
