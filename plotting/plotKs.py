@@ -8,10 +8,10 @@ import matplotlib
 
 matplotlib.use('agg')
 
-def read( which="fake" ):
+def read( which="fake", datadir="./" ):
     pattern = { "fake": "fake*dict", "real": "real?.dict", "realf": "realf*dict",
-                "signal": "signal*.dict", "signalf": "signal*f.dict" }
-    files = glob.glob( pattern[which] )
+                "signal": "signal?.dict", "signalf": "signal*f.dict" }
+    files = glob.glob( datadir + pattern[which] )
     Ks=[]
     for f in files:
         h=open(f,"rt")
@@ -21,22 +21,23 @@ def read( which="fake" ):
         Ks.append(D[0]["K"])
     return Ks
 
-def plot( opts: dict, outputfile ):
+def plot( opts: dict, outputfile, datadir ):
     """ plot the money plot.
-    :param opts: dictionary detailing what to plot, e.g { "signals": True, 
+    :param opts: dictionary detailing what to plot, e.g { "signals": True,
           "fastlim": True, "real": True }
-    :param outputfile: the filename of outputfile, eg Kvalues.png 
+    :param outputfile: the filename of outputfile, eg Kvalues.png
+    :param datadir: directory of the data dict files, eg ./
     """
-    Ks=read( "fake" )
-    Kreal = read ( "real" )
-    Ksig = read ( "signal" )
-    Ksigf = read ( "realf" )
+    Ks=read ( "fake", datadir )
+    Kreal = read ( "real", datadir )
+    Ksig = read ( "signal", datadir )
+    Ksigf = read ( "realf", datadir )
     allK = copy.deepcopy ( Ks )
     fmin, fmax, npoints = .3, 1.2, 100
     if opts["real"]:
         allK += Kreal
     if opts["signal"]:
-        allK += Ksig 
+        allK += Ksig
         fmax = 1.1
     if opts["fastlim"]:
         allK += Ksigf
@@ -47,16 +48,11 @@ def plot( opts: dict, outputfile ):
     print ( "maxK", maxKs, fmax, fmax*maxKs )
     arange = np.arange ( fmin*minKs, fmax*maxKs, (maxKs-minKs)/npoints )
     values = kde.evaluate ( arange )
-    # label = "KDE of $K_\mathrm{fake}$"
-    label = "density, SM hypothesis"
-    plt.plot ( arange, values, c="tab:orange", label=label )
-    # plt.plot ( arange, values, c="tab:orange" )
+    plt.plot ( arange, values, c="tab:orange", label="KDE of $K_\mathrm{fake}$" )
     ys = kde.evaluate ( Ks )
     ys = [ x + .001 for x in ys ]
     if opts["fakes"]:
-        # label = "$K_\mathrm{fake}$"
-        label = "SM hypothesis runs"
-        plt.plot ( Ks, ys, "ro", label=label )
+        plt.plot ( Ks, ys, "ro", label="$K_\mathrm{fake}$" )
         print ( "K(bg)=%.3f, [%.3f,%.3f]" % ( np.mean(Ks), min(Ks), max(Ks) ) )
     if opts["signal"] and len(Ksig)>0:
         ysig = kde.evaluate( Ksig )
@@ -65,22 +61,17 @@ def plot( opts: dict, outputfile ):
         # marker="ro"
         marker_style = dict(color='tab:red', linestyle='', marker='o',
                       markersize=8, fillstyle="none" )
-        # label = "$K_\mathrm{signal}$"
-        label = "BSM hypothesis"
-        plt.plot ( Ksig, ysig, label=label, **marker_style )
+        plt.plot ( Ksig, ysig, label="$K_\mathrm{signal}$", **marker_style )
         print ( "K(signal)=%.3f, [%.3f,%.3f]" % ( np.mean(Ksig), min(Ksig), max(Ksig) ) )
     if opts["fastlim"]:
         ysigf = kde.evaluate( Ksigf )
         ysigf = [ x - .002 for x in ysigf ]
-        label = "K$_\mathrm{signal}^\mathrm{f=0.8}$"
-        plt.plot ( Ksigf, ysigf, "m*", ms=8, label=label )
+        plt.plot ( Ksigf, ysigf, "m*", ms=8, label="K$_\mathrm{signal}^\mathrm{f=0.8}$" )
         print ( "K(realf)=%.3f, [%.3f,%.3f]" % ( np.mean(Ksigf), min(Ksigf), max(Ksigf) ) )
     if opts["real"]:
         yreal = kde.evaluate( Kreal )
         yreal = [ x - .001 for x in yreal ]
-        # label = "$K_\mathrm{obs}$"
-        label = "observed"
-        plt.plot ( Kreal, yreal, "g*", ms=8, label=label )
+        plt.plot ( Kreal, yreal, "g*", ms=8, label="$K_\mathrm{obs}$" )
         Krealmean = np.mean(Kreal)
         print ( "K(real)=%.3f, [%.3f,%.3f]" % ( Krealmean, min(Kreal), max(Kreal) ) )
         yrealmean = kde.evaluate ( Krealmean )[0]
@@ -90,40 +81,38 @@ def plot( opts: dict, outputfile ):
         print ( "p(real)=%.3f, [%.3f,%.3f]" % ( p, pmin, pmax ) )
         fromMean = np.arange ( Krealmean, fmax*maxKs+1e-5, (fmax*maxKs-Krealmean)/npoints)
         yFromMean = kde.evaluate ( fromMean )
-        label = "$\\bar{\\mathrm{K}}_\mathrm{obs}$"
-        plt.plot ( [ Krealmean, Krealmean ], [ yrealmean, 0. ], c="g" )
-        # plt.plot ( [ Krealmean, Krealmean ], [ yrealmean, 0. ], c="g", label=label )
+        plt.plot ( [ Krealmean, Krealmean ], [ yrealmean, 0. ], c="g", label="$\\bar{\\mathrm{K}}_\mathrm{obs}$" )
     # fromMean = [ Krealmean ] + fromMean + [ 1.1*maxKs ]
     # yFromMean = [ 0] + yFromMean + [0]
     # plt.plot ( fromMean, yFromMean, linewidth=.3, c="tab:orange", label="p", zorder=5 )
-        plt.fill_between ( fromMean, yFromMean, 0, linewidth=.3, label="$p$", 
+        plt.fill_between ( fromMean, yFromMean, 0, linewidth=.3, label="$p$",
                            facecolor="tab:green", alpha=.5, zorder=-1 )
-        plt.title ( "Determination of $p(\\mathrm{global}) \\approx %.2f$" % p, fontsize=16  )
+        plt.title ( "Determination of $p(\\mathrm{global}) \\approx %.2f$" % p  )
     else:
-        plt.title ( "Determination of the Density of $K_\\mathrm{fake}$", fontsize=16 )
-        
-    plt.ylabel ( "$\\rho(K)$", fontsize=15 )
-    plt.xticks ( fontsize=13 )
-    plt.yticks ( fontsize=12 )
-    plt.xlabel ( "$K$", fontsize=15 )
-    plt.legend ( fontsize=14 )
-    plt.tight_layout()
+        plt.title ( "Determination of the Density of $K_\\mathrm{fake}$" )
+
+    plt.ylabel ( "$\\rho(K)$" )
+    plt.xlabel ( "$K$" )
+    plt.legend ()
     plt.savefig ( outputfile )
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser( description="plot the money plots" )
     argparser.add_argument ( '-s', '--signals', help="add the fake signals",
                              action="store_true" )
-    argparser.add_argument ( '-b', '--fakes', 
+    argparser.add_argument ( '-b', '--fakes',
                              help="add points for the fake backgrounds",
                              action="store_true" )
     argparser.add_argument ( '-f', '--fastlim', help="add the fastlim real runs",
                              action="store_true" )
     argparser.add_argument ( '-r', '--real', help="add the real Ks",
                              action="store_true" )
+    argparser.add_argument ( '-D', '--datadir',
+                             help="specify the directory of the dict files [./]",
+                             type=str, default="./" )
     argparser.add_argument ( '-o', '--outputfile', help="specify the outputfile",
                              type=str, default="Kvalues.png" )
     args = argparser.parse_args()
     opts = { "signal": args.signals, "fastlim": args.fastlim, "real": args.real,
              "fakes": args.fakes }
-    plot( opts, args.outputfile )
+    plot( opts, args.outputfile, args.datadir )
