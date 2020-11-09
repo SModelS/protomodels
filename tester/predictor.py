@@ -10,6 +10,9 @@ from smodels.particlesLoader import BSMList
 from smodels.tools.physicsUnits import fb, GeV
 from smodels.experiment.databaseObj import Database
 from smodels.theory.model import Model
+from smodels.tools import runtime
+runtime._cap_likelihoods = True
+
 try:
     from tester.combiner import Combiner
 except:

@@ -3,7 +3,7 @@
 """ Code that decides which analyses can be combined and which cannot """
 
 from smodels.tools import runtime
-#runtime._cap_likelihoods = True
+runtime._cap_likelihoods = True
 from smodels.theory.theoryPrediction import TheoryPrediction
 import fnmatch
 

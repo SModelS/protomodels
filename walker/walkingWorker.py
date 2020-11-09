@@ -6,11 +6,11 @@ try:
 except:
     import multiprocessing
 
-def _run ( walker, catchem, seed=None ):
-    from ptools import helpers
-    #Set random seed
+def _run ( walker, catchem, seed ):
     if seed is not None:
-        helpers.seedRandomNumbers(seed)
+        from ptools import helpers
+        helpers.seedRandomNumbers( seed + walker.walkerid )
+        print ( f"[walkingWorker] setting random seed to {seed}" )
     if not catchem:
         walker.walk()
         return
@@ -26,7 +26,7 @@ def _run ( walker, catchem, seed=None ):
         import colorama
         print ( "%swalker %d threw: %s%s\n" % ( colorama.Fore.RED, walker.walkerid, e, colorama.Fore.RESET ) )
 
-def startWalkers ( walkers, seed=None,  catchem=False):
+def startWalkers ( walkers, catchem=False, seed = None ):
 
     processes=[]
     for walker in walkers:
@@ -86,6 +86,7 @@ def main( nmin, nmax, cont,
 
     # print ( "[walkingWorker] I am already inside the python script! Hostname is", socket.gethostname()  )
     walkers = []
+    #Set random seed
     from walker.randomWalker import RandomWalker
     for i in range(nmin,nmax):
         if pfile is None:
@@ -94,7 +95,7 @@ def main( nmin, nmax, cont,
                               dump_training = dump_training,
                               dbpath=dbpath, cheatcode=cheatcode, select=select, 
                               rundir=rundir, nevents=nevents, do_combine = do_combine,
-                              record_history=record_history )
+                              record_history=record_history, seed=seed )
             walkers.append ( w )
         elif pfile.endswith(".hi") or pfdile.endswith(".pcl"):
             nstates = len(states )
@@ -103,7 +104,8 @@ def main( nmin, nmax, cont,
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
                     walkerid = i, nsteps = maxsteps, dump_training=dump_training, 
                     expected = False, select = select, dbpath = dbpath, 
-                    rundir = rundir, do_combine = do_combine, record_history = record_history )
+                    rundir = rundir, do_combine = do_combine, record_history = record_history,
+                    seed = seed )
             walkers.append ( w )
         else:
             nstates = len(states )
@@ -113,9 +115,10 @@ def main( nmin, nmax, cont,
                     strategy = "aggressive", walkerid = i, 
                     dump_training=dump_training, dbpath = dbpath, expected = False, 
                     select = select, rundir = rundir, nevents = nevents,
-                    do_combine = do_combine, record_history = record_history )
+                    do_combine = do_combine, record_history = record_history,
+                    seed = seed )
             walkers.append ( w )
-    startWalkers ( walkers, seed=seed, catchem=catchem )
+    startWalkers ( walkers, catchem=catchem, seed=seed )
 
 if __name__ == "__main__":
     import sys
@@ -125,6 +128,6 @@ if __name__ == "__main__":
     s = "all"
     w = RandomWalker( walkerid=0, nsteps = 10, dump_training = False,
                       dbpath="./default.pcl", cheatcode=0, select=s, 
-                      rundir="./", nevents=1000 )
+                      rundir="./", nevents=1000, seed = None )
     w.walk()
     

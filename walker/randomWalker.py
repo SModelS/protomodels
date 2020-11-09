@@ -2,7 +2,7 @@
 
 """ a first start at the random walk idea """
 
-import random, pickle, sys, time, math, socket, os
+import pickle, sys, time, math, socket, os
 if sys.version_info[0]==2:
     import commands as subprocess # python2.7
 else:
@@ -32,7 +32,7 @@ class RandomWalker:
                    dbpath = "./database.pcl", expected = False,
                    select = "all", catch_exceptions = True,
                    rundir = None, nevents = 100000,
-                   do_combine = False, record_history = False ):
+                   do_combine = False, record_history = False, seed = None ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 is no cheating, 1 is with ranges, 2
@@ -44,6 +44,7 @@ class RandomWalker:
         :param do_combine: if true, then also perform combinations, either via
                            simplified likelihoods or via pyhf
         :param record_history: if true, attach a history recorder class
+        :param seed: random seed, int or None
         """
         if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
             self.pprint ( "Wrong call of constructor: %s, %s, %s" % ( walkerid, nsteps, strategy ) )
@@ -52,6 +53,11 @@ class RandomWalker:
         self.rundir = rundir
         if rundir == None:
             self.rundir = "./"
+
+        if seed is not None:
+            from ptools import helpers
+            helpers.seedRandomNumbers(seed + walkerid )
+            self.pprint ( f"setting random seed to {seed}" )
 
         #Initialize Predictor
         self.predictor =  Predictor( self.walkerid, dbpath=dbpath,
@@ -66,7 +72,8 @@ class RandomWalker:
         protomodel = ProtoModel( self.walkerid, keep_meta = True,
                 nevents = nevents, dbversion = self.predictor.database.databaseVersion )
 
-        self.manipulator = Manipulator ( protomodel, strategy, do_record = record_history )
+        self.manipulator = Manipulator ( protomodel, strategy, do_record = record_history,
+                                         seed = seed )
         self.catch_exceptions = catch_exceptions
         self.maxsteps = nsteps
         self.accelerator = None
@@ -116,10 +123,10 @@ class RandomWalker:
                    walkerid=0, dump_training = False,
                    dbpath="<rundir>/database.pcl", expected = False,
                    select = "all", catch_exceptions = True, keep_meta = True,
-                   rundir = None, do_combine = False ):
+                   rundir = None, do_combine = False, seed = None ):
         ret = cls( walkerid, nsteps=nsteps, dbpath = dbpath, expected=expected,
                    select=select, catch_exceptions = catch_exceptions, rundir = rundir,
-                   do_combine = do_combine )
+                   do_combine = do_combine, seed = seed )
         ret.manipulator.M = protomodel
         ret.manipulator.setWalkerId ( walkerid )
         ret.manipulator.backupModel()
@@ -135,10 +142,11 @@ class RandomWalker:
                    walkerid=0, dump_training = False,
                    dbpath="<rundir>/database.pcl", expected = False,
                    select = "all", catch_exceptions = True, keep_meta = True,
-                   rundir = None, nevents = 100000, do_combine = False ):
+                   rundir = None, nevents = 100000, do_combine = False,
+                   seed = None ):
         ret = cls( walkerid, nsteps=nsteps, dbpath = dbpath, expected=expected,
                    select=select, catch_exceptions = catch_exceptions, rundir = rundir,
-                   nevents = nevents, do_combine = do_combine )
+                   nevents = nevents, do_combine = do_combine, seed = seed )
         ret.manipulator.M = ProtoModel( walkerid, keep_meta, \
                 dbversion = ret.predictor.database.databaseVersion )
         ret.manipulator.initFromDict ( dictionary )
@@ -289,6 +297,7 @@ class RandomWalker:
         ## for now we turn off teleportation
         self.log ( "teleportation turned off" )
         return False
+        import random
         bestK = self.hiscoreList.globalMaxK()
         if bestK < 1.:
             self.log ( "bestK is smaller than one. no teleporting." )
@@ -329,6 +338,7 @@ class RandomWalker:
     def decideOnTakingStep ( self ):
         """ depending on the ratio of K values, decide on whether to take the step or not.
             If ratio > 1., take the step, if < 1, let chance decide. """
+        import random
         ratio = 1.
         K = self.currentK
         newK = self.protomodel.K

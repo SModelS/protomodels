@@ -11,10 +11,9 @@
 #import sys
 #sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
-import colorama
-import copy, random, numpy, time, os, sys, itertools
 from smodels.tools.physicsUnits import fb, TeV
 from smodels.theory.crossSection import LO
+import copy, numpy, time, os, sys, itertools, colorama, random
 
 class Manipulator:
     """ contains the protomodel manipulation algorithms. """
@@ -23,12 +22,14 @@ class Manipulator:
     wallmass = 310.
 
     def __init__ ( self, protomodel, strategy: str = "aggressive",
-                   verbose = False, do_record = False ):
+                   verbose = False, do_record = False, seed = None ):
         """
         :param do_record: do record actions taken
+        :param seed: random seed
         """
         self.namer = SParticleNames ( False )
         self.M = protomodel
+        self.seed = seed
         self.strategy = strategy
         self.verbose = verbose
         #Store a canonical order for the masses. So the ordering in each
@@ -141,6 +142,8 @@ class Manipulator:
                 else:
                     D["ssmultipliers"][k]=round(v,3)
         import time
+        if hasattr ( self, "seed" ) and self.seed != None:
+            D["seed"]=self.seed
         D["timestamp"]=time.asctime()
         D["Z"]=round(self.M.Z,3)
         D["K"]=round(self.M.K,3)
