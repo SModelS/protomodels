@@ -75,14 +75,37 @@ def count():
 def fetch():
     """ fetch states.dict files from the individual runs """
     Dir = "/scratch-cbe/users/wolfgan.waltenberger/"
-    dictfiles = "states.dict"
     dictfiles = "hiscores.dict"
+    dictfiles = "states.dict"
     files = glob.glob ( f"{Dir}/rundir.*/{dictfiles}" )
+    hiscores={}
     for f in files:
         name = f.replace( Dir, "" ).replace("/"+dictfiles,"").replace("rundir.","")
         cmd = f"cp {f} {name}.dict"
+        with open ( f, "rt" ) as h:
+            D=eval(h.read())
+            hiscores[name]=D[0]
         print ( cmd )
         subprocess.getoutput ( cmd )
+
+    """
+    statesfiles = "states.dict"
+    files = glob.glob ( f"{Dir}/rundir.*/{statesfiles}" )
+    states={}
+    for f in files:
+        name = f.replace( Dir, "" ).replace("/"+statesfiles,"").replace("rundir.","")
+        with open ( f, "rt" ) as h:
+            D=eval(h.read())
+            states[name]=D[0]
+    print ( "when fetching:" )
+    for name in hiscores.keys():
+        if not "real" in name:
+            continue
+        if name in states:
+            print ( "fetch:", name,hiscores[name]["K"],states[name]["K"] )
+        else:
+            print ( "fetch:", name,hiscores[name]["K"],"absent!!" )
+    """
 
 def belowMassWall ( D, name ):
     """ check if anything is below the mass wall """
