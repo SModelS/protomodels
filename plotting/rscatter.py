@@ -19,11 +19,12 @@ def getData ():
         h = open ( f, "rt" )
         D = eval ( h.read() )
         h.close()
-        D0m = D[0]["masses"]
-        if not 1000006 in D0m:
-            continue
-        x.append ( D0m[1000006] )
-        y.append ( D0m[1000022] )
+        for i in D:
+            D0m = i["masses"]
+            if not 1000006 in D0m:
+                continue
+            x.append ( D0m[1000006] )
+            y.append ( D0m[1000022] )
     print ( f"{len(files)} files, {len(x)} points." )
     return x,y
 
