@@ -75,7 +75,7 @@ def count():
 def fetch():
     """ fetch states.dict files from the individual runs """
     Dir = "/scratch-cbe/users/wolfgan.waltenberger/"
-    dictfiles = "hiscores.dict"
+    # dictfiles = "hiscores.dict"
     dictfiles = "states.dict"
     files = glob.glob ( f"{Dir}/rundir.*/{dictfiles}" )
     hiscores={}
@@ -179,13 +179,18 @@ def getBest( pattern ):
     """ find out best scoring models """
     files = glob.glob ( f"{pattern}.dict" )
     Ks = {}
+    maxK, maxf = 0, None
     for f in files:
         with open ( f, "rt" ) as h:
             txt = h.read()
             txt = txt.replace("nan","'nan'")
             L = eval( txt )
             Ks[f]=L[0]["K"]
-    print ( Ks )
+            if Ks[f] > maxK:
+                maxK=Ks[f]
+                maxf = f
+    print ( f"getBest {pattern}: {Ks}" )
+    print ( f"the winner is {maxf} with K={maxK}" )
     return Ks
 
 def defineModel1 ( ):
