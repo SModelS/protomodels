@@ -396,6 +396,7 @@ class ExpResModifier:
     def addSignalForULMap ( self, dataset, tpred, lumi ):
         """ add a signal to this UL result. background sampling is
             already taken care of """
+        from smodels.tools.physicsUnits import fb
         txns = list ( map ( str, tpred.txnames ) )
         self.log ( "add UL matching tpred %s: <%s> %s {%s}" % \
                 ( tpred.analysisId(), tpred.xsection.value, \

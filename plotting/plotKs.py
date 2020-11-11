@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import glob, argparse, copy
+import glob, argparse, copy, os
+os.environ["DISPLAY"]=""
 import matplotlib.pyplot as plt
 import scipy.stats
 import numpy as np
@@ -9,7 +10,7 @@ import matplotlib
 matplotlib.use('agg')
 
 def read( which="fake", datadir="./" ):
-    pattern = { "fake": "fake*dict", "real": "real?.dict", "realf": "realf*dict",
+    pattern = { "fake": "fake*dict", "real": "real*.dict", "realf": "realf*dict",
                 "signal": "signal?.dict", "signalf": "signal*f.dict" }
     files = glob.glob( datadir + pattern[which] )
     Ks=[]
@@ -45,7 +46,7 @@ def plot( opts: dict, outputfile, datadir ):
     kde = scipy.stats.gaussian_kde ( Ks )
     minKs = min ( allK )
     maxKs = max ( allK )
-    print ( "maxK", maxKs, fmax, fmax*maxKs )
+    # print ( "maxK", maxKs, "fmax", fmax, "product", fmax*maxKs )
     arange = np.arange ( fmin*minKs, fmax*maxKs, (maxKs-minKs)/npoints )
     values = kde.evaluate ( arange )
     plt.plot ( arange, values, c="tab:orange", label="KDE of $K_\mathrm{fake}$" )
@@ -53,7 +54,8 @@ def plot( opts: dict, outputfile, datadir ):
     ys = [ x + .001 for x in ys ]
     if opts["fakes"]:
         plt.plot ( Ks, ys, "ro", label="$K_\mathrm{fake}$" )
-        print ( "K(bg)=%.3f, [%.3f,%.3f]" % ( np.mean(Ks), min(Ks), max(Ks) ) )
+        print ( "K(bg)=%.3f, [%.3f,%.3f] %d entries" % \
+                ( np.mean(Ks), min(Ks), max(Ks), len(Ks) ) )
     if opts["signal"] and len(Ksig)>0:
         ysig = kde.evaluate( Ksig )
         ysig = [ x - .001 for x in ysig ]
@@ -62,18 +64,21 @@ def plot( opts: dict, outputfile, datadir ):
         marker_style = dict(color='tab:red', linestyle='', marker='o',
                       markersize=8, fillstyle="none" )
         plt.plot ( Ksig, ysig, label="$K_\mathrm{signal}$", **marker_style )
-        print ( "K(signal)=%.3f, [%.3f,%.3f]" % ( np.mean(Ksig), min(Ksig), max(Ksig) ) )
+        print ( "K(signal)=%.3f, [%.3f,%.3f] %d entries" % \
+                ( np.mean(Ksig), min(Ksig), max(Ksig), len(Ksig) ) )
     if opts["fastlim"]:
         ysigf = kde.evaluate( Ksigf )
         ysigf = [ x - .002 for x in ysigf ]
         plt.plot ( Ksigf, ysigf, "m*", ms=8, label="K$_\mathrm{signal}^\mathrm{f=0.8}$" )
-        print ( "K(realf)=%.3f, [%.3f,%.3f]" % ( np.mean(Ksigf), min(Ksigf), max(Ksigf) ) )
+        print ( "K(realf)=%.3f, [%.3f,%.3f] %d entries" % \
+                ( np.mean(Ksigf), min(Ksigf), max(Ksigf), len(Ksigf) ) )
     if opts["real"]:
         yreal = kde.evaluate( Kreal )
         yreal = [ x - .001 for x in yreal ]
         plt.plot ( Kreal, yreal, "g*", ms=8, label="$K_\mathrm{obs}$" )
         Krealmean = np.mean(Kreal)
-        print ( "K(real)=%.3f, [%.3f,%.3f]" % ( Krealmean, min(Kreal), max(Kreal) ) )
+        print ( "K(real)=%.3f, [%.3f,%.3f] %d entries" % \
+                ( Krealmean, min(Kreal), max(Kreal), len(Kreal) ) )
         yrealmean = kde.evaluate ( Krealmean )[0]
         p = kde.integrate_box_1d ( Krealmean, float("inf") )
         pmin = kde.integrate_box_1d ( min(Kreal), float("inf") )
