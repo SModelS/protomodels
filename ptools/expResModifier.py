@@ -15,7 +15,6 @@ setup()
 from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
-from smodels.tools.physicsUnits import fb, GeV
 from smodels.theory.model import Model
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
@@ -494,6 +493,7 @@ class ExpResModifier:
 
     def produceTopoList ( self ):
         """ create smstopolist """
+        from smodels.tools.physicsUnits import fb, GeV
         model = Model ( BSMList, SMList )
         model.updateParticles ( inputFile=self.protomodel.currentSLHA )
         mingap=10*GeV
