@@ -85,7 +85,7 @@ def fetch():
         with open ( f, "rt" ) as h:
             D=eval(h.read())
             hiscores[name]=D[0]
-        print ( cmd )
+        # print ( cmd )
         subprocess.getoutput ( cmd )
 
     """
