@@ -37,18 +37,26 @@ argparser.add_argument ( '-m', '--maxsteps',
 argparser.add_argument ( '-n', '--start',
         help='step to start with [0]',
         type=int, default=0 )
-argparser.add_argument ( '-D', '--dont_clean',
-        help='dont clean up old files',
+argparser.add_argument ( '-c', '--do_clean',
+        help='do clean up old files',
         action="store_true" )
 argparser.add_argument ( '-t', '--timestamp',
         help='put timestamp on pic',
         action="store_true" )
+argparser.add_argument ( '-F', '--fetch',
+        help='first fetch the file',
+        action="store_true" )
 args = argparser.parse_args()
+
+if args.fetch:
+    cmd = "scp clip-login-1:/scratch-cbe/users/wolfgan.waltenberger/rundir.history/history.list ."
+    print ( cmd )
+    subprocess.getoutput ( cmd )
 prefix = args.outfile.replace(".mp4","").replace(".webm","")
     
 intermediateSteps = True ## do 10 rendering steps per one random walk step
 
-if not args.dont_clean:
+if args.do_clean:
     cmd = f'rm -f {prefix}*.png'
     subprocess.getoutput( cmd )
 
@@ -82,7 +90,8 @@ if not "]" in txt[-3:]:
 
 modelList=eval(txt)
 
-emptymodel = { "masses": {}, "step": 0, "bestCombo": [], "actions": [], "K": -200., "Z": -200. }
+emptymodel = { "masses": {}, "step": 0, "bestCombo": [], "actions": [], "K": -200., 
+               "Z": -200. }
 nstart=0
 for i in range(19):
     nstart+=1
@@ -175,6 +184,8 @@ print ( cmd )
 imgnr=0
 maxHS = 19
 
+hasWarned = [ False ]
+
 def getHiscore ( firststep, currentstep, Ks ):
     """ get the hiscore at step firststep-1 """
     maxK = -90.
@@ -189,25 +200,35 @@ def getHiscore ( firststep, currentstep, Ks ):
 
 def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K ):
     """ make a single picture """
+    step = firststep + 1 ## make all one-indexed, ok?
+    figname = '%s%.3d.png' % (prefix, step )
+    if intermediateSteps:
+        figname = '%s%.5d.png' % ( prefix, imgnr )
+    if K > maxK:
+        lastingHS = maxHS ## keep it for 9 frames
+        stepatmax = firststep+currentstep
+        maxK = K
+    isHiscore = False
+    if lastingHS>0:
+        maxK = K
+        red=(1., (maxHS-lastingHS)/maxHS, (maxHS-lastingHS)/maxHS )
+        isHiscore = True
+        lastingHS-=1 ## count down to zero
+    ret = { "lastingHS": lastingHS, "maxK": maxK, "stepatmax": stepatmax }
+
+    if os.path.exists ( figname ):
+        if not hasWarned[0]:
+            print ( "[movieMaker] figure",figname,"exists -- skipping (use -c if you want to regenerate)!" )
+            hasWarned[0] = True
+        return ret
+
     fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, 
                       gridspec_kw={'width_ratios': [1, 10]} )
     ctentries=0
     plt.text ( -3+firststep-nstart+offs, 1250, "hiscore", rotation=90., c="pink", alpha=.5, 
                size=30, horizontalalignment='center', verticalalignment='center', zorder=5 )
-    if K > maxK:
-        lastingHS = maxHS ## keep it for 9 frames
-        stepatmax = firststep+currentstep
-        maxK = K
-    if lastingHS>0:
-        maxK = K
-        red=(1., (maxHS-lastingHS)/maxHS, (maxHS-lastingHS)/maxHS )
+    if isHiscore:
         plt.text ( .5+firststep-nstart+offs, 2200, "hiscore!", c=red, size=30, clip_on=False )
-        lastingHS-=1 ## count down to zero
-    # arrow = plt.arrow ( currentstep, -50, -currentstep-2, 0, width=20, clip_on=False, transform=ax2.transData, color="black" )
-    # arrow = patches.FancyArrowPatch((.1, .5), (.1, .5), clip_on=False,
-    #arrow = patches.FancyArrowPatch((firststep+currentstep-5-nstart, firststep-nstart), ( 50, 50), 
-    #    clip_on=False, connectionstyle="arc3,rad=.1", **kw, transform=ax2.transData )
-    # plt.gca().add_patch ( arrow )
 
     for pid in pids:
         if max(masses[pid][firststep:laststep:nsteps]) <= 0.0: continue
@@ -298,19 +319,13 @@ def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K
     if args.timestamp:
         plt.text ( 15+firststep-nstart+offs, -280, time.asctime(), size=8, 
                    alpha=.5, c="gray" )
-    step = firststep + 1 ## make all one-indexed, ok?
     off1 = firststep-nstart+.05+offs
     ax2.set_xlim ( off1, off1 + 21 )
-    if intermediateSteps:
-        plt.savefig('%s%.5d.png' % \
-                ( prefix, imgnr ), dpi=200 )
-    else:
-        plt.savefig('%s%.3d.png' % (prefix, step ), dpi=200 )
+    plt.savefig( figname, dpi=200 )
     # plt.show()
     plt.clf()
     plt.close("all")
     gc.collect()
-    ret = { "lastingHS": lastingHS, "maxK": maxK, "stepatmax": stepatmax }
     return ret
 
 alloffs = [ 0. ]
