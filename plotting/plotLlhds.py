@@ -268,6 +268,10 @@ class LlhdPlot:
             print ( "couldnt find anything" )
             return None
         for llhd in allhds:
+            if self.pid1 in [ 1000001, 1000002, 1000003, 1000004 ]:
+                if llhd[0]<310.:
+                    print ( "light squark mass wall, skipping mx %d < 310 GeV" % llhd[0] )
+                    continue
             if len(llhd)==4:
                 llhds.append ( (llhd[0],llhd[1],getMu1(llhd[2]),llhd[3]) )
             else:
@@ -399,6 +403,8 @@ class LlhdPlot:
                 ymin = m[1]
             if m[1] > ymax:
                 ymax = m[1]
+        if abs(xmin-310.)<1e-5:
+            xmin=330. ## cut off the left margin
         print ( "[plotLlhds] range x [%d,%d] y [%d,%d]" % ( xmin, xmax, ymin, ymax ) )
         handles = []
         existingPoints = []
