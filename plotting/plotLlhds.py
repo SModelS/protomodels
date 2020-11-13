@@ -156,6 +156,8 @@ class LlhdPlot:
         self.rthreshold = 1.7
         self.interactive = interactive
         self.hiscorefile = "./hiscore.hi"
+        if rundir != None:
+            self.hiscorefile = f"{rundir}/hiscore.hi"
         self.setVerbosity ( verbose )
         masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
         self.masspoints = masspoints
@@ -351,7 +353,7 @@ class LlhdPlot:
               ret = ret.replace( "+ 4 (1 b-)jets", "multijet" )
               # ret += " -> " + anaid
               return ret
-        print ( "found no pretty name", er[0].globalInfo )
+        # print ( "found no pretty name", ers[0].globalInfo )
         return anaid
 
     def plot ( self, ulSeparately=True, pid1=None ):
