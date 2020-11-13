@@ -359,4 +359,5 @@ for firststep in range ( args.start, maxstep ):
         stepatmax = ret["stepatmax"]
         imgnr+=1
 
+print ( f"[movieMaker] now executing {cmd}" )
 subprocess.getoutput ( cmd )

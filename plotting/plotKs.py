@@ -115,7 +115,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '-D', '--datadir',
                              help="specify the directory of the dict files [./]",
                              type=str, default="./" )
-    argparser.add_argument ( '-o', '--outputfile', help="specify the outputfile",
+    argparser.add_argument ( '-o', '--outputfile', help="specify the outputfile [Kvalues.png]",
                              type=str, default="Kvalues.png" )
     args = argparser.parse_args()
     opts = { "signal": args.signals, "fastlim": args.fastlim, "real": args.real,
