@@ -390,7 +390,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
             y2_ = float("nan")
         y.append ( y0 )
         yr.append ( y2_ )
-    pname = namer.texName ( pid, addDollars=True )
+    pname = namer.texName ( pid, addDollars=False )
     if isSSMPlot():
         #pname = namer.texName ( pid, addDollars=False, addSign=True )+","+\
         #        namer.texName ( pid2, addDollars=False, addSign=True )
@@ -406,7 +406,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
     ax1.tick_params ( axis="x", labelsize=12 )
     ax1.set_ylabel ( "K", c="tab:blue", fontsize=15 )
     # ax1.set_xlabel ( "m [GeV]", fontsize=13 )
-    ax1.set_xlabel ( "m($%s$) [GeV]" % pname, fontsize=16 )
+    ax1.set_xlabel ( "$m(%s)$ [GeV]" % pname, fontsize=16 )
     maxyr = numpy.nanmax(ydashed)
     # print ( "ydashed", ydashed )
     ax1.set_ylim ( bottom = 2., top=8.4 )
@@ -454,7 +454,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         ax1.legend( fontsize = 12, loc= "lower left" )
     else:
         ax1.legend( fontsize = 12 )
-        plt.xlabel ( "m(%s) [GeV]" % pname, fontsize=16 )
+        plt.xlabel ( "$m(%s)$ [GeV]" % pname, fontsize=16 )
 
     # plt.text ( .9*min(x)+.1*(max(x)-min(x)), 1.*max(y), "%d events" % nevents )
     figname = "M%d.png" % pid
