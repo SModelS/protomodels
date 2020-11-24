@@ -158,11 +158,11 @@ def updateStates( rundir=None):
     print ( "[updateHiscores] done updating %s" % args.outfile )
     print ( )
 
-def plot( Z, K, rundir ):
+def plot( Z, K, rundir, upload="latest" ):
     from plotting import plotHiscore
     from argparse import Namespace
     args = Namespace()
-    args.upload = "latest"
+    args.upload = upload
     args.number = 0
     args.detailed = False
     args.destinations = False
@@ -182,10 +182,11 @@ def plot( Z, K, rundir ):
         args.commit = True
     plotHiscore.runPlotting ( args )
 
-def main( rundir = None, maxruns=3, doPlots=True ):
+def main( rundir = None, maxruns=3, doPlots=True, uploadTo="latest" ):
     """ eternal loop that updates hiscore.hi and states.dict 
     :param maxruns: maximally iterate that many times
     :param doPlots: if False, suppress plotting
+    :param uploadTo: upload plots to directory "~/git/smodels.github.io/<uploadTo>"
     """
     rundir = setup( rundir )
     i = 0
@@ -212,8 +213,6 @@ def main( rundir = None, maxruns=3, doPlots=True ):
             with open ( "%shistory.txt" % rundir, "at" ) as f:
                 f.write ( "%s, step=%d, Z=%.4f, K=%.4f, t=%s\n" % ( time.asctime(),step,Z,K,T) )
                 f.close()
-            if doPlots:
-                plot ( Z, K, rundir )
             with open ( Zfile, "wt" ) as f:
                 f.write ( "%s\n" % str(Z) )
                 f.close()
@@ -222,6 +221,8 @@ def main( rundir = None, maxruns=3, doPlots=True ):
                 f.close()
             Zold = Z
             Kold = K
+        if doPlots:
+            plot ( Z, K, rundir, uploadTo )
         updateStates( rundir )
         time.sleep(60.)
         if os.path.exists ( Kfile ): ## so we can meddle from outside
