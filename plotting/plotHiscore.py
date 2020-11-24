@@ -49,7 +49,7 @@ def gitCommit ( dest, wanted ):
     """ if wanted, then git commit and git push to smodels.githuib.io """
     if not wanted:
         return False
-    comment = "automated update by plotHiscore.py"
+    comment = "automated update by plotHiscore.py to %s" % dest
     cmd = "cd %s; git pull; git commit -am '%s'; git push" % ( dest, comment )
     print ( "[plotHiscore] now git-commit: %s" % cmd )
     out = subprocess.getoutput ( cmd )
@@ -860,8 +860,8 @@ def runPlotting ( args ):
         print ( "anomaly: upload to github git directory, 'anomaly' folder." )
         print ( "             Result can be seen at https://smodels.github.io/protomodels/anomaly" )
         return
-    upload = args.upload.lower()
-    if upload in [ "none", "" ]:
+    upload = args.upload# .lower()
+    if upload in [ "none", "None", "" ]:
         upload = None
 
     options = { "ruler": args.ruler, "decays": args.decays,
@@ -875,6 +875,7 @@ def runPlotting ( args ):
     F = "*.png pmodel.py hiscore.slha index.html rawnumbers.html"
     dest = ""
     destdir = "%s/git" % os.environ["HOME"]
+    dest = "%s/smodels.github.io/protomodels/%s/" % ( destdir, upload )
     if upload == "github":
         dest = "%s/smodels.github.io/protomodels/" % destdir
     if upload in [ "interesting", "anomaly", "latest" ]:
