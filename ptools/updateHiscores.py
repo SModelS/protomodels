@@ -213,8 +213,6 @@ def main( rundir = None, maxruns=3, doPlots=True, uploadTo="latest" ):
             with open ( "%shistory.txt" % rundir, "at" ) as f:
                 f.write ( "%s, step=%d, Z=%.4f, K=%.4f, t=%s\n" % ( time.asctime(),step,Z,K,T) )
                 f.close()
-            if doPlots:
-                plot ( Z, K, rundir, uploadTo )
             with open ( Zfile, "wt" ) as f:
                 f.write ( "%s\n" % str(Z) )
                 f.close()
@@ -223,6 +221,8 @@ def main( rundir = None, maxruns=3, doPlots=True, uploadTo="latest" ):
                 f.close()
             Zold = Z
             Kold = K
+        if doPlots:
+            plot ( Z, K, rundir, uploadTo )
         updateStates( rundir )
         time.sleep(60.)
         if os.path.exists ( Kfile ): ## so we can meddle from outside
