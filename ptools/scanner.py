@@ -148,7 +148,7 @@ def ssmProcess ( args ):
         # model.predict ( nevents = nevents, recycle_xsecs = True )
         predictor.predict ( model ) # #nevents = nevents, recycle_xsecs = True )
         print ( "[scanner:%d-%s]   `- Z=%.3f" % ( i, ts, model.Z ) )
-        ret[ssm]=(model.Z,model.rvalues[0],model.K)
+        ret[model.muhat*ssm]=(model.Z,model.rvalues[0],model.K,model.muhat)
     return ret
 
 def produce( hi, pid=1000022, nevents = 100000, dry_run=False,
@@ -324,6 +324,21 @@ def findPids ( rundir ):
         ret.add ( int(s) )
     return ret
 
+
+def getClosest ( key, D, maxDist=1e-5 ):
+    """ get the entry in dictionary D whose key is closest to k 
+    :returns: D[key] of something close. None if nothing was found within maxDist
+    """
+    if key in D: ## exact match
+        return D[key]
+    dmax=maxDist+1e-5
+    entry = None
+    for k,v in D.items():
+        if abs(key-k)<dmax:
+            dmax=abs(key-k)
+            entry = v
+    return v
+
 def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
           drawtimestamp = True, rundir = None, plotrmax=False,
           rthreshold = 1.3, upload = "latest" ):
@@ -439,7 +454,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
     param = "%d GeV" % cmass
     if isSSMPlot():
         param="%.3f" % cmass
-    Zmax = Zs[cmass]
+    Zmax = getClosest( cmass, Zs )
     if type(Zmax)==tuple:
         Zmax=Zmax[idx]
     # label = "proto-model\n K(%s)=%.2f" % (param, Zmax )
