@@ -24,16 +24,21 @@ from smodels.theory import decomposer
 
 class ExpResModifier:
     def __init__ ( self, dbpath, Zmax, rundir, keep, nproc, fudge,
-                   suffix: str, lognormal = False ):
+                   suffix: str, lognormal = False, fixedsignals = False, 
+                   seed = None ):
         """
         :param dbpath: path to database
         :param Zmax: upper limit on an individual excess
         :param suffix: suffix to use, e.g. fake, signal, etc
         :param lognormal: if True, use lognormal for nuisances, else Gaussian
+        :param fixedsignals: if True, then use the central value of theory prediction
+                             as the signal yield, dont draw from Poissonian
+        :param seed: if int and not None, set random number seed
         """
         self.comments = {} ## comments on entries in dict
         self.lognormal = lognormal
         self.dbpath = dbpath
+        self.fixedsignals = fixedsignals
         self.protomodel = None
         self.rundir = setup( rundir )
         self.keep = keep
@@ -47,6 +52,14 @@ class ExpResModifier:
         self.startLogger()
         self.stats = {}
         self.logCall()
+        self.setSeed ( seed )
+
+    def setSeed( seed ):
+        if seed is None:
+            return
+        from ptools import helpers
+        helpers.seedRandomNumbers( seed )
+        self.pprint ( f"setting random seed to {args.seed}" )
 
     def interact ( self, listOfExpRes ):
         import IPython
@@ -323,7 +336,11 @@ class ExpResModifier:
         D={}
         D["sigLambda"]=sigLambda
         self.comments["sigLambda"]="the lambda for the signal"
-        sigN = stats.poisson.rvs ( sigLambda )
+        sigN = sigLambda
+        if self.fixedsignals:
+            self.comments["sigN"]="the number of events from the added signal (using central value)"
+        else:
+            sigN = stats.poisson.rvs ( sigLambda )
         D["sigN"]=0
         if "sigN" in self.stats[label]:
             ## sigN is the total number of added signals
@@ -342,6 +359,8 @@ class ExpResModifier:
                            ( sigN, orig ) )
                 dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
                 dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
+                D["newObs"]=orig
+                self.addToStats ( label, D )
                 return dataset
         ## the signal is less than permille of bg?
         if orig > 0. and sigN / orig < 1e-3:
@@ -349,9 +368,11 @@ class ExpResModifier:
                            ( sigN, orig ) )
                 dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
                 dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
+                D["newObs"]=orig
+                self.addToStats ( label, D )
                 return dataset
-        self.log ( " `- effmap adding sigN=%d to obsN=%d" % \
-                   ( sigN, orig ) )
+        self.log ( " `- effmap adding sigN=%d to obsN=%d -> newObs=%d" % \
+                   ( sigN, orig, orig + sigN ) )
         dataset.dataInfo.trueBG = orig ## keep track of true bg
         dataset.dataInfo.observedN = orig + sigN
         D["newObs"]=dataset.dataInfo.observedN
@@ -808,9 +829,15 @@ if __name__ == "__main__":
     argparser.add_argument ( '-l', '--lognormal',
             help='use lognormal, not Gaussian for nuisances',
             action='store_true' )
+    argparser.add_argument ( '--fixedsignals',
+            help='fix the contributions from the signals, dont draw from Poissonian',
+            action='store_true' )
     argparser.add_argument ( '-M', '--max',
             help='upper limit on significance of individual excess [None]',
             type=float, default=None )
+    argparser.add_argument ( '--seed',
+            help='set a random number seed [None]',
+            type=int, default=None )
     argparser.add_argument ( '-N', '--nproc',
             help='number of parallel processes, for signal adding [1]',
             type=int, default=1 )
@@ -849,8 +876,8 @@ if __name__ == "__main__":
         args.outfile = args.suffix+".pcl"
     from smodels.experiment.databaseObj import Database
     modifier = ExpResModifier( args.database, args.max, args.rundir, args.keep, \
-                               args.nproc, args.fudge, args.suffix, args.lognormal )
-
+                               args.nproc, args.fudge, args.suffix, args.lognormal,
+                               args.fixedsignals, args.seed )
     if not args.outfile.endswith(".pcl"):
         print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % args.outfile )
     if args.nofastlim or args.onlyvalidated or args.nosuperseded or args.remove_orig:
