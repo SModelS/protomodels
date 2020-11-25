@@ -24,7 +24,8 @@ from smodels.theory import decomposer
 
 class ExpResModifier:
     def __init__ ( self, dbpath, Zmax, rundir, keep, nproc, fudge,
-                   suffix: str, lognormal = False, fixedsignals = False ):
+                   suffix: str, lognormal = False, fixedsignals = False, 
+                   seed = None ):
         """
         :param dbpath: path to database
         :param Zmax: upper limit on an individual excess
@@ -32,6 +33,7 @@ class ExpResModifier:
         :param lognormal: if True, use lognormal for nuisances, else Gaussian
         :param fixedsignals: if True, then use the central value of theory prediction
                              as the signal yield, dont draw from Poissonian
+        :param seed: if int and not None, set random number seed
         """
         self.comments = {} ## comments on entries in dict
         self.lognormal = lognormal
@@ -50,6 +52,14 @@ class ExpResModifier:
         self.startLogger()
         self.stats = {}
         self.logCall()
+        self.setSeed ( seed )
+
+    def setSeed( seed ):
+        if seed is None:
+            return
+        from ptools import helpers
+        helpers.seedRandomNumbers( seed )
+        self.pprint ( f"setting random seed to {args.seed}" )
 
     def interact ( self, listOfExpRes ):
         import IPython
@@ -852,10 +862,6 @@ if __name__ == "__main__":
     argparser.add_argument ( '-k', '--keep',
             help='keep temporary files (for debugging)', action='store_true' )
     args = argparser.parse_args()
-    if args.seed is not None:
-        from ptools import helpers
-        helpers.seedRandomNumbers( args.seed )
-        print ( f"[expResModifier] setting random seed to {args.seed}" )
     if args.build:
         from smodels.experiment.txnameObj import TxNameData
         TxNameData._keep_values = True
@@ -871,8 +877,7 @@ if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     modifier = ExpResModifier( args.database, args.max, args.rundir, args.keep, \
                                args.nproc, args.fudge, args.suffix, args.lognormal,
-                               args.fixedsignals )
-
+                               args.fixedsignals, args.seed )
     if not args.outfile.endswith(".pcl"):
         print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % args.outfile )
     if args.nofastlim or args.onlyvalidated or args.nosuperseded or args.remove_orig:
