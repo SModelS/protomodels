@@ -539,11 +539,20 @@ class Combiner:
             if not hasXSec or xsecv < .001 * fb:
                 continue
             ## every unique ssm > 0 costs a little, but only very little
-            ssmkey = int ( 100. * ssm )
+            # ssmkey = int ( 100. * ssm )
             if ssm > 1e-4: # and abs ( ssm - 1. ) > .01: ssms of 1, are they special?
-                if not ssmkey in cssms:
-                    cssms[ssmkey]=0
-                cssms[ssmkey]+=1
+                foundSimilarValue=False
+                for k,v in cssms.items():
+                    dssm = 2. * abs ( ssm - k ) / ( ssm + k )
+                    if dssm < .03: ## they are the same up to 3% percent?
+                        cssms[k]+=1
+                        foundSimilarValue=True
+                        break
+                if not foundSimilarValue:
+                    cssms[ssm]=1
+                #if not ssmkey in cssms:
+                #    cssms[ssmkey]=0
+                #cssms[ssmkey]+=1
                 # nssms += 1
             ## if we treat ones a special, see above, then we need this
             #if abs ( ssm - 1. ) < .01:
