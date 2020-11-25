@@ -825,6 +825,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-M', '--max',
             help='upper limit on significance of individual excess [None]',
             type=float, default=None )
+    argparser.add_argument ( '--seed',
+            help='set a random number seed [None]',
+            type=int, default=None )
     argparser.add_argument ( '-N', '--nproc',
             help='number of parallel processes, for signal adding [1]',
             type=int, default=1 )
@@ -849,6 +852,10 @@ if __name__ == "__main__":
     argparser.add_argument ( '-k', '--keep',
             help='keep temporary files (for debugging)', action='store_true' )
     args = argparser.parse_args()
+    if args.seed is not None:
+        from ptools import helpers
+        helpers.seedRandomNumbers( args.seed )
+        print ( f"[expResModifier] setting random seed to {args.seed}" )
     if args.build:
         from smodels.experiment.txnameObj import TxNameData
         TxNameData._keep_values = True
