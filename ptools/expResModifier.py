@@ -342,6 +342,8 @@ class ExpResModifier:
                            ( sigN, orig ) )
                 dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
                 dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
+                D["newObs"]=orig
+                self.addToStats ( label, D )
                 return dataset
         ## the signal is less than permille of bg?
         if orig > 0. and sigN / orig < 1e-3:
@@ -349,9 +351,11 @@ class ExpResModifier:
                            ( sigN, orig ) )
                 dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
                 dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
+                D["newObs"]=orig
+                self.addToStats ( label, D )
                 return dataset
-        self.log ( " `- effmap adding sigN=%d to obsN=%d" % \
-                   ( sigN, orig ) )
+        self.log ( " `- effmap adding sigN=%d to obsN=%d -> newObs=%d" % \
+                   ( sigN, orig, orig + sigN ) )
         dataset.dataInfo.trueBG = orig ## keep track of true bg
         dataset.dataInfo.observedN = orig + sigN
         D["newObs"]=dataset.dataInfo.observedN
