@@ -54,7 +54,7 @@ class ExpResModifier:
         self.logCall()
         self.setSeed ( seed )
 
-    def setSeed( seed ):
+    def setSeed( self, seed ):
         if seed is None:
             return
         from ptools import helpers

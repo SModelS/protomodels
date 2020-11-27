@@ -15,11 +15,11 @@ def count ( protomodels ):
 
 def sortByZ ( protomodels ):
     protomodels.sort ( reverse=True, key = lambda x: x.Z )
-    return protomodels[:20] ## only 20
+    return protomodels[:5] ## only 5
 
 def sortByK ( protomodels ):
     protomodels.sort ( reverse=True, key = lambda x: x.K )
-    return protomodels[:20] ## only 20
+    return protomodels[:5] ## only 5
 
 def storeList ( protomodels, savefile ):
     """ store the best protomodels in another hiscore file """

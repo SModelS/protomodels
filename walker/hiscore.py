@@ -90,22 +90,66 @@ class Hiscore:
                 f.close()
         return ret
 
+    def globalMinK ( self ):
+        """ the minimum K needed to make it into hiscore list """
+        Kminfile = "Kmin.conf"
+        ret = -99
+        if not os.path.exists ( Kminfile ):
+            return ret
+        with open ( Kminfile, "rt" ) as f:
+            lines = f.readlines()
+            if len(lines)>0:
+                ret = float(lines[0])
+            f.close()
+        return ret
+
+    def insertHiscore ( self, L : list, hi : dict ):
+        """ insert hiscore <hi> into list <L> at the appropriate place """
+        K = hi["K"]
+        ret = []
+        for oldhi in L: ## as long as the Ks are above the new K, append
+            if oldhi["K"]>= K:
+                ret.append ( oldhi )
+            else:
+                break
+        ## now the new hiscore
+        ret.append ( hi )
+        ## now fill up
+        for oldhi in L[len(ret)-1:]:
+            ret.append ( oldhi )
+        ret = ret[:10] ## cut off, max ten
+        return ret
+
     def writeToHiscoreFile ( self, m ):
         """ we have a new hiscore, write to hiscore.dict
         :param m: manipulator
         """
+        oldhiscores=[]
         fname = "hiscores.dict"
+        if os.path.exists ( fname ):
+            with open ( fname, "rt" ) as h:
+                oldhiscores = eval( h.read() )
+                h.close()
+        D=m.M.dict()
+        D["K"]=m.M.K
+        D["Z"]=m.M.Z
+        D["step"]=m.M.step
+        D["walkerid"]=m.M.walkerid
+        newlist = self.insertHiscore ( oldhiscores, D )
         self.pprint ( f"write model to {fname}" )
         with open ( fname, "wt" ) as f:
-            D=m.M.dict()
-            D["K"]=m.M.K
-            D["Z"]=m.M.Z
-            D["step"]=m.M.step
-            D["walkerid"]=m.M.walkerid
-            f.write ( "[ %s ]\n" % ( D ) )
+            f.write ( "[" )
+            for ctr,l in enumerate(newlist):
+                f.write ( "%s" % l )
+                if ctr < len(newlist):
+                    f.write ( ",\n" % ( l ) )
+            f.write ( "]\n" )
             f.close()
         with open ( "Kold.conf", "wt" ) as f:
             f.write ( "%f\n" % m.M.K  )
+            f.close()
+        with open ( "Kmin.conf", "wt" ) as f:
+            f.write ( "%f\n" % newlist[-1]["K"] )
             f.close()
 
     def addResult ( self, protomodel ):
@@ -118,9 +162,10 @@ class Hiscore:
         if m.M.K == 0.:
             return False ## just to be sure, should be taken care of above, though
 
-        Kold = self.globalMaxK()
+        # Kold = self.globalMaxK()
+        Kmin = self.globalMinK()
         # self.pprint ( f"adding results Kold is {Kold} Knew is {m.M.K}" )
-        if m.M.K > Kold:
+        if m.M.K > Kmin:
             self.writeToHiscoreFile( m )
             ## we have a new hiscore?
             ## compute the particle contributions
@@ -418,3 +463,12 @@ class Hiscore:
         with open( logfile, "at" ) as f:
             tm = time.strftime("%b %d %H:%M:%S")
             f.write ( "[hiscore-%s] %s\n" % ( tm, " ".join(map(str,args)) ) )
+
+if __name__ == "__main__":
+    L=[ {"K": 7.6, "x": "d"}, {"K": 7.2, "x": "e"}, {"K": 7.1, "x": "f"} ]
+    for x in [ 6.9, 6.7, 6.5, 6.4, 6.3, 6.2, 6.1, 6.0, 5.9, 5.8 ]:
+        L.append ( { "K": x, "x": "blah" } )
+    hi={"K": 7.3, "x": "new"}
+    hilist = Hiscore ( 0, False )
+    print ( hilist.insertHiscore( L, hi ) )
+    hilist.writeToHiscoreFile( :q)

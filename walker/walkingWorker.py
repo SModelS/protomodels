@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os
+import os, sys
 try:
     from torch import multiprocessing
 except:
@@ -41,7 +41,7 @@ def main( nmin, nmax, cont,
           dbpath = "<rundir>/database.pcl",
           cheatcode = 0, dump_training = False, rundir=None, maxsteps = 10000,
           nevents = 100000, seed = None,  catchem=True, select="all",
-          do_combine = False, record_history = False ):
+          do_combine = False, record_history = False, update_hiscores = False ):
     """ a worker node to set up to run walkers
     :param nmin: the walker id of the first walker
     :param nmax: the walker id + 1 of the last walker
@@ -57,6 +57,8 @@ def main( nmin, nmax, cont,
     :param do_combine: if true, then also perform combinations, either via
                        simplified likelihoods or via pyhf
     :param record_history: if True, then use history recorders
+    :param update_hiscores: if True, then finish your run and 
+                            after that run hiscore updater
     """
 
     if rundir != None and "<rundir>" in dbpath:
@@ -119,6 +121,29 @@ def main( nmin, nmax, cont,
                     seed = seed )
             walkers.append ( w )
     startWalkers ( walkers, catchem=catchem, seed=seed )
+    if update_hiscores:
+        import updateHiscores, time
+        ctAttempts = 0 ## count how often we tried
+        succeeded = False
+        while ctAttempts < 5:
+            steps = updateHiscores.countSteps( writeSubmitFile = False )
+            if not type(steps)==tuple:
+                print ( "[walkingWorker] been asked to update hiscores, but dont understand steps %s" % steps )
+                sys.exit(-1)
+            print ( "[walkingWorker] been asked to update hiscores: %d == %d" % \
+                    ( steps[0], nmax*maxsteps ) )
+            ctAttempts += 1
+            if steps[0] == nmax*maxsteps: ## are we last?
+                updateHiscores.main ( rundir = rundir, maxruns=1, 
+                                      doPlots=False, uploadTo="latest" )
+                succeeded = True
+                break
+            else:
+                time.sleep ( (ctAttempts+2)*300 )
+        if succeeded:
+            print ( "[walkingWorker] ran updater successfully." )
+        else:
+            print ( f"[walkingWorker] tried more {ctAttempts} times. stop trying." )
 
 if __name__ == "__main__":
     import sys
