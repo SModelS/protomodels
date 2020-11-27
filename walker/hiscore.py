@@ -471,4 +471,4 @@ if __name__ == "__main__":
     hi={"K": 7.3, "x": "new"}
     hilist = Hiscore ( 0, False )
     print ( hilist.insertHiscore( L, hi ) )
-    hilist.writeToHiscoreFile( :q)
+    hilist.writeToHiscoreFile( )
