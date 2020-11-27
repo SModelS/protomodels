@@ -29,6 +29,7 @@ def main():
     nfinishedjobs = 0
     Dicts={}
     K=0
+    dfound="???"
     for d in Dirs:
         if "default" in d or "skeleton" in d:
             continue
@@ -41,6 +42,7 @@ def main():
                     D=eval(h.read())
                     if D[0]["K"] > K:
                         K = D[0]["K"]
+                        dfound = d
             except:
                 pass
         n,steps = countSteps( printout=False )
@@ -66,7 +68,7 @@ def main():
             line += " (was %5d)" % nold
         print ( line )
         os.chdir ( "/scratch-cbe/users/wolfgan.waltenberger/" )
-    print ( "current Kmax is %.2f" % K )
+    print ( "current Kmax is %.2f, found in %s" % ( K, dfound.replace("rundir.","").replace("/","") ) )
     print ( "total %d/%d jobs finished: %d%s" % ( nfinishedjobs, njobs, (nfinishedjobs*100/njobs), "%" ) )
     print ( "total %dk/%dk: %d%s" % ( ntot/1000, assumed/1000, ntot/assumed*100, "%" ) )
     Dicts["t"]=time.time()
