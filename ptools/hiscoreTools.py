@@ -256,7 +256,7 @@ if __name__ == "__main__":
             ( colorama.Fore.RED, colorama.Fore.RESET ) )
     print ( "[hiscoreTools]        Classes: %sProtoModel, Combiner, Predictor, Hiscore, Database%s" % \
             ( colorama.Fore.RED, colorama.Fore.RESET ) )
-    print ( "[hiscoreTools] Instantiations: %sma, co, hi%s" % \
+    print ( "[hiscoreTools] Instantiations: %sma, co, hi, pr%s" % \
             ( colorama.Fore.RED, colorama.Fore.RESET ) )
     from tester import combiner
     from walker import hiscore
@@ -267,7 +267,8 @@ if __name__ == "__main__":
     from smodels.tools.physicsUnits import pb, fb
     from smodels.experiment.databaseObj import Database
     import copy, numpy, scipy, scipy.stats, math
-    co = Combiner() #Keep it for convenience
+    co = Combiner() # instantiate for convenience
+    pr = Predictor( 0 ) # instantiate for convenience
     from ptools import helpers
     # import hiscore #Keep it for convenience
 

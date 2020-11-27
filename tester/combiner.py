@@ -550,9 +550,11 @@ class Combiner:
                         break
                 if not foundSimilarValue:
                     cssms[ssm]=1
-                #if not ssmkey in cssms:
-                #    cssms[ssmkey]=0
-                #cssms[ssmkey]+=1
+                """
+                if not ssmkey in cssms:
+                    cssms[ssmkey]=0
+                cssms[ssmkey]+=1
+                """
                 # nssms += 1
             ## if we treat ones a special, see above, then we need this
             #if abs ( ssm - 1. ) < .01:
@@ -561,6 +563,9 @@ class Combiner:
         pun1 += .1 * ( sum(cssms.values()) - len(cssms) ) ## small additional punishments for all non-zeros
         nssms = len( cssms )+pun1
         ret = self.priorForNDF ( nUnfrozen, nbr, nssms, name, verbose )
+        if verbose:
+            ssmstring = [ "%.2f" % x for x in cssms.keys() ]
+            self.pprint ( "           `- the unique ssms are: %s" % ", ".join ( ssmstring ) )
         if nll:
             return - math.log ( ret )
         return ret
