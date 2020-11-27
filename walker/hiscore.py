@@ -141,7 +141,7 @@ class Hiscore:
             f.write ( "[" )
             for ctr,l in enumerate(newlist):
                 f.write ( "%s" % l )
-                if ctr < len(newlist):
+                if ctr < len(newlist)-1:
                     f.write ( ",\n" % ( l ) )
             f.write ( "]\n" )
             f.close()
