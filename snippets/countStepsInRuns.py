@@ -28,11 +28,21 @@ def main():
     njobs = 0
     nfinishedjobs = 0
     Dicts={}
+    K=0
     for d in Dirs:
         if "default" in d or "skeleton" in d:
             continue
         njobs += 50
         os.chdir ( d )
+        dictfile = f"hiscores.dict"
+        if os.path.exists ( dictfile ):
+            try:
+                with open ( dictfile, "rt" ) as h:
+                    D=eval(h.read())
+                    if D[0]["K"] > K:
+                        K = D[0]["K"]
+            except:
+                pass
         n,steps = countSteps( printout=False )
         Dicts[d]=steps
         for k,v in steps.items():
@@ -56,6 +66,7 @@ def main():
             line += " (was %5d)" % nold
         print ( line )
         os.chdir ( "/scratch-cbe/users/wolfgan.waltenberger/" )
+    print ( "current Kmax is %.2f" % K )
     print ( "total %d/%d jobs finished: %d%s" % ( nfinishedjobs, njobs, (nfinishedjobs*100/njobs), "%" ) )
     print ( "total %dk/%dk: %d%s" % ( ntot/1000, assumed/1000, ntot/assumed*100, "%" ) )
     Dicts["t"]=time.time()

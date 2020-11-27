@@ -367,7 +367,7 @@ class Hiscore:
         if dictFile==None:
             dictFile = self.pickleFile
         if dictFile.endswith(".pcl"):
-            dictFile = dictFile[:-4]+".dict"
+            dictFile = dictFile[:-4]+".py"
         f=open(dictFile,"wt")
         f.write("[")
         f.close()

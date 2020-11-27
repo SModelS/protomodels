@@ -295,12 +295,16 @@ class RandomWalker:
         :param norm: Normalization for K distance.
         """
         ## for now we turn off teleportation
-        self.log ( "teleportation turned off" )
-        return False
+        if self.protomodel.step > self.maxsteps/3.:
+            self.log ( "teleportation is on only for first third" )
+            return False
+        #self.log ( "teleportation turned off" )
+        #return False
         import random
         bestK = self.hiscoreList.globalMaxK()
         if bestK < 1.:
             self.log ( "bestK is smaller than one. no teleporting." )
+            return False
         ourK = -2.
         if hasattr ( self.manipulator.M, "K" ) and self.manipulator.M.K > -2:
             ourK = self.manipulator.M.K
