@@ -121,15 +121,25 @@ class Hiscore:
         return ret
 
     def writeToHiscoreFile ( self, m ):
-        """ we have a new hiscore, write to hiscore.dict
+        """ we have a new hiscore, write to hiscores.dict
         :param m: manipulator
         """
         oldhiscores=[]
         fname = "hiscores.dict"
         if os.path.exists ( fname ):
-            with open ( fname, "rt" ) as h:
-                oldhiscores = eval( h.read() )
-                h.close()
+            tryRead=0
+            success=False
+            ## stop loop at success or when tryRead is at least 5
+            while (not success) and tryRead<5:
+                tryRead+=1
+                try:
+                    with open ( fname, "rt" ) as h:
+                        txt = h.read()
+                        oldhiscores = eval( txt )
+                        h.close()
+                        success=True
+                except SyntaxError as e:
+                    time.sleep( .1+3*tryRead )
         D=m.M.dict()
         D["K"]=m.M.K
         D["Z"]=m.M.Z
@@ -151,6 +161,7 @@ class Hiscore:
         with open ( "Kmin.conf", "wt" ) as f:
             f.write ( "%f\n" % newlist[-1]["K"] )
             f.close()
+        return True
 
     def addResult ( self, protomodel ):
         """ add a result to the list

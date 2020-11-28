@@ -2,6 +2,7 @@
 
 from ptools.updateHiscores import countSteps
 import glob, os, colorama, time, argparse
+import numpy as np
 
 def main():
     argparser = argparse.ArgumentParser(
@@ -30,6 +31,7 @@ def main():
     Dicts={}
     K=0
     dfound="???"
+    Ks=[]
     for d in Dirs:
         if "default" in d or "skeleton" in d:
             continue
@@ -43,6 +45,7 @@ def main():
                     if D[0]["K"] > K:
                         K = D[0]["K"]
                         dfound = d
+                    Ks.append ( K )
             except:
                 pass
         n,steps = countSteps( printout=False )
@@ -68,7 +71,9 @@ def main():
             line += " (was %5d)" % nold
         print ( line )
         os.chdir ( "/scratch-cbe/users/wolfgan.waltenberger/" )
-    print ( "current Kmax is %.2f, found in %s" % ( K, dfound.replace("rundir.","").replace("/","") ) )
+    print ( "The current %d Ks are at [%.2f,%.2f,%.2f], best found in %s" % \
+            ( len(Ks), min(Ks), np.mean(Ks), \
+              K, dfound.replace("rundir.","").replace("/","") ) )
     print ( "total %d/%d jobs finished: %d%s" % ( nfinishedjobs, njobs, (nfinishedjobs*100/njobs), "%" ) )
     print ( "total %dk/%dk: %d%s" % ( ntot/1000, assumed/1000, ntot/assumed*100, "%" ) )
     Dicts["t"]=time.time()
