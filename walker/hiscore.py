@@ -103,11 +103,29 @@ class Hiscore:
             f.close()
         return ret
 
+    def similarDicts ( self, a : dict, b : dict ):
+        """ are models a and b similar? """
+        dK = abs ( a["K"] - b["K"] )
+        if dK > 1e-5:
+            return False
+        dZ = abs ( a["Z"] - b["Z"] )
+        if dZ > 1e-5:
+            return False
+        if a["masses"].keys() != b["masses"].keys():
+            return False
+        massDiff = [ abs(m-b["masses"][pid])/m for pid,m in a["masses"].items() if m ]
+        if max(massDiff) > 1e-5:
+            return False
+        return True
+
     def insertHiscore ( self, L : list, hi : dict ):
         """ insert hiscore <hi> into list <L> at the appropriate place """
         K = hi["K"]
         ret = []
         for oldhi in L: ## as long as the Ks are above the new K, append
+            if self.similarDicts ( oldhi, hi ):
+                ## already exists in list? skip insertion
+                return L
             if oldhi["K"]>= K:
                 ret.append ( oldhi )
             else:

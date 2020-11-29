@@ -42,10 +42,11 @@ def main():
             try:
                 with open ( dictfile, "rt" ) as h:
                     D=eval(h.read())
-                    if D[0]["K"] > K:
-                        K = D[0]["K"]
+                    tmp = D[0]["K"]
+                    if tmp > K:
+                        K = tmp
                         dfound = d
-                    Ks.append ( K )
+                    Ks.append ( tmp )
             except:
                 pass
         n,steps = countSteps( printout=False )
@@ -71,8 +72,10 @@ def main():
             line += " (was %5d)" % nold
         print ( line )
         os.chdir ( "/scratch-cbe/users/wolfgan.waltenberger/" )
-    print ( "The current %d Ks are at [%.2f,%.2f,%.2f], best found in %s" % \
-            ( len(Ks), min(Ks), np.mean(Ks), \
+    if len(Ks)==0:
+        Ks=[0.]
+    print ( "The current %d Ks are at [%.2f,%.2f+/-%.2f,%.2f], best found in %s" % \
+            ( len(Ks), min(Ks), np.mean(Ks), np.std(Ks), \
               K, dfound.replace("rundir.","").replace("/","") ) )
     print ( "total %d/%d jobs finished: %d%s" % ( nfinishedjobs, njobs, (nfinishedjobs*100/njobs), "%" ) )
     print ( "total %dk/%dk: %d%s" % ( ntot/1000, assumed/1000, ntot/assumed*100, "%" ) )

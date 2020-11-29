@@ -122,7 +122,8 @@ def main( nmin, nmax, cont,
             walkers.append ( w )
     startWalkers ( walkers, catchem=catchem, seed=seed )
     if update_hiscores:
-        import updateHiscores, time
+        import time
+        from ptools import updateHiscores
         ctAttempts = 0 ## count how often we tried
         succeeded = False
         while ctAttempts < 5:
