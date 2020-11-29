@@ -6,7 +6,7 @@
 import pickle, subprocess, colorama, sys, os
 from scipy import stats
 sys.path.insert(0,"../")
-from csetup import setup
+from ptools.csetup import setup
 setup()
 from builder.manipulator import Manipulator
 
@@ -235,6 +235,9 @@ if __name__ == "__main__":
             type=str, default=None )
     args = argparser.parse_args()
     from walker.hiscore import Hiscore
+    if not os.path.exists ( args.infile ):
+        print ( f"[hiscoreTools] error: input file {args.infile} does not exist." )
+        sys.exit()
     hi = Hiscore ( 0, False, args.infile )
     protomodels = hi.hiscores
     import builder
