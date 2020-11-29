@@ -158,11 +158,15 @@ class Hiscore:
                         success=True
                 except SyntaxError as e:
                     time.sleep( .1+3*tryRead )
-        D=m.M.dict()
+        D=m.M.dict() ## FIXME use writeDictFile instead!
         D["K"]=m.M.K
         D["Z"]=m.M.Z
+        if hasattr ( m, "seed" ) and m.seed != None:
+            D["seed"]=m.seed
         D["step"]=m.M.step
+        D["timestamp"]=time.asctime()
         D["walkerid"]=m.M.walkerid
+        # D=m.writeDictFile(outfile = None, ndecimals=6 )
         newlist = self.insertHiscore ( oldhiscores, D )
         self.pprint ( f"write model to {fname}" )
         with open ( fname, "wt" ) as f:
@@ -194,7 +198,9 @@ class Hiscore:
         # Kold = self.globalMaxK()
         Kmin = self.globalMinK()
         # self.pprint ( f"adding results Kold is {Kold} Knew is {m.M.K}" )
+        ## FIXME we should only write into this file in the first maxstep/3 steps
         if m.M.K > Kmin:
+            self.pprint ( "WARNING we shouldnt write into hiscore file afte maxstep/3 steps!!" )
             self.writeToHiscoreFile( m )
             ## we have a new hiscore?
             ## compute the particle contributions
@@ -467,17 +473,6 @@ class Hiscore:
             return False ## clearly out
         self.addResult ( protomodel )
         self.save() ## and write it
-        """
-        ret = False
-        ctr = 0
-        while not ret:
-            self.addResult ( protomodel )
-            ret = self.save() ## and write it
-            ctr+=1
-            if ctr > 5:
-                break
-        # self.log ( "done saving list" )
-        """
         return True
 
     def pprint ( self, *args ):

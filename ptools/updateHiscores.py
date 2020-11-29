@@ -27,7 +27,7 @@ def setup( rundir = None ):
     return rundir
 
 def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
-    """ count the number of steps taken accoring to walker logs 
+    """ count the number of steps taken accoring to walker logs
     :param printout: print out statistics
     :param writeSubmitFile: write a submit file for the non-finished jobs
     :param doSubmit: if True, then do submit jobs without further asking
@@ -126,7 +126,7 @@ def updateHiscores( rundir=None ):
     args.rundir = rundir
     # args.maxloss = .01
     # args.nevents = 50000
-    import hiscoreTools 
+    from ptools import hiscoreTools
     import socket
     hostname = socket.gethostname().replace(".cbe.vbc.ac.at","")
     print ( "[updateHiscores] now update %s on %s:%s" % \
@@ -166,7 +166,7 @@ def plot( Z, K, rundir, upload="latest" ):
     args.number = 0
     args.detailed = False
     args.destinations = False
-    args.picklefile = "%s/hiscore.hi" % rundir 
+    args.picklefile = "%s/hiscore.hi" % rundir
     args.dbpath = "%s/default.pcl" % rundir
     args.rundir = rundir
     args.verbosity = "info"
@@ -183,7 +183,7 @@ def plot( Z, K, rundir, upload="latest" ):
     plotHiscore.runPlotting ( args )
 
 def main( rundir = None, maxruns=3, doPlots=True, uploadTo="latest" ):
-    """ eternal loop that updates hiscore.hi and states.dict 
+    """ eternal loop that updates hiscore.hi and states.dict
     :param maxruns: maximally iterate that many times
     :param doPlots: if False, suppress plotting
     :param uploadTo: upload plots to directory "~/git/smodels.github.io/<uploadTo>"
@@ -191,11 +191,11 @@ def main( rundir = None, maxruns=3, doPlots=True, uploadTo="latest" ):
     rundir = setup( rundir )
     i = 0
     Z, Zold, step, K, Kold = 0., 0., 0, -90., -90.
-    Zfile = "%s/Zold.conf" % rundir 
+    Zfile = "%s/Zold.conf" % rundir
     if os.path.exists ( Zfile ):
         with open ( Zfile, "rt" ) as f:
             Zold = float ( f.read().strip() )
-    Kfile = "%s/Kold.conf" % rundir 
+    Kfile = "%s/Kold.conf" % rundir
     if os.path.exists ( Kfile ):
         with open ( Kfile, "rt" ) as f:
             Kold = float ( f.read().strip() )

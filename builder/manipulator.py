@@ -98,13 +98,16 @@ class Manipulator:
         self.M.bestCombo = None
 
     def writeDictFile ( self, outfile = "pmodel.py", cleanOut=True,
-                        comment = "", appendMode=False ):
+                        comment = "", appendMode=False, ndecimals=3 ):
         """ write out the dict file to outfile
-        :param outfile: output file, but replacing %t with int(time.time())
+        :param outfile: output file, but replacing %t with int(time.time()). If none,
+                        then dont write file, just create dictionary object
         :param cleanOut: clean the dictionary from defaults
         :param comment: add a comment field
+        :param ndecimals: number of digits after decimal when rounding
         :param appendMode: if true, append to file, and add comma after dictionary.
                            if false, overwrite, and no comma at the end.
+        :returns: the dictionary with the protomodel
         """
         if type(self.M) == type(None):
             ## there is nothing to write
@@ -120,7 +123,7 @@ class Manipulator:
                     if k in D["decays"]:
                         D["decays"].pop(k)
                 else:
-                    D["masses"][k]=round(v,3)
+                    D["masses"][k]=round(v,ndecimals)
             for k,decays in self.M.dict()["decays"].items():
                 for i,v in decays.items():
                     if not k in D["decays"]:
@@ -130,7 +133,7 @@ class Manipulator:
                     if v < 1e-7:
                         D["decays"][k].pop(i)
                     else:
-                        D["decays"][k][i]=round(v,3)
+                        D["decays"][k][i]=round(v,ndecimals)
             for k,v in self.M.dict()["ssmultipliers"].items():
                 ## if any of the pids is frozen, we dont write out
                 hasFrozenPid = False
@@ -140,19 +143,21 @@ class Manipulator:
                 if hasFrozenPid: #  or abs ( v - 1.) < 1e-5:
                     D["ssmultipliers"].pop(k)
                 else:
-                    D["ssmultipliers"][k]=round(v,3)
+                    D["ssmultipliers"][k]=round(v,ndecimals)
         import time
         if hasattr ( self, "seed" ) and self.seed != None:
             D["seed"]=self.seed
         D["timestamp"]=time.asctime()
-        D["Z"]=round(self.M.Z,3)
-        D["K"]=round(self.M.K,3)
+        D["Z"]=round(self.M.Z,ndecimals)
+        D["K"]=round(self.M.K,ndecimals)
         D["walkerid"]=self.M.walkerid
         D["step"]=self.M.step
         D["codever"]=self.M.codeversion
         D["dbver"]=self.M.dbversion
         if len(comment)>0:
             D["comment"]=comment
+        if outfile == None:
+            return D
         fname = outfile.replace("%t", str(int(time.time())) )
         if not appendMode:
             self.pprint ( "writing model to %s" % fname )
@@ -162,6 +167,7 @@ class Manipulator:
         with open ( fname, mode ) as f:
             f.write ( "%s%s\n" % (D,comma) )
             f.close()
+        return D
 
     def pidInList ( self, pid, lst, signed ):
         """ is pid in lst """
