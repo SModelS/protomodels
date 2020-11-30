@@ -294,8 +294,10 @@ class RandomWalker:
         :param pmax: Maximum probability for teleportation.
         :param norm: Normalization for K distance.
         """
+        # stopTeleportationAfter = self.maxsteps/3.
+        stopTeleportationAfter = -1
         ## for now we turn off teleportation
-        if self.protomodel.step > self.maxsteps/3.:
+        if self.protomodel.step > stopTeleportationAfter:
             self.log ( "teleportation is on only for first third" )
             return False
         #self.log ( "teleportation turned off" )
