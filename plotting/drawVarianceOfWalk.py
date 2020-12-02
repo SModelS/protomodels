@@ -161,7 +161,7 @@ class VariancePlotter:
         plt.plot ( keys, avgedmeans, c="black" )
         plt.title ( "evolution of $K$, for %d walkers" % len(self.data) )
         plt.xlabel ( "step" )
-        plt.ylabel ( "K" )
+        plt.ylabel ( var )
         # plt.plot ( keys, nvalues, c="orange" )
         # outputfile = "var.png"
         outputfile = output
