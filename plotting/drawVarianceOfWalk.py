@@ -90,7 +90,7 @@ class VariancePlotter:
             ret = 1999
         return ret
 
-    def getKsPerStep ( self ):
+    def getKsPerStep ( self, var="K" ):
         """ from the data, get the Ks of all walkers as a function
             of the step """
         nsteps = self.getMaxSteps ( self.data )
@@ -98,7 +98,7 @@ class VariancePlotter:
         for walker,walk in self.data.items():
             for wstep in walk:
                 nstep = wstep["step"]
-                K = wstep["K"]
+                K = wstep[var]
                 if K == None:
                     continue
                 if not nstep in ret:
@@ -106,8 +106,35 @@ class VariancePlotter:
                 ret[nstep].append ( K )
         return ret
 
-    def draw ( self ):
-        Ks = self.getKsPerStep() ## this is per step
+    def getMassOfPidPerStep ( self, pid=1000006 ):
+        """ from the data, get the Ks of all walkers as a function
+            of the step """
+        nsteps = self.getMaxSteps ( self.data )
+        ret = {}
+        for walker,walk in self.data.items():
+            for wstep in walk:
+                nstep = wstep["step"]
+                K = None
+                if pid in wstep["masses"]:
+                    K = float(wstep["masses"][pid])
+                if K == None:
+                    continue
+                if not nstep in ret:
+                    ret[nstep]=[]
+                ret[nstep].append ( K )
+        return ret
+
+    def draw ( self, var = "m1000006", drawMax=True, output = "@VAR.png" ):
+        """ draw the evolution of var
+        :param var: draw variable "var". If starts with "m", draw mass of pid
+        :param drawMax: if True, also draw the max value per step
+        """
+        output = output.replace( "@VAR", var )
+        if var in [ "K", "Z" ]:
+            Ks = self.getKsPerStep() ## this is per step
+        if var.startswith("m"):
+            Ks = self.getMassOfPidPerStep ( int(var[1:]) )
+            
         keys = list ( Ks.keys() )
         keys.sort()
         means, maxs = [], []
@@ -129,13 +156,15 @@ class VariancePlotter:
         # avgedmaxs = [ np.max(maxs[minus(x):x+50]) for x in range(len(keys)) ]
         # print ( "avgedmeans", avgedmeans )
         plt.plot ( keys, means, c="orange" )
-        plt.plot ( keys, maxs, c="red" )
+        if drawMax:
+            plt.plot ( keys, maxs, c="red" )
         plt.plot ( keys, avgedmeans, c="black" )
         plt.title ( "evolution of $K$, for %d walkers" % len(self.data) )
         plt.xlabel ( "step" )
         plt.ylabel ( "K" )
         # plt.plot ( keys, nvalues, c="orange" )
-        outputfile = "var.png"
+        # outputfile = "var.png"
+        outputfile = output
         self.pprint ( f"print to {outputfile}" )
         plt.savefig ( outputfile )
 
@@ -146,9 +175,14 @@ if __name__ == "__main__":
             help='fetch the history files', action="store_true" )
     argparser.add_argument ( '-i', '--interact',
             help='enter interactive mode', action="store_true" )
-    #argparser.add_argument ( '-o', '--fetch',
-    #        help='outputfile (@M gets replaced by [experiment][sqrts]) [matrix@M.png]',
-    #        type=str, default='matrix@M.png' )
+    argparser.add_argument ( '-m', '--drawmax',
+            help='draw max value', action="store_true" )
+    argparser.add_argument ( '-v', '--variable',
+            help='variable to draw, e.g. K, m1000006 [m1000006]',
+            type=str, default='m1000006' )
+    argparser.add_argument ( '-o', '--output',
+            help='output file name, replace @VAR with variable [@VAR.png]',
+            type=str, default='@VAR.png' )
     args=argparser.parse_args()
 
     plotter = VariancePlotter()
@@ -158,6 +192,6 @@ if __name__ == "__main__":
         plotter.storeData()
     else:
         plotter.loadData()
-    plotter.draw()
+    plotter.draw( args.variable, args.drawmax, args.output )
     if args.interact:
         plotter.interact()
