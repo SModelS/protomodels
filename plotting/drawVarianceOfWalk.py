@@ -6,7 +6,8 @@
 import glob, pickle, sys, os, subprocess, argparse
 import numpy as np
 import matplotlib.pyplot as plt
-
+sys.path.insert(0,"../")
+from ptools.sparticleNames import SParticleNames
 
 class VariancePlotter:
     def __init__ ( self ):
@@ -161,7 +162,10 @@ class VariancePlotter:
         plt.plot ( keys, avgedmeans, c="black" )
         plt.title ( "evolution of $K$, for %d walkers" % len(self.data) )
         plt.xlabel ( "step" )
-        plt.ylabel ( var )
+        varname = var
+        if varname.startswith ( "m" ):
+            varname = "m(%s) [GeV]" % ( SParticleNames().texName( int(var[1:] ), addDollars=True ) )
+        plt.ylabel ( varname )
         # plt.plot ( keys, nvalues, c="orange" )
         # outputfile = "var.png"
         outputfile = output
