@@ -126,7 +126,7 @@ def main( nmin, nmax, cont,
         from ptools import updateHiscores
         ctAttempts = 0 ## count how often we tried
         succeeded = False
-        while ctAttempts < 5:
+        while ctAttempts < 6:
             steps = updateHiscores.countSteps( writeSubmitFile = False )
             if not type(steps)==tuple:
                 print ( "[walkingWorker] been asked to update hiscores, but dont understand steps %s" % steps )
@@ -140,7 +140,7 @@ def main( nmin, nmax, cont,
                 succeeded = True
                 break
             else:
-                time.sleep ( (ctAttempts+2)*300 )
+                time.sleep ( (ctAttempts+1)*500 )
         if succeeded:
             print ( "[walkingWorker] ran updater successfully." )
         else:
