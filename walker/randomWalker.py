@@ -32,7 +32,8 @@ class RandomWalker:
                    dbpath = "./database.pcl", expected = False,
                    select = "all", catch_exceptions = True,
                    rundir = None, nevents = 100000,
-                   do_combine = False, record_history = False, seed = None ):
+                   do_combine = False, record_history = False, seed = None,
+                   stopTeleportationAfter = -1 ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 is no cheating, 1 is with ranges, 2
@@ -45,6 +46,8 @@ class RandomWalker:
                            simplified likelihoods or via pyhf
         :param record_history: if true, attach a history recorder class
         :param seed: random seed, int or None
+        :param stopTeleportationAfter: int or None. we stop teleportation after this step nr.
+               If negative or None, we dont teleport at all
         """
         if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
             self.pprint ( "Wrong call of constructor: %s, %s, %s" % ( walkerid, nsteps, strategy ) )
@@ -76,6 +79,10 @@ class RandomWalker:
                                          seed = seed )
         self.catch_exceptions = catch_exceptions
         self.maxsteps = nsteps
+        if stopTeleportationAfter == None:
+            stopTeleportationAfter = -1
+        # stopTeleportationAfter = self.maxsteps/3.
+        self.stopTeleportationAfter = stopTeleportationAfter
         self.accelerator = None
         if record_history:
             from ptools.history import History
@@ -123,10 +130,12 @@ class RandomWalker:
                    walkerid=0, dump_training = False,
                    dbpath="<rundir>/database.pcl", expected = False,
                    select = "all", catch_exceptions = True, keep_meta = True,
-                   rundir = None, do_combine = False, seed = None ):
+                   rundir = None, do_combine = False, seed = None,
+                   stopTeleportationAfter = -1  ):
         ret = cls( walkerid, nsteps=nsteps, dbpath = dbpath, expected=expected,
                    select=select, catch_exceptions = catch_exceptions, rundir = rundir,
-                   do_combine = do_combine, seed = seed )
+                   do_combine = do_combine, seed = seed, stopTeleportationAfter = \
+                   stopTeleportationAfter )
         ret.manipulator.M = protomodel
         ret.manipulator.setWalkerId ( walkerid )
         ret.manipulator.backupModel()
@@ -143,10 +152,11 @@ class RandomWalker:
                    dbpath="<rundir>/database.pcl", expected = False,
                    select = "all", catch_exceptions = True, keep_meta = True,
                    rundir = None, nevents = 100000, do_combine = False,
-                   seed = None ):
+                   seed = None, stopTeleportationAfter = -1 ):
         ret = cls( walkerid, nsteps=nsteps, dbpath = dbpath, expected=expected,
                    select=select, catch_exceptions = catch_exceptions, rundir = rundir,
-                   nevents = nevents, do_combine = do_combine, seed = seed )
+                   nevents = nevents, do_combine = do_combine, seed = seed,
+                   stopTeleportationAfter = stopTeleportationAfter )
         ret.manipulator.M = ProtoModel( walkerid, keep_meta, \
                 dbversion = ret.predictor.database.databaseVersion )
         ret.manipulator.initFromDict ( dictionary )
@@ -294,11 +304,9 @@ class RandomWalker:
         :param pmax: Maximum probability for teleportation.
         :param norm: Normalization for K distance.
         """
-        # stopTeleportationAfter = self.maxsteps/3.
-        stopTeleportationAfter = -1
-        ## for now we turn off teleportation
-        if self.protomodel.step > stopTeleportationAfter:
-            self.log ( "teleportation is on only for first third" )
+        if self.protomodel.step > self.stopTeleportationAfter:
+            self.log ( "teleportation is turned off after step #%d" % \
+                       self.stopTeleportationAfter )
             return False
         #self.log ( "teleportation turned off" )
         #return False

@@ -41,7 +41,8 @@ def main( nmin, nmax, cont,
           dbpath = "<rundir>/database.pcl",
           cheatcode = 0, dump_training = False, rundir=None, maxsteps = 10000,
           nevents = 100000, seed = None,  catchem=True, select="all",
-          do_combine = False, record_history = False, update_hiscores = False ):
+          do_combine = False, record_history = False, update_hiscores = False,
+          stopTeleportationAfter = -1 ):
     """ a worker node to set up to run walkers
     :param nmin: the walker id of the first walker
     :param nmax: the walker id + 1 of the last walker
@@ -53,12 +54,16 @@ def main( nmin, nmax, cont,
     :param nevents: number of MC events when computing cross-sections
     :param seed: random seed number (optional)
     :param catchem: If True will catch the exceptions and exit.
-    :param select: select only subset of results (all for all, em for efficiency maps only, ul for upper limits only, alternatively select for txnames via e.g. "txnames:T1,T2"
+    :param select: select only subset of results (all for all, em for efficiency maps only,
+            ul for upper limits only, alternatively select for txnames via
+            e.g. "txnames:T1,T2"
     :param do_combine: if true, then also perform combinations, either via
                        simplified likelihoods or via pyhf
     :param record_history: if True, then use history recorders
-    :param update_hiscores: if True, then finish your run and 
+    :param update_hiscores: if True, then finish your run and
                             after that run hiscore updater
+    :param stopTeleportationAfter: integer, stop teleportation after this step has been
+            reached. -1 or None means, dont run teleportation at all.
     """
 
     if rundir != None and "<rundir>" in dbpath:
@@ -93,32 +98,34 @@ def main( nmin, nmax, cont,
     for i in range(nmin,nmax):
         if pfile is None:
             print ( "[walkingWorker] starting %d @ %s with cheatcode %d" % ( i, rundir, cheatcode ) )
-            w = RandomWalker( walkerid=i, nsteps = maxsteps, 
+            w = RandomWalker( walkerid=i, nsteps = maxsteps,
                               dump_training = dump_training,
-                              dbpath=dbpath, cheatcode=cheatcode, select=select, 
+                              dbpath=dbpath, cheatcode=cheatcode, select=select,
                               rundir=rundir, nevents=nevents, do_combine = do_combine,
-                              record_history=record_history, seed=seed )
+                              record_history=record_history, seed=seed,
+                              stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
         elif pfile.endswith(".hi") or pfdile.endswith(".pcl"):
             nstates = len(states )
             ctr = i % nstates
             print ( "[walkingWorker] fromModel %d: loading %d/%d" % ( i, ctr, nstates ) )
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
-                    walkerid = i, nsteps = maxsteps, dump_training=dump_training, 
-                    expected = False, select = select, dbpath = dbpath, 
-                    rundir = rundir, do_combine = do_combine, record_history = record_history,
-                    seed = seed )
+                    walkerid = i, nsteps = maxsteps, dump_training=dump_training,
+                    expected = False, select = select, dbpath = dbpath,
+                    rundir = rundir, do_combine = do_combine,
+                    record_history = record_history, seed = seed,
+                    stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
         else:
             nstates = len(states )
             ctr = i % nstates
             print ( "[walkingWorker] fromDict %d: loading %d/%d" % ( i, ctr, nstates ) )
-            w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps, 
-                    strategy = "aggressive", walkerid = i, 
-                    dump_training=dump_training, dbpath = dbpath, expected = False, 
+            w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
+                    strategy = "aggressive", walkerid = i,
+                    dump_training=dump_training, dbpath = dbpath, expected = False,
                     select = select, rundir = rundir, nevents = nevents,
                     do_combine = do_combine, record_history = record_history,
-                    seed = seed )
+                    seed = seed, stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
     startWalkers ( walkers, catchem=catchem, seed=seed )
     if update_hiscores:
@@ -135,7 +142,7 @@ def main( nmin, nmax, cont,
                     ( steps[0], nmax*maxsteps ) )
             ctAttempts += 1
             if steps[0] == nmax*maxsteps: ## are we last?
-                updateHiscores.main ( rundir = rundir, maxruns=1, 
+                updateHiscores.main ( rundir = rundir, maxruns=1,
                                       doPlots=False, uploadTo="latest" )
                 succeeded = True
                 break
@@ -153,7 +160,7 @@ if __name__ == "__main__":
     s = "txnames:TChiWZ,TChiWZoff,TChiWW,TChiWWoff,TChiWH,TChiH,TChiZZ,TSlepSlep"
     s = "all"
     w = RandomWalker( walkerid=0, nsteps = 10, dump_training = False,
-                      dbpath="./default.pcl", cheatcode=0, select=s, 
+                      dbpath="./default.pcl", cheatcode=0, select=s,
                       rundir="./", nevents=1000, seed = None )
     w.walk()
-    
+
