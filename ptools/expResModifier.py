@@ -322,6 +322,9 @@ class ExpResModifier:
         ## origN stores the n_observed of the original database
         dataset.dataInfo.origN = orig
         label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
+        txnames = [ tx.txName for tx in dataset.txnameList ]
+        D["txns"]=",".join(txnames )
+        self.comments["txns"]="list of txnames that populate this signal region / analysis"
         self.addToStats ( label, D )
         return dataset
 
@@ -440,6 +443,7 @@ class ExpResModifier:
         D={}
         D["sigmaN"]=sigmaN
         D["txns"]=",".join(txns)
+        self.comments["txns"]="list of txnames that populate this signal region / analysis"
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
         ## sigmaN is the predicted production cross section of the signal,
         ## in fb

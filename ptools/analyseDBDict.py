@@ -56,13 +56,21 @@ class Analyzer:
         return meta,newdata
 
     def getTopos ( self, values ):
+        if "txns" in values:
+            ret = values["txns"]
+            if len(ret)>15:
+                for i in range(15,5,-1):
+                    if ret[i]==",":
+                        break
+                ret=ret[:i+1]+" ..."
+            return ret
         topos=[]
         for vk,vv in values.items():
             if vk.startswith("sigNT"):
                 p = vk.find("T")
                 topo = vk[p:]
                 topos.append ( topo )
-        return topos
+        return ",".join(topos)
 
     def analyzeFile ( self, filename ):
         print ( f"analyzing {filename}" )
@@ -73,15 +81,15 @@ class Analyzer:
                 byS[ values["S"] ] = ( anaid, values )
         keys = list ( byS.keys() )
         keys.sort( reverse = True )
-        for ctr,k in enumerate(keys[:5]):
+        for ctr,k in enumerate(keys[:10]):
             values = byS[k][1]
             topos = self.getTopos ( values )
-            print( "S=%.2f: %s; %s" % ( k, byS[k][0], ",".join(topos) ) )
+            print( "S=%.2f: %s; %s" % ( k, byS[k][0], topos ) )
         print ()
         for ctr,k in enumerate(keys[-3:]):
             values = byS[k][1]
             topos = self.getTopos ( values )
-            print( "S=%.2f: %s; %s" % ( k, byS[k][0], ",".join(topos) ) )
+            print( "S=%.2f: %s; %s" % ( k, byS[k][0], topos ) )
         
 
 
