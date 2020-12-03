@@ -2,6 +2,8 @@
 
 """ plot the meta statistics of database.dict """
 
+import matplotlib
+matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
 import os, glob, pickle, sys
