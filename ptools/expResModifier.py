@@ -306,8 +306,10 @@ class ExpResModifier:
                 dataset.dataInfo.observedN = obs
         if S > 3.5:
             self.log ( "WARNING!!! high em S=%.2f!!!!" % S )
+        D["Sbg"]=S
+        self.comments["Sbg"]="the significance of the observation, bg only"
         D["S"]=S
-        self.comments["S"]="the significance of the observation"
+        self.comments["S"]="the significance of the observation, taking into account the signal"
         D["origS"]=origS
         self.comments["origS"]="the significance of the original observation"
         self.comments["lmbda"]="Poissonian lambda of the fake background"
@@ -376,7 +378,14 @@ class ExpResModifier:
         dataset.dataInfo.trueBG = orig ## keep track of true bg
         dataset.dataInfo.observedN = orig + sigN
         D["newObs"]=dataset.dataInfo.observedN
-
+        exp = dataset.dataInfo.expectedBG
+        err = dataset.dataInfo.bgError * self.fudge
+        toterr = math.sqrt ( err**2 + exp )
+        S = 0.
+        if toterr > 0.:
+            S = ( dataset.dataInfo.observedN - exp ) / toterr
+        D["S"]=S
+        self.comments["S"]="the significance of the observation, taking into account the signal"
         ## now recompute the limits!!
         alpha = .05
         if orig == 0.0:
