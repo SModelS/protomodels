@@ -75,11 +75,13 @@ def count():
 def fetch():
     """ fetch states.dict files from the individual runs """
     Dir = "/scratch-cbe/users/wolfgan.waltenberger/"
-    # dictfiles = "hiscores.dict"
-    dictfiles = "states.dict"
+    dictfiles = "hiscores.dict"
+    # dictfiles = "states.dict"
     files = glob.glob ( f"{Dir}/rundir.*/{dictfiles}" )
     hiscores={}
     for f in files:
+        if "real" in f:
+            print ( "suppressing copying reals for now!!!" )
         name = f.replace( Dir, "" ).replace("/"+dictfiles,"").replace("rundir.","")
         cmd = f"cp {f} {name}.dict"
         with open ( f, "rt" ) as h:
