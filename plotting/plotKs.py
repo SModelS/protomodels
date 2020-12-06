@@ -12,6 +12,8 @@ matplotlib.use('agg')
 def read( which="fake", datadir="./" ):
     pattern = { "fake": "fake*dict", "real": "real*.dict", "realf": "realf*dict",
                 "signal": "signal?.dict", "signalf": "signal*f.dict" }
+    if not which in pattern:
+        pattern[which]=which+"*.dict"
     files = glob.glob( datadir + pattern[which] )
     Ks=[]
     for f in files:
@@ -29,7 +31,7 @@ def plot( opts: dict, outputfile, datadir ):
     :param outputfile: the filename of outputfile, eg Kvalues.png
     :param datadir: directory of the data dict files, eg ./
     """
-    Ks=read ( "fake", datadir )
+    Ks=read ( opts["fakeprefix"], datadir )
     Kreal = read ( "real", datadir )
     Ksig = read ( "signal", datadir )
     Ksigf = read ( "realf", datadir )
@@ -117,7 +119,9 @@ if __name__ == "__main__":
                              type=str, default="./" )
     argparser.add_argument ( '-o', '--outputfile', help="specify the outputfile [Kvalues.png]",
                              type=str, default="Kvalues.png" )
+    argparser.add_argument ( '--fakeprefix', help="specify the prefix for the fakes [fake]",
+                             type=str, default="fake" )
     args = argparser.parse_args()
     opts = { "signal": args.signals, "fastlim": args.fastlim, "real": args.real,
-             "fakes": args.fakes }
+             "fakes": args.fakes, "fakeprefix": args.fakeprefix }
     plot( opts, args.outputfile, args.datadir )
