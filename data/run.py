@@ -72,16 +72,18 @@ def count():
         if nsteps < 50000:
             print ( wdir, nsteps )
 
-def fetch():
+def fetch( globber ):
     """ fetch states.dict files from the individual runs """
     Dir = "/scratch-cbe/users/wolfgan.waltenberger/"
     dictfiles = "hiscores.dict"
     # dictfiles = "states.dict"
-    files = glob.glob ( f"{Dir}/rundir.*/{dictfiles}" )
+    g = addAsterisk ( globber )
+    files = glob.glob ( f"{Dir}/rundir.{g}/{dictfiles}" )
     hiscores={}
     for f in files:
         if "real" in f:
             print ( "suppressing copying reals for now!!!" )
+            continue
         name = f.replace( Dir, "" ).replace("/"+dictfiles,"").replace("rundir.","")
         cmd = f"cp {f} {name}.dict"
         with open ( f, "rt" ) as h:
@@ -237,7 +239,7 @@ if __name__ == "__main__":
     if args.count:
         count()
     if args.produce:
-        fetch()
+        fetch( args.globber )
         produce()
         getBest( "real*" )
         getBest( "signal*" )
