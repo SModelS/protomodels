@@ -33,7 +33,7 @@ def plot( opts: dict, outputfile, datadir ):
     """
     Ks=read ( opts["fakeprefix"], datadir )
     Kreal = read ( "real", datadir )
-    Ksig = read ( "signal", datadir )
+    Ksig = read ( opts["signalprefix"], datadir )
     Ksigf = read ( "realf", datadir )
     allK = copy.deepcopy ( Ks )
     fmin, fmax, npoints = .3, 1.2, 100
@@ -101,6 +101,7 @@ def plot( opts: dict, outputfile, datadir ):
     plt.ylabel ( "$\\rho(K)$" )
     plt.xlabel ( "$K$" )
     plt.legend ()
+    print ( f"[plotKs] saving to {outputfile}." )
     plt.savefig ( outputfile )
 
 if __name__ == "__main__":
@@ -121,7 +122,11 @@ if __name__ == "__main__":
                              type=str, default="Kvalues.png" )
     argparser.add_argument ( '--fakeprefix', help="specify the prefix for the fakes [fake]",
                              type=str, default="fake" )
+    argparser.add_argument ( '--signalprefix', 
+                             help="specify the prefix for the signal [signal]",
+                             type=str, default="signal" )
     args = argparser.parse_args()
     opts = { "signal": args.signals, "fastlim": args.fastlim, "real": args.real,
-             "fakes": args.fakes, "fakeprefix": args.fakeprefix }
+             "fakes": args.fakes, "fakeprefix": args.fakeprefix,
+             "signalprefix": args.signalprefix }
     plot( opts, args.outputfile, args.datadir )
