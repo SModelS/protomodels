@@ -134,7 +134,7 @@ def inCorridor ( D, name ):
         if mpid in masses:
             dm = masses[mpid]-masses[1000022]
             if 150 < dm < 200:
-                print ( f"{name} has {mpid} in corridor: dm={dm}" )
+                print ( f"{name} has {mpid} in corridor: dm={dm:.2f}" )
                 ctr+=1
     return ctr
 
@@ -164,7 +164,7 @@ def analyzeStats ( globber ):
     print ( f"of {len(files)} files: {col}{inc} in corridor, {bmw} below mass wall{res}" )
     if len(Ks)>0:
         maxK = max(Ks.keys())
-        print ( "winner is", Ks[ maxK ],"with K=", maxK )
+        print ( f"winner is {Ks[ maxK ]} with K={maxK:.2f}" )
         print ( "%d Ks were between %.2f, %.2f+/-%.2f, %.2f" % \
                 ( len(Ks), min(Ks.keys()), np.mean(list(Ks.keys())),
                 np.std(list(Ks.keys())), maxK ) )
