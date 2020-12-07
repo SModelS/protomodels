@@ -165,7 +165,9 @@ def analyzeStats ( globber ):
     if len(Ks)>0:
         maxK = max(Ks.keys())
         print ( "winner is", Ks[ maxK ],"with K=", maxK )
-        print ( "Ks were between", min(Ks.keys()), np.mean(list(Ks.keys())), maxK )
+        print ( "%d Ks were between %.2f, %.2f+/-%.2f, %.2f" % \
+                ( len(Ks), min(Ks.keys()), np.mean(list(Ks.keys())),
+                np.std(list(Ks.keys())), maxK ) )
     print ( "particles that are in", pids )
 
 def addAsterisk ( pattern ):
