@@ -4,6 +4,10 @@
 
 import glob, subprocess, sys, os, colorama
 import numpy as np
+sys.path.insert(0,"../")
+from ptools.sparticleNames import SParticleNames
+
+namer = SParticleNames()
 
 def run( filename ):
     f = open ( filename, "rt" )
@@ -72,11 +76,14 @@ def count():
         if nsteps < 50000:
             print ( wdir, nsteps )
 
-def fetch( globber ):
-    """ fetch states.dict files from the individual runs """
+def fetch( globber, useHiscores = False ):
+    """ fetch states.dict files from the individual runs
+    :param useHiscores: fetch hiscores.dict, else states.dict
+    """
     Dir = "/scratch-cbe/users/wolfgan.waltenberger/"
-    dictfiles = "hiscores.dict"
-    # dictfiles = "states.dict"
+    dictfiles = "states.dict"
+    if useHiscores:
+        dictfiles = "hiscores.dict"
     g = addAsterisk ( globber )
     files = glob.glob ( f"{Dir}/rundir.{g}/{dictfiles}" )
     hiscores={}
@@ -119,10 +126,10 @@ def belowMassWall ( D, name ):
     ctr=0
     for pid in walledpids:
         if pid in masses and masses[pid] < wallmass:
-            print ( f"{name} has {pid} below mass wall: m={masses[pid]}" )
+            print ( f"{name} has {namer.asciiName(pid)} below mass wall: m={masses[pid]}" )
             ctr+=1
     return ctr
-            
+
 
 def inCorridor ( D, name ):
     """ check if the model contained in dictionary D has a stop in the corridor """
@@ -133,8 +140,8 @@ def inCorridor ( D, name ):
     for mpid in [ 1000006, 2000006 ]:
         if mpid in masses:
             dm = masses[mpid]-masses[1000022]
-            if 150 < dm < 200:
-                print ( f"{name} has {mpid} in corridor: dm={dm:.2f}" )
+            if 150 < dm < 200 and masses[mpid]<280:
+                print ( f"{name} has {namer.asciiName(mpid)} in corridor: mLSP={masses[1000022]:.2f}, dm={dm:.2f}: walkerid: {D['walkerid']}, step: {D['step']}" )
                 ctr+=1
     return ctr
 
@@ -232,6 +239,8 @@ if __name__ == "__main__":
                help='produce the stats', action='store_true' )
     argparser.add_argument ( '-a', '--analyze',
                help='analyze the stats', action='store_true' )
+    argparser.add_argument ( '-H', '--fetch_hiscores',
+               help='fetch hiscores.dict instead of states.dict', action='store_true' )
     argparser.add_argument ( '-g', '--globber',
                help='globber to use for stats analysis', type=str, default="real*" )
     args=argparser.parse_args()
@@ -241,10 +250,10 @@ if __name__ == "__main__":
     if args.count:
         count()
     if args.produce:
-        fetch( args.globber )
+        fetch( args.globber, args.fetch_hiscores )
         produce()
         getBest( "real*" )
         getBest( "signal*" )
     if args.analyze:
         analyzeStats ( addAsterisk ( args.globber ) )
-    
+
