@@ -3,6 +3,7 @@
 fname = "/scratch-cbe/users/wolfgan.waltenberger/rundir.fudged1/history34.list" 
 with open ( fname, "rt" ) as h:
     txt = h.read()
+    txt = txt.replace("nan",'"nan"')
     if txt[-2] == ",":
         txt+="]\n"
     L = eval ( txt )
