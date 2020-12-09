@@ -28,7 +28,8 @@ logger.setLevel("ERROR")
 class ExpResModifier:
     def __init__ ( self, dbpath, Zmax, rundir, keep, nproc, fudge,
                    suffix: str, lognormal = False, fixedsignals = False, 
-                   fixedbackgrounds = False, seed = None ):
+                   fixedbackgrounds = False, seed = None,
+                   maxmassdist = 400. ):
         """
         :param dbpath: path to database
         :param Zmax: upper limit on an individual excess
@@ -39,10 +40,13 @@ class ExpResModifier:
         :param fixedbackgrounds: if True, then use the central value of theory prediction
                              as the background yield, dont draw from Poissonian
         :param seed: if int and not None, set random number seed
+        :param maxmassdist: maximum distance (in GeV) for the euclidean space in masses, 
+                            for a signal to populate an UL map
         """
         self.comments = {} ## comments on entries in dict
         self.lognormal = lognormal
         self.dbpath = dbpath
+        self.maxmassdist = maxmassdist
         self.fixedsignals = fixedsignals
         self.fixedbackgrounds = fixedbackgrounds
         self.protomodel = None
@@ -484,7 +488,7 @@ class ExpResModifier:
             for yi,y in enumerate(txnd.y_values):
                 pt = txnd.tri.points[yi] ## the point in the rotated coords
                 dist = distance ( pt, coordsTpred )
-                if dist > 400.: ## change y_values only in vicinity of protomodel
+                if dist > self.maxmassdist: ## change y_values only in vicinity of protomodel
                     continue
                 oldv = txnd.y_values[yi]
                 oldo = txnd.y_values[yi]
@@ -866,6 +870,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-M', '--max',
             help='upper limit on significance of individual excess [None]',
             type=float, default=None )
+    argparser.add_argument ( '--maxmassdist',
+            help='maximum euclidean distance in mass space to add the signal in the UL maps [400.]',
+            type=float, default=400. )
     argparser.add_argument ( '--seed',
             help='set a random number seed [None]',
             type=int, default=None )
@@ -912,7 +919,8 @@ if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     modifier = ExpResModifier( args.database, args.max, args.rundir, args.keep, \
                                args.nproc, args.fudge, args.suffix, args.lognormal,
-                               args.fixedsignals, args.fixedbackgrounds, args.seed )
+                               args.fixedsignals, args.fixedbackgrounds, args.seed,
+                               args.maxmassdist )
     if not args.outfile.endswith(".pcl"):
         print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % args.outfile )
     if args.nofastlim or args.onlyvalidated or args.nosuperseded or args.remove_orig:
