@@ -99,6 +99,14 @@ def fetch( globber, useHiscores = False ):
         # print ( cmd )
         subprocess.getoutput ( cmd )
 
+    signalfiles = glob.glob ( f"{Dir}/rundir.{g}/signal.py" )
+    for signalfile in signalfiles:
+        """ if we have a signalfile, we copy it also """
+        dest = signalfile.replace("/signal.py","").replace( Dir,"")
+        dest = dest.replace("rundir.","")
+        cmd = f"cp {signalfile} {dest}.signal"
+        subprocess.getoutput ( cmd )
+
     """
     statesfiles = "states.dict"
     files = glob.glob ( f"{Dir}/rundir.*/{statesfiles}" )
@@ -150,6 +158,7 @@ def analyzeStats ( globber ):
     files = glob.glob ( f"{globber}.dict" )
     pids = {}
     Ks = {}
+    masses = {}
     inc, bmw = 0, 0
     for f in files:
         with open ( f, "rt" ) as h:
@@ -161,8 +170,17 @@ def analyzeStats ( globber ):
             if not ps in pids:
                 pids[ps]=0
             pids[ps]+=1
+            if not ps in masses:
+                masses[ps]=[]
+            masses[ps].append(D[0]["masses"][ps] )
         inc += inCorridor ( D[0], f )
         bmw += belowMassWall ( D[0], f )
+
+    signalfiles = glob.glob ( f"{globber}.signal" )
+    if len(signalfiles)>0:
+        with open ( signalfiles[0], "rt" ) as h:
+            signal = eval ( h.read() )
+
     maxK = 0
     col, res = "", ""
     if inc + bmw > 0:
@@ -176,6 +194,21 @@ def analyzeStats ( globber ):
                 ( len(Ks), min(Ks.keys()), np.mean(list(Ks.keys())),
                 np.std(list(Ks.keys())), maxK ) )
     print ( "particles that are in", pids )
+    collectors = { 1000001: (1000003, 1000004 ) }
+    hasTreated = []
+    for pid,values in masses.items():
+        if pid in hasTreated:
+            continue
+        sig = ""
+        if pid in signal["masses"]:
+            sig = " truth is at %.2f" % signal["masses"][pid]
+        if pid in collectors:
+            for cpid in collectors[pid]:
+                hasTreated.append ( cpid )
+                if cpid in masses:
+                    values += masses[cpid]
+        print ( f"masses of {namer.asciiName(pid)} are in {np.min(values):.2f}, " \
+                f"{np.mean(values):.2f}+-{np.std(values):.2f}, {np.max(values):.2f}{sig}" )
 
 def addAsterisk ( pattern ):
     wcs =  [ "*", "?" ]
@@ -244,6 +277,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-g', '--globber',
                help='globber to use for stats analysis', type=str, default="real*" )
     args=argparser.parse_args()
+    if args.fetch_hiscores and not args.produce:
+        print ( "[run.py] specified fetching hiscores, but you seem to not want to fetch. Weird." )
+        sys.exit()
 
     if args.define:
         defineModel1()
