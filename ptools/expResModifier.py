@@ -21,11 +21,14 @@ from smodels.particlesLoader import BSMList
 from smodels.theory.theoryPrediction import theoryPredictionsFor
 from smodels.tools.simplifiedLikelihoods import Data, UpperLimitComputer
 from smodels.theory import decomposer
+from smodels.tools.smodelsLogging import logger
+
+logger.setLevel("ERROR")
 
 class ExpResModifier:
     def __init__ ( self, dbpath, Zmax, rundir, keep, nproc, fudge,
                    suffix: str, lognormal = False, fixedsignals = False, 
-                   seed = None ):
+                   fixedbackgrounds = False, seed = None ):
         """
         :param dbpath: path to database
         :param Zmax: upper limit on an individual excess
@@ -33,12 +36,15 @@ class ExpResModifier:
         :param lognormal: if True, use lognormal for nuisances, else Gaussian
         :param fixedsignals: if True, then use the central value of theory prediction
                              as the signal yield, dont draw from Poissonian
+        :param fixedbackgrounds: if True, then use the central value of theory prediction
+                             as the background yield, dont draw from Poissonian
         :param seed: if int and not None, set random number seed
         """
         self.comments = {} ## comments on entries in dict
         self.lognormal = lognormal
         self.dbpath = dbpath
         self.fixedsignals = fixedsignals
+        self.fixedbackgrounds = fixedbackgrounds
         self.protomodel = None
         self.rundir = setup( rundir )
         self.keep = keep
@@ -129,7 +135,9 @@ class ExpResModifier:
             x = float("inf")
             D = {}
             while x > self.Zmax:
-                x = self.drawNuisance() * self.fudge # draw but once from standard-normal
+                x = 0.
+                if not self.fixedbackgrounds:
+                    x = self.drawNuisance() * self.fudge # draw but once from standard-normal
                 # x = stats.norm.rvs() * self.fudge # draw but once from standard-normal
                 D["x"] = x
             allpositive = True
@@ -285,17 +293,24 @@ class ExpResModifier:
         sample from background and put the value as observed """
         orig = dataset.dataInfo.observedN
         exp = dataset.dataInfo.expectedBG
-        err = dataset.dataInfo.bgError * self.fudge
+        err = 0.
+        if not self.fixedbackgrounds:
+            err = dataset.dataInfo.bgError * self.fudge
         D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge }
         S, origS = float("inf"), float("nan")
         while S > self.Zmax:
             # lmbda = stats.norm.rvs ( exp, err )
-            lmbda = self.drawNuisance ( exp, err )
+            lmbda = exp
+            if not self.fixedbackgrounds:
+                lmbda = self.drawNuisance ( exp, err )
             dataset.dataInfo.lmbda = lmbda
             if lmbda < 0.:
                 lmbda = 0.
-            obs = stats.poisson.rvs ( lmbda )
-            toterr = math.sqrt ( err**2 + exp )
+            obs = lmbda
+            toterr = 0.
+            if not self.fixedbackgrounds:
+                obs = stats.poisson.rvs ( lmbda )
+                toterr = math.sqrt ( err**2 + exp )
             S, origS = 0., 0.
             if toterr > 0.:
                 S = ( obs - exp ) / toterr
@@ -845,6 +860,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '--fixedsignals',
             help='fix the contributions from the signals, dont draw from Poissonian',
             action='store_true' )
+    argparser.add_argument ( '--fixedbackgrounds',
+            help='fix the contributions from the backgrounds, use central values for all.',
+            action='store_true' )
     argparser.add_argument ( '-M', '--max',
             help='upper limit on significance of individual excess [None]',
             type=float, default=None )
@@ -875,6 +893,10 @@ if __name__ == "__main__":
     argparser.add_argument ( '-k', '--keep',
             help='keep temporary files (for debugging)', action='store_true' )
     args = argparser.parse_args()
+    if args.fixedbackgrounds and not args.fixedsignals:
+        print ( "[expResModifier] WARNING fixing backgrounds but not signals. Sounds weird" )
+    if args.fixedbackgrounds and args.fudge > 1e-2:
+        print ( "[expResModifier] WARNING fixing backgrounds but fudge factor is not zero. Sounds weird" )
     if args.build:
         from smodels.experiment.txnameObj import TxNameData
         TxNameData._keep_values = True
@@ -890,7 +912,7 @@ if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     modifier = ExpResModifier( args.database, args.max, args.rundir, args.keep, \
                                args.nproc, args.fudge, args.suffix, args.lognormal,
-                               args.fixedsignals, args.seed )
+                               args.fixedsignals, args.fixedbackgrounds, args.seed )
     if not args.outfile.endswith(".pcl"):
         print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % args.outfile )
     if args.nofastlim or args.onlyvalidated or args.nosuperseded or args.remove_orig:
