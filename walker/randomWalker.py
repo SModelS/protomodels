@@ -19,6 +19,8 @@ from builder.manipulator import Manipulator
 from tester.predictor import Predictor
 from ptools.sparticleNames import SParticleNames
 from pympler.asizeof import asizeof
+from smodels.tools.smodelsLogging import logger
+logger.setLevel("ERROR")
 
 def cleanDirectory ():
     subprocess.getoutput ( "mkdir -p tmp" )
