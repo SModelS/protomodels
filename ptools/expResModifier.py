@@ -529,7 +529,7 @@ class ExpResModifier:
         meta = { "dbpath": self.dbpath, "Zmax": self.Zmax,
                  "database": self.dbversion, "fudge": self.fudge,
                  "protomodel": '"%s"' % self.protomodel, "timestamp": time.asctime(),
-                 "lognormal": self.lognormal }
+                 "lognormal": self.lognormal, "maxmassdist": self.maxmassdist }
         with open ( filename,"wt" ) as f:
             f.write ( str(meta)+"\n" )
             if len(self.comments)>0:
