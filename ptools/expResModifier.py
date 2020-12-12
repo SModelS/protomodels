@@ -27,7 +27,7 @@ logger.setLevel("ERROR")
 
 class ExpResModifier:
     def __init__ ( self, dbpath, Zmax, rundir, keep, nproc, fudge,
-                   suffix: str, lognormal = False, fixedsignals = False, 
+                   suffix: str, lognormal = False, fixedsignals = False,
                    fixedbackgrounds = False, seed = None,
                    maxmassdist = 400. ):
         """
@@ -40,7 +40,7 @@ class ExpResModifier:
         :param fixedbackgrounds: if True, then use the central value of theory prediction
                              as the background yield, dont draw from Poissonian
         :param seed: if int and not None, set random number seed
-        :param maxmassdist: maximum distance (in GeV) for the euclidean space in masses, 
+        :param maxmassdist: maximum distance (in GeV) for the euclidean space in masses,
                             for a signal to populate an UL map
         """
         self.comments = {} ## comments on entries in dict
@@ -529,7 +529,9 @@ class ExpResModifier:
         meta = { "dbpath": self.dbpath, "Zmax": self.Zmax,
                  "database": self.dbversion, "fudge": self.fudge,
                  "protomodel": '"%s"' % self.protomodel, "timestamp": time.asctime(),
-                 "lognormal": self.lognormal, "maxmassdist": self.maxmassdist }
+                 "lognormal": self.lognormal, "maxmassdist": self.maxmassdist,
+                 "fixedsignals": self.fixedsignals,
+                 "fixedbackgrounds": self.fixedbackgrounds }
         with open ( filename,"wt" ) as f:
             f.write ( str(meta)+"\n" )
             if len(self.comments)>0:

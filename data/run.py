@@ -207,7 +207,7 @@ def analyzeStats ( globber ):
                 hasTreated.append ( cpid )
                 if cpid in masses:
                     values += masses[cpid]
-        print ( f"masses of {namer.asciiName(pid)} are in {np.min(values):.2f}, " \
+        print ( f"{len(values)} masses of {namer.asciiName(pid)} are in {np.min(values):.2f}, " \
                 f"{np.mean(values):.2f}+-{np.std(values):.2f}, {np.max(values):.2f}{sig}" )
 
 def addAsterisk ( pattern ):

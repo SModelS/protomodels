@@ -9,6 +9,8 @@ def main():
         description='count the number of finished jobs in protomodels production' )
     argparser.add_argument ( '-p', '--pattern', type=str, default="", 
         help="show only the ones that contain <pattern>" )
+    # "/scratch-cbe/users/wolfgan.waltenberger"
+    os.chdir ( "/scratch-cbe/users/wolfgan.waltenberger" )
     args = argparser.parse_args()
     Dirs = glob.glob ( f"rundir.{args.pattern}*/" )
     oldDict = {}
