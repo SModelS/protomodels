@@ -9,6 +9,12 @@ from builder.protomodel import ProtoModel
 from tester.predictor import Predictor
 from smodels.tools.smodelsLogging import logger
 logger.setLevel("ERROR")
+import subprocess
+
+## maybe add copying of real*.dict to hiscores.dict
+## maybe add check for database pickle file
+subprocess.getoutput ( "rm H*hi" )
+subprocess.getoutput ( "rm Kold.conf" )
 
 pmodel = ProtoModel ( 0 )
 pr = Predictor ( 0 )
@@ -19,3 +25,6 @@ pr.predict ( ma.M )
 print ( "We end up with K=", ma.M.K )
 hi = Hiscore ( 0, True, picklefile = "H1.hi", hiscores = [ ma.M ] )
 hi.save()
+
+a = subprocess.getoutput ( "./upHi.py" )
+print ( a )
