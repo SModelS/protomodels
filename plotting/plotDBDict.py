@@ -138,10 +138,12 @@ class Plotter:
                         vexp = v["expectedBG"]
                         if vexp < self.filter:
                             continue
-                        p = self.computeP ( obs, vexp, v["bgError"] )
+                        bgErr = v["bgError"]/v["fudge"]
+                        # bgErr = v["bgError"]# /v["fudge"]
+                        p = self.computeP ( obs, vexp, bgErr )
                         P.append( p )
                         P_.append ( p )
-                        pfake = self.computeP ( fakeobs, vexp, v["bgError"] )
+                        pfake = self.computeP ( fakeobs, vexp, bgErr )
                         Pfake.append( pfake )
                         Pfake_.append ( pfake )
                         P.append( scipy.stats.norm.cdf ( s ) )
