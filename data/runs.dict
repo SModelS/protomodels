@@ -1,0 +1,7 @@
+{ 
+	"frozen": "fake signals without sampling, hiscore signal injected once",
+	"kinky": "fake signals without sampling, hiscore signal injected once, again",
+	"iced": "fake signals without sampling, hiscore signal injected once, but with dm<100gev",
+	"doublefrozen": "fake signals without sampling, hiscore signal injected once, but squark ssms times two",
+	"morefrozen": "fake signals without sampling, hiscore signal injected once, but all ssms times two",
+}

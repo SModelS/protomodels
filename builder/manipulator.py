@@ -203,10 +203,11 @@ class Manipulator:
         with open( "walker%d.log" % self.M.walkerid, "at" ) as f:
             f.write ( "[%s-%s] %s\n" % ( module, time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
-    def initFromDictFile ( self, filename ):
+    def initFromDictFile ( self, filename, initTestStats = False ):
         """ setup the protomodel from dictionary in file <filename>.
             If it is a list of dictionaries, take the 1st entry.
         :param filename: name of file
+        :param initTestStats: if True, set also test statistics K and Z
         """
         if not os.path.exists ( filename ):
             self.pprint ( f"filename {filename} does not exist!" )
@@ -214,7 +215,7 @@ class Manipulator:
         with open ( filename, "rt" ) as f:
             D = eval ( f.read() )
         if type(D) == list and type(D[0]) == dict:
-            self.initFromDict ( D[0], filename )
+            self.initFromDict ( D[0], filename, initTestStats )
             return
         if type(D) == dict:
             self.initFromDict ( D, filename )
