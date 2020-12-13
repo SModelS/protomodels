@@ -14,6 +14,8 @@ from smodels.tools import runtime
 from smodels_utils.plotting import rulerPlotter, decayPlotter
 from smodels_utils.helper.bibtexTools import BibtexWriter
 from ptools.sparticleNames import SParticleNames
+from smodels.tools.smodelsLogging import logger
+logger.setLevel("ERROR")
 
 runtime._experimental = True
 
@@ -45,12 +47,22 @@ def obtain ( number, picklefile ):
     print ( "[plotHiscore] obtaining #%d: K=%.3f" % (number, K ) )
     return hiscores[ number ]
 
-def gitCommit ( dest, wanted ):
-    """ if wanted, then git commit and git push to smodels.githuib.io """
+def gitCommit ( dest, upload, wanted ):
+    """ if wanted, then git commit and git push to smodels.githuib.io
+    :param dest: e.g. "/scratch-cbe/users/w.w/git/smodels.github.io/protomodels/latest/"
+    :param upload: e.g. "latest"
+    :param wanted: were we even asked to git-commit?
+    """
     if not wanted:
         return False
-    comment = "automated update by plotHiscore.py to %s" % dest
-    cmd = "cd %s; git pull; git commit -am '%s'; git push" % ( dest, comment )
+    destdir = dest
+    destdir = destdir.replace(upload,"")
+    destdir = destdir.replace("//","")
+
+    comment = "automated update by plotHiscore.py to %s" % destdir
+    print ( "destdir", destdir, "upload", upload, "wanted", wanted )
+    cmd = "cd %s; git pull; git add '%s'; git commit -m '%s'; git push" % \
+           ( destdir, upload, comment )
     print ( "[plotHiscore] now git-commit: %s" % cmd )
     out = subprocess.getoutput ( cmd )
     if out != "":
@@ -425,7 +437,7 @@ def getPrettyName ( rv ):
     return anaId
 
 def writeRValuesTex ( rvalues, usePrettyNames = True ):
-    """ write out the leading rvalues of the critic, in latex 
+    """ write out the leading rvalues of the critic, in latex
     :param usePrettyNames: use the pretty names, not analysis ids
     """
     namer = SParticleNames ( False )
@@ -890,7 +902,7 @@ def runPlotting ( args ):
         if a != "":
             print ( "error: %s" % a )
             sys.exit()
-        r = gitCommit( dest, args.commit )
+        r = gitCommit( dest, upload, args.commit )
         if not r:
             print ( "[plotHiscore] done. now please do yourself: " )
             print ( "cd %s" % dest )
