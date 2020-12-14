@@ -626,7 +626,7 @@ def writeIndexHtml ( protomodel ):
     f.write ( "<html>\n" )
     f.write ( "<body>\n" )
     f.write ( "<center>\n" )
-    f.write ( "<table><td><h1>Current best protomodel: K=%.2f</h1><td><img height=60px src=https://smodels.github.io/pics/banner.png></table>\n" % ( protomodel.K ) )
+    f.write ( "<table><td><h1>Current best protomodel: <i>K</i>=%.2f</h1><td><img height=60px src=https://smodels.github.io/pics/banner.png></table>\n" % ( protomodel.K ) )
     f.write ( "</center>\n" )
     dbver = getDatabaseVersion ( protomodel )
     strategy = "aggressive"
@@ -635,7 +635,7 @@ def writeIndexHtml ( protomodel ):
     f.write ( "<b><a href=./hiscore.slha>ProtoModel</a> <a href=./pmodel.py>(dict)</a> produced with <a href=https://smodels.github.io/docs/Validation%s>database v%s</a>, combination strategy <a href=./matrix_%s.png>%s</a> in walker %d step %d.</b> " % \
             ( dotlessv, dbver, strategy, strategy, protomodel.walkerid, protomodel.step ) )
     if hasattr ( protomodel, "particleContributions" ):
-        f.write ( "K plots for: <a href=./M1000022.png?%d>%s</a>" % \
+        f.write ( "<i>K</i> plots for: <a href=./M1000022.png?%d>%s</a>" % \
                   ( dt, namer.htmlName(1000022) ) )
         for k,v in protomodel.particleContributions.items():
             f.write ( ", " )
