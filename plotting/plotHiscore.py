@@ -7,6 +7,7 @@ sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/smodels-utils/pro
 from ptools import hiscoreTools
 from builder.manipulator import Manipulator
 from builder import protomodel
+from builder.protomodel import ProtoModel
 from csetup import setup
 from smodels.tools.physicsUnits import fb, TeV
 from smodels.theory.theoryPrediction import TheoryPrediction
@@ -332,7 +333,7 @@ def writeTex ( protomodel, keep_tex ):
     cpids = {}
     frozen = protomodel.frozenParticles()
     xsecs = protomodel.getXsecs()[0]
-    ssms = getUnfrozenSSMs ( protomodel, frozen, False )
+    ssms = getUnfrozenSSMs ( protomodel, frozen, includeOnes=True )
     namer = SParticleNames ( susy = False )
     for pids,v in ssms.items():
         xsec = findXSecOfPids ( xsecs, pids )
@@ -582,11 +583,12 @@ def writeIndexTex ( protomodel, texdoc ):
     f.close()
     print ( "[plotHiscore] Wrote index.tex" )
 
-def getUnfrozenSSMs ( protomodel, frozen, includeOnes=False ):
+def getUnfrozenSSMs ( protomodel, frozen, includeOnes=False, dropLSPLSP=True ):
     """ of all SSMs, leave out the ones with frozen particles
     :param protomodel: the, well, protomodel
     :param frozen: list of pids of frozen particles
     :param includeOnes: if False, then also filter out values close to unity
+    :param dropLSPLSP: if True, dont include LSP,LSP production
     :returns: dictionary of SSMs without frozen particles
     """
     # ssms = protomodel.ssmultipliers
@@ -595,6 +597,10 @@ def getUnfrozenSSMs ( protomodel, frozen, includeOnes=False ):
     D={}
     for pids,v in ssms.items():
         hasFrozenParticle = False
+        if dropLSPLSP:
+            if pids == ( ProtoModel.LSP, ProtoModel.LSP ):
+                continue
+
         for pid in pids:
             if pid in frozen or -pid in frozen:
                 hasFrozenParticle = True
@@ -613,7 +619,7 @@ def writeIndexHtml ( protomodel ):
     ssm = []
     namer = SParticleNames ( susy = False )
     frozen = protomodel.frozenParticles()
-    ssms = getUnfrozenSSMs ( protomodel, frozen, False )
+    ssms = getUnfrozenSSMs ( protomodel, frozen, includeOnes=True )
     for k,v in ssms.items():
         ssm.append ( "%s: %.2g" % ( namer.htmlName(k,addSign=True),v) )
     f=open("index.html","w")
