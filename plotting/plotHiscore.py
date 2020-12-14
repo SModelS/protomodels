@@ -481,9 +481,11 @@ def writeRValuesTex ( rvalues, usePrettyNames = True ):
         prod = "; ".join(prod)
         sigmapred = "20.13"
         sigmapred = rv[2].xsection.value.asNumber(fb)
-        sigmaexp = rv[2].expectedUL.asNumber(fb)
+        sigmaexp = "--"
+        if type(rv[2].expectedUL) != type(None):
+            sigmaexp = "%.2f" % rv[2].expectedUL.asNumber(fb)
         sigmaobs = rv[2].upperLimit.asNumber(fb)
-        g.write ( "%s~\\cite{%s} & %s & %.2f & %.2f & %.2f & %.2f\\\\\n" % \
+        g.write ( "%s~\\cite{%s} & %s & %.2f & %.2f & %s & %.2f\\\\\n" % \
                 ( prettyName, ref, prod, sigmapred, sigmaobs, sigmaexp, rv[0] ) )
     g.write ( "\\end{tabular}\n" )
     g.close()
