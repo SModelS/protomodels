@@ -488,6 +488,19 @@ def writeRValuesTex ( rvalues, usePrettyNames = True ):
     g.write ( "\\end{tabular}\n" )
     g.close()
 
+def getDatabaseVersion ( protomodel, dbpath = "default.pcl" ):
+    dbver = "???"
+    if hasattr ( protomodel, "dbversion" ):
+        dbver = protomodel.dbversion
+        if not "???" in dbver:
+            return dbver
+    if os.path.exists ( dbpath ):
+        ## try to get db version from db file
+        from smodels.experiment.databaseObj import Database
+        db = Database ( dbpath )
+        dbver = db.databaseVersion
+    return dbver
+
 def writeIndexTex ( protomodel, texdoc ):
     """ write the index.tex file
     :param texdoc: the source that goes into texdoc.png
@@ -501,12 +514,9 @@ def writeIndexTex ( protomodel, texdoc ):
     f=open("index.tex","w")
     f.write ( "Our current winner has a score of \\K=%.2f, " % \
               ( protomodel.K ) )
-    dbver = "???"
-    dotlessv = "???"
     strategy = "aggressive"
-    if hasattr ( protomodel, "dbversion" ):
-        dbver = protomodel.dbversion
-        dotlessv = dbver.replace(".","")
+    dbver = getDatabaseVersion ( protomodel )
+    dotlessv = dbver.replace(".","")
     f.write ( " it was produced with database {\\tt v%s}, combination strategy {\\tt %s} walker %d in step %d." % \
             ( dotlessv, strategy, protomodel.walkerid, protomodel.step ) )
     f.write ( "\n" )
@@ -610,12 +620,9 @@ def writeIndexHtml ( protomodel ):
     f.write ( "<center>\n" )
     f.write ( "<table><td><h1>Current best protomodel: K=%.2f</h1><td><img height=60px src=https://smodels.github.io/pics/banner.png></table>\n" % ( protomodel.K ) )
     f.write ( "</center>\n" )
-    dbver = "???"
-    dotlessv = "???"
+    dbver = getDatabaseVersion ( protomodel )
     strategy = "aggressive"
-    if hasattr ( protomodel, "dbversion" ):
-        dbver = protomodel.dbversion
-        dotlessv = dbver.replace(".","")
+    dotlessv = dbver.replace(".","")
     dt = int ( time.time() - 1593000000 )
     f.write ( "<b><a href=./hiscore.slha>ProtoModel</a> <a href=./pmodel.py>(dict)</a> produced with <a href=https://smodels.github.io/docs/Validation%s>database v%s</a>, combination strategy <a href=./matrix_%s.png>%s</a> in walker %d step %d.</b> " % \
             ( dotlessv, dbver, strategy, strategy, protomodel.walkerid, protomodel.step ) )
