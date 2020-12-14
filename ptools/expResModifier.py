@@ -121,9 +121,11 @@ class ExpResModifier:
         ret = stats.lognorm.rvs ( s=stderr, scale=loc )
         return ret
 
-    def computeNewObserved ( self, txname, globalInfo ):
+    def computeNewObserved ( self, txname, globalInfo, x_ = None ):
         """ given expected upper limit, compute a fake observed limit
-            by sampling the non-truncated Gaussian likelihood """
+            by sampling the non-truncated Gaussian likelihood 
+        :param x: if not None, use it
+        """
         expected = txname.txnameDataExp
         observed = txname.txnameData
         ## we only draw once for the entire UL map, equivalent to assuming
@@ -137,13 +139,15 @@ class ExpResModifier:
             ret = copy.deepcopy ( expected )
             ctr += 1
             x = float("inf")
+            if x_ != None:
+                x = x_
             D = {}
             while x > self.Zmax:
                 x = 0.
                 if not self.fixedbackgrounds:
                     x = self.drawNuisance() * self.fudge # draw but once from standard-normal
                 # x = stats.norm.rvs() * self.fudge # draw but once from standard-normal
-                D["x"] = x
+            D["x"] = x
             allpositive = True
             for i,y in enumerate( expected.y_values ):
                 sigma_exp = y / 1.96 ## the sigma of the Gaussian
@@ -226,7 +230,8 @@ class ExpResModifier:
         print ( "[expResModifier] finalize" )
         if self.keep:
             return
-        if hasattr ( self, "protomodel" ) and self.protomodel is not None:
+        if hasattr ( self, "protomodel" ) and self.protomodel is not None and \
+                type(self.protomodel) != str:
             self.protomodel.delCurrentSLHA()
 
     def produceProtoModel ( self, filename, dbversion ):
@@ -342,6 +347,7 @@ class ExpResModifier:
         dataset.dataInfo.origN = orig
         label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
         txnames = [ tx.txName for tx in dataset.txnameList ]
+        txnames.sort()
         D["txns"]=",".join(txnames )
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         self.addToStats ( label, D )
@@ -351,6 +357,7 @@ class ExpResModifier:
         """ add a signal to this efficiency map. background sampling is
             already taken care of """
         txns = list ( map ( str, tpred.txnames ) )
+        txns.sort()
         self.log ( "add EM matching tpred %s/%s %s: %s" % \
                 ( tpred.analysisId(), tpred.dataId(), ",".join(txns), \
                   tpred.xsection.value ) )
@@ -450,6 +457,7 @@ class ExpResModifier:
             already taken care of """
         from smodels.tools.physicsUnits import fb
         txns = list ( map ( str, tpred.txnames ) )
+        txns.sort()
         self.log ( "add UL matching tpred %s: <%s> %s {%s}" % \
                 ( tpred.analysisId(), tpred.xsection.value, \
                   tpred.PIDs, ",".join(txns) ) )
@@ -521,10 +529,12 @@ class ExpResModifier:
             dataset.txnameList[i].sigmaN = sigmaN
         return dataset
 
-    def saveStats ( self ):
+    def saveStats ( self, statsname = None ):
         """ write out the collected stats, so we can discuss experimentalists'
             conservativeness """
         filename = "%s/db%s.dict" % ( self.rundir, self.suffix )
+        if statsname != None:
+            filename = statsname
         self.log ( f"saving stats to {filename}" )
         meta = { "dbpath": self.dbpath, "Zmax": self.Zmax,
                  "database": self.dbversion, "fudge": self.fudge,
@@ -762,6 +772,67 @@ class ExpResModifier:
         if outfile != "":
             db.createBinaryFile( outfile )
 
+    def playback ( self, playbackdict, outfile ):
+        """ playback the mods described in playbackdict """
+        with open ( playbackdict, "rt" ) as h:
+            lines = h.readlines()
+            h.close()
+        ## first line goes directly into database
+        line = lines.pop(0)
+        D = eval ( line )
+        for k,v in D.items():
+            setattr ( self, k, v )
+        ## now the remaining lines
+        cleaned = []
+        for line in lines:
+            if line.startswith("#"):
+                continue
+            cleaned.append ( line )
+        D = eval ( "\n".join ( cleaned ) )
+
+        db = Database ( self.dbpath )
+        self.dbversion = db.databaseVersion
+        self.lExpRes = db.expResultList ## seems to be the safest bet?
+        for anaids,values in D.items():
+            self.playbackOneItem ( anaids, values )
+        db.expResultList = self.lExpRes
+        db.createBinaryFile ( outfile )
+    
+    def playbackOneItem ( self, anaids : str, values : dict ):
+        """ play back a single item
+        :param anaids: e.g. "CMS-SUS-14-021:ul:T2bbWWoff"
+        :param values: e.g. xxx
+        """
+        self.pprint ( f"playing back {anaids}" )
+        tokens = anaids.split(":")
+        anaid = tokens[0]
+        isEffMap = False
+        if len(tokens)==3:
+            # dataType = tokens[1]
+            txname = tokens[2]
+        if len(tokens)==2:
+            isEffMap = True
+            sr=tokens[1]
+        for ier,er in enumerate(self.lExpRes):
+            tanaid = er.globalInfo.id
+            if tanaid != anaid:
+                continue
+            tdatasets = er.datasets
+            for ids,tds in enumerate(tdatasets):
+                if tds.getType() == "upperLimit" and not isEffMap:
+                    ### update an UL dataset
+                    for itx,txnd in enumerate(tds.txnameList):
+                        if hasattr ( txnd, "txnameDataExp" ):
+                            self.pprint ( "updating UL map", tds.globalInfo.id )
+                            ntxnd = self.computeNewObserved ( txnd, tds.globalInfo, values["x"] )
+                            self.lExpRes[ier].datasets[ids].txnameList[itx]=ntxnd
+
+                        
+                if tds.getType() == "efficiencyMap" and isEffMap and sr == tds.getID():
+                    ### update an EM dataset
+                    self.pprint ( "found EM to update", tds.getID() )
+                    self.lExpRes[ier].datasets[ids].dataInfo.observedN = values["newObs"]
+
     def upload( self ):
         import filecmp
         # cmd = "cp %s ./modifier.log %s" % ( args.outfile, self.rundir )
@@ -813,6 +884,10 @@ Fake SM-only database:
 Database with a fake signal:
 ----------------------------
 ./expResModifier.py -R $RUNDIR -d original.pcl -s signal1 -P pmodel9.py
+
+Playback the modifications described in playback file "db.dict":
+----------------------------------------------------------------
+./expResModifier.py -R $RUNDIR -d original.pcl -p db.dict -o playedback.pcl
 
 Build a database:
 -----------------
@@ -884,6 +959,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-P', '--pmodel',
             help='supply filename of a pmodel, in which case create a signal-infused database [""]',
             type=str, default="" )
+    argparser.add_argument ( '-p', '--playback',
+            help='playback the modifications described in given dictionary file [""]',
+            type=str, default="" )
     argparser.add_argument ( '-v', '--verbose',
             help='print results to stdout', action='store_true' )
     argparser.add_argument ( '-I', '--interactive',
@@ -923,13 +1001,17 @@ if __name__ == "__main__":
                                args.nproc, args.fudge, args.suffix, args.lognormal,
                                args.fixedsignals, args.fixedbackgrounds, args.seed,
                                args.maxmassdist )
+
+    statsname = None
+    if args.playback not in [ None, "" ]:
+        modifier.playback ( args.playback, args.outfile )
+        statsname = "playback.dict"
+
     if not args.outfile.endswith(".pcl"):
         print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % args.outfile )
     if args.nofastlim or args.onlyvalidated or args.nosuperseded or args.remove_orig:
         modifier.filter ( args.outfile, args.nofastlim, args.onlyvalidated,
                           args.nosuperseded, args.remove_orig )
-        modifier.symlink ( args.outfile )
-
     if args.dontsample:
         print ( "[expResModifier] we were asked to not sample, so we exit now." )
         sys.exit()
@@ -937,9 +1019,10 @@ if __name__ == "__main__":
     if args.extract_stats:
         er = modifier.extractStats()
     else:
-        er = modifier.modifyDatabase ( args.outfile, args.pmodel )
+        if not args.playback:
+            er = modifier.modifyDatabase ( args.outfile, args.pmodel )
 
-    modifier.saveStats()
+    modifier.saveStats( statsname )
 
     if args.check:
         modifier.check ( args.outfile )
@@ -950,5 +1033,7 @@ if __name__ == "__main__":
     if args.upload:
         modifier.upload()
 
-    modifier.symlink ( args.outfile )
+    if args.symlink:
+        modifier.symlink ( args.outfile )
+
     modifier.finalize()
