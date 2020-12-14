@@ -166,12 +166,17 @@ def writeRawNumbersHtml ( protomodel ):
                 obsN=int(obsN)
             particles = namer.htmlName ( pids, addSign = False,
                                           addBrackets = False )
+            sobsN = str(obsN)
+            if type(obsN) == float:
+                sobsN = "%.2f" % obsN
             f.write ( '<td>%s</td><td>%s</td><td>%s</td><td>%s +/- %s</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
-                      ( did, topos, obsN, eBG, bgErr, S, particles ) )
+                      ( did, topos, sobsN, eBG, bgErr, S, particles ) )
             if hassigs:
                 sig = "-"
                 if hasattr ( dI, "sigN" ):
                     sig = "%s" % dI.sigN
+                    if type(dI.sigN) in [ float ]:
+                        sig = "%.2f" % dI.sigN
                 f.write ( '<td style="text-align:right">%s</td>' % sig )
         if dtype == "upperLimit":
             S = "?"
