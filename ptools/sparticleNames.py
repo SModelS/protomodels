@@ -77,7 +77,7 @@ class SParticleNames:
                    "black": "{0,0,0}", "green": "{0,.5,0}" }
         c = self.namedColor ( name )
         # \color[rgb]{0,0,.5}\
-        return f"\\color[rgb]{colors[c]}"
+        return f"\\\\color[rgb]{colors[c]}"
 
     def namedColor ( self, pid ):
         """ find the default colors for <name>, latex version 
