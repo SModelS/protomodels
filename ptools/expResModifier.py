@@ -9,6 +9,7 @@ expected from background, by sampling the background model. """
 import copy, os, sys, time, subprocess, math, numpy, shutil
 import scipy.spatial
 sys.path.insert( 0, "../" )
+sys.path.append('../smodels')
 from csetup import setup
 setup()
 #sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/protomodels/")
@@ -22,6 +23,7 @@ from smodels.theory.theoryPrediction import theoryPredictionsFor
 from smodels.tools.simplifiedLikelihoods import Data, UpperLimitComputer
 from smodels.theory import decomposer
 from smodels.tools.smodelsLogging import logger
+from smodels.experiment.databaseObj import Database
 
 logger.setLevel("ERROR")
 
@@ -123,7 +125,7 @@ class ExpResModifier:
 
     def computeNewObserved ( self, txname, globalInfo, x_ = None ):
         """ given expected upper limit, compute a fake observed limit
-            by sampling the non-truncated Gaussian likelihood 
+            by sampling the non-truncated Gaussian likelihood
         :param x: if not None, use it
         """
         expected = txname.txnameDataExp
@@ -456,6 +458,7 @@ class ExpResModifier:
         """ add a signal to this UL result. background sampling is
             already taken care of """
         from smodels.tools.physicsUnits import fb
+        from ptools import helpers
         txns = list ( map ( str, tpred.txnames ) )
         txns.sort()
         self.log ( "add UL matching tpred %s: <%s> %s {%s}" % \
@@ -469,6 +472,8 @@ class ExpResModifier:
         label = tpred.analysisId() + ":ul:" + ",".join(txns)
         D={}
         D["sigmaN"]=sigmaN
+        D["pids"]=tpred.PIDs
+        D["signalmasses"]=helpers.stripUnits ( tpred.mass )
         D["txns"]=",".join(txns)
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
@@ -780,7 +785,10 @@ class ExpResModifier:
         ## first line goes directly into database
         line = lines.pop(0)
         D = eval ( line )
+        db = Database ( self.dbpath )
         for k,v in D.items():
+            if k == "dbpath":
+                continue
             setattr ( self, k, v )
         ## now the remaining lines
         cleaned = []
@@ -790,14 +798,15 @@ class ExpResModifier:
             cleaned.append ( line )
         D = eval ( "\n".join ( cleaned ) )
 
-        db = Database ( self.dbpath )
         self.dbversion = db.databaseVersion
         self.lExpRes = db.expResultList ## seems to be the safest bet?
         for anaids,values in D.items():
             self.playbackOneItem ( anaids, values )
         db.expResultList = self.lExpRes
+        db.dbpath = outfile
+        self.pprint ( f"writing to {outfile}" )
         db.createBinaryFile ( outfile )
-    
+
     def playbackOneItem ( self, anaids : str, values : dict ):
         """ play back a single item
         :param anaids: e.g. "CMS-SUS-14-021:ul:T2bbWWoff"
@@ -822,12 +831,17 @@ class ExpResModifier:
                 if tds.getType() == "upperLimit" and not isEffMap:
                     ### update an UL dataset
                     for itx,txnd in enumerate(tds.txnameList):
-                        if hasattr ( txnd, "txnameDataExp" ):
+                        if hasattr ( txnd, "txnameDataExp" ) and txnd.txnameDataExp != None:
                             self.pprint ( "updating UL map", tds.globalInfo.id )
+                            if not "x" in values:
+                                self.pprint ( f"error, cannot find x value in {tanaid}:{txnd.txName}: {values}" )
+                                continue
+                            if "sigmaN" in values:
+                                self.pprint ( f"error, signal playback not yet implemented for ULs" )
                             ntxnd = self.computeNewObserved ( txnd, tds.globalInfo, values["x"] )
                             self.lExpRes[ier].datasets[ids].txnameList[itx]=ntxnd
 
-                        
+
                 if tds.getType() == "efficiencyMap" and isEffMap and sr == tds.getID():
                     ### update an EM dataset
                     self.pprint ( "found EM to update", tds.getID() )
@@ -996,7 +1010,7 @@ if __name__ == "__main__":
         args.rundir = "/scratch-cbe/users/wolfgan.waltenberger/" + args.rundir
     if args.outfile == "":
         args.outfile = args.suffix+".pcl"
-    from smodels.experiment.databaseObj import Database
+
     modifier = ExpResModifier( args.database, args.max, args.rundir, args.keep, \
                                args.nproc, args.fudge, args.suffix, args.lognormal,
                                args.fixedsignals, args.fixedbackgrounds, args.seed,
