@@ -836,6 +836,8 @@ class ExpResModifier:
                             if not "x" in values:
                                 self.pprint ( f"error, cannot find x value in {tanaid}:{txnd.txName}: {values}" )
                                 continue
+                            if "sigmaN" in values:
+                                self.pprint ( f"error, signal playback not yet implemented for ULs" )
                             ntxnd = self.computeNewObserved ( txnd, tds.globalInfo, values["x"] )
                             self.lExpRes[ier].datasets[ids].txnameList[itx]=ntxnd
 
