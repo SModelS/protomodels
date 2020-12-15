@@ -780,7 +780,10 @@ class ExpResModifier:
         ## first line goes directly into database
         line = lines.pop(0)
         D = eval ( line )
+        db = Database ( self.dbpath )
         for k,v in D.items():
+            if k == "dbpath":
+                continue
             setattr ( self, k, v )
         ## now the remaining lines
         cleaned = []
@@ -790,7 +793,6 @@ class ExpResModifier:
             cleaned.append ( line )
         D = eval ( "\n".join ( cleaned ) )
 
-        db = Database ( self.dbpath )
         self.dbversion = db.databaseVersion
         self.lExpRes = db.expResultList ## seems to be the safest bet?
         for anaids,values in D.items():
