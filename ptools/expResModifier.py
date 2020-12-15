@@ -245,7 +245,7 @@ class ExpResModifier:
         if not os.path.exists ( filename ):
             self.pprint ( "When trying to construct protomodel, %s does not exist" % filename )
             return None
-        shutil.copyfile ( filename, self.rundir+"/signal.py" )
+        shutil.copyfile ( filename, self.rundir+"/my.signal" )
         walkerid = 0
         expected = False
         select = "all"
