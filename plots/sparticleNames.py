@@ -1,1 +1,0 @@
-../ptools/sparticleNames.py
