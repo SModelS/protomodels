@@ -799,6 +799,7 @@ class ExpResModifier:
             self.playbackOneItem ( anaids, values )
         db.expResultList = self.lExpRes
         db.dbpath = outfile
+        self.pprint ( f"writing to {outfile}" )
         db.createBinaryFile ( outfile )
     
     def playbackOneItem ( self, anaids : str, values : dict ):
