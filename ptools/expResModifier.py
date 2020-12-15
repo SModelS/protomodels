@@ -798,6 +798,7 @@ class ExpResModifier:
         for anaids,values in D.items():
             self.playbackOneItem ( anaids, values )
         db.expResultList = self.lExpRes
+        db.dbpath = outfile
         db.createBinaryFile ( outfile )
     
     def playbackOneItem ( self, anaids : str, values : dict ):
@@ -824,8 +825,11 @@ class ExpResModifier:
                 if tds.getType() == "upperLimit" and not isEffMap:
                     ### update an UL dataset
                     for itx,txnd in enumerate(tds.txnameList):
-                        if hasattr ( txnd, "txnameDataExp" ):
+                        if hasattr ( txnd, "txnameDataExp" ) and txnd.txnameDataExp != None:
                             self.pprint ( "updating UL map", tds.globalInfo.id )
+                            if not "x" in values:
+                                self.pprint ( f"error, cannot find x value in {tanaid}:{txnd.txName}: {values}" )
+                                continue
                             ntxnd = self.computeNewObserved ( txnd, tds.globalInfo, values["x"] )
                             self.lExpRes[ier].datasets[ids].txnameList[itx]=ntxnd
 
