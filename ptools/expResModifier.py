@@ -9,6 +9,7 @@ expected from background, by sampling the background model. """
 import copy, os, sys, time, subprocess, math, numpy, shutil
 import scipy.spatial
 sys.path.insert( 0, "../" )
+sys.path.append('../smodels')
 from csetup import setup
 setup()
 #sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/protomodels/")
@@ -22,6 +23,7 @@ from smodels.theory.theoryPrediction import theoryPredictionsFor
 from smodels.tools.simplifiedLikelihoods import Data, UpperLimitComputer
 from smodels.theory import decomposer
 from smodels.tools.smodelsLogging import logger
+from smodels.experiment.databaseObj import Database
 
 logger.setLevel("ERROR")
 
@@ -123,7 +125,7 @@ class ExpResModifier:
 
     def computeNewObserved ( self, txname, globalInfo, x_ = None ):
         """ given expected upper limit, compute a fake observed limit
-            by sampling the non-truncated Gaussian likelihood 
+            by sampling the non-truncated Gaussian likelihood
         :param x: if not None, use it
         """
         expected = txname.txnameDataExp
@@ -801,7 +803,7 @@ class ExpResModifier:
         db.dbpath = outfile
         self.pprint ( f"writing to {outfile}" )
         db.createBinaryFile ( outfile )
-    
+
     def playbackOneItem ( self, anaids : str, values : dict ):
         """ play back a single item
         :param anaids: e.g. "CMS-SUS-14-021:ul:T2bbWWoff"
@@ -834,7 +836,7 @@ class ExpResModifier:
                             ntxnd = self.computeNewObserved ( txnd, tds.globalInfo, values["x"] )
                             self.lExpRes[ier].datasets[ids].txnameList[itx]=ntxnd
 
-                        
+
                 if tds.getType() == "efficiencyMap" and isEffMap and sr == tds.getID():
                     ### update an EM dataset
                     self.pprint ( "found EM to update", tds.getID() )
@@ -1003,7 +1005,7 @@ if __name__ == "__main__":
         args.rundir = "/scratch-cbe/users/wolfgan.waltenberger/" + args.rundir
     if args.outfile == "":
         args.outfile = args.suffix+".pcl"
-    from smodels.experiment.databaseObj import Database
+
     modifier = ExpResModifier( args.database, args.max, args.rundir, args.keep, \
                                args.nproc, args.fudge, args.suffix, args.lognormal,
                                args.fixedsignals, args.fixedbackgrounds, args.seed,
