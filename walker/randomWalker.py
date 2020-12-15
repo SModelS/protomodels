@@ -2,7 +2,7 @@
 
 """ a first start at the random walk idea """
 
-import pickle, sys, time, math, socket, os
+import random, pickle, sys, time, math, socket, os
 if sys.version_info[0]==2:
     import commands as subprocess # python2.7
 else:
@@ -19,8 +19,6 @@ from builder.manipulator import Manipulator
 from tester.predictor import Predictor
 from ptools.sparticleNames import SParticleNames
 from pympler.asizeof import asizeof
-from smodels.tools.smodelsLogging import logger
-logger.setLevel("ERROR")
 
 def cleanDirectory ():
     subprocess.getoutput ( "mkdir -p tmp" )
@@ -34,8 +32,7 @@ class RandomWalker:
                    dbpath = "./database.pcl", expected = False,
                    select = "all", catch_exceptions = True,
                    rundir = None, nevents = 100000,
-                   do_combine = False, record_history = False, seed = None,
-                   stopTeleportationAfter = -1 ):
+                   do_combine = False, record_history = False ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 is no cheating, 1 is with ranges, 2
@@ -47,9 +44,6 @@ class RandomWalker:
         :param do_combine: if true, then also perform combinations, either via
                            simplified likelihoods or via pyhf
         :param record_history: if true, attach a history recorder class
-        :param seed: random seed, int or None
-        :param stopTeleportationAfter: int or None. we stop teleportation after this step nr.
-               If negative or None, we dont teleport at all
         """
         if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
             self.pprint ( "Wrong call of constructor: %s, %s, %s" % ( walkerid, nsteps, strategy ) )
@@ -58,11 +52,6 @@ class RandomWalker:
         self.rundir = rundir
         if rundir == None:
             self.rundir = "./"
-
-        if seed is not None:
-            from ptools import helpers
-            helpers.seedRandomNumbers(seed + walkerid )
-            self.pprint ( f"setting random seed to {seed}" )
 
         #Initialize Predictor
         self.predictor =  Predictor( self.walkerid, dbpath=dbpath,
@@ -77,14 +66,9 @@ class RandomWalker:
         protomodel = ProtoModel( self.walkerid, keep_meta = True,
                 nevents = nevents, dbversion = self.predictor.database.databaseVersion )
 
-        self.manipulator = Manipulator ( protomodel, strategy, do_record = record_history,
-                                         seed = seed )
+        self.manipulator = Manipulator ( protomodel, strategy, do_record = record_history )
         self.catch_exceptions = catch_exceptions
         self.maxsteps = nsteps
-        if stopTeleportationAfter == None:
-            stopTeleportationAfter = -1
-        # stopTeleportationAfter = self.maxsteps/3.
-        self.stopTeleportationAfter = stopTeleportationAfter
         self.accelerator = None
         if record_history:
             from ptools.history import History
@@ -132,12 +116,10 @@ class RandomWalker:
                    walkerid=0, dump_training = False,
                    dbpath="<rundir>/database.pcl", expected = False,
                    select = "all", catch_exceptions = True, keep_meta = True,
-                   rundir = None, do_combine = False, seed = None,
-                   stopTeleportationAfter = -1  ):
+                   rundir = None, do_combine = False ):
         ret = cls( walkerid, nsteps=nsteps, dbpath = dbpath, expected=expected,
                    select=select, catch_exceptions = catch_exceptions, rundir = rundir,
-                   do_combine = do_combine, seed = seed, stopTeleportationAfter = \
-                   stopTeleportationAfter )
+                   do_combine = do_combine )
         ret.manipulator.M = protomodel
         ret.manipulator.setWalkerId ( walkerid )
         ret.manipulator.backupModel()
@@ -153,12 +135,10 @@ class RandomWalker:
                    walkerid=0, dump_training = False,
                    dbpath="<rundir>/database.pcl", expected = False,
                    select = "all", catch_exceptions = True, keep_meta = True,
-                   rundir = None, nevents = 100000, do_combine = False,
-                   seed = None, stopTeleportationAfter = -1 ):
+                   rundir = None, nevents = 100000, do_combine = False ):
         ret = cls( walkerid, nsteps=nsteps, dbpath = dbpath, expected=expected,
                    select=select, catch_exceptions = catch_exceptions, rundir = rundir,
-                   nevents = nevents, do_combine = do_combine, seed = seed,
-                   stopTeleportationAfter = stopTeleportationAfter )
+                   nevents = nevents, do_combine = do_combine )
         ret.manipulator.M = ProtoModel( walkerid, keep_meta, \
                 dbversion = ret.predictor.database.databaseVersion )
         ret.manipulator.initFromDict ( dictionary )
@@ -306,17 +286,10 @@ class RandomWalker:
         :param pmax: Maximum probability for teleportation.
         :param norm: Normalization for K distance.
         """
-        if self.protomodel.step > self.stopTeleportationAfter:
-            self.log ( "teleportation is turned off after step #%d" % \
-                       self.stopTeleportationAfter )
-            return False
-        #self.log ( "teleportation turned off" )
-        #return False
-        import random
+        ## for now we turn off teleportation
         bestK = self.hiscoreList.globalMaxK()
         if bestK < 1.:
             self.log ( "bestK is smaller than one. no teleporting." )
-            return False
         ourK = -2.
         if hasattr ( self.manipulator.M, "K" ) and self.manipulator.M.K > -2:
             ourK = self.manipulator.M.K
@@ -328,10 +301,10 @@ class RandomWalker:
         prob = pmax*(1. - math.exp( dK ))
         a = random.uniform ( 0., 1. )
         doTP = ( a < prob ) ## do teleport, yes or no
-        sDoTP = "a>p: dont teleport."
+        sDoTP = "dont teleport."
         if doTP:
-            sDoTP = "a<p: do teleport."
-        self.log ( "check if to teleport, Kmax=%.2f, ours is=%.2f, p=%.2f, a=%.2f, %s" % \
+            sDoTP = "do teleport."
+        self.log ( "check if to teleport, Kmax=%.2f, ours is=%.2f, p=%.2f, a=%.2f: %s" % \
                    ( bestK, ourK, prob, a, sDoTP ) )
         if doTP:
             self.manipulator.teleportToHiscore()
@@ -344,7 +317,6 @@ class RandomWalker:
         # Update current K and Z values
         self.currentK = self.protomodel.K
         self.currentZ = self.protomodel.Z
-        self.manipulator.record( "take step" )
 
     def highlight ( self, msgType = "info", *args ):
         """ logging, hilit """
@@ -354,7 +326,6 @@ class RandomWalker:
     def decideOnTakingStep ( self ):
         """ depending on the ratio of K values, decide on whether to take the step or not.
             If ratio > 1., take the step, if < 1, let chance decide. """
-        import random
         ratio = 1.
         K = self.currentK
         newK = self.protomodel.K
@@ -373,7 +344,7 @@ class RandomWalker:
             if u > ratio:
                 self.pprint ( "u=%.2f > %.2f; K: %.2f -> %.2f: revert." % (u,ratio,self.currentK,
                                 self.protomodel.K) )
-                self.manipulator.restoreModel( reportReversion=True )
+                self.manipulator.restoreModel()
                 if hasattr ( self, "oldgrad" ) and self.accelerator != None:
                     self.accelerator.grad = self.oldgrad
             else:
@@ -412,8 +383,7 @@ class RandomWalker:
                     self.record()
                 except Exception as e:
                     # https://bioinfoexpert.com/2016/01/18/tracing-exceptions-in-multiprocessing-in-python/
-                    self.pprint ( "taking a step resulted in exception: %s, %s" % \
-                                  (type(e), e ) )
+                    self.pprint ( "taking a step resulted in exception: %s, %s" % (type(e), e ) )
                     import traceback
                     traceback.print_stack( limit=None )
                     except_type, except_class, tb = sys.exc_info()
@@ -421,10 +391,8 @@ class RandomWalker:
                     for point in extracted:
                         self.pprint ( "extracted: %s" % point )
                     with open("%s/exceptions.log" % self.rundir,"a") as f:
-                        f.write ( "%s: taking a step resulted in exception: %s, %s\n" % \
-                                  (time.asctime(), type(e), e ) )
-                        f.write ( "   `- exception occured in walker #%s\n" % \
-                                  self.protomodel.walkerid )
+                        f.write ( "%s: taking a step resulted in exception: %s, %s\n" % (time.asctime(), type(e), e ) )
+                        f.write ( "   `- exception occured in walker #%s\n" % self.protomodel.walkerid )
                     sys.exit(-1)
 
             #If no combination was found, go back

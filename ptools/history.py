@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
-<<<<<<< HEAD
 """ a class meant for recording the history of a walk.
-=======
-""" a class meant for recording the history of a walk. 
->>>>>>> 96cd173644c9e15dfbe797f626e22f1adf1ddb87
 When executed, it runs a typical walker with the history recorder. """
 
 import colorama, time
@@ -18,7 +14,6 @@ class History:
         self.handle = open ( outfile, "wt" )
         self.handle.write ( f"# history recording {time.asctime()}\n" )
         self.handle.write ( "[" )
-<<<<<<< HEAD
         self.pprint ( f"starting history recorder at {self.outfile}." )
 
     def add ( self, ma ):
@@ -26,17 +21,10 @@ class History:
         :param ma: manipulator object
         """
         protomodel = ma.M
-=======
-        self.pprint ( f"staring history recorder at {self.outfile}." )
-
-    def add ( self, protomodel ):
-        """ add protomodel from step """
->>>>>>> 96cd173644c9e15dfbe797f626e22f1adf1ddb87
         D = protomodel.dict()
         D["K"]=protomodel.K
         D["Z"]=protomodel.Z
         D["step"]=protomodel.step
-<<<<<<< HEAD
         bc=[]
         if protomodel.bestCombo != None:
             for tp in protomodel.bestCombo:
@@ -48,8 +36,6 @@ class History:
         if len(ma.recording)>0:
             D["actions"]=ma.recording
             ma.recording=[]
-=======
->>>>>>> 96cd173644c9e15dfbe797f626e22f1adf1ddb87
         self.pprint ( f"adding protomodel to {self.outfile}." )
         self.handle.write ( str(D)+",\n" )
         self.handle.flush()
@@ -78,12 +64,6 @@ if __name__ == "__main__":
     import csetup
     csetup.setup()
     from walker.randomWalker import RandomWalker
-<<<<<<< HEAD
     walker = RandomWalker ( 0, 2000, "aggressive", False, 0, args.database, record_history=True )
-=======
-    hi = History()
-    walker = RandomWalker ( 0, 2000, "aggressive", False, 0, args.database )
-    walker.recorder = hi
->>>>>>> 96cd173644c9e15dfbe797f626e22f1adf1ddb87
     walker.walk()
     hi.save()
