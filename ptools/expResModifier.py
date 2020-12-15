@@ -456,6 +456,7 @@ class ExpResModifier:
         """ add a signal to this UL result. background sampling is
             already taken care of """
         from smodels.tools.physicsUnits import fb
+        from ptools import helpers
         txns = list ( map ( str, tpred.txnames ) )
         txns.sort()
         self.log ( "add UL matching tpred %s: <%s> %s {%s}" % \
@@ -469,6 +470,8 @@ class ExpResModifier:
         label = tpred.analysisId() + ":ul:" + ",".join(txns)
         D={}
         D["sigmaN"]=sigmaN
+        D["pids"]=tpred.PIDs
+        D["signalmasses"]=helpers.stripUnits ( tpred.mass )
         D["txns"]=",".join(txns)
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
