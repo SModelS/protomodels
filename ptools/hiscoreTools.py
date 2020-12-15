@@ -267,7 +267,7 @@ if __name__ == "__main__":
     from tester.combiner import Combiner
     from tester.predictor import Predictor
     from builder.protomodel import ProtoModel
-    from smodels.tools.physicsUnits import pb, fb
+    from smodels.tools.physicsUnits import pb, fb, GeV, TeV
     from smodels.experiment.databaseObj import Database
     import copy, numpy, scipy, scipy.stats, math
     co = Combiner() # instantiate for convenience
