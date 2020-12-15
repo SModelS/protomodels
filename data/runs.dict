@@ -1,9 +1,0 @@
-{ 
-	"doublefrozen": "fake signals without sampling, hiscore signal injected once, but squark ssms times two",
-	"frozen": "fake signals without sampling, hiscore signal injected once",
-	"fudged": "fake backgrounds only, bgerrs scaled by 0.65",
-	"iced": "fake signals without sampling, hiscore signal injected once, but with dm<100gev",
-	"kinky": "fake signals without sampling, hiscore signal injected once, again",
-	"morefrozen": "fake signals without sampling, hiscore signal injected once, but all ssms times two",
-	"scaled": "fake signals, bgerrs scaled by 0.6, hiscore signal injected once",
-}
