@@ -916,6 +916,13 @@ def runPlotting ( args ):
         dest = "%s/smodels.github.io/protomodels/%s/" % ( destdir, upload )
 
     if dest != "":
+        if not os.path.exists ( dest ):
+            print ( f"[plotHiscore] directory {dest} does not exist. Trying to mkdir it." )
+            cmd = f"mkdir {dest}" ## -p ?
+            a = subprocess.getoutput ( cmd )
+            if a != "":
+                print ( "[plotHiscore] error when mkdir: %s" % a )
+
         print ( "[plotHiscore] copying to %s" % dest )
         cmd = "cp %s %s" % ( F, dest )
         a = subprocess.getoutput ( cmd )
@@ -924,9 +931,13 @@ def runPlotting ( args ):
             sys.exit()
         r = gitCommit( dest, upload, args.commit )
         if not r:
+            destdir = dest
+            destdir = destdir.replace(upload,"")
+            destdir = destdir.replace("//","")
             print ( "[plotHiscore] done. now please do yourself: " )
-            print ( "cd %s" % dest )
-            print ( "git commit -am 'update'" )
+            print ( "cd %s" % destdir )
+            print ( "git add %s" % upload )
+            print ( "git commit -m 'manual update'" )
             print ( "git push" )
         return
 

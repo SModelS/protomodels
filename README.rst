@@ -18,6 +18,22 @@ tester
 
  * All the code around likelihoods, combining likelihoods, statistics.
 
+ptools
+^^^^^^
+
+ * Various tools and helpers needed for protomodelling
+
+plotting
+^^^^^^^^
+
+ * Plotting scripts
+
+notebooks
+^^^^^^^^^
+
+ * Jupyter notebooks
+
+
 test
 ^^^^
 
