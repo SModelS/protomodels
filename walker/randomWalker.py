@@ -107,7 +107,7 @@ class RandomWalker:
                           ( self.manipulator.M.Z, self.manipulator.M.K ) )
             # self.printStats ( substep=4 )
             self.manipulator.backupModel()
-            self.hiscoreList.newResult ( self.manipulator.M )
+            self.hiscoreList.newResult ( self.manipulator )
             self.printStats ( substep=5 )
             self.currentK = self.manipulator.M.K
             self.currentZ = self.manipulator.M.Z
@@ -289,7 +289,7 @@ class RandomWalker:
                    ( self.protomodel.step ) )
         srs = "%s" % ", ".join ( [ "%.2f" % x for x in self.protomodel.rvalues[:3] ] )
         self.log ( "r values before calling .newResult are at %s" % srs )
-        self.hiscoreList.newResult ( self.protomodel ) ## add to high score list
+        self.hiscoreList.newResult ( self.manipulator ) ## add to high score list
         srs = "%s" % ", ".join ( [ "%.2f" % x for x in self.protomodel.rvalues[:3] ] )
         self.log ( "r values after calling .newResult are at %s" % srs )
         self.log ( "done check for result to go into hiscore list" )
@@ -405,11 +405,9 @@ class RandomWalker:
 
             if not catchem:
                 self.onestep()
-                self.record()
             else:
                 try:
                     self.onestep()
-                    self.record()
                 except Exception as e:
                     # https://bioinfoexpert.com/2016/01/18/tracing-exceptions-in-multiprocessing-in-python/
                     self.pprint ( "taking a step resulted in exception: %s, %s" % \
@@ -434,5 +432,6 @@ class RandomWalker:
 
             # obtain the ratio of posteriors
             self.decideOnTakingStep ()
+            self.record()
         self.manipulator.M.delCurrentSLHA()
         self.pprint ( "Was asked to stop after %d steps" % self.maxsteps )
