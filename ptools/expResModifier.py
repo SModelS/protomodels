@@ -454,6 +454,18 @@ class ExpResModifier:
         for k,v in Dict.items():
             self.stats[label][k]=v
 
+    def distance ( self, v1, v2 ):
+        """ compute distance between v1 and v2 """
+        ret = 0.
+        v1,v2 = list(v1),list(v2)
+        #if len(v1)*2 == len(v2):
+        #    v1 = v1*2
+        for _1,_2 in zip ( v1, v2 ):
+            ret+= ( _1 - _2 )**2
+        ret = math.sqrt (ret )
+        return ret
+
+
     def addSignalForULMap ( self, dataset, tpred, lumi ):
         """ add a signal to this UL result. background sampling is
             already taken care of """
@@ -479,20 +491,10 @@ class ExpResModifier:
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
         ## sigmaN is the predicted production cross section of the signal,
         ## in fb
-        def distance ( v1, v2 ):
-            """ compute distance between v1 and v2 """
-            ret = 0.
-            v1,v2 = list(v1),list(v2)
-            if len(v1)*2 == len(v2):
-                v1 = v1*2
-            for _1,_2 in zip ( v1, v2 ):
-                ret+= ( _1 - _2 )**2
-            ret = math.sqrt (ret )
-            return ret
-
         for i,txname in enumerate(dataset.txnameList):
             if not self.txNameIsIn ( txname, tpred ):
                 continue
+            hasAdded = 0
             #print ( "  `-- adding %s to %s" % ( sigmaN, txname ) )
             txnd = txname.txnameData
             etxnd = txname.txnameDataExp
@@ -500,7 +502,7 @@ class ExpResModifier:
             minDist = float("inf") ## for the closest point we store the numbers
             for yi,y in enumerate(txnd.y_values):
                 pt = txnd.tri.points[yi] ## the point in the rotated coords
-                dist = distance ( pt, coordsTpred )
+                dist = self.distance ( pt, coordsTpred )
                 if dist > self.maxmassdist: ## change y_values only in vicinity of protomodel
                     continue
                 oldv = txnd.y_values[yi]
@@ -517,10 +519,6 @@ class ExpResModifier:
                     D["yold"]=oldo
                     D["dist"]=dist
                     self.comments["dist"]="distance of closest point to protomodel"
-                    #D["ptFXME"]=pt
-                    #D["coordstpredFXME"]=coordsTpred
-                    # D["mass"]=helpers.stripUnits(tpred.mass)
-                    self.comments["mass"]="distance of closest point to protomodel"
                     if hasExpected:
                         D["yexp"]=oldv
                         self.comments["yexp"]="expected y value (fb) closest to signal protomodel for UL map"
@@ -529,6 +527,13 @@ class ExpResModifier:
                     D["ynew"]=oldv+sigmaN
                 # print ( "    `--- adding %s %s" % ( oldv, sigmaN ) )
                 txnd.y_values[yi]=oldv + sigmaN
+                hasAdded += 1
+            if hasAdded == 0:
+                self.pprint ( "warning: signal was not added in {tpred.analysisId()}:{txname.txName}" )
+            D[f"signalpoints{txname.txName}"]=hasAdded
+            D[f"totalpoints{txname.txName}"]=len(txnd.y_values)
+            self.comments["signalpointsTx"]="number of grid points that got the signal injected"
+            self.comments["totalpointsTx"]="total number of grid points in that map"
             self.addToStats ( label, D )
             dataset.txnameList[i].txnameData = txnd
             dataset.txnameList[i].sigmaN = sigmaN
@@ -547,6 +552,13 @@ class ExpResModifier:
                  "lognormal": self.lognormal, "maxmassdist": self.maxmassdist,
                  "fixedsignals": self.fixedsignals,
                  "fixedbackgrounds": self.fixedbackgrounds }
+        from smodels.tools import runtime
+        if hasattr ( runtime, "_cap_likelihoods" ):
+            meta["_cap_likelihoods"]=runtime._cap_likelihoods
+        if hasattr ( runtime, "_drmax" ):
+            meta["_drmax"]=runtime._drmax
+        if hasattr ( runtime, "_experimental" ):
+            meta["_experimental"]=runtime._experimental
         with open ( filename,"wt" ) as f:
             f.write ( str(meta)+"\n" )
             if len(self.comments)>0:
@@ -779,6 +791,7 @@ class ExpResModifier:
 
     def playback ( self, playbackdict, outfile ):
         """ playback the mods described in playbackdict """
+        self.pprint ( "WARNING: playback functionality has not yet been validated!!" )
         with open ( playbackdict, "rt" ) as h:
             lines = h.readlines()
             h.close()
@@ -904,6 +917,7 @@ Database with a fake signal:
 
 Playback the modifications described in playback file "db.dict":
 ----------------------------------------------------------------
+WARNING this functionality has not yet been tested!
 ./expResModifier.py -R $RUNDIR -d original.pcl -p db.dict -o playedback.pcl
 
 Build a database:
