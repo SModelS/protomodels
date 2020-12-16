@@ -12,7 +12,7 @@ import matplotlib.mlab as mlab
 
 class Plotter:
     def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str, reset,
-                   topologies ):
+                   topologies, unscale, signalmodel ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
@@ -24,12 +24,16 @@ class Plotter:
                            "lognormal+poisson" means Lognormal * Poisson
         :param reset: if true, then dont recycle pickle files
         :param topologies: if not Not, then filter for these topologies (e.g. T2tt)
+        :param unscale: unscale, i.e. use the fudged bgError also for computing likelihoods
+        :param signalmodel: use the signal+bg model for computing likelihoods
         """
         if likelihood not in [ "gauss", "gauss+poisson", "lognormal+poisson" ]:
             print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
             sys.exit()
         self.likelihood = likelihood ## False: gauss, True: lognormal
         self.reset = reset
+        self.unscale = unscale
+        self.signalmodel = signalmodel
         self.topologies = []
         if topologies not in [ None, "" ]:
            self.topologies = topologies.split(",")
@@ -75,28 +79,35 @@ class Plotter:
             print ( f"[plotDBDict] keeping {len(newdata)}/{len(data)} for {basename}" )
             self.data[basename] = newdata
 
-    def computeP ( self, obs, bg, bgerr ):
+    def computeP ( self, obs, bg, bgerr, lmbda ):
         """ compute p value, for now we assume Gaussanity """
         #simple = False ## approximation as Gaussian
         simple = ( self.likelihood == "gauss" )
+        loc = bg
+        if self.signalmodel:
+            loc = bg + lmbda
         if simple:
-            x = (obs - bg ) / np.sqrt ( bgerr**2 + bg )
+            dn = obs - loc
+            x = dn / np.sqrt ( bgerr**2 + loc )
             p = scipy.stats.norm.cdf ( x )
         else:
-            return self.computePWithToys ( obs, bg, bgerr )
+            return self.computePWithToys ( obs, bg, bgerr, lmbda )
         return p
 
-    def computePWithToys ( self, obs, bg, bgerr ):
+    def computePWithToys ( self, obs, bg, bgerr, lmbdaSig ):
         """ compute p value, for now we assume Gaussanity """
         fakes = []
         bigger = 0
         n= 10000
+        central = bg
+        if self.signalmodel:
+            central = bg + lmbdaSig
         if "lognormal" in self.likelihood:
-            loc = bg**2 / np.sqrt ( bg**2 + bgerr**2 )
-            stderr = np.sqrt ( np.log ( 1 + bgerr**2 / bg**2 ) )
+            loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
+            stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
             lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
         else: ## Gauss
-            lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
+            lmbda = scipy.stats.norm.rvs ( lc=[cenrtal]*n, scale=[bgerr]*n )
             lmbda = lmbda[lmbda>0.]
         fakeobs = scipy.stats.poisson.rvs ( lmbda )
         return sum(fakeobs>obs) / len(fakeobs)
@@ -127,7 +138,9 @@ class Plotter:
                     pname = os.path.basename ( pickle.load ( f ) )
                     topologies = pickle.load ( f )
                     filtervalue = pickle.load ( f )
-                    if fname != pname or self.topologies != topologies or abs (self.filter - filtervalue ) > 1e-6:
+                    unscale = pickle.load ( f )
+                    signalmodel = pickle.load ( f )
+                    if fname != pname or self.topologies != topologies or abs (self.filter - filtervalue ) > 1e-6 or unscale != self.unscale or signalmodel != self.signalmodel:
                         print ( f"[plotDBDict] we want {fname} pickle has {pname}. Wont use." )
                     else:
                         tS = pickle.load ( f )
@@ -181,11 +194,16 @@ class Plotter:
                         if vexp < self.filter:
                             continue
                         bgErr = v["bgError"]/v["fudge"]
+                        if self.unscale:
+                            bgErr = v["bgError"]
+                        lmbda = None
+                        if "lmbda" in v:
+                            lmbda = v["lmbda"]
                         # bgErr = v["bgError"]# /v["fudge"]
-                        p = self.computeP ( obs, vexp, bgErr )
+                        p = self.computeP ( obs, vexp, bgErr, lmbda )
                         P[sqrts].append( p )
                         P_[sqrts].append ( p )
-                        pfake = self.computeP ( fakeobs, vexp, bgErr )
+                        pfake = self.computeP ( fakeobs, vexp, bgErr, lmbda )
                         Pfake[sqrts].append( pfake )
                         Pfake_[sqrts].append ( pfake )
                         P[sqrts].append( scipy.stats.norm.cdf ( s ) )
@@ -197,6 +215,8 @@ class Plotter:
                         pickle.dump ( os.path.basename ( fname ), f )
                         pickle.dump ( self.topologies, f )
                         pickle.dump ( self.filter, f )
+                        pickle.dump ( self.unscale, f )
+                        pickle.dump ( self.signalmodel, f )
                         pickle.dump ( S_, f )
                         pickle.dump ( Sfake_, f)
                         pickle.dump ( P_, f )
@@ -221,6 +241,10 @@ class Plotter:
             title += ", fudge=%.2f" % fudge
         if len (self.topologies )>0:
             title += f", selecting {','.join(self.topologies)}"
+        if self.unscale:
+            title += f" (unscaling)"
+        if self.signalmodel:
+            title += f" (signalmodel)"
         nbins = 10 ## change the number of bins
         fig, ax = plt.subplots()
         x = [ P[8], P[13] ]
@@ -269,6 +293,10 @@ def main():
             type=str, default=None )
     argparser.add_argument ( '-r', '--reset', 
             help='reset, dont recycle pickle files', action='store_true' )
+    argparser.add_argument ( '-u', '--unscale', 
+            help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
+    argparser.add_argument ( '-s', '--signalmodel', 
+            help='use the signal+bg model for computing likelihoods', action='store_true' )
     argparser.add_argument ( '-l', '--likelihood', nargs='?',
             help='likelihood: gauss, gauss+poisson, or lognormal+poisson [lognormal+poisson]',
             type=str, default="lognormal+poisson" )
@@ -280,7 +308,7 @@ def main():
             type=float, default=3.5 )
     args=argparser.parse_args()
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
-                        args.reset, args.topologies )
+                        args.reset, args.topologies, args.unscale, args.signalmodel )
     plotter.plot( "origS", "S", args.outfile )
 
 if __name__ == "__main__":
