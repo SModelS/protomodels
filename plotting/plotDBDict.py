@@ -11,7 +11,8 @@ import scipy.stats
 import matplotlib.mlab as mlab
 
 class Plotter:
-    def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str, reset ):
+    def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str, reset,
+                   topologies ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
@@ -22,12 +23,16 @@ class Plotter:
                            "gauss+poisson" means Gauss * Poisson
                            "lognormal+poisson" means Lognormal * Poisson
         :param reset: if true, then dont recycle pickle files
+        :param topologies: if not Not, then filter for these topologies (e.g. T2tt)
         """
         if likelihood not in [ "gauss", "gauss+poisson", "lognormal+poisson" ]:
             print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
             sys.exit()
         self.likelihood = likelihood ## False: gauss, True: lognormal
         self.reset = reset
+        self.topologies = []
+        if topologies not in [ None, "" ]:
+           self.topologies = topologies.split(",")
         self.filenames = []
         if comment in [ "None", "", "none" ]:
             comment = None
@@ -120,10 +125,24 @@ class Plotter:
                         f.close()
                         hasPickle = True
             if not hasPickle:
-                print ( f"[plotDBDict] not found {fname}. Creating." )
+                print ( f"[plotDBDict] not found {fname} (or ordered reset). Creating." )
                 S_,Sfake_,P_,Pfake_=[],[],[],[]
                 data = self.data [ fname.replace(".pcl","") ]
                 for k,v in data.items():
+                    txns = []
+                    if "txns" in v:
+                        txns = v["txns"].split(",")
+                    passesTx=False
+                    if len(self.topologies)==0:
+                        passesTx=True
+                    for tx in self.topologies:
+                        if tx in txns:
+                            passesTx=True
+                            break
+                    if not passesTx:
+                        print ( f"[plotDBDict] skipping {k}: does not pass Tx filter" )
+                        continue
+
                     if not ":ul" in k:
                         s = v[variable]
                         sfake = v[fakeVariable]
@@ -218,11 +237,15 @@ def main():
     argparser.add_argument ( '-l', '--likelihood', nargs='?',
             help='likelihood: gauss, gauss+poisson, or lognormal+poisson [lognormal+poisson]',
             type=str, default="lognormal+poisson" )
+    argparser.add_argument ( '-t', '--topologies', nargs='?',
+            help='filter for certain topologies, e.g. T1, T2tt. Comma separated. [None]',
+            type=str, default=None )
     argparser.add_argument ( '-f', '--filter', nargs='?',
             help='filter out signal regions with expectedBG<x [x=3.5]',
             type=float, default=3.5 )
     args=argparser.parse_args()
-    plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, args.reset )
+    plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
+                        args.reset, args.topologies )
     plotter.plot( "origS", "S", args.outfile )
 
 if __name__ == "__main__":
