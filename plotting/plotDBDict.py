@@ -79,35 +79,35 @@ class Plotter:
             print ( f"[plotDBDict] keeping {len(newdata)}/{len(data)} for {basename}" )
             self.data[basename] = newdata
 
-    def computeP ( self, obs, bg, bgerr, lmbda ):
+    def computeP ( self, obs, bg, bgerr, sigN ):
         """ compute p value, for now we assume Gaussanity """
         #simple = False ## approximation as Gaussian
         simple = ( self.likelihood == "gauss" )
         loc = bg
-        if self.signalmodel:
-            loc = bg + lmbda
+        if self.signalmodel and sigN != None:
+            loc = bg + sigN
         if simple:
             dn = obs - loc
             x = dn / np.sqrt ( bgerr**2 + loc )
             p = scipy.stats.norm.cdf ( x )
         else:
-            return self.computePWithToys ( obs, bg, bgerr, lmbda )
+            return self.computePWithToys ( obs, bg, bgerr, sigN )
         return p
 
-    def computePWithToys ( self, obs, bg, bgerr, lmbdaSig ):
+    def computePWithToys ( self, obs, bg, bgerr, sigN ):
         """ compute p value, for now we assume Gaussanity """
         fakes = []
         bigger = 0
         n= 10000
         central = bg
-        if self.signalmodel:
-            central = bg + lmbdaSig
+        if self.signalmodel and sigN != None:
+            central = bg + sigN
         if "lognormal" in self.likelihood:
             loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
             stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
             lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
         else: ## Gauss
-            lmbda = scipy.stats.norm.rvs ( lc=[cenrtal]*n, scale=[bgerr]*n )
+            lmbda = scipy.stats.norm.rvs ( loc=[central]*n, scale=[bgerr]*n )
             lmbda = lmbda[lmbda>0.]
         fakeobs = scipy.stats.poisson.rvs ( lmbda )
         return sum(fakeobs>obs) / len(fakeobs)
@@ -196,14 +196,14 @@ class Plotter:
                         bgErr = v["bgError"]/v["fudge"]
                         if self.unscale:
                             bgErr = v["bgError"]
-                        lmbda = None
-                        if "lmbda" in v:
-                            lmbda = v["lmbda"]
+                        sigN = None
+                        if "sigN" in v:
+                            sigN = v["sigN"]
                         # bgErr = v["bgError"]# /v["fudge"]
-                        p = self.computeP ( obs, vexp, bgErr, lmbda )
+                        p = self.computeP ( obs, vexp, bgErr, sigN )
                         P[sqrts].append( p )
                         P_[sqrts].append ( p )
-                        pfake = self.computeP ( fakeobs, vexp, bgErr, lmbda )
+                        pfake = self.computeP ( fakeobs, vexp, bgErr, sigN )
                         Pfake[sqrts].append( pfake )
                         Pfake_[sqrts].append ( pfake )
                         P[sqrts].append( scipy.stats.norm.cdf ( s ) )
@@ -298,8 +298,8 @@ def main():
     argparser.add_argument ( '-s', '--signalmodel', 
             help='use the signal+bg model for computing likelihoods', action='store_true' )
     argparser.add_argument ( '-l', '--likelihood', nargs='?',
-            help='likelihood: gauss, gauss+poisson, or lognormal+poisson [lognormal+poisson]',
-            type=str, default="lognormal+poisson" )
+            help='likelihood: gauss, gauss+poisson, or lognormal+poisson [gauss+poisson]',
+            type=str, default="gauss+poisson" )
     argparser.add_argument ( '-t', '--topologies', nargs='?',
             help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. [None]',
             type=str, default=None )
