@@ -185,6 +185,7 @@ class ExpResModifier:
                    ( globalInfo.id, txname.txName, x ) )
         if x > 3.5:
             self.log ( "WARNING high UL x=%.2f!!!" % x )
+        ret.validated = txnd.validated
         return ret
 
     def bgUpperLimit ( self, dataset ):
