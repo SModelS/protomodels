@@ -473,7 +473,7 @@ class ExpResModifier:
         D={}
         D["sigmaN"]=sigmaN
         D["pids"]=tpred.PIDs
-        D["signalmasses"]=helpers.stripUnits ( tpred.mass )
+        D["masses"]=helpers.stripUnits ( tpred.mass )
         D["txns"]=",".join(txns)
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
@@ -514,13 +514,13 @@ class ExpResModifier:
                 if dist < minDist:
                     ## remember the candidate
                     minDist = dist
-                    D={}## remove
                     D["yold"]=oldo
                     D["dist"]=dist
                     self.comments["dist"]="distance of closest point to protomodel"
                     #D["ptFXME"]=pt
                     #D["coordstpredFXME"]=coordsTpred
-                    D["mass"]=str(tpred.mass) ## store as string
+                    # D["mass"]=helpers.stripUnits(tpred.mass)
+                    self.comments["mass"]="distance of closest point to protomodel"
                     if hasExpected:
                         D["yexp"]=oldv
                         self.comments["yexp"]="expected y value (fb) closest to signal protomodel for UL map"
