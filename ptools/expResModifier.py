@@ -185,7 +185,6 @@ class ExpResModifier:
                    ( globalInfo.id, txname.txName, x ) )
         if x > 3.5:
             self.log ( "WARNING high UL x=%.2f!!!" % x )
-        ret.validated = txname.validated
         return ret
 
     def bgUpperLimit ( self, dataset ):
@@ -805,6 +804,9 @@ class ExpResModifier:
             self.playbackOneItem ( anaids, values )
         db.expResultList = self.lExpRes
         db.dbpath = outfile
+        self.dbversion = self.dbversion + ".playedback"
+        db.txt_meta.databaseVersion = db.databaseVersion + ".playedback"
+        db.pcl_meta.databaseVersion = db.databaseVersion + ".playedback"
         self.pprint ( f"writing to {outfile}" )
         db.createBinaryFile ( outfile )
 
@@ -840,7 +842,7 @@ class ExpResModifier:
                             if "sigmaN" in values:
                                 self.pprint ( f"error, signal playback not yet implemented for ULs" )
                             ntxnd = self.computeNewObserved ( txnd, tds.globalInfo, values["x"] )
-                            self.lExpRes[ier].datasets[ids].txnameList[itx]=ntxnd
+                            self.lExpRes[ier].datasets[ids].txnameList[itx].txnameData=ntxnd
 
 
                 if tds.getType() == "efficiencyMap" and isEffMap and sr == tds.getID():
