@@ -238,7 +238,7 @@ def main():
             help='likelihood: gauss, gauss+poisson, or lognormal+poisson [lognormal+poisson]',
             type=str, default="lognormal+poisson" )
     argparser.add_argument ( '-t', '--topologies', nargs='?',
-            help='filter for certain topologies, e.g. T1, T2tt. Comma separated. [None]',
+            help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. [None]',
             type=str, default=None )
     argparser.add_argument ( '-f', '--filter', nargs='?',
             help='filter out signal regions with expectedBG<x [x=3.5]',
