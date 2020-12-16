@@ -101,9 +101,20 @@ class Plotter:
         fakeobs = scipy.stats.poisson.rvs ( lmbda )
         return sum(fakeobs>obs) / len(fakeobs)
 
+    def getSqrts ( self, anaid ):
+        """ get the sqrts of anaid """
+        ret = 13
+        t = anaid.replace("CMS-","").replace("ATLAS-","").replace("SUSY-","").\
+                  replace("SUS-","").replace("PAS-","").replace("EXO-","")
+        t = t[:t.find("-")]
+        t = int(t) % 2000
+        if t < 15:
+            ret = 8
+        return ret
+
     def compute ( self, variable, fakeVariable, store ):
         """ compute the p-values """
-        S,Sfake,P,Pfake=[],[],[],[]
+        S,Sfake,P,Pfake={8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] }
         for filename in self.filenames:
             selfbase = os.path.basename ( filename )
             fname = selfbase.replace(".dict",".pcl")
@@ -114,19 +125,31 @@ class Plotter:
                 print ( f"[plotDBDict] found {fname}. Using data therein." )
                 with open ( fname, "rb" ) as f:
                     pname = os.path.basename ( pickle.load ( f ) )
+                    topologies = pickle.load ( f )
                     filtervalue = pickle.load ( f )
-                    if fname != pname or abs (self.filter - filtervalue ) > 1e-6:
+                    if fname != pname or self.topologies != topologies or abs (self.filter - filtervalue ) > 1e-6:
                         print ( f"[plotDBDict] we want {fname} pickle has {pname}. Wont use." )
                     else:
-                        S += pickle.load ( f )
-                        Sfake += pickle.load ( f )
-                        P += pickle.load ( f )
-                        Pfake += pickle.load ( f )
+                        tS = pickle.load ( f )
+                        for k,v in tS.items():
+                            S[k] += v
+                        tSfake = pickle.load ( f )
+                        for k,v in tSfake.items():
+                            Sfake[k] += v
+                        tP = pickle.load ( f )
+                        for k,v in tP.items():
+                            P[k] += v
+                        tPfake = pickle.load ( f )
+                        for k,v in tPfake.items():
+                            Pfake[k] += v
                         f.close()
                         hasPickle = True
             if not hasPickle:
-                print ( f"[plotDBDict] not found {fname} (or ordered reset). Creating." )
-                S_,Sfake_,P_,Pfake_=[],[],[],[]
+                if self.reset:
+                    print ( f"[plotDBDict] or ordered reset: creating {fname}." )
+                else:
+                    print ( f"[plotDBDict] not found {fname}. Creating." )
+                S_,Sfake_,P_,Pfake_={8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] }
                 data = self.data [ fname.replace(".pcl","") ]
                 for k,v in data.items():
                     txns = []
@@ -146,10 +169,10 @@ class Plotter:
                     if not ":ul" in k:
                         s = v[variable]
                         sfake = v[fakeVariable]
-                        S.append( s )
-                        S_.append ( s )
-                        Sfake.append( sfake )
-                        Sfake_.append ( sfake )
+                        sqrts = self.getSqrts ( k )
+                        S[sqrts].append( s )
+                        S_[sqrts].append ( s )
+                        Sfake_[sqrts].append ( sfake )
                         obs = v["origN"]
                         if not "orig" in variable:
                             obs = v["newObs"]
@@ -160,18 +183,19 @@ class Plotter:
                         bgErr = v["bgError"]/v["fudge"]
                         # bgErr = v["bgError"]# /v["fudge"]
                         p = self.computeP ( obs, vexp, bgErr )
-                        P.append( p )
-                        P_.append ( p )
+                        P[sqrts].append( p )
+                        P_[sqrts].append ( p )
                         pfake = self.computeP ( fakeobs, vexp, bgErr )
-                        Pfake.append( pfake )
-                        Pfake_.append ( pfake )
-                        P.append( scipy.stats.norm.cdf ( s ) )
+                        Pfake[sqrts].append( pfake )
+                        Pfake_[sqrts].append ( pfake )
+                        P[sqrts].append( scipy.stats.norm.cdf ( s ) )
                         cfake = scipy.stats.norm.cdf ( sfake )
-                        Pfake.append( cfake )
+                        Pfake[sqrts].append( cfake )
                 if store:
                     print ( f"[plotDBDict] dumping to {fname}" )
                     with open ( fname, "wb" ) as f:
                         pickle.dump ( os.path.basename ( fname ), f )
+                        pickle.dump ( self.topologies, f )
                         pickle.dump ( self.filter, f )
                         pickle.dump ( S_, f )
                         pickle.dump ( Sfake_, f)
@@ -184,7 +208,7 @@ class Plotter:
     def plot( self, variable, fakeVariable, outfile ):
         """ plot the p-values """
         S,Sfake,P,Pfake=self.compute ( variable, fakeVariable, True )
-        mean,std = np.mean ( S), np.std ( S )
+        mean,std = np.mean ( S[13]+S[8] ), np.std ( S[13]+S[8] )
         #minX, maxX = min(S), max(S)
         #x = np.linspace( minX, maxX,100 )
         # plt.legend()
@@ -195,16 +219,27 @@ class Plotter:
             fudge = self.meta["fudge"]
         if abs ( fudge - 1. ) > 1e-3:
             title += ", fudge=%.2f" % fudge
+        if len (self.topologies )>0:
+            title += f", selecting {','.join(self.topologies)}"
         nbins = 10 ## change the number of bins
         fig, ax = plt.subplots()
-        plt.hist ( P, weights = [ 1. / len(self.filenames) ]*len(P), bins=nbins,
-                   label="real", facecolor="tab:blue" )
-        plt.hist ( Pfake, weights = [ 1. / len(self.filenames) ]*len(P), bins=nbins,
-                   label="fake", edgecolor="red", linewidth=3, histtype="step" )
+        x = [ P[8], P[13] ]
+        nm1 = 1. / len(self.filenames)
+        weights = [ [ nm1 ]*len(P[8]), [ nm1 ]*len(P[13]) ]
+        bins = np.arange ( 0., 1+1e-7, 1/nbins )
+        H1 = plt.hist ( x, weights = weights, bins=bins, histtype="bar",
+                   label=[ "real, 8 TeV", "real, 13 TeV" ], color=[ "tab:green", "tab:blue" ], stacked=True )
+        fweights = [ nm1 ]*len(Pfake[8]+Pfake[13])
+        # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
+        H2 = plt.hist ( [ Pfake[8] + Pfake[13] ], weights = fweights,
+                        bins=bins, stacked=True,
+                        label="fake", color=["red" ], linewidth=3, histtype="step" )
+        #plt.hist ( Pfake[8]+Pfake[13], weights = fweights, bins=nbins, 
+        #           label="fake", edgecolor="red", linewidth=3, histtype="step" )
         print ( "real Ps %d entries at %.3f +/- %.2f" % 
-                ( len(P), np.mean(P), np.std(P)  ) )
+                ( len(P[13]), np.mean(P[13]), np.std(P[13])  ) )
         print ( "fake Ps %d entries at %.3f +/- %.2f" % 
-                ( len(Pfake), np.mean(Pfake), np.std(Pfake) ) )
+                ( len(Pfake[13]), np.mean(Pfake[13]), np.std(Pfake[13]) ) )
         plt.legend()
         if self.likelihood == "lognormal+poisson":
             title += " (lognormal)"
