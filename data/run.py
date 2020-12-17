@@ -99,10 +99,10 @@ def fetch( globber, useHiscores = False ):
         # print ( cmd )
         subprocess.getoutput ( cmd )
 
-    signalfiles = glob.glob ( f"{Dir}/rundir.{g}/signal.py" )
+    signalfiles = glob.glob ( f"{Dir}/rundir.{g}/my.signal" )
     for signalfile in signalfiles:
         """ if we have a signalfile, we copy it also """
-        dest = signalfile.replace("/signal.py","").replace( Dir,"")
+        dest = signalfile.replace("/my.signal","").replace( Dir,"")
         dest = dest.replace("rundir.","")
         cmd = f"cp {signalfile} {dest}.signal"
         subprocess.getoutput ( cmd )

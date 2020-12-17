@@ -14,10 +14,12 @@ from smodels.experiment.databaseObj import Database
 from smodels.tools import runtime
 from smodels.tools.physicsUnits import fb
 runtime._experimental = True
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
-from plots.names import particleLabels
+from names import particleLabels
 from ptools.sparticleNames import SParticleNames
 # sns.set() #Set style
 # sns.set_style('ticks')
