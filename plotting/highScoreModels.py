@@ -19,7 +19,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
-from names import particleLabels
 from ptools.sparticleNames import SParticleNames
 # sns.set() #Set style
 # sns.set_style('ticks')
@@ -204,14 +203,14 @@ for pid in masses.keys():
         continue
     data = df
     sns.scatterplot(x=data['run'],y=data[pid], size=1000,sizes=(1500,1500),marker='_',
-                    label=r'$%s$' %(particleLabels[pid]), legend=False,
+                    label=r'$%s$' %(namer.texName(pid,addOnes=True)), legend=False,
                     color=[colorDict[pid]],ax=axarr[1])
     for i,m in enumerate(masses[pid]):
         if m < 0: continue
-        if 'b' in particleLabels[pid]:
-            axarr[1].annotate(r'$%s$' %(particleLabels[pid]),(runs[i]-0.3,m+25.),fontsize=15)
+        if 'b' in namer.texName(pid):
+            axarr[1].annotate(r'$%s$' %(namer.texName(pid,addOnes=True)),(runs[i]-0.3,m+25.),fontsize=15)
         else:
-            axarr[1].annotate(r'$%s$' %(particleLabels[pid]),(runs[i],m+25.),fontsize=15)
+            axarr[1].annotate(r'$%s$' %(namer.texName(pid,addOnes=True)),(runs[i],m+25.),fontsize=15)
 axarr[1].set_ylim(0.,1500.0)
 axarr[1].set_xlabel('run (BSM)', fontsize=23)
 axarr[1].set_ylabel('Mass [GeV]', fontsize=23)

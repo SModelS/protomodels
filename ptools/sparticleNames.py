@@ -217,10 +217,19 @@ class SParticleNames:
         """ format the name for html """
         return self.htmlify ( self.name ( pid, addSign ), addBrackets )
 
-    def texName ( self, pid, addSign=False, addDollars = False, addBrackets = False ):
-        """ format the name for tex """
-        n = self.name ( pid, addSign )
+    def texName ( self, pid, addSign=False, addDollars = False, addBrackets = False,
+                  addOnes=False ):
+        """ format the name for tex 
+        :param addSign: if true, denote also charge
+        :param addDollars: add dollars to declare math mode
+        :param addBrackets: put the particle name in a bracket. good for e.g.
+                            m(Xt)
+        :param addOnes: if true, add ^{1} to Xt and Xb
+        """
+        n = self.name ( pid, addSign, addOnes=addOnes )
         n = n.replace ( "#", "\\" )
+        if addOnes and "1" in n:
+            n = n.replace("1","^{1}")
         if addSign:
             if "+-" in n:
                 n = n.replace("+-","" )
@@ -233,21 +242,31 @@ class SParticleNames:
             n = "(" + n + ")"
         return n
 
-    def name ( self, pid, addSign=False ):
-        """ get the name for a particle id """
+    def name ( self, pid, addSign=False, addOnes=False ):
+        """ get the name for a particle id 
+        :param addSign: if true, denote also charge
+        :param addOnes: if true, add ^{1} to Xt and Xb
+        """
         if type(pid) in [ tuple, set, list ]:
             ret=[]
             for p in pid:
                 ret.append ( self.name ( p, addSign ) )
             return ", ".join ( ret )
 
+        if abs(pid) in [ 1000005, 1000006 ] and addOnes:
+            ret = self.name ( pid, addSign, addOnes=False )
+            return ret+"1"
+
         if type(pid) == str and pid.startswith("+-"):
             n = self.name(int(pid[2:]))
             return "+-"+n
+
         if not pid in self.ids and not abs(pid) in self.ids:
             return str(pid)
+
         if not pid in self.ids:
             return self.ids[abs(pid)]
+
         return self.ids[pid]
 
     def asciiName ( self, pid ):
