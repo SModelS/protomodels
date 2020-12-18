@@ -316,7 +316,7 @@ class Hiscore:
 
             contrsWithNames = {}
             for k,v in contributionsK.items():
-                self.pprint ( "contributionsK of %s reads %s" % ( k, v ) )
+                # self.pprint ( "contributionsK of %s reads %s" % ( k, v ) )
                 contrsWithNames [ manipulator.M.bestCombo[k].analysisId() ] = v
             manipulator.M.analysisContributions = contrsWithNames
             self.pprint ( "stored %d analyses contributions" % len(manipulator.M.analysisContributions) )
