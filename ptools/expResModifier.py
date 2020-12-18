@@ -457,12 +457,15 @@ class ExpResModifier:
         """ compute distance between v1 and v2 """
         ret = 0.
         nmin = min ( len(v1), len(v2) )
+        nmax = max ( len(v1), len(v2) )
+        div = nmax / nmin
         v1,v2 = list(v1)[:nmin],list(v2)[:nmin]
         #if len(v1)*2 == len(v2):
         #    v1 = v1*2
+        sums = []
         for _1,_2 in zip ( v1, v2 ):
-            ret+= ( _1 - _2 )**2
-        ret = math.sqrt (ret )
+            sums.append ( ( _1 - _2 )**2 )
+        ret = math.sqrt ( sum(sums) / div )
         return ret
 
     def addSignalFromDict ( self, txname, dataset, values ):
@@ -562,10 +565,13 @@ class ExpResModifier:
             txnd = txname.txnameData
             etxnd = txname.txnameDataExp
             coordsTpred = txnd.dataToCoordinates ( tpred.mass, txnd._V, txnd.delta_x ) ## coordinates of tpred
-            minDist = float("inf") ## for the closest point we store the numbers
+            minDist, minPt = float("inf"),None ## for the closest point we store the numbers
             for yi,y in enumerate(txnd.y_values):
                 pt = txnd.tri.points[yi] ## the point in the rotated coords
                 dist = self.distance ( pt, coordsTpred )
+                if dist < minDist: ## just so we know how far away we are
+                    minDist = dist
+                    minPt = txnd.coordinatesToData ( pt, txnd._V, txnd.delta_x )
                 if dist > self.maxmassdist: ## change y_values only in vicinity of protomodel
                     continue
                 oldv = txnd.y_values[yi]
@@ -578,7 +584,6 @@ class ExpResModifier:
                         oldv = etxnd.y_values[yi] ## FIXME more checks pls
                 if dist < minDist:
                     ## remember the candidate
-                    minDist = dist
                     D["yold"]=oldo
                     D["dist"]=dist
                     self.comments["dist"]="distance of closest point to protomodel"
@@ -592,7 +597,7 @@ class ExpResModifier:
                 txnd.y_values[yi]=oldv + sigmaN
                 hasAdded += 1
             if hasAdded == 0:
-                self.pprint ( "warning: signal was not added in {tpred.analysisId()}:{txname.txName}" )
+                self.pprint ( f"warning: no signal was added in {tpred.analysisId()}:{txname.txName}, closest was point {minPt} at d={minDist:.2f}" )
             D[f"signalpoints{txname.txName}"]=hasAdded
             D[f"totalpoints{txname.txName}"]=len(txnd.y_values)
             self.comments["signalpointsTx"]="number of grid points that got the signal injected"

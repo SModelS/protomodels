@@ -8,3 +8,4 @@
  * scaled: fake signals, bgerrs scaled by 0.65, hiscore signal injected once. capping at 2sigma, maxmassdist = 400 gev.
  * double: like signal, except hiscore signal injected twice. 
  * iced: like frozen, except hiscore signal injected twice. 
+ * cryo: like frozen, except maxmassdist = 100 gev

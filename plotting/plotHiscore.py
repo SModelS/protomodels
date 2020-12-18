@@ -459,6 +459,8 @@ def writeRValuesTex ( rvalues, usePrettyNames = True ):
         srv="N/A"
         if type(rv[1]) in [ float, numpy.float64, numpy.float32 ]:
             srv="%.2f" % rv[1]
+        else:
+            srv=str(rv[1])
         anaId = rv[2].analysisId()
         prettyName = getPrettyName( rv[2] )
         prettyName = prettyTexAnalysisName ( prettyName, anaid = anaId )
