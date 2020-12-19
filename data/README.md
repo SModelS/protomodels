@@ -9,3 +9,4 @@
  * double: like signal, except hiscore signal injected twice. 
  * iced: like frozen, except hiscore signal injected twice. 
  * cryo: like frozen, except maxmassdist = 100 gev
+ * narrow: like signal, except maxmassdist = 100 gev
