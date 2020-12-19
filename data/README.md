@@ -10,3 +10,4 @@
  * iced: like frozen, except hiscore signal injected twice. 
  * cryo: like frozen, except maxmassdist = 100 gev
  * narrow: like signal, except maxmassdist = 100 gev
+ * narrowfudged: like signal, except maxmassdist = 100 gev, and fudge factor 0.65
