@@ -112,7 +112,10 @@ def fromDict(inputDict):
 
 #Get highest score from each run:
 protomodelsDict = {}
-for ff in glob.glob(f'../data/{runname}*.dict'):
+files = f'../data/{runname}*.dict'
+for ff in glob.glob( files ):
+    if runname == "narrow" and "fudged" in ff:
+        continue
     with open(ff,'r') as f:
         pList = eval(f.read())
     run = eval(os.path.basename(ff).replace(runname,'').replace('.dict',''))
