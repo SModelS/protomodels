@@ -687,7 +687,7 @@ def writeIndexHtml ( protomodel ):
             srv="N/A"
             if type(rv[1]) in [ float, numpy.float64, numpy.float32 ]:
                 srv="%.2f" % rv[1]
-            else:
+            elif type(rv[1]) != type(None):
                 srv=str(rv[1])
             f.write ( "<li>%s:%s r=%.2f, r<sub>exp</sub>=%s<br>\n" % ( anaNameAndUrl ( rv[2] ), ",".join ( map(str,rv[2].txnames) ), rv[0], srv ) )
         f.write("</ul>\n")
