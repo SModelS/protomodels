@@ -1,6 +1,8 @@
 .. image:: logos/logo_small.png
 
-This repository contains all the core code for the artificial protomodeller.
+This repository contains all the core code for the artificial protomodeller,
+https://arxiv.org/abs/2012.12246. For results and discussions, see also
+https://smodels.github.io/protomodels/.
 
 walker
 ^^^^^^
