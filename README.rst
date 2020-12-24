@@ -7,7 +7,7 @@ https://smodels.github.io/protomodels/.
 walker
 ^^^^^^
 
- * Contains the code for the random walker
+Contains the code for the random walker
 
 builder
 ^^^^^^^
