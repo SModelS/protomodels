@@ -4,6 +4,9 @@ This repository contains all the core code for the artificial protomodeller,
 https://arxiv.org/abs/2012.12246. For results and discussions, see also
 https://smodels.github.io/protomodels/.
 
+DISCLAIMER: This is not a finished software product. The code is public, but
+not published. Your mileage may vary.
+
 walker
 ^^^^^^
 
