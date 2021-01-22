@@ -185,45 +185,45 @@ class Hiscore:
             f.close()
         return True
 
-    def addResult ( self, protomodel ):
+    def addResult ( self, ma ):
         """ add a result to the list
+        :param ma: the manipulator object
         :returns: true, if result was added
         """
-        m = Manipulator ( protomodel )
-        if m.M.K <= self.currentMinK( zeroIsMin = True ):
+        if ma.M.K <= self.currentMinK( zeroIsMin = True ):
             return False ## doesnt pass minimum requirement
-        if m.M.K == 0.:
+        if ma.M.K == 0.:
             return False ## just to be sure, should be taken care of above, though
 
         # Kold = self.globalMaxK()
         Kmin = self.globalMinK()
-        # self.pprint ( f"adding results Kold is {Kold} Knew is {m.M.K}" )
+        # self.pprint ( f"adding results Kold is {Kold} Knew is {ma.M.K}" )
         ## FIXME we should only write into this file in the first maxstep/3 steps
-        if m.M.K > Kmin:
+        if ma.M.K > Kmin:
             self.pprint ( "WARNING we shouldnt write into hiscore file afte maxstep/3 steps!!" )
-            self.writeToHiscoreFile( m )
+            self.writeToHiscoreFile( ma )
             ## we have a new hiscore?
             ## compute the particle contributions
-            #if not hasattr ( m.M, "particleContributions" ):
+            #if not hasattr ( ma.M, "particleContributions" ):
             #    self.pprint ( "particleContributions missing, compute them!" )
             #    self.computeParticleContributions(m)
             ## compute the analysis contributions
-            #if not hasattr ( m.M, "analysisContributions" ):
+            #if not hasattr ( ma.M, "analysisContributions" ):
             #    self.pprint ( "analysisContributions missing, compute them!" )
             #    self.computeAnalysisContributions(m)
-            protomodel = m.M
+            protomodel = ma.M
             protomodel.getXsecs() #Make sure cross-sections have been computed
 
         for i,mi in enumerate(self.hiscores):
-            if mi!=None and mi.almostSameAs ( m.M ):
-                ### this m.M is essentially the m.M in hiscorelist.
+            if mi!=None and mi.almostSameAs ( ma.M ):
+                ### this ma.M is essentially the ma.M in hiscorelist.
                 ### Skip!
                 self.pprint ( "the protomodel seems to be already in highscore list. skip" )
                 return False
 
-            if mi==None or m.M.K > mi.K: ## ok, <i>th best result!
+            if mi==None or ma.M.K > mi.K: ## ok, <i>th best result!
                 self.demote ( i )
-                self.hiscores[i] = copy.deepcopy ( m.M )
+                self.hiscores[i] = copy.deepcopy ( ma.M )
                 self.hiscores[i].cleanBestCombo( )
                 break
         return True
@@ -316,7 +316,7 @@ class Hiscore:
 
             contrsWithNames = {}
             for k,v in contributionsK.items():
-                self.pprint ( "contributionsK of %s reads %s" % ( k, v ) )
+                # self.pprint ( "contributionsK of %s reads %s" % ( k, v ) )
                 contrsWithNames [ manipulator.M.bestCombo[k].analysisId() ] = v
             manipulator.M.analysisContributions = contrsWithNames
             self.pprint ( "stored %d analyses contributions" % len(manipulator.M.analysisContributions) )
@@ -460,18 +460,19 @@ class Hiscore:
             return False
         return False
 
-    def newResult ( self, protomodel ):
+    def newResult ( self, ma ):
         """ see if new result makes it into hiscore list. If yes, then add.
+        :param ma: the manipulator object
         :returns: true, if it entered the hiscore list
         """
         self.pprint ( "New result with K=%.2f, Z=%.2f, needs to pass K>%.2f, saving: %s" % \
-                ( protomodel.K, protomodel.Z, self.currentMinK(),
+                ( ma.M.K, ma.M.Z, self.currentMinK(),
                   "yes" if self.save_hiscores else "no" ) )
         if not self.save_hiscores:
             return False
-        if protomodel.K <= self.currentMinK():
+        if ma.M.K <= self.currentMinK():
             return False ## clearly out
-        self.addResult ( protomodel )
+        self.addResult ( ma )
         self.save() ## and write it
         return True
 
