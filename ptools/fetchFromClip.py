@@ -1,0 +1,1 @@
+../../smodels-utils/clip/fetchFromClip.py

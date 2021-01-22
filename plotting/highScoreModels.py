@@ -14,10 +14,11 @@ from smodels.experiment.databaseObj import Database
 from smodels.tools import runtime
 from smodels.tools.physicsUnits import fb
 runtime._experimental = True
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
-from plots.names import particleLabels
 from ptools.sparticleNames import SParticleNames
 # sns.set() #Set style
 # sns.set_style('ticks')
@@ -111,7 +112,10 @@ def fromDict(inputDict):
 
 #Get highest score from each run:
 protomodelsDict = {}
-for ff in glob.glob(f'../data/{runname}*.dict'):
+files = f'../data/{runname}*.dict'
+for ff in glob.glob( files ):
+    if runname == "narrow" and "fudged" in ff:
+        continue
     with open(ff,'r') as f:
         pList = eval(f.read())
     run = eval(os.path.basename(ff).replace(runname,'').replace('.dict',''))
@@ -202,14 +206,14 @@ for pid in masses.keys():
         continue
     data = df
     sns.scatterplot(x=data['run'],y=data[pid], size=1000,sizes=(1500,1500),marker='_',
-                    label=r'$%s$' %(particleLabels[pid]), legend=False,
+                    label=r'$%s$' %(namer.texName(pid,addOnes=True)), legend=False,
                     color=[colorDict[pid]],ax=axarr[1])
     for i,m in enumerate(masses[pid]):
         if m < 0: continue
-        if 'b' in particleLabels[pid]:
-            axarr[1].annotate(r'$%s$' %(particleLabels[pid]),(runs[i]-0.3,m+25.),fontsize=15)
+        if 'b' in namer.texName(pid):
+            axarr[1].annotate(r'$%s$' %(namer.texName(pid,addOnes=True)),(runs[i]-0.3,m+25.),fontsize=15)
         else:
-            axarr[1].annotate(r'$%s$' %(particleLabels[pid]),(runs[i],m+25.),fontsize=15)
+            axarr[1].annotate(r'$%s$' %(namer.texName(pid,addOnes=True)),(runs[i],m+25.),fontsize=15)
 axarr[1].set_ylim(0.,1500.0)
 axarr[1].set_xlabel('run (BSM)', fontsize=23)
 axarr[1].set_ylabel('Mass [GeV]', fontsize=23)
@@ -226,5 +230,5 @@ plt.ylim(0.,1500.0)
 # plt.tight_layout()
 plt.savefig( f'highScoreSignal_{args.signalfiles}.pdf')
 plt.savefig( f'highScoreSignal_{args.signalfiles}.png')
-print ( f"saving to highScoreSignal_{args.signalfiles}.png, highScoreSignal_{args.signalfiles}.pdf" )
+print ( f"saving to highScoreSignal_{args.signalfiles}.png highScoreSignal_{args.signalfiles}.pdf" )
 # plt.show()

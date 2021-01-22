@@ -7,6 +7,22 @@ import copy, math, time, random, subprocess, os, unum, numpy
 from smodels.experiment.datasetObj import DataSet
 from smodels.experiment.expResultObj import ExpResult
 from smodels.experiment.infoObj import Info
+from smodels.tools.physicsUnits import GeV
+
+def stripUnits( container ):
+    """ strip all units from a mass vector """
+    ret = []
+    for br in container:
+        tbr = []
+        for m in br:
+            if type(m) in [ float, int ]:
+                tbr.append ( m )
+            if type(m) == type(GeV):
+                tbr.append ( m.asNumber(GeV) )
+            if type(m) in [ tuple, list ]:
+                tbr.append ( m )
+        ret.append ( tbr)
+    return ret
 
 def countSSMultipliers ():
     """ count the total number of ssmultipliers of a protomodel """

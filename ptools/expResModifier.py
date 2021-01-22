@@ -185,7 +185,6 @@ class ExpResModifier:
                    ( globalInfo.id, txname.txName, x ) )
         if x > 3.5:
             self.log ( "WARNING high UL x=%.2f!!!" % x )
-        ret.validated = txname.validated
         return ret
 
     def bgUpperLimit ( self, dataset ):
@@ -280,7 +279,6 @@ class ExpResModifier:
                    ( outfile, self.suffix, pmodel ) )
         db = Database ( self.dbpath )
         self.dbversion = db.databaseVersion
-        # listOfExpRes = db.getExpResults( useSuperseded=True, useNonValidated=True )
         listOfExpRes = db.expResultList ## seems to be the safest bet?
         self.produceProtoModel ( pmodel, db.databaseVersion )
         # print ( "pm produced", os.path.exists ( self.protomodel.currentSLHA ) )
@@ -455,6 +453,85 @@ class ExpResModifier:
         for k,v in Dict.items():
             self.stats[label][k]=v
 
+    def distance ( self, v1, v2 ):
+        """ compute distance between v1 and v2 """
+        ret = 0.
+        nmin = min ( len(v1), len(v2) )
+        nmax = max ( len(v1), len(v2) )
+        div = nmax / nmin
+        v1,v2 = list(v1)[:nmin],list(v2)[:nmin]
+        #if len(v1)*2 == len(v2):
+        #    v1 = v1*2
+        sums = []
+        for _1,_2 in zip ( v1, v2 ):
+            sums.append ( ( _1 - _2 )**2 )
+        ret = math.sqrt ( sum(sums) / div )
+        return ret
+
+    def addSignalFromDict ( self, txname, dataset, values ):
+        """ add a signal to this UL result. background sampling is
+            already taken care of """
+        self.pprint ( f"warning, signal playback not yet testededed for ULs" )
+        from smodels.tools.physicsUnits import fb
+        from ptools import helpers
+        txns = values["txns"]
+        ## so we simply add the theory predicted cross section to the limit
+        sigmaN = values["sigmaN"] # tpred.xsection.value.asNumber(fb)
+        label = dataset.globalInfo.id + ":ul:" + txns
+        D={}
+        D["sigmaN"]=sigmaN
+        D["pids"]=values["pids"]
+        D["masses"]=values["masses"]
+        D["txns"]=txns
+        self.comments["txns"]="list of txnames that populate this signal region / analysis"
+        self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
+        ## sigmaN is the predicted production cross section of the signal,
+        ## in fb
+        if not txname.txName in txns:
+            return txname.txnameData
+        hasAdded = 0
+        # print ( "  `-- adding %s to %s" % ( sigmaN, txname ), type(txname), type(txname.txnameData) )
+        txnd = txname.txnameData
+        etxnd = txname.txnameDataExp
+        coordsTpred = txnd.dataToCoordinates ( values["masses"], txnd._V, txnd.delta_x ) ## coordinates of tpred
+        minDist = float("inf") ## for the closest point we store the numbers
+        for yi,y in enumerate(txnd.y_values):
+            pt = txnd.tri.points[yi] ## the point in the rotated coords
+            dist = self.distance ( pt, coordsTpred )
+            if dist > self.maxmassdist: ## change y_values only in vicinity of protomodel
+                continue
+            oldv = txnd.y_values[yi]
+            oldo = txnd.y_values[yi]
+            hasExpected=False
+            if etxnd != None and len(txnd.y_values) == len(etxnd.y_values):
+                dt = ( ( txnd.delta_x - etxnd.delta_x )**2 ).sum()
+                if dt < 1e-2:
+                    hasExpected=True
+                    oldv = etxnd.y_values[yi] ## FIXME more checks pls
+            if dist < minDist:
+                ## remember the candidate
+                minDist = dist
+                D["yold"]=oldo
+                D["dist"]=dist
+                self.comments["dist"]="distance of closest point to protomodel"
+                if hasExpected:
+                    D["yexp"]=oldv
+                    self.comments["yexp"]="expected y value (fb) closest to signal protomodel for UL map"
+                self.comments["yold"]="old y value (fb) closest to signal protomodel for UL map"
+                self.comments["ynew"]="new y value (fb) closest to signal protomodel for UL map"
+                D["ynew"]=oldv+sigmaN
+            # print ( "    `--- adding %s %s" % ( oldv, sigmaN ) )
+            txnd.y_values[yi]=oldv + sigmaN
+            hasAdded += 1
+            if hasAdded == 0:
+                self.pprint ( "warning: signal was not added in {tpred.analysisId()}:{txname.txName}" )
+            D[f"signalpoints{txname.txName}"]=hasAdded
+            D[f"totalpoints{txname.txName}"]=len(txnd.y_values)
+            self.comments["signalpointsTx"]="number of grid points that got the signal injected"
+            self.comments["totalpointsTx"]="total number of grid points in that map"
+            self.addToStats ( label, D )
+        return txnd
+
     def addSignalForULMap ( self, dataset, tpred, lumi ):
         """ add a signal to this UL result. background sampling is
             already taken care of """
@@ -474,34 +551,27 @@ class ExpResModifier:
         D={}
         D["sigmaN"]=sigmaN
         D["pids"]=tpred.PIDs
-        D["signalmasses"]=helpers.stripUnits ( tpred.mass )
+        D["masses"]=helpers.stripUnits ( tpred.mass )
         D["txns"]=",".join(txns)
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
         ## sigmaN is the predicted production cross section of the signal,
         ## in fb
-        def distance ( v1, v2 ):
-            """ compute distance between v1 and v2 """
-            ret = 0.
-            v1,v2 = list(v1),list(v2)
-            if len(v1)*2 == len(v2):
-                v1 = v1*2
-            for _1,_2 in zip ( v1, v2 ):
-                ret+= ( _1 - _2 )**2
-            ret = math.sqrt (ret )
-            return ret
-
         for i,txname in enumerate(dataset.txnameList):
             if not self.txNameIsIn ( txname, tpred ):
                 continue
+            hasAdded = 0
             #print ( "  `-- adding %s to %s" % ( sigmaN, txname ) )
             txnd = txname.txnameData
             etxnd = txname.txnameDataExp
             coordsTpred = txnd.dataToCoordinates ( tpred.mass, txnd._V, txnd.delta_x ) ## coordinates of tpred
-            minDist = float("inf") ## for the closest point we store the numbers
+            minDist, minPt = float("inf"),None ## for the closest point we store the numbers
             for yi,y in enumerate(txnd.y_values):
                 pt = txnd.tri.points[yi] ## the point in the rotated coords
-                dist = distance ( pt, coordsTpred )
+                dist = self.distance ( pt, coordsTpred )
+                if dist < minDist: ## just so we know how far away we are
+                    minDist = dist
+                    minPt = txnd.coordinatesToData ( pt, txnd._V, txnd.delta_x )
                 if dist > self.maxmassdist: ## change y_values only in vicinity of protomodel
                     continue
                 oldv = txnd.y_values[yi]
@@ -514,14 +584,9 @@ class ExpResModifier:
                         oldv = etxnd.y_values[yi] ## FIXME more checks pls
                 if dist < minDist:
                     ## remember the candidate
-                    minDist = dist
-                    D={}## remove
                     D["yold"]=oldo
                     D["dist"]=dist
                     self.comments["dist"]="distance of closest point to protomodel"
-                    #D["ptFXME"]=pt
-                    #D["coordstpredFXME"]=coordsTpred
-                    D["mass"]=str(tpred.mass) ## store as string
                     if hasExpected:
                         D["yexp"]=oldv
                         self.comments["yexp"]="expected y value (fb) closest to signal protomodel for UL map"
@@ -530,6 +595,13 @@ class ExpResModifier:
                     D["ynew"]=oldv+sigmaN
                 # print ( "    `--- adding %s %s" % ( oldv, sigmaN ) )
                 txnd.y_values[yi]=oldv + sigmaN
+                hasAdded += 1
+            if hasAdded == 0:
+                self.pprint ( f"warning: no signal was added in {tpred.analysisId()}:{txname.txName}, closest was point {minPt} at d={minDist:.2f}" )
+            D[f"signalpoints{txname.txName}"]=hasAdded
+            D[f"totalpoints{txname.txName}"]=len(txnd.y_values)
+            self.comments["signalpointsTx"]="number of grid points that got the signal injected"
+            self.comments["totalpointsTx"]="total number of grid points in that map"
             self.addToStats ( label, D )
             dataset.txnameList[i].txnameData = txnd
             dataset.txnameList[i].sigmaN = sigmaN
@@ -548,6 +620,13 @@ class ExpResModifier:
                  "lognormal": self.lognormal, "maxmassdist": self.maxmassdist,
                  "fixedsignals": self.fixedsignals,
                  "fixedbackgrounds": self.fixedbackgrounds }
+        from smodels.tools import runtime
+        if hasattr ( runtime, "_cap_likelihoods" ):
+            meta["_cap_likelihoods"]=runtime._cap_likelihoods
+        if hasattr ( runtime, "_drmax" ):
+            meta["_drmax"]=runtime._drmax
+        if hasattr ( runtime, "_experimental" ):
+            meta["_experimental"]=runtime._experimental
         with open ( filename,"wt" ) as f:
             f.write ( str(meta)+"\n" )
             if len(self.comments)>0:
@@ -780,6 +859,7 @@ class ExpResModifier:
 
     def playback ( self, playbackdict, outfile ):
         """ playback the mods described in playbackdict """
+        self.pprint ( "WARNING: playback functionality has not yet been validated!!" )
         with open ( playbackdict, "rt" ) as h:
             lines = h.readlines()
             h.close()
@@ -801,10 +881,16 @@ class ExpResModifier:
 
         self.dbversion = db.databaseVersion
         self.lExpRes = db.expResultList ## seems to be the safest bet?
+        # self.lExpRes = db.getExpResults ( [ "CMS-SUS-19-006" ] ) ## for debugging
         for anaids,values in D.items():
+            #if not "CMS-SUS-19-006" in anaids: # for debugging
+            #    continue
             self.playbackOneItem ( anaids, values )
         db.expResultList = self.lExpRes
         db.dbpath = outfile
+        self.dbversion = self.dbversion + ".playedback"
+        db.txt_meta.databaseVersion = db.databaseVersion + ".playedback"
+        db.pcl_meta.databaseVersion = db.databaseVersion + ".playedback"
         self.pprint ( f"writing to {outfile}" )
         db.createBinaryFile ( outfile )
 
@@ -813,7 +899,9 @@ class ExpResModifier:
         :param anaids: e.g. "CMS-SUS-14-021:ul:T2bbWWoff"
         :param values: e.g. xxx
         """
-        self.pprint ( f"playing back {anaids}" )
+        mytxname = anaids.split(":")[-1]
+        # print ( f"playing back {anaids} for ", mytxname, values )
+        self.log ( f"playing back {anaids}" )
         tokens = anaids.split(":")
         anaid = tokens[0]
         isEffMap = False
@@ -832,15 +920,20 @@ class ExpResModifier:
                 if tds.getType() == "upperLimit" and not isEffMap:
                     ### update an UL dataset
                     for itx,txnd in enumerate(tds.txnameList):
+                        if txnd.txName != mytxname:
+                            continue
                         if hasattr ( txnd, "txnameDataExp" ) and txnd.txnameDataExp != None:
                             self.pprint ( "updating UL map", tds.globalInfo.id )
                             if not "x" in values:
                                 self.pprint ( f"error, cannot find x value in {tanaid}:{txnd.txName}: {values}" )
                                 continue
-                            if "sigmaN" in values:
-                                self.pprint ( f"error, signal playback not yet implemented for ULs" )
+                            ## print ( "playing back", tds.globalInfo.id, values["x"], txnd.txName, "txns" in values )
                             ntxnd = self.computeNewObserved ( txnd, tds.globalInfo, values["x"] )
-                            self.lExpRes[ier].datasets[ids].txnameList[itx]=ntxnd
+                            txnd.txnameData=ntxnd
+                            self.lExpRes[ier].datasets[ids].txnameList[itx].txnameData=ntxnd
+                            if "sigmaN" in values and "masses" in values:
+                                ntxnd = self.addSignalFromDict ( txnd, tds, values )
+                                self.lExpRes[ier].datasets[ids].txnameList[itx].txnameData=ntxnd
 
 
                 if tds.getType() == "efficiencyMap" and isEffMap and sr == tds.getID():
@@ -902,6 +995,7 @@ Database with a fake signal:
 
 Playback the modifications described in playback file "db.dict":
 ----------------------------------------------------------------
+WARNING this functionality has not yet been tested!
 ./expResModifier.py -R $RUNDIR -d original.pcl -p db.dict -o playedback.pcl
 
 Build a database:

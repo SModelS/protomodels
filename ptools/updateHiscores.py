@@ -151,7 +151,7 @@ def updateStates( rundir=None):
     args.infile = None
     # args.maxloss = .003
     # args.nevents = 50000
-    import hiscoreTools
+    from ptools import hiscoreTools
     print ( )
     print ( "[updateHiscores] now update %s" % args.outfile )
     hiscoreTools.main ( args )

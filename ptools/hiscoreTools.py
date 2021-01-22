@@ -190,7 +190,9 @@ def main ( args ):
             from walker.hiscore import Hiscore
             from tester.predictor import Predictor
             predictor = None
-            dbpath = f"{rundir}/default.pcl"
+            dbpath = args.dbpath
+            if not "/" in dbpath:
+                dbpath =  f"{rundir}/{args.dbpath}"
             if hasattr ( args, "dbpath" ):
                 dbpath = args.dbpath
             if os.path.exists ( dbpath ):
@@ -227,6 +229,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-f', '--infile',
             help='Hiscore file. [hiscore.hi]',
             type=str, default="hiscore.hi" )
+    argparser.add_argument ( '-d', '--dbpath',
+            help='Database path. [default.pcl]',
+            type=str, default="default.pcl" )
     argparser.add_argument ( '-n', '--nointeractive',
             help='Dont start interactive shell',
             action = "store_true" )
@@ -267,7 +272,7 @@ if __name__ == "__main__":
     from tester.combiner import Combiner
     from tester.predictor import Predictor
     from builder.protomodel import ProtoModel
-    from smodels.tools.physicsUnits import pb, fb
+    from smodels.tools.physicsUnits import pb, fb, GeV, TeV
     from smodels.experiment.databaseObj import Database
     import copy, numpy, scipy, scipy.stats, math
     co = Combiner() # instantiate for convenience

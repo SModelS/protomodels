@@ -457,8 +457,10 @@ def writeRValuesTex ( rvalues, usePrettyNames = True ):
     from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
     for rv in rvalues[:5]:
         srv="N/A"
-        if type(rv[1])==float:
+        if type(rv[1]) in [ float, numpy.float64, numpy.float32 ]:
             srv="%.2f" % rv[1]
+        else:
+            srv=str(rv[1])
         anaId = rv[2].analysisId()
         prettyName = getPrettyName( rv[2] )
         prettyName = prettyTexAnalysisName ( prettyName, anaid = anaId )
@@ -683,8 +685,10 @@ def writeIndexHtml ( protomodel ):
         f.write ( "<br><b>%d predictions available. Highest r values are:</b><br><ul>\n" % len(rvalues) )
         for rv in rvalues[:5]:
             srv="N/A"
-            if type(rv[1])==float:
+            if type(rv[1]) in [ float, numpy.float64, numpy.float32 ]:
                 srv="%.2f" % rv[1]
+            elif type(rv[1]) != type(None):
+                srv=str(rv[1])
             f.write ( "<li>%s:%s r=%.2f, r<sub>exp</sub>=%s<br>\n" % ( anaNameAndUrl ( rv[2] ), ",".join ( map(str,rv[2].txnames) ), rv[0], srv ) )
         f.write("</ul>\n")
     else:
