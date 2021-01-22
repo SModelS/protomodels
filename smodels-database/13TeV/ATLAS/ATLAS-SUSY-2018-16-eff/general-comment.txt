@@ -1,1 +1,0 @@
-The bgError for SR-S-low & SR-S-high were quadratically added from the bgError on bins provided by ATLAS. 

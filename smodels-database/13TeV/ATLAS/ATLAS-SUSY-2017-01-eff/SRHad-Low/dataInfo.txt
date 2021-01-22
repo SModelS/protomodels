@@ -1,8 +1,0 @@
-dataId: SRHad-Low
-dataType: efficiencyMap
-observedN: 7
-expectedBG: 8
-bgError: 4
-upperLimit: 0.26*fb	# official number taken from ATLAS (calculated value: 0.28*fb)
-expectedUpperLimit: 0.263*fb	# official number taken from ATLAS (calculated value: 0.317*fb)
-

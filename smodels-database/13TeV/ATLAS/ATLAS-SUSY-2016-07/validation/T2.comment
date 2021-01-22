@@ -1,3 +1,0 @@
-comment_by: Wolfgang Waltenberger
-date: Fri 12 Jul 2019 05:57:24 PM CEST 
-comment: "The table for the upper limits in hepdata is cut to 450 < m(squark) < 1500, added points manually. The small underexclusion is unexplained for. Comparison with the efficiency map result, it seems like the reference cross section is not the culprit. It seems like the data from hepdata slightly underexclude."

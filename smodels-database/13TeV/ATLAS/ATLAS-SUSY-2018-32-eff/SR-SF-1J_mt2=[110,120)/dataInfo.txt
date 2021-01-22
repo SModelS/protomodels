@@ -1,7 +1,0 @@
-dataId: SR-SF-1J_mt2=[110,120)
-dataType: efficiencyMap
-observedN: 30
-expectedBG: 17
-bgError: 4
-upperLimit: 0.203*fb
-expectedUpperLimit: 0.0955*fb

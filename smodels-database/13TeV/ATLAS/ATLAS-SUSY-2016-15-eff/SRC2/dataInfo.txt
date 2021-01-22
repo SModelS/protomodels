@@ -1,8 +1,0 @@
-dataId: SRC2
-dataType: efficiencyMap
-observedN: 22
-expectedBG: 27.6
-bgError: 4.9
-upperLimit: 0.31*fb	# official number taken from ATLAS (table 14) (calculated value: 0.311*fb)
-expectedUpperLimit: 0.385*fb	# official number taken from ATLAS (table 14) (calculated value: 0.464*fb)
-

@@ -1,7 +1,0 @@
-dataId: SRyj-H-q
-dataType: efficiencyMap
-observedN: 3
-expectedBG: 1.14
-bgError: 0.485
-upperLimit: 0.178*fb
-expectedUpperLimit: 0.102*fb

@@ -1,8 +1,0 @@
-dataId: SRATT
-dataType: efficiencyMap
-observedN: 11
-expectedBG: 8.6
-bgError: 2.1
-upperLimit: 0.3*fb	# official number taken from ATLAS (table 14) (calculated value: 0.317*fb)
-expectedUpperLimit: 0.241*fb	# official number taken from ATLAS (table 14) (calculated value: 0.262*fb)
-

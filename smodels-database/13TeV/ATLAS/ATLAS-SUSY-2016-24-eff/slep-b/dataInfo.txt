@@ -1,8 +1,0 @@
-dataId: slep-b
-dataType: efficiencyMap
-observedN: 3
-expectedBG: 2.8
-bgError: 0.4
-upperLimit: 0.14*fb	# official number taken from ATLAS (calculated value: 0.148*fb)
-expectedUpperLimit: 0.137*fb	# official number taken from ATLAS (calculated value: 0.148*fb)
-

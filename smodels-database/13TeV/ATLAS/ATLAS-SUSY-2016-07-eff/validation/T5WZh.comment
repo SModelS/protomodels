@@ -1,3 +1,0 @@
-comment_by: Wolfgang Waltenberger
-date: Thu 25 Jul 2019 03:15:03 PM CEST
-comment: "took out the T5WW constraint to avoid double counting. Do not yet fully understand why this seems to have no effect on the validation."

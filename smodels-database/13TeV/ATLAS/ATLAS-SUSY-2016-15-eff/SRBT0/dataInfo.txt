@@ -1,8 +1,0 @@
-dataId: SRBT0
-dataType: efficiencyMap
-observedN: 206
-expectedBG: 179.0
-bgError: 26.0
-upperLimit: 2.19*fb	# official number taken from ATLAS (table 14) (calculated value: 2.54*fb)
-expectedUpperLimit: 1.607*fb	# official number taken from ATLAS (table 14) (calculated value: 1.72*fb)
-

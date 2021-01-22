@@ -1,3 +1,0 @@
-comment_by: Andre_lessa
-date: qua out 24 15:56:37 -02 2018
-comment: "The underexclusion for the 0.5*x+0.5*y plane at x~1100 GeV is due to the fact that the original data grid for x~1100 stops around y=700 GeV."

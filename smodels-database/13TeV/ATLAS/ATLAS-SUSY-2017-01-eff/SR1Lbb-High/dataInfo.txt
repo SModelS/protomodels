@@ -1,8 +1,0 @@
-dataId: SR1Lbb-High
-dataType: efficiencyMap
-observedN: 5
-expectedBG: 4.6
-bgError: 1.2
-upperLimit: 0.18*fb	# official number taken from ATLAS (calculated value: 0.198*fb)
-expectedUpperLimit: 0.169*fb	# official number taken from ATLAS (calculated value: 0.198*fb)
-

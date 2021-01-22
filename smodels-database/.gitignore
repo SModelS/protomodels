@@ -1,9 +1,0 @@
-db*.pcl
-__pycache__
-utilsPath.pyc
-*/*/*/validation/smodels.log
-*/*/*/validation/*pretty.root
-*/*/*/validation/*pdf
-*/*/*/.db*.pcl
-*~
-.DS_Store
