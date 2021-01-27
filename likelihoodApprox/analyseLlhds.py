@@ -58,59 +58,55 @@ def run ( nobs, nExp, nExpErr, nsig ):
     :param nExp: number expected
     :param nExpErr: error on number expected
     """
-    print ( "Starting run with", nobs, nExp )
-
-    norm = p((nobs-nExp)+5*nExpErr,nsig,nExp,nExpErr,nobs)
-    t0=time.time()
-    ULobs = optimize.brentq(lambda x: p(x,nsig,nExp,nExpErr,nobs)/norm - 0.95,
-                            0,2*(nobs-nExp+3*nExpErr))
-    t1=time.time()
-    print ( "ULobs", ULobs, "dt=",t1-t0 )
+    print ( "Starting run with nobs", nobs, "nExp", nExp )
     data = Data ( nobs, nExp, nExpErr**2, nsignal = nsig )
     computer = UpperLimitComputer ( 10000 )
-    marginalize = True
-    ULobs2 = computer.ulSigma ( data, marginalize=marginalize )
-    t2=time.time()
-    print ( "ULobs2", ULobs2, "dt=", t2-t1 )
+    marginalize = False # True
+    ULobs = computer.ulSigma ( data, marginalize=marginalize )
 
-    normExp = p(5*nExp,nsig,nExp,nExpErr,nExp)
-    ULexp = optimize.brentq(lambda x: p(x,nsig,nExp,nExpErr,nExp)/normExp - 0.95,
-                            0,2*(3*nExpErr))
-    t3=time.time()
-    print ( "ULexp", ULexp, "dt=",t3-t2 )
-    ULexp2 = computer.ulSigma ( data, expected=True, marginalize=marginalize )
-    t4=time.time()
-    print ( "ULexp2", ULexp2, "dt=",t4-t3 )
-
+    ULexp = computer.ulSigma ( data, expected=True, marginalize=marginalize )
 
     print(r'Nobs = %1.2f, Nbg = %1.2f +- %1.2f, Nsig < %1.2f, Nsig (expected) < %1.2f'
          %(nobs,nExp,nExpErr,ULobs,ULexp))
 
     sigma = ULexp/1.96
-    sigma2 = ULexp2/1.96
-    mu0 = optimize.brentq(lambda x: 0.95- (special.erf((ULobs-x)/(np.sqrt(2)*sigma)) 
-                     +  special.erf(x/(np.sqrt(2)*sigma)))/(1+special.erf(x/(np.sqrt(2)*sigma))),
-                        0,2*(nobs-nExp+3*nExpErr))
-    mu0B = optimize.brentq(lambda x: 0.95- (special.erf((ULobs2-x)/(np.sqrt(2)*sigma2)) 
-                     +  special.erf(x/(np.sqrt(2)*sigma2)))/(1+special.erf(x/(np.sqrt(2)*sigma2))),
-                        0,2*(nobs-nExp+3*nExpErr))
-    print ( "mu0", mu0, "mu0B", mu0B )
+    mu0 = 0
+
+    def erfroot ( x ):
+        return 0.95- (special.erf((ULobs-x)/(np.sqrt(2)*sigma)) +  special.erf(x/(np.sqrt(2)*sigma)))/(1+special.erf(x/(np.sqrt(2)*sigma)) )
+
+    if nobs > nExp:
+        ua,ub = 0,2*(3*nExpErr)
+        xa,xb=1,1
+        while xa*xb > .0:
+            xa,xb= erfroot ( ua ), erfroot ( ub )
+            ub = 2*ub
+        mu0 = optimize.brentq(lambda x: erfroot(x), ua,ub )
+    print ( "mu0", mu0 )
+    # mu0 = nobs - nExp
+    # print ( "mu0", mu0, "nobs", nobs, "nExp", nExp )
 
     def llhdFromLimits(mu,mu0,sigma):
         return stats.norm.pdf(x=mu,loc=mu0,scale=sigma)
 
     normLim = 1 - stats.norm.cdf(0,loc=mu0,scale=sigma)
-    normLim2 = 1 - stats.norm.cdf(0,loc=mu0B,scale=sigma2)
 
     nsteps = 100 # 100
-    muvals = np.linspace(0,nobs-nExp+4*nExpErr, nsteps )
+
+    mulim = nobs-nExp+4*nExpErr
+    norm = p((nobs-nExp)+5*nExpErr,nsig,nExp,nExpErr,nobs)
+    while True:
+        Lmax1 = likelihood ( mulim, nsig,nExp,nExpErr,nobs)/norm
+        Lmax2 = llhdFromLimits ( mulim, mu0, sigma )/normLim
+        if max(Lmax1,Lmax2)<.01:
+            break
+        mulim = 1.2 * mulim
+    muvals = np.linspace(0, mulim, nsteps )
 
     llhds = np.array([[mu,likelihood(mu,nsig,nExp,nExpErr,nobs)/norm] for mu in muvals])
     llhdsApp = np.array([[mu,llhdFromLimits(mu,mu0,sigma)/normLim] for mu in muvals])
-    llhdsFunc = np.array([[mu,llhdFromLimits(mu,mu0B,sigma2)/normLim2] for mu in muvals])
-    print ( "llhds", llhds )
-    print ( "llhdsApp", llhdsApp )
-    print ( "llhdsFUnc", llhdsFunc )
+    print ( "llhds", llhds[::20] )
+    print ( "llhdsApp", llhdsApp[::20] )
 
     mumax = llhds[np.argmax(llhds[:,1])][0]
     mumaxApp = llhdsApp[np.argmax(llhdsApp[:,1])][0]
@@ -118,7 +114,6 @@ def run ( nobs, nExp, nExpErr, nsig ):
     f = plt.figure(figsize=(8,4))
     plt.plot(llhds[:,0],llhds[:,1],label='Full',linewidth=3,color="black")
     plt.plot(llhdsApp[:,0],llhdsApp[:,1],label='From Limits',linestyle='--',linewidth=3)
-    plt.plot(llhdsFunc[:,0],llhdsFunc[:,1],label='From Real Limits', color="green", linestyle='-.',linewidth=3)
     plt.legend()
     plt.xlabel(r'$\mu$')
     plt.ylabel(r'$L$')
@@ -128,11 +123,28 @@ def run ( nobs, nExp, nExpErr, nsig ):
     plt.savefig("llhd.png")
     # plt.show()
 
+def getSRs():
+    from smodels.experiment.databaseObj import Database
+    db = Database ( "/home/walten/git/smodels-database" )
+    ers = db.getExpResults( dataTypes=[ "efficiencyMap" ] )
+    stats = []
+    for er in ers:
+        for ds in er.datasets:
+            D = { "obsN": ds.dataInfo.observedN, "expectedBG": ds.dataInfo.expectedBG,
+                  "bgError": ds.dataInfo.bgError, "upperLimit": ds.dataInfo.upperLimit,
+                  "expectedUpperLimit": ds.dataInfo.expectedUpperLimit }
+            stats.append ( D )
+    return stats
 
 if __name__ == "__main__":
-    nobs = 110
-    nExp = 50.0
-    nExpErr = 20.0
+    stats = getSRs()
+    print ( stats )
+
+    sys.exit()
+
+    nobs = 6
+    nExp = 5.0
+    nExpErr = 3.0
     nsig = 1 #Keep it at one in order to compare the likelihoods
 
     run ( nobs, nExp, nExpErr, nsig )
