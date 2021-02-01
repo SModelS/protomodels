@@ -4,46 +4,48 @@
 Collect signficances and p values of UL results 
 """
     
+import smodels.experiment.txnameObj ## gridpoints!!
+smodels.experiment.txnameObj.TxNameData._keep_values = True
 from smodels.experiment.databaseObj import Database
-from smodels.tools.physicsUnits import GeV
+from smodels.tools.physicsUnits import GeV, fb, pb
 import random, pickle, numpy, sys
 import scipy.stats
 
 def collect():
-    db = Database ( "../../smodels-database" )
+    db = Database ( "./database.pcl" ) # , force_load = "txt" )
     ers = db.getExpResults ( dataTypes = [ "upperLimit" ], onlyWithExpected=True )
     allSs = []
     for er in ers:
         txnlist = er.datasets[0].txnameList
         for txn in txnlist:
-            for i in range(1000):
-                m1 = random.uniform ( 100, 2500 )
-                m3 = random.uniform ( 0, m1 )
-                m = [[ m1*GeV, m3*GeV], [ m1*GeV, m3*GeV] ]
+            ct=0
+            origdata = eval(txn.txnameData.origdata)
+            for point in origdata:
+                m = point[0]
+                rul = point[1]
                 ul,eul=None,None
                 try:
                     ul = txn.getULFor(m, False )
                     eul = txn.getULFor(m, True )
                 except Exception:
-                    m2 = random.uniform ( 0, 2500 )
-                    m = [[ m1*GeV, m2*GeV, m3*GeV], [ m1*GeV, m2*GeV, m3*GeV] ]
-                    try:
-                        ul = txn.getULFor(m, False )
-                        eul = txn.getULFor(m, True )
-                    except Exception:
-                        pass
+                    pass
                 if type(ul) == type(None) or type(eul) == type(None):
                     continue
                 sigma = eul / 1.96
                 S = float ( ( ul - eul ) / sigma )
-                if S < -1.8 or S > 3.5:
-                    print ( "S", S, ul, eul, sigma, m, er.globalInfo.id, txn.txName )
+                if (S < -1.8 or S > 3.5) and ct<3:
+                # if S > 10. and ct<3:
+                    print ( )
+                    print ( "S=%.2f for ul=%s, eul=%s sigma=%s" % ( S, ul, eul, sigma ) )
+                    print ( "  at ", er.globalInfo.id, txn.txName, m, "rul", rul )
+                    ct += 1
                 allSs.append ( S )
                 # print ( "->", er.globalInfo.id, txn, S )
     print ("all", min(allSs), numpy.mean(allSs), max(allSs) )
     f=open("ulSs.pcl","wb")
     pickle.dump(allSs,f)
     f.close()
+    sys.exit()
 
 def read():
     f=open("ulSs.pcl","rb")
@@ -75,6 +77,12 @@ def plotP ( ps ):
 if __name__ == "__main__":
     # collect()
     allSs = read()
+    print ( f"{len(allSs)} points total" )
+    nAS = numpy.array ( allSs )
+    print ( f"{len(nAS[nAS>0])} points > 0" )
+    print ( f"{len(nAS[nAS>2])} points > 2" )
+    print ( f"{len(nAS[nAS>2.5])} points > 2.5" )
+    print ( f"{len(nAS[nAS>3])} points > 3" )
     ps = computeP ( allSs )
     plotS ( allSs )
     plotP ( allSs )
