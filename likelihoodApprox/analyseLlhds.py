@@ -125,7 +125,7 @@ def run ( nobs, nExp, nExpErr, nsig ):
 
 def getSRs():
     from smodels.experiment.databaseObj import Database
-    db = Database ( "/home/walten/git/smodels-database" )
+    db = Database ( "official" )
     ers = db.getExpResults( dataTypes=[ "efficiencyMap" ] )
     stats = []
     for er in ers:
