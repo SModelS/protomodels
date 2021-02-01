@@ -8,7 +8,8 @@ import smodels.experiment.txnameObj ## gridpoints!!
 smodels.experiment.txnameObj.TxNameData._keep_values = True
 from smodels.experiment.databaseObj import Database
 from smodels.tools.physicsUnits import GeV, fb, pb
-import random, pickle, numpy, sys
+import random, pickle, sys, time
+import numpy as np
 import scipy.stats
 
 def collect():
@@ -41,7 +42,7 @@ def collect():
                     ct += 1
                 allSs.append ( S )
                 # print ( "->", er.globalInfo.id, txn, S )
-    print ("all", min(allSs), numpy.mean(allSs), max(allSs) )
+    print ("all", min(allSs), np.mean(allSs), max(allSs) )
     f=open("ulSs.pcl","wb")
     pickle.dump(allSs,f)
     f.close()
@@ -54,23 +55,35 @@ def read():
     return allSs
 
 def computeP ( allSs ):
+    return scipy.stats.norm.cdf ( allSs )
+    """
     ret = []
     for s in allSs:
         ret.append ( scipy.stats.norm.cdf ( s ) )
     return ret
+    """
 
 def plotS ( allSs ):
     from matplotlib import pyplot as plt
-    plt.hist ( allSs, bins=numpy.arange(-2,3,.1) )
+    xmin, xmax = -1.5, 2.5
+    bins = np.arange( xmin,xmax ,.1)
+    clipped = np.clip( allSs, bins[0], bins[-1] )
+    print ( "stats for Z:", np.mean(clipped),"+-",np.std(clipped) )
+    r = plt.hist ( clipped, bins=bins )
+    mr0 = max(r[0])
+    plt.plot ( bins, [ mr0*scipy.stats.norm.pdf(x) for x in bins ] )
     plt.title ( "significances from upper limits, SModelS 2.0.0-beta" )
+    plt.text(xmax+(xmax-xmin)*0.032,.1,time.asctime(),c="grey", rotation=90 )
+    plt.plot ( [ 0., 0. ], [ 0, mr0 ], linestyle="-." )
     plt.xlabel ( "significance Z" )
     plt.savefig ( "ulSs.png") 
 
 def plotP ( ps ):
     from matplotlib import pyplot as plt
     plt.clf()
-    plt.hist ( ps, bins=numpy.arange(0,1.01,.05) )
+    plt.hist ( ps, bins=np.arange(0,1.01,.05) )
     plt.title ( "$p$-values from upper limits, SModelS 2.0.0-beta" )
+    plt.text(1.08,.1,time.asctime(),c="grey", rotation=90 )
     plt.xlabel ( "$p$-values" )
     plt.savefig ( "ulPs.png") 
 
@@ -78,7 +91,7 @@ if __name__ == "__main__":
     # collect()
     allSs = read()
     print ( f"{len(allSs)} points total" )
-    nAS = numpy.array ( allSs )
+    nAS = np.array ( allSs )
     print ( f"{len(nAS[nAS>0])} points > 0" )
     print ( f"{len(nAS[nAS>2])} points > 2" )
     print ( f"{len(nAS[nAS>2.5])} points > 2.5" )
