@@ -6,7 +6,7 @@ Collect signficances and p values of UL results
     
 from smodels.experiment.databaseObj import Database
 from smodels.tools.physicsUnits import GeV
-import random, pickle, numpy
+import random, pickle, numpy, sys
 import scipy.stats
 
 def collect():
@@ -36,10 +36,11 @@ def collect():
                     continue
                 sigma = eul / 1.96
                 S = float ( ( ul - eul ) / sigma )
+                if S < -1.8 or S > 3.5:
+                    print ( "S", S, ul, eul, sigma, m, er.globalInfo.id, txn.txName )
                 allSs.append ( S )
                 # print ( "->", er.globalInfo.id, txn, S )
-    print ("all", allSs )
-    print ("all", max(allSs) )
+    print ("all", min(allSs), numpy.mean(allSs), max(allSs) )
     f=open("ulSs.pcl","wb")
     pickle.dump(allSs,f)
     f.close()
@@ -59,6 +60,7 @@ def computeP ( allSs ):
 def plotS ( allSs ):
     from matplotlib import pyplot as plt
     plt.hist ( allSs, bins=numpy.arange(-2,3,.1) )
+    plt.title ( "significances from upper limits, SModelS 2.0.0-beta" )
     plt.xlabel ( "significance Z" )
     plt.savefig ( "ulSs.png") 
 
@@ -66,7 +68,8 @@ def plotP ( ps ):
     from matplotlib import pyplot as plt
     plt.clf()
     plt.hist ( ps, bins=numpy.arange(0,1.01,.05) )
-    plt.xlabel ( "p-values" )
+    plt.title ( "$p$-values from upper limits, SModelS 2.0.0-beta" )
+    plt.xlabel ( "$p$-values" )
     plt.savefig ( "ulPs.png") 
 
 if __name__ == "__main__":
