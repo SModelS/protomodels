@@ -27,7 +27,7 @@ ptools
 ^^^^^^
 
 Various tools and helpers needed for protomodelling, e.g. history recording,
-or the code creates "fake" databases.
+or the code that creates "fake" databases.
 
 plotting
 ^^^^^^^^
