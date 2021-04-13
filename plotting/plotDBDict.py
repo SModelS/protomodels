@@ -139,7 +139,7 @@ class Plotter:
             lmbda = lmbda[lmbda>0.]
             # lmbda = np.array( [x if x>0. else 0. for x in lmbda ] )
         fakeobs = scipy.stats.poisson.rvs ( lmbda )
-        return sum(fakeobs>=obs) / len(fakeobs)
+        return ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
 
     def getSqrts ( self, anaid ):
         """ get the sqrts of anaid """
