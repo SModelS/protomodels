@@ -21,6 +21,7 @@ from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
 from smodels.theory.theoryPrediction import theoryPredictionsFor
 from smodels.tools.simplifiedLikelihoods import Data, UpperLimitComputer
+from smodels.tools.physicsUnits import fb
 from smodels.theory import decomposer
 from smodels.tools.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
@@ -288,7 +289,11 @@ class ExpResModifier:
         self.log ( "%d results after faking bgs" % len(updatedListOfExpRes) )
         updatedListOfExpRes = self.addSignals ( updatedListOfExpRes )
         self.log ( "%d results after adding signals" % len(updatedListOfExpRes) )
-        db.expResultList = updatedListOfExpRes
+        if hasattr ( db, "subs" ): ## for smodels 2.1
+            db.subs[0].expResultList = updatedListOfExpRes
+            db.subs = [ db.subs[0] ]
+        else:
+            db.expResultList = updatedListOfExpRes
         newver = db.databaseVersion + self.suffix
         db.txt_meta.databaseVersion = newver
         db.pcl_meta.databaseVersion = newver
@@ -306,7 +311,8 @@ class ExpResModifier:
         err = 0.
         if not self.fixedbackgrounds:
             err = dataset.dataInfo.bgError * self.fudge
-        D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge }
+        D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge,
+              "lumi": float(dataset.globalInfo.lumi * fb) }
         S, origS = float("inf"), float("nan")
         while S > self.Zmax:
             # lmbda = stats.norm.rvs ( exp, err )
