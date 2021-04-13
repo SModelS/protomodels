@@ -196,7 +196,7 @@ class ExpResModifier:
         lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
         lmbda = lmbda[lmbda>0.]
         fakeobs = scipy.stats.poisson.rvs ( lmbda )
-        return sum(fakeobs>obs) / len(fakeobs)
+        return sum(fakeobs>=obs) / len(fakeobs)
 
     def bgUpperLimit ( self, dataset ):
         """ fix the upper limits, use expected (if exists) as observed """
