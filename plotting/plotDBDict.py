@@ -12,7 +12,7 @@ import matplotlib.mlab as mlab
 
 class Plotter:
     def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str, reset,
-                   topologies, unscale, signalmodel ):
+                   topologies, unscale, signalmodel, ntoys: int ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
@@ -26,11 +26,13 @@ class Plotter:
         :param topologies: if not Not, then filter for these topologies (e.g. T2tt)
         :param unscale: unscale, i.e. use the fudged bgError also for computing likelihoods
         :param signalmodel: use the signal+bg model for computing likelihoods
+        :param ntoys: number of MC toys
         """
         if likelihood not in [ "gauss", "gauss+poisson", "lognormal+poisson" ]:
             print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
             sys.exit()
         self.likelihood = likelihood ## False: gauss, True: lognormal
+        self.ntoys = ntoys
         self.reset = reset
         self.unscale = unscale
         self.signalmodel = signalmodel
@@ -98,7 +100,7 @@ class Plotter:
         """ compute p value, for now we assume Gaussanity """
         fakes = []
         bigger = 0
-        n= 10000
+        n = self.ntoys
         central = bg
         if self.signalmodel and sigN != None:
             central = bg + sigN
@@ -206,9 +208,9 @@ class Plotter:
                         pfake = self.computeP ( fakeobs, vexp, bgErr, sigN )
                         Pfake[sqrts].append( pfake )
                         Pfake_[sqrts].append ( pfake )
-                        P[sqrts].append( scipy.stats.norm.cdf ( s ) )
-                        cfake = scipy.stats.norm.cdf ( sfake )
-                        Pfake[sqrts].append( cfake )
+                        # P[sqrts].append( scipy.stats.norm.cdf ( s ) )
+                        #cfake = scipy.stats.norm.cdf ( sfake )
+                        # Pfake[sqrts].append( cfake )
                 if store:
                     print ( f"[plotDBDict] dumping to {fname}" )
                     with open ( fname, "wb" ) as f:
@@ -306,9 +308,13 @@ def main():
     argparser.add_argument ( '-f', '--filter', nargs='?',
             help='filter out signal regions with expectedBG<x [x=3.5]',
             type=float, default=3.5 )
+    argparser.add_argument ( '-n', '--ntoys', nargs='?',
+            help='number of MC toys to throw [50000]',
+            type=float, default=50000 )
     args=argparser.parse_args()
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
-                        args.reset, args.topologies, args.unscale, args.signalmodel )
+                        args.reset, args.topologies, args.unscale, args.signalmodel,
+                        args.ntoys )
     plotter.plot( "origS", "S", args.outfile )
 
 if __name__ == "__main__":
