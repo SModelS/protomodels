@@ -118,7 +118,7 @@ class Plotter:
         """ get the sqrts of anaid """
         ret = 13
         t = anaid.replace("CMS-","").replace("ATLAS-","").replace("SUSY-","").\
-                  replace("SUS-","").replace("PAS-","").replace("EXO-","")
+                  replace("SUS-","").replace("PAS-","").replace("EXO-","").replace("CONF-","")
         t = t[:t.find("-")]
         t = int(t) % 2000
         if t < 15:
