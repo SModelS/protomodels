@@ -32,7 +32,7 @@ class ExpResModifier:
     def __init__ ( self, dbpath, Zmax, rundir, keep, nproc, fudge,
                    suffix: str, lognormal = False, fixedsignals = False,
                    fixedbackgrounds = False, seed = None,
-                   maxmassdist = 400. ):
+                   maxmassdist = 400., compute_ps = False ):
         """
         :param dbpath: path to database
         :param Zmax: upper limit on an individual excess
@@ -45,11 +45,13 @@ class ExpResModifier:
         :param seed: if int and not None, set random number seed
         :param maxmassdist: maximum distance (in GeV) for the euclidean space in masses,
                             for a signal to populate an UL map
+        :param compute_ps: compute p-values for all SRs
         """
         self.comments = {} ## comments on entries in dict
         self.lognormal = lognormal
         self.dbpath = dbpath
         self.maxmassdist = maxmassdist
+        self.compute_ps = compute_ps
         self.fixedsignals = fixedsignals
         self.fixedbackgrounds = fixedbackgrounds
         self.protomodel = None
@@ -188,6 +190,14 @@ class ExpResModifier:
             self.log ( "WARNING high UL x=%.2f!!!" % x )
         return ret
 
+    def computeP ( self, obs, bg, bgerr, sigN ):
+        """ compute P value, gaussian nuisance model only """
+        n = 50000
+        lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
+        lmbda = lmbda[lmbda>0.]
+        fakeobs = scipy.stats.poisson.rvs ( lmbda )
+        return sum(fakeobs>obs) / len(fakeobs)
+
     def bgUpperLimit ( self, dataset ):
         """ fix the upper limits, use expected (if exists) as observed """
         ## FIXME wherever possible, we should sample from the non-truncated likelihood, take that as the signal strength and re-computed a likelihood with it.
@@ -313,6 +323,10 @@ class ExpResModifier:
             err = dataset.dataInfo.bgError * self.fudge
         D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge,
               "lumi": float(dataset.globalInfo.lumi * fb) }
+        if self.compute_ps:
+            p = self.computeP ( orig, exp, err, 0 )
+            self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
+            D["orig_p"]=p
         S, origS = float("inf"), float("nan")
         while S > self.Zmax:
             # lmbda = stats.norm.rvs ( exp, err )
@@ -347,6 +361,10 @@ class ExpResModifier:
         D["lmbda"]=lmbda
         D["newObs"]=obs
         self.comments["newObs"]="the new fake observation"
+        if self.compute_ps:
+            p = self.computeP ( obs, exp, err, 0 )
+            self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
+            D["new_p"]=p
         D["obsBg"]=obs
         self.comments["obsBg"]="the new fake observation, background component"
         D["toterr"]=toterr
@@ -1085,6 +1103,8 @@ if __name__ == "__main__":
             help='build the original pickle file with all relevant info, then exit (use --database to specify path)', action='store_true' )
     argparser.add_argument ( '-c', '--check',
             help='check the pickle file <outfile>', action='store_true' )
+    argparser.add_argument ( '-C', '--compute_ps',
+            help='compute p-values for all SRs', action='store_true' )
     argparser.add_argument ( '-x', '--extract_stats',
             help='dont create new database, extract stats from existing database',
             action='store_true' )
@@ -1115,7 +1135,7 @@ if __name__ == "__main__":
     modifier = ExpResModifier( args.database, args.max, args.rundir, args.keep, \
                                args.nproc, args.fudge, args.suffix, args.lognormal,
                                args.fixedsignals, args.fixedbackgrounds, args.seed,
-                               args.maxmassdist )
+                               args.maxmassdist, args.compute_ps )
 
     statsname = None
     if args.playback not in [ None, "" ]:
