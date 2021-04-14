@@ -7,6 +7,7 @@ matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
 import os, glob, sys
+from copy import deepcopy as cp
 import scipy.stats
 import matplotlib.mlab as mlab
 
@@ -150,12 +151,30 @@ class Plotter:
             ret = 8
         return ret
 
+    def getSqrts100 ( self, anaid, lumi ):
+        """ get the sqrts of anaid plus > 100 fb^-1 lumi, as string """
+        ret = 13
+        t = anaid.replace("CMS-","").replace("ATLAS-","").replace("SUSY-","").\
+                  replace("SUS-","").replace("PAS-","").replace("EXO-","").replace("CONF-","")
+        t = t[:t.find("-")]
+        t = int(t) % 2000
+        if t < 15:
+            ret = "8"
+        else:
+            ret = "13"
+            if lumi>100:
+                ret += "_gt"
+            else:
+                ret += "_lt"
+        return ret
+
     def compute ( self, variable, fakeVariable, store ):
         """ compute the p-values """
-        S,Sfake,P,Pfake={8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] }
+        empty = {"8":[], "13_lt":[], "13_gt":[] }
+        S,Sfake,P,Pfake= cp ( empty ) , cp ( empty ), cp ( empty ), cp ( empty )
         for filename in self.filenames:
             selfbase = os.path.basename ( filename )
-            S_,Sfake_,P_,Pfake_={8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] }
+            S_,Sfake_,P_,Pfake_= cp ( empty ), cp ( empty ), cp ( empty ), cp ( empty )
             data = self.data [ selfbase.replace(".dict","") ]
             for k,v in data.items():
                 txns = []
@@ -175,7 +194,7 @@ class Plotter:
                 if not ":ul" in k:
                     s = v[variable]
                     sfake = v[fakeVariable]
-                    sqrts = self.getSqrts ( k )
+                    sqrts = self.getSqrts100 ( k, v["lumi"] )
                     S[sqrts].append( s )
                     S_[sqrts].append ( s )
                     Sfake_[sqrts].append ( sfake )
@@ -212,7 +231,7 @@ class Plotter:
     def plot( self, variable, fakeVariable, outfile ):
         """ plot the p-values """
         S,Sfake,P,Pfake=self.compute ( variable, fakeVariable, True )
-        mean,std = np.mean ( S[13]+S[8] ), np.std ( S[13]+S[8] )
+        mean,std = np.mean ( S["13_lt"]+S["13_gt"] + S["8"] ), np.std ( S["13_lt"]+S["13_gt"]+S["8"] )
         #minX, maxX = min(S), max(S)
         #x = np.linspace( minX, maxX,100 )
         # plt.legend()
@@ -232,33 +251,43 @@ class Plotter:
             title += f" (signalmodel)"
         nbins = 10 ## change the number of bins
         fig, ax = plt.subplots()
-        x = [ P[8], P[13] ]
-        avgp8,stdp8=np.mean( P[8] ),np.std( P[8] )
+        x = [ P["8"], P["13_lt"], P["13_gt"] ]
+        avgp8,stdp8=np.mean( P["8"] ),np.std( P["8"] )
         bin8=int(avgp8*nbins)
-        avgp13,stdp13=np.mean( P[13] ),np.std( P[13] )
-        bin13=int(avgp13*nbins)
+        avgp13lt,stdp13lt=np.mean( P["13_lt"] ),np.std( P["13_lt"] )
+        avgp13gt,stdp13gt=np.mean( P["13_gt"] ),np.std( P["13_gt"] )
+        bin13lt=int(avgp13lt*nbins)
+        bin13gt=int(avgp13gt*nbins)
         nm1 = 1. / len(self.filenames)
-        weights = [ [ nm1 ]*len(P[8]), [ nm1 ]*len(P[13]) ]
+        weights = [ [ nm1 ]*len(P["8"]), [ nm1 ]*len(P["13_lt"]), [ nm1 ]*len(P["13_gt"]) ]
         bins = np.arange ( 0., 1+1e-7, 1/nbins )
+        labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
+        labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<100/fb$", "13 TeV, $\\mathcal{L}>100/fb$" ]
+        colors = [ "tab:green", "tab:blue", "cyan" ]
         H1 = plt.hist ( x, weights = weights, bins=bins, histtype="bar",
-                   label=[ "real, 8 TeV", "real, 13 TeV" ], color=[ "tab:green", "tab:blue" ], stacked=True )
-        h8 = H1[0][0][bin8]
-        h13 = H1[0][1][bin13]
-        l13 = H1[0][0][bin13]
-        l8 = plt.plot ( [ avgp8, avgp8 ], [0, h8 ], color = "darkgreen", zorder=1 )
-        l13 = plt.plot ( [ avgp13, avgp13 ], [ l13, h13 ], color = "darkblue", zorder=1 )
-        fweights = [ nm1 ]*len(Pfake[8]+Pfake[13])
+                   label= labels, color= colors, stacked=True )
+        eps = .5
+        l8 = 0 + eps
+        h8 = H1[0][0][bin8] - eps
+        h13lt = H1[0][1][bin13lt] - eps
+        l13lt = H1[0][0][bin13lt] + eps
+        h13gt = H1[0][2][bin13gt] - eps
+        l13gt = H1[0][1][bin13gt] + eps
+        l8 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1 )
+        l13lt = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1 )
+        l13gt = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1 )
+        fweights = [ nm1 ]*len(Pfake["8"]+Pfake["13_lt"]+Pfake["13_gt"])
         # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
-        H2 = plt.hist ( [ Pfake[8] + Pfake[13] ], weights = fweights,
+        H2 = plt.hist ( [ Pfake["8"] + Pfake["13_lt"] + Pfake["13_gt"] ], weights = fweights,
                         bins=bins, stacked=True, zorder=9,
                         label="fake", color=["red" ], linewidth=3, histtype="step" )
         #plt.hist ( Pfake[8]+Pfake[13], weights = fweights, bins=nbins, 
         #           label="fake", edgecolor="red", linewidth=3, histtype="step" )
         print ( "real Ps %d entries at %.3f +/- %.2f" % 
-                ( len(P[13]), np.mean(P[13]), np.std(P[13])  ) )
+                ( len(P["13_lt"]+P["13_gt"]), np.mean(P["13_lt"]+P["13_gt"]), np.std(P["13_lt"]+P["13_gt"])  ) )
         print ( "fake Ps %d entries at %.3f +/- %.2f" % 
-                ( len(Pfake[13]), np.mean(Pfake[13]), np.std(Pfake[13]) ) )
-        plt.legend()
+                ( len(Pfake["13_lt"]+Pfake["13_gt"]), np.mean(Pfake["13_lt"]+Pfake["13_gt"]), np.std(Pfake["13_lt"]+Pfake["13_gt"]) ) )
+        plt.legend( loc = "lower center" )
         if self.likelihood == "lognormal+poisson":
             title += " (lognormal)"
         if self.likelihood == "gauss":
