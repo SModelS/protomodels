@@ -6,12 +6,12 @@ import matplotlib
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
-import os, glob, pickle, sys
+import os, glob, sys
 import scipy.stats
 import matplotlib.mlab as mlab
 
 class Plotter:
-    def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str, reset,
+    def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str,
                    topologies, unscale, signalmodel, ntoys: int, filtersigma: float,
                    collaboration : str ):
         """
@@ -23,7 +23,6 @@ class Plotter:
                            "gauss" or "g" means only a Gaussian for everything
                            "gauss+poisson" or "gp" means Gauss * Poisson
                            "lognormal+poisson" or "lp" means Lognormal * Poisson
-        :param reset: if true, then dont recycle pickle files
         :param topologies: if not Not, then filter for these topologies (e.g. T2tt)
         :param unscale: unscale, i.e. use the fudged bgError also for computing likelihoods
         :param signalmodel: use the signal+bg model for computing likelihoods
@@ -46,7 +45,6 @@ class Plotter:
             sys.exit()
         self.likelihood = likelihood ## False: gauss, True: lognormal
         self.ntoys = ntoys
-        self.reset = reset
         self.unscale = unscale
         self.signalmodel = signalmodel
         self.topologies = []
@@ -157,104 +155,58 @@ class Plotter:
         S,Sfake,P,Pfake={8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] }
         for filename in self.filenames:
             selfbase = os.path.basename ( filename )
-            fname = selfbase.replace(".dict",".pcl")
-            hasPickle = False
-            #if not self.reset:
-            #    print ( f"[plotDBDict] looking for {fname}" )
-            if False: # os.path.exists ( fname ) and not self.reset:
-                print ( f"[plotDBDict] found {fname}. Using data therein." )
-                with open ( fname, "rb" ) as f:
-                    pname = os.path.basename ( pickle.load ( f ) )
-                    topologies = pickle.load ( f )
-                    unscale = pickle.load ( f )
-                    signalmodel = pickle.load ( f )
-                    if fname != pname or self.topologies != topologies or unscale != self.unscale or signalmodel != self.signalmodel:
-                        print ( f"[plotDBDict] we want {fname} pickle has {pname}. Wont use." )
-                    else:
-                        tS = pickle.load ( f )
-                        for k,v in tS.items():
-                            S[k] += v
-                        tSfake = pickle.load ( f )
-                        for k,v in tSfake.items():
-                            Sfake[k] += v
-                        tP = pickle.load ( f )
-                        for k,v in tP.items():
-                            P[k] += v
-                        tPfake = pickle.load ( f )
-                        for k,v in tPfake.items():
-                            Pfake[k] += v
-                        f.close()
-                        hasPickle = True
-            if not hasPickle:
-                #if self.reset:
-                #    print ( f"[plotDBDict] or ordered reset: creating {fname}." )
-                #else:
-                #    print ( f"[plotDBDict] not found {fname}. Creating." )
-                S_,Sfake_,P_,Pfake_={8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] }
-                data = self.data [ fname.replace(".pcl","") ]
-                for k,v in data.items():
-                    txns = []
-                    if "txns" in v:
-                        txns = v["txns"].split(",")
-                    passesTx=False
-                    if len(self.topologies)==0:
+            S_,Sfake_,P_,Pfake_={8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] },{8:[], 13:[] }
+            data = self.data [ selfbase.replace(".dict","") ]
+            for k,v in data.items():
+                txns = []
+                if "txns" in v:
+                    txns = v["txns"].split(",")
+                passesTx=False
+                if len(self.topologies)==0:
+                    passesTx=True
+                for tx in self.topologies:
+                    if tx in txns:
                         passesTx=True
-                    for tx in self.topologies:
-                        if tx in txns:
-                            passesTx=True
-                            break
-                    if not passesTx:
-                        print ( f"[plotDBDict] skipping {k}: does not pass Tx filter" )
-                        continue
+                        break
+                if not passesTx:
+                    print ( f"[plotDBDict] skipping {k}: does not pass Tx filter" )
+                    continue
 
-                    if not ":ul" in k:
-                        s = v[variable]
-                        sfake = v[fakeVariable]
-                        sqrts = self.getSqrts ( k )
-                        S[sqrts].append( s )
-                        S_[sqrts].append ( s )
-                        Sfake_[sqrts].append ( sfake )
-                        obs = v["origN"]
-                        if not "orig" in variable:
-                            obs = v["newObs"]
-                        fakeobs = v["newObs"]
-                        vexp = v["expectedBG"]
-                        bgErr = v["bgError"]/v["fudge"]
-                        if self.unscale:
-                            bgErr = v["bgError"]
-                        if vexp < self.filter:
-                            continue
-                        if vexp / bgErr < self.filtersigma:
-                            continue
-                        sigN = None
-                        if "sigN" in v:
-                            sigN = v["sigN"]
-                        # bgErr = v["bgError"]# /v["fudge"]
-                        if "orig_p" in v:
-                            p = v["orig_p"]
-                        else:
-                            p = self.computeP ( obs, vexp, bgErr, sigN )
-                        P[sqrts].append( p )
-                        P_[sqrts].append ( p )
-                        if "new_p" in v:
-                            pfake = v["new_p"]
-                        else:
-                            pfake = self.computeP ( fakeobs, vexp, bgErr, sigN )
-                        Pfake[sqrts].append( pfake )
-                        Pfake_[sqrts].append ( pfake )
-                if False: # store:
-                    print ( f"[plotDBDict] dumping to {fname}" )
-                    with open ( fname, "wb" ) as f:
-                        pickle.dump ( os.path.basename ( fname ), f )
-                        pickle.dump ( self.topologies, f )
-                        pickle.dump ( self.unscale, f )
-                        pickle.dump ( self.signalmodel, f )
-                        pickle.dump ( S_, f )
-                        pickle.dump ( Sfake_, f)
-                        pickle.dump ( P_, f )
-                        pickle.dump ( Pfake_, f )
-                        f.close()
-        # print ( "P", P )
+                if not ":ul" in k:
+                    s = v[variable]
+                    sfake = v[fakeVariable]
+                    sqrts = self.getSqrts ( k )
+                    S[sqrts].append( s )
+                    S_[sqrts].append ( s )
+                    Sfake_[sqrts].append ( sfake )
+                    obs = v["origN"]
+                    if not "orig" in variable:
+                        obs = v["newObs"]
+                    fakeobs = v["newObs"]
+                    vexp = v["expectedBG"]
+                    bgErr = v["bgError"]/v["fudge"]
+                    if self.unscale:
+                        bgErr = v["bgError"]
+                    if vexp < self.filter:
+                        continue
+                    if vexp / bgErr < self.filtersigma:
+                        continue
+                    sigN = None
+                    if "sigN" in v:
+                        sigN = v["sigN"]
+                    # bgErr = v["bgError"]# /v["fudge"]
+                    if "orig_p" in v:
+                        p = v["orig_p"]
+                    else:
+                        p = self.computeP ( obs, vexp, bgErr, sigN )
+                    P[sqrts].append( p )
+                    P_[sqrts].append ( p )
+                    if "new_p" in v:
+                        pfake = v["new_p"]
+                    else:
+                        pfake = self.computeP ( fakeobs, vexp, bgErr, sigN )
+                    Pfake[sqrts].append( pfake )
+                    Pfake_[sqrts].append ( pfake )
         return S,Sfake,P,Pfake
 
     def plot( self, variable, fakeVariable, outfile ):
@@ -335,8 +287,6 @@ def main():
     argparser.add_argument ( '-c', '--comment', nargs='?',
             help='an optional comment, to put in the plot [None]',
             type=str, default=None )
-    argparser.add_argument ( '-r', '--reset', 
-            help='reset, dont recycle pickle files', action='store_true' )
     argparser.add_argument ( '-u', '--unscale', 
             help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
     argparser.add_argument ( '-S', '--signalmodel', 
@@ -361,7 +311,7 @@ def main():
             type=float, default=50000 )
     args=argparser.parse_args()
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
-                        args.reset, args.topologies, args.unscale, args.signalmodel,
+                        args.topologies, args.unscale, args.signalmodel,
                         args.ntoys, args.filtersigma, args.select_collaboration )
     plotter.plot( "origS", "S", args.outfile )
 
