@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+""" tiny snippet to flash the most prominent p-values """
+
 def run():
     fname = "../ptools/dbnormal1.dict"
     f = open ( fname, "rt" )
@@ -17,7 +19,13 @@ def run():
             pvalues[ values["orig_p"] ] = anaid
     pkeys = list ( pvalues.keys() )
     pkeys.sort()
-    for k in pkeys[:20]:
-        print ( "p=%.3f, id=%s, txnames=%s" % ( k,pvalues[k], D[pvalues[k]]["txns"] ) )
+    for k in pkeys[:]:
+        if k>.05:
+            break
+        anaid = pvalues[k]
+        txns = D[anaid]["txns"]
+        if anaid == "ATLAS-CONF-2013-062:SL2m":
+            txns = "txnames are all zero"
+        print ( "p=%.3f, id=%s, txnames=%s" % ( k, anaid, txns ) )
 
 run()
