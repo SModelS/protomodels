@@ -16,6 +16,7 @@ setup()
 from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
+from helpers import computeP
 from smodels.theory.model import Model
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
@@ -190,15 +191,6 @@ class ExpResModifier:
             self.log ( "WARNING high UL x=%.2f!!!" % x )
         return ret
 
-    def computeP ( self, obs, bg, bgerr, sigN ):
-        """ compute P value, gaussian nuisance model only """
-        n = 50000
-        lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
-        lmbda = lmbda[lmbda>0.]
-        fakeobs = scipy.stats.poisson.rvs ( lmbda )
-        ## == we count half
-        return ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
-
     def bgUpperLimit ( self, dataset ):
         """ fix the upper limits, use expected (if exists) as observed """
         ## FIXME wherever possible, we should sample from the non-truncated likelihood, take that as the signal strength and re-computed a likelihood with it.
@@ -325,7 +317,7 @@ class ExpResModifier:
         D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge,
               "lumi": float(dataset.globalInfo.lumi * fb) }
         if self.compute_ps:
-            p = self.computeP ( orig, exp, err, 0 )
+            p = computeP ( orig, exp, err )
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
             D["orig_p"]=p
         S, origS = float("inf"), float("nan")
