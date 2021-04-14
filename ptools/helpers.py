@@ -8,6 +8,30 @@ from smodels.experiment.datasetObj import DataSet
 from smodels.experiment.expResultObj import ExpResult
 from smodels.experiment.infoObj import Info
 from smodels.tools.physicsUnits import GeV
+import scipy.stats
+
+def computeP ( obs, bg, bgerr ):
+    """ compute P value, gaussian nuisance model only
+    :param obs: observed number of events
+    :param bg: number of expected background events
+    :param bgerr: error on number of expected bg events
+    :returns: p-value
+    """
+    n = 50000
+    lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
+    lmbda = lmbda[lmbda>0.]
+    fakeobs = scipy.stats.poisson.rvs ( lmbda )
+    ## == we count half
+    return ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
+    """ for lognormal and signals
+    central = bg
+    if self.signalmodel and sigN != None:
+        central = bg + sigN
+    if lognormal and central > ( bgerr / 4. ):
+        loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
+        stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
+        lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
+    """
 
 def stripUnits( container ):
     """ strip all units from a mass vector """
@@ -88,7 +112,7 @@ def seedRandomNumbers ( seed ):
             ( seed, r ) )
 
 def cpPythia8 ( ):
-    """ as a very ugly workaround for now, if something goes wrong with 
+    """ as a very ugly workaround for now, if something goes wrong with
         cross sections, cp the pythia8 install. """
     libdir = "/users/wolfgan.waltenberger/git/smodels/smodels/lib"
     # ~/git/smodels/smodels/lib/pythia8/pythia8226/share/Pythia8/xmldoc/Welcome.xml
