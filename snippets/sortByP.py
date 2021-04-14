@@ -65,5 +65,7 @@ def run():
     subprocess.getoutput ( cmd )
     cmd = "convert -alpha deactivate -trim -background white -antialias -density 600  pvalues.pdf pvalues.png"
     subprocess.getoutput ( cmd )
+    cmd = "rm -f pvalues.log pvalues.aux texput.log"
+    subprocess.getoutput ( cmd )
 
 run()
