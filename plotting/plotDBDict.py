@@ -6,14 +6,16 @@ import matplotlib
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
-import os, glob, sys
+import os, glob, sys, math
+sys.path.insert(0,"../")
+from ptools.helpers import computeP
 from copy import deepcopy as cp
 import scipy.stats
 import matplotlib.mlab as mlab
 
 class Plotter:
     def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str,
-                   topologies, unscale, signalmodel, ntoys: int, filtersigma: float,
+                   topologies, unscale, signalmodel, filtersigma: float,
                    collaboration : str ):
         """
         :param filename: filename of dictionary
@@ -27,7 +29,6 @@ class Plotter:
         :param topologies: if not Not, then filter for these topologies (e.g. T2tt)
         :param unscale: unscale, i.e. use the fudged bgError also for computing likelihoods
         :param signalmodel: use the signal+bg model for computing likelihoods
-        :param ntoys: number of MC toys
         :param filtersigma: filter out signal regions with expectedBG/bgErr < filtersigma
         :param collaboration: select a specific collaboration
         """
@@ -45,7 +46,6 @@ class Plotter:
             print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
             sys.exit()
         self.likelihood = likelihood ## False: gauss, True: lognormal
-        self.ntoys = ntoys
         self.unscale = unscale
         self.signalmodel = signalmodel
         self.topologies = []
@@ -102,43 +102,9 @@ class Plotter:
                         if "expectedBG" in v:
                             eBG = v["expectedBG"]
                             bgerr = v["bgError"]
-                        print ( f"[plotDBDict] removing {basename}:{i} (eBG is {eBG}+-{bgerr})" )
-            print ( f"[plotDBDict] keeping {len(newdata)}/{len(data)} for {basename}" )
+                        #print ( f"[plotDBDict] removing {basename}:{i} (eBG is {eBG}+-{bgerr})" )
+            # print ( f"[plotDBDict] keeping {len(newdata)}/{len(data)} for {basename}" )
             self.data[basename] = newdata
-
-    def computeP ( self, obs, bg, bgerr, sigN ):
-        """ compute p value, gaussian or lognormal nuisance model """
-        #simple = False ## approximation as Gaussian
-        simple = ( self.likelihood == "gauss" )
-        loc = bg
-        if self.signalmodel and sigN != None:
-            loc = bg + sigN
-        if simple:
-            dn = obs - loc
-            x = dn / np.sqrt ( bgerr**2 + loc )
-            p = scipy.stats.norm.cdf ( x )
-        else:
-            return self.computePWithToys ( obs, bg, bgerr, sigN )
-        return p
-
-    def computePWithToys ( self, obs, bg, bgerr, sigN ):
-        """ compute p value, for now we assume Gaussanity """
-        fakes = []
-        bigger = 0
-        n = self.ntoys
-        central = bg
-        if self.signalmodel and sigN != None:
-            central = bg + sigN
-        if "lognormal" in self.likelihood and central > ( bgerr / 4. ):
-            loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
-            stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
-            lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
-        else: ## Gauss
-            lmbda = scipy.stats.norm.rvs ( loc=[central]*n, scale=[bgerr]*n )
-            lmbda = lmbda[lmbda>0.]
-            # lmbda = np.array( [x if x>0. else 0. for x in lmbda ] )
-        fakeobs = scipy.stats.poisson.rvs ( lmbda )
-        return ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
 
     def getSqrts ( self, anaid ):
         """ get the sqrts of anaid """
@@ -168,15 +134,32 @@ class Plotter:
                 ret += "_lt"
         return ret
 
-    def compute ( self, variable, fakeVariable, store ):
+    def countSRs ( self ):
+        """ count the number of signal regions for each analysis,
+            for later reweighting """
+        self.srCounts = {}
+        for filename in self.filenames:
+            selfbase = os.path.basename ( filename ).replace(".dict","")
+            for label,v in self.data[selfbase].items():
+                p1 = label.find(":")
+                anaid = label[:p1]
+                sr = label[p1+1:]
+                if not anaid in self.srCounts:
+                    self.srCounts[anaid]=set()
+                self.srCounts[anaid].add ( sr )
+
+    def compute ( self ):
         """ compute the p-values """
         empty = {"8":[], "13_lt":[], "13_gt":[] }
-        S,Sfake,P,Pfake= cp ( empty ) , cp ( empty ), cp ( empty ), cp ( empty )
+        P,Pfake,weights, weightsfake = cp ( empty ), cp ( empty ), cp ( empty ), cp ( empty )
+        self.countSRs()
         for filename in self.filenames:
             selfbase = os.path.basename ( filename )
-            S_,Sfake_,P_,Pfake_= cp ( empty ), cp ( empty ), cp ( empty ), cp ( empty )
             data = self.data [ selfbase.replace(".dict","") ]
             for k,v in data.items():
+                p1 = k.find(":")
+                anaid = k[:p1]
+                w = 1. / len(self.srCounts[anaid]) / len(self.filenames)
                 txns = []
                 if "txns" in v:
                     txns = v["txns"].split(",")
@@ -192,18 +175,17 @@ class Plotter:
                     continue
 
                 if not ":ul" in k:
-                    s = v[variable]
-                    sfake = v[fakeVariable]
                     sqrts = self.getSqrts100 ( k, v["lumi"] )
-                    S[sqrts].append( s )
-                    S_[sqrts].append ( s )
-                    Sfake_[sqrts].append ( sfake )
                     obs = v["origN"]
-                    if not "orig" in variable:
-                        obs = v["newObs"]
-                    fakeobs = v["newObs"]
+                    # obs = v["newObs"]
+                    fakeobs = float("nan")
+                    if "newObs" in v:
+                        fakeobs = v["newObs"]
                     vexp = v["expectedBG"]
-                    bgErr = v["bgError"]/v["fudge"]
+                    fudge = 1.
+                    if "fudge" in v:
+                        fudge = v["fudge"]
+                    bgErr = v["bgError"]/fudge
                     if self.unscale:
                         bgErr = v["bgError"]
                     if vexp < self.filter:
@@ -217,24 +199,48 @@ class Plotter:
                     if "orig_p" in v:
                         p = v["orig_p"]
                     else:
-                        p = self.computeP ( obs, vexp, bgErr, sigN )
+                        p = computeP ( obs, vexp, bgErr )
                     P[sqrts].append( p )
-                    P_[sqrts].append ( p )
+                    weights[sqrts].append ( w )
+                    
+                    pfake = float("nan")
                     if "new_p" in v:
                         pfake = v["new_p"]
                     else:
-                        pfake = self.computeP ( fakeobs, vexp, bgErr, sigN )
-                    Pfake[sqrts].append( pfake )
-                    Pfake_[sqrts].append ( pfake )
-        return S,Sfake,P,Pfake
+                        if not math.isnan ( fakeobs):
+                            pfake = computeP ( fakeobs, vexp, bgErr )
+                    if not math.isnan ( pfake):
+                        Pfake[sqrts].append( pfake )
+                        weightsfake[sqrts].append ( w )
+        for s in P.keys():
+            P[s]=np.array(P[s])
+            Pfake[s]=np.array(Pfake[s])
+            weights[s]=np.array(weights[s])
+            weightsfake[s]=np.array(weightsfake[s])
+        return P,Pfake,weights,weightsfake
 
-    def plot( self, variable, fakeVariable, outfile ):
+    def discussPs ( self, P, Pfake, weights, weightsfake ):
+        Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
+        Pfaketot = np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] )
+        print ( "real Ps: %d entries at %.3f +/- %.2f" % 
+                ( len(Ptot), np.mean(Ptot), np.std(Ptot)  ) )
+        print ( "fake Ps: %d entries at %.3f +/- %.2f" % 
+                ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ) )
+        for i in [ "8", "13_lt", "13_gt" ]:
+            print ( "real Ps, %s: %d entries at %.3f" % 
+                    ( i, len(P[i]), self.computeWeightedAverage ( P[i], weights[i] ) ) )
+
+    def computeWeightedAverage ( self, ps, ws ):
+        """ weighted average of p values """
+        if len(ps)==0:
+            return 0.
+        Pi = ps*ws
+        return np.sum(Pi) / sum(ws)
+        
+
+    def plot( self, outfile ):
         """ plot the p-values """
-        S,Sfake,P,Pfake=self.compute ( variable, fakeVariable, True )
-        mean,std = np.mean ( S["13_lt"]+S["13_gt"] + S["8"] ), np.std ( S["13_lt"]+S["13_gt"]+S["8"] )
-        #minX, maxX = min(S), max(S)
-        #x = np.linspace( minX, maxX,100 )
-        # plt.legend()
+        P,Pfake,weights,weightsfake=self.compute ( )
         dbname = os.path.basename ( self.meta["database"] )
         title = f"SModelS database v{dbname}"
         # title = f"$p$-values, SModelS database v{dbname}"
@@ -252,21 +258,23 @@ class Plotter:
         nbins = 10 ## change the number of bins
         fig, ax = plt.subplots()
         x = [ P["8"], P["13_lt"], P["13_gt"] ]
-        avgp8,stdp8=np.mean( P["8"] ),np.std( P["8"] )
+        avgp8=self.computeWeightedAverage ( P["8"], weights["8"] )
         bin8=int(avgp8*nbins)
-        avgp13lt,stdp13lt=np.mean( P["13_lt"] ),np.std( P["13_lt"] )
-        avgp13gt,stdp13gt=np.mean( P["13_gt"] ),np.std( P["13_gt"] )
+        avgp13lt=self.computeWeightedAverage( P["13_lt"], weights["13_lt"] ) 
+        avgp13gt=self.computeWeightedAverage( P["13_gt"], weights["13_gt"] )
         bin13lt=int(avgp13lt*nbins)
         bin13gt=int(avgp13gt*nbins)
         nm1 = 1. / len(self.filenames)
-        weights = [ [ nm1 ]*len(P["8"]), [ nm1 ]*len(P["13_lt"]), [ nm1 ]*len(P["13_gt"]) ]
+        # weights = [ [ nm1 ]*len(P["8"]), [ nm1 ]*len(P["13_lt"]), [ nm1 ]*len(P["13_gt"]) ]
+        # print ( "weights", weights )
+        wlist = [ weights["8"], weights["13_lt"], weights["13_gt"] ]
         bins = np.arange ( 0., 1+1e-7, 1/nbins )
         labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
         labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<100/fb$", "13 TeV, $\\mathcal{L}>100/fb$" ]
         colors = [ "tab:green", "tab:blue", "cyan" ]
-        H1 = plt.hist ( x, weights = weights, bins=bins, histtype="bar",
+        H1 = plt.hist ( x, weights = wlist, bins=bins, histtype="bar",
                    label= labels, color= colors, stacked=True )
-        eps = .5
+        eps = .2
         l8 = 0 + eps
         h8 = H1[0][0][bin8] - eps
         h13lt = H1[0][1][bin13lt] - eps
@@ -274,19 +282,15 @@ class Plotter:
         h13gt = H1[0][2][bin13gt] - eps
         l13gt = H1[0][1][bin13gt] + eps
         l8 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1 )
-        l13lt = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1 )
+        l13l = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1 )
         l13gt = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1 )
-        fweights = [ nm1 ]*len(Pfake["8"]+Pfake["13_lt"]+Pfake["13_gt"])
+        #fweights = [ nm1 ]*len(Pfake["8"]+Pfake["13_lt"]+Pfake["13_gt"])
+        fweights = np.concatenate ( [ weightsfake["8"], weightsfake["13_lt"], weightsfake["13_gt"] ] )
         # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
-        H2 = plt.hist ( [ Pfake["8"] + Pfake["13_lt"] + Pfake["13_gt"] ], weights = fweights,
+        H2 = plt.hist ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] ), weights = fweights,
                         bins=bins, stacked=True, zorder=9,
                         label="fake", color=["red" ], linewidth=3, histtype="step" )
-        #plt.hist ( Pfake[8]+Pfake[13], weights = fweights, bins=nbins, 
-        #           label="fake", edgecolor="red", linewidth=3, histtype="step" )
-        print ( "real Ps %d entries at %.3f +/- %.2f" % 
-                ( len(P["13_lt"]+P["13_gt"]), np.mean(P["13_lt"]+P["13_gt"]), np.std(P["13_lt"]+P["13_gt"])  ) )
-        print ( "fake Ps %d entries at %.3f +/- %.2f" % 
-                ( len(Pfake["13_lt"]+Pfake["13_gt"]), np.mean(Pfake["13_lt"]+Pfake["13_gt"]), np.std(Pfake["13_lt"]+Pfake["13_gt"]) ) )
+        self.discussPs ( P, Pfake, weights, weightsfake )
         plt.legend( loc = "lower center" )
         if self.likelihood == "lognormal+poisson":
             title += " (lognormal)"
@@ -296,7 +300,8 @@ class Plotter:
             title += f" {self.collaboration} only"
         plt.title  ( title )
         plt.xlabel ( "$p$-values" )
-        plt.ylabel ( "# Signal Regions" )
+        plt.ylabel ( "# analyses (weighted)" )
+        # plt.ylabel ( "# Signal Regions" )
         print ( f"[plotDBDict.py] plotting {outfile}"  )
         if self.comment != None:
             plt.text ( .65, -.11, self.comment, transform=ax.transAxes, 
@@ -327,22 +332,19 @@ def main():
             help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. [None]',
             type=str, default=None )
     argparser.add_argument ( '-f', '--filter', nargs='?',
-            help='filter out signal regions with expectedBG<x [x=3.]',
-            type=float, default=3.5 )
+            help='filter out signal regions with expectedBG<x [x=0.]',
+            type=float, default=0. )
     argparser.add_argument ( '-s', '--filtersigma', nargs='?',
-            help='filter out signal regions with expectedBG/bgErr<x [x=2.]',
-            type=float, default=3. )
+            help='filter out signal regions with expectedBG/bgErr<x [x=0.]',
+            type=float, default=0. )
     argparser.add_argument ( '-C', '--select_collaboration', nargs='?',
             help='select a specific collaboration CMS, ATLAS, all [all]',
             type=str, default="all" )
-    argparser.add_argument ( '-n', '--ntoys', nargs='?',
-            help='number of MC toys to throw [50000]',
-            type=float, default=50000 )
     args=argparser.parse_args()
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
                         args.topologies, args.unscale, args.signalmodel,
-                        args.ntoys, args.filtersigma, args.select_collaboration )
-    plotter.plot( "origS", "S", args.outfile )
+                        args.filtersigma, args.select_collaboration )
+    plotter.plot( args.outfile )
 
 if __name__ == "__main__":
     main()
