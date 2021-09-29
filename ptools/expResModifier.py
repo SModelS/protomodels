@@ -355,7 +355,7 @@ class ExpResModifier:
         D["newObs"]=obs
         self.comments["newObs"]="the new fake observation"
         if self.compute_ps:
-            p = self.computeP ( obs, exp, err, 0 )
+            p = computeP ( obs, exp, err )
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
             D["new_p"]=p
         D["obsBg"]=obs
@@ -1125,7 +1125,8 @@ if __name__ == "__main__":
         db = Database ( args.database )
         print ( f"[expResModifier] built database at {args.database}. Exiting." )
         sys.exit()
-    if type(args.rundir)==str and not "/" in args.rundir:
+    if type(args.rundir)==str and not "/" in args.rundir and \
+            not args.rundir.startswith("."):
         args.rundir = "/scratch-cbe/users/wolfgan.waltenberger/" + args.rundir
     if args.outfile == "":
         args.outfile = args.suffix+".pcl"
