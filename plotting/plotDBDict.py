@@ -2,9 +2,10 @@
 
 """ plot the meta statistics of database.dict """
 
-import matplotlib
-matplotlib.use('agg')
-from matplotlib import pyplot as plt
+from smodels_utils.plotting import mpkitty as plt
+#import matplotlib
+#matplotlib.use('agg')
+#from matplotlib import pyplot as plt
 import numpy as np
 import os, glob, sys, math
 sys.path.insert(0,"../")
@@ -16,7 +17,7 @@ import matplotlib.mlab as mlab
 class Plotter:
     def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str,
                    topologies, unscale, signalmodel, filtersigma: float,
-                   collaboration : str ):
+                   collaboration : str, doFakes : bool ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
@@ -31,6 +32,7 @@ class Plotter:
         :param signalmodel: use the signal+bg model for computing likelihoods
         :param filtersigma: filter out signal regions with expectedBG/bgErr < filtersigma
         :param collaboration: select a specific collaboration
+        :param doFakes: add fakes to the plot
         """
         collaboration = collaboration.upper()
         if collaboration in [ "", "*" ]:
@@ -46,6 +48,7 @@ class Plotter:
             print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
             sys.exit()
         self.likelihood = likelihood ## False: gauss, True: lognormal
+        self.doFakes = doFakes
         self.unscale = unscale
         self.signalmodel = signalmodel
         self.topologies = []
@@ -153,6 +156,7 @@ class Plotter:
         empty = {"8":[], "13_lt":[], "13_gt":[] }
         P,Pfake,weights, weightsfake = cp ( empty ), cp ( empty ), cp ( empty ), cp ( empty )
         self.countSRs()
+        hasComplained = False
         for filename in self.filenames:
             selfbase = os.path.basename ( filename )
             data = self.data [ selfbase.replace(".dict","") ]
@@ -199,6 +203,9 @@ class Plotter:
                     if "orig_p" in v:
                         p = v["orig_p"]
                     else:
+                        if not hasComplained:
+                            print ( "computing the p-values -- this might take a while, so consider doing this at expResModifier.py" )
+                            hasComplained = True
                         p = computeP ( obs, vexp, bgErr )
                     P[sqrts].append( p )
                     weights[sqrts].append ( w )
@@ -227,8 +234,9 @@ class Plotter:
         print ( "fake Ps: %d entries at %.3f +/- %.2f" % 
                 ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ) )
         for i in [ "8", "13_lt", "13_gt" ]:
-            print ( "real Ps, %s: %d entries at %.3f" % 
-                    ( i, len(P[i]), self.computeWeightedAverage ( P[i], weights[i] ) ) )
+            w = self.computeWeightedAverage ( P[i], weights[i] )
+            print ( "real Ps, %s: %d entries at %.3f +/- %.2f" % 
+                    ( i, len(P[i]), w, 0. ) )
 
     def computeWeightedAverage ( self, ps, ws ):
         """ weighted average of p values """
@@ -288,9 +296,10 @@ class Plotter:
         l13l = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1 )
         l13gt = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1 )
         #fweights = [ nm1 ]*len(Pfake["8"]+Pfake["13_lt"]+Pfake["13_gt"])
-        fweights = np.concatenate ( [ weightsfake["8"], weightsfake["13_lt"], weightsfake["13_gt"] ] )
+        if self.doFakes:
+            fweights = np.concatenate ( [ weightsfake["8"], weightsfake["13_lt"], weightsfake["13_gt"] ] )
         # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
-        H2 = plt.hist ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] ), weights = fweights,
+            H2 = plt.hist ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] ), weights = fweights,
                         bins=bins, stacked=True, zorder=9,
                         label="fake", color=["red" ], linewidth=3, histtype="step" )
         self.discussPs ( P, Pfake, weights, weightsfake )
@@ -310,6 +319,8 @@ class Plotter:
             plt.text ( .65, -.11, self.comment, transform=ax.transAxes, 
                        style="italic" )
         plt.savefig ( outfile )
+        if hasattr ( plt, "options" ) and plt.options["hasKittyBackend"]:
+            plt.show()
         plt.clf()
 
 def main():
@@ -326,6 +337,8 @@ def main():
             type=str, default=None )
     argparser.add_argument ( '-u', '--unscale', 
             help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
+    argparser.add_argument ( '-F', '--fakes', 
+            help='add the fakes to the plot', action='store_true' )
     argparser.add_argument ( '-S', '--signalmodel', 
             help='use the signal+bg model for computing likelihoods', action='store_true' )
     argparser.add_argument ( '-l', '--likelihood', nargs='?',
@@ -346,7 +359,8 @@ def main():
     args=argparser.parse_args()
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
                         args.topologies, args.unscale, args.signalmodel,
-                        args.filtersigma, args.select_collaboration )
+                        args.filtersigma, args.select_collaboration,
+                        args.fakes )
     plotter.plot( args.outfile )
 
 if __name__ == "__main__":
