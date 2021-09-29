@@ -103,7 +103,7 @@ class ExpResModifier:
                 dt = info.dataType
                 if dt == "upperLimit":
                     for txname in dataset.txnameList:
-                        D[txname]=txname.txnameData.y_values
+                        D[txname]=list ( txname.txnameData.y_values )
 
                 for i in [ "observedN", "origN", "expectedBG", "lmbda", "bgError",
                            "origUpperLimit", "origExpectedUpperLimit", "upperLimit",
@@ -233,7 +233,7 @@ class ExpResModifier:
 
     def finalize ( self ):
         """ finalize, for the moment its just deleting slha files """
-        print ( "[expResModifier] finalize" )
+        # print ( "[expResModifier] finalize" )
         if self.keep:
             return
         if hasattr ( self, "protomodel" ) and self.protomodel is not None and \
@@ -462,6 +462,7 @@ class ExpResModifier:
     def addToStats ( self, label, Dict ):
         """ add the content of dictionary Dict to the stats,
             under the label "label" """
+        # print ( f"adding {label} to stats {str(Dict)[:40]}" )
         if not label in self.stats:
             # we dont yet have an entry, so lets start
             self.stats[label]=Dict
@@ -546,6 +547,7 @@ class ExpResModifier:
             D[f"totalpoints{txname.txName}"]=len(txnd.y_values)
             self.comments["signalpointsTx"]="number of grid points that got the signal injected"
             self.comments["totalpointsTx"]="total number of grid points in that map"
+            print ( "X" )
             self.addToStats ( label, D )
         return txnd
 
@@ -644,11 +646,14 @@ class ExpResModifier:
             meta["_drmax"]=runtime._drmax
         if hasattr ( runtime, "_experimental" ):
             meta["_experimental"]=runtime._experimental
+        self.pprint ( f"saving stats to {filename}" )
         with open ( filename,"wt" ) as f:
             f.write ( str(meta)+"\n" )
             if len(self.comments)>0:
                 f.write ( "# explanations on the used variables:\n" )
                 f.write ( "# =====================================\n" )
+            else:
+                f.write ( "# no explanations for variables have been given\n" )
             for k,v in self.comments.items():
                 f.write ( f"# {k}: {v}\n" )
             f.write ( '{' )
