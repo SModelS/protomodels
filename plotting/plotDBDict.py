@@ -241,6 +241,9 @@ class Plotter:
     def plot( self, outfile ):
         """ plot the p-values """
         P,Pfake,weights,weightsfake=self.compute ( )
+        if not "database" in self.meta:
+            print ( "error: database not defined in meta. did you pick up any dict files at all?" )
+            sys.exit()
         dbname = os.path.basename ( self.meta["database"] )
         title = f"SModelS database v{dbname}"
         # title = f"$p$-values, SModelS database v{dbname}"
@@ -314,7 +317,7 @@ def main():
     argparser = argparse.ArgumentParser(description="meta statistics plotter, i.e. the thing that plots pDatabase.png")
     argparser.add_argument ( '-d', '--dictfile', nargs='*',
             help='input dictionary file(s) [../data/database/]',
-            type=str, default='.,/data/database/' )
+            type=str, default='../data/database/' )
     argparser.add_argument ( '-o', '--outfile', nargs='?',
             help='output file [./pDatabase.png]',
             type=str, default='./pDatabase.png' )
