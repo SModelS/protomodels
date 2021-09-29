@@ -234,16 +234,23 @@ class Plotter:
         print ( "fake Ps: %d entries at %.3f +/- %.2f" % 
                 ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ) )
         for i in [ "8", "13_lt", "13_gt" ]:
-            w = self.computeWeightedAverage ( P[i], weights[i] )
+            w, v = self.computeWeightedAverage ( P[i], weights[i] )
             print ( "real Ps, %s: %d entries at %.3f +/- %.2f" % 
-                    ( i, len(P[i]), w, 0. ) )
+                    ( i, len(P[i]), w, v ) )
 
     def computeWeightedAverage ( self, ps, ws ):
-        """ weighted average of p values """
+        """ weighted average of p values 
+        :param ps: array of p values
+        :param ws: array of weights
+        """
         if len(ps)==0:
             return 0.
         Pi = ps*ws
-        return np.sum(Pi) / sum(ws)
+        wtot = sum(ws)
+        central = np.sum(Pi) / wtot
+        # var = np.sum ( ws*ws*ps ) / wtot**2
+        var = math.sqrt ( 1. / ( 12. * len(Pi) ) )
+        return central, var
         
 
     def plot( self, outfile ):
@@ -269,10 +276,10 @@ class Plotter:
         nbins = 10 ## change the number of bins
         fig, ax = plt.subplots()
         x = [ P["8"], P["13_lt"], P["13_gt"] ]
-        avgp8=self.computeWeightedAverage ( P["8"], weights["8"] )
+        avgp8,_=self.computeWeightedAverage ( P["8"], weights["8"] )
         bin8=int(avgp8*nbins)
-        avgp13lt=self.computeWeightedAverage( P["13_lt"], weights["13_lt"] ) 
-        avgp13gt=self.computeWeightedAverage( P["13_gt"], weights["13_gt"] )
+        avgp13lt,_=self.computeWeightedAverage( P["13_lt"], weights["13_lt"] ) 
+        avgp13gt,_=self.computeWeightedAverage( P["13_gt"], weights["13_gt"] )
         bin13lt=int(avgp13lt*nbins)
         bin13gt=int(avgp13gt*nbins)
         nm1 = 1. / len(self.filenames)
