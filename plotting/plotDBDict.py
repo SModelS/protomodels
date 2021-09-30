@@ -234,11 +234,11 @@ class Plotter:
         print ( "fake Ps: %d entries at %.3f +/- %.2f" % 
                 ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ) )
         for i in [ "8", "13_lt", "13_gt" ]:
-            w, v = self.computeWeightedAverage ( P[i], weights[i] )
+            w, v = self.computeWeightedMean ( P[i], weights[i] )
             print ( "real Ps, %s: %d entries at %.3f +/- %.2f" % 
                     ( i, len(P[i]), w, v ) )
 
-    def computeWeightedAverage ( self, ps, ws ):
+    def computeWeightedMean ( self, ps, ws ):
         """ weighted average of p values 
         :param ps: array of p values
         :param ws: array of weights
@@ -247,7 +247,7 @@ class Plotter:
             return 0.
         Pi = ps*ws
         wtot = sum(ws)
-        central = np.sum(Pi) / wtot
+        central = float ( np.sum(Pi) / wtot )
         # var = np.sum ( ws*ws*ps ) / wtot**2
         var = math.sqrt ( 1. / ( 12. * len(Pi) ) )
         return central, var
@@ -276,15 +276,13 @@ class Plotter:
         nbins = 10 ## change the number of bins
         fig, ax = plt.subplots()
         x = [ P["8"], P["13_lt"], P["13_gt"] ]
-        avgp8,_=self.computeWeightedAverage ( P["8"], weights["8"] )
+        avgp8,varp8 =self.computeWeightedMean ( P["8"], weights["8"] )
         bin8=int(avgp8*nbins)
-        avgp13lt,_=self.computeWeightedAverage( P["13_lt"], weights["13_lt"] ) 
-        avgp13gt,_=self.computeWeightedAverage( P["13_gt"], weights["13_gt"] )
+        avgp13lt, var13lt = self.computeWeightedMean( P["13_lt"], weights["13_lt"] ) 
+        avgp13gt, var13gt = self.computeWeightedMean( P["13_gt"], weights["13_gt"] )
         bin13lt=int(avgp13lt*nbins)
         bin13gt=int(avgp13gt*nbins)
         nm1 = 1. / len(self.filenames)
-        # weights = [ [ nm1 ]*len(P["8"]), [ nm1 ]*len(P["13_lt"]), [ nm1 ]*len(P["13_gt"]) ]
-        # print ( "weights", weights )
         wlist = [ weights["8"], weights["13_lt"], weights["13_gt"] ]
         bins = np.arange ( 0., 1+1e-7, 1/nbins )
         labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
@@ -299,9 +297,16 @@ class Plotter:
         l13lt = H1[0][0][bin13lt] + eps
         h13gt = H1[0][2][bin13gt] - eps
         l13gt = H1[0][1][bin13gt] + eps
-        l8 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1 )
+        l81 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1, label = r"averages of $p$-values, $\bar{p}$" )
+        l82 = plt.plot ( [ avgp8+varp8, avgp8+varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
+        l83 = plt.plot ( [ avgp8-varp8, avgp8-varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
         l13l = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1 )
-        l13gt = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1 )
+        l13l2 = plt.plot ( [ avgp13lt+var13lt, avgp13lt+var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
+        l13l3 = plt.plot ( [ avgp13lt-var13lt, avgp13lt-var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
+
+        l13gt1 = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1 )
+        l13gt2 = plt.plot ( [ avgp13gt+var13gt, avgp13gt+var13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linestyle="dotted", linewidth=1 )
+        l13gt3 = plt.plot ( [ avgp13gt-var13gt, avgp13gt-var13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linestyle="dotted", linewidth=1 )
         #fweights = [ nm1 ]*len(Pfake["8"]+Pfake["13_lt"]+Pfake["13_gt"])
         if self.doFakes:
             fweights = np.concatenate ( [ weightsfake["8"], weightsfake["13_lt"], weightsfake["13_gt"] ] )
