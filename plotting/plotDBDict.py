@@ -298,25 +298,34 @@ class Plotter:
         wlist = [ weights["8"], weights["13_lt"], weights["13_gt"] ]
         bins = np.arange ( 0., 1+1e-7, 1/nbins )
         labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
-        labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<100/fb$", "13 TeV, $\\mathcal{L}>100/fb$" ]
+        savgp8 = ( "%.2f" % avgp8 ).lstrip('0')
+        savgp13l = ( "%.2f" % avgp13lt ).lstrip('0')
+        savgp13g = ( "%.2f" % avgp13gt ).lstrip('0')
+        labels = [ "8 TeV [%s]" % savgp8, "13 TeV, $\\mathcal{L}<100/fb$ [%s]" % savgp13l, "13 TeV, $\\mathcal{L}>100/fb$ [%s]" % savgp13g ]
         colors = [ "tab:green", "tab:blue", "cyan" ]
         H1 = plt.hist ( x, weights = wlist, bins=bins, histtype="bar",
                    label= labels, color= colors, stacked=True )
-        eps = .2
+        mx = max ( H1[0][2] )
+        #eps = .2
+        eps = mx / 50.
         l8 = 0 + eps
         h8 = H1[0][0][bin8] - eps
         h13lt = H1[0][1][bin13lt] - eps
         l13lt = H1[0][0][bin13lt] + eps
+        if l13lt > h13lt:
+            l13lt, h13lt = h13lt, l13lt
         h13gt = H1[0][2][bin13gt] - eps
         l13gt = H1[0][1][bin13gt] + eps
-        l81 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1, label = r"averages of $p$-values, $\bar{p}$" )
+        if l13gt > h13gt:
+            l13gt, h13gt = h13gt, l13gt
+        l81 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1, label = r"averages of $p$-values, $\bar{p}$", linewidth=2 )
         l82 = plt.plot ( [ avgp8+varp8, avgp8+varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
         l83 = plt.plot ( [ avgp8-varp8, avgp8-varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
-        l13l = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1 )
+        l13l = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linewidth=2 )
         l13l2 = plt.plot ( [ avgp13lt+var13lt, avgp13lt+var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
         l13l3 = plt.plot ( [ avgp13lt-var13lt, avgp13lt-var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
 
-        l13gt1 = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1 )
+        l13gt1 = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linewidth=2 )
         l13gt2 = plt.plot ( [ avgp13gt+var13gt, avgp13gt+var13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linestyle="dotted", linewidth=1 )
         l13gt3 = plt.plot ( [ avgp13gt-var13gt, avgp13gt-var13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linestyle="dotted", linewidth=1 )
         #fweights = [ nm1 ]*len(Pfake["8"]+Pfake["13_lt"]+Pfake["13_gt"])
@@ -327,7 +336,9 @@ class Plotter:
                         bins=bins, stacked=True, zorder=9,
                         label="fake", color=["red" ], linewidth=3, histtype="step" )
         self.discussPs ( P, Pfake, weights, weightsfake )
-        plt.legend( loc = "lower center" )
+        # loc = "lower center"
+        loc = "best"
+        legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.1) )
         if self.likelihood == "lognormal+poisson":
             title += " (lognormal)"
         if self.likelihood == "gauss":
