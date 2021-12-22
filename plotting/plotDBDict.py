@@ -52,9 +52,15 @@ class Plotter:
         self.unscale = unscale
         self.signalmodel = signalmodel
         self.topologies = []
+        self.negativetopos = []
         self.filtersigma = filtersigma
         if topologies not in [ None, "" ]:
-           self.topologies = topologies.split(",")
+            topos = topologies.split(",")
+            for t in topos:
+                if t.startswith ( "^" ):
+                    self.negativetopos.append ( t[1:] )
+                else:   
+                    self.topologies.append ( t )
         self.filenames = []
         if comment in [ "None", "", "none" ]:
             comment = None
@@ -168,12 +174,18 @@ class Plotter:
                 if "txns" in v:
                     txns = v["txns"].split(",")
                 passesTx=False
-                if len(self.topologies)==0:
+                if len(self.topologies)==0 and len(self.negativetopos)==0:
                     passesTx=True
                 for tx in self.topologies:
                     if tx in txns:
                         passesTx=True
                         break
+                if len(self.negativetopos) != 0:
+                    passesTx=True
+                    for tx in self.negativetopos:
+                        if tx in txns:
+                            passesTx=False
+                            break
                 if not passesTx:
                     print ( f"[plotDBDict] skipping {k}: does not pass Tx filter" )
                     continue
@@ -244,7 +256,7 @@ class Plotter:
         :param ws: array of weights
         """
         if len(ps)==0:
-            return 0.
+            return 0., 0.
         Pi = ps*ws
         wtot = sum(ws)
         central = float ( np.sum(Pi) / wtot )
@@ -339,7 +351,7 @@ def main():
     import argparse
     argparser = argparse.ArgumentParser(description="meta statistics plotter, i.e. the thing that plots pDatabase.png")
     argparser.add_argument ( '-d', '--dictfile', nargs='*',
-            help='input dictionary file(s) [../data/database/]',
+            help='input dictionary file(s) or directory, as generated with expResModifier [../data/database/]',
             type=str, default='../data/database/' )
     argparser.add_argument ( '-o', '--outfile', nargs='?',
             help='output file [./pDatabase.png]',
@@ -357,7 +369,7 @@ def main():
             help='likelihood: gauss (g), gauss+poisson (gp), or lognormal+poisson (lp) [gauss+poisson]',
             type=str, default="gauss+poisson" )
     argparser.add_argument ( '-t', '--topologies', nargs='?',
-            help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. [None]',
+            help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. "^" before the name acts as negation [None]',
             type=str, default=None )
     argparser.add_argument ( '-f', '--filter', nargs='?',
             help='filter out signal regions with expectedBG<x [x=0.]',
