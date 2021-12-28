@@ -17,7 +17,9 @@ class Analyzer:
         :param topos: topologies to filter for
         """
         self.filenames = []
-        self.topos = topos
+        self.topos = [] 
+        if topos not in [ None, "", [] ]:
+            self.topos = topos
         for pname in pathname:
             if os.path.isdir ( pname ):
                 pname = pname + "/db*dict"
@@ -57,8 +59,19 @@ class Analyzer:
         return meta,newdata
 
     def getTopos ( self, values, ana ):
+        # we filter with self.topos
         if "txns" in values:
             ret = values["txns"]
+            tret = ret.split(",")
+            isIn = False
+            if len(self.topos)==0:
+                isIn = True
+            else:
+                for t in tret:
+                    if t in self.topos:
+                        isIn = True
+            if not isIn:
+                return None
             if len(ret)>15:
                 for i in range(15,5,-1):
                     if ret[i]==",":
@@ -80,6 +93,9 @@ class Analyzer:
         meta, data = self.read ( filename )
         byS, byp = {}, {}
         for anaid, values in data.items():
+            topos = self.getTopos ( values, anaid )
+            if topos == None:
+                continue
             if "origS" in values:
                 byS[ values["origS"] ] = ( anaid, values )
             if "orig_p" in values:

@@ -305,7 +305,10 @@ class ExpResModifier:
                        model. in this case fake a signal
         :returns: the database
         """
-        self.info ( f"starting to create {outfile} from {self.dbpath}. suffix is {self.suffix}, protomodel is {pmodel}." )
+        spmodel = f"protomodel is '{pmodel}'"
+        if pmodel == "":
+            spmodel = "no protomodel given"
+        self.info ( f"starting to create {outfile} from {self.dbpath}. suffix is '{self.suffix}', {spmodel}." )
         db = Database ( self.dbpath )
         self.dbversion = db.databaseVersion
         listOfExpRes = self.removeEmpty ( db.expResultList ) ## seems to be the safest bet?
