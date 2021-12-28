@@ -236,7 +236,7 @@ class ExpResModifier:
     def info ( self, *args ):
         """ logging to file, but also write to screen """
         self.log ( *args )
-        print ( "[modifier] %s\n" % ( " ".join(map(str,args)) ) )
+        print ( "[modifier] %s" % ( " ".join(map(str,args)) ) )
 
     def finalize ( self ):
         """ finalize, for the moment its just deleting slha files """

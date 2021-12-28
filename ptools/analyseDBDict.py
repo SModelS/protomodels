@@ -11,12 +11,13 @@ import scipy.stats
 import matplotlib.mlab as mlab
 
 class Analyzer:
-    def __init__ ( self, pathname ):
+    def __init__ ( self, pathname, topos ):
         """
         :param pathname: filename of dictionary
-        :param reset: if true, then dont recycle pickle files
+        :param topos: topologies to filter for
         """
         self.filenames = []
+        self.topos = topos
         for pname in pathname:
             if os.path.isdir ( pname ):
                 pname = pname + "/db*dict"
@@ -55,7 +56,7 @@ class Analyzer:
         # print ( f"[plotDBDict] keeping {len(newdata)}/{len(data)} for {basename}" )
         return meta,newdata
 
-    def getTopos ( self, values ):
+    def getTopos ( self, values, ana ):
         if "txns" in values:
             ret = values["txns"]
             if len(ret)>15:
@@ -63,6 +64,8 @@ class Analyzer:
                     if ret[i]==",":
                         break
                 ret=ret[:i+1]+" ..."
+            if ret == "":
+                print ( f"empty txns in {ana}? >>{values['txns']}<<" )
             return ret
         topos=[]
         for vk,vv in values.items():
@@ -73,23 +76,36 @@ class Analyzer:
         return ",".join(topos)
 
     def analyzeFile ( self, filename ):
-        print ( f"analyzing {filename}" )
+        print ( f"[analyzeDBDict] {filename}" )
         meta, data = self.read ( filename )
-        byS = {}
+        byS, byp = {}, {}
         for anaid, values in data.items():
-            if "S" in values:
-                byS[ values["S"] ] = ( anaid, values )
-        keys = list ( byS.keys() )
-        keys.sort( reverse = True )
+            if "origS" in values:
+                byS[ values["origS"] ] = ( anaid, values )
+            if "orig_p" in values:
+                byp[ values["orig_p"] ] = ( anaid, values )
+        keys = list ( byp.keys() )
+        keys.sort( reverse = False )
+        #keys.sort( reverse = True )
         for ctr,k in enumerate(keys[:10]):
-            values = byS[k][1]
-            topos = self.getTopos ( values )
-            print( "S=%.2f: %s; %s" % ( k, byS[k][0], topos ) )
+            values = byp[k][1]
+            ana = byp[k][0]
+            topos = self.getTopos ( values, ana )
+            # p = 1. - scipy.stats.norm.cdf(k)
+            p = values["orig_p"]
+            obsN = values["origN"]
+            expBG = values["expectedBG"]
+            bgErr = values["bgError"]
+            print( "p=%.2f: %s %s (obsN=%d, bg=%.2f+-%.2f)" % ( k, ana, topos, obsN, expBG, bgErr ) )
         print ()
         for ctr,k in enumerate(keys[-3:]):
-            values = byS[k][1]
-            topos = self.getTopos ( values )
-            print( "S=%.2f: %s; %s" % ( k, byS[k][0], topos ) )
+            values = byp[k][1]
+            ana = byp[k][0]
+            topos = self.getTopos ( values, ana )
+            obsN = values["origN"]
+            expBG = values["expectedBG"]
+            bgErr = values["bgError"]
+            print( "p=%.2f: %s %s (obsN=%d, bg=%.2f+-%.2f)" % ( k, ana, topos, obsN, expBG, bgErr ) )
         
 
 
@@ -99,8 +115,11 @@ def main():
     argparser.add_argument ( '-d', '--dictfile', nargs='*',
             help='input dictionary file(s) [../data/database/]',
             type=str, default='.,/data/database/' )
+    argparser.add_argument ( '-t', '--topos', nargs='*',
+            help='filter for topologies [None]',
+            type=str, default=None )
     args=argparser.parse_args()
-    analyzer = Analyzer ( args.dictfile )
+    analyzer = Analyzer ( args.dictfile, args.topos )
     analyzer.analyze ( )
 
 if __name__ == "__main__":
