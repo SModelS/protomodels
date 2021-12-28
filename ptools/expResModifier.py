@@ -53,6 +53,7 @@ class ExpResModifier:
         self.dbpath = dbpath
         self.maxmassdist = maxmassdist
         self.compute_ps = compute_ps
+        self.hasFiltered = False
         self.fixedsignals = fixedsignals
         self.fixedbackgrounds = fixedbackgrounds
         self.protomodel = None
@@ -84,6 +85,7 @@ class ExpResModifier:
     def extractStats ( self ):
         """ dont produce a new fake database, extract a stats dict
             from an existing database. """
+        self.info ( "extracting stats" )
         picklefile = self.rundir + "/" + self.dbpath
         if self.rundir in self.dbpath:
             picklefile = self.dbpath
@@ -231,6 +233,11 @@ class ExpResModifier:
         with open( self.logfile, "a" ) as f:
             f.write ( "[modifier] %s\n" % ( " ".join(map(str,args)) ) )
 
+    def info ( self, *args ):
+        """ logging to file, but also write to screen """
+        self.log ( *args )
+        print ( "[modifier] %s\n" % ( " ".join(map(str,args)) ) )
+
     def finalize ( self ):
         """ finalize, for the moment its just deleting slha files """
         # print ( "[expResModifier] finalize" )
@@ -271,6 +278,25 @@ class ExpResModifier:
         self.protomodel = ma.M
         return self.protomodel
 
+    def removeEmpty ( self, listOfExpRes ):
+        ret = []
+        for er in listOfExpRes:
+            hasEntry = False
+            dses = []
+            for dataset in er.datasets:
+                txnames = [ tx.txName for tx in dataset.txnameList ]
+                if len(txnames)>0:
+                    hasEntry = True
+                    dses.append ( dataset )
+                else:
+                    self.info( f"{er.globalInfo.id}:{dataset.dataInfo.dataId} has only empty txnames. will remove." )
+                er.datasets = dses
+            if hasEntry:
+                ret.append ( er )
+            else:
+                self.info ( f"{er.globalInfo.id} has only empty datasets, will remove." )
+        return ret
+
     def modifyDatabase ( self, outfile="", pmodel="" ):
         """ modify the database, possibly write out to a pickle file
         :param outfile: if not empty, write the database into file
@@ -279,11 +305,10 @@ class ExpResModifier:
                        model. in this case fake a signal
         :returns: the database
         """
-        self.log ( "starting to create %s. suffix is %s protomodel is %s." % \
-                   ( outfile, self.suffix, pmodel ) )
+        self.info ( f"starting to create {outfile} from {self.dbpath}. suffix is {self.suffix}, protomodel is {pmodel}." )
         db = Database ( self.dbpath )
         self.dbversion = db.databaseVersion
-        listOfExpRes = db.expResultList ## seems to be the safest bet?
+        listOfExpRes = self.removeEmpty ( db.expResultList ) ## seems to be the safest bet?
         self.produceProtoModel ( pmodel, db.databaseVersion )
         # print ( "pm produced", os.path.exists ( self.protomodel.currentSLHA ) )
         self.log ( "%d results before faking bgs" % len(listOfExpRes) )
@@ -366,6 +391,8 @@ class ExpResModifier:
         label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
+        if len ( txnames ) == 0:
+            print ( f"[expResModifier] warning, no txnames for {label}." )
         D["txns"]=",".join(txnames )
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         self.addToStats ( label, D )
@@ -828,14 +855,18 @@ class ExpResModifier:
                 if hasattr ( er.globalInfo, "contact" ) and "fastlim" in er.globalInfo.contact:
                     print ( " `- skipping fastlim %s" % er.globalInfo.id )
                     addThisOne = False
+                    self.hasFiltered = True
             if nosuperseded:
                 if hasattr ( er.globalInfo, "supersededBy" ):
                     print ( " `- skipping superseded %s" % er.globalInfo.id )
                     addThisOne = False
+                    self.hasFiltered = True
             if hasattr ( er.globalInfo, "private" ) and er.globalInfo.private in [ "True", True ]:
                     print ( " `- skipping private %s" % er.globalInfo.id )
                     addThisOne = False
+                    self.hasFiltered = True
             if not addThisOne:
+                self.hasFiltered = True
                 continue
             if onlyvalidated:
                 newDs = []
@@ -845,6 +876,7 @@ class ExpResModifier:
                         if txn.validated == False:
                             print ( " `- skipping non-validated %s/%s/%s" % \
                                     ( txn.txName, ds.dataInfo.dataId, er.globalInfo.id ) )
+                            self.hasFiltered = True
                         else:
                             txnew.append ( txn )
                     ds.txnameList = txnew
@@ -860,18 +892,22 @@ class ExpResModifier:
                                "lastUpdate", "contact" ]:
                     if hasattr ( er.globalInfo, label ):
                         delattr ( er.globalInfo, label )
+                        self.hasFiltered = True
                 for iD,ds in enumerate(er.datasets):
                     for it,txn in enumerate(ds.txnameList):
                         #txn.txnameData = self.cleanTxNameData ( txn.txnameData )
                         for label in [ "figureUrl", "dataUrl" ]:
                             if hasattr ( txn, label ):
+                                self.hasFiltered = True
                                 delattr ( txn, label )
                         if hasattr ( txn.txnameData, "origdata" ):
                             del er.datasets[iD].txnameList[it].txnameData.origdata
+                            self.hasFiltered = True
                         if txn.txnameDataExp != None:
                             #txn.txnameDataExp = self.cleanTxNameData ( txn.txnameDataExp )
                             if hasattr ( txn.txnameDataExp, "origdata" ):
                                 del er.datasets[iD].txnameList[it].txnameDataExp.origdata
+                                self.hasFiltered = True
             if not addThisOne:
                 continue
             newList.append ( er )
@@ -993,7 +1029,8 @@ class ExpResModifier:
         """ check the picklefile """
         print ( "now checking the modified database" )
         db = Database ( picklefile )
-        listOfExpRes = db.getExpResults()
+        # listOfExpRes = db.getExpResults()
+        listOfExpRes = db.expResultList ## seems to be the safest bet?
         for er in listOfExpRes:
             datasets = er.datasets
             for ds in datasets:
