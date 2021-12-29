@@ -133,8 +133,8 @@ class Analyzer:
             bgErr = values["bgError"]
             print( "p=%.2f: %s %s (obsN=%d, bg=%.2f+-%.2f)" % ( k, ana, topos, obsN, expBG, bgErr ) )
         
-        print ( f"pavg={np.mean(pavg):.2f}" )
-        print ( f"pavg(13tev)={np.mean(pavg13):.2f}" )
+        print ( f"[analyzeDBDict] pavg={np.mean(pavg):.2f}" )
+        print ( f"[analyzeDBDict] pavg(13tev)={np.mean(pavg13):.2f}" )
 
 
 def main():
