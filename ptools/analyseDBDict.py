@@ -9,6 +9,7 @@ import numpy as np
 import os, glob, pickle, sys
 import scipy.stats
 import matplotlib.mlab as mlab
+from smodels_utils.helper.various import getSqrts
 
 class Analyzer:
     def __init__ ( self, pathname, topos ):
@@ -103,11 +104,15 @@ class Analyzer:
         keys = list ( byp.keys() )
         keys.sort( reverse = False )
         #keys.sort( reverse = True )
-        pavg = []
+        pavg, pavg13 = [], []
         for ctr,k in enumerate(keys):
+            ana = byp[k][0]
+            sqrts = getSqrts ( ana )
             values = byp[k][1]
             p = values["orig_p"]
             pavg.append ( p )
+            if sqrts > 10:
+                pavg13.append ( p )
         for ctr,k in enumerate(keys[:10]):
             values = byp[k][1]
             ana = byp[k][0]
@@ -129,6 +134,7 @@ class Analyzer:
             print( "p=%.2f: %s %s (obsN=%d, bg=%.2f+-%.2f)" % ( k, ana, topos, obsN, expBG, bgErr ) )
         
         print ( f"pavg={np.mean(pavg):.2f}" )
+        print ( f"pavg(13tev)={np.mean(pavg13):.2f}" )
 
 
 def main():
