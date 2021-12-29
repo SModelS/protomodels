@@ -103,6 +103,11 @@ class Analyzer:
         keys = list ( byp.keys() )
         keys.sort( reverse = False )
         #keys.sort( reverse = True )
+        pavg = []
+        for ctr,k in enumerate(keys):
+            values = byp[k][1]
+            p = values["orig_p"]
+            pavg.append ( p )
         for ctr,k in enumerate(keys[:10]):
             values = byp[k][1]
             ana = byp[k][0]
@@ -123,6 +128,7 @@ class Analyzer:
             bgErr = values["bgError"]
             print( "p=%.2f: %s %s (obsN=%d, bg=%.2f+-%.2f)" % ( k, ana, topos, obsN, expBG, bgErr ) )
         
+        print ( f"pavg={np.mean(pavg):.2f}" )
 
 
 def main():
