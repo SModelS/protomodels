@@ -26,9 +26,9 @@ class Analyzer:
                 pname = pname + "/db*dict"
             self.filenames += glob.glob ( pname )
 
-    def analyze ( self ):
+    def analyze ( self, nsmallest, nlargest ):
         for filename in self.filenames:
-            self.analyzeFile ( filename )
+            self.analyzeFile ( filename, nsmallest, nlargest )
 
     def read ( self, fname ):
         """ read in content of filename """
@@ -89,7 +89,7 @@ class Analyzer:
                 topos.append ( topo )
         return ",".join(topos)
 
-    def analyzeFile ( self, filename ):
+    def analyzeFile ( self, filename, nsmallest, nlargest ):
         print ( f"[analyzeDBDict] {filename}" )
         meta, data = self.read ( filename )
         byS, byp = {}, {}
@@ -113,7 +113,7 @@ class Analyzer:
             pavg.append ( p )
             if sqrts > 10:
                 pavg13.append ( p )
-        for ctr,k in enumerate(keys[:10]):
+        for ctr,k in enumerate(keys[:nsmallest]):
             values = byp[k][1]
             ana = byp[k][0]
             topos = self.getTopos ( values, ana )
@@ -124,7 +124,7 @@ class Analyzer:
             bgErr = values["bgError"]
             print( "p=%.2f: %s %s (obsN=%d, bg=%.2f+-%.2f)" % ( k, ana, topos, obsN, expBG, bgErr ) )
         print ()
-        for ctr,k in enumerate(keys[-3:]):
+        for ctr,k in enumerate(keys[-nlargest:]):
             values = byp[k][1]
             ana = byp[k][0]
             topos = self.getTopos ( values, ana )
@@ -146,9 +146,15 @@ def main():
     argparser.add_argument ( '-t', '--topos', nargs='*',
             help='filter for topologies [None]',
             type=str, default=None )
+    argparser.add_argument ( '-n', '--nsmallest',
+            help='number of result to list with small p values [10]',
+            type=int, default=10 )
+    argparser.add_argument ( '-N', '--nlargest',
+            help='number of result to list with large p values [3]',
+            type=int, default=3 )
     args=argparser.parse_args()
     analyzer = Analyzer ( args.dictfile, args.topos )
-    analyzer.analyze ( )
+    analyzer.analyze ( args.nsmallest, args.nlargest )
 
 if __name__ == "__main__":
     main()
