@@ -3,6 +3,7 @@
 """ plot the meta statistics of database.dict """
 
 from smodels_utils.plotting import mpkitty as plt
+from smodels_utils.helper import prettyDescriptions
 #import matplotlib
 #matplotlib.use('agg')
 #from matplotlib import pyplot as plt
@@ -267,6 +268,7 @@ class Plotter:
 
     def plot( self, outfile ):
         """ plot the p-values """
+        outfile = outfile.replace("@@FILTER@@","_".join(self.topologies))
         P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
@@ -280,7 +282,12 @@ class Plotter:
         if abs ( fudge - 1. ) > 1e-3:
             title += ", fudge=%.2f" % fudge
         if len (self.topologies )>0:
-            title += f", selecting {','.join(self.topologies)}"
+            stopos = ""
+            for i,t in enumerate(self.topologies):
+                stopos += prettyDescriptions.prettyTxname( t, "latex", False )
+                if i < len(self.topologies)-1:
+                    stopos += ";"
+            title += f", selecting {stopos}"
         if self.unscale:
             title += f" (unscaling)"
         if self.signalmodel:
@@ -365,8 +372,8 @@ def main():
             help='input dictionary file(s) or directory, as generated with expResModifier [../data/database/]',
             type=str, default='../data/database/' )
     argparser.add_argument ( '-o', '--outfile', nargs='?',
-            help='output file [./pDatabase.png]',
-            type=str, default='./pDatabase.png' )
+            help='output file [./pDatabase@@FILTER@@.png]',
+            type=str, default='./pDatabase@@FILTER@@.png' )
     argparser.add_argument ( '-c', '--comment', nargs='?',
             help='an optional comment, to put in the plot [None]',
             type=str, default=None )
