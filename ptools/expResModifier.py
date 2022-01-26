@@ -1165,6 +1165,9 @@ if __name__ == "__main__":
         db = Database ( args.database )
         print ( f"[expResModifier] built database at {args.database}. Exiting." )
         sys.exit()
+    if args.rundir == None:
+        print ( f"[expResModifier] setting rundir to {os.getcwd()}" )
+        args.rundir = os.getcwd()
     if type(args.rundir)==str and not "/" in args.rundir and \
             not args.rundir.startswith("."):
         args.rundir = "/scratch-cbe/users/wolfgan.waltenberger/" + args.rundir
