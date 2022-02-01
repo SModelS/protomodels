@@ -352,12 +352,20 @@ class Plotter:
         bin13gt=int(avgp13gt*nbins)
         nm1 = 1. / len(self.filenames)
         wlist = [ weights["8"], weights["13_lt"], weights["13_gt"] ]
+        nontrivial = [ len(x)>0 for x in wlist ]
+        print ( "x", nontrivial )
         bins = np.arange ( 0., 1+1e-7, 1/nbins )
-        labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
+        # labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
         savgp8 = ( "%.2f" % avgp8 ).lstrip('0')
         savgp13l = ( "%.2f" % avgp13lt ).lstrip('0')
         savgp13g = ( "%.2f" % avgp13gt ).lstrip('0')
         labels = [ "8 TeV [%s]" % savgp8, "13 TeV, $\\mathcal{L}<100/fb$ [%s]" % savgp13l, "13 TeV, $\\mathcal{L}>100/fb$ [%s]" % savgp13g ]
+        nLegendEntries=0
+        for c,l in enumerate(labels):
+            if not nontrivial[c]:
+                labels[c]=""
+            else:
+                nLegendEntries+=1
         colors = [ "tab:green", "tab:blue", "cyan" ]
         H1 = plt.hist ( x, weights = wlist, bins=bins, histtype="bar",
                    label= labels, color= colors, stacked=True )
@@ -397,7 +405,8 @@ class Plotter:
         self.discussPs ( P, Pfake, weights, weightsfake )
         # loc = "lower center"
         loc = "best"
-        legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.1) )
+        if nLegendEntries > 1:
+            legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.1) )
         if self.likelihood == "lognormal+poisson":
             title += " (lognormal)"
         if self.likelihood == "gauss":
