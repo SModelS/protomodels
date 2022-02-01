@@ -313,13 +313,30 @@ class Plotter:
             fudge = self.meta["fudge"]
         if abs ( fudge - 1. ) > 1e-3:
             title += ", fudge=%.2f" % fudge
+        selecting = "selecting "
         if len (self.topologies )>0:
             stopos = ""
             for i,t in enumerate(self.topologies):
                 stopos += prettyDescriptions.prettyTxname( t, "latex", False )
                 if i < len(self.topologies)-1:
                     stopos += ";"
-            title += f", selecting {stopos}"
+            title += f", {selecting}{stopos}"
+            selecting = ""
+        if len (self.negativetopos )>0:
+            stopos = ""
+            for i,t in enumerate(self.negativetopos):
+                stopos += "^"+prettyDescriptions.prettyTxname( t, "latex", False )
+                if i < len(self.topologies)-1:
+                    stopos += ";"
+            title += f", {selecting}{stopos}"
+            selecting = ""
+        if len ( self.analyses ) > 0:
+            for a in self.analyses:
+                title += f", {selecting}{a}"
+        if len ( self.negativeanalyses ) > 0:
+            for a in self.negativeanalyses:
+                title += f", {selecting}^{a}"
+                selecting = ""
         if self.unscale:
             title += f" (unscaling)"
         if self.signalmodel:
