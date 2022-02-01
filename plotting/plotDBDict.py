@@ -18,7 +18,7 @@ import matplotlib.mlab as mlab
 class Plotter:
     def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str,
                    topologies, unscale, signalmodel, filtersigma: float,
-                   collaboration : str, doFakes : bool ):
+                   collaboration : str, doFakes : bool, analyses : str ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
@@ -28,18 +28,20 @@ class Plotter:
                            "gauss" or "g" means only a Gaussian for everything
                            "gauss+poisson" or "gp" means Gauss * Poisson
                            "lognormal+poisson" or "lp" means Lognormal * Poisson
-        :param topologies: if not Not, then filter for these topologies (e.g. T2tt)
+        :param topologies: if not None, then filter for these topologies (e.g. T2tt)
         :param unscale: unscale, i.e. use the fudged bgError also for computing likelihoods
         :param signalmodel: use the signal+bg model for computing likelihoods
         :param filtersigma: filter out signal regions with expectedBG/bgErr < filtersigma
         :param collaboration: select a specific collaboration
         :param doFakes: add fakes to the plot
+        :param analyses: if not None, then filter for these analyses 
+                         (e.g. CMS-SUS-16-039-ma5)
         """
         collaboration = collaboration.upper()
         if collaboration in [ "", "*" ]:
             collaboration = "ALL"
         if not collaboration in [ "CMS", "ATLAS", "ALL" ]:
-            print ( "error: collaboration must be either CMS, ATLAS, or ALL." )
+            print ( "[plotDBDict] error: collaboration must be either CMS, ATLAS, or ALL." )
             sys.exit(-1)
         self.collaboration = collaboration
         abbreviations = { "g": "gauss", "gp": "gauss+poisson", "lp": "lognormal+poisson" }
@@ -53,7 +55,9 @@ class Plotter:
         self.unscale = unscale
         self.signalmodel = signalmodel
         self.topologies = []
+        self.analyses = []
         self.negativetopos = []
+        self.negativeanalyses = []
         self.filtersigma = filtersigma
         if topologies not in [ None, "" ]:
             topos = topologies.split(",")
@@ -62,6 +66,13 @@ class Plotter:
                     self.negativetopos.append ( t[1:] )
                 else:   
                     self.topologies.append ( t )
+        if analyses not in [ None, "" ]:
+            analyses = analyses.split(",")
+            for a in analyses:
+                if a.startswith ( "^" ):
+                    self.negativeanalyses.append ( a[1:] )
+                else:   
+                    self.analyses.append ( a )
         self.filenames = []
         if comment in [ "None", "", "none" ]:
             comment = None
@@ -167,9 +178,28 @@ class Plotter:
         for filename in self.filenames:
             selfbase = os.path.basename ( filename )
             data = self.data [ selfbase.replace(".dict","") ]
+            skipped = []
             for k,v in data.items():
                 p1 = k.find(":")
                 anaid = k[:p1]
+                passesAnas = False 
+                if len(self.analyses)==0 and len(self.negativeanalyses)==0:
+                    passesAnas=True
+                for ana in self.analyses:
+                    if ana in anaid:
+                        passesAnas=True
+                        break
+                if len(self.negativeanalyses) != 0:
+                    passesAnas=True
+                    for ana in self.negativeanalyses:
+                        if ana in anaid:
+                            passesAnas=False
+                            break
+                if not passesAnas:
+                    if not anaid in skipped:
+                        print ( f"[plotDBDict] skipping {anaid} per request" )
+                    skipped.append ( anaid )
+                    continue 
                 w = 1. / len(self.srCounts[anaid]) / len(self.filenames)
                 txns = []
                 if "txns" in v:
@@ -242,14 +272,16 @@ class Plotter:
     def discussPs ( self, P, Pfake, weights, weightsfake ):
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
         Pfaketot = np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] )
-        print ( "real Ps: %d entries at %.3f +/- %.2f" % 
+        print ( "[plotDBDict] real Ps: %d entries at %.3f +/- %.2f" % 
                 ( len(Ptot), np.mean(Ptot), np.std(Ptot)  ) )
-        print ( "fake Ps: %d entries at %.3f +/- %.2f" % 
+        print ( "[plotDBDict] fake Ps: %d entries at %.3f +/- %.2f" % 
                 ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ) )
         for i in [ "8", "13_lt", "13_gt" ]:
             w, v = self.computeWeightedMean ( P[i], weights[i] )
-            print ( "real Ps, %s: %d entries at %.3f +/- %.2f" % 
-                    ( i, len(P[i]), w, v ) )
+            n = len(P[i])
+            if n > 0:
+                print ( "[plotDBDict] real Ps, %s: %d entries at %.3f +/- %.2f" % 
+                        ( i, n, w, v ) )
 
     def computeWeightedMean ( self, ps, ws ):
         """ weighted average of p values 
@@ -356,7 +388,7 @@ class Plotter:
         plt.xlabel ( "$p$-values" )
         plt.ylabel ( "# analyses (weighted)" )
         # plt.ylabel ( "# Signal Regions" )
-        print ( f"[plotDBDict.py] plotting {outfile}"  )
+        print ( f"[plotDBDict] plotting {outfile}"  )
         if self.comment != None:
             plt.text ( .65, -.11, self.comment, transform=ax.transAxes, 
                        style="italic" )
@@ -389,6 +421,9 @@ def main():
     argparser.add_argument ( '-t', '--topologies', nargs='?',
             help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. "^" before the name acts as negation [None]',
             type=str, default=None )
+    argparser.add_argument ( '-a', '--analyses', nargs='?',
+            help='filter for certain analyses, e.g. CMS-SUS-16-039-ma5. Comma separated. "^" before the name acts as negation [None]',
+            type=str, default=None )
     argparser.add_argument ( '-f', '--filter', nargs='?',
             help='filter out signal regions with expectedBG<x [x=0.]',
             type=float, default=0. )
@@ -402,7 +437,7 @@ def main():
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
                         args.topologies, args.unscale, args.signalmodel,
                         args.filtersigma, args.select_collaboration,
-                        args.fakes )
+                        args.fakes, args.analyses )
     plotter.plot( args.outfile )
 
 if __name__ == "__main__":
