@@ -415,6 +415,8 @@ class Plotter:
         if self.collaboration != "ALL":
             title += f" {self.collaboration} only"
         plt.title  ( title )
+        plt.plot ( [ .5, .5 ], [ -.003, .2 ], c="tab:grey", linewidth=1, 
+                   linestyle="-" )
         plt.xlabel ( "$p$-values" )
         plt.ylabel ( "# analyses (weighted)" )
         # plt.ylabel ( "# Signal Regions" )
