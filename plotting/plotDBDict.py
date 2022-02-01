@@ -419,6 +419,10 @@ class Plotter:
                    linestyle="-" )
         plt.xlabel ( "$p$-values" )
         plt.ylabel ( "# analyses (weighted)" )
+        nSRs, nAnas = 0, len(self.srCounts)
+        for k,v in self.srCounts.items():
+            nSRs+=len(v)
+        plt.text ( .8, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="black", fontsize=8 )
         # plt.ylabel ( "# Signal Regions" )
         print ( f"[plotDBDict] plotting {outfile}"  )
         if self.comment != None:
