@@ -300,7 +300,9 @@ class Plotter:
 
     def plot( self, outfile ):
         """ plot the p-values """
-        outfile = outfile.replace("@@FILTER@@","_".join(self.topologies))
+        flt = "_".join(self.topologies)+"_^".join(self.negativetopos)
+        flt += "_".join(self.analyses)+"_^".join(self.negativeanalyses )
+        outfile = outfile.replace("@@FILTER@@", flt )
         P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
@@ -353,7 +355,6 @@ class Plotter:
         nm1 = 1. / len(self.filenames)
         wlist = [ weights["8"], weights["13_lt"], weights["13_gt"] ]
         nontrivial = [ len(x)>0 for x in wlist ]
-        print ( "x", nontrivial )
         bins = np.arange ( 0., 1+1e-7, 1/nbins )
         # labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
         savgp8 = ( "%.2f" % avgp8 ).lstrip('0')
