@@ -179,6 +179,7 @@ class Plotter:
             selfbase = os.path.basename ( filename )
             data = self.data [ selfbase.replace(".dict","") ]
             skipped = []
+            self.nanas = set()
             for k,v in data.items():
                 p1 = k.find(":")
                 anaid = k[:p1]
@@ -200,6 +201,7 @@ class Plotter:
                         print ( f"[plotDBDict] skipping {anaid} per request" )
                     skipped.append ( anaid )
                     continue 
+                self.nanas.add ( anaid )
                 w = 1. / len(self.srCounts[anaid]) / len(self.filenames)
                 txns = []
                 if "txns" in v:
@@ -419,9 +421,9 @@ class Plotter:
                    linestyle="-" )
         plt.xlabel ( "$p$-values" )
         plt.ylabel ( "# analyses (weighted)" )
-        nSRs, nAnas = 0, len(self.srCounts)
-        for k,v in self.srCounts.items():
-            nSRs+=len(v)
+        Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
+        nAnas = len ( self.nanas )
+        nSRs = len(Ptot)
         plt.text ( .8, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="black", fontsize=8 )
         # plt.ylabel ( "# Signal Regions" )
         print ( f"[plotDBDict] plotting {outfile}"  )
