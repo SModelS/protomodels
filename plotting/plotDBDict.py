@@ -424,7 +424,7 @@ class Plotter:
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
         nAnas = len ( self.nanas )
         nSRs = len(Ptot)
-        plt.text ( .8, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="black", fontsize=8 )
+        plt.text ( .69, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="black", fontsize=7 )
         # plt.ylabel ( "# Signal Regions" )
         print ( f"[plotDBDict] plotting {outfile}"  )
         if self.comment != None:
@@ -472,6 +472,8 @@ def main():
             help='select a specific collaboration CMS, ATLAS, all [all]',
             type=str, default="all" )
     args=argparser.parse_args()
+    if args.topologies.endswith ( ".py" ):
+        print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
                         args.topologies, args.unscale, args.signalmodel,
                         args.filtersigma, args.select_collaboration,
