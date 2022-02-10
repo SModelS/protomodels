@@ -337,6 +337,8 @@ class Plotter:
                     stopos += ";"
             title += f", {selecting}{stopos}"
             selecting = ""
+        if len ( self.topologies ) + len ( self.negativetopos ) == 0:
+            title += f", all topologies"
         if len ( self.analyses ) > 0:
             for a in self.analyses:
                 title += f", {selecting}{a}"
@@ -344,6 +346,8 @@ class Plotter:
             for a in self.negativeanalyses:
                 title += f", {selecting}^{a}"
                 selecting = ""
+        if len ( self.analyses ) + len ( self.negativeanalyses ) == 0:
+            title += ", all analyses"
         if self.unscale:
             title += f" (unscaling)"
         if self.signalmodel:
