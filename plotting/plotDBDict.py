@@ -480,7 +480,7 @@ def main():
     argparser.add_argument ( '-D', '--disclaimer', 
             help='add a disclaimer', action='store_true' )
     args=argparser.parse_args()
-    if args.topologies.endswith ( ".py" ):
+    if args.topologies != None and args.topologies.endswith ( ".py" ):
         print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
                         args.topologies, args.unscale, args.signalmodel,
