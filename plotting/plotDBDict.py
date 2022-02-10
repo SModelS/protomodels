@@ -247,7 +247,7 @@ class Plotter:
                     if "sigN" in v:
                         sigN = v["sigN"]
                     # bgErr = v["bgError"]# /v["fudge"]
-                    if "orig_p" in v:
+                    if "orig_p" in v and self.likelihood == "gauss+poisson":
                         p = v["orig_p"]
                     else:
                         if not hasComplained:
