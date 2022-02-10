@@ -18,7 +18,8 @@ import matplotlib.mlab as mlab
 class Plotter:
     def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str,
                    topologies, unscale, signalmodel, filtersigma: float,
-                   collaboration : str, doFakes : bool, analyses : str ):
+                   collaboration : str, doFakes : bool, analyses : str,
+                   disclaimer : bool ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
@@ -36,6 +37,7 @@ class Plotter:
         :param doFakes: add fakes to the plot
         :param analyses: if not None, then filter for these analyses 
                          (e.g. CMS-SUS-16-039-ma5)
+        :param disclaimer: add a disclaimer, "do not circulate"
         """
         collaboration = collaboration.upper()
         if collaboration in [ "", "*" ]:
@@ -56,6 +58,7 @@ class Plotter:
         self.signalmodel = signalmodel
         self.topologies = []
         self.analyses = []
+        self.disclaimer = disclaimer
         self.negativetopos = []
         self.negativeanalyses = []
         self.filtersigma = filtersigma
@@ -430,6 +433,9 @@ class Plotter:
         if self.comment != None:
             plt.text ( .65, -.11, self.comment, transform=ax.transAxes, 
                        style="italic" )
+        if self.disclaimer:
+            plt.text ( .3, .3, "do not circulate!", transform=ax.transAxes,
+                       rotation=35, c="#ff3333", fontsize=20 )
         plt.savefig ( outfile )
         if hasattr ( plt, "options" ) and plt.options["hasKittyBackend"]:
             plt.show()
@@ -471,13 +477,15 @@ def main():
     argparser.add_argument ( '-C', '--select_collaboration', nargs='?',
             help='select a specific collaboration CMS, ATLAS, all [all]',
             type=str, default="all" )
+    argparser.add_argument ( '-D', '--disclaimer', 
+            help='add a disclaimer', action='store_true' )
     args=argparser.parse_args()
     if args.topologies.endswith ( ".py" ):
         print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
                         args.topologies, args.unscale, args.signalmodel,
                         args.filtersigma, args.select_collaboration,
-                        args.fakes, args.analyses )
+                        args.fakes, args.analyses, args.disclaimer )
     plotter.plot( args.outfile )
 
 if __name__ == "__main__":
