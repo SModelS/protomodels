@@ -204,7 +204,6 @@ class Plotter:
                         print ( f"[plotDBDict] skipping {anaid} per request" )
                     skipped.append ( anaid )
                     continue 
-                self.nanas.add ( anaid )
                 w = 1. / len(self.srCounts[anaid]) / len(self.filenames)
                 txns = []
                 if "txns" in v:
@@ -267,6 +266,7 @@ class Plotter:
                     if not math.isnan ( pfake):
                         Pfake[sqrts].append( pfake )
                         weightsfake[sqrts].append ( w )
+                self.nanas.add ( anaid )
         for s in P.keys():
             P[s]=np.array(P[s])
             Pfake[s]=np.array(Pfake[s])
