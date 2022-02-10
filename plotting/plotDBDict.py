@@ -253,6 +253,9 @@ class Plotter:
                         if not hasComplained:
                             print ( "computing the p-values -- this might take a while, so consider doing this at expResModifier.py" )
                             hasComplained = True
+                        lognormal = False
+                        if self.likelihood == "lognormal+poissohn":
+                            lognormal = True
                         p = computeP ( obs, vexp, bgErr )
                     P[sqrts].append( p )
                     weights[sqrts].append ( w )
@@ -262,7 +265,8 @@ class Plotter:
                         pfake = v["new_p"]
                     else:
                         if not math.isnan ( fakeobs):
-                            pfake = computeP ( fakeobs, vexp, bgErr )
+                            pfake = computeP ( fakeobs, vexp, bgErr, 
+                                               lognormal = lognormal )
                     if not math.isnan ( pfake):
                         Pfake[sqrts].append( pfake )
                         weightsfake[sqrts].append ( w )
