@@ -10,7 +10,7 @@ from smodels.experiment.infoObj import Info
 from smodels.tools.physicsUnits import GeV
 import scipy.stats
 
-def computeP ( obs, bg, bgerr ):
+def computeP ( obs, bg, bgerr, lognormal = False ):
     """ compute P value, gaussian nuisance model only
     :param obs: observed number of events
     :param bg: number of expected background events
@@ -20,18 +20,18 @@ def computeP ( obs, bg, bgerr ):
     n = 50000
     lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
     lmbda = lmbda[lmbda>0.]
+    if lognormal:
+        # for lognormal and signals
+        central = bg
+        if self.signalmodel and sigN != None:
+            central = bg + sigN
+        if lognormal and central > ( bgerr / 4. ):
+            loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
+            stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
+            lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
     fakeobs = scipy.stats.poisson.rvs ( lmbda )
     ## == we count half
     return ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
-    """ for lognormal and signals
-    central = bg
-    if self.signalmodel and sigN != None:
-        central = bg + sigN
-    if lognormal and central > ( bgerr / 4. ):
-        loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
-        stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
-        lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
-    """
 
 def stripUnits( container ):
     """ strip all units from a mass vector """
