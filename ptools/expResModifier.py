@@ -839,18 +839,22 @@ class ExpResModifier:
         return txnd
 
     def filter ( self, outfile, nofastlim, onlyvalidated, nosuperseded,
-                       remove_orig ):
+                       remove_orig, remove_nonagg ):
         """ filter the list fo experimental results.
         :param outfile: store result in outfile (a pickle file)
         :param nofastlim: remove fastlim results
         :param onlyvalidated: remove non-validated results
         :param nosuperseded: remove superseded results
         :param remove_orig: remove original values
+        :param remove_nonagg: remove non-aggregated results
         """
         self.log ( "starting to filter %s. suffix is %s." % \
                    ( outfile, self.suffix ) )
         db = Database ( self.dbpath )
         listOfExpRes = db.expResultList ## seems to be the safest bet?
+        if remove_nonagg:
+            from smodels_utils.helper.databaseManipulations import filterNonAggregatedFromList
+            listOfExpRes = filterNonAggregatedFromList ( listOfExpRes, verbose=True )
         newList = []
         for er in listOfExpRes:
             addThisOne = True
@@ -914,7 +918,7 @@ class ExpResModifier:
             if not addThisOne:
                 continue
             newList.append ( er )
-        db.expResultList = newList
+        db.subs[0].expResultList = newList
         if outfile != "":
             db.createBinaryFile( outfile )
 
@@ -1103,6 +1107,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '--remove_orig',
             help='remove original values',
             action='store_true' )
+    argparser.add_argument ( '--remove_nonagg',
+            help='remove nonaggregated results',
+            action='store_true' )
     argparser.add_argument ( '--dontsample',
             help='do not sample at all, only filter',
             action='store_true' )
@@ -1188,7 +1195,7 @@ if __name__ == "__main__":
         print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % args.outfile )
     if args.nofastlim or args.onlyvalidated or args.nosuperseded or args.remove_orig:
         modifier.filter ( args.outfile, args.nofastlim, args.onlyvalidated,
-                          args.nosuperseded, args.remove_orig )
+                          args.nosuperseded, args.remove_orig, args.remove_nonagg )
     if args.dontsample:
         print ( "[expResModifier] we were asked to not sample, so we exit now." )
         sys.exit()
