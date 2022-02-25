@@ -48,6 +48,7 @@ class ExpResModifier:
                             for a signal to populate an UL map
         :param compute_ps: compute p-values for all SRs
         """
+        self.db = None
         self.comments = {} ## comments on entries in dict
         self.lognormal = lognormal
         self.dbpath = dbpath
@@ -90,9 +91,10 @@ class ExpResModifier:
         if self.rundir in self.dbpath:
             picklefile = self.dbpath
         self.pprint ( f"Extracting stats from {picklefile}" )
-        db = Database ( picklefile )
-        self.dbversion = db.databaseVersion
-        listOfExpRes = db.expResultList
+        if self.db == None:
+            self.db = Database ( picklefile )
+        self.dbversion = self.db.databaseVersion
+        listOfExpRes = self.db.expResultList
         self.stats = {}
         for expRes in listOfExpRes:
             for i,dataset in enumerate(expRes.datasets):
@@ -309,10 +311,10 @@ class ExpResModifier:
         if pmodel == "":
             spmodel = "no protomodel given"
         self.info ( f"starting to create {outfile} from {self.dbpath}. suffix is '{self.suffix}', {spmodel}." )
-        db = Database ( self.dbpath )
-        self.dbversion = db.databaseVersion
-        listOfExpRes = self.removeEmpty ( db.expResultList ) ## seems to be the safest bet?
-        self.produceProtoModel ( pmodel, db.databaseVersion )
+        self.db = Database ( self.dbpath )
+        self.dbversion = self.db.databaseVersion
+        listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
+        self.produceProtoModel ( pmodel, self.db.databaseVersion )
         # print ( "pm produced", os.path.exists ( self.protomodel.currentSLHA ) )
         self.log ( "%d results before faking bgs" % len(listOfExpRes) )
         updatedListOfExpRes = self.fakeBackgrounds ( listOfExpRes )
@@ -320,19 +322,19 @@ class ExpResModifier:
         self.log ( "%d results after faking bgs" % len(updatedListOfExpRes) )
         updatedListOfExpRes = self.addSignals ( updatedListOfExpRes )
         self.log ( "%d results after adding signals" % len(updatedListOfExpRes) )
-        if hasattr ( db, "subs" ): ## for smodels 2.1
-            db.subs[0].expResultList = updatedListOfExpRes
-            db.subs = [ db.subs[0] ]
+        if hasattr ( self.db, "subs" ): ## for smodels 2.1
+            self.db.subs[0].expResultList = updatedListOfExpRes
+            self.db.subs = [ self.db.subs[0] ]
         else:
-            db.expResultList = updatedListOfExpRes
-        newver = db.databaseVersion + self.suffix
-        db.txt_meta.databaseVersion = newver
-        db.pcl_meta.databaseVersion = newver
+            self.db.expResultList = updatedListOfExpRes
+        newver = self.db.databaseVersion + self.suffix
+        self.db.txt_meta.databaseVersion = newver
+        self.db.pcl_meta.databaseVersion = newver
         self.pprint ( "Constructed fake database with %d (of %d) results" % \
                 ( len(updatedListOfExpRes), len(listOfExpRes) ) )
         if outfile != "":
-            db.createBinaryFile( outfile )
-        return db
+            self.db.createBinaryFile( outfile )
+        return self.db
 
     def sampleEfficiencyMap ( self, dataset ):
         """ for the given dataset,
@@ -850,11 +852,16 @@ class ExpResModifier:
         """
         self.log ( "starting to filter %s. suffix is %s." % \
                    ( outfile, self.suffix ) )
-        db = Database ( self.dbpath )
-        listOfExpRes = db.expResultList ## seems to be the safest bet?
+        if self.db == None:
+            self.db = Database ( self.dbpath )
+        listOfExpRes = self.db.expResultList ## seems to be the safest bet?
         if remove_nonagg:
             from smodels_utils.helper.databaseManipulations import filterNonAggregatedFromList
+            n = len(listOfExpRes )
             listOfExpRes = filterNonAggregatedFromList ( listOfExpRes, verbose=True )
+            print ( f"[modifier] nonaggregated filter: from {n} to {len(listOfExpRes)}" )
+            if len(listOfExpRes ) <  n:
+                self.hasFiltered = True
         newList = []
         for er in listOfExpRes:
             addThisOne = True
@@ -918,9 +925,9 @@ class ExpResModifier:
             if not addThisOne:
                 continue
             newList.append ( er )
-        db.subs[0].expResultList = newList
+        self.db.subs[0].expResultList = newList
         if outfile != "":
-            db.createBinaryFile( outfile )
+            self.db.createBinaryFile( outfile )
 
     def playback ( self, playbackdict, outfile ):
         """ playback the mods described in playbackdict """
@@ -931,7 +938,8 @@ class ExpResModifier:
         ## first line goes directly into database
         line = lines.pop(0)
         D = eval ( line )
-        db = Database ( self.dbpath )
+        if self.db == None:
+            self.db = Database ( self.dbpath )
         for k,v in D.items():
             if k == "dbpath":
                 continue
@@ -944,20 +952,20 @@ class ExpResModifier:
             cleaned.append ( line )
         D = eval ( "\n".join ( cleaned ) )
 
-        self.dbversion = db.databaseVersion
-        self.lExpRes = db.expResultList ## seems to be the safest bet?
+        self.dbversion = self.db.databaseVersion
+        self.lExpRes = self.db.expResultList ## seems to be the safest bet?
         # self.lExpRes = db.getExpResults ( [ "CMS-SUS-19-006" ] ) ## for debugging
         for anaids,values in D.items():
             #if not "CMS-SUS-19-006" in anaids: # for debugging
             #    continue
             self.playbackOneItem ( anaids, values )
-        db.expResultList = self.lExpRes
-        db.dbpath = outfile
+        self.db.expResultList = self.lExpRes
+        self.db.dbpath = outfile
         self.dbversion = self.dbversion + ".playedback"
-        db.txt_meta.databaseVersion = db.databaseVersion + ".playedback"
-        db.pcl_meta.databaseVersion = db.databaseVersion + ".playedback"
+        self.db.txt_meta.databaseVersion = self.db.databaseVersion + ".playedback"
+        self.db.pcl_meta.databaseVersion = self.db.databaseVersion + ".playedback"
         self.pprint ( f"writing to {outfile}" )
-        db.createBinaryFile ( outfile )
+        self.db.createBinaryFile ( outfile )
 
     def playbackOneItem ( self, anaids : str, values : dict ):
         """ play back a single item
@@ -1035,16 +1043,16 @@ class ExpResModifier:
     def check ( self, picklefile ):
         """ check the picklefile """
         print ( "now checking the modified database" )
-        db = Database ( picklefile )
+        self.db = Database ( picklefile )
         # listOfExpRes = db.getExpResults()
-        listOfExpRes = db.expResultList ## seems to be the safest bet?
+        listOfExpRes = self.db.expResultList ## seems to be the safest bet?
         for er in listOfExpRes:
             datasets = er.datasets
             for ds in datasets:
                 txnl = ds.txnameList
                 for txn in txnl:
                     x = txn.txnameData.dataType
-        print ( "were good", db.databaseVersion )
+        print ( "were good", self.db.databaseVersion )
 
 
 epilog="""
@@ -1193,7 +1201,7 @@ if __name__ == "__main__":
 
     if not args.outfile.endswith(".pcl"):
         print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % args.outfile )
-    if args.nofastlim or args.onlyvalidated or args.nosuperseded or args.remove_orig:
+    if args.nofastlim or args.onlyvalidated or args.nosuperseded or args.remove_orig or args.remove_nonagg:
         modifier.filter ( args.outfile, args.nofastlim, args.onlyvalidated,
                           args.nosuperseded, args.remove_orig, args.remove_nonagg )
     if args.dontsample:
