@@ -883,12 +883,17 @@ class ExpResModifier:
                 continue
             if onlyvalidated:
                 newDs = []
+                hasIssued = 0
                 for ds in er.datasets:
                     txnew = []
                     for txn in ds.txnameList:
                         if txn.validated == False:
-                            print ( " `- skipping non-validated %s/%s/%s" % \
+                            if hasIssued == 0:
+                                print ( " `- skipping non-validated %s/%s/%s" % \
                                     ( txn.txName, ds.dataInfo.dataId, er.globalInfo.id ) )
+                            if hasIssued == 1:
+                                print ( " `- (suppressed more, similar messages)" )
+                            hasIssued += 1
                             self.hasFiltered = True
                         else:
                             txnew.append ( txn )
@@ -1077,7 +1082,7 @@ Build a database:
 
 Just filter the database:
 -------------------------
-./expResModifier.py -d ./original.pcl --remove_orig --nofastlim --onlyvalidated --nosuperseded --dontsample -o test.pcl
+./expResModifier.py -d ./original.pcl --remove_orig --nofastlim --onlyvalidated --nosuperseded --dontsample --remove_nonagg -o test.pcl
 
 """
 
