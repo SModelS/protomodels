@@ -311,7 +311,8 @@ class ExpResModifier:
         if pmodel == "":
             spmodel = "no protomodel given"
         self.info ( f"starting to create {outfile} from {self.dbpath}. suffix is '{self.suffix}', {spmodel}." )
-        self.db = Database ( self.dbpath )
+        if self.db == None:
+            self.db = Database ( self.dbpath )
         self.dbversion = self.db.databaseVersion
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
         self.produceProtoModel ( pmodel, self.db.databaseVersion )
@@ -494,7 +495,6 @@ class ExpResModifier:
     def addToStats ( self, label, Dict ):
         """ add the content of dictionary Dict to the stats,
             under the label "label" """
-        # print ( f"adding {label} to stats {str(Dict)[:40]}" )
         if not label in self.stats:
             # we dont yet have an entry, so lets start
             self.stats[label]=Dict
@@ -579,7 +579,6 @@ class ExpResModifier:
             D[f"totalpoints{txname.txName}"]=len(txnd.y_values)
             self.comments["signalpointsTx"]="number of grid points that got the signal injected"
             self.comments["totalpointsTx"]="total number of grid points in that map"
-            print ( "X" )
             self.addToStats ( label, D )
         return txnd
 
