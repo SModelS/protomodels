@@ -19,7 +19,7 @@ class Plotter:
     def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str,
                    topologies, unscale, signalmodel, filtersigma: float,
                    collaboration : str, doFakes : bool, analyses : str,
-                   disclaimer : bool ):
+                   disclaimer : bool, ulAlso : bool ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
@@ -38,6 +38,7 @@ class Plotter:
         :param analyses: if not None, then filter for these analyses 
                          (e.g. CMS-SUS-16-039-ma5)
         :param disclaimer: add a disclaimer, "do not circulate"
+        :param ulAlso: show UL results, also
         """
         collaboration = collaboration.upper()
         if collaboration in [ "", "*" ]:
@@ -63,7 +64,7 @@ class Plotter:
         self.negativeanalyses = []
         self.filtersigma = filtersigma
         self.verbose = 0
-        self.useAlsoULMaps = False
+        self.useAlsoULMaps = ulAlso
         if topologies not in [ None, "" ]:
             topos = topologies.split(",")
             for t in topos:
@@ -125,10 +126,10 @@ class Plotter:
                         if self.useAlsoULMaps:
                             txname = i [ i.rfind(":")+1: ]
                             v["txns"] = txname
-                            v["lumi"] = 136.1
                             newdata[i]=v
                         else:
-                            print ( f"[plotDBDict] removing {basename}:{i} (is an UL)" )
+                            if self.verbose > 2:
+                                print ( f"[plotDBDict] removing {basename}:{i} (is an UL)" )
                     else:
                         eBG,bgerr=None,None
                         if "expectedBG" in v:
@@ -192,8 +193,6 @@ class Plotter:
             skipped = []
             self.nanas = set()
             for k,v in data.items():
-                if "ul" in k:
-                    print ( "k", k, v )
                 p1 = k.find(":")
                 anaid = k[:p1]
                 passesAnas = False 
@@ -242,6 +241,8 @@ class Plotter:
                         # lets take the upper limit results with us
                         p = scipy.stats.norm.cdf( v["x"] )
                         P[sqrts].append (p )
+                        w = 1. / len(self.filenames)
+                        weights[sqrts].append ( w )
                 else:
                     obs = v["origN"]
                     # obs = v["newObs"]
@@ -503,13 +504,16 @@ def main():
             type=str, default="all" )
     argparser.add_argument ( '-D', '--disclaimer', 
             help='add a disclaimer', action='store_true' )
+    argparser.add_argument ( '-U', '--ulalso', 
+            help='add a disclaimer', action='store_true' )
     args=argparser.parse_args()
     if args.topologies != None and args.topologies.endswith ( ".py" ):
         print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
                         args.topologies, args.unscale, args.signalmodel,
                         args.filtersigma, args.select_collaboration,
-                        args.fakes, args.analyses, args.disclaimer )
+                        args.fakes, args.analyses, args.disclaimer,
+                        args.ulalso )
     plotter.plot( args.outfile )
 
 if __name__ == "__main__":

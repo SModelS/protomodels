@@ -158,6 +158,7 @@ class ExpResModifier:
                     x = self.drawNuisance() * self.fudge # draw but once from standard-normal
                 # x = stats.norm.rvs() * self.fudge # draw but once from standard-normal
             D["x"] = x
+            D["lumi"] =float ( globalInfo.lumi * fb)
             allpositive = True
             for i,y in enumerate( expected.y_values ):
                 sigma_exp = y / 1.96 ## the sigma of the Gaussian
