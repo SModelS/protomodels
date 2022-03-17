@@ -62,6 +62,8 @@ class Plotter:
         self.negativetopos = []
         self.negativeanalyses = []
         self.filtersigma = filtersigma
+        self.verbose = 0
+        self.useAlsoULMaps = False
         if topologies not in [ None, "" ]:
             topos = topologies.split(",")
             for t in topos:
@@ -119,8 +121,14 @@ class Plotter:
                         v["expectedBG"]/v["bgError"]>=self.filtersigma:
                     newdata[i]=v
                 else:
-                    if i.endswith ( ":ul" ):
-                        print ( f"[plotDBDict] removing {basename}:{i} (is an UL)" )
+                    if ":ul" in i:
+                        if self.useAlsoULMaps:
+                            txname = i [ i.rfind(":")+1: ]
+                            v["txns"] = txname
+                            v["lumi"] = 136.1
+                            newdata[i]=v
+                        else:
+                            print ( f"[plotDBDict] removing {basename}:{i} (is an UL)" )
                     else:
                         eBG,bgerr=None,None
                         if "expectedBG" in v:
@@ -184,6 +192,8 @@ class Plotter:
             skipped = []
             self.nanas = set()
             for k,v in data.items():
+                if "ul" in k:
+                    print ( "k", k, v )
                 p1 = k.find(":")
                 anaid = k[:p1]
                 passesAnas = False 
@@ -222,11 +232,17 @@ class Plotter:
                             passesTx=False
                             break
                 if not passesTx:
-                    print ( f"[plotDBDict] skipping {k}: does not pass Tx filter" )
+                    if self.verbose > 1:
+                        print ( f"[plotDBDict] skipping {k}: does not pass Tx filter" )
                     continue
 
-                if not ":ul" in k:
-                    sqrts = self.getSqrts100 ( k, v["lumi"] )
+                sqrts = self.getSqrts100 ( k, v["lumi"] )
+                if ":ul" in k:
+                    if self.useAlsoULMaps:
+                        # lets take the upper limit results with us
+                        p = scipy.stats.norm.cdf( v["x"] )
+                        P[sqrts].append (p )
+                else:
                     obs = v["origN"]
                     # obs = v["newObs"]
                     fakeobs = float("nan")
