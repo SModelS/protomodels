@@ -514,7 +514,7 @@ def main():
     argparser.add_argument ( '-D', '--disclaimer', 
             help='add a disclaimer', action='store_true' )
     argparser.add_argument ( '-U', '--ulalso', 
-            help='add a disclaimer', action='store_true' )
+            help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
     args=argparser.parse_args()
     if args.topologies != None and args.topologies.endswith ( ".py" ):
         print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
