@@ -192,6 +192,13 @@ class Plotter:
             data = self.data [ selfbase.replace(".dict","") ]
             skipped = []
             self.nanas = set()
+            hasEffMaps = set()
+            for k,v in data.items():
+                if ":ul" in k:
+                    continue
+                p1 = k.find(":")
+                anaid = k[:p1]
+                hasEffMaps.add ( anaid )
             for k,v in data.items():
                 p1 = k.find(":")
                 anaid = k[:p1]
@@ -237,7 +244,9 @@ class Plotter:
 
                 sqrts = self.getSqrts100 ( k, v["lumi"] )
                 if ":ul" in k:
-                    if self.useAlsoULMaps:
+                    if self.useAlsoULMaps and anaid in hasEffMaps:
+                        print ( f"[plotDBDict] skipping {anaid}:ul: has effmaps." )
+                    if self.useAlsoULMaps and not anaid in hasEffMaps:
                         # lets take the upper limit results with us
                         p = scipy.stats.norm.cdf( v["x"] )
                         P[sqrts].append (p )
