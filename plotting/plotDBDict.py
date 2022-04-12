@@ -354,6 +354,8 @@ class Plotter:
         if len (self.topologies )>0:
             stopos = ""
             for i,t in enumerate(self.topologies):
+                if "+" in t and not "+off" in t:
+                    print ( f"[plotDBDict] WARNING: topology {t} has a + sign, did you mean to instead have a comma ','?" ) 
                 stopos += prettyDescriptions.prettyTxname( t, "latex", False )
                 if i < len(self.topologies)-1:
                     stopos += ";"
