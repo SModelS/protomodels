@@ -18,9 +18,11 @@ class Analyzer:
         :param topos: topologies to filter for
         """
         self.filenames = []
-        self.topos = [] 
+        self.topos = set()
         if topos not in [ None, "", [] ]:
-            self.topos = topos
+            for to in topos:
+                for k in to.split(","):
+                    self.topos.add ( k.strip() )
         for pname in pathname:
             if os.path.isdir ( pname ):
                 pname = pname + "/db*dict"
@@ -144,7 +146,7 @@ def main():
             help='input dictionary file(s) [../data/database/]',
             type=str, default='.,/data/database/' )
     argparser.add_argument ( '-t', '--topos', nargs='*',
-            help='filter for topologies [None]',
+            help='filter for topologies, comma separated list or multiple arguments [None]',
             type=str, default=None )
     argparser.add_argument ( '-n', '--nsmallest',
             help='number of result to list with small p values [10]',
