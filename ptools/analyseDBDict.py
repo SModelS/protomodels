@@ -9,7 +9,7 @@ import numpy as np
 import os, glob, pickle, sys
 import scipy.stats
 import matplotlib.mlab as mlab
-from smodels_utils.helper.various import getSqrts
+from smodels_utils.helper.various import getSqrts, findCollaboration
 
 class Analyzer:
     def __init__ ( self, pathname, topos ):
@@ -92,17 +92,22 @@ class Analyzer:
         return ",".join(topos)
 
     def analyzeFile ( self, filename, nsmallest, nlargest ):
-        print ( f"[analyzeDBDict] {filename}" )
+        print ( f"[analyzeDBDict] reading {filename}" )
         meta, data = self.read ( filename )
         byS, byp = {}, {}
+        anas = set()
         for anaid, values in data.items():
             topos = self.getTopos ( values, anaid )
             if topos == None:
                 continue
+            anas.add ( anaid[:anaid.find(":")] )
+
             if "origS" in values:
                 byS[ values["origS"] ] = ( anaid, values )
             if "orig_p" in values:
                 byp[ values["orig_p"] ] = ( anaid, values )
+        colls = [ findCollaboration(x) for x in anas ]
+        print ( f"[analyzeDBDict] {colls.count('CMS')} CMS and {colls.count('ATLAS')} ATLAS results" )
         keys = list ( byp.keys() )
         keys.sort( reverse = False )
         #keys.sort( reverse = True )
