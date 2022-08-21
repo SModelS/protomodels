@@ -106,6 +106,9 @@ def draw( args : dict ):
     nres = len ( results )
 
     from matplotlib import pyplot as plt
+    import matplotlib
+    matplotlib.rc('xtick', labelsize=14, labelcolor = "gray" )
+    matplotlib.rc('ytick', labelsize=14, labelcolor = "gray" )
 
     bins= { "CMS": { 8: [999,0], 13:[999,0] },
             "ATLAS": { 8: [999,0], 13: [999,0] } }
@@ -113,6 +116,7 @@ def draw( args : dict ):
     n = len(results )
     import numpy as np
     h = np.array([[0.]*n]*n)
+    labels = []
     for x,e in enumerate(results):
         label = e.globalInfo.id
         hasLikelihood = hasLLHD ( e )
@@ -134,6 +138,7 @@ def draw( args : dict ):
         color = "gray"
         if len(exps)==1 and len(sqrtses)==1:
             label = label.replace("CMS-","").replace("ATLAS-","").replace("-agg","")
+        labels.append ( label )
         # label = "#color[%d]{%s}" % (color, label )
         for y,f in enumerate(results):
             if args["triangular"] and y>x:
@@ -144,7 +149,7 @@ def draw( args : dict ):
             if isUn:
                 h[n-x-1][y]= 1.
             else:
-                h[n-x-1][y]= -1.
+                h[n-x-1][y]= -1
             if not hasLikelihood or not hasLLHD ( f ): ## has no llhd? cannot be combined
                 h[n-x-1][y] = 2.
             if y==x:
@@ -155,99 +160,25 @@ def draw( args : dict ):
     l = list(zip(v,c))
     from  matplotlib.colors import LinearSegmentedColormap
     cmap=LinearSegmentedColormap.from_list('rg',l, N=len(c) )
-    plt.matshow ( h, aspect = "equal", origin = "lower", cmap = cmap )
+    plt.matshow ( h, aspect = "equal", origin = "lower", cmap = cmap,
+                  vmin = -1, vmax = 3. )
     plt.grid ( visible = False )
+    plt.xticks ( rotation=90 )
     fig = plt.gcf()
+    fig.set_size_inches(30, 30)
+    ax = plt.gca()
+    ax.set_xticks ( range(len(labels)) )
+    ax.set_xticklabels( labels )
+    ax.set_yticks ( range(len(labels)) )
+    ax.set_yticklabels( labels ) ## need to invert
     bins, xbins, lines = {}, {}, []
     if len(exps)==1 and len(sqrtses)==1:
         plt.text ( .45, .95, "%s, %d TeV" % ( exps[0], sqrtses[0] ),
                    transform = fig.transFigure )
-        
-    """
-    for ana in exps:
-        for sqrts in sqrtses:
-            name= "%s%d" % ( ana, sqrts )
-            ROOT.bins[name] = ROOT.TLatex()
-            ROOT.bins[name].SetTextColorAlpha(ROOT.kBlack,.7)
-            ROOT.bins[name].SetTextSize(.025)
-            ROOT.bins[name].SetTextAngle(90.)
-            ROOT.xbins[name] = ROOT.TLatex()
-            ROOT.xbins[name].SetTextColorAlpha(ROOT.kBlack,.7)
-            ROOT.xbins[name].SetTextSize(.025)
-            xcoord = .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] )
-            ycoord = n- .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] ) -3
-            if len(sqrtses)>1 or len(exps)>1:
-                ROOT.bins[name].DrawLatex(-4,xcoord-3,"#splitline{%s}{%d TeV}" % ( ana, sqrts ) )
-                ROOT.xbins[name].DrawLatex(ycoord,-5,"#splitline{%s}{%d TeV}" % ( ana, sqrts ) )
-            yt = bins[ana][sqrts][1] +1
-            extrudes = 3 # how far does the line extrude into tick labels?
-            xmax = n
-            if trianglePlot:
-                xmax = n-yt
-            line = ROOT.TLine ( -extrudes, yt, xmax, yt )
-            line.SetLineWidth(2)
-            line.Draw()
-            ymax = n
-            if trianglePlot:
-                ymax = yt
-            xline = ROOT.TLine ( n-yt, ymax, n-yt, -extrudes )
-            xline.SetLineWidth(2)
-            xline.Draw()
-            ROOT.lines.append ( line )
-            ROOT.lines.append ( xline )
-    line = ROOT.TLine ( -extrudes, 0, xmax, 0 )
-    line.SetLineWidth(2)
-    line.Draw()
-    xline = ROOT.TLine ( n, ymax, n, -extrudes )
-    xline.SetLineWidth(2)
-    xline.Draw()
-    ROOT.lines.append ( line )
-    ROOT.lines.append ( xline )
-    h.LabelsOption("v","X")
-    if trianglePlot:
-        for i in range(n+1):
-            wline = ROOT.TLine ( n, i, n-i, i )
-            wline.SetLineColor ( ROOT.kWhite )
-            wline.Draw ()
-            ROOT.lines.append ( wline )
-            vline = ROOT.TLine ( i, n-i, i, n )
-            vline.SetLineColor ( ROOT.kWhite )
-            vline.Draw ()
-        ROOT.lines.append ( vline )
-        ROOT.title = ROOT.TLatex()
-        ROOT.title.SetNDC()
-        ROOT.title.SetTextSize(.025 )
-        ROOT.title.DrawLatex(.28,.89, "#font[132]{Correlations between analyses, combination strategy: ,,%s''}" % strategy )
-    ROOT.boxes = []
-    if trianglePlot:
-        for i,b in enumerate ( [ "pair is uncorrelated", "pair is correlated", "likelihood is missing" ] ):
-            bx = 51
-            by = 68 - 3*i
-            box = ROOT.TBox(bx,by,bx+1,by+1)
-            c = cols[i]
-            if i > 0:
-                c = cols[i+1]
-            box.SetFillColor ( c )
-            box.Draw()
-            ROOT.boxes.append ( box )
-            l = ROOT.TLatex()
-            l.SetTextSize(.022)
-            #if i == 2:
-            #    c = 16
-            l.SetTextColor ( c )
-            b="#font[132]{%s}" % b ## add font
-            l.DrawLatex ( bx+2, by, b )
-            ROOT.boxes.append ( l )
-    l = ROOT.TLatex()
-    l.SetNDC()
-    l.SetTextColor(ROOT.kGray+1)
-    l.SetTextSize(.015)
-    if drawtimestamp:
-        l.DrawLatex ( .01, .01, "plot produced %s from database v%s" % \
-                      ( time.strftime("%h %d %Y" ), d.databaseVersion ) )
-    ROOT.gPad.SetGrid()
-    ROOT.c1.Print( outputfile )
-    """
+    if args["drawtimestamp"]:
+        plt.text ( .01, .01, "plot produced %s from database v%s" % \
+                   ( time.strftime("%h %d %Y" ), d.databaseVersion ), 
+                   c="grey", transform = fig.transFigure, fontsize=24 )
     # ROOT.c1.Print("matrix_%s.pdf" % strategy )
     outputfile = args["outputfile"]
     if "@M" in outputfile:
@@ -258,7 +189,7 @@ def draw( args : dict ):
             modifiers += str(sqrtses[0])
         outputfile = outputfile.replace("@M",modifiers)
     print ( "Plotting to %s" % outputfile )
-    plt.savefig ( outputfile )
+    plt.savefig ( outputfile, dpi=300 )
     return outputfile
 
 def show ( outputfile ):
