@@ -150,8 +150,13 @@ def draw( args : dict ):
             if y==x:
                 h[n-x-1][y] = 3.
 
-    # colors = [ "red", "green", "white", "black", "blue" ] 
-    plt.imshow ( h )
+    c = [ "red", "blue", "green", "black", "yellow", "green", "white", "magenta" ]
+    # v = [ -3, -2, -1, 0, 1, 2 ]
+    v = [0,.11,.22,.33,0.52,.7,.85,1.]
+    l = list(zip(v,c))
+    from  matplotlib.colors import LinearSegmentedColormap
+    cmap=LinearSegmentedColormap.from_list('rg',l, N=len(c) )
+    plt.imshow ( h, aspect = "equal", origin = "lower", cmap = cmap )
     fig = plt.gcf()
     bins, xbins, lines = {}, {}, []
     if len(exps)==1 and len(sqrtses)==1:
