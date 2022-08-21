@@ -170,6 +170,7 @@ def draw( args : dict ):
     ax.set_xticks ( range(len(labels)) )
     ax.set_xticklabels( labels )
     ax.set_yticks ( range(len(labels)) )
+    labels.reverse()
     ax.set_yticklabels( labels ) ## need to invert
     bins, xbins, lines = {}, {}, []
     if len(exps)==1 and len(sqrtses)==1:
