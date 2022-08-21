@@ -136,6 +136,7 @@ def draw( args : dict ):
             bins[ana][sqrts][1]=x
             ymax=x
         color = "gray"
+        label = label.replace("-agg","")
         if len(exps)==1 and len(sqrtses)==1:
             label = label.replace("CMS-","").replace("ATLAS-","").replace("-agg","")
         labels.append ( label )
@@ -146,14 +147,17 @@ def draw( args : dict ):
             isUn = analysisCombiner.canCombine ( e.globalInfo, f.globalInfo, 
                     args["strategy"] )
             # isUn = e.isUncorrelatedWith ( f )
+            v = 0.
             if isUn:
-                h[n-x-1][y]= 1.
+                v = 1.
             else:
-                h[n-x-1][y]= -1
+                v = -1
             if not hasLikelihood or not hasLLHD ( f ): ## has no llhd? cannot be combined
-                h[n-x-1][y] = 2.
+                v = 2.
             if y==x:
-                h[n-x-1][y] = 3.
+                v = 3.
+            h[x][n-y-1]= v
+            # h[n-x-1][y]= v
 
     c = [ "red", "b", "b", "b", "limegreen", "b", "white", "grey" ]
     v = np.arange(0.,1.00001,1. / (len(c)-1) )
@@ -167,15 +171,95 @@ def draw( args : dict ):
     fig = plt.gcf()
     fig.set_size_inches(30, 30)
     ax = plt.gca()
+    ax.xaxis.set_ticks_position("bottom")
+    plt.setp(ax.get_xticklabels(), rotation=90,
+         ha="right", rotation_mode="anchor")
     ax.set_xticks ( range(len(labels)) )
     ax.set_xticklabels( labels )
     ax.set_yticks ( range(len(labels)) )
     labels.reverse()
     ax.set_yticklabels( labels ) ## need to invert
-    bins, xbins, lines = {}, {}, []
     if len(exps)==1 and len(sqrtses)==1:
         plt.text ( .45, .95, "%s, %d TeV" % ( exps[0], sqrtses[0] ),
                    transform = fig.transFigure )
+    for ana in exps:
+        for sqrts in sqrtses:
+            name= "%s%d" % ( ana, sqrts )
+            """
+            ROOT.xbins[name] = ROOT.TLatex()
+            ROOT.xbins[name].SetTextColorAlpha(ROOT.kBlack,.7)
+            ROOT.xbins[name].SetTextSize(.025)
+            """
+            xcoord = .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] )
+            ycoord = n- .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] ) -3
+            if len(sqrtses)>1 or len(exps)>1:
+                plt.text(-5,xcoord-3,"%s\n%d TeV" % ( ana, sqrts ),
+                         fontsize=44, c="black", rotation=90,
+                         horizontalalignment="center" )
+                plt.text(ycoord,-8,"%s\n%d TeV" % ( ana, sqrts ) ,
+                         fontsize=44, c="black", horizontalalignment="center" )
+            """
+                ROOT.xbins[name].DrawLatex(ycoord,-5,"#splitline{%s}{%d TeV}" % ( ana, sqrts ) )
+            yt = bins[ana][sqrts][1] +1
+            extrudes = 3 # how far does the line extrude into tick labels?
+            xmax = n
+            if trianglePlot:
+                xmax = n-yt
+            line = ROOT.TLine ( -extrudes, yt, xmax, yt )
+            line.SetLineWidth(2)
+            line.Draw()
+            ymax = n
+            if trianglePlot:
+                ymax = yt
+            xline = ROOT.TLine ( n-yt, ymax, n-yt, -extrudes )
+            xline.SetLineWidth(2)
+            xline.Draw()
+            ROOT.lines.append ( line )
+            ROOT.lines.append ( xline )
+    line = ROOT.TLine ( -extrudes, 0, xmax, 0 )
+    line.SetLineWidth(2)
+    line.Draw()
+    xline = ROOT.TLine ( n, ymax, n, -extrudes )
+    xline.SetLineWidth(2)
+    xline.Draw()
+    ROOT.lines.append ( line )
+    ROOT.lines.append ( xline )
+    h.LabelsOption("v","X")
+    if trianglePlot:
+        for i in range(n+1):
+            wline = ROOT.TLine ( n, i, n-i, i )
+            wline.SetLineColor ( ROOT.kWhite )
+            wline.Draw ()
+            ROOT.lines.append ( wline )
+            vline = ROOT.TLine ( i, n-i, i, n )
+            vline.SetLineColor ( ROOT.kWhite )
+            vline.Draw ()
+        ROOT.lines.append ( vline )
+        ROOT.title = ROOT.TLatex()
+        ROOT.title.SetNDC()
+        ROOT.title.SetTextSize(.025 )
+        ROOT.title.DrawLatex(.28,.89, "#font[132]{Correlations between analyses, combination strategy: ,,%s''}" % strategy )
+    ROOT.boxes = []
+    if trianglePlot:
+        for i,b in enumerate ( [ "pair is uncorrelated", "pair is correlated", "likelihood is missing" ] ):
+            bx = 51
+            by = 68 - 3*i
+            box = ROOT.TBox(bx,by,bx+1,by+1)
+            c = cols[i]
+            if i > 0:
+                c = cols[i+1]
+            box.SetFillColor ( c )
+            box.Draw()
+            ROOT.boxes.append ( box )
+            l = ROOT.TLatex()
+            l.SetTextSize(.022)
+            #if i == 2:
+            #    c = 16
+            l.SetTextColor ( c )
+            b="#font[132]{%s}" % b ## add font
+            l.DrawLatex ( bx+2, by, b )
+            ROOT.boxes.append ( l )
+            """
     if args["drawtimestamp"]:
         plt.text ( .01, .01, "plot produced %s from database v%s" % \
                    ( time.strftime("%h %d %Y" ), d.databaseVersion ), 
