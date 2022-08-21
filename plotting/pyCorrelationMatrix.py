@@ -175,6 +175,7 @@ def draw( args : dict ):
     plt.setp(ax.get_xticklabels(), rotation=90,
          ha="right", rotation_mode="anchor")
     ax.set_xticks ( range(len(labels)) )
+    labels.reverse()
     ax.set_xticklabels( labels )
     ax.set_yticks ( range(len(labels)) )
     labels.reverse()
@@ -198,24 +199,19 @@ def draw( args : dict ):
                          horizontalalignment="center" )
                 plt.text(ycoord,-8,"%s\n%d TeV" % ( ana, sqrts ) ,
                          fontsize=44, c="black", horizontalalignment="center" )
-            """
-                ROOT.xbins[name].DrawLatex(ycoord,-5,"#splitline{%s}{%d TeV}" % ( ana, sqrts ) )
             yt = bins[ana][sqrts][1] +1
             extrudes = 3 # how far does the line extrude into tick labels?
             xmax = n
-            if trianglePlot:
+            if args["triangular"]:
                 xmax = n-yt
-            line = ROOT.TLine ( -extrudes, yt, xmax, yt )
-            line.SetLineWidth(2)
-            line.Draw()
+            plt.plot ( [ -extrudes, xmax ], [ yt-.5, yt-.5 ], c="black" )
             ymax = n
-            if trianglePlot:
+            if args["triangular"]:
                 ymax = yt
-            xline = ROOT.TLine ( n-yt, ymax, n-yt, -extrudes )
-            xline.SetLineWidth(2)
-            xline.Draw()
-            ROOT.lines.append ( line )
-            ROOT.lines.append ( xline )
+            for s in [ "bottom", "top", "left", "right" ]:
+                ax.spines[s].set_visible(False)
+            plt.plot ( [ n-yt-.5, n-yt-.5], [ymax, -extrudes ], c="black" )
+            """
     line = ROOT.TLine ( -extrudes, 0, xmax, 0 )
     line.SetLineWidth(2)
     line.Draw()
