@@ -9,7 +9,9 @@ from smodels.tools.physicsUnits import TeV
 from smodels.tools.colors import colors
 from smodels_utils.helper.various import hasLLHD
 from tester import analysisCombiner
+import ROOT
 import IPython
+import ctypes
 
 def sortBySqrts ( results, sqrts ):
     ret = []
@@ -62,61 +64,78 @@ def sortOutDupes ( results ):
             ret.append ( res )
     return ret
 
-def draw( args : dict ):
+def draw( strategy, databasepath, trianglePlot, miscol,
+          diagcol, experiment, S, drawtimestamp, outputfile, nofastlim ):
     """
-    draw the correlation matrix
-    :param args: dictionary of args
-           triangular: if True, then only plot the upper triangle of this
+    :param trianglePlot: if True, then only plot the upper triangle of this
                          symmetrical matrix
-           miscol: color to use when likelihood is missing
-           diagcol: color to use for diagonal
-           experiment: draw only for specific experiment ("CMS", "ATLAS", "all" )
-           database: path to database
-           sqrts: draw only for specific sqrts ( "8", "13", "all" )
-           drawtimestamp: if true, put a timestamp on plot
-           outputfile: file name of output file (matrix.png)
-           nofastlim: if True, discard fastlim results
+    :param miscol: color to use when likelihood is missing
+    :param diagcol: color to use for diagonal
+    :param experiment: draw only for specific experiment ("CMS", "ATLAS", "all" )
+    :param S: draw only for specific sqrts ( "8", "13", "all" )
+    :param drawtimestamp: if true, put a timestamp on plot
+    :param outputfile: file name of output file (matrix.png)
+    :param nofastlim: if True, discard fastlim results
     """
-    cols = [ "red", "white", "green", args["miscol"], args["diagcol"] ]
+    ROOT.gStyle.SetOptStat(0000)
+
+    ROOT.gROOT.SetBatch()
+    cols = [ ROOT.kRed+1, ROOT.kWhite, ROOT.kGreen+1, miscol, diagcol ]
+    ROOT.gStyle.SetPalette(len(cols), (ctypes.c_int * len(cols))(*cols) )
+    ROOT.gStyle.SetNumberContours(len(cols))
+
+    ROOT.gStyle.SetPadLeftMargin(.25)
 
     sqrtses = [ 8, 13 ]
-    if args["sqrts"] not in [ "all" ]:
-        sqrtses = [ int(args["sqrts"]) ]
+    if S not in [ "all" ]:
+        sqrtses = [ int(S) ]
 
     colors.on = True
     setLogLevel ( "debug" )
 
     # dir = "/home/walten/git/smodels-database/"
-    dbdir = args["database"]
-    d=Database( dbdir, discard_zeroes = True )
+    dir = databasepath
+    d=Database( dir, discard_zeroes = True )
     print(d)
     analysisIds = [ "all" ]
     exps = [ "CMS", "ATLAS" ]
-    if args["experiment"] in [ "CMS", "ATLAS" ]:
-        analysisIds = [ args["experiment"]+"*" ]
-        exps = [ args["experiment"] ]
+    if experiment in [ "CMS", "ATLAS" ]:
+        analysisIds = [ experiment+"*" ]
+        exps = [ experiment ]
     results = d.getExpResults( analysisIDs = analysisIds )
-    if args["nofastlim"]:
+    if nofastlim:
         results = noFastlim ( results )
     results = sortOutDupes ( results )
-    if args["sqrts"] in [ "8", "13" ]:
-        results = sortBySqrts ( results, int(args["sqrts"]) )
+    if S in [ "8", "13" ]:
+        results = sortBySqrts ( results, int(S) )
 
     #results.sort()
     nres = len ( results )
 
-    from matplotlib import pyplot as plt
-    import matplotlib
-    matplotlib.rc('xtick', labelsize=14, labelcolor = "gray" )
-    matplotlib.rc('ytick', labelsize=14, labelcolor = "gray" )
+    ROOT.c1=ROOT.TCanvas("c1","c1",1770,1540)
+    ROOT.c1.SetLeftMargin(0.18)
+    ROOT.c1.SetBottomMargin(0.21)
+    ROOT.c1.SetTopMargin(0.06)
+    ROOT.c1.SetRightMargin(0.01)
+    if nres > 60:
+        ROOT.c1.SetLeftMargin(0.12) ## seemed to work for 96 results
+        ROOT.c1.SetBottomMargin(0.15)
+        ROOT.c1.SetTopMargin(0.09)
+        ROOT.c1.SetRightMargin(0.015)
+
+    h=ROOT.TH2F ( "Correlations", "",
+                  nres, 0., nres, nres, 0., nres )
+    xaxis = h.GetXaxis()
+    yaxis = h.GetYaxis()
+
+    sze = 0.13 / math.sqrt ( nres )
+    xaxis.SetLabelSize( 1.3*sze )
+    yaxis.SetLabelSize( 1.3*sze )
 
     bins= { "CMS": { 8: [999,0], 13:[999,0] },
             "ATLAS": { 8: [999,0], 13: [999,0] } }
 
     n = len(results )
-    import numpy as np
-    h = np.array([[0.]*n]*n)
-    labels = []
     for x,e in enumerate(results):
         label = e.globalInfo.id
         hasLikelihood = hasLLHD ( e )
@@ -124,83 +143,75 @@ def draw( args : dict ):
         #if not hasLikelihood:
         #    print ( "no likelihood: %s" % label )
         sqrts = int(e.globalInfo.sqrts.asNumber(TeV))
+        color = ROOT.kCyan+2
         ymax=0
+        if ana == "ATLAS":
+            color = ROOT.kBlue+1
+        if sqrts > 10.:
+            color += 2
         if x < bins[ana][sqrts][0]:
             bins[ana][sqrts][0]=x
         if x > bins[ana][sqrts][1]:
             bins[ana][sqrts][1]=x
             ymax=x
-        label = label.replace("-agg","")
+        color = ROOT.kGray+2
         if len(exps)==1 and len(sqrtses)==1:
             label = label.replace("CMS-","").replace("ATLAS-","").replace("-agg","")
-        labels.append ( label )
+        label = "#color[%d]{%s}" % (color, label )
+        xaxis.SetBinLabel(n-x, label )
+        yaxis.SetBinLabel(x+1, label )
         for y,f in enumerate(results):
-            if args["triangular"] and y<x:
-                h[x][n-y-1]= float("nan")
+            if trianglePlot and y>x:
                 continue
-            isUn = analysisCombiner.canCombine ( e.globalInfo, f.globalInfo, 
-                    args["strategy"] )
+            isUn = analysisCombiner.canCombine ( e.globalInfo, f.globalInfo, strategy )
             # isUn = e.isUncorrelatedWith ( f )
-            v = 0.
             if isUn:
-                v = 1.
+                h.SetBinContent ( n-x, y+1, 1. )
             else:
-                v = -1
+                h.SetBinContent ( n-x, y+1, -1. )
             if not hasLikelihood or not hasLLHD ( f ): ## has no llhd? cannot be combined
-                v = 2.
+                h.SetBinContent ( n-x, y+1, 2. )
             if y==x:
-                v = 3.
-            h[x][n-y-1]= v
-            # h[n-x-1][y]= v
+                h.SetBinContent ( n-x, y+1, 3. )
 
-    c = [ "red", "b", "b", "b", "limegreen", "b", "white", "grey" ]
-    v = np.arange(0.,1.00001,1. / (len(c)-1) )
-    l = list(zip(v,c))
-    from  matplotlib.colors import LinearSegmentedColormap
-    cmap=LinearSegmentedColormap.from_list('rg',l, N=len(c) )
-    plt.matshow ( h, aspect = "equal", origin = "lower", cmap = cmap,
-                  vmin = -1, vmax = 3. )
-    plt.grid ( visible = False )
-    plt.xticks ( rotation=90 )
-    fig = plt.gcf()
-    fig.set_size_inches(30, 30)
-    ax = plt.gca()
-    ax.xaxis.set_ticks_position("bottom")
-    plt.setp(ax.get_xticklabels(), rotation=90,
-         ha="right", rotation_mode="anchor")
-    ax.set_xticks ( range(len(labels)) )
-    labels.reverse()
-    ax.set_xticklabels( labels )
-    ax.set_yticks ( range(len(labels)) )
-    labels.reverse()
-    ax.set_yticklabels( labels ) ## need to invert
+    h.Draw("col")
+    ROOT.bins, ROOT.xbins, ROOT.lines = {}, {}, []
     if len(exps)==1 and len(sqrtses)==1:
-        plt.text ( .45, .95, "%s, %d TeV" % ( exps[0], sqrtses[0] ),
-                   transform = fig.transFigure )
+        ROOT.t1 = ROOT.TLatex()
+        ROOT.t1.SetNDC()
+        ROOT.t1.DrawLatex ( .45, .95, "%s, %d TeV" % ( exps[0], sqrtses[0] ) )
+        
     for ana in exps:
         for sqrts in sqrtses:
             name= "%s%d" % ( ana, sqrts )
+            ROOT.bins[name] = ROOT.TLatex()
+            ROOT.bins[name].SetTextColorAlpha(ROOT.kBlack,.7)
+            ROOT.bins[name].SetTextSize(.025)
+            ROOT.bins[name].SetTextAngle(90.)
+            ROOT.xbins[name] = ROOT.TLatex()
+            ROOT.xbins[name].SetTextColorAlpha(ROOT.kBlack,.7)
+            ROOT.xbins[name].SetTextSize(.025)
             xcoord = .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] )
             ycoord = n- .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] ) -3
             if len(sqrtses)>1 or len(exps)>1:
-                plt.text(-5,xcoord-3,"%s\n%d TeV" % ( ana, sqrts ),
-                         fontsize=44, c="black", rotation=90,
-                         horizontalalignment="center" )
-                plt.text(ycoord,-8,"%s\n%d TeV" % ( ana, sqrts ) ,
-                         fontsize=44, c="black", horizontalalignment="center" )
+                ROOT.bins[name].DrawLatex(-4,xcoord-3,"#splitline{%s}{%d TeV}" % ( ana, sqrts ) )
+                ROOT.xbins[name].DrawLatex(ycoord,-5,"#splitline{%s}{%d TeV}" % ( ana, sqrts ) )
             yt = bins[ana][sqrts][1] +1
             extrudes = 3 # how far does the line extrude into tick labels?
             xmax = n
-            if args["triangular"]:
+            if trianglePlot:
                 xmax = n-yt
-            plt.plot ( [ -extrudes, xmax ], [ yt-.5, yt-.5 ], c="black" )
+            line = ROOT.TLine ( -extrudes, yt, xmax, yt )
+            line.SetLineWidth(2)
+            line.Draw()
             ymax = n
-            if args["triangular"]:
+            if trianglePlot:
                 ymax = yt
-            for s in [ "bottom", "top", "left", "right" ]:
-                ax.spines[s].set_visible(False)
-            plt.plot ( [ n-yt-.5, n-yt-.5], [ymax, -extrudes ], c="black" )
-            """
+            xline = ROOT.TLine ( n-yt, ymax, n-yt, -extrudes )
+            xline.SetLineWidth(2)
+            xline.Draw()
+            ROOT.lines.append ( line )
+            ROOT.lines.append ( xline )
     line = ROOT.TLine ( -extrudes, 0, xmax, 0 )
     line.SetLineWidth(2)
     line.Draw()
@@ -244,13 +255,14 @@ def draw( args : dict ):
             b="#font[132]{%s}" % b ## add font
             l.DrawLatex ( bx+2, by, b )
             ROOT.boxes.append ( l )
-            """
-    if args["drawtimestamp"]:
-        plt.text ( .01, .01, "plot produced %s from database v%s" % \
-                   ( time.strftime("%h %d %Y" ), d.databaseVersion ), 
-                   c="grey", transform = fig.transFigure, fontsize=24 )
-    # ROOT.c1.Print("matrix_%s.pdf" % strategy )
-    outputfile = args["outputfile"]
+    l = ROOT.TLatex()
+    l.SetNDC()
+    l.SetTextColor(ROOT.kGray+1)
+    l.SetTextSize(.015)
+    if drawtimestamp:
+        l.DrawLatex ( .01, .01, "plot produced %s from database v%s" % \
+                      ( time.strftime("%h %d %Y" ), d.databaseVersion ) )
+    ROOT.gPad.SetGrid()
     if "@M" in outputfile:
         modifiers = ""
         if len(exps)==1:
@@ -259,14 +271,8 @@ def draw( args : dict ):
             modifiers += str(sqrtses[0])
         outputfile = outputfile.replace("@M",modifiers)
     print ( "Plotting to %s" % outputfile )
-    plt.savefig ( outputfile, dpi=300 )
-    return outputfile
-
-def show ( outputfile ):
-    import subprocess
-    cmd = f"timg {outputfile}"
-    o = subprocess.getoutput ( cmd )
-    print ( o )
+    ROOT.c1.Print( outputfile )
+    # ROOT.c1.Print("matrix_%s.pdf" % strategy )
 
 if __name__ == "__main__":
     import argparse
@@ -295,10 +301,10 @@ if __name__ == "__main__":
             help='dont put a timestamp on it',
             action="store_true" )
     args=argparser.parse_args()
-    args.drawtimestamp = not args.notimestamp
-    args.miscol = "gold" ## missing likelihood color, golden
-    args.miscol = "white" ## missing likelihood color, white
-    args.diagcol = "black"
-    args.diagcol = "grey"
-    outputfile = draw( vars ( args ) )
-    show ( outputfile )
+    drawtimestamp = not args.notimestamp
+    miscol = 42 ## missing likelihood color, golden
+    miscol = ROOT.kWhite ## missing likelihood color, white
+    diagcol = ROOT.kBlack
+    diagcol = ROOT.kGray
+    draw( args.strategy, args.database, args.triangular, miscol, diagcol,
+          args.experiment, args.sqrts, drawtimestamp, args.outputfile, args.nofastlim )
