@@ -124,25 +124,19 @@ def draw( args : dict ):
         #if not hasLikelihood:
         #    print ( "no likelihood: %s" % label )
         sqrts = int(e.globalInfo.sqrts.asNumber(TeV))
-        color = "cyan"
         ymax=0
-        if ana == "ATLAS":
-            color = "blue"
-        if sqrts > 10.:
-            color = "dark"+color
         if x < bins[ana][sqrts][0]:
             bins[ana][sqrts][0]=x
         if x > bins[ana][sqrts][1]:
             bins[ana][sqrts][1]=x
             ymax=x
-        color = "gray"
         label = label.replace("-agg","")
         if len(exps)==1 and len(sqrtses)==1:
             label = label.replace("CMS-","").replace("ATLAS-","").replace("-agg","")
         labels.append ( label )
-        # label = "#color[%d]{%s}" % (color, label )
         for y,f in enumerate(results):
-            if args["triangular"] and y>x:
+            if args["triangular"] and y<x:
+                h[x][n-y-1]= float("nan")
                 continue
             isUn = analysisCombiner.canCombine ( e.globalInfo, f.globalInfo, 
                     args["strategy"] )
@@ -186,11 +180,6 @@ def draw( args : dict ):
     for ana in exps:
         for sqrts in sqrtses:
             name= "%s%d" % ( ana, sqrts )
-            """
-            ROOT.xbins[name] = ROOT.TLatex()
-            ROOT.xbins[name].SetTextColorAlpha(ROOT.kBlack,.7)
-            ROOT.xbins[name].SetTextSize(.025)
-            """
             xcoord = .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] )
             ycoord = n- .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] ) -3
             if len(sqrtses)>1 or len(exps)>1:
