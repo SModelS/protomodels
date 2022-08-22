@@ -68,8 +68,6 @@ def draw( args : dict ):
     :param args: dictionary of args
            triangular: if True, then only plot the upper triangle of this
                          symmetrical matrix
-           miscol: color to use when likelihood is missing
-           diagcol: color to use for diagonal
            experiment: draw only for specific experiment ("CMS", "ATLAS", "all" )
            database: path to database
            sqrts: draw only for specific sqrts ( "8", "13", "all" )
@@ -77,8 +75,6 @@ def draw( args : dict ):
            outputfile: file name of output file (matrix.png)
            nofastlim: if True, discard fastlim results
     """
-    cols = [ "red", "white", "green", args["miscol"], args["diagcol"] ]
-
     sqrtses = [ 8, 13 ]
     if args["sqrts"] not in [ "all" ]:
         sqrtses = [ int(args["sqrts"]) ]
@@ -166,6 +162,8 @@ def draw( args : dict ):
     fig.set_size_inches(30, 30)
     ax = plt.gca()
     ax.xaxis.set_ticks_position("bottom")
+    ax.tick_params(axis='x', pad=-55 )
+    ax.tick_params(axis='y', pad=-55 )
     plt.setp(ax.get_xticklabels(), rotation=90,
          ha="right", rotation_mode="anchor")
     ax.set_xticks ( range(len(labels)) )
@@ -177,6 +175,7 @@ def draw( args : dict ):
     if len(exps)==1 and len(sqrtses)==1:
         plt.text ( .45, .95, "%s, %d TeV" % ( exps[0], sqrtses[0] ),
                    transform = fig.transFigure )
+    ct = 0
     for ana in exps:
         for sqrts in sqrtses:
             name= "%s%d" % ( ana, sqrts )
@@ -193,58 +192,16 @@ def draw( args : dict ):
             xmax = n
             if args["triangular"]:
                 xmax = n-yt
-            plt.plot ( [ -extrudes, xmax ], [ yt-.5, yt-.5 ], c="black" )
+            if ct>0:
+                plt.plot ( [ -extrudes, xmax ], [ yt-.5, yt-.5 ], c="black" )
             ymax = n
             if args["triangular"]:
                 ymax = yt
             for s in [ "bottom", "top", "left", "right" ]:
                 ax.spines[s].set_visible(False)
-            plt.plot ( [ n-yt-.5, n-yt-.5], [ymax, -extrudes ], c="black" )
-            """
-    line = ROOT.TLine ( -extrudes, 0, xmax, 0 )
-    line.SetLineWidth(2)
-    line.Draw()
-    xline = ROOT.TLine ( n, ymax, n, -extrudes )
-    xline.SetLineWidth(2)
-    xline.Draw()
-    ROOT.lines.append ( line )
-    ROOT.lines.append ( xline )
-    h.LabelsOption("v","X")
-    if trianglePlot:
-        for i in range(n+1):
-            wline = ROOT.TLine ( n, i, n-i, i )
-            wline.SetLineColor ( ROOT.kWhite )
-            wline.Draw ()
-            ROOT.lines.append ( wline )
-            vline = ROOT.TLine ( i, n-i, i, n )
-            vline.SetLineColor ( ROOT.kWhite )
-            vline.Draw ()
-        ROOT.lines.append ( vline )
-        ROOT.title = ROOT.TLatex()
-        ROOT.title.SetNDC()
-        ROOT.title.SetTextSize(.025 )
-        ROOT.title.DrawLatex(.28,.89, "#font[132]{Correlations between analyses, combination strategy: ,,%s''}" % strategy )
-    ROOT.boxes = []
-    if trianglePlot:
-        for i,b in enumerate ( [ "pair is uncorrelated", "pair is correlated", "likelihood is missing" ] ):
-            bx = 51
-            by = 68 - 3*i
-            box = ROOT.TBox(bx,by,bx+1,by+1)
-            c = cols[i]
-            if i > 0:
-                c = cols[i+1]
-            box.SetFillColor ( c )
-            box.Draw()
-            ROOT.boxes.append ( box )
-            l = ROOT.TLatex()
-            l.SetTextSize(.022)
-            #if i == 2:
-            #    c = 16
-            l.SetTextColor ( c )
-            b="#font[132]{%s}" % b ## add font
-            l.DrawLatex ( bx+2, by, b )
-            ROOT.boxes.append ( l )
-            """
+            if ct>0:
+               plt.plot ( [ n-yt-.5, n-yt-.5], [ymax, -extrudes ], c="black" )
+            ct += 1
     if args["drawtimestamp"]:
         plt.text ( .01, .01, "plot produced %s from database v%s" % \
                    ( time.strftime("%h %d %Y" ), d.databaseVersion ), 
@@ -296,9 +253,5 @@ if __name__ == "__main__":
             action="store_true" )
     args=argparser.parse_args()
     args.drawtimestamp = not args.notimestamp
-    args.miscol = "gold" ## missing likelihood color, golden
-    args.miscol = "white" ## missing likelihood color, white
-    args.diagcol = "black"
-    args.diagcol = "grey"
     outputfile = draw( vars ( args ) )
     show ( outputfile )
