@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 from __future__ import print_function
+    
+print ( "ERROR: you should be using plotCorrelationMatrix!!" )
+
 import sys, os, time, math
 sys.path.insert(0,"../")
 from smodels.experiment.databaseObj import Database
