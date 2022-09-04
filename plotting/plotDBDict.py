@@ -14,12 +14,13 @@ from ptools.helpers import computeP
 from copy import deepcopy as cp
 import scipy.stats
 import matplotlib.mlab as mlab
+from typing import Union
 
 class Plotter:
     def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str,
                    topologies, unscale, signalmodel, filtersigma: float,
                    collaboration : str, doFakes : bool, analyses : str,
-                   disclaimer : bool, ulAlso : bool ):
+                   disclaimer : bool, ulAlso : bool, title : Union [ None, str ] ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
@@ -39,6 +40,7 @@ class Plotter:
                          (e.g. CMS-SUS-16-039-ma5)
         :param disclaimer: add a disclaimer, "do not circulate"
         :param ulAlso: show UL results, also
+        :param title: a title
         """
         collaboration = collaboration.upper()
         if collaboration in [ "", "*" ]:
@@ -54,6 +56,7 @@ class Plotter:
             print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
             sys.exit()
         self.likelihood = likelihood ## False: gauss, True: lognormal
+        self.title = title
         self.doFakes = doFakes
         self.unscale = unscale
         self.signalmodel = signalmodel
@@ -384,6 +387,8 @@ class Plotter:
             title += f" (unscaling)"
         if self.signalmodel:
             title += f" (signalmodel)"
+        if self.title != None:
+            title = self.title
         nbins = 10 ## change the number of bins
         fig, ax = plt.subplots()
         x = [ P["8"], P["13_lt"], P["13_gt"] ]
@@ -513,6 +518,9 @@ def main():
     argparser.add_argument ( '-C', '--select_collaboration', nargs='?',
             help='select a specific collaboration CMS, ATLAS, all [all]',
             type=str, default="all" )
+    argparser.add_argument ( '-T', '--title', nargs='?',
+            help='supply an alternative title [None]',
+            type=str, default=None )
     argparser.add_argument ( '-D', '--disclaimer', 
             help='add a disclaimer', action='store_true' )
     argparser.add_argument ( '-U', '--ulalso', 
@@ -524,7 +532,7 @@ def main():
                         args.topologies, args.unscale, args.signalmodel,
                         args.filtersigma, args.select_collaboration,
                         args.fakes, args.analyses, args.disclaimer,
-                        args.ulalso )
+                        args.ulalso, args.title )
     plotter.plot( args.outfile )
 
 if __name__ == "__main__":
