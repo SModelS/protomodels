@@ -17,6 +17,8 @@ from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from helpers import computeP
+from smodels.tools import runtime
+runtime._experimental = True
 from smodels.theory.model import Model
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
@@ -671,7 +673,6 @@ class ExpResModifier:
                  "lognormal": self.lognormal, "maxmassdist": self.maxmassdist,
                  "fixedsignals": self.fixedsignals,
                  "fixedbackgrounds": self.fixedbackgrounds }
-        from smodels.tools import runtime
         if hasattr ( runtime, "_cap_likelihoods" ):
             meta["_cap_likelihoods"]=runtime._cap_likelihoods
         if hasattr ( runtime, "_drmax" ):

@@ -477,9 +477,12 @@ class Plotter:
         if self.disclaimer:
             plt.text ( .3, .3, "do not circulate!", transform=ax.transAxes,
                        rotation=35, c="#ff3333", fontsize=20 )
+        plt.kittyPlot ( outfile )
+        """
         plt.savefig ( outfile )
         if hasattr ( plt, "options" ) and plt.options["hasKittyBackend"]:
             plt.show()
+        """
         plt.clf()
 
 def main():
