@@ -3,6 +3,18 @@
 """ various helper functions that do not fit in any of the more
     specific modules """
 
+def namesForSetsOfTopologies ( name ):
+    """ some abbreviations for sets of topologies,
+    e.g. electroweakino -> TChiWZ, TChiWH, .... 
+    :param name: abbreviation
+    :returns: comma separate list of topos, or original name if nothing found
+    """
+    shorts = { }
+    shorts["electroweakino"]="TChiWZ,TChiWH,TChiWZoff,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiWWoff,TChiZH"
+    if name in shorts:
+        return shorts[name]
+    return name
+
 def findLargestExcess ( db ):
     """ find the largest excess in any efficiency map type result
         in the given database

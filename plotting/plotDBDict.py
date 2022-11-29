@@ -11,6 +11,7 @@ import numpy as np
 import os, glob, sys, math
 sys.path.insert(0,"../")
 from ptools.helpers import computeP
+from ptools.moreHelpers import namesForSetsOfTopologies
 from copy import deepcopy as cp
 import scipy.stats
 import matplotlib.mlab as mlab
@@ -529,8 +530,10 @@ def main():
     argparser.add_argument ( '-U', '--ulalso', 
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
     args=argparser.parse_args()
-    if args.topologies != None and args.topologies.endswith ( ".py" ):
-        print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
+    if args.topologies != None:
+            if args.topologies.endswith ( ".py" ):
+                print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
+            args.topologies = namesForSetsOfTopologies ( args.topologies )
     plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
                         args.topologies, args.unscale, args.signalmodel,
                         args.filtersigma, args.select_collaboration,
