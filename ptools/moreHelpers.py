@@ -7,15 +7,20 @@ def namesForSetsOfTopologies ( name ):
     """ some abbreviations for sets of topologies,
     e.g. electroweakino -> TChiWZ, TChiWH, .... 
     :param name: abbreviation
-    :returns: comma separate list of topos, or original name if nothing found
+    :returns: comma separated list of topos, and description
+              if not an abbreviation, returns originalname, None
     """
-    shorts = { }
+    shorts, description = { }, {}
     shorts["electroweakinos_offshell"]="TChiWZ,TChiWH,TChiWZoff,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiWWoff,TChiZH"
     shorts["electroweakinos"]="TChiWZ,TChiWH,TChiWZ,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiZH"
     shorts["stops"]="T2tt,T2ttoff,T2bbffff"
+    description["electroweakinos"]="ewkinos + onshell gauge bosons"
     if name in shorts:
-        return shorts[name]
-    return name
+        d = None
+        if name in description:
+            d= description[name]
+        return shorts[name], d
+    return name, None
 
 def findLargestExcess ( db ):
     """ find the largest excess in any efficiency map type result

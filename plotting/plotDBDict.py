@@ -41,13 +41,12 @@ class Plotter:
         :param title: a title
         """
         self.origtopos = args.topologies
-        self.hasNickName = False # was a nick name given for topos (e.g. "electroweakinos")
+        self.description = None
         if args.topologies != None:
                 if args.topologies.endswith ( ".py" ):
                     print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
-                args.topologies = namesForSetsOfTopologies ( args.topologies )
-                if args.topologies != self.origtopos:
-                    self.hasNickName = True
+                args.topologies, descr = namesForSetsOfTopologies ( args.topologies )
+                self.description = descr
         collaboration = args.select_collaboration.upper()
         if collaboration in [ "", "*" ]:
             collaboration = "ALL"
@@ -366,11 +365,12 @@ class Plotter:
         if abs ( fudge - 1. ) > 1e-3:
             title += ", fudge=%.2f" % fudge
         selecting = "selecting "
-        if self.hasNickName:
+        if self.description != None:
             print ( f"[plotDBDict] we selected {','.join(self.topologies)}" )
-            title += f", selecting {self.origtopos}"
+            title += f", {self.description}"
+            # title += f",selecting {self.origtopos}"
 
-        if len (self.topologies )>0 and not self.hasNickName:
+        if len (self.topologies )>0 and self.description == None:
             stopos = ""
             for i,t in enumerate(self.topologies):
                 if "+" in t and not "+off" in t:
