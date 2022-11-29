@@ -10,7 +10,9 @@ def namesForSetsOfTopologies ( name ):
     :returns: comma separate list of topos, or original name if nothing found
     """
     shorts = { }
-    shorts["electroweakino"]="TChiWZ,TChiWH,TChiWZoff,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiWWoff,TChiZH"
+    shorts["electroweakinos_offshell"]="TChiWZ,TChiWH,TChiWZoff,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiWWoff,TChiZH"
+    shorts["electroweakinos"]="TChiWZ,TChiWH,TChiWZ,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiZH"
+    shorts["stops"]="T2tt,T2ttoff,T2bbffff"
     if name in shorts:
         return shorts[name]
     return name
