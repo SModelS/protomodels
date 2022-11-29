@@ -41,6 +41,8 @@ class Plotter:
         :param title: a title
         """
         self.origtopos = args.topologies
+        if self.origtopos == None:
+            self.origtopos = "all"
         self.description = None
         if args.topologies != None:
                 if args.topologies.endswith ( ".py" ):
