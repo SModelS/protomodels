@@ -18,10 +18,7 @@ import matplotlib.mlab as mlab
 from typing import Union
 
 class Plotter:
-    def __init__ ( self, pathname, filtervalue: float, comment, likelihood: str,
-                   topologies, unscale, signalmodel, filtersigma: float,
-                   collaboration : str, doFakes : bool, analyses : str,
-                   disclaimer : bool, ulAlso : bool, title : Union [ None, str ] ):
+    def __init__ ( self, args ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
@@ -43,7 +40,15 @@ class Plotter:
         :param ulAlso: show UL results, also
         :param title: a title
         """
-        collaboration = collaboration.upper()
+        self.origtopos = args.topologies
+        self.hasNickName = False # was a nick name given for topos (e.g. "electroweakinos")
+        if args.topologies != None:
+                if args.topologies.endswith ( ".py" ):
+                    print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
+                args.topologies = namesForSetsOfTopologies ( args.topologies )
+                if args.topologies != self.origtopos:
+                    self.hasNickName = True
+        collaboration = args.select_collaboration.upper()
         if collaboration in [ "", "*" ]:
             collaboration = "ALL"
         if not collaboration in [ "CMS", "ATLAS", "ALL" ]:
@@ -51,24 +56,26 @@ class Plotter:
             sys.exit(-1)
         self.collaboration = collaboration
         abbreviations = { "g": "gauss", "gp": "gauss+poisson", "lp": "lognormal+poisson" }
+        likelihood = args.likelihood
         if likelihood in abbreviations:
             likelihood = abbreviations[likelihood]
         if likelihood not in [ "gauss", "gauss+poisson", "lognormal+poisson" ]:
             print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
             sys.exit()
         self.likelihood = likelihood ## False: gauss, True: lognormal
-        self.title = title
-        self.doFakes = doFakes
-        self.unscale = unscale
-        self.signalmodel = signalmodel
+        self.title = args.title
+        self.doFakes = args.fakes
+        self.unscale = args.unscale
+        self.signalmodel = args.signalmodel
         self.topologies = []
         self.analyses = []
-        self.disclaimer = disclaimer
+        self.disclaimer = args.disclaimer
         self.negativetopos = []
         self.negativeanalyses = []
-        self.filtersigma = filtersigma
+        self.filtersigma = args.filtersigma
         self.verbose = 0
-        self.useAlsoULMaps = ulAlso
+        self.useAlsoULMaps = args.ulalso
+        topologies = args.topologies
         if topologies not in [ None, "" ]:
             topos = topologies.split(",")
             for t in topos:
@@ -76,6 +83,7 @@ class Plotter:
                     self.negativetopos.append ( t[1:] )
                 else:   
                     self.topologies.append ( t )
+        analyses = args.analyses
         if analyses not in [ None, "" ]:
             analyses = analyses.split(",")
             for a in analyses:
@@ -84,14 +92,16 @@ class Plotter:
                 else:   
                     self.analyses.append ( a )
         self.filenames = []
+        comment = args.comment
         if comment in [ "None", "", "none" ]:
             comment = None
         self.comment = comment
+        pathname = args.dictfile
         for pname in pathname:
             if os.path.isdir ( pname ):
                 pname = pname + "/db*dict"
             self.filenames += glob.glob ( pname )
-        self.filter = filtervalue
+        self.filter = args.filter
         self.meta = {}
         self.data = {}
         self.read()
@@ -339,7 +349,8 @@ class Plotter:
 
     def plot( self, outfile ):
         """ plot the p-values """
-        flt = "_".join(self.topologies)+"_^".join(self.negativetopos)
+        origt = self.origtopos.replace(" ","").replace(",","_")
+        flt = "_"+origt+"_^".join(self.negativetopos)
         flt += "_".join(self.analyses)+"_^".join(self.negativeanalyses )
         outfile = outfile.replace("@@FILTER@@", flt )
         P,Pfake,weights,weightsfake=self.compute ( )
@@ -355,7 +366,11 @@ class Plotter:
         if abs ( fudge - 1. ) > 1e-3:
             title += ", fudge=%.2f" % fudge
         selecting = "selecting "
-        if len (self.topologies )>0:
+        if self.hasNickName:
+            print ( f"[plotDBDict] we selected {','.join(self.topologies)}" )
+            title += f", selecting {self.origtopos}"
+
+        if len (self.topologies )>0 and not self.hasNickName:
             stopos = ""
             for i,t in enumerate(self.topologies):
                 if "+" in t and not "+off" in t:
@@ -530,15 +545,7 @@ def main():
     argparser.add_argument ( '-U', '--ulalso', 
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
     args=argparser.parse_args()
-    if args.topologies != None:
-            if args.topologies.endswith ( ".py" ):
-                print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
-            args.topologies = namesForSetsOfTopologies ( args.topologies )
-    plotter = Plotter ( args.dictfile, args.filter, args.comment, args.likelihood, 
-                        args.topologies, args.unscale, args.signalmodel,
-                        args.filtersigma, args.select_collaboration,
-                        args.fakes, args.analyses, args.disclaimer,
-                        args.ulalso, args.title )
+    plotter = Plotter ( args )
     plotter.plot( args.outfile )
 
 if __name__ == "__main__":
