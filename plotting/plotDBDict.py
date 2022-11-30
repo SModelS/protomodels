@@ -350,29 +350,71 @@ class Plotter:
     def determineOutFile ( self, outfile ):
         """ determine the actual output file name, i.e.
             plug in for the @@FILTER@@ placeholders """
+        if outfile == None:
+            return outfile
         origt = self.origtopos.replace(" ","").replace(",","_")
         flt = "_"+origt+"_^".join(self.negativetopos)
         flt += "_".join(self.analyses)+"_^".join(self.negativeanalyses )
         outfile = outfile.replace("@@FILTER@@", flt )
         return outfile
 
-    def rough ( self, outfile ):
+    def rough ( self, outfile = None ):
         """ roughviz plot of the same data """
         outfile = self.determineOutFile ( outfile )
+        debug = []
         P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
             sys.exit()
         title = self.getTitle()
-        import roughviz
+        # import roughviz
         from roughviz.charts.bar import Bar
         import pandas as pd 
-        d = {'Year': ['1980', '1981', '1982'], 'A': [3, 4, 10]}
-        df = pd.DataFrame(data=d)
-        b = roughviz.bar (  )
+        P,Pfake,weights,weightsfake=self.compute ( )
+        if not "database" in self.meta:
+            print ( "error: database not defined in meta. did you pick up any dict files at all?" )
+            sys.exit()
+        title = self.getTitle()
+
+        nbins = 10 ## change the number of bins
+        fig, ax = plt.subplots()
+        x = [ P["8"], P["13_lt"], P["13_gt"] ]
+        avgp8,varp8 =self.computeWeightedMean ( P["8"], weights["8"] )
+        bin8=int(avgp8*nbins)
+        avgp13lt, var13lt = self.computeWeightedMean( P["13_lt"], weights["13_lt"] ) 
+        avgp13gt, var13gt = self.computeWeightedMean( P["13_gt"], weights["13_gt"] )
+        bin13lt=int(avgp13lt*nbins)
+        bin13gt=int(avgp13gt*nbins)
+        nm1 = 1. / len(self.filenames)
+        wlist = [ weights["8"], weights["13_lt"], weights["13_gt"] ]
+        nontrivial = [ len(x)>0 for x in wlist ]
+        bins = np.arange ( 0., 1+1e-7, 1/nbins )
+        # labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
+        savgp8 = ( "%.2f" % avgp8 ).lstrip('0')
+        savgp13l = ( "%.2f" % avgp13lt ).lstrip('0')
+        savgp13g = ( "%.2f" % avgp13gt ).lstrip('0')
+        labels = [ "8 TeV [%s]" % savgp8, "13 TeV, $\\mathcal{L}<100/fb$ [%s]" % savgp13l, "13 TeV, $\\mathcal{L}>100/fb$ [%s]" % savgp13g ]
+        nLegendEntries=0
+        for c,l in enumerate(labels):
+            if not nontrivial[c]:
+                labels[c]=""
+            else:
+                nLegendEntries+=1
+        colors = [ "tab:green", "tab:blue", "cyan" ]
+        # print ( "bins", bins )
+        #d = {'Year': ['1980', '1981', '1982'], 'A': [3, 4, 10]}
+        #df = pd.DataFrame(data=d)
+        # b = roughviz.bar ( df["Year"], df["A"] )
+        # bar = Bar ( data = df, labels="Year", values="A", interactive = False )
         # roughviz.bar ( labels, values, axisRoughness = 0.7, axisStrokeWidth = 0.7, roughness=2.3, highlight="gray" )
-        import IPython
-        IPython.embed( colors = "neutral" )
+        # bar.show()
+        sbins = [ f"{x:.1f}" for x in bins ]
+        d= { "bins": sbins, "x": x[0][3] }
+        debug.append ( bins )
+        df = pd.DataFrame ( data = d )
+        bar = Bar ( df, labels = "bins", values = "x", xlabel="p-values" )
+        bar.set_ylabel ( "# analyses (weighted)" )
+        return bar, debug
 
     def interactive ( self, container ):
         import IPython
@@ -534,8 +576,9 @@ class Plotter:
             plt.show()
         """
         plt.clf()
+        return None, None
 
-def main():
+def getArgs( cmdline = None ):
     import argparse
     argparser = argparse.ArgumentParser(description="meta statistics plotter, i.e. the thing that plots pDatabase.png")
     argparser.add_argument ( '-d', '--dictfile', nargs='*',
@@ -580,12 +623,35 @@ def main():
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
     argparser.add_argument ( '-r', '--roughviz', 
             help='roughviz plot', action='store_true' )
-    args=argparser.parse_args()
+    if type(cmdline) in [ str ]:
+        cmdline = cmdline.split()
+        if "plotDBDict.py" in cmdline[0]:
+            cmdline = cmdline[1:]
+                
+    args=argparser.parse_args( cmdline )
+    return args
+
+def main():
+    args = getArgs()
     plotter = Plotter ( args )
     if args.roughviz:
         plotter.rough( args.outfile )
     else:
         plotter.plot( args.outfile )
+
+def runNotebook( cmdline ):
+    """ meant to be run from with a jupyter notebook
+    :param cmdline: the command line arguments, e.g "-d ./db222pre1.dict  -r"
+    :returns: bar chart
+    """
+    args = getArgs( cmdline )
+    plotter = Plotter ( args )
+
+    if args.roughviz:
+        ret, _ = plotter.rough( args.outfile )
+    else:
+        ret = plotter.plot( args.outfile )
+    return ret, _
 
 if __name__ == "__main__":
     main()
