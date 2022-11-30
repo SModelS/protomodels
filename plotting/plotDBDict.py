@@ -347,13 +347,18 @@ class Plotter:
         var = math.sqrt ( 1. / ( 12. * len(Pi) ) )
         return central, var
         
-
-    def plot( self, outfile ):
-        """ plot the p-values """
+    def determineOutFile ( self, outfile ):
+        """ determine the actual output file name, i.e.
+            plug in for the @@FILTER@@ placeholders """
         origt = self.origtopos.replace(" ","").replace(",","_")
         flt = "_"+origt+"_^".join(self.negativetopos)
         flt += "_".join(self.analyses)+"_^".join(self.negativeanalyses )
         outfile = outfile.replace("@@FILTER@@", flt )
+        return outfile
+
+    def plot( self, outfile ):
+        """ plot the p-values """
+        outfile = self.determineOutFile ( outfile )
         P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
