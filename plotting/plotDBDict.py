@@ -368,6 +368,7 @@ class Plotter:
             sys.exit()
         title = self.getTitle()
         import roughviz
+        print ( "roughviz", roughviz.__file__ )
         if hasattr ( roughviz, "charts" ):
             print ( "I think you install py-roughviz, not roughviz" )
             sys.exit(-1)
@@ -383,17 +384,25 @@ class Plotter:
         (p8,x8) = np.histogram ( P["8"], bins )
         (p13lt,x13lt) = np.histogram ( P["13_lt"], bins )
         (p13gt,x13gt) = np.histogram ( P["13_gt"], bins )
-        sbins = [ f"{x:.1f}" for x in x8[:-1] ]
+        # sbins = [ f"{x:.1f}-{x+.1:.1f}" for x in x8[:-1] ]
+        sbins = [ f"{x+.05:.2f}" for x in x8[:-1] ]
         p8l = [ float(x) for x in p8 ]
         p13ltl = [ float(x) for x in p13lt ]
         p13gtl = [ float(x) for x in p13gt ]
-        d = { "labels": sbins, "p8": p8l, "p13lt": p13ltl, "p13gt": p13gtl }
+        d = { "labels": sbins, "8 TeV": p8l, "13 TeV, < 100/fb": p13ltl, "13 TeV, > 100/fb": p13gtl }
         df = pd.DataFrame ( data = d )
         colors = [ "green", "lightblue", "darkblue" ]
-        bar = roughviz.stackedbar ( df["labels"], df[["p8","p13lt","p13gt"]], 
-                xLabel="p-values", roughness = 4, color = colors, 
+        if "tilde" in title:
+            title = f"${title}$"
+        columns = [ "8 TeV", "13 TeV, < 100/fb", "13 TeV, > 100/fb" ]
+        colors = "['red','red','red']"
+        bar = roughviz.stackedbar ( df["labels"], df[ columns], 
+                xLabel="p-values", roughness = 4, colors = colors,
                 yLabel = "# analyses (weighted)", title = title,
-                titleFontSize = 24 )
+                titleFontSize = 18, plot_svg = True, interactive = True,
+                labelFontSize = 16, axisFontSize = 16, legend = "true" )
+        # bar = roughviz.outputs
+        # self.interactive( df )
         return bar, debug
 
     def interactive ( self, container ):
