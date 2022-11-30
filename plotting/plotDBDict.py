@@ -369,6 +369,7 @@ class Plotter:
         title = self.getTitle()
         # import roughviz
         from roughviz.charts.bar import Bar
+        # from roughviz.charts import StackedBar
         import pandas as pd 
         P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
@@ -377,43 +378,24 @@ class Plotter:
         title = self.getTitle()
 
         nbins = 10 ## change the number of bins
-        fig, ax = plt.subplots()
-        x = [ P["8"], P["13_lt"], P["13_gt"] ]
-        avgp8,varp8 =self.computeWeightedMean ( P["8"], weights["8"] )
-        bin8=int(avgp8*nbins)
-        avgp13lt, var13lt = self.computeWeightedMean( P["13_lt"], weights["13_lt"] ) 
-        avgp13gt, var13gt = self.computeWeightedMean( P["13_gt"], weights["13_gt"] )
-        bin13lt=int(avgp13lt*nbins)
-        bin13gt=int(avgp13gt*nbins)
-        nm1 = 1. / len(self.filenames)
-        wlist = [ weights["8"], weights["13_lt"], weights["13_gt"] ]
-        nontrivial = [ len(x)>0 for x in wlist ]
         bins = np.arange ( 0., 1+1e-7, 1/nbins )
-        # labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
-        savgp8 = ( "%.2f" % avgp8 ).lstrip('0')
-        savgp13l = ( "%.2f" % avgp13lt ).lstrip('0')
-        savgp13g = ( "%.2f" % avgp13gt ).lstrip('0')
-        labels = [ "8 TeV [%s]" % savgp8, "13 TeV, $\\mathcal{L}<100/fb$ [%s]" % savgp13l, "13 TeV, $\\mathcal{L}>100/fb$ [%s]" % savgp13g ]
-        nLegendEntries=0
-        for c,l in enumerate(labels):
-            if not nontrivial[c]:
-                labels[c]=""
-            else:
-                nLegendEntries+=1
-        colors = [ "tab:green", "tab:blue", "cyan" ]
-        # print ( "bins", bins )
-        #d = {'Year': ['1980', '1981', '1982'], 'A': [3, 4, 10]}
-        #df = pd.DataFrame(data=d)
-        # b = roughviz.bar ( df["Year"], df["A"] )
+        (p8,x8) = np.histogram ( P["8"], bins )
+        #(p13lt,x13lt) = np.histogram ( P["13_lt"], bins )
+        #(p13gt,x13gt) = np.histogram ( P["13_gt"], bins )
+        sbins = [ f"{x:.1f}" for x in x8[:-1] ]
+        d= { "labels": sbins, "values": p8.tolist() }
+        # print ( "sbins", sbins, "p8", p8 )
+        # d= { "bins": sbins, "x": weights["13_gt"] }
+        debug.append ( bins )
+        df = pd.DataFrame ( data = d )
+        bar = Bar ( d, labels = "labels", values = "values", xlabel="p-values",
+                    roughness = 4, color = "green" )
+        bar.set_ylabel ( "# analyses (weighted)" )
+        bar.set_legend ( True )
+        bar.set_title ( title, fontsize=3 )
         # bar = Bar ( data = df, labels="Year", values="A", interactive = False )
         # roughviz.bar ( labels, values, axisRoughness = 0.7, axisStrokeWidth = 0.7, roughness=2.3, highlight="gray" )
         # bar.show()
-        sbins = [ f"{x:.1f}" for x in bins ]
-        d= { "bins": sbins, "x": x[0][3] }
-        debug.append ( bins )
-        df = pd.DataFrame ( data = d )
-        bar = Bar ( df, labels = "bins", values = "x", xlabel="p-values" )
-        bar.set_ylabel ( "# analyses (weighted)" )
         return bar, debug
 
     def interactive ( self, container ):
