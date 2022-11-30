@@ -356,13 +356,30 @@ class Plotter:
         outfile = outfile.replace("@@FILTER@@", flt )
         return outfile
 
-    def plot( self, outfile ):
-        """ plot the p-values """
+    def rough ( self, outfile ):
+        """ roughviz plot of the same data """
         outfile = self.determineOutFile ( outfile )
         P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
             sys.exit()
+        title = self.getTitle()
+        import roughviz
+        from roughviz.charts.bar import Bar
+        import pandas as pd 
+        d = {'Year': ['1980', '1981', '1982'], 'A': [3, 4, 10]}
+        df = pd.DataFrame(data=d)
+        b = roughviz.bar (  )
+        # roughviz.bar ( labels, values, axisRoughness = 0.7, axisStrokeWidth = 0.7, roughness=2.3, highlight="gray" )
+        import IPython
+        IPython.embed( colors = "neutral" )
+
+    def interactive ( self, container ):
+        import IPython
+        IPython.embed( colors = "neutral" )
+
+    def getTitle ( self ):
+        """ determine the plot title """
         dbname = os.path.basename ( self.meta["database"] )
         title = f"SModelS database v{dbname}"
         # title = f"$p$-values, SModelS database v{dbname}"
@@ -376,7 +393,6 @@ class Plotter:
             print ( f"[plotDBDict] we selected {','.join(self.topologies)}" )
             title += f", {self.description}"
             # title += f",selecting {self.origtopos}"
-
         if len (self.topologies )>0 and self.description == None:
             stopos = ""
             for i,t in enumerate(self.topologies):
@@ -412,6 +428,17 @@ class Plotter:
             title += f" (signalmodel)"
         if self.title != None:
             title = self.title
+        return title
+
+    def plot( self, outfile ):
+        """ plot the p-values """
+        outfile = self.determineOutFile ( outfile )
+        P,Pfake,weights,weightsfake=self.compute ( )
+        if not "database" in self.meta:
+            print ( "error: database not defined in meta. did you pick up any dict files at all?" )
+            sys.exit()
+        title = self.getTitle()
+
         nbins = 10 ## change the number of bins
         fig, ax = plt.subplots()
         x = [ P["8"], P["13_lt"], P["13_gt"] ]
@@ -551,9 +578,14 @@ def main():
             help='add a disclaimer', action='store_true' )
     argparser.add_argument ( '-U', '--ulalso', 
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
+    argparser.add_argument ( '-r', '--roughviz', 
+            help='roughviz plot', action='store_true' )
     args=argparser.parse_args()
     plotter = Plotter ( args )
-    plotter.plot( args.outfile )
+    if args.roughviz:
+        plotter.rough( args.outfile )
+    else:
+        plotter.plot( args.outfile )
 
 if __name__ == "__main__":
     main()
