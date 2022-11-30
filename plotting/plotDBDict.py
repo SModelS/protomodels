@@ -391,21 +391,9 @@ class Plotter:
         df = pd.DataFrame ( data = d )
         colors = [ "green", "lightblue", "darkblue" ]
         bar = roughviz.stackedbar ( df["labels"], df[["p8","p13lt","p13gt"]], 
-                xlabel="p-values", roughness = 4, colors = colors , 
-                ylabel = "# analyses (weighted)", title = title )
-
-        #bar = Bar ( df8, labels = "labels", values = "values", xlabel="p-values",
-        #            roughness = 4, color = "green" )
-        #bar = StackedBar ( d, labels = "labels" )# , values = "values", xlabel="p-values",
-#       #             roughness = 4, color = "green" )
-        #bar2 = Bar ( df13lt, labels = "labels", values = "values", xlabel="p-values",
-        #            roughness = 4, color = "lightblue" )
-        #bar.set_ylabel ( "# analyses (weighted)" )
-        #bar.set_legend ( True )
-        #bar.set_title ( title, fontsize=3 )
-        # bar = Bar ( data = df, labels="Year", values="A", interactive = False )
-        # roughviz.bar ( labels, values, axisRoughness = 0.7, axisStrokeWidth = 0.7, roughness=2.3, highlight="gray" )
-        # bar.show()
+                xLabel="p-values", roughness = 4, color = colors, 
+                yLabel = "# analyses (weighted)", title = title,
+                titleFontSize = 24 )
         return bar, debug
 
     def interactive ( self, container ):
