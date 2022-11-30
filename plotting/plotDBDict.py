@@ -367,9 +367,10 @@ class Plotter:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
             sys.exit()
         title = self.getTitle()
-        # import roughviz
-        from roughviz.charts.bar import Bar
-        # from roughviz.charts import StackedBar
+        import roughviz
+        if hasattr ( roughviz, "charts" ):
+            print ( "I think you install py-roughviz, not roughviz" )
+            sys.exit(-1)
         import pandas as pd 
         P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
@@ -380,19 +381,28 @@ class Plotter:
         nbins = 10 ## change the number of bins
         bins = np.arange ( 0., 1+1e-7, 1/nbins )
         (p8,x8) = np.histogram ( P["8"], bins )
-        #(p13lt,x13lt) = np.histogram ( P["13_lt"], bins )
-        #(p13gt,x13gt) = np.histogram ( P["13_gt"], bins )
+        (p13lt,x13lt) = np.histogram ( P["13_lt"], bins )
+        (p13gt,x13gt) = np.histogram ( P["13_gt"], bins )
         sbins = [ f"{x:.1f}" for x in x8[:-1] ]
-        d= { "labels": sbins, "values": p8.tolist() }
-        # print ( "sbins", sbins, "p8", p8 )
-        # d= { "bins": sbins, "x": weights["13_gt"] }
-        debug.append ( bins )
+        p8l = [ float(x) for x in p8 ]
+        p13ltl = [ float(x) for x in p13lt ]
+        p13gtl = [ float(x) for x in p13gt ]
+        d = { "labels": sbins, "p8": p8l, "p13lt": p13ltl, "p13gt": p13gtl }
         df = pd.DataFrame ( data = d )
-        bar = Bar ( d, labels = "labels", values = "values", xlabel="p-values",
-                    roughness = 4, color = "green" )
-        bar.set_ylabel ( "# analyses (weighted)" )
-        bar.set_legend ( True )
-        bar.set_title ( title, fontsize=3 )
+        colors = [ "green", "lightblue", "darkblue" ]
+        bar = roughviz.stackedbar ( df["labels"], df[["p8","p13lt","p13gt"]], 
+                xlabel="p-values", roughness = 4, colors = colors , 
+                ylabel = "# analyses (weighted)", title = title )
+
+        #bar = Bar ( df8, labels = "labels", values = "values", xlabel="p-values",
+        #            roughness = 4, color = "green" )
+        #bar = StackedBar ( d, labels = "labels" )# , values = "values", xlabel="p-values",
+#       #             roughness = 4, color = "green" )
+        #bar2 = Bar ( df13lt, labels = "labels", values = "values", xlabel="p-values",
+        #            roughness = 4, color = "lightblue" )
+        #bar.set_ylabel ( "# analyses (weighted)" )
+        #bar.set_legend ( True )
+        #bar.set_title ( title, fontsize=3 )
         # bar = Bar ( data = df, labels="Year", values="A", interactive = False )
         # roughviz.bar ( labels, values, axisRoughness = 0.7, axisStrokeWidth = 0.7, roughness=2.3, highlight="gray" )
         # bar.show()
