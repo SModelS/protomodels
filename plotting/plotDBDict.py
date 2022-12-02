@@ -367,8 +367,9 @@ class Plotter:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
             sys.exit()
         title = self.getTitle()
+        weighted = False
         import roughviz
-        print ( "roughviz", roughviz.__file__ )
+        # print ( "roughviz", roughviz.__file__ )
         if hasattr ( roughviz, "charts" ):
             print ( "I think you install py-roughviz, not roughviz" )
             sys.exit(-1)
@@ -396,9 +397,12 @@ class Plotter:
             title = f"${title}$"
         columns = [ "8 TeV", "13 TeV, < 100/fb", "13 TeV, > 100/fb" ]
         colors = "['red','red','red']"
+        yLabel = "# SRs"
+        if weighted:
+            yLabel = "# analyses (weighted)"
         bar = roughviz.stackedbar ( df["labels"], df[ columns], 
                 xLabel="p-values", roughness = 4, colors = colors,
-                yLabel = "# analyses (weighted)", title = title,
+                yLabel = yLabel, title = title,
                 titleFontSize = 18, plot_svg = True, interactive = True,
                 labelFontSize = 16, axisFontSize = 16, legend = "true" )
         # bar = roughviz.outputs
