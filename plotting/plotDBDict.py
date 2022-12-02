@@ -74,7 +74,7 @@ class Plotter:
         self.negativetopos = []
         self.negativeanalyses = []
         self.filtersigma = args.filtersigma
-        self.verbose = 0
+        self.verbose = 1
         self.useAlsoULMaps = args.ulalso
         topologies = args.topologies
         if topologies not in [ None, "" ]:
@@ -106,6 +106,12 @@ class Plotter:
         self.meta = {}
         self.data = {}
         self.read()
+
+    def pprint ( self, args, verbose = 0 ):
+        # x = " ".join(map(str,args))
+        x = args
+        if self.verbose>verbose:
+            print ( f"[plotDBDict] {x}" )
 
     def selectedCollaboration( self, anaid ):
         """ does anaid pass the collaboration selection? """
@@ -143,8 +149,7 @@ class Plotter:
                             v["txns"] = txname
                             newdata[i]=v
                         else:
-                            if self.verbose > 2:
-                                print ( f"[plotDBDict] removing {basename}:{i} (is an UL)" )
+                            self.pprint ( f"removing {basename}:{i} (is an UL)", verbose = 2 )
                     else:
                         eBG,bgerr=None,None
                         if "expectedBG" in v:
@@ -232,7 +237,7 @@ class Plotter:
                             break
                 if not passesAnas:
                     if not anaid in skipped:
-                        print ( f"[plotDBDict] skipping {anaid} per request" )
+                        self.pprint ( f"skipping {anaid} per request" )
                     skipped.append ( anaid )
                     continue 
                 w = 1. / len(self.srCounts[anaid]) / len(self.filenames)
@@ -253,8 +258,7 @@ class Plotter:
                             passesTx=False
                             break
                 if not passesTx:
-                    if self.verbose > 1:
-                        print ( f"[plotDBDict] skipping {k}: does not pass Tx filter" )
+                    self.pprint ( f"skipping {k}: does not pass Tx filter", verbose = 1 )
                     continue
 
                 sqrts = self.getSqrts100 ( k, v["lumi"] )
@@ -403,7 +407,7 @@ class Plotter:
         bar = roughviz.stackedbar ( df["labels"], df[ columns], 
                 xLabel="p-values", roughness = 4, colors = colors,
                 yLabel = yLabel, title = title,
-                titleFontSize = 18, plot_svg = True, interactive = True,
+                titleFontSize = 18, plot_svg = False, interactive = True,
                 labelFontSize = 16, axisFontSize = 16, legend = "true" )
         # bar = roughviz.outputs
         # self.interactive( df )
@@ -449,8 +453,9 @@ class Plotter:
         if len ( self.topologies ) + len ( self.negativetopos ) == 0:
             title += f", all topologies"
         if len ( self.analyses ) > 0:
+            title += f", {selecting}"
             for a in self.analyses:
-                title += f", {selecting}{a}"
+                title += f", {a}"
         if len ( self.negativeanalyses ) > 0:
             for a in self.negativeanalyses:
                 title += f", {selecting}^{a}"
