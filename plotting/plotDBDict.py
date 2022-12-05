@@ -23,7 +23,7 @@ class Plotter:
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
         :param comment: an optional comment, to write in the plot
-        :param likelihood: form of likelihood: "gauss", "gauss+poisson", or 
+        :param likelihood: form of likelihood: "gauss", "gauss+poisson", or
                            "lognormal+poisson"
                            "gauss" or "g" means only a Gaussian for everything
                            "gauss+poisson" or "gp" means Gauss * Poisson
@@ -34,7 +34,7 @@ class Plotter:
         :param filtersigma: filter out signal regions with expectedBG/bgErr < filtersigma
         :param collaboration: select a specific collaboration
         :param doFakes: add fakes to the plot
-        :param analyses: if not None, then filter for these analyses 
+        :param analyses: if not None, then filter for these analyses
                          (e.g. CMS-SUS-16-039-ma5)
         :param disclaimer: add a disclaimer, "do not circulate"
         :param ulAlso: show UL results, also
@@ -82,7 +82,7 @@ class Plotter:
             for t in topos:
                 if t.startswith ( "^" ):
                     self.negativetopos.append ( t[1:] )
-                else:   
+                else:
                     self.topologies.append ( t )
         analyses = args.analyses
         if analyses not in [ None, "" ]:
@@ -90,7 +90,7 @@ class Plotter:
             for a in analyses:
                 if a.startswith ( "^" ):
                     self.negativeanalyses.append ( a[1:] )
-                else:   
+                else:
                     self.analyses.append ( a )
         self.filenames = []
         comment = args.comment
@@ -222,7 +222,7 @@ class Plotter:
             for k,v in data.items():
                 p1 = k.find(":")
                 anaid = k[:p1]
-                passesAnas = False 
+                passesAnas = False
                 if len(self.analyses)==0 and len(self.negativeanalyses)==0:
                     passesAnas=True
                 for ana in self.analyses:
@@ -239,7 +239,7 @@ class Plotter:
                     if not anaid in skipped:
                         self.pprint ( f"skipping {anaid} per request" )
                     skipped.append ( anaid )
-                    continue 
+                    continue
                 w = 1. / len(self.srCounts[anaid]) / len(self.filenames)
                 txns = []
                 if "txns" in v:
@@ -304,13 +304,13 @@ class Plotter:
                         p = computeP ( obs, vexp, bgErr )
                     P[sqrts].append( p )
                     weights[sqrts].append ( w )
-                    
+
                     pfake = float("nan")
                     if "new_p" in v:
                         pfake = v["new_p"]
                     else:
                         if not math.isnan ( fakeobs):
-                            pfake = computeP ( fakeobs, vexp, bgErr, 
+                            pfake = computeP ( fakeobs, vexp, bgErr,
                                                lognormal = lognormal )
                     if not math.isnan ( pfake):
                         Pfake[sqrts].append( pfake )
@@ -326,19 +326,19 @@ class Plotter:
     def discussPs ( self, P, Pfake, weights, weightsfake ):
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
         Pfaketot = np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] )
-        print ( "[plotDBDict] real Ps: %d entries at %.3f +/- %.2f" % 
+        print ( "[plotDBDict] real Ps: %d entries at %.3f +/- %.2f" %
                 ( len(Ptot), np.mean(Ptot), np.std(Ptot)  ) )
-        print ( "[plotDBDict] fake Ps: %d entries at %.3f +/- %.2f" % 
+        print ( "[plotDBDict] fake Ps: %d entries at %.3f +/- %.2f" %
                 ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ) )
         for i in [ "8", "13_lt", "13_gt" ]:
             w, v = self.computeWeightedMean ( P[i], weights[i] )
             n = len(P[i])
             if n > 0:
-                print ( "[plotDBDict] real Ps, %s: %d entries at %.3f +/- %.2f" % 
+                print ( "[plotDBDict] real Ps, %s: %d entries at %.3f +/- %.2f" %
                         ( i, n, w, v ) )
 
     def computeWeightedMean ( self, ps, ws ):
-        """ weighted average of p values 
+        """ weighted average of p values
         :param ps: array of p values
         :param ws: array of weights
         """
@@ -350,7 +350,7 @@ class Plotter:
         # var = np.sum ( ws*ws*ps ) / wtot**2
         var = math.sqrt ( 1. / ( 12. * len(Pi) ) )
         return central, var
-        
+
     def determineOutFile ( self, outfile ):
         """ determine the actual output file name, i.e.
             plug in for the @@FILTER@@ placeholders """
@@ -364,6 +364,10 @@ class Plotter:
 
     def rough ( self, outfile = None, options = {} ):
         """ roughviz plot of the same data """
+        if options == None:
+            options = {}
+        if type(options) == str:
+            options = eval ( options )
         outfile = self.determineOutFile ( outfile )
         debug = []
         P,Pfake,weights,weightsfake=self.compute ( )
@@ -372,12 +376,14 @@ class Plotter:
             sys.exit()
         title = self.getTitle()
         weighted = False
+        if "weighted" in options:
+            weighted = options["weighted"]
         import roughviz
         # print ( "roughviz", roughviz.__file__ )
         if hasattr ( roughviz, "charts" ):
             print ( "I think you install py-roughviz, not roughviz" )
             sys.exit(-1)
-        import pandas as pd 
+        import pandas as pd
         P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
@@ -389,26 +395,28 @@ class Plotter:
         (p8,x8) = np.histogram ( P["8"], bins )
         (p13lt,x13lt) = np.histogram ( P["13_lt"], bins )
         (p13gt,x13gt) = np.histogram ( P["13_gt"], bins )
-        # sbins = [ f"{x:.1f}-{x+.1:.1f}" for x in x8[:-1] ]
+        if weighted:
+            (p8,x8) = np.histogram ( P["8"], bins, weights=weights["8"] )
+            (p13lt,x13lt) = np.histogram ( P["13_lt"], bins, weights=weights["13_lt"] )
+            (p13gt,x13gt) = np.histogram ( P["13_gt"], bins, weights=weights["13_gt"] )
         sbins = [ f"{x+.05:.2f}" for x in x8[:-1] ]
         p8l = [ float(x) for x in p8 ]
         p13ltl = [ float(x) for x in p13lt ]
         p13gtl = [ float(x) for x in p13gt ]
         d = { "labels": sbins, "8 TeV": p8l, "13 TeV, < 100/fb": p13ltl, "13 TeV, > 100/fb": p13gtl }
+        print ( "d", d )
         df = pd.DataFrame ( data = d )
-        colors = [ "green", "lightblue", "darkblue" ]
         if "tilde" in title:
             title = f"${title}$"
         columns = [ "8 TeV", "13 TeV, < 100/fb", "13 TeV, > 100/fb" ]
-        colors = "['red','red','red']"
         yLabel = "# SRs"
         if weighted:
             yLabel = "# analyses (weighted)"
-        roughness = 4
+        roughness = 6
         if "roughness" in options:
             roughness = options["roughness"]
-        bar = roughviz.stackedbar ( df["labels"], df[ columns], 
-                xLabel="p-values", roughness = roughness, colors = colors,
+        bar = roughviz.stackedbar ( df["labels"], df[ columns],
+                xLabel="p-values", roughness = roughness,
                 yLabel = yLabel, title = title,
                 titleFontSize = 18, plot_svg = False, interactive = True,
                 labelFontSize = 16, axisFontSize = 16, legend = "true" )
@@ -432,14 +440,14 @@ class Plotter:
             title += ", fudge=%.2f" % fudge
         selecting = "selecting "
         if self.description != None:
-            print ( f"[plotDBDict] we selected {','.join(self.topologies)}" )
+            self.pprint ( f"we selected {','.join(self.topologies)}", verbose = 1 )
             title += f", {self.description}"
             # title += f",selecting {self.origtopos}"
         if len (self.topologies )>0 and self.description == None:
             stopos = ""
             for i,t in enumerate(self.topologies):
                 if "+" in t and not "+off" in t:
-                    print ( f"[plotDBDict] WARNING: topology {t} has a + sign, did you mean to instead have a comma ','?" ) 
+                    print ( f"[plotDBDict] WARNING: topology {t} has a + sign, did you mean to instead have a comma ','?" )
                 stopos += prettyDescriptions.prettyTxname( t, "latex", False )
                 if i < len(self.topologies)-1:
                     stopos += ";"
@@ -487,7 +495,7 @@ class Plotter:
         x = [ P["8"], P["13_lt"], P["13_gt"] ]
         avgp8,varp8 =self.computeWeightedMean ( P["8"], weights["8"] )
         bin8=int(avgp8*nbins)
-        avgp13lt, var13lt = self.computeWeightedMean( P["13_lt"], weights["13_lt"] ) 
+        avgp13lt, var13lt = self.computeWeightedMean( P["13_lt"], weights["13_lt"] )
         avgp13gt, var13gt = self.computeWeightedMean( P["13_gt"], weights["13_gt"] )
         bin13lt=int(avgp13lt*nbins)
         bin13gt=int(avgp13gt*nbins)
@@ -554,7 +562,7 @@ class Plotter:
         if self.collaboration != "ALL":
             title += f" {self.collaboration} only"
         plt.title  ( title )
-        plt.plot ( [ .5, .5 ], [ -.003, .2 ], c="tab:grey", linewidth=1, 
+        plt.plot ( [ .5, .5 ], [ -.003, .2 ], c="tab:grey", linewidth=1,
                    linestyle="-" )
         plt.xlabel ( "$p$-values" )
         plt.ylabel ( "# analyses (weighted)" )
@@ -565,7 +573,7 @@ class Plotter:
         # plt.ylabel ( "# Signal Regions" )
         print ( f"[plotDBDict] plotting {outfile}"  )
         if self.comment != None:
-            plt.text ( .65, -.11, self.comment, transform=ax.transAxes, 
+            plt.text ( .65, -.11, self.comment, transform=ax.transAxes,
                        style="italic" )
         if self.disclaimer:
             plt.text ( .3, .3, "do not circulate!", transform=ax.transAxes,
@@ -591,11 +599,11 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-c', '--comment', nargs='?',
             help='an optional comment, to put in the plot [None]',
             type=str, default=None )
-    argparser.add_argument ( '-u', '--unscale', 
+    argparser.add_argument ( '-u', '--unscale',
             help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
-    argparser.add_argument ( '-F', '--fakes', 
+    argparser.add_argument ( '-F', '--fakes',
             help='add the fakes to the plot', action='store_true' )
-    argparser.add_argument ( '-S', '--signalmodel', 
+    argparser.add_argument ( '-S', '--signalmodel',
             help='use the signal+bg model for computing likelihoods', action='store_true' )
     argparser.add_argument ( '-l', '--likelihood', nargs='?',
             help='likelihood: gauss (g), gauss+poisson (gp), or lognormal+poisson (lp) [gauss+poisson]',
@@ -618,17 +626,20 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-T', '--title', nargs='?',
             help='supply an alternative title [None]',
             type=str, default=None )
-    argparser.add_argument ( '-D', '--disclaimer', 
+    argparser.add_argument ( '-D', '--disclaimer',
             help='add a disclaimer', action='store_true' )
-    argparser.add_argument ( '-U', '--ulalso', 
+    argparser.add_argument ( '-O', '--options',
+            help='options, given as string [None]',
+            type=str, default=None )
+    argparser.add_argument ( '-U', '--ulalso',
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
-    argparser.add_argument ( '-r', '--roughviz', 
+    argparser.add_argument ( '-r', '--roughviz',
             help='roughviz plot', action='store_true' )
     if type(cmdline) in [ str ]:
         cmdline = cmdline.split()
         if "plotDBDict.py" in cmdline[0]:
             cmdline = cmdline[1:]
-                
+
     args=argparser.parse_args( cmdline )
     return args
 
@@ -636,7 +647,7 @@ def main():
     args = getArgs()
     plotter = Plotter ( args )
     if args.roughviz:
-        plotter.rough( args.outfile )
+        plotter.rough( args.outfile, args.options )
     else:
         plotter.plot( args.outfile )
 
