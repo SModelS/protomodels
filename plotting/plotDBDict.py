@@ -395,23 +395,26 @@ class Plotter:
         (p8,x8) = np.histogram ( P["8"], bins )
         (p13lt,x13lt) = np.histogram ( P["13_lt"], bins )
         (p13gt,x13gt) = np.histogram ( P["13_gt"], bins )
+        factor = 1.
         if weighted:
+            factor = 100.
             (p8,x8) = np.histogram ( P["8"], bins, weights=weights["8"] )
             (p13lt,x13lt) = np.histogram ( P["13_lt"], bins, weights=weights["13_lt"] )
             (p13gt,x13gt) = np.histogram ( P["13_gt"], bins, weights=weights["13_gt"] )
         sbins = [ f"{x+.05:.2f}" for x in x8[:-1] ]
-        p8l = [ float(x) for x in p8 ]
-        p13ltl = [ float(x) for x in p13lt ]
-        p13gtl = [ float(x) for x in p13gt ]
+        p8l = [ factor*float(x) for x in p8 ]
+        p13ltl = [ factor*float(x) for x in p13lt ]
+        #p13ltl = [ float(x)+float(y) for x,y in zip(p13lt,p8) ]
+        p13gtl = [ factor*float(x) for x in p13gt ]
+        #p13gtl = [ float(x)+float(y) for x,y in zip(p13gt,p13ltl) ]
         d = { "labels": sbins, "8 TeV": p8l, "13 TeV, < 100/fb": p13ltl, "13 TeV, > 100/fb": p13gtl }
-        print ( "d", d )
         df = pd.DataFrame ( data = d )
         if "tilde" in title:
             title = f"${title}$"
         columns = [ "8 TeV", "13 TeV, < 100/fb", "13 TeV, > 100/fb" ]
         yLabel = "# SRs"
         if weighted:
-            yLabel = "# analyses (weighted)"
+            yLabel = "# analyses (weighted, x 100)"
         roughness = 6
         if "roughness" in options:
             roughness = options["roughness"]
@@ -481,7 +484,7 @@ class Plotter:
             title = self.title
         return title
 
-    def plot( self, outfile ):
+    def plot( self, outfile, options = {} ):
         """ plot the p-values """
         outfile = self.determineOutFile ( outfile )
         P,Pfake,weights,weightsfake=self.compute ( )
@@ -649,7 +652,7 @@ def main():
     if args.roughviz:
         plotter.rough( args.outfile, args.options )
     else:
-        plotter.plot( args.outfile )
+        plotter.plot( args.outfile, args.options )
 
 def runNotebook( cmdline, options = {} ):
     """ meant to be run from with a jupyter notebook
