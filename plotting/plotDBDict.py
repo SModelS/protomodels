@@ -362,7 +362,7 @@ class Plotter:
         outfile = outfile.replace("@@FILTER@@", flt )
         return outfile
 
-    def rough ( self, outfile = None ):
+    def rough ( self, outfile = None, options = {} ):
         """ roughviz plot of the same data """
         outfile = self.determineOutFile ( outfile )
         debug = []
@@ -404,8 +404,11 @@ class Plotter:
         yLabel = "# SRs"
         if weighted:
             yLabel = "# analyses (weighted)"
+        roughness = 4
+        if "roughness" in options:
+            roughness = options["roughness"]
         bar = roughviz.stackedbar ( df["labels"], df[ columns], 
-                xLabel="p-values", roughness = 4, colors = colors,
+                xLabel="p-values", roughness = roughness, colors = colors,
                 yLabel = yLabel, title = title,
                 titleFontSize = 18, plot_svg = False, interactive = True,
                 labelFontSize = 16, axisFontSize = 16, legend = "true" )
@@ -637,16 +640,17 @@ def main():
     else:
         plotter.plot( args.outfile )
 
-def runNotebook( cmdline ):
+def runNotebook( cmdline, options = {} ):
     """ meant to be run from with a jupyter notebook
     :param cmdline: the command line arguments, e.g "-d ./db222pre1.dict  -r"
+    :param options: additional options
     :returns: bar chart
     """
     args = getArgs( cmdline )
     plotter = Plotter ( args )
 
     if args.roughviz:
-        ret, _ = plotter.rough( args.outfile )
+        ret, _ = plotter.rough( args.outfile, options )
     else:
         ret = plotter.plot( args.outfile )
     return ret, _
