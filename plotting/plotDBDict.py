@@ -418,6 +418,11 @@ class Plotter:
         roughness = 6
         if "roughness" in options:
             roughness = options["roughness"]
+        if "title" in options:
+            if options["title"] in [ False, None ]:
+                title = None
+            if type(options["title"]) == str:
+                title = options["title"]
         bar = roughviz.stackedbar ( df["labels"], df[ columns],
                 xLabel="p-values", roughness = roughness,
                 yLabel = yLabel, title = title,
