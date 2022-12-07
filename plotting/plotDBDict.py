@@ -381,7 +381,7 @@ class Plotter:
         import roughviz
         # print ( "roughviz", roughviz.__file__ )
         if hasattr ( roughviz, "charts" ):
-            print ( "I think you install py-roughviz, not roughviz" )
+            print ( "I think you installed py-roughviz, not roughviz" )
             sys.exit(-1)
         import pandas as pd
         P,Pfake,weights,weightsfake=self.compute ( )
