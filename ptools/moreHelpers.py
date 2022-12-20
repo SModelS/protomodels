@@ -12,9 +12,10 @@ def namesForSetsOfTopologies ( name ):
     """
     shorts, description = { }, {}
     shorts["electroweakinos_offshell"]="TChiWZ,TChiWH,TChiWZoff,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiWWoff,TChiZH"
-    shorts["electroweakinos"]="TChiWZ,TChiWH,TChiWZ,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiZH"
+    shorts["electroweakinos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
     shorts["stops"]="T2tt,T2ttoff,T2bbffff"
     description["electroweakinos"]="ewkinos + onshell gauge bosons"
+    description["stops"]="stops, on- and off-shell"
     if name in shorts:
         d = None
         if name in description:
@@ -29,7 +30,10 @@ def namesForSetsOfTopologies ( name ):
                 rmin, kmin = r, k
         if rmin < 0.2:
             print ( f"I assume you meant {kmin}, not {name}?" )
-            return shorts[kmin], description[kmin]
+            d = None
+            if kmin in description:
+                d= description[kmin]
+            return shorts[kmin], d
         #if rmin < 0.3:
         #    print ( f"could not find {name}, did you mean {kmin}?" )
         #    return name, None
