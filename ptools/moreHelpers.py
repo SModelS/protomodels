@@ -20,6 +20,21 @@ def namesForSetsOfTopologies ( name ):
         if name in description:
             d= description[name]
         return shorts[name], d
+    try:
+        import Levenshtein
+        rmin, kmin = 1., None
+        for k,v in shorts.items():
+            r = Levenshtein.distance(name,k)/(len(k)+len(name))
+            if r < rmin:
+                rmin, kmin = r, k
+        if rmin < 0.2:
+            print ( f"I assume you meant {kmin}, not {name}?" )
+            return shorts[kmin], description[kmin]
+        #if rmin < 0.3:
+        #    print ( f"could not find {name}, did you mean {kmin}?" )
+        #    return name, None
+    except ImportError as e:
+        pass
     return name, None
 
 def findLargestExcess ( db ):
