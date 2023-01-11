@@ -58,23 +58,42 @@ class Plotter:
             """
             self.output = output
             self.script = script
-            self.display()
+            #self.display()
             self.saveRoughViz()
         else:
             self.output = output
-            self.display()
+            #self.display()
 
     def saveRoughViz ( self ):
-        fname = "plot.html"
-        f = open ( fname, "wt" )
+        outfile = self.determineOutFile ( self.options["outfile"] )
+        print ( "outfile", outfile )
+        # htmlname = "plot.html"
+        htmlname = outfile.replace(".png",".html" )
+        f = open ( htmlname, "wt" )
         f.write ( self.output )
         if hasattr ( self, "script" ):
             f.write ( self.script )
         f.close()
-        self.pprint ( f"{fname} created. open with xdg-open {fname}" )
-        cmd = f"xdg-open {fname}"
+        self.pprint ( f"{htmlname} created, can be opened with ''xdg-open {htmlname}''" )
+        cwd = os.getcwd()
+        #pngname = "plot.png"
+        pngname = outfile
+        from shutil import which
         import subprocess
-        subprocess.getoutput ( cmd )
+        cutycapt = which ( "cutycapt", path=f"/usr/bin:{os.environ['PATH']}" )
+        if cutycapt is not None:
+            cmd = f"cutycapt --zoom-factor=2. --delay=1000 --url=file://{cwd}/{htmlname} --out={pngname}"
+            o = subprocess.getoutput ( cmd )
+            self.pprint ( f"{pngname} created" )
+        if False:
+            cmd = f"xdg-open {htmlname}"
+            subprocess.getoutput ( cmd )
+        if self.options["show"]==True:
+            self.show ( pngname )
+        
+    def show ( self, filename ):
+        from smodels_utils.plotting.mpkitty import timg
+        timg ( filename )
 
     def display ( self ):
         from IPython.display import display, HTML
@@ -428,11 +447,7 @@ class Plotter:
 
     def rough ( self, outfile = None, options = {} ):
         """ roughviz plot of the same data """
-        print ( "options", options )
-        if options == None:
-            options = {}
-        if type(options) == str:
-            options = eval ( options )
+        self.options = options
         outfile = self.determineOutFile ( outfile )
         debug = []
         P,Pfake,weights,weightsfake=self.compute ( )
@@ -486,7 +501,8 @@ class Plotter:
             roughness = options["roughness"]
         if "title" in options:
             if options["title"] in [ False, None ]:
-                title = None
+                # title = None
+                pass
             if type(options["title"]) == str:
                 title = options["title"]
         bar = roughviz.stackedbar ( df["labels"], df[ columns],
@@ -553,6 +569,7 @@ class Plotter:
             title += f" (signalmodel)"
         if self.title != None:
             title = self.title
+        self.title = title
         return title
 
     def plot( self, outfile, options = {} ):
@@ -711,15 +728,20 @@ def getArgs( cmdline = None ):
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
     argparser.add_argument ( '-r', '--roughviz',
             help='roughviz plot', action='store_true' )
+    argparser.add_argument ( '--show',
+            help='show plot', action='store_true' )
     if type(cmdline) in [ str ]:
         cmdline = cmdline.split()
         if "plotDBDict.py" in cmdline[0]:
             cmdline = cmdline[1:]
 
     args=argparser.parse_args( cmdline )
+    if type(args.options) == str:
+        args.options = eval ( args.options )
     if args.options is None:
         args.options = {}
-    args.options["weighted"] = args.weighted
+    for k,v in args.__dict__.items():
+        args.options[k]=v
     return args
 
 def main():
