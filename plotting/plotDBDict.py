@@ -21,7 +21,7 @@ class Plotter:
 
     def roughviz_template( self, data, labels, values, plot_svg, **kwargs):
         """ the template for the roughviz plot, we will overwrite the
-            original one """
+            original one with this """
         from jinja2 import Template
         import random
         import string
@@ -65,7 +65,7 @@ class Plotter:
             #self.display()
 
     def saveRoughViz ( self ):
-        outfile = self.determineOutFile ( self.options["outfile"] )
+        outfile = self.determineOutFile ( )
         print ( "outfile", outfile )
         # htmlname = "plot.html"
         htmlname = outfile.replace(".png",".html" )
@@ -85,17 +85,18 @@ class Plotter:
             cmd = f"cutycapt --zoom-factor=2. --delay=1000 --url=file://{cwd}/{htmlname} --out={pngname}"
             o = subprocess.getoutput ( cmd )
             self.pprint ( f"{pngname} created" )
+            self.showPng( pngname )
         if False:
             cmd = f"xdg-open {htmlname}"
             subprocess.getoutput ( cmd )
-        if self.options["show"]==True:
-            self.show ( pngname )
         
-    def show ( self, filename ):
-        from smodels_utils.plotting.mpkitty import timg
-        timg ( filename )
+    def showPng ( self, filename ):
+        if "show" in self.options and self.options["show"]==True:
+            from smodels_utils.plotting.mpkitty import timg
+            timg ( filename )
 
     def display ( self ):
+        """ show html """
         from IPython.display import display, HTML
         display(HTML(self.output))
         if hasattr ( self, "script" ):
@@ -434,11 +435,14 @@ class Plotter:
         var = math.sqrt ( 1. / ( 12. * len(Pi) ) )
         return central, var
 
-    def determineOutFile ( self, outfile ):
+    def determineOutFile ( self, outfile = None ):
         """ determine the actual output file name, i.e.
             plug in for the @@FILTER@@ placeholders """
-        if outfile == None:
-            return outfile
+        if outfile is None:
+            if "outfile" in self.options:
+                outfile = self.options["outfile"]
+        if outfile is None:
+            return "tmp.png"
         origt = self.origtopos.replace(" ","").replace(",","_")
         flt = "_"+origt+"_^".join(self.negativetopos)
         flt += "_".join(self.analyses)+"_^".join(self.negativeanalyses )
