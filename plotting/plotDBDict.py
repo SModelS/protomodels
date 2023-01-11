@@ -66,7 +66,6 @@ class Plotter:
 
     def saveRoughViz ( self ):
         outfile = self.determineOutFile ( )
-        print ( "outfile", outfile )
         # htmlname = "plot.html"
         htmlname = outfile.replace(".png",".html" )
         f = open ( htmlname, "wt" )
@@ -81,7 +80,9 @@ class Plotter:
         from shutil import which
         import subprocess
         cutycapt = which ( "cutycapt", path=f"/usr/bin:{os.environ['PATH']}" )
-        if cutycapt is not None:
+        if cutycapt is None:
+            self.pprint ( f"cutycapt is not installed. maybe perform sudo apt install cutycapt" )
+        else:
             cmd = f"cutycapt --zoom-factor=2. --delay=1000 --url=file://{cwd}/{htmlname} --out={pngname}"
             o = subprocess.getoutput ( cmd )
             self.pprint ( f"{pngname} created" )
