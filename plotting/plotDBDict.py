@@ -23,7 +23,6 @@ class Plotter:
         """ the template for the roughviz plot, we will overwrite the
             original one """
         from jinja2 import Template
-        from IPython.display import display, HTML
         import random
         import string
         template = Template(data.decode("utf-8"))
@@ -57,19 +56,31 @@ class Plotter:
                 }}, 1);
             </script>
             """
-            display(HTML(output))
-            display(HTML(script))
-            fname = "plot.html"
-            f = open ( fname, "wt" )
-            f.write ( output )
-            f.write ( script )
-            f.close()
-            self.pprint ( f"{fname} created. open with xdg-open {fname}" )
-            cmd = f"xdg-open {fname}"
-            import subprocess
-            subprocess.getoutput ( cmd )
+            self.output = output
+            self.script = script
+            self.display()
+            self.saveRoughViz()
         else:
-            display(HTML(output))
+            self.output = output
+            self.display()
+
+    def saveRoughViz ( self ):
+        fname = "plot.html"
+        f = open ( fname, "wt" )
+        f.write ( self.output )
+        if hasattr ( self, "script" ):
+            f.write ( self.script )
+        f.close()
+        self.pprint ( f"{fname} created. open with xdg-open {fname}" )
+        cmd = f"xdg-open {fname}"
+        import subprocess
+        subprocess.getoutput ( cmd )
+
+    def display ( self ):
+        from IPython.display import display, HTML
+        display(HTML(self.output))
+        if hasattr ( self, "script" ):
+            display(HTML(self.script))
 
     def __init__ ( self, args ):
         """
@@ -417,6 +428,7 @@ class Plotter:
 
     def rough ( self, outfile = None, options = {} ):
         """ roughviz plot of the same data """
+        print ( "options", options )
         if options == None:
             options = {}
         if type(options) == str:
@@ -663,6 +675,8 @@ def getArgs( cmdline = None ):
             type=str, default=None )
     argparser.add_argument ( '-u', '--unscale',
             help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
+    argparser.add_argument ( '-w', '--weighted',
+            help='weighted plot, i.e. each analysis (not each SR) counts equally', action='store_true' )
     argparser.add_argument ( '-F', '--fakes',
             help='add the fakes to the plot', action='store_true' )
     argparser.add_argument ( '-S', '--signalmodel',
@@ -703,13 +717,17 @@ def getArgs( cmdline = None ):
             cmdline = cmdline[1:]
 
     args=argparser.parse_args( cmdline )
+    if args.options is None:
+        args.options = {}
+    args.options["weighted"] = args.weighted
     return args
 
 def main():
     args = getArgs()
     plotter = Plotter ( args )
+    options = args.options
     if args.roughviz:
-        plotter.rough( args.outfile, args.options )
+        plotter.rough( args.outfile, options )
     else:
         plotter.plot( args.outfile, args.options )
 
@@ -717,7 +735,7 @@ def runNotebook( cmdline, options = {} ):
     """ meant to be run from with a jupyter notebook
     :param cmdline: the command line arguments, e.g "-d ./db222pre1.dict  -r"
     :param options: additional options
-    :returns: bar chart
+    :returns: plotter object
     """
     args = getArgs( cmdline )
     plotter = Plotter ( args )
@@ -726,7 +744,7 @@ def runNotebook( cmdline, options = {} ):
         ret, _ = plotter.rough( args.outfile, options )
     else:
         ret = plotter.plot( args.outfile )
-    return ret, _
+    return plotter
 
 if __name__ == "__main__":
     main()
