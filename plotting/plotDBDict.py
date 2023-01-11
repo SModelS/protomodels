@@ -18,6 +18,59 @@ import matplotlib.mlab as mlab
 from typing import Union
 
 class Plotter:
+
+    def roughviz_template( self, data, labels, values, plot_svg, **kwargs):
+        """ the template for the roughviz plot, we will overwrite the
+            original one """
+        from jinja2 import Template
+        from IPython.display import display, HTML
+        import random
+        import string
+        template = Template(data.decode("utf-8"))
+        id_name = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+        output = template.render(id_name = id_name,
+                                 labels = labels,
+                                 values = values,
+                                 kwargs = kwargs)
+        # print ( f"kwargs {kwargs}" )
+        if(plot_svg):
+            svg_id = "svg"+id_name
+            script = """
+            <style>
+            div.output_area img, div.output_area svg{
+            height: 100%!important;
+            }
+            </style>
+            <script>
+                var e = document.getElementById('"""+id_name+"""');
+                var divCheckingInterval = setInterval(function(){
+                if(e.getElementsByTagName('svg').length){
+                    clearInterval(divCheckingInterval);
+                    e.getElementsByTagName('svg')[0].setAttribute("id", '"""+svg_id+"""');
+                    var svgElement = document.getElementById('"""+svg_id+"""');
+                    var svgString = new XMLSerializer().serializeToString(svgElement);
+                    var decoded = unescape(encodeURIComponent(svgString));
+                    var base64 = btoa(decoded);
+                    var imgSource = `data:image/svg+xml;base64,${base64}`;
+                    e.innerHTML = "<img id='svgplot'>";
+                    document.getElementById('svgplot').src = imgSource;       
+                }}, 1);
+            </script>
+            """
+            display(HTML(output))
+            display(HTML(script))
+            fname = "plot.html"
+            f = open ( fname, "wt" )
+            f.write ( output )
+            f.write ( script )
+            f.close()
+            self.pprint ( f"{fname} created. open with xdg-open {fname}" )
+            cmd = f"xdg-open {fname}"
+            import subprocess
+            subprocess.getoutput ( cmd )
+        else:
+            display(HTML(output))
+
     def __init__ ( self, args ):
         """
         :param filename: filename of dictionary
@@ -379,6 +432,7 @@ class Plotter:
         if "weighted" in options:
             weighted = options["weighted"]
         import roughviz
+        roughviz.roughviz.generate_template = self.roughviz_template
         # print ( "roughviz", roughviz.__file__ )
         if hasattr ( roughviz, "charts" ):
             print ( "I think you installed py-roughviz, not roughviz" )
@@ -426,10 +480,10 @@ class Plotter:
         bar = roughviz.stackedbar ( df["labels"], df[ columns],
                 xLabel="p-values", roughness = roughness,
                 yLabel = yLabel, title = title,
-                titleFontSize = 18, plot_svg = False, interactive = True,
+                titleFontSize = 18, plot_svg = True, interactive = False,
                 labelFontSize = 16, axisFontSize = 16, legend = "true" )
         # bar = roughviz.outputs
-        # self.interactive( df )
+        # self.interactive( { "df": df, "bar": bar, "debug": debug }  )
         return bar, debug
 
     def interactive ( self, container ):
