@@ -92,7 +92,7 @@ class Plotter:
             subprocess.getoutput ( cmd )
         
     def showPng ( self, filename ):
-        if "show" in self.options and self.options["show"]==True:
+        if ("show" in self.options and self.options["show"]==True) or self.show == True:
             from smodels_utils.plotting.mpkitty import timg
             timg ( filename )
 
@@ -102,6 +102,27 @@ class Plotter:
         display(HTML(self.output))
         if hasattr ( self, "script" ):
             display(HTML(self.script))
+
+    def defaults ( self ):
+        self.origtopos = "all"
+        self.collaboration = "ALL"
+        self.likelihood = "gauss+poisson"
+        self.useAlsoULMaps = False
+        self.analyses = []
+        self.comment = None
+        self.topologies = []
+        self.negativetopos = []
+        self.negativeanalyses = []
+        self.outfile = self.determineOutFile ( "./pDatabase@@FILTER@@.png" )
+        self.title = None
+        self.roughviz = False
+        self.options = {}
+        self.unscale = False
+        self.signalmodel = False
+        self.fakes = False
+        self.sqrts = [8,13]
+        self.filter = 0.
+        self.filtersigma = 0.
 
     def __init__ ( self, args ):
         """
@@ -118,50 +139,47 @@ class Plotter:
         :param signalmodel: use the signal+bg model for computing likelihoods
         :param filtersigma: filter out signal regions with expectedBG/bgErr < filtersigma
         :param collaboration: select a specific collaboration
-        :param doFakes: add fakes to the plot
+        :param fakes: add fakes to the plot
         :param analyses: if not None, then filter for these analyses
                          (e.g. CMS-SUS-16-039-ma5)
         :param disclaimer: add a disclaimer, "do not circulate"
         :param ulAlso: show UL results, also
         :param title: a title
         """
-        self.origtopos = args.topologies
+        self.defaults()
+        for a,value in args.items():
+            if a not in [ "topologies", "analyses" ]:
+                setattr ( self, a, value )
+        self.origtopos = args["topologies"]
         if self.origtopos == None:
             self.origtopos = "all"
         self.description = None
-        if args.topologies != None:
-                if args.topologies.endswith ( ".py" ):
-                    print ( f"[plotDBDict] you supplied {args.topologies} as topologies. Did you supply the validation file instead?" )
-                args.topologies, descr = namesForSetsOfTopologies ( args.topologies )
+        if args['topologies'] != None:
+                if args["topologies"].endswith ( ".py" ):
+                    print ( f"[plotDBDict] you supplied {args['topologies']} as topologies. Did you supply the validation file instead?" )
+                args["topologies"], descr = namesForSetsOfTopologies ( args['topologies'] )
                 self.description = descr
-        collaboration = args.select_collaboration.upper()
-        if collaboration in [ "", "*" ]:
-            collaboration = "ALL"
-        if not collaboration in [ "CMS", "ATLAS", "ALL" ]:
-            print ( "[plotDBDict] error: collaboration must be either CMS, ATLAS, or ALL." )
-            sys.exit(-1)
-        self.collaboration = collaboration
-        abbreviations = { "g": "gauss", "gp": "gauss+poisson", "lp": "lognormal+poisson" }
-        likelihood = args.likelihood
-        if likelihood in abbreviations:
-            likelihood = abbreviations[likelihood]
-        if likelihood not in [ "gauss", "gauss+poisson", "lognormal+poisson" ]:
-            print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
-            sys.exit()
-        self.likelihood = likelihood ## False: gauss, True: lognormal
-        self.title = args.title
-        self.doFakes = args.fakes
-        self.unscale = args.unscale
-        self.signalmodel = args.signalmodel
-        self.topologies = []
-        self.analyses = []
-        self.disclaimer = args.disclaimer
-        self.negativetopos = []
-        self.negativeanalyses = []
-        self.filtersigma = args.filtersigma
+        if 'select_collaboration' in args:
+            collaboration = args['select_collaboration'].upper()
+            if collaboration in [ "", "*" ]:
+                collaboration = "ALL"
+            if not collaboration in [ "CMS", "ATLAS", "ALL" ]:
+                print ( "[plotDBDict] error: collaboration must be either CMS, ATLAS, or ALL." )
+                sys.exit(-1)
+            self.collaboration = collaboration
+        if "likelihood" in args:
+            abbreviations = { "g": "gauss", "gp": "gauss+poisson", "lp": "lognormal+poisson" }
+            likelihood = args['likelihood']
+            if likelihood in abbreviations:
+                likelihood = abbreviations[likelihood]
+            if likelihood not in [ "gauss", "gauss+poisson", "lognormal+poisson" ]:
+                print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
+                sys.exit()
+            self.likelihood = likelihood ## False: gauss, True: lognormal
         self.verbose = 1
-        self.useAlsoULMaps = args.ulalso
-        topologies = args.topologies
+        if "ulalso" in args:
+            self.useAlsoULMaps = args['ulalso']
+        topologies = args['topologies']
         if topologies not in [ None, "" ]:
             topos = topologies.split(",")
             for t in topos:
@@ -169,28 +187,42 @@ class Plotter:
                     self.negativetopos.append ( t[1:] )
                 else:
                     self.topologies.append ( t )
-        analyses = args.analyses
-        if analyses not in [ None, "" ]:
-            analyses = analyses.split(",")
-            for a in analyses:
-                if a.startswith ( "^" ):
-                    self.negativeanalyses.append ( a[1:] )
-                else:
-                    self.analyses.append ( a )
+        if "analyses" in args and args["analyses"] not in [ None ]:
+            analyses = args['analyses']
+            if analyses not in [ None, "" ]:
+                analyses = analyses.split(",")
+                for a in analyses:
+                    if a.startswith ( "^" ):
+                        self.negativeanalyses.append ( a[1:] )
+                    else:
+                        self.analyses.append ( a )
         self.filenames = []
-        comment = args.comment
-        if comment in [ "None", "", "none" ]:
-            comment = None
-        self.comment = comment
-        pathname = args.dictfile
-        for pname in pathname:
-            if os.path.isdir ( pname ):
-                pname = pname + "/db*dict"
-            self.filenames += glob.glob ( pname )
-        self.filter = args.filter
+        if "comment" in args:
+            comment = args['comment']
+            if comment in [ "None", "", "none" ]:
+                comment = None
+            self.comment = comment
+        if "dictfile" in args:
+            pathname = args['dictfile']
+            if type(pathname) in [ str ]:
+                pathname = pathname.split(",")
+            for pname in pathname:
+                if os.path.isdir ( pname ):
+                    pname = pname + "/db*dict"
+                    self.filenames += glob.glob ( pname )
+                else:
+                    self.filenames.append ( pname )
+        else:
+            print ( "we need dictfile in args" )
+        if "outfile" in args:
+            self.outfile = self.determineOutFile ( args["outfile"] )
         self.meta = {}
         self.data = {}
         self.read()
+        if self.roughviz:
+            self.rough( )
+        else:
+            self.plot( )
 
     def pprint ( self, args, verbose = 0 ):
         # x = " ".join(map(str,args))
@@ -200,7 +232,7 @@ class Plotter:
 
     def selectedCollaboration( self, anaid ):
         """ does anaid pass the collaboration selection? """
-        if self.collaboration == "ALL":
+        if self.collaboration in [ "ALL", "all", "*" ]:
             return True
         if self.collaboration in anaid:
             return True
@@ -208,6 +240,7 @@ class Plotter:
 
     def read ( self ):
         """ read in content of filename """
+        print ( "[plotDBDict] reading", self.filenames )
         for fname in self.filenames:
             with open( fname,"rt") as f:
                 tmp=f.readlines()
@@ -243,6 +276,7 @@ class Plotter:
                         #print ( f"[plotDBDict] removing {basename}:{i} (eBG is {eBG}+-{bgerr})" )
             # print ( f"[plotDBDict] keeping {len(newdata)}/{len(data)} for {basename}" )
             self.data[basename] = newdata
+            # print ( f"found {fname} {len(tmp)} basename >>{basename}<< newdata {len(newdata)}" )
 
     def getSqrts ( self, anaid ):
         """ get the sqrts of anaid """
@@ -294,7 +328,8 @@ class Plotter:
         hasComplained = False
         for filename in self.filenames:
             selfbase = os.path.basename ( filename )
-            data = self.data [ selfbase.replace(".dict","") ]
+            dname = selfbase.replace(".dict","")
+            data = self.data [ dname ]
             skipped = []
             self.nanas = set()
             hasEffMaps = set()
@@ -450,10 +485,9 @@ class Plotter:
         outfile = outfile.replace("@@FILTER@@", flt )
         return outfile
 
-    def rough ( self, outfile = None, options = {} ):
+    def rough ( self ):
         """ roughviz plot of the same data """
-        self.options = options
-        outfile = self.determineOutFile ( outfile )
+        outfile = self.determineOutFile ( self.outfile )
         debug = []
         P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
@@ -461,8 +495,8 @@ class Plotter:
             sys.exit()
         title = self.getTitle()
         weighted = False
-        if "weighted" in options:
-            weighted = options["weighted"]
+        if "weighted" in self.options:
+            weighted = self.options["weighted"]
         import roughviz
         roughviz.roughviz.generate_template = self.roughviz_template
         # print ( "roughviz", roughviz.__file__ )
@@ -502,14 +536,14 @@ class Plotter:
         if weighted:
             yLabel = "# analyses (weighted, x 100)"
         roughness = 6
-        if "roughness" in options:
-            roughness = options["roughness"]
-        if "title" in options:
-            if options["title"] in [ False, None ]:
+        if "roughness" in self.options:
+            roughness = self.options["roughness"]
+        if "title" in self.options:
+            if self.options["title"] in [ False, None ]:
                 # title = None
                 pass
-            if type(options["title"]) == str:
-                title = options["title"]
+            if type(self.options["title"]) == str:
+                title = self.options["title"]
         bar = roughviz.stackedbar ( df["labels"], df[ columns],
                 xLabel="p-values", roughness = roughness,
                 yLabel = yLabel, title = title,
@@ -577,9 +611,8 @@ class Plotter:
         self.title = title
         return title
 
-    def plot( self, outfile, options = {} ):
+    def plot( self ):
         """ plot the p-values """
-        outfile = self.determineOutFile ( outfile )
         P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
@@ -640,7 +673,7 @@ class Plotter:
             l13gt2 = plt.plot ( [ avgp13gt+var13gt, avgp13gt+var13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linestyle="dotted", linewidth=1 )
             l13gt3 = plt.plot ( [ avgp13gt-var13gt, avgp13gt-var13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linestyle="dotted", linewidth=1 )
         #fweights = [ nm1 ]*len(Pfake["8"]+Pfake["13_lt"]+Pfake["13_gt"])
-        if self.doFakes:
+        if self.fakes:
             fweights = np.concatenate ( [ weightsfake["8"], weightsfake["13_lt"], weightsfake["13_gt"] ] )
         # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
             H2 = plt.hist ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] ), weights = fweights,
@@ -667,21 +700,15 @@ class Plotter:
         nSRs = len(Ptot)
         plt.text ( .69, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="black", fontsize=7 )
         # plt.ylabel ( "# Signal Regions" )
-        print ( f"[plotDBDict] plotting {outfile}"  )
+        print ( f"[plotDBDict] plotting {self.outfile}"  )
         if self.comment != None:
             plt.text ( .65, -.11, self.comment, transform=ax.transAxes,
                        style="italic" )
         if self.disclaimer:
             plt.text ( .3, .3, "do not circulate!", transform=ax.transAxes,
                        rotation=35, c="#ff3333", fontsize=20 )
-        plt.kittyPlot ( outfile )
-        """
-        plt.savefig ( outfile )
-        if hasattr ( plt, "options" ) and plt.options["hasKittyBackend"]:
-            plt.show()
-        """
+        plt.kittyPlot ( self.outfile, self.show )
         plt.clf()
-        return None, None
 
 def getArgs( cmdline = None ):
     import argparse
@@ -709,6 +736,8 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-t', '--topologies', nargs='?',
             help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. "^" before the name acts as negation [None]',
             type=str, default=None )
+    argparser.add_argument ( '--sqrts', nargs='*',
+            help='sqrtses [8,13]', type=float, default=[8,13] )
     argparser.add_argument ( '-a', '--analyses', nargs='?',
             help='filter for certain analyses, e.g. CMS-SUS-16-039-ma5. Comma separated. "^" before the name acts as negation [None]',
             type=str, default=None )
@@ -747,16 +776,11 @@ def getArgs( cmdline = None ):
         args.options = {}
     for k,v in args.__dict__.items():
         args.options[k]=v
-    return args
+    return args.__dict__
 
 def main():
     args = getArgs()
     plotter = Plotter ( args )
-    options = args.options
-    if args.roughviz:
-        plotter.rough( args.outfile, options )
-    else:
-        plotter.plot( args.outfile, args.options )
 
 def runNotebook( cmdline, options = {} ):
     """ meant to be run from with a jupyter notebook

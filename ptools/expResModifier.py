@@ -32,13 +32,37 @@ from smodels.experiment.databaseObj import Database
 logger.setLevel("ERROR")
 
 class ExpResModifier:
-    def __init__ ( self, dbpath, Zmax, rundir, keep, nproc, fudge,
-                   suffix: str, lognormal = False, fixedsignals = False,
-                   fixedbackgrounds = False, seed = None,
-                   maxmassdist = 400., compute_ps = False ):
-        """
-        :param dbpath: path to database
-        :param Zmax: upper limit on an individual excess
+    epilog="""
+Examples:
+=========
+
+Fake SM-only database:
+----------------------
+./expResModifier.py -R $RUNDIR -d original.pcl -s fake1
+
+Database with a fake signal:
+----------------------------
+./expResModifier.py -R $RUNDIR -d original.pcl -s signal1 -P pmodel9.py
+
+Playback the modifications described in playback file "db.dict":
+----------------------------------------------------------------
+WARNING this functionality has not yet been tested!
+./expResModifier.py -R $RUNDIR -d original.pcl -p db.dict -o playedback.pcl
+
+Build a database:
+-----------------
+./expResModifier.py -B -d ../../../smodels-database
+
+Just filter the database:
+-------------------------
+./expResModifier.py -d ./original.pcl --remove_orig --nofastlim --onlyvalidated --nosuperseded --dontsample --remove_nonagg -o test.pcl
+
+"""
+
+    def __init__ ( self, args ):
+        """ args is a dictionary here,
+        :param database: path to database
+        :param max: upper limit on an individual excess
         :param suffix: suffix to use, e.g. fake, signal, etc
         :param lognormal: if True, use lognormal for nuisances, else Gaussian
         :param fixedsignals: if True, then use the central value of theory prediction
@@ -50,29 +74,56 @@ class ExpResModifier:
                             for a signal to populate an UL map
         :param compute_ps: compute p-values for all SRs
         """
+        self.defaults()
+        if "max" in args and args["max"] == None:
+            args["max"] = 100
+        for a,value in args.items():
+            setattr ( self, a, value )
+        if "rundir" in args:
+            self.rundir = setup( args["rundir"] )
+        self.logfile = "modifier.log"
+        self.startLogger()
+        self.logCall()
+        if "seed" in args:
+            self.setSeed ( args["seed"] )
+        self.run()
+
+    def defaults( self ):
+        """ define the defaults """
         self.db = None
         self.comments = {} ## comments on entries in dict
-        self.lognormal = lognormal
-        self.dbpath = dbpath
-        self.maxmassdist = maxmassdist
-        self.compute_ps = compute_ps
         self.hasFiltered = False
-        self.fixedsignals = fixedsignals
-        self.fixedbackgrounds = fixedbackgrounds
         self.protomodel = None
-        self.rundir = setup( rundir )
-        self.keep = keep
-        self.nproc = nproc
-        self.fudge = fudge
-        self.logfile = "modifier.log"
-        self.suffix = suffix
-        if Zmax == None:
-            Zmax = 100
-        self.Zmax = Zmax
-        self.startLogger()
         self.stats = {}
-        self.logCall()
-        self.setSeed ( seed )
+        self.dbpath = "../../smodels-database"
+        self.outfile = ""
+        self.suffix = "fake1"
+        self.rundir = None
+        self.fudge = 1.
+        self.nofastlim = False
+        self.onlyvalidated = False
+        self.nosuperseded = False
+        self.remove_orig = False
+        self.remove_nonagg = False
+        self.dontsample = False
+        self.lognormal = False
+        self.fixedsignals = False
+        self.fixedbackgrounds = False
+        self.max = 100
+        self.maxmassdist = 400
+        self.seed = None
+        self.nproc = 1
+        self.pmodel = ""
+        self.playback = ""
+        self.verbose = 0
+        self.interactive = False
+        self.build = False
+        self.check = False
+        self.compute_ps = False
+        self.extract_stats = False
+        self.upload = False
+        self.symlink = False
+        self.keep = False
 
     def setSeed( self, seed ):
         if seed is None:
@@ -154,7 +205,7 @@ class ExpResModifier:
             if x_ != None:
                 x = x_
             D = {}
-            while x > self.Zmax:
+            while x > self.max:
                 x = 0.
                 if not self.fixedbackgrounds:
                     x = self.drawNuisance() * self.fudge # draw but once from standard-normal
@@ -224,24 +275,25 @@ class ExpResModifier:
         """ logging """
         print ( "[expResModifier] %s" % ( " ".join(map(str,args))) )
         with open( self.logfile, "a" ) as f:
-            f.write ( "[modifier] %s\n" % ( " ".join(map(str,args)) ) )
+            f.write ( "[expResModifier] %s\n" % ( " ".join(map(str,args)) ) )
 
     def startLogger ( self ):
         subprocess.getoutput ( "mv %s modifier.old" % self.logfile )
         self.log ( "starting at %s with zmax of %s" % \
-                   ( time.asctime(), self.Zmax ) )
+                   ( time.asctime(), self.max ) )
         self.log ( "arguments were %s" % ( " ".join ( sys.argv ) ) )
 
     def log ( self, *args ):
         """ logging to file """
         # logfile = "walker%d.log" % self.walkerid
         with open( self.logfile, "a" ) as f:
-            f.write ( "[modifier] %s\n" % ( " ".join(map(str,args)) ) )
+            f.write ( "[expResModifier] %s\n" % ( " ".join(map(str,args)) ) )
 
     def info ( self, *args ):
         """ logging to file, but also write to screen """
         self.log ( *args )
-        print ( "[modifier] %s" % ( " ".join(map(str,args)) ) )
+        if self.verbose > 1:
+            print ( "[expResModifier] %s" % ( " ".join(map(str,args)) ) )
 
     def finalize ( self ):
         """ finalize, for the moment its just deleting slha files """
@@ -302,7 +354,7 @@ class ExpResModifier:
                 self.info ( f"{er.globalInfo.id} has only empty datasets, will remove." )
         return ret
 
-    def modifyDatabase ( self, outfile="", pmodel="" ):
+    def modifyDatabase ( self ):
         """ modify the database, possibly write out to a pickle file
         :param outfile: if not empty, write the database into file
         :param suffix: suffix to append to database version
@@ -310,15 +362,15 @@ class ExpResModifier:
                        model. in this case fake a signal
         :returns: the database
         """
-        spmodel = f"protomodel is '{pmodel}'"
-        if pmodel == "":
+        spmodel = f"protomodel is '{self.pmodel}'"
+        if self.pmodel == "":
             spmodel = "no protomodel given"
-        self.info ( f"starting to create {outfile} from {self.dbpath}. suffix is '{self.suffix}', {spmodel}." )
+        self.info ( f"starting to create {self.outfile} from {self.dbpath}. suffix is '{self.suffix}', {spmodel}." )
         if self.db == None:
             self.db = Database ( self.dbpath )
         self.dbversion = self.db.databaseVersion
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
-        self.produceProtoModel ( pmodel, self.db.databaseVersion )
+        self.produceProtoModel ( self.pmodel, self.db.databaseVersion )
         # print ( "pm produced", os.path.exists ( self.protomodel.currentSLHA ) )
         self.log ( "%d results before faking bgs" % len(listOfExpRes) )
         updatedListOfExpRes = self.fakeBackgrounds ( listOfExpRes )
@@ -336,8 +388,8 @@ class ExpResModifier:
         self.db.pcl_meta.databaseVersion = newver
         self.pprint ( "Constructed fake database with %d (of %d) results" % \
                 ( len(updatedListOfExpRes), len(listOfExpRes) ) )
-        if outfile != "":
-            self.db.createBinaryFile( outfile )
+        if self.outfile != "":
+            self.db.createBinaryFile( self.outfile )
         return self.db
 
     def sampleEfficiencyMap ( self, dataset ):
@@ -355,7 +407,7 @@ class ExpResModifier:
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
             D["orig_p"]=p
         S, origS = float("inf"), float("nan")
-        while S > self.Zmax:
+        while S > self.max:
             # lmbda = stats.norm.rvs ( exp, err )
             lmbda = exp
             if not self.fixedbackgrounds:
@@ -372,7 +424,7 @@ class ExpResModifier:
             if toterr > 0.:
                 S = ( obs - exp ) / toterr
                 origS = ( orig - exp ) / toterr
-            if S < self.Zmax:
+            if S < self.max:
                 self.log ( "effmap replacing old nobs=%d (bg=%.2f+/-%.2f, lmbda=%.2f, S=%.2f) with nobs=%d for %s:%s" % \
                     ( orig, exp, err, lmbda, S, obs, dataset.globalInfo.id, dataset.dataInfo.dataId  ) )
                 dataset.dataInfo.observedN = obs
@@ -667,7 +719,7 @@ class ExpResModifier:
         if statsname != None:
             filename = statsname
         self.log ( f"saving stats to {filename}" )
-        meta = { "dbpath": self.dbpath, "Zmax": self.Zmax,
+        meta = { "dbpath": self.dbpath, "Zmax": self.max,
                  "database": self.dbversion, "fudge": self.fudge,
                  "protomodel": '"%s"' % self.protomodel, "timestamp": time.asctime(),
                  "lognormal": self.lognormal, "maxmassdist": self.maxmassdist,
@@ -841,8 +893,7 @@ class ExpResModifier:
         txnd.tri._points = numpy.array ( txnd.tri._points, dtype=numpy.float32 )
         return txnd
 
-    def filter ( self, outfile, nofastlim, onlyvalidated, nosuperseded,
-                       remove_orig, remove_nonagg ):
+    def filter ( self ):
         """ filter the list fo experimental results.
         :param outfile: store result in outfile (a pickle file)
         :param nofastlim: remove fastlim results
@@ -851,27 +902,29 @@ class ExpResModifier:
         :param remove_orig: remove original values
         :param remove_nonagg: remove non-aggregated results
         """
+        if not ( self.nofastlim or self.onlyvalidated or self.nosuperseded or self.remove_orig or self.remove_nonagg ):
+            return
         self.log ( "starting to filter %s. suffix is %s." % \
-                   ( outfile, self.suffix ) )
+                   ( self.outfile, self.suffix ) )
         if self.db == None:
             self.db = Database ( self.dbpath )
         listOfExpRes = self.db.expResultList ## seems to be the safest bet?
-        if remove_nonagg:
+        if self.remove_nonagg:
             from smodels_utils.helper.databaseManipulations import filterNonAggregatedFromList
             n = len(listOfExpRes )
-            listOfExpRes = filterNonAggregatedFromList ( listOfExpRes, verbose=True )
-            print ( f"[modifier] nonaggregated filter: from {n} to {len(listOfExpRes)}" )
+            listOfExpRes = filterNonAggregatedFromList ( listOfExpRes, verbose=self.verbose )
+            print ( f"[expResModifier] nonaggregated filter: from {n} to {len(listOfExpRes)}" )
             if len(listOfExpRes ) <  n:
                 self.hasFiltered = True
         newList = []
         for er in listOfExpRes:
             addThisOne = True
-            if nofastlim:
+            if self.nofastlim:
                 if hasattr ( er.globalInfo, "contact" ) and "fastlim" in er.globalInfo.contact:
                     print ( " `- skipping fastlim %s" % er.globalInfo.id )
                     addThisOne = False
                     self.hasFiltered = True
-            if nosuperseded:
+            if self.nosuperseded:
                 if hasattr ( er.globalInfo, "supersededBy" ):
                     print ( " `- skipping superseded %s" % er.globalInfo.id )
                     addThisOne = False
@@ -883,7 +936,7 @@ class ExpResModifier:
             if not addThisOne:
                 self.hasFiltered = True
                 continue
-            if onlyvalidated:
+            if self.onlyvalidated:
                 newDs = []
                 hasIssued = 0
                 for ds in er.datasets:
@@ -905,7 +958,7 @@ class ExpResModifier:
                 er.datasets = newDs
                 if len(newDs) == 0:
                     addThisOne = False
-            if remove_orig:
+            if self.remove_orig:
                 from smodels.experiment.txnameObj import TxNameData
                 TxNameData._keep_values = False
                 for label in [ "prettyName", "arxiv", "publication", "implementedBy",\
@@ -932,10 +985,10 @@ class ExpResModifier:
                 continue
             newList.append ( er )
         self.db.subs[0].expResultList = newList
-        if outfile != "":
-            self.db.createBinaryFile( outfile )
+        if self.outfile != "":
+            self.db.createBinaryFile( self.outfile )
 
-    def playback ( self, playbackdict, outfile ):
+    def playback ( self, playbackdict ):
         """ playback the mods described in playbackdict """
         self.pprint ( "WARNING: playback functionality has not yet been validated!!" )
         with open ( playbackdict, "rt" ) as h:
@@ -947,7 +1000,7 @@ class ExpResModifier:
         if self.db == None:
             self.db = Database ( self.dbpath )
         for k,v in D.items():
-            if k == "dbpath":
+            if k in [ "dbpath", "database" ]:
                 continue
             setattr ( self, k, v )
         ## now the remaining lines
@@ -966,12 +1019,12 @@ class ExpResModifier:
             #    continue
             self.playbackOneItem ( anaids, values )
         self.db.expResultList = self.lExpRes
-        self.db.dbpath = outfile
+        self.db.dbpath = self.outfile
         self.dbversion = self.dbversion + ".playedback"
         self.db.txt_meta.databaseVersion = self.db.databaseVersion + ".playedback"
         self.db.pcl_meta.databaseVersion = self.db.databaseVersion + ".playedback"
-        self.pprint ( f"writing to {outfile}" )
-        self.db.createBinaryFile ( outfile )
+        self.pprint ( f"writing to {self.outfile}" )
+        self.db.createBinaryFile ( self.outfile )
 
     def playbackOneItem ( self, anaids : str, values : dict ):
         """ play back a single item
@@ -1046,8 +1099,9 @@ class ExpResModifier:
         cmd = f"ln -s {outfile} {dest}"
         subprocess.getoutput ( cmd )
 
-    def check ( self, picklefile ):
+    def check ( self ):
         """ check the picklefile """
+        picklefile = self.outfile
         print ( "now checking the modified database" )
         self.db = Database ( picklefile )
         # listOfExpRes = db.getExpResults()
@@ -1058,43 +1112,70 @@ class ExpResModifier:
                 txnl = ds.txnameList
                 for txn in txnl:
                     x = txn.txnameData.dataType
-        print ( "were good", self.db.databaseVersion )
+        print ( "we're good", self.db.databaseVersion )
 
+    def run ( self ):
+        if self.fixedbackgrounds and not self.fixedsignals:
+            print ( "[expResModifier] WARNING fixing backgrounds but not signals. Sounds weird" )
+        if self.fixedbackgrounds and self.fudge > 1e-2:
+            print ( "[expResModifier] WARNING fixing backgrounds but fudge factor is not zero. Sounds weird" )
+        if self.build:
+            from smodels.experiment.txnameObj import TxNameData
+            TxNameData._keep_values = True
+            from smodels.experiment.databaseObj import Database
+            print ( f"[expResModifier] starting to build database at {self.database}." )
+            db = Database ( self.database )
+            print ( f"[expResModifier] built database at {self.database}. Exiting." )
+            sys.exit()
+        if self.rundir == None:
+            print ( f"[expResModifier] setting rundir to {os.getcwd()}" )
+            self.rundir = os.getcwd()
+        if type(self.rundir)==str and not "/" in self.rundir and \
+                not self.rundir.startswith("."):
+            self.rundir = "/scratch-cbe/users/wolfgan.waltenberger/" + self.rundir
+        if self.outfile == "":
+            self.outfile = self.suffix+".pcl"
+        statsname = None
+        if self.playback not in [ None, "" ]:
+            self.playback ( self.playback, self.outfile )
+            statsname = "playback.dict"
 
-epilog="""
-Examples:
-=========
+        if not self.outfile.endswith(".pcl"):
+            print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % self.outfile )
+        self.filter ( )
+        if self.dontsample:
+            print ( "[expResModifier] we were asked to not sample, so we exit now." )
+            sys.exit()
 
-Fake SM-only database:
-----------------------
-./expResModifier.py -R $RUNDIR -d original.pcl -s fake1
+        if self.extract_stats:
+            er = self.extractStats()
+        else:
+            if not self.playback:
+                er = self.modifyDatabase ( ) 
 
-Database with a fake signal:
-----------------------------
-./expResModifier.py -R $RUNDIR -d original.pcl -s signal1 -P pmodel9.py
+        self.saveStats( statsname )
 
-Playback the modifications described in playback file "db.dict":
-----------------------------------------------------------------
-WARNING this functionality has not yet been tested!
-./expResModifier.py -R $RUNDIR -d original.pcl -p db.dict -o playedback.pcl
+        if self.check:
+            self.check ( )
 
-Build a database:
------------------
-./expResModifier.py -B -d ../../../smodels-database
+        if self.interactive:
+            self.interact ( er )
 
-Just filter the database:
--------------------------
-./expResModifier.py -d ./original.pcl --remove_orig --nofastlim --onlyvalidated --nosuperseded --dontsample --remove_nonagg -o test.pcl
+        if self.upload:
+            self.upload()
 
-"""
+        if self.symlink:
+            self.symlink ( )
+
+        self.finalize()
 
 if __name__ == "__main__":
     import argparse
     from argparse import RawTextHelpFormatter
     argparser = argparse.ArgumentParser(
                         description='experimental results modifier. used to take out potential signals from the database by setting all observations to values sampled from the background expectations. can insert signals, too.', formatter_class = RawTextHelpFormatter,
-                        epilog=epilog )
-    argparser.add_argument ( '-d', '--database',
+                        epilog=ExpResModifier.epilog )
+    argparser.add_argument ( '-d', '--dbpath',
             help='database to use [../../smodels-database]',
             type=str, default="../../smodels-database" )
     argparser.add_argument ( '-o', '--outfile',
@@ -1136,7 +1217,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '--fixedbackgrounds',
             help='fix the contributions from the backgrounds, use central values for all.',
             action='store_true' )
-    argparser.add_argument ( '-M', '--max',
+    argparser.add_argument ( '-M', '--Zmax',
             help='upper limit on significance of individual excess [None]',
             type=float, default=None )
     argparser.add_argument ( '--maxmassdist',
@@ -1159,7 +1240,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '-I', '--interactive',
             help='interactive mode', action='store_true' )
     argparser.add_argument ( '-B', '--build',
-            help='build the original pickle file with all relevant info, then exit (use --database to specify path)', action='store_true' )
+            help='build the original pickle file with all relevant info, then exit (use --dbpath to specify path)', action='store_true' )
     argparser.add_argument ( '-c', '--check',
             help='check the pickle file <outfile>', action='store_true' )
     argparser.add_argument ( '-C', '--compute_ps',
@@ -1174,64 +1255,4 @@ if __name__ == "__main__":
     argparser.add_argument ( '-k', '--keep',
             help='keep temporary files (for debugging)', action='store_true' )
     args = argparser.parse_args()
-    if args.fixedbackgrounds and not args.fixedsignals:
-        print ( "[expResModifier] WARNING fixing backgrounds but not signals. Sounds weird" )
-    if args.fixedbackgrounds and args.fudge > 1e-2:
-        print ( "[expResModifier] WARNING fixing backgrounds but fudge factor is not zero. Sounds weird" )
-    if args.build:
-        from smodels.experiment.txnameObj import TxNameData
-        TxNameData._keep_values = True
-        from smodels.experiment.databaseObj import Database
-        print ( f"[expResModifier] starting to build database at {args.database}." )
-        db = Database ( args.database )
-        print ( f"[expResModifier] built database at {args.database}. Exiting." )
-        sys.exit()
-    if args.rundir == None:
-        print ( f"[expResModifier] setting rundir to {os.getcwd()}" )
-        args.rundir = os.getcwd()
-    if type(args.rundir)==str and not "/" in args.rundir and \
-            not args.rundir.startswith("."):
-        args.rundir = "/scratch-cbe/users/wolfgan.waltenberger/" + args.rundir
-    if args.outfile == "":
-        args.outfile = args.suffix+".pcl"
-
-    modifier = ExpResModifier( args.database, args.max, args.rundir, args.keep, \
-                               args.nproc, args.fudge, args.suffix, args.lognormal,
-                               args.fixedsignals, args.fixedbackgrounds, args.seed,
-                               args.maxmassdist, args.compute_ps )
-
-    statsname = None
-    if args.playback not in [ None, "" ]:
-        modifier.playback ( args.playback, args.outfile )
-        statsname = "playback.dict"
-
-    if not args.outfile.endswith(".pcl"):
-        print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % args.outfile )
-    if args.nofastlim or args.onlyvalidated or args.nosuperseded or args.remove_orig or args.remove_nonagg:
-        modifier.filter ( args.outfile, args.nofastlim, args.onlyvalidated,
-                          args.nosuperseded, args.remove_orig, args.remove_nonagg )
-    if args.dontsample:
-        print ( "[expResModifier] we were asked to not sample, so we exit now." )
-        sys.exit()
-
-    if args.extract_stats:
-        er = modifier.extractStats()
-    else:
-        if not args.playback:
-            er = modifier.modifyDatabase ( args.outfile, args.pmodel )
-
-    modifier.saveStats( statsname )
-
-    if args.check:
-        modifier.check ( args.outfile )
-
-    if args.interactive:
-        modifier.interact ( er )
-
-    if args.upload:
-        modifier.upload()
-
-    if args.symlink:
-        modifier.symlink ( args.outfile )
-
-    modifier.finalize()
+    modifier = ExpResModifier( args.__dict__ )
