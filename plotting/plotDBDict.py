@@ -4,18 +4,17 @@
 
 from smodels_utils.plotting import mpkitty as plt
 from smodels_utils.helper import prettyDescriptions
-#import matplotlib
-#matplotlib.use('agg')
-#from matplotlib import pyplot as plt
+
 import numpy as np
 import os, glob, sys, math
-sys.path.insert(0,"../")
-from ptools.helpers import computeP
-from ptools.moreHelpers import namesForSetsOfTopologies
 from copy import deepcopy as cp
 import scipy.stats
 import matplotlib.mlab as mlab
 from typing import Union
+
+sys.path.insert(0,"../")
+from ptools.helpers import computeP
+from ptools.moreHelpers import namesForSetsOfTopologies
 
 class Plotter:
 
@@ -73,7 +72,7 @@ class Plotter:
         if hasattr ( self, "script" ):
             f.write ( self.script )
         f.close()
-        self.pprint ( f"{htmlname} created, can be opened with ''xdg-open {htmlname}''" )
+        # self.pprint ( f"{htmlname} created, can be opened with ''xdg-open {htmlname}''" )
         cwd = os.getcwd()
         #pngname = "plot.png"
         pngname = outfile
@@ -90,6 +89,9 @@ class Plotter:
         if False:
             cmd = f"xdg-open {htmlname}"
             subprocess.getoutput ( cmd )
+        if True and os.path.exists (htmlname ):
+            # self.pprint ( f"removing {htmlname}" )
+            os.unlink ( htmlname )
         
     def showPng ( self, filename ):
         if ("show" in self.options and self.options["show"]==True) or self.show == True:
@@ -240,7 +242,6 @@ class Plotter:
 
     def read ( self ):
         """ read in content of filename """
-        print ( "[plotDBDict] reading", self.filenames )
         for fname in self.filenames:
             with open( fname,"rt") as f:
                 tmp=f.readlines()
