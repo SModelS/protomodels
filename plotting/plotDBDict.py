@@ -117,7 +117,7 @@ class Plotter:
         return step, bins
 
     def defaults ( self ):
-        self.nbins = 20
+        self.nbins = 10
         self.Zmax = 3.0
         self.significances = True # if False, then p-values
         self.origtopos = "all"
@@ -744,6 +744,10 @@ class Plotter:
         self.discussPs ( P, Pfake, weights, weightsfake )
         # loc = "lower center"
         loc = "best"
+        _, stdnmx = list (self.getBins ( 100 ) )
+        scale = 1. / 0.39894 * .75
+        stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+        plt.plot ( stdnmx, stdnmy, c="red", linestyle="dotted", label="standard normal" )
         if nLegendEntries > 1:
             legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.1) )
         if self.likelihood == "lognormal+poisson":
@@ -775,10 +779,6 @@ class Plotter:
         if self.disclaimer:
             plt.text ( .3, .3, "do not circulate!", transform=ax.transAxes,
                        rotation=35, c="#ff3333", fontsize=20 )
-        _, stdnmx = list (self.getBins ( 100 ) )
-        scale = 1. / 0.39894 * .75
-        stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
-        plt.plot ( stdnmx, stdnmy, c="red", linestyle="dotted" )
         plt.kittyPlot ( self.outfile, self.show )
 
         plt.clf()
