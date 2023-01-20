@@ -139,6 +139,7 @@ class Plotter:
         self.sqrts = [8,13]
         self.filter = 0.
         self.filtersigma = 0.
+        self.disclaimer = False
 
     def __init__ ( self, args ):
         """
@@ -722,7 +723,6 @@ class Plotter:
             l13gt, h13gt = h13gt, l13gt
 
         if avgp8 > 0. or self.significances:
-            print ( "plotting", [ avgp8, avgp8 ], [l8, h8 ] )
             l81 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1, label = r"averages of $p$-values, $\bar{p}$", linewidth=2 )
             l82 = plt.plot ( [ avgp8+varp8, avgp8+varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
             l83 = plt.plot ( [ avgp8-varp8, avgp8-varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
