@@ -117,8 +117,8 @@ class Plotter:
         return step, bins
 
     def defaults ( self ):
-        self.nbins = 10
-        self.Zmax = 3.0
+        self.nbins = None # 10 for p-values, 13 for significances
+        self.Zmax = 3.25
         self.significances = True # if False, then p-values
         self.origtopos = "all"
         self.collaboration = "ALL"
@@ -168,6 +168,11 @@ class Plotter:
         for a,value in args.items():
             if a not in [ "topologies", "analyses" ]:
                 setattr ( self, a, value )
+        if self.nbins == None:
+            if self.significances:
+                self.nbins = 13
+            else:
+                self.nbins = 10
         self.origtopos = args["topologies"]
         if self.origtopos == None:
             self.origtopos = "all"
@@ -552,6 +557,7 @@ class Plotter:
         title = self.getTitle()
 
         step, bins = self.getBins()
+        print ( f"[plotDBDict bins are at {bins}" )
 
         (p8,x8) = np.histogram ( P["8"], bins )
         (p13lt,x13lt) = np.histogram ( P["13_lt"], bins )
@@ -563,6 +569,8 @@ class Plotter:
             (p13lt,x13lt) = np.histogram ( P["13_lt"], bins, weights=weights["13_lt"] )
             (p13gt,x13gt) = np.histogram ( P["13_gt"], bins, weights=weights["13_gt"] )
         sbins = [ f"{x+step/2.:.2f}" for x in x8[:-1] ]
+        if self.significances:
+            sbins = [ f"{x+step/2.:.1f}" for x in x8[:-1] ]
         p8l = [ factor*float(x) for x in p8 ]
         p13ltl = [ factor*float(x) for x in p13lt ]
         #p13ltl = [ float(x)+float(y) for x,y in zip(p13lt,p8) ]
@@ -576,6 +584,8 @@ class Plotter:
         yLabel = "# SRs"
         if weighted:
             yLabel = "# analyses (weighted, x 100)"
+        if "ylabel" in self.options:
+            yLabel = self.options["ylabel"]
         roughness = 6
         if "roughness" in self.options:
             roughness = self.options["roughness"]
