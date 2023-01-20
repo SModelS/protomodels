@@ -105,7 +105,21 @@ class Plotter:
         if hasattr ( self, "script" ):
             display(HTML(self.script))
 
+    def getBins ( self, nbins = None ):
+        """ get the bin edges """
+        if nbins == None:
+            nbins = self.nbins
+        step = 1/nbins
+        bins = np.arange ( 0., 1+1e-7, step )
+        if self.significances:
+            step = (2*self.Zmax)/nbins
+            bins = np.arange ( -self.Zmax, self.Zmax+1e-7, step )
+        return step, bins
+
     def defaults ( self ):
+        self.nbins = 20
+        self.Zmax = 3.0
+        self.significances = True # if False, then p-values
         self.origtopos = "all"
         self.collaboration = "ALL"
         self.likelihood = "gauss+poisson"
@@ -147,6 +161,7 @@ class Plotter:
         :param disclaimer: add a disclaimer, "do not circulate"
         :param ulAlso: show UL results, also
         :param title: a title
+        :param significances
         """
         self.defaults()
         for a,value in args.items():
@@ -486,11 +501,37 @@ class Plotter:
         outfile = outfile.replace("@@FILTER@@", flt )
         return outfile
 
+    def toSignificance ( self, p ):
+        """ translate a p-value to a significane, i.e. compute Phi(p)^-1 """
+        if type(p) == dict:
+            ret = {}
+            for k,v in p.items():
+                ret[k] = self.toSignificance ( v )
+            return ret
+        if type(p) in [ list, tuple, np.array, np.ndarray ]:
+            ret = []
+            for k in p:
+                ret.append ( self.toSignificance ( k ) )
+            if type(p) == tuple:
+                ret = tuple(ret)
+            if type(p) in [ np.array, np.ndarray ]:
+                ret = np.array ( ret )
+            return ret
+        if type(p) in [ float, np.float32, np.float64 ]:
+            Z = - scipy.stats.norm.ppf ( p )
+            return Z
+        print ( "cannot compute significance for",p,type(p) )
+        sys.exit()
+        return None
+        # scipy.stats.norm.ppf
+
     def rough ( self ):
         """ roughviz plot of the same data """
         outfile = self.determineOutFile ( self.outfile )
         debug = []
         P,Pfake,weights,weightsfake=self.compute ( )
+        if self.significances:
+            P,Pfake=self.toSignificance((P,Pfake))
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
             sys.exit()
@@ -500,19 +541,17 @@ class Plotter:
             weighted = self.options["weighted"]
         import roughviz
         roughviz.roughviz.generate_template = self.roughviz_template
-        # print ( "roughviz", roughviz.__file__ )
         if hasattr ( roughviz, "charts" ):
             print ( "I think you installed py-roughviz, not roughviz" )
             sys.exit(-1)
         import pandas as pd
-        P,Pfake,weights,weightsfake=self.compute ( )
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
             sys.exit()
         title = self.getTitle()
 
-        nbins = 10 ## change the number of bins
-        bins = np.arange ( 0., 1+1e-7, 1/nbins )
+        step, bins = self.getBins()
+
         (p8,x8) = np.histogram ( P["8"], bins )
         (p13lt,x13lt) = np.histogram ( P["13_lt"], bins )
         (p13gt,x13gt) = np.histogram ( P["13_gt"], bins )
@@ -522,7 +561,7 @@ class Plotter:
             (p8,x8) = np.histogram ( P["8"], bins, weights=weights["8"] )
             (p13lt,x13lt) = np.histogram ( P["13_lt"], bins, weights=weights["13_lt"] )
             (p13gt,x13gt) = np.histogram ( P["13_gt"], bins, weights=weights["13_gt"] )
-        sbins = [ f"{x+.05:.2f}" for x in x8[:-1] ]
+        sbins = [ f"{x+step/2.:.2f}" for x in x8[:-1] ]
         p8l = [ factor*float(x) for x in p8 ]
         p13ltl = [ factor*float(x) for x in p13lt ]
         #p13ltl = [ float(x)+float(y) for x,y in zip(p13lt,p8) ]
@@ -545,8 +584,11 @@ class Plotter:
                 pass
             if type(self.options["title"]) == str:
                 title = self.options["title"]
+        xlabel = "p-values"
+        if self.significances:
+            xlabel = "significances"
         bar = roughviz.stackedbar ( df["labels"], df[ columns],
-                xLabel="p-values", roughness = roughness,
+                xLabel=xlabel, roughness = roughness,
                 yLabel = yLabel, title = title,
                 titleFontSize = 18, plot_svg = True, interactive = False,
                 labelFontSize = 16, axisFontSize = 16, legend = "true" )
@@ -612,27 +654,45 @@ class Plotter:
         self.title = title
         return title
 
+    def getBinNr ( self, bins, x ):
+        """ given a histogram with edges at bins,
+        find index of entry <x> """
+        for i,b in enumerate(bins):
+            if x < b:
+                return i-1
+        return len(bins)
+        #ret=int(x*len(bins)) ## find the bin of the max
+        #print ( "bins", bins, "binnr", ret )
+        #return ret
+
     def plot( self ):
         """ plot the p-values """
         P,Pfake,weights,weightsfake=self.compute ( )
+        if self.significances:
+            P,Pfake=self.toSignificance((P,Pfake))
+        weighted = False
+        if "weighted" in self.options:
+            weighted = self.options["weighted"]
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
             sys.exit()
         title = self.getTitle()
 
-        nbins = 10 ## change the number of bins
         fig, ax = plt.subplots()
         x = [ P["8"], P["13_lt"], P["13_gt"] ]
+        step, bins = self.getBins()
+
         avgp8,varp8 =self.computeWeightedMean ( P["8"], weights["8"] )
-        bin8=int(avgp8*nbins)
+        bin8=self.getBinNr ( bins, avgp8 ) ## find the bin of the max
         avgp13lt, var13lt = self.computeWeightedMean( P["13_lt"], weights["13_lt"] )
         avgp13gt, var13gt = self.computeWeightedMean( P["13_gt"], weights["13_gt"] )
-        bin13lt=int(avgp13lt*nbins)
-        bin13gt=int(avgp13gt*nbins)
+        bin13lt=self.getBinNr ( bins, avgp13lt )
+        bin13gt=self.getBinNr ( bins, avgp13gt )
         nm1 = 1. / len(self.filenames)
-        wlist = [ weights["8"], weights["13_lt"], weights["13_gt"] ]
+        wlist = [ [1.]*len(weights["8"]), [1.]*len(weights["13_lt"]), [1.]*len(weights["13_gt"]) ]
+        if weighted:
+            wlist = [ weights["8"], weights["13_lt"], weights["13_gt"] ]
         nontrivial = [ len(x)>0 for x in wlist ]
-        bins = np.arange ( 0., 1+1e-7, 1/nbins )
         # labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
         savgp8 = ( "%.2f" % avgp8 ).lstrip('0')
         savgp13l = ( "%.2f" % avgp13lt ).lstrip('0')
@@ -647,10 +707,10 @@ class Plotter:
         colors = [ "tab:green", "tab:blue", "cyan" ]
         H1 = plt.hist ( x, weights = wlist, bins=bins, histtype="bar",
                    label= labels, color= colors, stacked=True )
-        mx = max ( H1[0][2] )
-        #eps = .2
+        mx = max ( H1[0][2] ) ## highest y-value, like at all
+        # eps = .2
         eps = mx / 50.
-        l8 = 0 + eps
+        l8 = 0. + eps
         h8 = H1[0][0][bin8] - eps
         h13lt = H1[0][1][bin13lt] - eps
         l13lt = H1[0][0][bin13lt] + eps
@@ -660,20 +720,21 @@ class Plotter:
         l13gt = H1[0][1][bin13gt] + eps
         if l13gt > h13gt:
             l13gt, h13gt = h13gt, l13gt
-        if avgp8 > 0.:
+
+        if avgp8 > 0. or self.significances:
+            print ( "plotting", [ avgp8, avgp8 ], [l8, h8 ] )
             l81 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1, label = r"averages of $p$-values, $\bar{p}$", linewidth=2 )
             l82 = plt.plot ( [ avgp8+varp8, avgp8+varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
             l83 = plt.plot ( [ avgp8-varp8, avgp8-varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
-        if avgp13lt > 0.:
+        if avgp13lt > 0. or self.significances:
             l13l = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linewidth=2 )
             l13l2 = plt.plot ( [ avgp13lt+var13lt, avgp13lt+var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
             l13l3 = plt.plot ( [ avgp13lt-var13lt, avgp13lt-var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
 
-        if avgp13gt > 0.:
+        if avgp13gt > 0. or self.significances:
             l13gt1 = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linewidth=2 )
             l13gt2 = plt.plot ( [ avgp13gt+var13gt, avgp13gt+var13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linestyle="dotted", linewidth=1 )
             l13gt3 = plt.plot ( [ avgp13gt-var13gt, avgp13gt-var13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linestyle="dotted", linewidth=1 )
-        #fweights = [ nm1 ]*len(Pfake["8"]+Pfake["13_lt"]+Pfake["13_gt"])
         if self.fakes:
             fweights = np.concatenate ( [ weightsfake["8"], weightsfake["13_lt"], weightsfake["13_gt"] ] )
         # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
@@ -694,8 +755,14 @@ class Plotter:
         plt.title  ( title )
         plt.plot ( [ .5, .5 ], [ -.003, .2 ], c="tab:grey", linewidth=1,
                    linestyle="-" )
-        plt.xlabel ( "$p$-values" )
-        plt.ylabel ( "# analyses (weighted)" )
+        xlabel  = "$p$-values"
+        ylabel = "# SRs"
+        if self.significances:
+            xlabel = "significances"
+        if weighted:
+            ylabel = "#analyses (weighted)"
+        plt.xlabel ( xlabel )
+        plt.ylabel ( ylabel )
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
         nAnas = len ( self.nanas )
         nSRs = len(Ptot)
@@ -708,7 +775,12 @@ class Plotter:
         if self.disclaimer:
             plt.text ( .3, .3, "do not circulate!", transform=ax.transAxes,
                        rotation=35, c="#ff3333", fontsize=20 )
+        _, stdnmx = list (self.getBins ( 100 ) )
+        scale = 1. / 0.39894 * .75
+        stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+        plt.plot ( stdnmx, stdnmy, c="red", linestyle="dotted" )
         plt.kittyPlot ( self.outfile, self.show )
+
         plt.clf()
 
 def getArgs( cmdline = None ):
@@ -729,6 +801,8 @@ def getArgs( cmdline = None ):
             help='weighted plot, i.e. each analysis (not each SR) counts equally', action='store_true' )
     argparser.add_argument ( '-F', '--fakes',
             help='add the fakes to the plot', action='store_true' )
+    argparser.add_argument ( '-Z', '--significances',
+            help='plot significances, not p-values', action='store_true' )
     argparser.add_argument ( '-S', '--signalmodel',
             help='use the signal+bg model for computing likelihoods', action='store_true' )
     argparser.add_argument ( '-l', '--likelihood', nargs='?',
