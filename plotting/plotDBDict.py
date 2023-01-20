@@ -85,6 +85,7 @@ class Plotter:
             cmd = f"cutycapt --zoom-factor=2. --delay=1000 --url=file://{cwd}/{htmlname} --out={pngname}"
             o = subprocess.getoutput ( cmd )
             self.pprint ( f"{pngname} created" )
+            self.addLegendToRough ( pngname )
             self.showPng( pngname )
         if False:
             cmd = f"xdg-open {htmlname}"
@@ -557,7 +558,7 @@ class Plotter:
         title = self.getTitle()
 
         step, bins = self.getBins()
-        print ( f"[plotDBDict bins are at {bins}" )
+        # print ( f"[plotDBDict bins are at {bins}" )
 
         (p8,x8) = np.histogram ( P["8"], bins )
         (p13lt,x13lt) = np.histogram ( P["13_lt"], bins )
@@ -605,7 +606,28 @@ class Plotter:
                 labelFontSize = 16, axisFontSize = 16, legend = "true" )
         # bar = roughviz.outputs
         # self.interactive( { "df": df, "bar": bar, "debug": debug }  )
+        # self.addLegendToRough ( outfile )
         return bar, debug
+
+    def addLegendToRough ( self, filename ):
+        """ rough plot does not have legend, so we write it ourselves """
+        from PIL import Image, ImageDraw, ImageFont
+        import ptools
+        path = ptools.__file__.replace("ptools/__init__.py","shared/")
+        font = os.path.join ( os.path.abspath ( path ), "Gaegu-Regular.ttf" )
+        img = Image.open ( filename )
+        d1 = ImageDraw.Draw(img)
+        myFont = ImageFont.truetype( font, 36 )
+        labels = { "8": "8 TeV", "13lt": "13 TeV, low lumi", "13gt": "13 TeV, high lumi" }
+        colors = { "8": (135, 207, 236), "13lt": (121, 202, 176), "13gt": (218, 194, 161 ) }
+        ymin, dy = 80, 50
+        ycoords = { "8": ymin+2*dy, "13lt": ymin+dy, "13gt": ymin }
+        for l in labels:
+            txt = labels[l]
+            c = colors[l]
+            y = ycoords[l]
+            d1.text((1100, y), txt, fill = c,font=myFont)
+        img.save ( filename )
 
     def interactive ( self, container ):
         import IPython
