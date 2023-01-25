@@ -737,7 +737,8 @@ class Plotter:
                 labels[c]=""
             else:
                 nLegendEntries+=1
-        colors = [ "tab:green", "tab:blue", "cyan" ]
+        # colors = [ "tab:green", "tab:blue", "cyan" ]
+        colors = [ "tab:green", "tab:blue", "lightblue" ]
         H1 = plt.hist ( x, weights = wlist, bins=bins, histtype="bar",
                    label= labels, color= colors, stacked=True )
         mx = max ( H1[0][2] ) ## highest y-value, like at all
@@ -764,9 +765,9 @@ class Plotter:
             l13l3 = plt.plot ( [ avgp13lt-var13lt, avgp13lt-var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
 
         if avgp13gt > 0. or self.significances:
-            l13gt1 = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linewidth=2 )
-            l13gt2 = plt.plot ( [ avgp13gt+var13gt, avgp13gt+var13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linestyle="dotted", linewidth=1 )
-            l13gt3 = plt.plot ( [ avgp13gt-var13gt, avgp13gt-var13gt ], [ l13gt, h13gt ], color = "darkcyan", zorder=1, linestyle="dotted", linewidth=1 )
+            l13gt1 = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linewidth=2 )
+            l13gt2 = plt.plot ( [ avgp13gt+var13gt, avgp13gt+var13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
+            l13gt3 = plt.plot ( [ avgp13gt-var13gt, avgp13gt-var13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
         if self.fakes:
             fweights = np.concatenate ( [ weightsfake["8"], weightsfake["13_lt"], weightsfake["13_gt"] ] )
         # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
