@@ -599,6 +599,10 @@ class Plotter:
         xlabel = "p-values"
         if self.significances:
             xlabel = "significances"
+        if "ylabel" in self.options:
+            yLabel = self.options["ylabel"]
+        if "xlabel" in self.options:
+            xlabel = self.options["xlabel"]
         bar = roughviz.stackedbar ( df["labels"], df[ columns],
                 xLabel=xlabel, roughness = roughness,
                 yLabel = yLabel, title = title,
@@ -730,7 +734,12 @@ class Plotter:
         savgp8 = ( "%.2f" % avgp8 ).lstrip('0')
         savgp13l = ( "%.2f" % avgp13lt ).lstrip('0')
         savgp13g = ( "%.2f" % avgp13gt ).lstrip('0')
-        labels = [ "8 TeV [%s]" % savgp8, "13 TeV, $\\mathcal{L}<100/fb$ [%s]" % savgp13l, "13 TeV, $\\mathcal{L}>100/fb$ [%s]" % savgp13g ]
+        labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<100/fb$", "13 TeV, $\\mathcal{L}>100/fb$" ]
+        plotAverages = True
+        if "plot_averages" in self.options:
+            plotAverages = self.options["plot_averages"]
+        if plotAverages:
+            labels = [ "8 TeV [%s]" % savgp8, "13 TeV, $\\mathcal{L}<100/fb$ [%s]" % savgp13l, "13 TeV, $\\mathcal{L}>100/fb$ [%s]" % savgp13g ]
         nLegendEntries=0
         for c,l in enumerate(labels):
             if not nontrivial[c]:
@@ -755,32 +764,34 @@ class Plotter:
         if l13gt > h13gt:
             l13gt, h13gt = h13gt, l13gt
 
-        if avgp8 > 0. or self.significances:
-            l81 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1, label = r"averages of $p$-values, $\bar{p}$", linewidth=2 )
-            l82 = plt.plot ( [ avgp8+varp8, avgp8+varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
-            l83 = plt.plot ( [ avgp8-varp8, avgp8-varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
-        if avgp13lt > 0. or self.significances:
-            l13l = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linewidth=2 )
-            l13l2 = plt.plot ( [ avgp13lt+var13lt, avgp13lt+var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
-            l13l3 = plt.plot ( [ avgp13lt-var13lt, avgp13lt-var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
+        if plotAverages:
+            if avgp8 > 0. or self.significances:
+                l81 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1, label = r"averages of $p$-values, $\bar{p}$", linewidth=2 )
+                l82 = plt.plot ( [ avgp8+varp8, avgp8+varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
+                l83 = plt.plot ( [ avgp8-varp8, avgp8-varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
+            if avgp13lt > 0. or self.significances:
+                l13l = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linewidth=2 )
+                l13l2 = plt.plot ( [ avgp13lt+var13lt, avgp13lt+var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
+                l13l3 = plt.plot ( [ avgp13lt-var13lt, avgp13lt-var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
 
-        if avgp13gt > 0. or self.significances:
-            l13gt1 = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linewidth=2 )
-            l13gt2 = plt.plot ( [ avgp13gt+var13gt, avgp13gt+var13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
-            l13gt3 = plt.plot ( [ avgp13gt-var13gt, avgp13gt-var13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
-        if self.fakes:
-            fweights = np.concatenate ( [ weightsfake["8"], weightsfake["13_lt"], weightsfake["13_gt"] ] )
-        # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
-            H2 = plt.hist ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] ), weights = fweights,
-                        bins=bins, stacked=True, zorder=9,
-                        label="fake", color=["red" ], linewidth=3, histtype="step" )
+            if avgp13gt > 0. or self.significances:
+                l13gt1 = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linewidth=2 )
+                l13gt2 = plt.plot ( [ avgp13gt+var13gt, avgp13gt+var13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
+                l13gt3 = plt.plot ( [ avgp13gt-var13gt, avgp13gt-var13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
+            if self.fakes:
+                fweights = np.concatenate ( [ weightsfake["8"], weightsfake["13_lt"], weightsfake["13_gt"] ] )
+            # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
+                H2 = plt.hist ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] ), weights = fweights,
+                            bins=bins, stacked=True, zorder=9,
+                            label="fake", color=["red" ], linewidth=3, histtype="step" )
         self.discussPs ( P, Pfake, weights, weightsfake )
         # loc = "lower center"
         loc = "best"
         _, stdnmx = list (self.getBins ( 100 ) )
         scale = 1. / 0.39894 * .75
         stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
-        plt.plot ( stdnmx, stdnmy, c="red", linestyle="dotted", label="standard normal" )
+        if self.significances:
+            plt.plot ( stdnmx, stdnmy, c="red", linestyle="dotted", label="standard normal" )
         if nLegendEntries > 1:
             legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.1) )
         if self.likelihood == "lognormal+poisson":
@@ -798,12 +809,20 @@ class Plotter:
             xlabel = "significances"
         if weighted:
             ylabel = "#analyses (weighted)"
+        if "ylabel" in self.options:
+            ylabel = self.options["ylabel"]
+        if "xlabel" in self.options:
+            xlabel = self.options["xlabel"]
         plt.xlabel ( xlabel )
         plt.ylabel ( ylabel )
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
         nAnas = len ( self.nanas )
         nSRs = len(Ptot)
-        plt.text ( .69, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="black", fontsize=7 )
+        plotStats = True
+        if "plotStats" in self.options:
+            plotStats = self.options["plotStats"]
+        if plotStats:
+            plt.text ( .67, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="black", fontsize=7 )
         # plt.ylabel ( "# Signal Regions" )
         print ( f"[plotDBDict] plotting {self.outfile}"  )
         if self.comment != None:
@@ -864,7 +883,7 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-D', '--disclaimer',
             help='add a disclaimer', action='store_true' )
     argparser.add_argument ( '-O', '--options',
-            help='options, given as string [None]',
+            help='options, given as string {try xlabel, ylabel, plotStats, plot_averages, weighted} [None]',
             type=str, default=None )
     argparser.add_argument ( '-U', '--ulalso',
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
