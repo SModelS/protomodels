@@ -734,7 +734,9 @@ class Plotter:
         savgp8 = ( "%.2f" % avgp8 ).lstrip('0')
         savgp13l = ( "%.2f" % avgp13lt ).lstrip('0')
         savgp13g = ( "%.2f" % avgp13gt ).lstrip('0')
-        labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<100/fb$", "13 TeV, $\\mathcal{L}>100/fb$" ]
+        # labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<100/fb$", "13 TeV, $\\mathcal{L}>100/fb$" ]
+        #labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<78/fb$", "13 TeV, full lumi" ]
+        labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<78/fb$", "13 TeV, full $\\mathcal{L}$" ]
         plotAverages = True
         if "plot_averages" in self.options:
             plotAverages = self.options["plot_averages"]
