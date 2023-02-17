@@ -11,6 +11,15 @@ from smodels_utils.helper.various import hasLLHD
 from tester import analysisCombiner
 import IPython
 
+def getCombinationsMatrix ( path ):
+    if type ( path ) == dict:
+        return path
+    import importlib
+    spec = importlib.util.spec_from_file_location( "getMatrix", path )
+    imp = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(imp)
+    return imp.getMatrix()
+
 def sortBySqrts ( results, sqrts ):
     ret = []
     for res in results:
@@ -75,6 +84,7 @@ def draw( args : dict ):
            outputfile: file name of output file (matrix.png)
            nofastlim: if True, discard fastlim results
     """
+    matrix = getCombinationsMatrix ( args["combinationsmatrix"] )
     sqrtses = [ 8, 13 ]
     if args["sqrts"] not in [ "all" ]:
         sqrtses = [ int(args["sqrts"]) ]
@@ -84,7 +94,7 @@ def draw( args : dict ):
 
     # dir = "/home/walten/git/smodels-database/"
     dbdir = args["database"]
-    d=Database( dbdir, discard_zeroes = True )
+    d=Database( dbdir, discard_zeroes = True, combinationsmatrix = matrix )
     print(d)
     analysisIds = [ "all" ]
     exps = [ "CMS", "ATLAS" ]
@@ -134,8 +144,11 @@ def draw( args : dict ):
             if args["triangular"] and y<x:
                 h[x][n-y-1]= float("nan")
                 continue
-            isUn = analysisCombiner.canCombine ( e.globalInfo, f.globalInfo, 
-                    args["strategy"] )
+            isUn = e.isCombinableWith ( f )
+            print ( "isUn", isUn )
+            # sys.exit()
+            #isUn = analysisCombiner.canCombine ( e.globalInfo, f.globalInfo, 
+            #        args["strategy"] )
             # isUn = e.isUncorrelatedWith ( f )
             v = 0.
             if isUn:
@@ -206,7 +219,6 @@ def draw( args : dict ):
         plt.text ( .01, .01, "plot produced %s from database v%s" % \
                    ( time.strftime("%h %d %Y" ), d.databaseVersion ), 
                    c="grey", transform = fig.transFigure, fontsize=24 )
-    # ROOT.c1.Print("matrix_%s.pdf" % strategy )
     outputfile = args["outputfile"]
     if "@M" in outputfile:
         modifiers = ""
@@ -233,6 +245,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-d', '--database', nargs='?',
             help='path to database [../../smodels-database]',
             type=str, default='../../smodels-database' )
+    argparser.add_argument ( '-c', '--combinationsmatrix', nargs='?',
+            help='path to combinationsmatrix file [../../smodels/combinationsmatrix.py]',
+            type=str, default='../../smodels/combinationsmatrix.py' )
     argparser.add_argument ( '-e', '--experiment', nargs='?',
             help='plot only specific experiment CMS,ATLAS,all [all]',
             type=str, default='all' )
