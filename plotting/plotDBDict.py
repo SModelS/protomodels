@@ -137,7 +137,7 @@ class Plotter:
         self.unscale = False
         self.signalmodel = False
         self.fakes = False
-        self.sqrts = [8,13]
+        self.sqrts = [8,13,13.6]
         self.filter = 0.
         self.filtersigma = 0.
         self.disclaimer = False
@@ -211,6 +211,7 @@ class Plotter:
                     self.negativetopos.append ( t[1:] )
                 else:
                     self.topologies.append ( t )
+
         if "analyses" in args and args["analyses"] not in [ None ]:
             analyses = args['analyses']
             if analyses not in [ None, "" ]:
@@ -262,6 +263,14 @@ class Plotter:
             return True
         return False
 
+    def selectedSqrts( self, id ):
+        """ select for sqrt-s """
+        from smodels_utils.helper.various import getSqrts
+        s = getSqrts ( id )
+        if s in self.sqrts:
+            return True
+        return False
+
     def read ( self ):
         """ read in content of filename """
         for fname in self.filenames:
@@ -279,6 +288,8 @@ class Plotter:
             newdata = {}
             for i,v in data.items():
                 if not self.selectedCollaboration ( i ):
+                    continue
+                if not self.selectedSqrts ( i ):
                     continue
                 if "expectedBG" in v and v["expectedBG"]>=self.filter and \
                         v["expectedBG"]/v["bgError"]>=self.filtersigma:
@@ -866,7 +877,7 @@ def getArgs( cmdline = None ):
             help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. "^" before the name acts as negation [None]',
             type=str, default=None )
     argparser.add_argument ( '--sqrts', nargs='*',
-            help='sqrtses [8,13]', type=float, default=[8,13] )
+            help='sqrtses [8,13,13.6]', type=float, default=[8,13,13.6] )
     argparser.add_argument ( '-a', '--analyses', nargs='?',
             help='filter for certain analyses, e.g. CMS-SUS-16-039-ma5. Comma separated. "^" before the name acts as negation [None]',
             type=str, default=None )
@@ -899,6 +910,7 @@ def getArgs( cmdline = None ):
             cmdline = cmdline[1:]
 
     args=argparser.parse_args( cmdline )
+    print ( "sqrts", args.sqrts )
     if type(args.options) == str:
         args.options = eval ( args.options )
     if args.options is None:
