@@ -904,6 +904,9 @@ def getArgs( cmdline = None ):
             help='roughviz plot', action='store_true' )
     argparser.add_argument ( '--show',
             help='show plot', action='store_true' )
+    argparser.add_argument ( '--Zmax',
+            help='maximum Z signifances to plot (|Z|) [3.25]',
+            type=float, default=3.25 )
     if type(cmdline) in [ str ]:
         cmdline = cmdline.split()
         if "plotDBDict.py" in cmdline[0]:
