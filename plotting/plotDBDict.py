@@ -778,16 +778,16 @@ class Plotter:
             l13gt, h13gt = h13gt, l13gt
 
         if plotAverages:
-            if avgp8 > 0. or self.significances:
+            if 8 in self.sqrts and ( avgp8 > 0. or self.significances ):
                 l81 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1, label = r"averages of $p$-values, $\bar{p}$", linewidth=2 )
                 l82 = plt.plot ( [ avgp8+varp8, avgp8+varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
                 l83 = plt.plot ( [ avgp8-varp8, avgp8-varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
-            if avgp13lt > 0. or self.significances:
+            if 13 in self.sqrts and ( avgp13lt > 0. or self.significances ):
                 l13l = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linewidth=2 )
                 l13l2 = plt.plot ( [ avgp13lt+var13lt, avgp13lt+var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
                 l13l3 = plt.plot ( [ avgp13lt-var13lt, avgp13lt-var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
 
-            if avgp13gt > 0. or self.significances:
+            if 13 in self.sqrts and ( avgp13gt > 0. or self.significances ):
                 l13gt1 = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linewidth=2 )
                 l13gt2 = plt.plot ( [ avgp13gt+var13gt, avgp13gt+var13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
                 l13gt3 = plt.plot ( [ avgp13gt-var13gt, avgp13gt-var13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
@@ -814,8 +814,9 @@ class Plotter:
         if self.collaboration != "ALL":
             title += f" {self.collaboration} only"
         plt.title  ( title )
-        plt.plot ( [ .5, .5 ], [ -.003, .2 ], c="tab:grey", linewidth=1,
-                   linestyle="-" )
+        if not self.significances:
+            plt.plot ( [ .5, .5 ], [ -.003, .2 ], c="tab:grey", linewidth=1,
+                       linestyle="-" )
         xlabel  = "$p$-values"
         ylabel = "# SRs"
         if self.significances:
