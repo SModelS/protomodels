@@ -71,6 +71,17 @@ def sortOutDupes ( results ):
             ret.append ( res )
     return ret
 
+def checkForPartialCombinability ( e1, e2 ):
+    """ check if a and b are partially combinable """
+    ads = e1.datasets
+    bds = e2.datasets
+    for a in ads:
+        for b in bds:
+            if a.isCombinableWith ( b ):
+                # print ( "a and b!", e1.globalInfo.id, a, e2.globalInfo.id, b )
+                return True
+    return False
+
 def draw( args : dict ):
     """
     draw the correlation matrix
@@ -144,31 +155,39 @@ def draw( args : dict ):
             if args["triangular"] and y<x:
                 h[x][n-y-1]= float("nan")
                 continue
-            isUn = e.isCombinableWith ( f )
-            print ( "isUn", isUn )
+            isComb = e.isCombinableWith ( f )
+            partial = False
+            if not isComb:
+                partial = checkForPartialCombinability ( e, f )
+            #if partial:
+            #    print ( f"{label}+{f.globalInfo.id}: partially combinable" )
             # sys.exit()
             #isUn = analysisCombiner.canCombine ( e.globalInfo, f.globalInfo, 
             #        args["strategy"] )
             # isUn = e.isUncorrelatedWith ( f )
             v = 0.
-            if isUn:
+            if isComb:
                 v = 1.
             else:
-                v = -1
-            if not hasLikelihood or not hasLLHD ( f ): ## has no llhd? cannot be combined
                 v = 2.
+                if partial:
+                    v = 3.
+            if not hasLikelihood or not hasLLHD ( f ): ## has no llhd? cannot be combined
+                v = 4.
             if y==x:
-                v = 3.
+                v = 5.
             h[x][n-y-1]= v
             # h[n-x-1][y]= v
 
-    c = [ "red", "b", "b", "b", "limegreen", "b", "white", "grey" ]
+    c = [ "b", "limegreen", "red", "orange", "white", "grey" ]
+    # c[3]="darkgreen"
     v = np.arange(0.,1.00001,1. / (len(c)-1) )
     l = list(zip(v,c))
+    print ( "l", l )
     from  matplotlib.colors import LinearSegmentedColormap
     cmap=LinearSegmentedColormap.from_list('rg',l, N=len(c) )
     plt.matshow ( h, aspect = "equal", origin = "lower", cmap = cmap,
-                  vmin = -1, vmax = 3. )
+                  vmin = 0, vmax = 5. )
     plt.grid ( visible = False )
     plt.xticks ( rotation=90 )
     fig = plt.gcf()
