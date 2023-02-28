@@ -124,8 +124,13 @@ def draw( args : dict ):
 
     from matplotlib import pyplot as plt
     import matplotlib
-    matplotlib.rc('xtick', labelsize=14, labelcolor = "gray" )
-    matplotlib.rc('ytick', labelsize=14, labelcolor = "gray" )
+    labelsize = 14
+    tickpad = -55
+    if nres < 50:
+        tickpad = 0
+        labelsize = 26
+    matplotlib.rc('xtick', labelsize=labelsize, labelcolor = "gray" )
+    matplotlib.rc('ytick', labelsize=labelsize, labelcolor = "gray" )
 
     bins= { "CMS": { 8: [999,0], 13:[999,0] },
             "ATLAS": { 8: [999,0], 13: [999,0] } }
@@ -183,7 +188,7 @@ def draw( args : dict ):
     # c[3]="darkgreen"
     v = np.arange(0.,1.00001,1. / (len(c)-1) )
     l = list(zip(v,c))
-    print ( "l", l )
+    # print ( "l", l )
     from  matplotlib.colors import LinearSegmentedColormap
     cmap=LinearSegmentedColormap.from_list('rg',l, N=len(c) )
     plt.matshow ( h, aspect = "equal", origin = "lower", cmap = cmap,
@@ -194,8 +199,8 @@ def draw( args : dict ):
     fig.set_size_inches(30, 30)
     ax = plt.gca()
     ax.xaxis.set_ticks_position("bottom")
-    ax.tick_params(axis='x', pad=-55 )
-    ax.tick_params(axis='y', pad=-55 )
+    ax.tick_params(axis='x', pad=tickpad )
+    ax.tick_params(axis='y', pad=tickpad )
     plt.setp(ax.get_xticklabels(), rotation=90,
          ha="right", rotation_mode="anchor")
     ax.set_xticks ( range(len(labels)) )
@@ -206,7 +211,7 @@ def draw( args : dict ):
     ax.set_yticklabels( labels ) ## need to invert
     if len(exps)==1 and len(sqrtses)==1:
         plt.text ( .45, .95, "%s, %d TeV" % ( exps[0], sqrtses[0] ),
-                   transform = fig.transFigure )
+                   fontsize = 3 * labelsize, transform = fig.transFigure )
     ct = 0
     for ana in exps:
         for sqrts in sqrtses:
