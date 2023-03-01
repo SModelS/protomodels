@@ -14,7 +14,7 @@ class MovieMaker:
         subprocess.getoutput ( cmd )
 
     def mkffmpeg ( self ):
-        framerate = 20
+        framerate = 5
         outfile = "out.mp4"
         cmd = f"ffmpeg -framerate {framerate} -y -pattern_type glob -i '{self.dirname}/p*.png'   -c:v libx264 -pix_fmt yuv420p {outfile}"
         subprocess.getoutput ( cmd )
@@ -36,6 +36,7 @@ class MovieMaker:
                 poptions["dictfile"] = "../db222pre1timestamp.dict"
                 poptions["options"] = {'ylabel':'# signal regions', 'plot_averages': False, 'plotStats': False }
                 poptions["outfile"] = filename
+                poptions["title"] = ""
                 poptions["before"] = date
                 plotter = plotDBDict.Plotter ( poptions )
 
