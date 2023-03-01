@@ -120,6 +120,8 @@ class Plotter:
     def defaults ( self ):
         self.nbins = None # 10 for p-values, 13 for significances
         self.Zmax = 3.25
+        self.before = None
+        self.show = False
         self.pvalues = False # if False, then p-values if true then significances
         self.origtopos = "all"
         self.collaboration = "ALL"
