@@ -126,7 +126,7 @@ def draw( args : dict ):
     import matplotlib
     labelsize = 14
     tickpad = -55
-    if nres < 50:
+    if nres < 60:
         tickpad = 0
         labelsize = 26
     matplotlib.rc('xtick', labelsize=labelsize, labelcolor = "gray" )
@@ -194,7 +194,7 @@ def draw( args : dict ):
     plt.matshow ( h, aspect = "equal", origin = "lower", cmap = cmap,
                   vmin = 0, vmax = 5. )
     plt.grid ( visible = False )
-    plt.xticks ( rotation=90 )
+    # plt.xticks ( rotation=90, horizontalalignment="center" )
     fig = plt.gcf()
     fig.set_size_inches(30, 30)
     ax = plt.gca()
@@ -202,7 +202,7 @@ def draw( args : dict ):
     ax.tick_params(axis='x', pad=tickpad )
     ax.tick_params(axis='y', pad=tickpad )
     plt.setp(ax.get_xticklabels(), rotation=90,
-         ha="right", rotation_mode="anchor")
+         ha="center", rotation_mode="default")
     ax.set_xticks ( range(len(labels)) )
     labels.reverse()
     ax.set_xticklabels( labels )
