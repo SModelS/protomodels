@@ -93,6 +93,7 @@ Just filter the database:
         self.db = None
         self.comments = {} ## comments on entries in dict
         self.hasFiltered = False
+        self.timestamps = False
         self.protomodel = None
         self.stats = {}
         self.dbpath = "../../smodels-database"
@@ -167,6 +168,8 @@ Just filter the database:
                            "expectedUpperLimit" ]:
                     if hasattr ( info, i ):
                         D[i] = getattr ( info, i )
+                if self.timestamps:
+                    D["timestamp"]=dataset.globalInfo.lastUpdate
                 self.addToStats ( label, D )
 
     def drawNuisance ( self, mu = 0., sigma = 1. ):
@@ -242,6 +245,8 @@ Just filter the database:
 
         label = globalInfo.id + ":ul:" + txname.txName
         D["fudge"]=self.fudge
+        if self.timestamps:
+            D["timestamp"]=globalInfo.lastUpdate
         self.addToStats ( label, D )
         self.log ( "computed new UL result %s:%s, x=%.2f" % \
                    ( globalInfo.id, txname.txName, x ) )
@@ -456,6 +461,8 @@ Just filter the database:
             print ( f"[expResModifier] warning, no txnames for {label}." )
         D["txns"]=",".join(txnames )
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
+        if self.timestamps:
+            D["timestamp"]=dataset.globalInfo.lastUpdate
         self.addToStats ( label, D )
         return dataset
 
@@ -1245,6 +1252,8 @@ if __name__ == "__main__":
             help='check the pickle file <outfile>', action='store_true' )
     argparser.add_argument ( '-C', '--compute_ps',
             help='compute p-values for all SRs', action='store_true' )
+    argparser.add_argument ( '-t', '--timestamps',
+            help='add time-stamps (only to be used with -C)', action='store_true' )
     argparser.add_argument ( '-x', '--extract_stats',
             help='dont create new database, extract stats from existing database',
             action='store_true' )
