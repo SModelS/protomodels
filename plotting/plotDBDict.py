@@ -263,6 +263,18 @@ class Plotter:
             return True
         return False
 
+    def filterByTime ( self, D ):
+        """ filter by time, let everything before self.before pass! """
+        if self.before == None:
+            return True
+        if not "timestamp" in D:
+            return True
+        from datetime import datetime as dt
+        deadline = dt.strptime ( self.before, "%Y/%m/%d")
+        current = dt.strptime ( D["timestamp"], "%Y/%m/%d")
+        # print ( "compare", self.before,"and",D["timestamp"], deadline >= current )
+        return deadline >= current
+
     def selectedSqrts( self, id ):
         """ select for sqrt-s """
         from smodels_utils.helper.various import getSqrts
@@ -290,6 +302,8 @@ class Plotter:
                 if not self.selectedCollaboration ( i ):
                     continue
                 if not self.selectedSqrts ( i ):
+                    continue
+                if not self.filterByTime ( v ):
                     continue
                 if "expectedBG" in v and v["expectedBG"]>=self.filter and \
                         v["expectedBG"]/v["bgError"]>=self.filtersigma:
@@ -869,6 +883,9 @@ def getArgs( cmdline = None ):
             help='add the fakes to the plot', action='store_true' )
     argparser.add_argument ( '-p', '--pvalues',
             help='plot p-values, not significances', action='store_true' )
+    argparser.add_argument ( '-b', '--before',
+            help='plot only entries before a certain date, like 2017/2/27', 
+            type=str, default=None )
     argparser.add_argument ( '-S', '--signalmodel',
             help='use the signal+bg model for computing likelihoods', action='store_true' )
     argparser.add_argument ( '-l', '--likelihood', nargs='?',
