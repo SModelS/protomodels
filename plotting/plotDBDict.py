@@ -112,7 +112,7 @@ class Plotter:
             nbins = self.nbins
         step = 1/nbins
         bins = np.arange ( 0., 1+1e-7, step )
-        if self.significances:
+        if not self.pvalues:
             step = (2*self.Zmax)/nbins
             bins = np.arange ( -self.Zmax, self.Zmax+1e-7, step )
         return step, bins
@@ -120,7 +120,7 @@ class Plotter:
     def defaults ( self ):
         self.nbins = None # 10 for p-values, 13 for significances
         self.Zmax = 3.25
-        self.significances = True # if False, then p-values
+        self.pvalues = False # if False, then p-values if true then significances
         self.origtopos = "all"
         self.collaboration = "ALL"
         self.likelihood = "gauss+poisson"
@@ -163,14 +163,14 @@ class Plotter:
         :param disclaimer: add a disclaimer, "do not circulate"
         :param ulAlso: show UL results, also
         :param title: a title
-        :param significances
+        :param pvalues: if true then plot p-values, if false plot significances
         """
         self.defaults()
         for a,value in args.items():
             if a not in [ "topologies", "analyses" ]:
                 setattr ( self, a, value )
         if self.nbins == None:
-            if self.significances:
+            if not self.pvalues:
                 self.nbins = 13
             else:
                 self.nbins = 10
@@ -548,7 +548,7 @@ class Plotter:
         outfile = self.determineOutFile ( self.outfile )
         debug = []
         P,Pfake,weights,weightsfake=self.compute ( )
-        if self.significances:
+        if not self.pvalues:
             P,Pfake=self.toSignificance((P,Pfake))
         if not "database" in self.meta:
             print ( "error: database not defined in meta. did you pick up any dict files at all?" )
@@ -581,7 +581,7 @@ class Plotter:
             (p13lt,x13lt) = np.histogram ( P["13_lt"], bins, weights=weights["13_lt"] )
             (p13gt,x13gt) = np.histogram ( P["13_gt"], bins, weights=weights["13_gt"] )
         sbins = [ f"{x+step/2.:.2f}" for x in x8[:-1] ]
-        if self.significances:
+        if not self.pvalues:
             sbins = [ f"{x+step/2.:.1f}" for x in x8[:-1] ]
         p8l = [ factor*float(x) for x in p8 ]
         p13ltl = [ factor*float(x) for x in p13lt ]
@@ -608,7 +608,7 @@ class Plotter:
             if type(self.options["title"]) == str:
                 title = self.options["title"]
         xlabel = "p-values"
-        if self.significances:
+        if not self.pvalues:
             xlabel = "significances"
         if "ylabel" in self.options:
             yLabel = self.options["ylabel"]
@@ -716,7 +716,7 @@ class Plotter:
     def plot( self ):
         """ plot the p-values """
         P,Pfake,weights,weightsfake=self.compute ( )
-        if self.significances:
+        if not self.pvalues:
             P,Pfake=self.toSignificance((P,Pfake))
         weighted = False
         if "weighted" in self.options:
@@ -778,16 +778,16 @@ class Plotter:
             l13gt, h13gt = h13gt, l13gt
 
         if plotAverages:
-            if 8 in self.sqrts and ( avgp8 > 0. or self.significances ):
+            if 8 in self.sqrts and ( avgp8 > 0. or not self.pvalues):
                 l81 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1, label = r"averages of $p$-values, $\bar{p}$", linewidth=2 )
                 l82 = plt.plot ( [ avgp8+varp8, avgp8+varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
                 l83 = plt.plot ( [ avgp8-varp8, avgp8-varp8 ], [l8, h8 ], color = "darkgreen", zorder=1, linestyle="dotted", linewidth=1 )
-            if 13 in self.sqrts and ( avgp13lt > 0. or self.significances ):
+            if 13 in self.sqrts and ( avgp13lt > 0. or not self.pvalues ):
                 l13l = plt.plot ( [ avgp13lt, avgp13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linewidth=2 )
                 l13l2 = plt.plot ( [ avgp13lt+var13lt, avgp13lt+var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
                 l13l3 = plt.plot ( [ avgp13lt-var13lt, avgp13lt-var13lt ], [ l13lt, h13lt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
 
-            if 13 in self.sqrts and ( avgp13gt > 0. or self.significances ):
+            if 13 in self.sqrts and ( avgp13gt > 0. or not self.pvalues ):
                 l13gt1 = plt.plot ( [ avgp13gt, avgp13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linewidth=2 )
                 l13gt2 = plt.plot ( [ avgp13gt+var13gt, avgp13gt+var13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
                 l13gt3 = plt.plot ( [ avgp13gt-var13gt, avgp13gt-var13gt ], [ l13gt, h13gt ], color = "darkblue", zorder=1, linestyle="dotted", linewidth=1 )
@@ -803,7 +803,7 @@ class Plotter:
         _, stdnmx = list (self.getBins ( 100 ) )
         scale = 1. / 0.39894 * .75
         stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
-        if self.significances:
+        if not self.pvalues:
             plt.plot ( stdnmx, stdnmy, c="red", linestyle="dotted", label="standard normal" )
         if nLegendEntries > 1:
             legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.1) )
@@ -814,12 +814,12 @@ class Plotter:
         if self.collaboration != "ALL":
             title += f" {self.collaboration} only"
         plt.title  ( title )
-        if not self.significances:
+        if self.pvalues:
             plt.plot ( [ .5, .5 ], [ -.003, .2 ], c="tab:grey", linewidth=1,
                        linestyle="-" )
         xlabel  = "$p$-values"
         ylabel = "# SRs"
-        if self.significances:
+        if not self.pvalues:
             xlabel = "significances"
         if weighted:
             ylabel = "#analyses (weighted)"
@@ -867,8 +867,8 @@ def getArgs( cmdline = None ):
             help='weighted plot, i.e. each analysis (not each SR) counts equally', action='store_true' )
     argparser.add_argument ( '-F', '--fakes',
             help='add the fakes to the plot', action='store_true' )
-    argparser.add_argument ( '-Z', '--significances',
-            help='plot significances, not p-values', action='store_true' )
+    argparser.add_argument ( '-p', '--pvalues',
+            help='plot p-values, not significances', action='store_true' )
     argparser.add_argument ( '-S', '--signalmodel',
             help='use the signal+bg model for computing likelihoods', action='store_true' )
     argparser.add_argument ( '-l', '--likelihood', nargs='?',
