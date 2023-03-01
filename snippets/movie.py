@@ -36,7 +36,7 @@ class MovieMaker:
                 poptions["dictfile"] = "../db222pre1timestamp.dict"
                 poptions["options"] = {'ylabel':'# signal regions', 'plot_averages': False, 'plotStats': False }
                 poptions["outfile"] = filename
-                poptions["title"] = ""
+                poptions["title"] = "the ever growing SModelS database"
                 poptions["before"] = date
                 plotter = plotDBDict.Plotter ( poptions )
 
@@ -47,5 +47,5 @@ class MovieMaker:
 
 if __name__ == "__main__":
     maker = MovieMaker()
-    # maker.create()
-    maker.mkffmpeg()
+    maker.create()
+    # maker.mkffmpeg()
