@@ -64,7 +64,7 @@ class Plotter:
             #self.display()
 
     def saveRoughViz ( self ):
-        outfile = self.determineOutFile ( )
+        outfile = self.determineOutFile ( self.outfile )
         # htmlname = "plot.html"
         htmlname = outfile.replace(".png",".html" )
         f = open ( htmlname, "wt" )

@@ -5,6 +5,7 @@ import subprocess, os
 class MovieMaker:
     def __init__ ( self ):
         self.dirname = "pics"
+        self.dictfile = "../db222pre1timestamp.dict"
 
     def mkdir ( self ):
         if os.path.exists ( self.dirname ):
@@ -34,9 +35,10 @@ class MovieMaker:
                 from protomodels.plotting import plotDBDict
                 topos = None
                 # topos = "electroweakinos"
-                poptions = { "topologies": topos, "roughviz": False }
-                poptions["dictfile"] = "../db222pre1timestamp.dict"
-                poptions["options"] = {'ylabel':'# signal regions', 'plot_averages': False, 'plotStats': False }
+                poptions = { "topologies": topos, "roughviz": True }
+                poptions["dictfile"] = self.dictfile
+                poptions["options"] = {'ylabel':'# signal regions', 
+                    'plot_averages': False, 'plotStats': False }
                 poptions["outfile"] = filename
                 poptions["title"] = f"SModelS database: {date}"
                 poptions["before"] = date
@@ -49,6 +51,6 @@ class MovieMaker:
 
 if __name__ == "__main__":
     maker = MovieMaker()
-    #maker.mkdir()
-    #maker.mkpics()
+    maker.mkdir()
+    maker.mkpics()
     maker.mkffmpeg()
