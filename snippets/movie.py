@@ -35,10 +35,15 @@ class MovieMaker:
                 from protomodels.plotting import plotDBDict
                 topos = None
                 # topos = "electroweakinos"
-                poptions = { "topologies": topos, "roughviz": True }
+                poptions = { "topologies": topos }
+                poptions["roughviz"]=False
                 poptions["dictfile"] = self.dictfile
-                poptions["options"] = {'ylabel':'# signal regions', 
-                    'plot_averages': False, 'plotStats': False }
+                options = {}
+                options['ylabel']='# signal regions'
+                options['plot_averages']= False
+                options['plotStats']= False
+                options['yrange']=(0,300)
+                poptions["options"] = options
                 poptions["outfile"] = filename
                 poptions["title"] = f"SModelS database: {date}"
                 poptions["before"] = date
