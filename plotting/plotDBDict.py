@@ -779,6 +779,9 @@ class Plotter:
         colors = [ "tab:green", "tab:blue", "lightblue" ]
         H1 = plt.hist ( x, weights = wlist, bins=bins, histtype="bar",
                    label= labels, color= colors, stacked=True )
+        if "yrange" in self.options and self.options["yrange"]!=None:
+            ax = plt.gca()
+            ax.set_ylim(self.options["yrange"])
         mx = max ( H1[0][2] ) ## highest y-value, like at all
         # eps = .2
         eps = mx / 50.
@@ -916,7 +919,7 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-D', '--disclaimer',
             help='add a disclaimer', action='store_true' )
     argparser.add_argument ( '-O', '--options',
-            help='options, given as string {try xlabel, ylabel, plotStats, plot_averages, weighted} [None]',
+            help='dictionary of options, given as string {try xlabel, ylabel, plotStats, plot_averages, weighted, yrange} [None]',
             type=str, default=None )
     argparser.add_argument ( '-U', '--ulalso',
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
@@ -933,7 +936,6 @@ def getArgs( cmdline = None ):
             cmdline = cmdline[1:]
 
     args=argparser.parse_args( cmdline )
-    print ( "sqrts", args.sqrts )
     if type(args.options) == str:
         args.options = eval ( args.options )
     if args.options is None:
