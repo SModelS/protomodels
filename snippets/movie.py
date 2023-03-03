@@ -15,7 +15,7 @@ class MovieMaker:
         subprocess.getoutput ( cmd )
 
     def mkffmpeg ( self ):
-        framerate = 5
+        framerate = 10
         outfile = "out.mp4"
         cmd = f"ffmpeg -framerate {framerate} -y -pattern_type glob -i '{self.dirname}/p*.png'   -c:v libx264 -pix_fmt yuv420p {outfile}"
         subprocess.getoutput ( cmd )
@@ -42,6 +42,7 @@ class MovieMaker:
                 options['ylabel']='# signal regions'
                 options['plot_averages']= False
                 options['plotStats']= False
+                options['alwayslegend']= True
                 options['yrange']=(0,300)
                 poptions["options"] = options
                 poptions["outfile"] = filename

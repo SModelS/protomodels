@@ -135,7 +135,9 @@ class Plotter:
         self.outfile = self.determineOutFile ( "./pDatabase@@FILTER@@.png" )
         self.title = None
         self.roughviz = False
-        self.options = {}
+        self.options = { "alwayslegend": False }
+        self.yrange = None
+        self.alwayslegend = False
         self.unscale = False
         self.signalmodel = False
         self.fakes = False
@@ -824,7 +826,7 @@ class Plotter:
         stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
         if not self.pvalues:
             plt.plot ( stdnmx, stdnmy, c="red", linestyle="dotted", label="standard normal" )
-        if nLegendEntries > 1:
+        if nLegendEntries > 1 or self.options["alwayslegend"]:
             legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.1) )
         if self.likelihood == "lognormal+poisson":
             title += " (lognormal)"
