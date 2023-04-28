@@ -554,6 +554,8 @@ class Plotter:
                 ret = np.array ( ret )
             return ret
         if type(p) in [ float, np.float32, np.float64 ]:
+            if p == 0.:
+                return -10 # big number
             Z = - scipy.stats.norm.ppf ( p )
             return Z
         print ( "cannot compute significance for",p,type(p) )
@@ -720,13 +722,13 @@ class Plotter:
         self.title = title
         return title
 
-    def getBinNr ( self, bins, x ):
+    def getBinNr ( self, bins : np.array, x : float ) -> int:
         """ given a histogram with edges at bins,
         find index of entry <x> """
         for i,b in enumerate(bins):
             if x < b:
                 return i-1
-        return len(bins)
+        return len(bins)-2 # to the right of the last one
         #ret=int(x*len(bins)) ## find the bin of the max
         #print ( "bins", bins, "binnr", ret )
         #return ret
@@ -752,6 +754,7 @@ class Plotter:
         bin8=self.getBinNr ( bins, avgp8 ) ## find the bin of the max
         avgp13lt, var13lt = self.computeWeightedMean( P["13_lt"], weights["13_lt"] )
         avgp13gt, var13gt = self.computeWeightedMean( P["13_gt"], weights["13_gt"] )
+        print ( "avg of", P["13_gt"], "is", avgp13gt )
         bin13lt=self.getBinNr ( bins, avgp13lt )
         bin13gt=self.getBinNr ( bins, avgp13gt )
         nm1 = 1. / len(self.filenames)
