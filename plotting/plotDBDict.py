@@ -754,7 +754,6 @@ class Plotter:
         bin8=self.getBinNr ( bins, avgp8 ) ## find the bin of the max
         avgp13lt, var13lt = self.computeWeightedMean( P["13_lt"], weights["13_lt"] )
         avgp13gt, var13gt = self.computeWeightedMean( P["13_gt"], weights["13_gt"] )
-        print ( "avg of", P["13_gt"], "is", avgp13gt )
         bin13lt=self.getBinNr ( bins, avgp13lt )
         bin13gt=self.getBinNr ( bins, avgp13gt )
         nm1 = 1. / len(self.filenames)
