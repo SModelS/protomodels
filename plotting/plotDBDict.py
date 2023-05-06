@@ -137,7 +137,6 @@ class Plotter:
         self.roughviz = False
         self.options = { "alwayslegend": False }
         self.yrange = None
-        self.alwayslegend = False
         self.unscale = False
         self.signalmodel = False
         self.fakes = False
@@ -171,6 +170,9 @@ class Plotter:
         """
         self.defaults()
         for a,value in args.items():
+            if a=="options":
+                self.options.update ( value )
+                continue
             if a not in [ "topologies", "analyses" ]:
                 setattr ( self, a, value )
         if self.nbins == None:
