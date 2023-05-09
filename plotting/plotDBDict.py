@@ -207,6 +207,11 @@ class Plotter:
                 sys.exit()
             self.likelihood = likelihood ## False: gauss, True: lognormal
         self.verbose = 1
+        if "verbose" in args:
+            v = args["verbose"]
+            if v == True:
+                v = 2
+            self.verbose = v
         if "ulalso" in args:
             self.useAlsoULMaps = args['ulalso']
         topologies = args['topologies']
@@ -258,7 +263,7 @@ class Plotter:
     def pprint ( self, args, verbose = 0 ):
         # x = " ".join(map(str,args))
         x = args
-        if self.verbose>verbose:
+        if verbose > self.verbose:
             print ( f"[plotDBDict] {x}" )
 
     def selectedCollaboration( self, anaid ):
@@ -500,16 +505,17 @@ class Plotter:
     def discussPs ( self, P, Pfake, weights, weightsfake ):
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
         Pfaketot = np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] )
-        print ( "[plotDBDict] real Ps: %d entries at %.3f +/- %.2f" %
-                ( len(Ptot), np.mean(Ptot), np.std(Ptot)  ) )
-        print ( "[plotDBDict] fake Ps: %d entries at %.3f +/- %.2f" %
-                ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ) )
+        self.pprint ( "real Ps: %d entries at %.3f +/- %.2f" %
+                ( len(Ptot), np.mean(Ptot), np.std(Ptot)  ), verbose = 1 )
+        self.pprint ( "fake Ps: %d entries at %.3f +/- %.2f" %
+                ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ),
+                verbose = 1 )
         for i in [ "8", "13_lt", "13_gt" ]:
             w, v = self.computeWeightedMean ( P[i], weights[i] )
             n = len(P[i])
             if n > 0:
-                print ( "[plotDBDict] real Ps, %s: %d entries at %.3f +/- %.2f" %
-                        ( i, n, w, v ) )
+                self.pprint ( "real Ps, %s: %d entries at %.3f +/- %.2f" %
+                        ( i, n, w, v ), verbose = 1 )
 
     def computeWeightedMean ( self, ps, ws ):
         """ weighted average of p values
@@ -863,7 +869,7 @@ class Plotter:
         if plotStats:
             plt.text ( .67, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="black", fontsize=7 )
         # plt.ylabel ( "# Signal Regions" )
-        print ( f"[plotDBDict] plotting {self.outfile}"  )
+        self.pprint ( f"plotting {self.outfile}", verbose = 5 )
         if self.comment != None:
             plt.text ( .65, -.11, self.comment, transform=ax.transAxes,
                        style="italic" )

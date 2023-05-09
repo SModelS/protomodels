@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
 
-import subprocess, os
+"""
+.. module:: movieMaker
+   :synopsis: a simple movie maker, makes a video clip that shows the evolution of
+              the meta statistics over time
+
+.. moduleauthor:: Wolfgang Waltenberger <wolfgang.waltenberger@gmail.com>
+
+"""
+
+import subprocess, os, sys
 
 class MovieMaker:
-    def __init__ ( self ):
+    def __init__ ( self, dictfile : str ):
         self.dirname = "pics"
-        self.dictfile = "../db222pre1timestamp.dict"
+        self.dictfile = dictfile
+        self.outfile = "out.mp4"
+        self.checkDictFile()
 
     def mkdir ( self ):
         if os.path.exists ( self.dirname ):
@@ -16,9 +27,21 @@ class MovieMaker:
 
     def mkffmpeg ( self ):
         framerate = 10
-        outfile = "out.mp4"
-        cmd = f"ffmpeg -framerate {framerate} -y -pattern_type glob -i '{self.dirname}/p*.png'   -c:v libx264 -pix_fmt yuv420p {outfile}"
+        cmd = f"ffmpeg -framerate {framerate} -y -pattern_type glob -i '{self.dirname}/p*.png'   -c:v libx264 -pix_fmt yuv420p {self.outfile}"
         subprocess.getoutput ( cmd )
+        print ( f"[moveMaker] finished making {self.outfile}" )
+
+    def checkDictFile ( self ):
+        """ see if there are timestamps in the dict file """
+        f = open ( self.dictfile )
+        lines = f.readlines()
+        f.close()
+        data = eval("\n".join(lines[1:]))
+        firstName, firstValues = list ( data.items() )[0]
+        if not "timestamp" in firstValues:
+            print ( f"[movieMaker] dictionary file {self.dictfile} seems to have no timestamps! Aborting." ) 
+            sys.exit()
+        return True
 
     def mkpics ( self ):
         for year in range(2016,2024):
@@ -41,6 +64,7 @@ class MovieMaker:
                 options = {}
                 options['ylabel']='# signal regions'
                 options['plot_averages']= False
+                poptions['verbose']=3
                 options['plotStats']= False
                 options['alwayslegend']= True
                 options['yrange']=(0,300)
@@ -56,7 +80,13 @@ class MovieMaker:
         self.mkffmpeg()
 
 if __name__ == "__main__":
-    maker = MovieMaker()
+    import argparse
+    argparser = argparse.ArgumentParser(description='Makes a video clip that shows the evolution of the meta statistics over time')
+    argparser.add_argument ( '-d', '--dictfile',
+                         help='the input dictfile [../timestamps.dict]',
+                         type=str, default='../timestamps.dict' )
+    args = argparser.parse_args()
+    maker = MovieMaker( args.dictfile )
     maker.mkdir()
     maker.mkpics()
     maker.mkffmpeg()
