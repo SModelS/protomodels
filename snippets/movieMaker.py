@@ -15,7 +15,7 @@ class MovieMaker:
     def __init__ ( self, dictfile : str ):
         self.dirname = "pics"
         self.dictfile = dictfile
-        self.outfile = "out.mp4"
+        self.outfile = "EvolutionSModelSDatabase.mp4"
         self.checkDictFile()
 
     def mkdir ( self ):
