@@ -879,6 +879,7 @@ class Plotter:
         plt.kittyPlot ( self.outfile, self.show )
 
         plt.clf()
+        plt.close()
 
 def getArgs( cmdline = None ):
     import argparse

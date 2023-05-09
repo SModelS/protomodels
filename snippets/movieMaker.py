@@ -78,6 +78,12 @@ class MovieMaker:
         self.mkdir()
         self.mkpics()
         self.mkffmpeg()
+        self.cleanUp()
+
+    def cleanUp ( self ):
+        """ remove all the individual pics """
+        if os.path.exists ( self.dirname ):
+            os.unlink ( self.dirname )
 
 if __name__ == "__main__":
     import argparse
