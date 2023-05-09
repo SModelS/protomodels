@@ -9,7 +9,7 @@
 
 """
 
-import subprocess, os, sys
+import subprocess, os, sys, shutil
 
 class MovieMaker:
     def __init__ ( self, dictfile : str ):
@@ -85,7 +85,7 @@ class MovieMaker:
     def cleanUp ( self ):
         """ remove all the individual pics """
         if os.path.exists ( self.dirname ):
-            os.unlink ( self.dirname )
+            shutil.rmtree ( self.dirname )
 
 if __name__ == "__main__":
     import argparse
