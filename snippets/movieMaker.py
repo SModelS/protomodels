@@ -44,12 +44,14 @@ class MovieMaker:
         return True
 
     def mkpics ( self ):
-        for year in range(2016,2024):
+        from datetime import date
+        today = date.today()
+        for year in range(2016,today.year+1):
             months = range(1,13)
             if year == 2016:
                 months = range(9,13)
-            if year == 2023:
-                months = range(1,5)
+            if year == today.year:
+                months = range(1,today.month+2)
             for month in months:
                 date = f"{year}/{month:02d}/01"
                 filename = f"{self.dirname}/p{date.replace('/','_')}.png"
