@@ -155,7 +155,7 @@ class Analyzer:
             bgErr = values["bgError"]
             Z = - scipy.stats.norm.ppf ( p )
             if self.reportZvalues:
-                print( f"Z={Z:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
+                print( f"Z={Z:.2f}: {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})" )
             else:
                 print( f"p={k:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
         print ()
@@ -169,7 +169,7 @@ class Analyzer:
             bgErr = values["bgError"]
             Z = - scipy.stats.norm.ppf ( p )
             if self.reportZvalues:
-                print( f"Z={Z:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
+                print( f"Z={Z:.2f}: {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})" )
             else:
                 print( f"p={k:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
         
