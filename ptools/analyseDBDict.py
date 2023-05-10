@@ -91,7 +91,7 @@ class Analyzer:
                 topos.append ( topo )
         return ",".join(topos)
 
-    def analyzeFile ( self, filename, nsmallest, nlargest ):
+    def analyzeFile ( self, filename : str, nsmallest : int, nlargest : int ):
         print ( f"[analyzeDBDict] reading {filename}" )
         meta, data = self.read ( filename )
         byS, byp = {}, {}
@@ -144,6 +144,7 @@ class Analyzer:
             values = byp[k][1]
             ana = byp[k][0]
             topos = self.getTopos ( values, ana )
+            p = values["orig_p"]
             obsN = values["origN"]
             expBG = values["expectedBG"]
             bgErr = values["bgError"]
