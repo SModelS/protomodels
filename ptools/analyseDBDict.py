@@ -6,19 +6,29 @@ import matplotlib
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
+green,reset="",""
+try:
+    import colorama
+    green = colorama.Fore.GREEN
+    reset = colorama.Fore.RESET
+except ImportError as e:
+    print ( "no colorama" )
 import os, glob, pickle, sys
 import scipy.stats
 import matplotlib.mlab as mlab
 from smodels_utils.helper.various import getSqrts, findCollaboration
+from typing import Union, Text, List
 
 class Analyzer:
-    def __init__ ( self, pathname, topos ):
+    def __init__ ( self, pathname : str, topos : Union[Text,None,List] ):
         """
         :param pathname: filename of dictionary
         :param topos: topologies to filter for
         """
+        self.reportZvalues = True
         self.filenames = []
         self.topos = set()
+        
         if topos not in [ None, "", [] ]:
             for to in topos:
                 for k in to.split(","):
@@ -27,6 +37,18 @@ class Analyzer:
             if os.path.isdir ( pname ):
                 pname = pname + "/db*dict"
             self.filenames += glob.glob ( pname )
+        self.pvalues = { 8:[], 13:[] }
+        self.Zvalues = { 8:[], 13:[] }
+
+    def summarize ( self ):
+        if self.reportZvalues:
+            Ztot = self.Zvalues[8]+self.Zvalues[13]
+            self.pprint ( f"Zavg(total) =  {np.mean(Ztot):.2f}+-{np.std(Ztot)/np.sqrt(len(Ztot)):.3f}" )
+            self.pprint ( f"Zavg( 8tev) = {np.mean(self.Zvalues[8]):.2f}+-{np.std(self.Zvalues[8])/np.sqrt(len(self.Zvalues[8])):.3f}" )
+            self.pprint ( f"Zavg(13tev) =  {np.mean(self.Zvalues[13]):.2f}+-{np.std(self.Zvalues[13])/np.sqrt(len(self.Zvalues[13])):.3f}" )
+        else:
+            self.pprint ( f"pavg={np.mean(pavg):.2f}" )
+            self.pprint ( f"pavg(13tev)={np.mean(pavg13):.2f}" )
 
     def analyze ( self, nsmallest, nlargest ):
         for filename in self.filenames:
@@ -91,8 +113,11 @@ class Analyzer:
                 topos.append ( topo )
         return ",".join(topos)
 
+    def pprint ( self, *args ):
+        print ( f"[analyseDBDict] {green}{' '.join(args)}{reset}" )
+
     def analyzeFile ( self, filename : str, nsmallest : int, nlargest : int ):
-        print ( f"[analyzeDBDict] reading {filename}" )
+        self.pprint ( f"reading {filename}" )
         meta, data = self.read ( filename )
         byS, byp = {}, {}
         anas = set()
@@ -107,24 +132,18 @@ class Analyzer:
             if "orig_p" in values:
                 byp[ values["orig_p"] ] = ( anaid, values )
         colls = [ findCollaboration(x) for x in anas ]
-        print ( f"[analyzeDBDict] {colls.count('CMS')} CMS and {colls.count('ATLAS')} ATLAS results" )
-        reportZvalues = True # if false, then report p values instead
+        self.pprint ( f"{colls.count('CMS')} CMS and {colls.count('ATLAS')} ATLAS results" )
         keys = list ( byp.keys() )
         keys.sort( reverse = False )
         #keys.sort( reverse = True )
-        pavg, pavg13 = [], []
-        Zavg, Zavg13 = [], []
         for ctr,k in enumerate(keys):
             ana = byp[k][0]
             sqrts = getSqrts ( ana )
             values = byp[k][1]
             p = values["orig_p"]
             Z = - scipy.stats.norm.ppf ( p )
-            pavg.append ( p )
-            Zavg.append ( Z )
-            if sqrts > 10:
-                pavg13.append ( p )
-                Zavg13.append ( Z )
+            self.pvalues[sqrts].append(p)
+            self.Zvalues[sqrts].append(Z)
         for ctr,k in enumerate(keys[:nsmallest]):
             values = byp[k][1]
             ana = byp[k][0]
@@ -135,7 +154,7 @@ class Analyzer:
             expBG = values["expectedBG"]
             bgErr = values["bgError"]
             Z = - scipy.stats.norm.ppf ( p )
-            if reportZvalues:
+            if self.reportZvalues:
                 print( f"Z={Z:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
             else:
                 print( f"p={k:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
@@ -149,17 +168,13 @@ class Analyzer:
             expBG = values["expectedBG"]
             bgErr = values["bgError"]
             Z = - scipy.stats.norm.ppf ( p )
-            if reportZvalues:
+            if self.reportZvalues:
                 print( f"Z={Z:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
             else:
                 print( f"p={k:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
         
-        if reportZvalues:
-            print ( f"[analyzeDBDict] Zavg={np.mean(Zavg):.2f}" )
-            print ( f"[analyzeDBDict] Zavg(13tev)={np.mean(Zavg13):.2f}" )
-        else:
-            print ( f"[analyzeDBDict] pavg={np.mean(pavg):.2f}" )
-            print ( f"[analyzeDBDict] pavg(13tev)={np.mean(pavg13):.2f}" )
+        self.summarize()
+
 
 
 def main():
