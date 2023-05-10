@@ -108,18 +108,23 @@ class Analyzer:
                 byp[ values["orig_p"] ] = ( anaid, values )
         colls = [ findCollaboration(x) for x in anas ]
         print ( f"[analyzeDBDict] {colls.count('CMS')} CMS and {colls.count('ATLAS')} ATLAS results" )
+        reportZvalues = True # if false, then report p values instead
         keys = list ( byp.keys() )
         keys.sort( reverse = False )
         #keys.sort( reverse = True )
         pavg, pavg13 = [], []
+        Zavg, Zavg13 = [], []
         for ctr,k in enumerate(keys):
             ana = byp[k][0]
             sqrts = getSqrts ( ana )
             values = byp[k][1]
             p = values["orig_p"]
+            Z = - scipy.stats.norm.ppf ( p )
             pavg.append ( p )
+            Zavg.append ( Z )
             if sqrts > 10:
                 pavg13.append ( p )
+                Zavg13.append ( Z )
         for ctr,k in enumerate(keys[:nsmallest]):
             values = byp[k][1]
             ana = byp[k][0]
@@ -129,7 +134,11 @@ class Analyzer:
             obsN = values["origN"]
             expBG = values["expectedBG"]
             bgErr = values["bgError"]
-            print( "p=%.2f: %s %s (obsN=%d, bg=%.2f+-%.2f)" % ( k, ana, topos, obsN, expBG, bgErr ) )
+            Z = - scipy.stats.norm.ppf ( p )
+            if reportZvalues:
+                print( f"Z={Z:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
+            else:
+                print( f"p={k:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
         print ()
         for ctr,k in enumerate(keys[-nlargest:]):
             values = byp[k][1]
@@ -138,10 +147,18 @@ class Analyzer:
             obsN = values["origN"]
             expBG = values["expectedBG"]
             bgErr = values["bgError"]
-            print( "p=%.2f: %s %s (obsN=%d, bg=%.2f+-%.2f)" % ( k, ana, topos, obsN, expBG, bgErr ) )
+            Z = - scipy.stats.norm.ppf ( p )
+            if reportZvalues:
+                print( f"Z={Z:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
+            else:
+                print( f"p={k:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
         
-        print ( f"[analyzeDBDict] pavg={np.mean(pavg):.2f}" )
-        print ( f"[analyzeDBDict] pavg(13tev)={np.mean(pavg13):.2f}" )
+        if reportZvalues:
+            print ( f"[analyzeDBDict] Zavg={np.mean(Zavg):.2f}" )
+            print ( f"[analyzeDBDict] Zavg(13tev)={np.mean(Zavg13):.2f}" )
+        else:
+            print ( f"[analyzeDBDict] pavg={np.mean(pavg):.2f}" )
+            print ( f"[analyzeDBDict] pavg(13tev)={np.mean(pavg13):.2f}" )
 
 
 def main():
