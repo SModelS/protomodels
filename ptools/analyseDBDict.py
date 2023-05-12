@@ -175,10 +175,15 @@ class Analyzer:
             expBG = values["expectedBG"]
             bgErr = values["bgError"]
             Z = - scipy.stats.norm.ppf ( p )
+            line = ""
+            if enum:
+                line += f"#{ctr:2d}: "
             if self.reportZvalues:
-                print( f"Z={Z:.2f}: {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})" )
+                line += f"Z={Z:.2f}:"
             else:
-                print( f"p={k:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
+                line += f"p={k:.2f}:"
+            line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
+            print ( line )
         
         self.summarize()
 
