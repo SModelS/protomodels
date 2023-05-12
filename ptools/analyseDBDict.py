@@ -6,13 +6,6 @@ import matplotlib
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
-green,reset="",""
-try:
-    import colorama
-    green = colorama.Fore.GREEN
-    reset = colorama.Fore.RESET
-except ImportError as e:
-    print ( "no colorama" )
 import os, glob, pickle, sys
 import scipy.stats
 import matplotlib.mlab as mlab
@@ -21,11 +14,13 @@ from ptools.moreHelpers import namesForSetsOfTopologies
 from typing import Union, Text, List
 
 class Analyzer:
-    def __init__ ( self, pathname : str, topos : Union[Text,None,List] ):
+    def __init__ ( self, pathname : str, topos : Union[Text,None,List], 
+                   nocolors : bool = False ):
         """
         :param pathname: filename of dictionary
         :param topos: topologies to filter for
         """
+        self.setColors ( nocolors )
         self.reportZvalues = True
         self.filenames = []
         topos, _ = namesForSetsOfTopologies ( topos )
@@ -40,6 +35,16 @@ class Analyzer:
             self.filenames += glob.glob ( pname )
         self.pvalues = { 8:[], 13:[] }
         self.Zvalues = { 8:[], 13:[] }
+
+    def setColors ( self, nocolors ):
+        self.green,self.reset="",""
+        if not nocolors:
+            try:
+                import colorama
+                self.green = colorama.Fore.GREEN
+                self.reset = colorama.Fore.RESET
+            except ImportError as e:
+                print ( "no colorama" )
 
     def summarize ( self ):
         if self.reportZvalues:
@@ -115,7 +120,7 @@ class Analyzer:
         return ",".join(topos)
 
     def pprint ( self, *args ):
-        print ( f"[analyseDBDict] {green}{' '.join(args)}{reset}" )
+        print ( f"[analyseDBDict] {self.green}{' '.join(args)}{self.reset}" )
 
     def analyzeFile ( self, filename : str, nsmallest : int, nlargest : int,
            enum : bool ):
@@ -206,8 +211,10 @@ def main():
             type=int, default=3 )
     argparser.add_argument ( '-e', '--enumerate',
             help='enumerate the list', action="store_true" )
+    argparser.add_argument ( '--nocolors',
+            help='enumerate the list', action="store_true" )
     args=argparser.parse_args()
-    analyzer = Analyzer ( args.dictfile, args.topos )
+    analyzer = Analyzer ( args.dictfile, args.topos, args.nocolors )
     analyzer.analyze ( args.nsmallest, args.nlargest, args.enumerate )
 
 if __name__ == "__main__":
