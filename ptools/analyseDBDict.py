@@ -51,9 +51,9 @@ class Analyzer:
             self.pprint ( f"pavg={np.mean(pavg):.2f}" )
             self.pprint ( f"pavg(13tev)={np.mean(pavg13):.2f}" )
 
-    def analyze ( self, nsmallest, nlargest ):
+    def analyze ( self, nsmallest : int, nlargest : int, enum : bool ):
         for filename in self.filenames:
-            self.analyzeFile ( filename, nsmallest, nlargest )
+            self.analyzeFile ( filename, nsmallest, nlargest, enum )
 
     def read ( self, fname ):
         """ read in content of filename """
@@ -117,7 +117,8 @@ class Analyzer:
     def pprint ( self, *args ):
         print ( f"[analyseDBDict] {green}{' '.join(args)}{reset}" )
 
-    def analyzeFile ( self, filename : str, nsmallest : int, nlargest : int ):
+    def analyzeFile ( self, filename : str, nsmallest : int, nlargest : int,
+           enum : bool ):
         self.pprint ( f"reading {filename}" )
         meta, data = self.read ( filename )
         byS, byp = {}, {}
@@ -155,10 +156,15 @@ class Analyzer:
             expBG = values["expectedBG"]
             bgErr = values["bgError"]
             Z = - scipy.stats.norm.ppf ( p )
+            line = ""
+            if enum:
+                line += f"#{ctr:2d}: "
             if self.reportZvalues:
-                print( f"Z={Z:.2f}: {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})" )
+                line += f"Z={Z:.2f}:"
             else:
-                print( f"p={k:.2f}: {ana} {topos} (obsN={obsN}, bg={expBG:.2f}+-{bgErr:.2f})" )
+                line += f"p={k:.2f}:"
+            line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
+            print ( line )
         print ()
         for ctr,k in enumerate(keys[-nlargest:]):
             values = byp[k][1]
@@ -193,9 +199,11 @@ def main():
     argparser.add_argument ( '-N', '--nlargest',
             help='number of result to list with large p values [3]',
             type=int, default=3 )
+    argparser.add_argument ( '-e', '--enumerate',
+            help='enumerate the list', action="store_true" )
     args=argparser.parse_args()
     analyzer = Analyzer ( args.dictfile, args.topos )
-    analyzer.analyze ( args.nsmallest, args.nlargest )
+    analyzer.analyze ( args.nsmallest, args.nlargest, args.enumerate )
 
 if __name__ == "__main__":
     main()
