@@ -3,13 +3,23 @@
 """ various helper functions that do not fit in any of the more
     specific modules """
 
-def namesForSetsOfTopologies ( name ):
+from typing import Union, Text, List, Tuple
+
+def namesForSetsOfTopologies ( name : Union[Text,List,Tuple] ) \
+        -> Tuple[Text,Union[Text,None]]:
     """ some abbreviations for sets of topologies,
     e.g. electroweakino -> TChiWZ, TChiWH, .... 
     :param name: abbreviation
-    :returns: comma separated list of topos, and description
+    :returns: string with comma separated list of topos, and description
               if not an abbreviation, returns originalname, None
     """
+    if type(name) in [ list, tuple ]:
+        ret = []
+        for n in name:
+            tmp = namesForSetsOfTopologies ( n )
+            for t in tmp:
+                ret.append ( t )
+        return ret
     shorts, description = { }, {}
     shorts["electroweakinos_offshell"]="TChiWZ,TChiWH,TChiWZoff,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiWWoff,TChiZH"
     shorts["electroweakinos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"

@@ -17,6 +17,7 @@ import os, glob, pickle, sys
 import scipy.stats
 import matplotlib.mlab as mlab
 from smodels_utils.helper.various import getSqrts, findCollaboration
+from ptools.moreHelpers import namesForSetsOfTopologies
 from typing import Union, Text, List
 
 class Analyzer:
@@ -27,12 +28,12 @@ class Analyzer:
         """
         self.reportZvalues = True
         self.filenames = []
-        self.topos = set()
+        topos, _ = namesForSetsOfTopologies ( topos )
         
-        if topos not in [ None, "", [] ]:
-            for to in topos:
-                for k in to.split(","):
-                    self.topos.add ( k.strip() )
+        self.topos = set()
+        if topos != None:
+            for k in topos.split(","):
+                self.topos.add ( k.strip() )
         for pname in pathname:
             if os.path.isdir ( pname ):
                 pname = pname + "/db*dict"
