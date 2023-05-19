@@ -159,8 +159,10 @@ if __name__ == "__main__":
     from walker.randomWalker import RandomWalker
     s = "txnames:TChiWZ,TChiWZoff,TChiWW,TChiWWoff,TChiWH,TChiH,TChiZZ,TSlepSlep"
     s = "all"
-    w = RandomWalker( walkerid=0, nsteps = 10, dump_training = False,
-                      dbpath="./default.pcl", cheatcode=0, select=s,
+    dbpath = "./default.pcl"
+    dbpath = "~/git/smodels-database"
+    w = RandomWalker( walkerid=0, nsteps = 200, dump_training = False,
+                      dbpath=dbpath, cheatcode=0, select=s,
                       rundir="./", nevents=1000, seed = None )
     w.walk()
 
