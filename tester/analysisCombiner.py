@@ -112,7 +112,7 @@ def canCombineUsingMatrix ( globA, globB, elA, elB ):
         return False
     anaidA = globA.id
     anaidB = globB.id
-    from combinationsmatrix import getMatrix
+    from tester.combinationsmatrix import getMatrix
     allowCombination = getMatrix()
     if anaidA in allowCombination.keys():
         for i in allowCombination[anaidA]:

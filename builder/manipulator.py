@@ -527,19 +527,19 @@ class Manipulator:
                 tpNew = tp[2]
                 tpNew.xsection.value *= s #rescale theoryPrediction
                 #Remove likelihood and chi2, since they are no longer valid
-                if hasattr(tpNew,'likelihood'):
-                    del tpNew.likelihood
-                if hasattr(tpNew,'chi2'):
-                    del tpNew.chi2
+                #if hasattr(tpNew,'likelihood'):
+                #    del tpNew.likelihood
+                #if hasattr(tpNew,'chi2'):
+                #    del tpNew.chi2
                 self.M.tpList[i] = (rnew,rexpnew,tpNew)
         if hasattr(self.M,'bestCombo'):
             for tp in self.M.bestCombo:
                 tp.xsection.value *= s #rescale theoryPrediction
                 #Remove likelihood and chi2, since they are no longer valid
-                if hasattr(tp,'likelihood'):
-                    del tp.likelihood
-                if hasattr(tp,'chi2'):
-                    del tp.chi2
+                #if hasattr(tp,'likelihood'):
+                #    del tp.likelihood
+                #if hasattr(tp,'chi2'):
+                #    del tp.chi2
 
     def randomlyChangeModel(self,sigmaUnFreeze = 0.5, probBR = 0.2, probSS = 0.25,
                                 probSSingle=0.8, ssmSigma=0.1,

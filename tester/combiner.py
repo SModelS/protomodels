@@ -74,7 +74,7 @@ class Combiner:
         ret = []
         n=len(predictions)
         for ct,i in enumerate(predictions):
-            if analysisCombiner.canCombine ( predA, i, strategy=strategy ):
+            if analysisCombiner.canCombine ( predA, i ):
                 lpredA, li = predA, i
                 if type(predA)!=list:
                     lpredA = [ predA ]
@@ -149,7 +149,7 @@ class Combiner:
         """ get the combined likelihood for a signal strength mu
         :param nll: compute the negative log likelihood
         """
-        llhds = numpy.array ( [ c.getLikelihood(mu,expected=expected) for c in combination ], dtype=object )
+        llhds = numpy.array ( [ c.likelihood(float(mu),expected=expected) for c in combination ], dtype=object )
         ret = numpy.prod ( llhds[llhds!=None] )
         if nll:
             if ret <= 0.:
@@ -242,9 +242,9 @@ class Combiner:
         if muhat > mumax:
             self.debug ( "muhat(%.2f) > mumax(%.2f). use mumax" % ( muhat, mumax ) )
             muhat = mumax
-        l0 = numpy.array ( [ c.getLikelihood(0.,expected=expected) for c in combo ], dtype=object )
+        l0 = numpy.array ( [ c.likelihood(0.,expected=expected) for c in combo ], dtype=object )
         LH0 = numpy.prod ( l0[l0!=None] )
-        l1 = numpy.array ( [ c.getLikelihood(muhat,expected=expected) for c in combo ], dtype=object )
+        l1 = numpy.array ( [ c.likelihood(muhat,expected=expected) for c in combo ], dtype=object )
         LH1 = numpy.prod ( l1[l1!=None] )
         if LH0 <= 0.:
             self.error ( "likelihood for SM was 0. Set to 1e-80" )
@@ -399,7 +399,7 @@ class Combiner:
         for tp in combination:
             if tp.dataset.dataInfo.dataType == 'upperLimit':
                 upperLimit = tp.upperLimit.asNumber(fb)
-                expectedUL = tp.expectedUL.asNumber(fb)
+                expectedUL = tp.getUpperLimit ( expected=True ).asNumber(fb)
                 n = self.getEventsFromLimits(upperLimit,expectedUL)
                 if not n: continue #Could not get events
                 observedN,expectedBG = n
@@ -597,7 +597,10 @@ class Combiner:
         for Id,preds in sortByAnaId.items():
             maxR, bestpred = 0., None
             for pred in preds:
-                r = pred.getUpperLimit() / pred.getUpperLimit(expected=True)
+                eul = pred.getUpperLimit(expected=True)
+                if eul is None:
+                    continue
+                r = pred.getUpperLimit() / eul
                 if r > maxR:
                     maxR = r
                     bestpred = pred

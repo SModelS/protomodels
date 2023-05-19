@@ -51,6 +51,7 @@ class RandomWalker:
         :param stopTeleportationAfter: int or None. we stop teleportation after this step nr.
                If negative or None, we dont teleport at all
         """
+        dbpath = os.path.expanduser ( dbpath )
         if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
             self.pprint ( "Wrong call of constructor: %s, %s, %s" % ( walkerid, nsteps, strategy ) )
             sys.exit(-2)

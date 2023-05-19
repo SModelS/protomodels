@@ -117,7 +117,7 @@ def getMatrix():
     allowed.update ( allowedATLAS13TeV )
     allowed.update ( allowedCMS13TeV )
     update ( allowed, allowedTimothee )
-    from tacocombinations import allowedTaco
+    from tester.tacocombinations import allowedTaco
     update ( allowed, allowedTaco )
 
     return allowed
