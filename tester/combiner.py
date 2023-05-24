@@ -191,8 +191,7 @@ class Combiner:
                 # self.pprint ( "%s is subset of bigger combo. skip." % getLetterCode(c) )
                 continue
             ret.append ( c )
-        self.pprint ( "sorting out subsets, reduced %d -> %d combinations." % \
-                      ( len(combinations), len(ret) ) )
+        self.pprint ( f"sorting out subsets, reduced {len(combinations)} -> {len(ret)} combinations." )
         return ret
 
     def getLetters( self, predictions ):
@@ -250,10 +249,10 @@ class Combiner:
         l1 = numpy.array ( [ c.likelihood(muhat,expected=expected) for c in combo ], dtype=object )
         LH1 = numpy.prod ( l1[l1!=None] )
         if LH0 <= 0.:
-            self.error ( "likelihood for SM was 0. Set to 1e-80" )
+            self.error ( "l(mu=0) was 0. Set to 1e-80" )
             LH0 = 1e-80
         if LH1 <= 0.:
-            self.error ( f"likelihood for muhat was 0. Set to 1e-80, muhat was {muhat:.3g}" )
+            self.error ( f"l(muhat={muhat:.3g}) was 0. Set to 1e-80." )
             LH1 = 1e-80
         chi2 = 2 * ( math.log ( LH1 ) - math.log ( LH0 ) ) ## chi2 with one degree of freedom
         if chi2 < 0.:
