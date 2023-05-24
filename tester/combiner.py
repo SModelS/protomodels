@@ -222,6 +222,8 @@ class Combiner:
         if len(combo)==0.:
             return 0.,0.
 
+        muhat = self.findMuHat ( combo ) #Compute exactly
+        """
         effCombo = [tp.dataset.dataInfo.expectedBG for tp in combo
                     if tp.dataset.dataInfo.dataType == 'efficiencyMap']
 
@@ -234,6 +236,7 @@ class Combiner:
             muhat = self.findMuHatApprox ( combo ) #Use gaussian approximation
         else:
             muhat = self.findMuHat ( combo ) #Compute exactly
+        """
 
         if mumax is None:
             mumax = float("inf")
@@ -250,7 +253,7 @@ class Combiner:
             self.error ( "likelihood for SM was 0. Set to 1e-80" )
             LH0 = 1e-80
         if LH1 <= 0.:
-            self.error ( "likelihood for muhat was 0. Set to 1e-80, muhat was %s" % muhat )
+            self.error ( f"likelihood for muhat was 0. Set to 1e-80, muhat was {muhat:.3g}" )
             LH1 = 1e-80
         chi2 = 2 * ( math.log ( LH1 ) - math.log ( LH0 ) ) ## chi2 with one degree of freedom
         if chi2 < 0.:
@@ -397,7 +400,7 @@ class Combiner:
         bgerr = []
         ns = []
         for tp in combination:
-            if tp.dataset.dataInfo.dataType == 'upperLimit':
+            if tp.dataset.getType() != "combined" and tp.dataset.dataInfo.dataType == 'upperLimit':
                 upperLimit = tp.upperLimit.asNumber(fb)
                 expectedUL = tp.getUpperLimit ( expected=True ).asNumber(fb)
                 n = self.getEventsFromLimits(upperLimit,expectedUL)
@@ -405,16 +408,31 @@ class Combiner:
                 observedN,expectedBG = n
                 bgError = 0.0 #In this case we ignore systematics
                 Nsig = tp.xsection.value.asNumber(fb) #Arbitrary normalization (does not affect muhat)
-            else:
+                nobs.append(observedN)
+                nbg.append(expectedBG)
+                bgerr.append(bgError)
+                ns.append(Nsig)
+            if tp.dataset.getType() != "combined" and tp.dataset.dataInfo.dataType == "efficiencyMap":
                 observedN = tp.dataset.dataInfo.observedN
                 expectedBG = tp.dataset.dataInfo.expectedBG
                 bgError = tp.dataset.dataInfo.bgError
                 Nsig = tp.xsection.value*tp.expResult.globalInfo.lumi
                 Nsig = Nsig.asNumber()
-            nobs.append(observedN)
-            nbg.append(expectedBG)
-            bgerr.append(bgError)
-            ns.append(Nsig)
+                nobs.append(observedN)
+                nbg.append(expectedBG)
+                bgerr.append(bgError)
+                ns.append(Nsig)
+            if tp.dataset.getType() == "combined":
+                for d in tp.dataset._datasets:
+                    observedN = d.dataInfo.observedN
+                    expectedBG = d.dataInfo.expectedBG
+                    bgError = d.dataInfo.bgError
+                    Nsig = tp.xsection.value*tp.expResult.globalInfo.lumi
+                    Nsig = Nsig.asNumber()
+                    nobs.append(observedN)
+                    nbg.append(expectedBG)
+                    bgerr.append(bgError)
+                    ns.append(Nsig)
 
         if not ns:
             return 1.0
