@@ -56,9 +56,9 @@ class Analyzer:
             self.pprint ( f"pavg={np.mean(pavg):.2f}" )
             self.pprint ( f"pavg(13tev)={np.mean(pavg13):.2f}" )
 
-    def analyze ( self, nsmallest : int, nlargest : int, enum : bool ):
+    def analyze ( self, nlargest : int, nsmallest : int, enum : bool ):
         for filename in self.filenames:
-            self.analyzeFile ( filename, nsmallest, nlargest, enum )
+            self.analyzeFile ( filename, nlargest, nsmallest, enum )
 
     def read ( self, fname ):
         """ read in content of filename """
@@ -122,7 +122,7 @@ class Analyzer:
     def pprint ( self, *args ):
         print ( f"[analyseDBDict] {self.green}{' '.join(args)}{self.reset}" )
 
-    def analyzeFile ( self, filename : str, nsmallest : int, nlargest : int,
+    def analyzeFile ( self, filename : str, nlargest : int, nsmallest : int,
            enum : bool ):
         self.pprint ( f"reading {filename}" )
         meta, data = self.read ( filename )
@@ -151,7 +151,7 @@ class Analyzer:
             Z = - scipy.stats.norm.ppf ( p )
             self.pvalues[sqrts].append(p)
             self.Zvalues[sqrts].append(Z)
-        for ctr,k in enumerate(keys[:nsmallest]):
+        for ctr,k in enumerate(keys[:nlargest]):
             values = byp[k][1]
             ana = byp[k][0]
             topos = self.getTopos ( values, ana )
@@ -163,7 +163,7 @@ class Analyzer:
             Z = - scipy.stats.norm.ppf ( p )
             line = ""
             if enum:
-                line += f"#{ctr:2d}: "
+                line += f"#{ctr+1:2d}: "
             if self.reportZvalues:
                 line += f"Z={Z:.2f}:"
             else:
@@ -171,7 +171,7 @@ class Analyzer:
             line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
             print ( line )
         print ()
-        for ctr,k in enumerate(keys[-nlargest:]):
+        for ctr,k in enumerate(keys[-nsmallest:]):
             values = byp[k][1]
             ana = byp[k][0]
             topos = self.getTopos ( values, ana )
@@ -182,7 +182,7 @@ class Analyzer:
             Z = - scipy.stats.norm.ppf ( p )
             line = ""
             if enum:
-                line += f"#{ctr:2d}: "
+                line += f"#{ctr+1:2d}: "
             if self.reportZvalues:
                 line += f"Z={Z:.2f}:"
             else:
@@ -203,19 +203,19 @@ def main():
     argparser.add_argument ( '-t', '--topos', nargs='*',
             help='filter for topologies, comma separated list or multiple arguments [None]',
             type=str, default=None )
-    argparser.add_argument ( '-n', '--nsmallest',
-            help='number of result to list with small p values [10]',
+    argparser.add_argument ( '-n', '--nlargest',
+            help='number of result to list with largest Z values [10]',
             type=int, default=10 )
-    argparser.add_argument ( '-N', '--nlargest',
-            help='number of result to list with large p values [3]',
+    argparser.add_argument ( '-N', '--nsmallest',
+            help='number of result to list with smallest Z values [3]',
             type=int, default=3 )
     argparser.add_argument ( '-e', '--enumerate',
             help='enumerate the list', action="store_true" )
     argparser.add_argument ( '--nocolors',
-            help='enumerate the list', action="store_true" )
+            help='dont use colors in output', action="store_true" )
     args=argparser.parse_args()
     analyzer = Analyzer ( args.dictfile, args.topos, args.nocolors )
-    analyzer.analyze ( args.nsmallest, args.nlargest, args.enumerate )
+    analyzer.analyze ( args.nlargest, args.nsmallest, args.enumerate )
 
 if __name__ == "__main__":
     main()
