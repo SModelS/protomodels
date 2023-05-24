@@ -23,7 +23,7 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple] ) \
     shorts, description = { }, {}
     shorts["electroweakinos_offshell"]="TChiWZ,TChiWH,TChiWZoff,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiWWoff,TChiZH"
     shorts["electroweakinos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
-    shorts["stops"]="T2tt,T2ttoff,T2bbffff"
+    shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     description["electroweakinos"]="ewkinos + onshell gauge bosons"
     description["stops"]="stops, on- and off-shell"
     if name in shorts:
