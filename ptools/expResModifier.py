@@ -98,7 +98,7 @@ Just filter the database:
         self.stats = {}
         self.dbpath = "../../smodels-database"
         self.outfile = ""
-        self.suffix = "fake1"
+        self.suffix = "db"
         self.rundir = None
         self.fudge = 1.
         self.nofastlim = False
@@ -722,7 +722,7 @@ Just filter the database:
     def saveStats ( self, statsname = None ):
         """ write out the collected stats, so we can discuss experimentalists'
             conservativeness """
-        filename = "%s/db%s.dict" % ( self.rundir, self.suffix )
+        filename = f"{self.rundir}/{self.suffix}.dict".replace("//","/")
         if statsname != None:
             filename = statsname
         self.log ( f"saving stats to {filename}" )
