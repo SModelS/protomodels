@@ -123,6 +123,7 @@ class Plotter:
         self.before = None
         self.show = False
         self.pvalues = False # if False, then p-values if true then significances
+        self.skippedAgg = set() # log all aggregated analyses that have been skipped
         self.origtopos = "all"
         self.collaboration = "ALL"
         self.likelihood = "gauss+poisson"
@@ -326,16 +327,13 @@ class Plotter:
                             v["txns"] = txname
                             newdata[i]=v
                         else:
-                            self.pprint ( f"removing {basename}:{i} (is an UL)", verbose = 2 )
+                            self.pprint ( f"removing {basename}:{i} (is an UL)", verbose = 1 )
                     else:
                         eBG,bgerr=None,None
                         if "expectedBG" in v:
                             eBG = v["expectedBG"]
                             bgerr = v["bgError"]
-                        #print ( f"[plotDBDict] removing {basename}:{i} (eBG is {eBG}+-{bgerr})" )
-            # print ( f"[plotDBDict] keeping {len(newdata)}/{len(data)} for {basename}" )
             self.data[basename] = newdata
-            # print ( f"found {fname} {len(tmp)} basename >>{basename}<< newdata {len(newdata)}" )
 
     def getSqrts ( self, anaid ):
         """ get the sqrts of anaid """
@@ -481,6 +479,14 @@ class Plotter:
                         if self.likelihood == "lognormal+poissohn":
                             lognormal = True
                         p = computeP ( obs, vexp, bgErr )
+                    if "-agg" in anaid:
+                        nonaggid = anaid.replace("-agg","")
+                        checkIfNonAgg = nonaggid in hasEffMaps
+                        if checkIfNonAgg:
+                            if not nonaggid in self.skippedAgg:
+                                self.skippedAgg.add ( nonaggid )
+                                self.pprint ( f"skipping {anaid}: we also have non-aggregated results for this analysis", verbose = 3 )
+                            continue
                     P[sqrts].append( p )
                     weights[sqrts].append ( w )
 
