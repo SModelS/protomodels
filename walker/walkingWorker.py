@@ -89,9 +89,6 @@ def main( nmin, nmax, cont,
             except Exception as e:
                 print ( "error when trying to load pickle file %s: %s" % ( cont, e ) )
                 pfile = None
-    # print ( "[walkingWorker] called main with cont='%s', pfile='%s'." % ( cont, pfile ) )
-
-    # print ( "[walkingWorker] I am already inside the python script! Hostname is", socket.gethostname()  )
     walkers = []
     #Set random seed
     from walker.randomWalker import RandomWalker

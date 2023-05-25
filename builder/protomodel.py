@@ -2,6 +2,8 @@
 
 """ Class that encapsulates a BSM model. """
 
+__all__ = [ "ProtoModel" ]
+
 import random, tempfile, os, time, colorama, copy, sys, pickle, random
 sys.path.insert(0,"../")
 from smodels.tools.wrapperBase import WrapperBase
@@ -11,6 +13,7 @@ from smodels.tools.xsecComputer import XSecComputer, NLL
 from smodels.tools.physicsUnits import TeV
 from ptools import helpers
 from ptools.sparticleNames import SParticleNames
+from typing import Union
 
 class ProtoModel:
     """ encodes one theoretical model, i.e. the particles, their masses, their
@@ -18,8 +21,8 @@ class ProtoModel:
     """
     LSP = 1000022 ## the LSP is hard coded
 
-    def __init__ ( self, walkerid = 0, keep_meta = True, nevents = 10000,
-                   dbversion = "????" ):
+    def __init__ ( self, walkerid : int = 0, keep_meta : bool = True, 
+                   nevents : int = 10000, dbversion : str = "????" ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
                           this a heavyweight object)
@@ -164,7 +167,7 @@ class ProtoModel:
             return False
         return True
 
-    def toTuple ( self, pid1, pid2 ):
+    def toTuple ( self, pid1 : int, pid2 : int ):
         """ turn pid1, pid2 into a sorted tuple """
         a=[pid1,pid2]
         a.sort()
@@ -194,7 +197,7 @@ class ProtoModel:
 
         return self._stored_xsecs
 
-    def getOpenChannels(self,pid):
+    def getOpenChannels(self,pid : int ):
         """get the list of open decay channels for particle pid. Open channels are
         the decays to unfrozen particles and to lighter particles.
 
@@ -235,7 +238,7 @@ class ProtoModel:
 
         return openChannels
 
-    def highlight ( self, msgType = "info", *args ):
+    def highlight ( self, msgType : str = "info", *args ):
         """ logging, hilit """
         module = "protomodel"
         col = colorama.Fore.GREEN
@@ -332,7 +335,7 @@ class ProtoModel:
                     return False
         return True
 
-    def unFrozenParticles ( self, withLSP=True ):
+    def unFrozenParticles ( self, withLSP : bool = True ):
         """ returns a list of all particles in self.masses with
             mass less than 100 TeV """
 
@@ -354,7 +357,7 @@ class ProtoModel:
             particles.append ( "%s: %d" % (  namer.asciiName ( pid ), m ) )
         print ( ", ".join ( particles ) )
 
-    def computeXSecs ( self, nevents = None, keep_slha = False ):
+    def computeXSecs ( self, nevents : int = None, keep_slha : bool = False ):
         """ compute xsecs given the masses and signal strenght multipliers of the model.
          The results are stored in self._stored_xsecs and should be accessed through getXsecs.
         :param nevents: If defined, cross-sections will be computed with this number of 
@@ -419,7 +422,7 @@ class ProtoModel:
         if keep_slha:
             self.createSLHAFile( self.currentSLHA, addXsecs = True )
 
-    def rescaleXSecsBy(self, s):
+    def rescaleXSecsBy(self, s : float ):
         """rescale the stored cross-sections by a factor s"""
 
         #Before rescaling, make sure we get the latest cross-sections:
@@ -441,7 +444,7 @@ class ProtoModel:
             # print ( "[protomodel] del", self.currentSLHA )
             os.unlink ( self.currentSLHA )
 
-    def createNewSLHAFileName ( self, prefix = "cur" ):
+    def createNewSLHAFileName ( self, prefix : str = "cur" ):
         """ create a new SLHA file name. Needed when e.g. unpickling """
         self.delCurrentSLHA()
         self.currentSLHA = tempfile.mktemp( prefix=".%s%s_" % \
@@ -455,7 +458,7 @@ class ProtoModel:
                     self.templateSLHA = trySLHA
                     return
 
-    def writeSLHAFile ( self, outputSLHA ):
+    def writeSLHAFile ( self, outputSLHA : str ):
         """ write the slha file, plug in protomodel params """
         #Get template data:
         with open( self.templateSLHA ) as f:
@@ -497,7 +500,8 @@ class ProtoModel:
                     outF.write(l)
             outF.close()
 
-    def createSLHAFile ( self, outputSLHA = None, addXsecs = True ):
+    def createSLHAFile ( self, outputSLHA : Union[str,None] = None, 
+                         addXsecs : bool = True ):
         """ Creates the SLHA file with the masses, decays and cross-sections stored in the model.
 
         :param outputSLHA: Name of the SLHA file to be created. If None a tempfile will be created and
@@ -585,7 +589,7 @@ class ProtoModel:
         self._xsecMasses = {}
         self._xsecSSMs = {}
 
-    def copy(self, cp_predictions = False):
+    def copy(self, cp_predictions : bool = False):
         """
         Create a copy of self. If cp_predictions the bestCombo and tpList attributes
         is copied using deepcopy.
