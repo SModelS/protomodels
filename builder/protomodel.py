@@ -149,12 +149,13 @@ class ProtoModel:
         return pStr
 
     def __repr__(self):
-        """ shorted version of __str__"""
+        """ shortened version of __str__"""
         sK = str(self.K)
-        if type(self.K)==float:
+        import numpy as np
+        if type(self.K) in [ float, np.float64 ]:
             sK="%1.2f" % self.K
         sZ = str(self.Z)
-        if type(self.Z)==float:
+        if type(self.Z) in [ float, np.float64 ]:
             sZ="%1.2f" % self.Z
         pStr = 'ProtoModel (%s, %s)' % ( sK, sZ )
         return pStr
