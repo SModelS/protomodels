@@ -26,5 +26,5 @@ print ( "We end up with K=", ma.M.K )
 hi = Hiscore ( 0, True, picklefile = "H1.hi", hiscores = [ ma.M ] )
 hi.save()
 
-a = subprocess.getoutput ( "./upHi.py" )
-print ( a )
+#a = subprocess.getoutput ( "./upHi.py" ) # no idea what that was
+#print ( a )
