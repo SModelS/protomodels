@@ -3,6 +3,8 @@
 """ A class that centralizes access to the hiscore list over multiple threads.
 """
 
+__all__ = [ "Hiscore" ]
+
 import random, copy, pickle, os, fcntl, time, subprocess, colorama
 from scipy import stats
 from builder.manipulator import Manipulator
@@ -10,12 +12,13 @@ from tester.combiner import  Combiner
 from ptools import helpers
 from ptools.csetup import setup
 from ptools import sparticleNames
+from typing import Union
 
 class Hiscore:
     """ encapsulates the hiscore list. """
-    def __init__ ( self, walkerid: int, save_hiscores: bool,
-                   picklefile: str="hiscore.hi", backup=True, hiscores=None,
-                   predictor = None ):
+    def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
+                   picklefile: str="hiscore.hi", backup : bool = True, 
+                   hiscores = None, predictor = None ):
         """ the constructor
         :param save_hiscores: if true, then assume you want to save, not just read.
         :param picklefile: path of pickle file name to connect hiscore list with
@@ -413,7 +416,8 @@ class Hiscore:
         f.write("]\n")
         f.close()
 
-    def writeListToPickle ( self, pickleFile=None, check=True ):
+    def writeListToPickle ( self, pickleFile : Union[None,str]=None, 
+            check : bool = True ):
         """ pickle the hiscore list.
         :param pickleFile: write to pickleFile. If None, then self.pickleFile
             is used.
@@ -452,8 +456,10 @@ class Hiscore:
             self.mtime = os.stat ( self.pickleFile ).st_mtime
             self.fileAttempts=0
             return True
-        except OSError or BlockingIOError:
+        except OSError or BlockingIOError as e:
             self.fileAttempts+=1
+            if self.fileAttempts>2:
+                self.pprint ( f"error when writing ({self.fileAttempts}) pickle file: {e}" )
             if self.fileAttempts<5: # try again
                 time.sleep ( .2 )
                 self.writeListToPickle( pickleFile, check )
