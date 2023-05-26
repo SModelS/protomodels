@@ -134,6 +134,7 @@ def draw( args : dict ):
 
     from matplotlib import pyplot as plt
     import matplotlib
+    matplotlib.use('agg')
     labelsize = 14
     tickpad = -55
     if nres < 60:
