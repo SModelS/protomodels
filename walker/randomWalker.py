@@ -2,17 +2,17 @@
 
 """ a first start at the random walk idea """
 
+__all__ = [ "RandomWalker" ]
+
 import pickle, sys, time, math, socket, os
-if sys.version_info[0]==2:
-    import commands as subprocess # python2.7
-else:
-    import subprocess
+import subprocess
 import numpy, colorama
+
 try:
     import smodels
 except:
     from ptools import setPath
-sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/smodels-utils/protomodels/")
+sys.path.insert(0,f"/scratch-cbe/users/{os.environ['USER']}/git/smodels-utils/protomodels/")
 from walker.hiscore import Hiscore
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
@@ -20,40 +20,47 @@ from tester.predictor import Predictor
 from ptools.sparticleNames import SParticleNames
 from pympler.asizeof import asizeof
 from smodels.tools.smodelsLogging import logger
+from typing import Callable, Dict, Union
+from os import PathLike
+
 logger.setLevel("ERROR")
 
-def cleanDirectory ():
+def __cleanDirectory ():
+    ## is this used?
     subprocess.getoutput ( "mkdir -p tmp" )
     subprocess.getoutput ( "mv .cur*slha tmp/" )
     subprocess.getoutput ( "mv walker*.log tmp/" )
     subprocess.getoutput ( "mv exceptions.log tmp/" )
 
 class RandomWalker:
-    def __init__ ( self, walkerid=0, nsteps=10000, strategy="aggressive",
-                   dump_training = False, cheatcode = 0,
-                   dbpath = "./database.pcl", expected = False,
-                   select = "all", catch_exceptions = True,
-                   rundir = None, nevents = 100000,
-                   do_combine = False, record_history = False, seed = None,
-                   stopTeleportationAfter = -1 ):
+    def __init__ ( self, walkerid : int = 0, nsteps : int = 10000, 
+            strategy : str = "aggressive", dump_training : bool = False, 
+            cheatcode : int = 0, dbpath : PathLike = "./database.pcl", 
+            expected : bool = False, select : str = "all", 
+            catch_exceptions : bool = True, rundir : Union[PathLike,None] = None, 
+            nevents : int = 100000, do_combine : bool = False, 
+            record_history : bool = False, seed : Union[int,None] = None,
+            stopTeleportationAfter : int = -1 ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 is no cheating, 1 is with ranges, 2
                       is the Z323 model.
         :param expected: remove possible signals from database
-        :param select: select only subset of results (all for all, em for efficiency maps only, ul for upper limits only, alternatively select for txnames via e.g. "txnames:T1,T2"
+        :param select: select only subset of results (all for all, em for
+                efficiency maps only, ul for upper limits only, alternatively
+                select for txnames via e.g. "txnames:T1,T2"
         :param catch_exceptions: should we catch exceptions
         :param nevents: number of MC events when computing cross-sections
         :param do_combine: if true, then also perform combinations, either via
                            simplified likelihoods or via pyhf
         :param record_history: if true, attach a history recorder class
         :param seed: random seed, int or None
-        :param stopTeleportationAfter: int or None. we stop teleportation after this step nr.
-               If negative or None, we dont teleport at all
+        :param stopTeleportationAfter: int or None. we stop teleportation after
+                this step nr.  If negative or None, we dont teleport at all
         """
         dbpath = os.path.expanduser ( dbpath )
         if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
-            self.pprint ( "Wrong call of constructor: %s, %s, %s" % ( walkerid, nsteps, strategy ) )
+            self.pprint ( f"Wrong call of constructor: {walkerid}, {nsteps}, {strategy}" )
             sys.exit(-2)
         self.walkerid = walkerid ## walker id, for parallel runs
         self.rundir = rundir
@@ -70,16 +77,16 @@ class RandomWalker:
                               expected=expected, select=select, do_combine=do_combine )
 
         #Initialize Hiscore (with access to the predictor)
-        self.hiscoreList = Hiscore ( walkerid, True, "%s/H%d.hi" % ( self.rundir, walkerid ),
+        self.hiscoreList = Hiscore ( walkerid, True, f"{self.rundir}/H{walkerid}.hi", 
                                      backup=False, predictor=self.predictor )
         self.hiscoreList.nkeep = 1
 
         #Initialize ProtoModel and Manipulator:
-        protomodel = ProtoModel( self.walkerid, keep_meta = True,
-                nevents = nevents, dbversion = self.predictor.database.databaseVersion )
+        protomodel = ProtoModel( self.walkerid, keep_meta = True, nevents = nevents, 
+                dbversion = self.predictor.database.databaseVersion )
 
-        self.manipulator = Manipulator ( protomodel, strategy, do_record = record_history,
-                                         seed = seed )
+        self.manipulator = Manipulator ( protomodel, strategy, 
+                        do_record = record_history, seed = seed )
         self.catch_exceptions = catch_exceptions
         self.maxsteps = nsteps
         if stopTeleportationAfter == None:
@@ -129,18 +136,13 @@ class RandomWalker:
             self.accelerator.walkerid = Id
 
     @classmethod
-    def fromProtoModel( cls, protomodel, nsteps=10000, strategy="aggressive",
-                   walkerid=0, dump_training = False,
-                   dbpath="<rundir>/database.pcl", expected = False,
-                   select = "all", catch_exceptions = True, keep_meta = True,
-                   rundir = None, do_combine = False, seed = None,
-                   stopTeleportationAfter = -1  ):
-        ret = cls( walkerid, nsteps=nsteps, dbpath = dbpath, expected=expected,
-                   select=select, catch_exceptions = catch_exceptions, rundir = rundir,
-                   do_combine = do_combine, seed = seed, stopTeleportationAfter = \
-                   stopTeleportationAfter )
+    def fromProtoModel( cls, protomodel : ProtoModel, **args : Dict ):
+        """ create a RandomWalker from a ProtoModel. Continue walking
+            from that model """
+        ret = cls( **args )
         ret.manipulator.M = protomodel
-        ret.manipulator.setWalkerId ( walkerid )
+        if "walkerid" in args:
+            ret.manipulator.setWalkerId ( args["walkerid"] )
         ret.manipulator.backupModel()
         if dump_training:
             ## we use the accelerator only to dump the training data
@@ -149,21 +151,27 @@ class RandomWalker:
                                         is_trained = False )
         return ret
 
+    def extractArguments ( func : Callable, **args : Dict ) -> Dict:
+        """ from args, extract all the entries that are parameters of func """
+        pm = {}
+        import inspect
+        sig = inspect.signature ( func )
+        for i in sig.parameters.keys():
+            if i != "self" and i in args:
+                pm[i]=args[i]
+        return pm
+
     @classmethod
-    def fromDictionary( cls, dictionary, nsteps=10000, strategy="aggressive",
-                   walkerid=0, dump_training = False,
-                   dbpath="<rundir>/database.pcl", expected = False,
-                   select = "all", catch_exceptions = True, keep_meta = True,
-                   rundir = None, nevents = 10000, do_combine = False,
-                   seed = None, stopTeleportationAfter = -1 ):
-        ret = cls( walkerid, nsteps=nsteps, dbpath = dbpath, expected=expected,
-                   select=select, catch_exceptions = catch_exceptions, rundir = rundir,
-                   nevents = nevents, do_combine = do_combine, seed = seed,
-                   stopTeleportationAfter = stopTeleportationAfter )
-        ret.manipulator.M = ProtoModel( walkerid, keep_meta, \
-                dbversion = ret.predictor.database.databaseVersion )
+    def fromDictionary( cls, dictionary : Dict, **args : Dict ):
+        """ create a RandomWalker from a hiscore dictionary. Continue walking
+            from the model in that dictionary """
+        ret = cls( **args ) ## simply pass on all the arguments
+
+        pm = RandomWalker.extractArguments ( ProtoModel.__init__, **args )
+        ret.manipulator.M = ProtoModel( **pm )
         ret.manipulator.initFromDict ( dictionary )
-        ret.manipulator.setWalkerId ( walkerid )
+        if "walkerid" in args:
+            ret.manipulator.setWalkerId ( args["walkerid"] )
         ret.manipulator.M.createNewSLHAFileName()
         # ret.printStats ( substep=3 )
         ret.manipulator.backupModel()
@@ -438,6 +446,9 @@ class RandomWalker:
         self.pprint ( "Was asked to stop after %d steps" % self.maxsteps )
 
 if __name__ == "__main__":
-    D = {'masses': {1000022: 299., 1000006: 1159.7, 1000001: 875.37}, 'ssmultipliers': {(1000022, 1000022): 0.06, (1000006, 1000006): 0.482, (-1000006, 1000006): 0.482, (-1000006, -1000006): 0.482, (1000006, 1000022): 0.482, (-1000006, 1000022): 0.482, (1000001, 1000001): 0.83, (-1000001, 1000001): 0.83, (-1000001, -1000001): 0.83, (1000001, 1000022): 0.83, (-1000001, 1000022): 0.83, (1000001, 1000006): 0.83, (-1000001, 1000006): 0.83, (-1000006, 1000001): 0.83, (-1000006, -1000001): 0.83}, 'decays': {1000022: {}, 1000006: {(1000022, 6): 1.0}, 1000001: {(1000022, 1): 1.0}}, 'K': 6.34, 'Z': 3.14, 'step': 16, 'timestamp': 'Wed May 24 23:18:37 2023', 'walkerid': 2}
+    D = {'masses': {1000022: 299., 1000006: 1159.7, 1000001: 875.37}, 
+         'ssmultipliers': {(1000022, 1000022): 0.06, (1000006, 1000006): 0.482, (-1000006, 1000006): 0.482, (-1000006, -1000006): 0.482, (1000006, 1000022): 0.482, (-1000006, 1000022): 0.482, (1000001, 1000001): 0.83, (-1000001, 1000001): 0.83, (-1000001, -1000001): 0.83, (1000001, 1000022): 0.83, (-1000001, 1000022): 0.83, (1000001, 1000006): 0.83, (-1000001, 1000006): 0.83, (-1000006, 1000001): 0.83, (-1000006, -1000001): 0.83}, 
+         'decays': {1000022: {}, 1000006: {(1000022, 6): 1.0}, 1000001: {(1000022, 1): 1.0}}, 
+         'K': 6.34, 'Z': 3.14, 'step': 16, 'timestamp': 'Wed May 24 23:18:37 2023', 'walkerid': 2}
     walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = "/users/wolfgan.waltenberger/git/smodels-database", nevents = 5000, do_combine = True ) 
     walker.walk()
