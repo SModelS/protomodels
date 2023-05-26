@@ -67,7 +67,7 @@ class ProtoModel:
             # self.templateSLHA = "templates/template_many.slha"
         self.templateSLHA = os.path.join ( os.path.dirname ( __file__ ), self.templateSLHA )
         self.computer = XSecComputer ( NLL, self.nevents, pythiaVersion=8, maycompile=False )
-        self.codeversion = "1.0"
+        self.codeversion = "2.0"
         self.initializeModel()
 
     def initializeModel(self):

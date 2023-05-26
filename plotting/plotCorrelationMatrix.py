@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
+__all__ = [ "draw", "show" ]
+
 import sys, os, time, math
 sys.path.insert(0,"../")
 from smodels.experiment.databaseObj import Database
@@ -10,8 +11,17 @@ from smodels.tools.colors import colors
 from smodels_utils.helper.various import hasLLHD
 from tester import analysisCombiner
 import IPython
+from typing import Union, Dict
+from os import PathLike
 
-def getCombinationsMatrix ( path ):
+def getCombinationsMatrix ( path : Union[None,Dict,PathLike] ):
+    """ get the combinations matrix. If path is matrix dictionary itself, return it.
+        If path is None, retrieve matrix from tester.combinationsmatrix.getMatrix.
+    """
+       
+    if type ( path ) == type ( None ):
+        from tester.combinationsmatrix import getMatrix
+        return getMatrix()
     if type ( path ) == dict:
         return path
     import importlib
@@ -105,7 +115,7 @@ def draw( args : dict ):
 
     # dir = "/home/walten/git/smodels-database/"
     dbdir = args["database"]
-    d=Database( dbdir, discard_zeroes = True, combinationsmatrix = matrix )
+    d=Database( dbdir, discard_zeroes=False, combinationsmatrix = matrix )
     print(d)
     analysisIds = [ "all" ]
     exps = [ "CMS", "ATLAS" ]
@@ -251,8 +261,8 @@ def draw( args : dict ):
         if len(sqrtses)==1:
             modifiers += str(sqrtses[0])
         outputfile = outputfile.replace("@M",modifiers)
-    print ( "Plotting to %s" % outputfile )
-    plt.savefig ( outputfile, dpi=300 )
+    print ( f"Plotting to {outputfile}" )
+    plt.savefig ( outputfile, dpi=200 )
     return outputfile
 
 def show ( outputfile ):
@@ -270,8 +280,8 @@ if __name__ == "__main__":
             help='path to database [../../smodels-database]',
             type=str, default='../../smodels-database' )
     argparser.add_argument ( '-c', '--combinationsmatrix', nargs='?',
-            help='path to combinationsmatrix file [../../smodels/combinationsmatrix.py]',
-            type=str, default='../../smodels/combinationsmatrix.py' )
+            help='path to combinationsmatrix file. If none, get it from protomodels.tester.combinationsmatrix.getMatrix() [None]',
+            type=str, default=None )
     argparser.add_argument ( '-e', '--experiment', nargs='?',
             help='plot only specific experiment CMS,ATLAS,all [all]',
             type=str, default='all' )
