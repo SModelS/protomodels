@@ -154,7 +154,7 @@ class RandomWalker:
                    walkerid=0, dump_training = False,
                    dbpath="<rundir>/database.pcl", expected = False,
                    select = "all", catch_exceptions = True, keep_meta = True,
-                   rundir = None, nevents = 100000, do_combine = False,
+                   rundir = None, nevents = 10000, do_combine = False,
                    seed = None, stopTeleportationAfter = -1 ):
         ret = cls( walkerid, nsteps=nsteps, dbpath = dbpath, expected=expected,
                    select=select, catch_exceptions = catch_exceptions, rundir = rundir,

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os, sys
+from os import PathLike
 try:
     from torch import multiprocessing
 except:
@@ -37,16 +38,16 @@ def startWalkers ( walkers, catchem=False, seed = None ):
         p.join()
 
 
-def main( nmin, nmax, cont,
-          dbpath = "<rundir>/database.pcl",
+def main( nmin, nmax, continueFrom : PathLike,
+          dbpath : PathLike = "<rundir>/database.pcl",
           cheatcode = 0, dump_training = False, rundir=None, maxsteps = 10000,
           nevents = 100000, seed = None,  catchem=True, select="all",
           do_combine = False, record_history = False, update_hiscores = False,
-          stopTeleportationAfter = -1 ):
+          stopTeleportationAfter : int = -1 ):
     """ a worker node to set up to run walkers
     :param nmin: the walker id of the first walker
     :param nmax: the walker id + 1 of the last walker
-    :param cont: start with protomodels given in the pickle file 'cont'
+    :param continueFrom: start with protomodels given in the pickle file or hiscore dictionary file
     :param cheatcode: in case we wish to start from a cheat model
     :param dump_training: dump training data for the NN
     :param rundir: overrride default rundir, if None use default
@@ -69,25 +70,25 @@ def main( nmin, nmax, cont,
     if rundir != None and "<rundir>" in dbpath:
         dbpath=dbpath.replace("<rundir>","%s/" % rundir )
     pfile, states = None, None
-    if cont == "default":
-        cont = "%s/states.dict" % rundir
-        if not os.path.exists ( cont ):
-            cont = "default"
-    if cont.lower() not in [ "none", "" ]:
-        if not os.path.exists ( cont ):
-            print ( "[walkingWorker] error: supplied a save states file ,,%s'', but it doesnt exist" % cont )
+    if continueFrom == "default":
+        continueFrom = f"{rundir}/states.dict" 
+        if not os.path.exists ( continueFrom ):
+            continueFrom = "default"
+    if continueFrom.lower() not in [ "none", "" ]:
+        if not os.path.exists ( continueFrom ):
+            print ( f"[walkingWorker] error: supplied a save states file ,,{continueFrom}'', but it doesnt exist" )
         else:
             import pickle
             try:
-                if cont.endswith ( ".dict" ):
-                    with open( cont, "rt" ) as f:
+                if continueFrom.endswith ( ".dict" ):
+                    with open( continueFrom, "rt" ) as f:
                         states = eval ( f.read() )
                 else:
-                    with open ( cont, "rb" ) as f:
+                    with open ( continueFrom, "rb" ) as f:
                         states = pickle.load ( f )
-                pfile = cont
+                pfile = continueFrom
             except Exception as e:
-                print ( "error when trying to load pickle file %s: %s" % ( cont, e ) )
+                print ( f"error when trying to load pickle file {continueFrom}: {e}" )
                 pfile = None
     walkers = []
     #Set random seed
@@ -102,15 +103,14 @@ def main( nmin, nmax, cont,
                               record_history=record_history, seed=seed,
                               stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
-        elif pfile.endswith(".hi") or pfdile.endswith(".pcl"):
+        elif pfile.endswith(".hi") or pfile.endswith(".pcl"):
             nstates = len(states )
             ctr = i % nstates
             print ( "[walkingWorker] fromModel %d: loading %d/%d" % ( i, ctr, nstates ) )
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
                     walkerid = i, nsteps = maxsteps, dump_training=dump_training,
                     expected = False, select = select, dbpath = dbpath,
-                    rundir = rundir, do_combine = do_combine,
-                    record_history = record_history, seed = seed,
+                    rundir = rundir, do_combine = do_combine, seed = seed,
                     stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
         else:
@@ -121,7 +121,7 @@ def main( nmin, nmax, cont,
                     strategy = "aggressive", walkerid = i,
                     dump_training=dump_training, dbpath = dbpath, expected = False,
                     select = select, rundir = rundir, nevents = nevents,
-                    do_combine = do_combine, record_history = record_history,
+                    do_combine = do_combine, 
                     seed = seed, stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
     startWalkers ( walkers, catchem=catchem, seed=seed )
