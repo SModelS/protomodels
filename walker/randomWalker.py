@@ -162,9 +162,27 @@ class RandomWalker:
         return pm
 
     @classmethod
-    def fromDictionary( cls, dictionary : Dict, **args : Dict ):
+    def fromDictionary( cls, dictionary : Union[PathLike,Dict], **args : Dict ):
         """ create a RandomWalker from a hiscore dictionary. Continue walking
             from the model in that dictionary """
+        if type(dictionary) == str:
+            if not os.path.exists ( dictionary ):
+                logger.error ( f"argument {dictionary} is a string, but doesnt work as pathname" )
+                sys.exit()
+            try:
+                logger.info ( f"trying to interpret {dictionary} as a path... " )
+                f = open ( dictionary, "rt" )
+                tmp = eval ( f.read() )
+                f.close()
+                if type(tmp) == dict:
+                    dictionary = tmp
+                if type(tmp) == list and type(tmp[0])==dict:
+                    dictionary = tmp[0]
+                    logger.info ( f" ... seemed to work!" )
+                f = open ( dictionary, "rt" )
+            except Exception as e:
+                logger.error  ( f"could not interpret the content of {dictionary}: {e}" )
+                
         ret = cls( **args ) ## simply pass on all the arguments
 
         pm = RandomWalker.extractArguments ( ProtoModel.__init__, **args )
