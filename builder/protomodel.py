@@ -575,14 +575,14 @@ class ProtoModel:
     def describe ( self ):
         """ describe a bit the protomodel """
         ndecays,nd = 0, 0
-        for k,v in p.decays.items():
+        for k,v in self.decays.items():
             if k == ProtoModel.LSP: ## dont count LSP
                 continue
             ndecays += len(v)
             nd += 1
-        nssms = len(p.ssmultipliers)
+        nssms = len(self.ssmultipliers)
         print ( "%d masses, %d[%d] decays, %d ss multipliers" % \
-                (len(p.masses), ndecays, nd, nssms ) )
+                (len(self.masses), ndecays, nd, nssms ) )
 
     def delXSecs ( self ):
         """ delete stored cross section, if they exist """
