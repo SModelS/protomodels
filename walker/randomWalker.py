@@ -232,6 +232,13 @@ class RandomWalker:
             self.pprint ( "  `-- error! best combo pids arent subset of masses pids!!!" )
             self.manipulator.M.bestCombo = None
 
+    def predict ( self, model = Union [ ProtoModel, None ] = None ):
+        """ convenience function """
+        if model == None:
+            self.predictor.predict(self.manipulator.M)
+        else:
+            self.predictor.predict(model)
+
     def onestep ( self ):
         #Add one step
         self.protomodel.step+=1
@@ -266,9 +273,9 @@ class RandomWalker:
 
         if self.catch_exceptions:
             try:
-                self.predictor.predict(self.manipulator.M)
+                self.predict()
                 if protomodelSimp:
-                    self.predictor.predict(protomodelSimp)
+                    self.predict(protomodelSimp)
             except Exception as e:
                 self.pprint ( "error ``%s'' (%s) encountered when trying to predict. lets revert and not count it as a step." % (str(e),type(e) ) )
                 self.manipulator.restoreModel()
@@ -277,9 +284,9 @@ class RandomWalker:
                 traceback.print_exc()
                 return
         else:
-            self.predictor.predict(self.manipulator.M)
+            self.predict()
             if protomodelSimp:
-                self.predictor.predict(protomodelSimp)
+                self.predict(protomodelSimp)
 
         #Now keep the model with highest score:
         if protomodelSimp:
