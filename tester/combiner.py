@@ -117,7 +117,12 @@ class Combiner:
 
     def highlight ( self, msgType = "info", *args ):
         """ logging, hilit """
+        msgType = msgType.lower()
+        if msgType == "debug":
+            return
         col = colorama.Fore.GREEN
+        if msgType == "error":
+            col = colorama.Fore.RED
         print ( "%s[combine:%d] %s%s" % ( col, self.walkerid, " ".join(map(str,args)), colorama.Fore.RESET ) )
 
     def error ( self, *args ):
@@ -129,7 +134,7 @@ class Combiner:
 
     def debug ( self, *args ):
         """ logging """
-        pass # default is, do nothing
+        self.highlight ( "debug", *args )
 
     def discussCombinations ( self, combinables ):
         """ simple method that writes some stats about a combination to the log file """
@@ -249,10 +254,10 @@ class Combiner:
         l1 = numpy.array ( [ c.likelihood(muhat,expected=expected) for c in combo ], dtype=object )
         LH1 = numpy.prod ( l1[l1!=None] )
         if LH0 <= 0.:
-            self.error ( "l(mu=0) was 0. Set to 1e-80" )
+            self.highlight ( "debug", f"l(mu=0) was {LH0:.2g}. Set to 1e-80" )
             LH0 = 1e-80
         if LH1 <= 0.:
-            self.error ( f"l(muhat={muhat:.3g}) was 0. Set to 1e-80." )
+            self.highlight ( "debug", f"l(muhat={muhat:.3g}) was {LH1:.2g}. Set to 1e-80." )
             LH1 = 1e-80
         chi2 = 2 * ( math.log ( LH1 ) - math.log ( LH0 ) ) ## chi2 with one degree of freedom
         if chi2 < 0.:
