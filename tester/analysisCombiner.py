@@ -205,10 +205,14 @@ def checkOneAnalysis():
         else:
             nocombs.add ( Id )
     print ( f"{green}can combine with:{reset} " )
+    combs = list ( combs )
+    combs.sort()
     for Id in combs:
         pname = pnames[Id]
         print ( " `- %s: %s" % ( Id, pname ) )
     print ( f"{green}cannot combine with:{reset} " )
+    nocombs = list ( nocombs )
+    nocombs.sort()
     for Id in nocombs:
         pname = pnames[Id]
         print ( " `- %s: %s" % ( Id, pname ) )
