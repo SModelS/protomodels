@@ -232,7 +232,7 @@ class RandomWalker:
             self.pprint ( "  `-- error! best combo pids arent subset of masses pids!!!" )
             self.manipulator.M.bestCombo = None
 
-    def predict ( self, model = Union [ ProtoModel, None ] = None ):
+    def predict ( self, model : Union [ ProtoModel, None ] = None ):
         """ convenience function """
         if model == None:
             self.predictor.predict(self.manipulator.M)
