@@ -3,6 +3,7 @@
 """ Code that decides which analyses can be combined and which cannot """
 
 from smodels.theory.theoryPrediction import TheoryPrediction
+from smodels.experiment.infoObj import Info
 import fnmatch
 
 moreComments = { ## collect a few more comments on analyses
@@ -35,7 +36,7 @@ moreComments = { ## collect a few more comments on analyses
     "ATLAS-SUSY-2017-03": "2 or 3 leptons",
 }
 
-def getExperimentName ( globI ):
+def getExperimentName ( globI : Info ) -> str:
     """ returns name of experiment of exp result """
     if "CMS" in globI.id:
         return "CMS"
@@ -43,7 +44,7 @@ def getExperimentName ( globI ):
         return "ATLAS"
     return "???"
 
-def getInfoFromAnaId ( anaId, results ):
+def getInfoFromAnaId ( anaId : str, results ) -> Info:
     """ given the analysis id as a string, get the globalInfo object """
     ret = None
     for i in results:
@@ -112,6 +113,10 @@ def canCombineUsingMatrix ( globA, globB, elA, elB ):
         return False
     anaidA = globA.id
     anaidB = globB.id
+    for ext in [ "agg", "ma5", "eff", "adl" ]:
+        # these extensions must not make a difference
+        anaidA = anaidA.replace(f"-{ext}","")
+        anaidB = anaidB.replace(f"-{ext}","")
     from tester.combinationsmatrix import getMatrix
     allowCombination = getMatrix()
     if anaidA in allowCombination.keys():
@@ -156,6 +161,8 @@ def checkOneAnalysis():
     except Exception as e:
         pass
     #import IPython
+    import sys
+    sys.path.insert(0,"../")
     argparser = argparse.ArgumentParser(
             description='print the correlations of one specific analysis')
     argparser.add_argument ( '-d', '--dbpath',
@@ -186,8 +193,6 @@ def checkOneAnalysis():
             continue
         Id = er.globalInfo.id
         Id = Id.replace("-eff","").replace("-agg","")
-        if Id == "CMS-SUS-19-006-2":
-            Id = "CMS-SUS-19-006"
         if Id == args.analysis:
             continue
         pname = er.globalInfo.prettyName
