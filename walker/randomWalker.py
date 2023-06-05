@@ -477,5 +477,8 @@ if __name__ == "__main__":
          'ssmultipliers': {(1000022, 1000022): 0.06, (1000006, 1000006): 0.482, (-1000006, 1000006): 0.482, (-1000006, -1000006): 0.482, (1000006, 1000022): 0.482, (-1000006, 1000022): 0.482, (1000001, 1000001): 0.83, (-1000001, 1000001): 0.83, (-1000001, -1000001): 0.83, (1000001, 1000022): 0.83, (-1000001, 1000022): 0.83, (1000001, 1000006): 0.83, (-1000001, 1000006): 0.83, (-1000006, 1000001): 0.83, (-1000006, -1000001): 0.83}, 
          'decays': {1000022: {}, 1000006: {(1000022, 6): 1.0}, 1000001: {(1000022, 1): 1.0}}, 
          'K': 6.34, 'Z': 3.14, 'step': 16, 'timestamp': 'Wed May 24 23:18:37 2023', 'walkerid': 2}
-    walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = "/users/wolfgan.waltenberger/git/smodels-database", nevents = 5000, do_combine = True ) 
+    dbpath = "/users/wolfgan.waltenberger/git/smodels-database"
+    dbpath = "official"
+    walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath, 
+                nevents = 5000, do_combine = True ) 
     walker.walk()
