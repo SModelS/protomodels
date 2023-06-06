@@ -24,7 +24,7 @@ print ( "The previous K value was", ma.M.K )
 pr.predict ( ma.M )
 print ( "We end up with K=", ma.M.K )
 hi = Hiscore ( 0, True, picklefile = "H1.hi", hiscores = [ ma.M ] )
-hi.save()
+hi.writeListToPickle()
 
 #a = subprocess.getoutput ( "./upHi.py" ) # no idea what that was
 #print ( a )

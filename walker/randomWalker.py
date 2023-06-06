@@ -78,8 +78,10 @@ class RandomWalker:
                               expected=expected, select=select, do_combine=do_combine )
 
         #Initialize Hiscore (with access to the predictor)
-        self.hiscoreList = Hiscore ( walkerid, True, f"{self.rundir}/H{walkerid}.hi", 
-                                     backup=False, predictor=self.predictor )
+        picklefile = f"{self.rundir}/H{walkerid}.hi"
+        save_hiscores = True
+        self.hiscoreList = Hiscore ( walkerid, save_hiscores=save_hiscores, 
+                picklefile=picklefile, backup=False, predictor=self.predictor )
         self.hiscoreList.nkeep = 1
 
         #Initialize ProtoModel and Manipulator:

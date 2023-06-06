@@ -66,4 +66,4 @@ if __name__ == "__main__":
     from walker.randomWalker import RandomWalker
     walker = RandomWalker ( 0, 2000, "aggressive", False, 0, args.database, record_history=True )
     walker.walk()
-    hi.save()
+    hi.writeListToPickle()

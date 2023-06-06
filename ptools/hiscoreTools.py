@@ -183,7 +183,7 @@ def main ( args ):
             hi = Hiscore( 0, True, f"{rundir}/hiscore.hi" )
             hi.computeAnalysisContributions(ma)
             protomodels[0]=ma.M
-            hi.save()
+            hi.writeListToPickle()
         if not hasattr ( protomodels[0], "particleContributions" ):
             print ( "[hiscore] why does the winner not have particle contributions?" )
             ma = Manipulator ( protomodels[0] )
@@ -201,7 +201,7 @@ def main ( args ):
             hi = Hiscore( 0, True, f"{rundir}/hiscore.hi", predictor = predictor )
             hi.computeParticleContributions(ma)
             protomodels[0]=ma.M
-            hi.save()
+            hi.writeListToPickle()
 
     if args.outfile is not None:
         storeList ( protomodels, args.outfile )
