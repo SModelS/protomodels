@@ -12,6 +12,7 @@ from typing import Dict, List, Text
 from smodels.experiment.databaseObj import Database
 from smodels_utils.helper.databaseManipulations import filterSqrtsFromList, \
          filterSupersededFromList
+from smodels_utils.helper.various import getCollaboration
 
 def getPrettyNames():
     dbpath = "../../smodels-database/"
@@ -63,7 +64,12 @@ def pprint ( ret : Dict ):
 
 def save ( ret ):
     f = open ( "matrix.py", "wt" )
-    f.write ( str(ret)+"\n" )
+    f.write ( "    ww = {}\n" )
+    for k,v in ret.items():
+        vals = ", ".join ( [ f'"{x}"' for x in v ] )
+        f.write ( f'    ww["{k}"]= [ {vals} ]\n' )
+    f.write ( f'    return ww\n' )
+    # f.write ( str(ret)+"\n" )
     f.close()
 
 def synonyms ( pname : str ):
@@ -104,10 +110,14 @@ def constructBAM():
     ctUnknowns=0
     for anaid1, pname1 in prettyNames.items():
         pname1 = synonyms ( pname1 )
+        coll1 = getCollaboration ( anaid1 )
         for anaid2, pname2 in prettyNames.items():
             if anaid2 == anaid1:
                 continue
             if anaid2 < anaid1:
+                continue
+            coll2 = getCollaboration ( anaid2 )
+            if coll1 != coll2:
                 continue
             pname2 = synonyms ( pname2 )
             if exclusive ( "0 l", "1 l", pname1, pname2 ):
