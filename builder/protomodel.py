@@ -7,8 +7,8 @@ __all__ = [ "ProtoModel" ]
 import random, tempfile, os, time, colorama, copy, sys, pickle, random
 sys.path.insert(0,"../")
 from smodels.tools.wrapperBase import WrapperBase
-WrapperBase.defaulttempdir="./" ## keep the temps in our folder
-WrapperBase.defaulttempdir="/dev/shm" ## keep the temps in shared memory
+# WrapperBase.defaulttempdir="./" ## keep the temps in our folder
+# WrapperBase.defaulttempdir="/dev/shm" ## keep the temps in shared memory
 from tester.combiner import Combiner
 from smodels.tools.xsecComputer import XSecComputer, NLL
 from smodels.tools.physicsUnits import TeV
