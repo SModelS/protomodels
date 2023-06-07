@@ -8,14 +8,17 @@
     -) merger, heed the changed particle mass when computing ssm.
 """
 
+__all__ = [ "Manipulator" ]
+
 #import sys
 #sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 from smodels.tools.physicsUnits import fb, TeV
 from smodels.theory.crossSection import LO
+from smodels.theory.theoryPrediction import TheoryPrediction
 import copy, numpy, time, os, sys, itertools, colorama, random
-from typing import Union, Dict
+from typing import Union, Dict, List
 from os import PathLike
 
 class Manipulator:
@@ -343,15 +346,24 @@ class Manipulator:
         """ set the walker id of protomodel """
         self.M.walkerid = Id
 
-    def printCombo ( self, combo=None ):
+    def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None ):
         """ pretty print prediction combos.
             If None, print best combo """
         print ( "best combo:" )
         if combo == None:
             combo = self.M.bestCombo
         for i in combo:
-            print ( " `- %s:%s:%s %s" % \
-              ( i.analysisId(), i.dataType(True), i.dataId(), "; ".join(map(str,i.PIDs))))
+            txns = ",".join ( set ( map ( str, i.txnames ) ) )
+            print ( f" `- {i.analysisId()}:{i.dataType(True)}:{i.dataId()}:{txns} {'; '.join(map(str,i.PIDs))}" )
+
+    def printAllTheoryPredictions ( self ):
+        """ pretty print all theory predictions for the model """
+        print ( "theory predictions:" )
+        combo = self.M.tpList
+        for c in combo:
+            i = c[2]
+            txns = ",".join ( set ( map ( str, i.txnames ) ) )
+            print ( f" - {i.analysisId()}:{i.dataType(True)}:{i.dataId()}:{txns} {'; '.join(map(str,i.PIDs))}" )
 
     def removeAllOffshell ( self, rescaleSSMs=False, protomodel = None ):
         """ remove all offshell decays and decays of frozen particles. Renormalize all branchings """
@@ -1365,13 +1377,12 @@ class Manipulator:
         """ print the cross sections in a human-readable way """
         xsecs = self.simplifyXSecs( fbmin )
         for sqrts in xsecs.keys():
-            print ( "%d TeV:" % sqrts )
+            print ( f"{sqrts} TeV:" )
             pids = list ( xsecs[sqrts].keys() )
             pids.sort()
             for pid in pids:
                 xsec = xsecs[sqrts][pid]
-                print ( " %22s: %s" % \
-                        ( pid, xsec.value ) )
+                print ( f" {pid:>22s}: {xsec.value}" )
 
     def simplifyDecays ( self ):
         """ return the decays only of the unfrozen particles,
