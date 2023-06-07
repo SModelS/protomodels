@@ -2,6 +2,8 @@
 
 """ Try out combinations from pickle file. """
 
+__all__ = [ "Combiner" ]
+
 from smodels.theory import decomposer
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
@@ -210,6 +212,8 @@ class Combiner:
             letters[p]=chr(letter)
             # self.pprint ( "[combine] Prediction %s: %s" % ( letters[p], p.expResult.globalInfo.id ) )
             letter+=1
+            if letter == 91: # skip the special characters
+                letter = 97
         return letters
 
     def getComboDescription ( self, combination ):

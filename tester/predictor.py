@@ -2,9 +2,12 @@
 
 """ store the theory predictions in pickle """
 
+__all__ = [ "Predictor" ]
+
 import pickle, time, os, sys
 from smodels.theory import decomposer
 from smodels.theory.theoryPrediction import theoryPredictionsFor, TheoryPrediction
+from protomodels.builder.protomodel import ProtoModel
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
 from smodels.tools.physicsUnits import fb, GeV
@@ -140,8 +143,8 @@ class Predictor:
         with open( "walker%d.log" % self.walkerid, "a" ) as f:
             f.write ( "[predictor-%s] %s\n" % ( time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
-    def predict ( self, protomodel, sigmacut = 0.02*fb,
-                  strategy = "aggressive", keep_predictions = False ):
+    def predict ( self, protomodel : ProtoModel, sigmacut = 0.02*fb,
+                  strategy : str = "aggressive", keep_predictions : bool = False ):
         """ Compute the predictions and statistical variables, for a
             protomodel.
 
@@ -160,13 +163,13 @@ class Predictor:
 
         # First run SModelS using all results and considering only the best signal region.
         # thats the run for the critic
-        bestpreds = self.runSModelS( slhafile, sigmacut,  allpreds=False,
+        critic_preds = self.runSModelS( slhafile, sigmacut,  allpreds=False,
                                            llhdonly=False )
 
         if keep_predictions:
-            self.bestpreds = bestpreds
+            self.critic_preds = critic_preds
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictions(protomodel,bestpreds)
+        self.updateModelPredictions(protomodel,critic_preds)
         # self.log ( "model is excluded? %s" % str(protomodel.excluded) )
 
         # Compute the maximum allowed (global) mu value given the r-values 
@@ -183,19 +186,21 @@ class Predictor:
         # Compute significance and store in the model:
         self.computeSignificance( protomodel, predictions, strategy )
         if protomodel.Z is None:
-            self.log ( "done with prediction. Could not find combinations (Z=%s)" % ( protomodel.Z) )
+            self.log ( f"done with prediction. Could not find combinations (Z={protomodel.Z})" )
             protomodel.delCurrentSLHA()
             return False
         else:
-            self.log ( "done with prediction. best Z=%.2f (muhat=%.2f)" % ( protomodel.Z, protomodel.muhat ) )
+            self.log ( f"done with prediction. best Z={protomodel.Z:.2f} (muhat={protomodel.muhat:.2f})" )
 
         protomodel.cleanBestCombo()
 
         #Recompute predictions with higher accuracy for high score models:
-        if protomodel.Z > 2.7 and protomodel.nevents < 55000:
+        if protomodel.Z > 4.1 and protomodel.nevents < 55000:
+            self.log ( f"Z {protomodel.Z:.2f}>2.7, repeat with higher stats!" )
             protomodel.nevents = 100000
             protomodel.computeXSecs()
-            self.predict(protomodel,sigmacut=sigmacut, strategy= strategy)
+            self.predict(protomodel,sigmacut=sigmacut, strategy= strategy,
+                    keep_predictions = keep_predictions )
 
         protomodel.delCurrentSLHA()
         return True
@@ -211,7 +216,7 @@ class Predictor:
         """
 
         if not os.path.exists ( inputFile ):
-            self.pprint ( "error, cannot find inputFile %s" % inputFile )
+            self.pprint ( f"error, cannot find inputFile {inputFile}" )
             return []
         model = Model ( BSMList, SMList )
         model.updateParticles ( inputFile=inputFile )
@@ -220,7 +225,7 @@ class Predictor:
 
         # self.log ( "Now decomposing" )
         topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
-        self.log ( "decomposed model into %d topologies." % len(topos) )
+        self.log ( f"decomposed model into {len(topos)} topologies." )
             
 
         if allpreds:
@@ -257,22 +262,33 @@ class Predictor:
         sllhd = ""
         if llhdonly:
             sllhd = ", llhds only"
-        self.log ( "returning %d predictions, %s%s" % \
-                   (len(preds),sap, sllhd ) )
+        self.log ( f"returning {len(preds)} predictions, {sap}{sllhd}" )
         return preds
 
     def printPredictions ( self ):
         """ if self.predictions exists, pretty print them """
+        if not hasattr ( self, "predictions" ):
+            print ( "[predictor] no predictions. did you run .predict( ..., keep_predictions=True )?" )
         if hasattr ( self, "predictions" ):
             print ( "[predictor] all predictions (for combiner):" )
             for p in self.predictions:
-                print ( " - %s %s, %s %s" % \
-                        ( p.analysisId(), p.dataType(), p.dataset.dataInfo.dataId, p.txnames ) )
-        if hasattr ( self, "bestpreds" ):
+                dataId = "combined"
+                if hasattr ( p.dataset, "dataInfo" ):
+                    dataId = p.dataset.dataInfo.dataId
+                if dataId == None:
+                    dataId = "UL"
+                txns = ",".join ( set ( map ( str, p.txnames ) ) )
+                print ( f" - {p.analysisId()}:{dataId}: {txns}" )
+        if hasattr ( self, "critic_preds" ):
             print ( "[predictor] best SR predictions (for critic):" )
-            for p in self.bestpreds:
-                print ( " - %s %s, %s %s" % \
-                        ( p.analysisId(), p.dataType(), p.dataset.dataInfo.dataId, p.txnames ) )
+            for p in self.critic_preds:
+                dataId = "combined"
+                if hasattr ( p.dataset, "dataInfo" ):
+                    dataId = p.dataset.dataInfo.dataId
+                if dataId == None:
+                    dataId = "UL"
+                txns = ",".join ( set ( map ( str, p.txnames ) ) )
+                print ( f" - {p.analysisId()}:{dataId}: {txns}" )
 
     def updateModelPredictions(self, protomodel, predictions):
         """ Extract information from list of theory predictions and store in the protomodel.
@@ -316,28 +332,27 @@ class Predictor:
     def computeSignificance(self, protomodel, predictions, strategy):
         """ compute the K and Z values, and attach them to the protomodel """
 
-        self.log ( "now find highest significance for %d predictions" % len(predictions) )
+        self.log ( f"now find highest significance for {len(predictions)} predictions" )
         ## find highest observed significance
         #(set mumax just slightly below its value, so muhat is always below)
         mumax = protomodel.mumax
-        combiner = self.combiner
-        bestCombo,Z,llhd,muhat = combiner.findHighestSignificance ( predictions, strategy,
-                                                expected=False, mumax = mumax )
-        prior = combiner.computePrior ( protomodel )
+        bestCombo,Z,llhd,muhat = self.combiner.findHighestSignificance ( predictions,
+                strategy, expected=False, mumax = mumax )
+        prior = self.combiner.computePrior ( protomodel )
         if hasattr ( protomodel, "keep_meta" ) and protomodel.keep_meta:
             protomodel.bestCombo = bestCombo
         else:
-            protomodel.bestCombo = combiner.removeDataFromBestCombo ( bestCombo )
+            protomodel.bestCombo = self.combiner.removeDataFromBestCombo ( bestCombo )
         protomodel.Z = Z
 
         if Z is not None: # Z is None when no combination was found
-            protomodel.K = combiner.computeK ( Z, prior )
+            protomodel.K = self.combiner.computeK ( Z, prior )
         else:
             protomodel.K = None
         protomodel.llhd = llhd
         protomodel.muhat = muhat
-        protomodel.letters = combiner.getLetterCode(protomodel.bestCombo)
-        protomodel.description = combiner.getComboDescription(protomodel.bestCombo)
+        protomodel.letters = self.combiner.getLetterCode(protomodel.bestCombo)
+        protomodel.description = self.combiner.getComboDescription(protomodel.bestCombo)
 
 if __name__ == "__main__":
     import argparse
