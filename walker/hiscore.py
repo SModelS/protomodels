@@ -13,11 +13,12 @@ from ptools import helpers
 from ptools.csetup import setup
 from ptools import sparticleNames
 from typing import Union
+from os import PathLike
 
 class Hiscore:
     """ encapsulates the hiscore list. """
     def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
-                   picklefile: str="hiscore.hi", backup : bool = True, 
+                   picklefile: PathLike="hiscore.hi", backup : bool = True, 
                    hiscores = None, predictor = None ):
         """ the constructor
         :param save_hiscores: if true, then assume you want to save, not just read.
@@ -141,7 +142,11 @@ class Hiscore:
         ret = ret[:10] ## cut off, max ten
         return ret
 
-    def writeToHiscoreFile ( self, m ):
+    @classmethod
+    def fromDictionaryFile ( cls, path : PathLike ):
+        assert False, "implement"
+
+    def writeToHiscoreFile ( self, m : Manipulator ):
         """ we have a new hiscore, write to hiscores.dict
         :param m: manipulator
         """

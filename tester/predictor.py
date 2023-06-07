@@ -10,8 +10,7 @@ from smodels.particlesLoader import BSMList
 from smodels.tools.physicsUnits import fb, GeV
 from smodels.experiment.databaseObj import Database
 from smodels.theory.model import Model
-from smodels.tools import runtime
-runtime._cap_likelihoods = True
+from os import PathLike
 
 try:
     from tester.combiner import Combiner
@@ -19,9 +18,9 @@ except:
     from combiner import Combiner
 
 class Predictor:
-    def __init__ ( self, walkerid, dbpath = "./default.pcl",
-                   expected = False, select = "all",
-                   do_combine = False ):
+    def __init__ ( self, walkerid : int, dbpath : PathLike = "./default.pcl",
+                   expected : bool = False, select : str = "all",
+                   do_combine : bool = False ):
         """
         :param do_combine: if True, then also use combined results,
                            both via simplified likelihoods and pyhf.

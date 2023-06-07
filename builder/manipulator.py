@@ -15,7 +15,7 @@ from builder.protomodel import ProtoModel
 from smodels.tools.physicsUnits import fb, TeV
 from smodels.theory.crossSection import LO
 import copy, numpy, time, os, sys, itertools, colorama, random
-from typing import Union
+from typing import Union, Dict
 from os import PathLike
 
 class Manipulator:
