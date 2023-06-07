@@ -277,9 +277,10 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description="correlation/combination matrix plotter")
     argparser.add_argument ( '-S', '--strategy', nargs='?',
             help='combination strategy [aggressive]', type=str, default='aggressive' )
+    # dbpath = "../../smodels-database"
+    dbpath = "official"
     argparser.add_argument ( '-d', '--database', nargs='?',
-            help='path to database [../../smodels-database]',
-            type=str, default='../../smodels-database' )
+            help=f'path to database [{dbpath}]', type=str, default=dbpath )
     argparser.add_argument ( '-c', '--combinationsmatrix', nargs='?',
             help='path to combinationsmatrix file. If none, get it from protomodels.tester.combinationsmatrix.getMatrix() [None]',
             type=str, default=None )

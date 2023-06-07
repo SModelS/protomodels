@@ -11,14 +11,15 @@
 from typing import Dict, List, Text
 from smodels.experiment.databaseObj import Database
 from smodels_utils.helper.databaseManipulations import filterSqrtsFromList, \
-         filterSupersededFromList
+         filterSupersededFromList, filterCollaborationFromList
 from smodels_utils.helper.various import getCollaboration
 
 def getPrettyNames():
     dbpath = "../../smodels-database/"
-    db = Database ( dbpath )
+    db = Database ( dbpath, progressbar=True )
     ers = db.getExpResults()
     ers = filterSqrtsFromList ( ers, 13 )
+    # ers = filterCollaborationFromList ( ers, "CMS" )
     ers = filterSupersededFromList ( ers )
     # ers = db.expResultList
     anaIds = { er.globalInfo.id for er in ers }
