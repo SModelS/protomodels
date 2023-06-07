@@ -78,13 +78,14 @@ def synonyms ( pname : str ):
     pname = pname.replace(", EWK","")
     pname = pname.replace(" EWK","")
     syns["2 h(b b)"] = "0 l"
-    syns["2 h(b b)"] = "0 l"
+    syns["2 h(bb)"] = "0 l"
     syns["W h(b b)"] = "0 l"
     syns["W h(bb)"] = "0 l"
     syns["hadr."] = "0 l"
     syns["multi-jets"] = "0 l"
     syns["2 b- or 2 c-jets"] = "0 l"
     syns["jets + boosted h(b b)"] = "0 l"
+    syns["jets + boosted h(bb)"] = "0 l"
     syns["jets + top- and W-tag"] = "0 l"
     syns["jets + boosted Z"] = "0 l"
     syns["2 SFOS l"] = "2 l"
