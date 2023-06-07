@@ -354,7 +354,8 @@ class Manipulator:
             combo = self.M.bestCombo
         for i in combo:
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
-            print ( f" `- {i.analysisId()}:{i.dataType(True)}:{i.dataId()}:{txns} {'; '.join(map(str,i.PIDs))}" )
+            print ( f" `- {i.analysisId()}:{i.dataType(True)}:{i.dataId()}: {txns}" )
+            print ( f"              {'; '.join(map(str,i.PIDs))}" )
 
     def printAllTheoryPredictions ( self ):
         """ pretty print all theory predictions for the model """
