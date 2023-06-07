@@ -354,7 +354,8 @@ class Manipulator:
             combo = self.M.bestCombo
         for i in combo:
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
-            print ( f" `- {i.analysisId()}:{i.dataType(True)}:{i.dataId()}: {txns}" )
+            dId = i.dataId() if i.dataId() != None else "UL"
+            print ( f" `- {i.analysisId()}:{dId}: {txns}" )
             print ( f"              {'; '.join(map(str,i.PIDs))}" )
 
     def printAllTheoryPredictions ( self ):
@@ -363,8 +364,9 @@ class Manipulator:
         combo = self.M.tpList
         for c in combo:
             i = c[2]
+            dId = i.dataId() if i.dataId() != None else "UL"
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
-            print ( f" - {i.analysisId()}:{i.dataType(True)}:{i.dataId()}:{txns} {'; '.join(map(str,i.PIDs))}" )
+            print ( f" - {i.analysisId()}:{dId}:{txns} {'; '.join(map(str,i.PIDs))}" )
 
     def removeAllOffshell ( self, rescaleSSMs=False, protomodel = None ):
         """ remove all offshell decays and decays of frozen particles. Renormalize all branchings """
