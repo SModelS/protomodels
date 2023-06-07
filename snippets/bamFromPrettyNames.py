@@ -18,8 +18,8 @@ def getPrettyNames():
     dbpath = "../../smodels-database/"
     db = Database ( dbpath, progressbar=True )
     ers = db.getExpResults()
-    ers = filterSqrtsFromList ( ers, 13 )
-    # ers = filterCollaborationFromList ( ers, "CMS" )
+    ers = filterSqrtsFromList ( ers, 8 )
+    ers = filterCollaborationFromList ( ers, "CMS" )
     ers = filterSupersededFromList ( ers )
     # ers = db.expResultList
     anaIds = { er.globalInfo.id for er in ers }
@@ -73,7 +73,7 @@ def save ( ret ):
     # f.write ( str(ret)+"\n" )
     f.close()
 
-def synonyms ( pname : str ):
+def synonyms ( pname : str ) -> str:
     """ replace synonymous terms """
     syns = {}
     pname = pname.replace(", EWK","")
@@ -84,6 +84,8 @@ def synonyms ( pname : str ):
     syns["W h(bb)"] = "0 l"
     syns["hadr."] = "0 l"
     syns["multi-jets"] = "0 l"
+    syns["1-2 b-jets, MCT"] = "0 l"
+    syns[">= 5 (1 b-)jets"] = "0 l"
     syns["2 b- or 2 c-jets"] = "0 l"
     syns["jets + boosted h(b b)"] = "0 l"
     syns["jets + boosted h(bb)"] = "0 l"
@@ -101,9 +103,12 @@ def synonyms ( pname : str ):
     syns["SFOS l"] = "2 l"
     syns["soft OS l"] = "soft l"
     for k,v in syns.items():
-        if pname == k:
+        if pname == k: # these need to match 100%
             pname = v
-        # pname = pname.replace(k,v)
+    matches = {}
+    matches["2 OS l"] = "2 l"
+    for k,v in matches.items():
+        pname = pname.replace(k,v) # these will be replaced also within the pname
     return pname
 
 def constructBAM():
