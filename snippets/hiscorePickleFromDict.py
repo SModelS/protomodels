@@ -17,7 +17,7 @@ subprocess.getoutput ( "rm H*hi" )
 subprocess.getoutput ( "rm Kold.conf" )
 
 pmodel = ProtoModel ( 0 )
-pr = Predictor ( 0 )
+pr = Predictor ( 0, do_combine = False )
 ma = Manipulator( pmodel )
 ma.initFromDictFile ( "hiscores.dict", initTestStats=True )
 print ( "The previous K value was", ma.M.K )

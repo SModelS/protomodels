@@ -205,7 +205,7 @@ def produce( hi, pid=1000022, nevents = 100000, dry_run=False,
     expected = False
     select = "all"
     dbpath = rundir + "/default.pcl"
-    predictor =  Predictor( 0, dbpath=dbpath,
+    predictor =  Predictor( 0, dbpath=dbpath, do_combine=False,
                             expected=expected, select=select )
     import multiprocessing
     pool = multiprocessing.Pool ( processes = len(mranges) )
@@ -270,7 +270,7 @@ def produceSSMs( hi, pid1, pid2, nevents = 100000, dry_run=False,
     expected = False
     select = "all"
     dbpath = rundir + "/default.pcl"
-    predictor =  Predictor( 0, dbpath=dbpath,
+    predictor =  Predictor( 0, dbpath=dbpath, do_combine=False,
                             expected=expected, select=select )
     args = [ { "model": model, "pids": pids, "nevents": nevents, "ssm": ssm,
                "predictor": predictor, "rundir": rundir, "dry_run": dry_run,
@@ -560,7 +560,7 @@ if __name__ == "__main__":
             produceSSMs( hi, args.pid, args.pid2, args.nevents, args.dry_run, nproc, args.factor, rundir = rundir )
         else:
             produce( hi, pids, args.nevents, args.dry_run, nproc, args.factor, rundir = rundir, preserve_xsecs = args.preserve_xsecs )
-    pred = Predictor( 0 )
+    pred = Predictor( 0, do_combine = False )
     rthreshold = pred.rthreshold
     if args.draw:
         if args.pid != 0:

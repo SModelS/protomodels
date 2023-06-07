@@ -4,13 +4,14 @@
 
 import pickle, time, os, sys
 from smodels.theory import decomposer
-from smodels.theory.theoryPrediction import theoryPredictionsFor
+from smodels.theory.theoryPrediction import theoryPredictionsFor, TheoryPrediction
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
 from smodels.tools.physicsUnits import fb, GeV
 from smodels.experiment.databaseObj import Database
 from smodels.theory.model import Model
 from os import PathLike
+from typing import List
 
 try:
     from tester.combiner import Combiner
@@ -199,7 +200,8 @@ class Predictor:
         protomodel.delCurrentSLHA()
         return True
 
-    def runSModelS(self, inputFile, sigmacut, allpreds, llhdonly):
+    def runSModelS(self, inputFile : PathLike, sigmacut, 
+            allpreds : bool, llhdonly : bool ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
         :param sigmacut: the cut on the topology weights, typically 0.02*fb
@@ -355,7 +357,7 @@ if __name__ == "__main__":
             action="store_true" )
     args = argparser.parse_args()
     
-    p = Predictor ( 0, args.database ) 
+    p = Predictor ( 0, args.database, do_combine=False ) 
 
     sys.path.insert(0,"../")
     from walker.hiscore import Hiscore

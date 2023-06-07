@@ -41,7 +41,7 @@ class PredictionsTest(unittest.TestCase):
 
         #Test against old version:
         predictor =  Predictor( 0, dbpath='./database.pcl',
-                              expected=False, select='all' )
+                              expected=False, select='all', do_combine=False )
         predictor.rthreshold = 1.7
         predictor.predict(pNew)
         #OBS: Since the original protomodel already has all of its cross-sections rescaled, we do not

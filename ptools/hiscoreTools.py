@@ -196,8 +196,8 @@ def main ( args ):
             if hasattr ( args, "dbpath" ):
                 dbpath = args.dbpath
             if os.path.exists ( dbpath ):
-                predictor = Predictor ( 0, dbpath = dbpath, 
-                                        expected = False, select= "all" )
+                predictor = Predictor ( 0, dbpath = dbpath, expected = False, 
+                        select= "all", do_combine = False )
             hi = Hiscore( 0, True, f"{rundir}/hiscore.hi", predictor = predictor )
             hi.computeParticleContributions(ma)
             protomodels[0]=ma.M
@@ -276,7 +276,7 @@ if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     import copy, numpy, scipy, scipy.stats, math
     co = Combiner() # instantiate for convenience
-    pr = Predictor( 0 ) # instantiate for convenience
+    pr = Predictor( 0, do_combine=False ) # instantiate for convenience
     from ptools import helpers
     # import hiscore #Keep it for convenience
 

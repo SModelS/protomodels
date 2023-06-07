@@ -153,7 +153,7 @@ class LlhdScanner:
         expected = False
         select = "all"
         dbpath = rundir + "/default.pcl"
-        self.predictor = Predictor ( 0, dbpath=dbpath, expected=expected, select=select )
+        self.predictor = Predictor ( 0, dbpath=dbpath, expected=expected, select=select, do_combine = False )
 
     def pprint ( self, *args ):
         """ pretty print """
