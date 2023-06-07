@@ -11,24 +11,39 @@
 #import sys
 #sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
+from builder.protomodel import ProtoModel
 from smodels.tools.physicsUnits import fb, TeV
 from smodels.theory.crossSection import LO
 import copy, numpy, time, os, sys, itertools, colorama, random
+from typing import Union
+from os import PathLike
 
 class Manipulator:
     """ contains the protomodel manipulation algorithms. """
+
+    # walledpids are particle ids that have a minimum mass requirement
     walledpids = [ 1000001, 1000002, 1000003, 1000004, 1000021 ]
     # walledpids += [ 1000005, 1000006, 2000005, 2000006 ]
     wallmass = 310.
 
-    def __init__ ( self, protomodel, strategy: str = "aggressive",
-                   verbose = False, do_record = False, seed = None ):
+    def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike], 
+            strategy: str = "aggressive", verbose : bool = False, 
+            do_record : bool = False, seed : Union[bool,int] = None ):
         """
+        :param protomodel: is either a protomodel, or a hiscore dictionary, 
+        or a path to a protomodel
         :param do_record: do record actions taken
         :param seed: random seed
         """
         self.namer = SParticleNames ( False )
         self.M = protomodel
+        if type(protomodel) == dict:
+            self.M = ProtoModel ( )
+            self.initFromDict ( protomodel )
+        if type(protomodel) == str:
+            self.M = ProtoModel ( )
+            if protomodel.endswith ( ".dict" ):
+                self.initFromDictFile ( protomodel )
         self.seed = seed
         self.strategy = strategy
         self.verbose = verbose
@@ -203,7 +218,7 @@ class Manipulator:
         with open( "walker%d.log" % self.M.walkerid, "at" ) as f:
             f.write ( "[%s-%s] %s\n" % ( module, time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
-    def initFromDictFile ( self, filename, initTestStats = False ):
+    def initFromDictFile ( self, filename : PathLike, initTestStats : bool = False ):
         """ setup the protomodel from dictionary in file <filename>.
             If it is a list of dictionaries, take the 1st entry.
         :param filename: name of file
@@ -260,7 +275,8 @@ class Manipulator:
         return ret
 
 
-    def initFromDict ( self, D, filename="", initTestStats=False ):
+    def initFromDict ( self, D : Dict, filename : str = "", 
+            initTestStats : bool = False ):
         """ setup the protomodel from dictionary D.
         :param D: dictionary, as defined in pmodel*.py files.
         :param filename: name of origin. not necessary, only for logging.
