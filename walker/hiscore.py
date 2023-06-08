@@ -174,6 +174,7 @@ class Hiscore:
         D["step"]=m.M.step
         D["timestamp"]=time.asctime()
         D["walkerid"]=m.M.walkerid
+        D["description"]=m.M.description
         # D=m.writeDictFile(outfile = None, ndecimals=6 )
         newlist = self.insertHiscore ( oldhiscores, D )
         self.pprint ( f"write model to {fname}" )

@@ -510,7 +510,8 @@ class Manipulator:
                ( sK, sZ, self.M.muhat, self.M.mumax ) )
         print('  * Best Combo:')
         for tp in self.M.bestCombo:
-            if tp.dataset.dataInfo.dataType == 'efficiencyMap':
+            if hasattr ( tp.dataset, "dataInfo" ) and \
+                    tp.dataset.dataInfo.dataType == 'efficiencyMap':
                 print('      - ',tp.expResult.globalInfo.id,tp.txnames,
                              tp.dataset.dataInfo.dataId,
                       'obsN=%d' % tp.dataset.dataInfo.observedN,
