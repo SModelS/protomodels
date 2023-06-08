@@ -88,7 +88,11 @@ def canCombine ( predA, predB, results = None ):
     if type(predB)==TheoryPrediction:
         elB = predB.elements
         predB = predB.expResult.globalInfo
-    return canCombineUsingMatrix ( predA, predB, elA, elB )
+    combinable = canCombineUsingMatrix ( predA, predB, elA, elB )
+    #if ("20-004" in predA.id or "20-004" in predB.id) and "CMS" in predA.id and "CMS" in predB.id and predA.sqrts == predB.sqrts:
+    #if ("2016-07" in predA.id or "2016-07" in predB.id) and "ATLAS" in predA.id and "ATLAS" in predB.id and predA.sqrts == predB.sqrts:
+    #    print ( f"can i can combine {predA.id} with {predB.id}? {combinable}" )
+    return combinable
 
 def hasOverlap ( elA, elB, globA = None, globB = None ):
     """ is there an overlap in the elements in A and in B? """
@@ -108,7 +112,7 @@ def canCombineUsingMatrix ( globA, globB, elA, elB ):
         return True
     if getExperimentName(globA) != getExperimentName(globB):
         return True
-    if hasOverlap ( elA, elB, globA, globB ):
+    if False and hasOverlap ( elA, elB, globA, globB ):
         ## overlap in the constraints? then for sure a no!
         return False
     anaidA = globA.id
@@ -135,7 +139,7 @@ def getSummary():
     from smodels.experiment.databaseObj import Database
     # dbpath = "official"
     dbpath = "<rundir>/database.pcl"
-    print ( "[analysisCombiner] checking %s" % dbpath )
+    print ( f"[analysisCombiner] checking {dbpath}" )
     db = Database ( dbpath )
     results = db.getExpResults()
     ana1 = "CMS-SUS-16-042"
