@@ -241,6 +241,7 @@ class Predictor:
         combinedIds = set() # the analysis ids of the combined
         srpreds = [] # the SR specific predictions
         predictions = []
+        print ( f"in runSModelS we have useBestDataset={bestDataSet}, combinedResults={combinedRes} allpreds={allpreds} do_combine={self.do_combine}" )
         for expRes in self.listOfExpRes:
             # get the SR specific predictions
             srpred = theoryPredictionsFor ( expRes, topos,
@@ -257,6 +258,8 @@ class Predictor:
                 if cpreds != None:
                     for c in cpreds:
                         anaId = c.dataset.globalInfo.id
+                        if c.dataType()!="combined":
+                            continue
                         combinedIds.add ( anaId ) # add with and without -agg
                         anaId = anaId.replace("-agg","")
                         combinedIds.add ( anaId )
@@ -273,6 +276,9 @@ class Predictor:
             srId = srId.replace("-agg","")
             # add the others if not a combined result exists, and if we have llhds
             # (or we are just not asking specifically for llhds)
+            dId = srId + ":combined"
+            if hasattr ( srpred.dataset, "dataInfo" ):
+                dId = srId + ":" + str(srpred.dataset.dataInfo.dataId)
             if srId in combinedIds: # we continue only with the combination
                 continue
             if (not llhdonly) or (srpred.likelihood != None):
