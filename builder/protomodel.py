@@ -22,6 +22,8 @@ class ProtoModel:
         branchings, their signal strength modifiers.
     """
     LSP = 1000022 ## the LSP is hard coded
+    # SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
+    SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
 
     def __init__ ( self, walkerid : int = 0, keep_meta : bool = True, 
                    nevents : int = 10000, dbversion : str = "????" ):
@@ -379,8 +381,8 @@ class ProtoModel:
             try:
                 xsecs = []
                 #Create temporary file with the current model (without cross-sections)
-                tmpSLHA = tempfile.mktemp( prefix=".%s_xsecfile" % ( self.walkerid ),
-                                                    suffix=".slha",dir="./")
+                tmpSLHA = tempfile.mktemp( prefix=f".{self.walkerid}_xsecfile",
+                                           suffix=".slha",dir=self.SLHATEMPDIR )
                 tmpSLHA = self.createSLHAFile(tmpSLHA, addXsecs = False)
                 for sqrts in [8, 13]:
                     self.computer.compute( sqrts*TeV, tmpSLHA, unlink=True,
@@ -450,8 +452,8 @@ class ProtoModel:
     def createNewSLHAFileName ( self, prefix : str = "cur" ):
         """ create a new SLHA file name. Needed when e.g. unpickling """
         self.delCurrentSLHA()
-        self.currentSLHA = tempfile.mktemp( prefix=".%s%s_" % \
-                              ( prefix, self.walkerid ), suffix=".slha",dir="./")
+        self.currentSLHA = tempfile.mktemp( prefix=f".{prefix}{self.walkerid}_",
+                    suffix=".slha",dir=self.SLHATEMPDIR)
 
     def checkTemplateSLHA ( self ):
         if not os.path.exists ( self.templateSLHA ):
