@@ -241,7 +241,7 @@ class Predictor:
         combinedIds = set() # the analysis ids of the combined
         srpreds = [] # the SR specific predictions
         predictions = []
-        print ( f"in runSModelS we have useBestDataset={bestDataSet}, combinedResults={combinedRes} allpreds={allpreds} do_combine={self.do_combine}" )
+        # print ( f"in runSModelS we have useBestDataset={bestDataSet}, combinedResults={combinedRes} allpreds={allpreds} do_combine={self.do_combine}" )
         for expRes in self.listOfExpRes:
             # get the SR specific predictions
             srpred = theoryPredictionsFor ( expRes, topos,
