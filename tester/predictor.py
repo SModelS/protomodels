@@ -235,42 +235,64 @@ class Predictor:
             bestDataSet=True
             combinedRes=self.do_combine
 
-        preds = []
         # self.log ( "start getting preds" )
         from smodels.tools import runtime
         runtime._experimental = True
+        combinedIds = set() # the analysis ids of the combined
+        srpreds = [] # the SR specific predictions
+        predictions = []
         for expRes in self.listOfExpRes:
-            predictions = theoryPredictionsFor ( expRes, topos,
-                                                 useBestDataset=bestDataSet,
-                                                 combinedResults=combinedRes )
-            if predictions == None:
-                predictions = []
+            # get the SR specific predictions
+            srpred = theoryPredictionsFor ( expRes, topos,
+                                           useBestDataset=bestDataSet,
+                                           combinedResults=combinedRes )
+            if srpred != None:
+                for p in srpred:
+                    srpreds.append ( p )
             if allpreds:
-                combpreds = theoryPredictionsFor ( expRes, topos,
-                                                   useBestDataset=False,
-                                                   combinedResults=self.do_combine )
-                if combpreds != None:
-                    for c in combpreds:
+                # get the SR-combined predictions
+                cpreds = theoryPredictionsFor ( expRes, topos,
+                                                useBestDataset=False,
+                                                combinedResults=self.do_combine )
+                if cpreds != None:
+                    for c in cpreds:
+                        anaId = c.dataset.globalInfo.id
+                        combinedIds.add ( anaId ) # add with and without -agg
+                        anaId = anaId.replace("-agg","")
+                        combinedIds.add ( anaId )
+                    for c in cpreds:
+                        anaId = c.dataset.globalInfo.id
+                        # if the aggregated version is in, then take this out
+                        if anaId+"-agg" in combinedIds:
+                            continue
+                        # definitely add the combined predictions
+                        c.computeStatistics()
                         predictions.append ( c )
-            for prediction in predictions:
-                prediction.computeStatistics()
-                if (not llhdonly) or (prediction.likelihood != None):
-                    preds.append ( prediction )
+        for srpred in srpreds:
+            srId = srpred.dataset.globalInfo.id
+            srId = srId.replace("-agg","")
+            # add the others if not a combined result exists, and if we have llhds
+            # (or we are just not asking specifically for llhds)
+            if srId in combinedIds: # we continue only with the combination
+                continue
+            if (not llhdonly) or (srpred.likelihood != None):
+                srpred.computeStatistics()
+                predictions.append ( srpred )
         sap = "best preds"
         if allpreds:
             sap = "all preds"
         sllhd = ""
         if llhdonly:
             sllhd = ", llhds only"
-        self.log ( f"returning {len(preds)} predictions, {sap}{sllhd}" )
-        return preds
+        self.log( f"returning {len(predictions)} predictions, {sap}{sllhd}" )
+        return predictions
 
     def printPredictions ( self ):
         """ if self.predictions exists, pretty print them """
         if not hasattr ( self, "predictions" ):
             print ( "[predictor] no predictions. did you run .predict( ..., keep_predictions=True )?" )
         if hasattr ( self, "predictions" ):
-            print ( "[predictor] all predictions (for combiner):" )
+            print ( f"[predictor] {len(self.predictions)} predictions for combiner:" )
             for p in self.predictions:
                 dataId = "combined"
                 if hasattr ( p.dataset, "dataInfo" ):
@@ -280,7 +302,8 @@ class Predictor:
                 txns = ",".join ( set ( map ( str, p.txnames ) ) )
                 print ( f" - {p.analysisId()}:{dataId}: {txns}" )
         if hasattr ( self, "critic_preds" ):
-            print ( "[predictor] best SR predictions (for critic):" )
+            print ( )
+            print ( f"[predictor] {len(self.critic_preds)} predictions for critic:" )
             for p in self.critic_preds:
                 dataId = "combined"
                 if hasattr ( p.dataset, "dataInfo" ):
