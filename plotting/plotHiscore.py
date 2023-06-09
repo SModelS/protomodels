@@ -136,7 +136,7 @@ def writeRawNumbersHtml ( protomodel ):
         ltopos.sort()
         topos = ", ".join ( ltopos )
         S = "?"
-        dt = { "upperLimit": "ul", "efficiencyMap": "em" }
+        dt = { "upperLimit": "ul", "efficiencyMap": "em", "combined": "comb" }
         f.write ( "<tr><td>%s</td><td>%s</td> " % ( idAndUrl, dt[dtype] ) )
         #f.write ( "<tr><td>%s</td><td>%s</td> " % ( anaId, dt[dtype] ) )
         if dtype == "efficiencyMap":
