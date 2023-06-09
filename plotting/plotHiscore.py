@@ -109,11 +109,12 @@ def getExtremeSSMs ( ssm, largest, nm = 7 ):
 def hasSignals ( protomodel ):
     """ are there signals stored in the theory predictions? """
     for tp in protomodel.bestCombo:
-        if hasattr(tp.dataset.dataInfo,"sigN" ):
+        if hasattr ( tp.dataset, "dataInfo" ) and hasattr(tp.dataset.dataInfo,"sigN" ):
             return "did", True
-        for txn in tp.dataset.txnameList:
-            if hasattr ( txn, "sigmaN" ):
-                return "did", True
+        if hasattr ( tp.dataset, "txnameList" ):
+            for txn in tp.dataset.txnameList:
+                if hasattr ( txn, "sigmaN" ):
+                    return "did", True
     return "did not", False
 
 def writeRawNumbersHtml ( protomodel ):
@@ -181,9 +182,9 @@ def writeRawNumbersHtml ( protomodel ):
                 f.write ( '<td style="text-align:right">%s</td>' % sig )
         if dtype == "upperLimit":
             S = "?"
-            llhd,chi2 = tp.likelihoodFromLimits( expected=False, chi2also=True )
-            eUL = tp.expectedUL.asNumber(fb)
-            oUL = tp.upperLimit.asNumber(fb)
+            llhd = tp.likelihood( expected=False )
+            eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
+            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
             sigma_exp = eUL / 1.96 # the expected scale, sigma
             Z = ( oUL - eUL ) / sigma_exp
             # Z = math.sqrt ( chi2 )
@@ -203,7 +204,7 @@ def writeRawNumbersHtml ( protomodel ):
             #                              addBrackets = False )
             particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
             f.write ( '<td>-</td><td>%s</td><td> %.1f fb </td><td> %.1f fb</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
-                    ( topos, tp.upperLimit.asNumber(fb), tp.expectedUL.asNumber(fb),
+                    ( topos, tp.getUpperLimit().asNumber(fb), tp.getUpperLimit ( expected = True ).asNumber(fb),
                       S, particles ) )
             if hassigs:
                 sig = "-"
@@ -285,9 +286,9 @@ def writeRawNumbersLatex ( protomodel, usePrettyNames = True ):
                       ( did, obs, eBG, bgErr, S, particles, sigmapred ) )
         if dtype == "upperLimit":
             S = "?"
-            llhd,chi2 = tp.likelihoodFromLimits( expected=False, chi2also=True )
-            eUL = tp.expectedUL.asNumber(fb)
-            oUL = tp.upperLimit.asNumber(fb)
+            llhd = tp.likelihood ( expected=False )
+            eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
+            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
             sigma_exp = eUL / 1.96 # the expected scale, sigma
             Z = ( oUL - eUL ) / sigma_exp
             # Z = math.sqrt ( chi2 )
@@ -305,8 +306,8 @@ def writeRawNumbersLatex ( protomodel, usePrettyNames = True ):
             particles = namer.texName ( pids, addDollars=True, addSign = False,
                                         addBrackets = False )
             sigmapred="%.2f fb" % ( tp.xsection.value.asNumber(fb) )
-            print ( "  `- observed %s, expected %s" % ( tp.upperLimit, tp.expectedUL ) )
-            f.write ( " & %.1f fb & %.1f fb & %s & %s & %s \\\\ \n" % ( tp.upperLimit.asNumber(fb), tp.expectedUL.asNumber(fb), S, particles, sigmapred  ) )
+            print ( f"  `- observed {oUL}, expected {eUL}" )
+            f.write ( f" & {oUL:.1f} fb & {eUL:.1f} fb & {S} & {particles} & {sigmapred} \\\\ \n" )
     f.write("\end{tabular}\n" )
     f.close()
 
