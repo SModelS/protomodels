@@ -394,9 +394,6 @@ class ProtoModel:
                     self.computer.loXsecs = []
                     self.computer.xsecs = []
 
-                #for xsec in xsecs:
-                #    print ( "[protomodel] I will save %s" % xsec )
-
                 comment = "produced at step %d" % ( self.step )
                 pidsp = self.unFrozenParticles()
                 pidsp.sort()

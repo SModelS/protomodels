@@ -493,9 +493,9 @@ class Manipulator:
                     # self.record ( f"change ssm of {self.namer.texName(ppair,addDollars=True)} to 1.0" )
                     self.M.ssmultipliers[ppair] = 1.0
 
-    def describe ( self, all=False ):
+    def describe ( self, allTheoryPredictions : bool = False ):
         """ lengthy description of protomodel
-        :param all: if true, list all theory preds
+        :param allTheoryPredictions: if true, list all theory preds
         """
         sK, sZ = str(self.M.K), str(self.M.Z)
         try:
@@ -506,34 +506,26 @@ class Manipulator:
             sZ="%1.2f" % self.M.Z
         except:
             pass
-        print( '\nK = %s, Z = %s, muhat = %1.2f, mumax = %s' % \
-               ( sK, sZ, self.M.muhat, self.M.mumax ) )
+        print( f'\nK = {sK}, Z = {sZ}, muhat = {self.M.muhat:1.2f}, mumax = {self.M.mumax}' )
         print('  * Best Combo:')
         for tp in self.M.bestCombo:
+            txns = ",".join ( set ( map ( str, tp.txnames ) ) )
+            eUL = "no ULexp"
+            if hasattr ( tp, "expectedUL" ) and type(tp.expectedUL) != type(None):
+                eUL = "UL_exp=%1.2f" % tp.expectedUL.asNumber(fb)
             if hasattr ( tp.dataset, "dataInfo" ) and \
                     tp.dataset.dataInfo.dataType == 'efficiencyMap':
-                print('      - ',tp.expResult.globalInfo.id,tp.txnames,
-                             tp.dataset.dataInfo.dataId,
-                      'obsN=%d' % tp.dataset.dataInfo.observedN,
-                      'expBG=%.2f+/-%.2f' % ( tp.dataset.dataInfo.expectedBG,
-                                              tp.dataset.dataInfo.bgError ),
-                      'pred=',tp.xsection.value, 'UL =',tp.getUpperLimit() )
+                print(f'      - {tp.expResult.globalInfo.id} [{txns}] {tp.dataset.dataInfo.dataId} obsN={tp.dataset.dataInfo.observedN} expBG={tp.dataset.dataInfo.expectedBG}+/-{tp.dataset.dataInfo.bgError} pred={tp.xsection.value} UL={tp.getUpperLimit()}')
             else:
-                print('        ',tp.expResult.globalInfo.id,tp.txnames,
-#                             tp.dataset.dataInfo.dataId,
-                      'pred=%s, UL=%s' % ( tp.xsection.value, tp.getUpperLimit()) )
+                print(f'      - {tp.expResult.globalInfo.id} [{txns}] pred={tp.xsection.value} UL={tp.getUpperLimit()} eUL={eUL}' ) 
 
+        print ( )
         print('  * Constraints:')
         for tp in sorted( self.M.tpList, key = lambda x: x[0], reverse=True ):
-            if not all and tp[0] < 1.0: continue
-            eUL = "no ULexp"
-            if hasattr ( tp[2], "expectedUL" ) and type(tp[2].expectedUL) != type(None):
-                eUL = "UL_exp=%1.2f" % tp[2].expectedUL.asNumber(fb)
-            print('     - r=%1.2f' % tp[2].getRValue(),
-            #tp[2].dataset.dataInfo.dataType,tp[2].txnames,
-                  'theory xsec=%1.2f, UL=%1.2f, %s'
-                  %(tp[2].xsection.value.asNumber(fb),tp[2].upperLimit.asNumber(fb),
-                    eUL))
+            if not allTheoryPredictions and tp[0] < 1.0: 
+                # if not all theory predictions are asked for, only do r>=1
+                continue
+            print( f'     - r={tp[2].getRValue():1.2f} {tp[2].expResult.globalInfo.id} [{txns}] pred={tp[2].xsection.value.asNumber(fb):1.2f}, UL={tp[2].upperLimit.asNumber(fb):1.2f}, {eUL}' )
 
     def rescaleSignalBy ( self, s ):
         """ multiply the signal strength multipliers with muhat"""
@@ -1551,7 +1543,8 @@ class Manipulator:
 
     def delBackup ( self ):
         """ delete protomodel backup dictionary"""
-        if all and hasattr ( self, "_backup" ):
+        # if all and hasattr ( self, "_backup" ):
+        if hasattr ( self, "_backup" ):
             del self._backup
 
 if __name__ == "__main__":
