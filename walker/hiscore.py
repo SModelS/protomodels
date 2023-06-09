@@ -143,8 +143,27 @@ class Hiscore:
         return ret
 
     @classmethod
-    def fromDictionaryFile ( cls, path : PathLike ):
-        assert False, "implement"
+    def fromDictionaryFile ( cls, path : PathLike,
+           firstn : Union[None,int] = 0 ):
+        """ initialise from a dictionary file
+        :param path: filename of .dict file
+        :param firstn: initialise only first n entries
+        :returns: Hiscore object
+        """
+        from tester.predictor import Predictor
+        predictor = Predictor(0, do_combine=True )
+        hiscores = []
+        c = 0
+        while True:
+            m = Manipulator( path, nth = c )
+            predictor.predict ( m.M, keep_predictions=True )
+            hiscores.append ( m )
+            c+=1
+            if type(firstn) == int and c > firstn:
+                break
+        return cls ( hiscores= hiscores, predictor = predictor )
+
+        # assert False, "implement me"
 
     def writeToHiscoreFile ( self, m : Manipulator ):
         """ we have a new hiscore, write to hiscores.dict
