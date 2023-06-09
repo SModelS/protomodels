@@ -2,12 +2,15 @@
 
 """ create tex table for the particle contents of protomodel runs """
 
+__all__ = [ "Table" ]
+
 import glob, os, sys
-from smodels_utils.helper.sparticleNames import SParticleNames
+from protomodels.ptools.sparticleNames import SParticleNames
 # from builder import protomodel
+from os import PathLike
 
 class Table:
-    def __init__ ( self, pattern, realpattern ):
+    def __init__ ( self, pattern : PathLike, realpattern : PathLike ):
         """
         :param pattern: pattern of dict files to consider
         """
@@ -15,11 +18,14 @@ class Table:
         self.realpattern = realpattern
         self.namer = SParticleNames ( susy = False )
 
-    def write ( self, outfile ):
+    def write ( self, outfile : PathLike ):
+        """ write out the table """
         outh = open ( outfile, "wt" )
         files = glob.glob ( self.pattern )
         files += glob.glob ( self.realpattern )
         files.sort()
+        if len(files)==0:
+            print ( f"[createTexTable] could not find any files for {self.pattern}, {self.realpattern}" )
         for f in files:
             label = "signal"
             labels = [ "fake", "signal", "real" ]
