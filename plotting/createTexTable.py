@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
-""" create tex table for the particle contents of protomodel runs """
+""" create tex table for the particle contents of protomodel runs 
+one entry may look like this:
+name     & K     & particle_content \\
+fake \#0 & 4.799 & $X_{d}, X_{u}, X_{Z}^{2}$ \\
+"""
 
 __all__ = [ "Table" ]
 
@@ -49,10 +53,12 @@ class Table:
                 nr = nr.replace(l,"")
                 if l in f:
                     label = l
-            nr = int(nr)
+            try:
+                nr = int(nr)
+            except ValueError as e:
+                nr = 0
             h = open ( f, "rt" )
             content = h.read()
-            print ( "content", content )
             txt = eval(content)
             h.close()
             K = txt[0]["K"]
