@@ -150,6 +150,7 @@ class Hiscore:
         :param firstn: initialise only first n entries
         :returns: Hiscore object
         """
+        assert firstn == 0, "firstn != 0 not yet working"
         from tester.predictor import Predictor
         predictor = Predictor(0, do_combine=True )
         hiscores = []
@@ -157,7 +158,7 @@ class Hiscore:
         while True:
             m = Manipulator( path, nth = c )
             predictor.predict ( m.M, keep_predictions=True )
-            hiscores.append ( m )
+            hiscores.append ( m.M )
             c+=1
             if type(firstn) == int and c > firstn:
                 break
