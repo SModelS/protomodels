@@ -9,6 +9,31 @@ from smodels.experiment.expResultObj import ExpResult
 from smodels.experiment.infoObj import Info
 from smodels.tools.physicsUnits import GeV
 import scipy.stats
+from os import PathLike
+
+def readDictionaryFile ( filename : PathLike ) -> dict:
+    """ read the database dictionary files, as produced by expResModifier.py -C
+    :param filename: path to the dictionary file
+    :returns: a dictionary with "meta" and "data" as keys
+    
+    .. code-block:: python3
+
+    >>> content = readDictionaryFile ( "230.dict" )
+    """
+    with open( filename,"rt") as f:
+        tmp=f.readlines()
+    lines = []
+    for line in tmp:
+        if line.startswith("#"):
+            continue
+        lines.append ( line )
+    basename = os.path.basename ( filename ).replace(".dict","")
+    ret = { "meta": {}, "data": {}, "basename": basename }
+    ret["meta"].update (  eval(lines[0]) )
+    nan=float("nan")
+    data = eval("\n".join(lines[1:]))
+    ret["data"] = data
+    return ret
 
 def computeP ( obs, bg, bgerr, lognormal = False ):
     """ compute P value, gaussian nuisance model only

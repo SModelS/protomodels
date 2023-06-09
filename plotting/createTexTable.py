@@ -5,8 +5,7 @@
 __all__ = [ "Table" ]
 
 import glob, os, sys
-from protomodels.ptools.sparticleNames import SParticleNames
-# from builder import protomodel
+from ptools.sparticleNames import SParticleNames
 from os import PathLike
 
 class Table:
@@ -18,14 +17,29 @@ class Table:
         self.realpattern = realpattern
         self.namer = SParticleNames ( susy = False )
 
+    def collectAllFiles ( self ):
+        """ get all files matching self.pattern and self.realpattern """
+        files = []
+        if type(self.pattern) in [ str ]:
+            files += glob.glob ( self.pattern )
+        if type(self.pattern) in [ tuple, list ]:
+            for p in self.pattern:
+                files += glob.glob ( p )
+        if type(self.realpattern) in [ str ]:
+            files += glob.glob ( self.realpattern )
+        if type(self.realpattern) in [ tuple, list ]:
+            for p in self.realpattern:
+                files += glob.glob ( p )
+        files.sort()
+        return files
+
     def write ( self, outfile : PathLike ):
         """ write out the table """
-        outh = open ( outfile, "wt" )
-        files = glob.glob ( self.pattern )
-        files += glob.glob ( self.realpattern )
-        files.sort()
+        files = self.collectAllFiles()
         if len(files)==0:
             print ( f"[createTexTable] could not find any files for {self.pattern}, {self.realpattern}" )
+            return
+        outh = open ( outfile, "wt" )
         for f in files:
             label = "signal"
             labels = [ "fake", "signal", "real" ]
@@ -37,7 +51,9 @@ class Table:
                     label = l
             nr = int(nr)
             h = open ( f, "rt" )
-            txt = eval(h.read())
+            content = h.read()
+            print ( "content", content )
+            txt = eval(content)
             h.close()
             K = txt[0]["K"]
             pids = list ( txt[0]["masses"].keys() )

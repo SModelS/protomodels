@@ -296,26 +296,14 @@ class Plotter:
         return False
 
     def read ( self ):
-        """ read in content of filename """
+        """ read in content of self.filenames """
+        from ptools.helpers import readDictionaryFile
         for fname in self.filenames:
-            with open( fname,"rt") as f:
-                tmp=f.readlines()
-            lines = []
-            for line in tmp:
-                if line.startswith("#"):
-                    continue
-                lines.append ( line )
-            basename = os.path.basename ( fname ).replace(".dict","")
-            self.meta.update (  eval(lines[0]) )
-            nan=float("nan")
-            data = eval("\n".join(lines[1:]))
+            ret = readDictionaryFile ( fname )
+            self.meta.update (  ret["meta"] )
             newdata = {}
-            for i,v in data.items():
+            for i,v in ret["data"].items():
                 if not self.selectedCollaboration ( i ):
-                    continue
-                if not self.selectedSqrts ( i ):
-                    continue
-                if not self.filterByTime ( v ):
                     continue
                 if "expectedBG" in v and v["expectedBG"]>=self.filter and \
                         v["expectedBG"]/v["bgError"]>=self.filtersigma:
@@ -327,13 +315,14 @@ class Plotter:
                             v["txns"] = txname
                             newdata[i]=v
                         else:
-                            self.pprint ( f"removing {basename}:{i} (is an UL)", verbose = 1 )
+                            if self.verbose > 2:
+                                print ( f"[plotDBDict] removing {basename}:{i} (is an UL)" )
                     else:
                         eBG,bgerr=None,None
                         if "expectedBG" in v:
                             eBG = v["expectedBG"]
                             bgerr = v["bgError"]
-            self.data[basename] = newdata
+            self.data[ret["basename"]] = newdata
 
     def getSqrts ( self, anaid ):
         """ get the sqrts of anaid """
