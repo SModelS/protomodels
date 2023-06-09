@@ -520,17 +520,17 @@ class Manipulator:
                       'pred=',tp.xsection.value, 'UL =',tp.getUpperLimit() )
             else:
                 print('        ',tp.expResult.globalInfo.id,tp.txnames,
-                             tp.dataset.dataInfo.dataId,
+#                             tp.dataset.dataInfo.dataId,
                       'pred=%s, UL=%s' % ( tp.xsection.value, tp.getUpperLimit()) )
 
         print('  * Constraints:')
         for tp in sorted( self.M.tpList, key = lambda x: x[0], reverse=True ):
             if not all and tp[0] < 1.0: continue
             eUL = "no ULexp"
-            if type(tp[2].expectedUL) != type(None):
+            if hasattr ( tp[2], "expectedUL" ) and type(tp[2].expectedUL) != type(None):
                 eUL = "UL_exp=%1.2f" % tp[2].expectedUL.asNumber(fb)
-            print('     - r=%1.2f' % tp[0],tp[2].expResult.globalInfo.id,
-                                     tp[2].dataset.dataInfo.dataType,tp[2].txnames,
+            print('     - r=%1.2f' % tp[2].getRValue(),
+            #tp[2].dataset.dataInfo.dataType,tp[2].txnames,
                   'theory xsec=%1.2f, UL=%1.2f, %s'
                   %(tp[2].xsection.value.asNumber(fb),tp[2].upperLimit.asNumber(fb),
                     eUL))
