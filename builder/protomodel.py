@@ -86,7 +86,7 @@ class ProtoModel:
         self.rvalues = [] ## store the r values of the exclusion attempt
         self.llhd=0.
         self.muhat = 1.
-        self.mumax = None
+        self.mumax = None # the maximum mu allowed by the critic
         self.Z = 0.0
         self.K = None
         self.letters = ""

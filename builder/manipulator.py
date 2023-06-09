@@ -2,10 +2,7 @@
 
 """ Class that encapsulates the manipulations we perform on the protomodels,
     so that the protomodel class is a data-centric class, and this one
-    an algorithm-centric class. """
-
-""" TODO:
-    -) merger, heed the changed particle mass when computing ssm.
+    an algorithm-centric class. 
 """
 
 __all__ = [ "Manipulator" ]
@@ -35,8 +32,23 @@ class Manipulator:
         """
         :param protomodel: is either a protomodel, or a hiscore dictionary, 
         or a path to a protomodel
+        :param strategy: what combination strategy? 
+        currently we only have "aggressive"
         :param do_record: do record actions taken
         :param seed: random seed
+
+        Example usage:
+        
+        .. code-block:: python3
+
+            >>> # instantiate a model plus manipulator from hiscore file
+            >>> m = Manipulator( "hiscores.dict" )
+            >>> # get the predictions
+            >>> predictor = Predictor(0, do_combine=True )
+            >>> predictor.predict ( m.M, keep_predictions=True )
+            >>> # print test statistics, 
+            >>> # best combination, most constraining analyses, etc
+            >>> m.describe()
         """
         self.namer = SParticleNames ( False )
         self.M = protomodel
@@ -512,15 +524,21 @@ class Manipulator:
             txns = ",".join ( set ( map ( str, tp.txnames ) ) )
             eUL = "no ULexp"
             anaId = tp.expResult.globalInfo.id
-            dt = tp.dataType()
+            dt = tp.dataType( short=True )
             fullId = anaId+":"+dt
             if hasattr ( tp, "expectedUL" ) and type(tp.expectedUL) != type(None):
                 eUL = "UL_exp=%1.2f" % tp.expectedUL.asNumber(fb)
-            if dt == "efficiencyMap":
+            if dt in [ "comb", "combined" ]:
+                eUL = f"{tp.getUpperLimit ( expected=True ).asNumber(fb):1.2g}*fb"
+            if dt in [ "em", "efficiencyMap" ]:
+                dI = tp.dataset.dataInfo
+                pred = f"{float ( (tp.xsection.value * tp.dataset.globalInfo.lumi).asNumber() ):1.2g}"
                 fullId = anaId+":"+tp.dataset.dataInfo.dataId
-                print(f'     - {fullId} [{txns}] obsN={tp.dataset.dataInfo.observedN} expBG={tp.dataset.dataInfo.expectedBG}+/-{tp.dataset.dataInfo.bgError} pred={tp.xsection.value} UL={tp.getUpperLimit()}')
+                print(f'     - {fullId} [{txns}] obsN={dI.observedN} expBG={dI.expectedBG}+/-{dI.bgError} pred={pred}' )
             else:
-                print(f'     - {fullId} [{txns}] pred={tp.xsection.value} UL={tp.getUpperLimit()} eUL={eUL}' ) 
+                pred=f"{tp.xsection.value.asNumber(fb):.2g}*fb"
+                UL = f"{tp.getUpperLimit().asNumber(fb):.2g}*fb"
+                print(f'     - {fullId} [{txns}] pred={pred} UL={UL} eUL={eUL}' ) 
 
         print ( )
         print('  * Constraints:')
@@ -529,12 +547,17 @@ class Manipulator:
                 # if not all theory predictions are asked for, only do r>=1
                 continue
             txns = ",".join ( set ( map ( str, tp[2].txnames ) ) )
-            eUL = "no ULexp"
+            eUL = ""
+            # eUL = ", no ULexp"
             anaId = tp[2].expResult.globalInfo.id
             anaId+=":"+tp[2].dataType()
+            dt = tp[2].dataType( short=True )
             if hasattr ( tp[2], "expectedUL" ) and type(tp[2].expectedUL) != type(None):
-                eUL = f"UL_exp={tp[2].expectedUL.asNumber(fb):1.2f}"
-            print( f'     - r={tp[2].getRValue():1.2f} {anaId} [{txns}] pred={tp[2].xsection.value.asNumber(fb):1.2f}, UL={tp[2].upperLimit.asNumber(fb):1.2f}, {eUL}' )
+                eUL = f", UL_exp={tp[2].expectedUL.asNumber(fb):1.2g}*fb"
+            if dt in [ "comb", "combined" ]:
+                eUL = f", UL_exp={tp[2].getUpperLimit ( expected=True ).asNumber(fb):1.2g}*fb"
+            UL=f"{tp[2].upperLimit.asNumber(fb):1.2g}*fb"
+            print( f'     - r={tp[2].getRValue():1.2f} {anaId} [{txns}] pred={tp[2].xsection.value.asNumber(fb):1.2g}*fb, UL={UL}{eUL}' )
 
     def rescaleSignalBy ( self, s ):
         """ multiply the signal strength multipliers with muhat"""
