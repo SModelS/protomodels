@@ -506,18 +506,21 @@ class Manipulator:
             sZ="%1.2f" % self.M.Z
         except:
             pass
-        print( f'\nK = {sK}, Z = {sZ}, muhat = {self.M.muhat:1.2f}, mumax = {self.M.mumax}' )
+        print( f'\nK = {sK}, Z = {sZ}, muhat = {self.M.muhat:1.2f}, mumax={self.M.mumax:1.3g}' )
         print('  * Best Combo:')
         for tp in self.M.bestCombo:
             txns = ",".join ( set ( map ( str, tp.txnames ) ) )
             eUL = "no ULexp"
+            anaId = tp.expResult.globalInfo.id
+            dt = tp.dataType()
+            fullId = anaId+":"+dt
             if hasattr ( tp, "expectedUL" ) and type(tp.expectedUL) != type(None):
                 eUL = "UL_exp=%1.2f" % tp.expectedUL.asNumber(fb)
-            if hasattr ( tp.dataset, "dataInfo" ) and \
-                    tp.dataset.dataInfo.dataType == 'efficiencyMap':
-                print(f'      - {tp.expResult.globalInfo.id} [{txns}] {tp.dataset.dataInfo.dataId} obsN={tp.dataset.dataInfo.observedN} expBG={tp.dataset.dataInfo.expectedBG}+/-{tp.dataset.dataInfo.bgError} pred={tp.xsection.value} UL={tp.getUpperLimit()}')
+            if dt == "efficiencyMap":
+                fullId = anaId+":"+tp.dataset.dataInfo.dataId
+                print(f'     - {fullId} [{txns}] obsN={tp.dataset.dataInfo.observedN} expBG={tp.dataset.dataInfo.expectedBG}+/-{tp.dataset.dataInfo.bgError} pred={tp.xsection.value} UL={tp.getUpperLimit()}')
             else:
-                print(f'      - {tp.expResult.globalInfo.id} [{txns}] pred={tp.xsection.value} UL={tp.getUpperLimit()} eUL={eUL}' ) 
+                print(f'     - {fullId} [{txns}] pred={tp.xsection.value} UL={tp.getUpperLimit()} eUL={eUL}' ) 
 
         print ( )
         print('  * Constraints:')
@@ -525,7 +528,13 @@ class Manipulator:
             if not allTheoryPredictions and tp[0] < 1.0: 
                 # if not all theory predictions are asked for, only do r>=1
                 continue
-            print( f'     - r={tp[2].getRValue():1.2f} {tp[2].expResult.globalInfo.id} [{txns}] pred={tp[2].xsection.value.asNumber(fb):1.2f}, UL={tp[2].upperLimit.asNumber(fb):1.2f}, {eUL}' )
+            txns = ",".join ( set ( map ( str, tp[2].txnames ) ) )
+            eUL = "no ULexp"
+            anaId = tp[2].expResult.globalInfo.id
+            anaId+=":"+tp[2].dataType()
+            if hasattr ( tp[2], "expectedUL" ) and type(tp[2].expectedUL) != type(None):
+                eUL = f"UL_exp={tp[2].expectedUL.asNumber(fb):1.2f}"
+            print( f'     - r={tp[2].getRValue():1.2f} {anaId} [{txns}] pred={tp[2].xsection.value.asNumber(fb):1.2f}, UL={tp[2].upperLimit.asNumber(fb):1.2f}, {eUL}' )
 
     def rescaleSignalBy ( self, s ):
         """ multiply the signal strength multipliers with muhat"""

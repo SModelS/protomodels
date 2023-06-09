@@ -17,6 +17,10 @@ from ptools import helpers
 from ptools.sparticleNames import SParticleNames
 from typing import Union
 
+from smodels.tools.smodelsLogging import setLogLevel
+setLogLevel ( "error" )
+
+
 class ProtoModel:
     """ encodes one theoretical model, i.e. the particles, their masses, their
         branchings, their signal strength modifiers.
