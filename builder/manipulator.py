@@ -28,7 +28,8 @@ class Manipulator:
 
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike], 
             strategy: str = "aggressive", verbose : bool = False, 
-            do_record : bool = False, seed : Union[bool,int] = None ):
+            do_record : bool = False, seed : Union[bool,int] = None,
+            nth : int = 0 ):
         """
         :param protomodel: is either a protomodel, or a hiscore dictionary, 
         or a path to a protomodel
@@ -36,6 +37,8 @@ class Manipulator:
         currently we only have "aggressive"
         :param do_record: do record actions taken
         :param seed: random seed
+        :param nth: if initialisation from hiscores dict file, initialise
+        from nth entry in that dict file
 
         Example usage:
         
@@ -58,7 +61,7 @@ class Manipulator:
         if type(protomodel) == str:
             self.M = ProtoModel ( )
             if protomodel.endswith ( ".dict" ):
-                self.initFromDictFile ( protomodel )
+                self.initFromDictFile ( protomodel, nth = nth )
         self.seed = seed
         self.strategy = strategy
         self.verbose = verbose
@@ -233,24 +236,35 @@ class Manipulator:
         with open( "walker%d.log" % self.M.walkerid, "at" ) as f:
             f.write ( "[%s-%s] %s\n" % ( module, time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
-    def initFromDictFile ( self, filename : PathLike, initTestStats : bool = False ):
+    def initFromDictFile ( self, filename : PathLike, initTestStats : bool = False,
+           nth : int = 0 ) -> bool:
         """ setup the protomodel from dictionary in file <filename>.
             If it is a list of dictionaries, take the 1st entry.
         :param filename: name of file
         :param initTestStats: if True, set also test statistics K and Z
+        :param nth: if we find a list of models, pick the nth. 0 = 1st. If nth
+                    does not exist, return False
+        :returns: true, if successful
         """
         if not os.path.exists ( filename ):
             self.pprint ( f"filename {filename} does not exist!" )
-            return
+            return False
         with open ( filename, "rt" ) as f:
             D = eval ( f.read() )
-        if type(D) == list and type(D[0]) == dict:
-            self.initFromDict ( D[0], filename, initTestStats )
+        if type(D) == list:
+            if len(D)<nth+1:
+                self.pprint ( f"asking for {nth}th entry, but we only have {len(D)}" )
+                return False
+            if type(D[nth]) != dict:
+                self.pprint ( f"{nth}th entry in list is not a dictionary" )
+                return False
+            self.initFromDict ( D[nth], filename, initTestStats )
             return
         if type(D) == dict:
             self.initFromDict ( D, filename )
-            return
+            return True
         self.pprint ( f"dont understand content of file {filename}" )
+        return False
 
     def diff ( self, other ):
         """ diff between our protomodel and <other> protomodel
