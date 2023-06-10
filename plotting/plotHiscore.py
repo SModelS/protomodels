@@ -700,7 +700,7 @@ def writeIndexHtml ( protomodel ):
             ssms.add ( pids )
 
 
-    f.write ( ". SSM plots for: " )
+    f.write ( "SSM plots for: " )
     first = True
     for pids in ssms:
         if not first:
