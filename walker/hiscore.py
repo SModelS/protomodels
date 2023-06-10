@@ -18,7 +18,7 @@ from os import PathLike
 class Hiscore:
     """ encapsulates the hiscore list. """
     def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
-                   picklefile: PathLike="hiscore.hi", backup : bool = True, 
+                   picklefile: PathLike="hiscore.hi", backup : bool = True,
                    hiscores = None, predictor = None ):
         """ the constructor
         :param save_hiscores: if true, then assume you want to save, not just read.
@@ -166,20 +166,23 @@ class Hiscore:
 
         # assert False, "implement me"
 
-    def writeToHiscoreFile ( self, m : Manipulator ):
-        """ we have a new hiscore, write to hiscores.dict
+    def updateHiscoreFile ( self, m : Manipulator,
+           hiscorefile : PathLike = "hiscores.dict" ) -> bool:
+        """
+        we have a new hiscore, add to hiscores.dict
         :param m: manipulator
+        :param hiscorefile: the hiscore dict file to update
+        :returns: true, if successful
         """
         oldhiscores=[]
-        fname = "hiscores.dict"
-        if os.path.exists ( fname ):
+        if os.path.exists ( hiscorefile ):
             tryRead=0
             success=False
             ## stop loop at success or when tryRead is at least 5
             while (not success) and tryRead<5:
                 tryRead+=1
                 try:
-                    with open ( fname, "rt" ) as h:
+                    with open ( hiscorefile, "rt" ) as h:
                         txt = h.read()
                         oldhiscores = eval( txt )
                         h.close()
@@ -197,8 +200,8 @@ class Hiscore:
         D["description"]=m.M.description
         # D=m.writeDictFile(outfile = None, ndecimals=6 )
         newlist = self.insertHiscore ( oldhiscores, D )
-        self.pprint ( f"write model to {fname}" )
-        with open ( fname, "wt" ) as f:
+        self.pprint ( f"write model to {hiscorefile}" )
+        with open ( hiscorefile, "wt" ) as f:
             f.write ( "[" )
             for ctr,l in enumerate(newlist):
                 f.write ( "%s" % l )
@@ -229,8 +232,8 @@ class Hiscore:
         # self.pprint ( f"adding results Kold is {Kold} Knew is {ma.M.K}" )
         ## FIXME we should only write into this file in the first maxstep/3 steps
         if ma.M.K > Kmin:
-            self.pprint ( "WARNING we shouldnt write into hiscore file afte maxstep/3 steps!!" )
-            self.writeToHiscoreFile( ma )
+            # self.pprint ( "WARNING we shouldnt write into hiscore file afte maxstep/3 steps!!" )
+            self.updateHiscoreFile( ma )
             ## we have a new hiscore?
             ## compute the particle contributions
             #if not hasattr ( ma.M, "particleContributions" ):
@@ -437,7 +440,7 @@ class Hiscore:
         f.write("]\n")
         f.close()
 
-    def writeListToPickle ( self, pickleFile : Union[None,str]=None, 
+    def writeListToPickle ( self, pickleFile : Union[None,str]=None,
             check : bool = True ):
         """ pickle the hiscore list.
         :param pickleFile: write to pickleFile. If None, then self.pickleFile
@@ -523,4 +526,4 @@ if __name__ == "__main__":
     hi={"K": 7.3, "x": "new"}
     hilist = Hiscore ( 0, False )
     print ( hilist.insertHiscore( L, hi ) )
-    hilist.writeToHiscoreFile( )
+    # hilist.updateHiscoreFile( )
