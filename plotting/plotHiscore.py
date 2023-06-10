@@ -74,7 +74,7 @@ def discussPredictions ( protomodel ):
     print ( "How the K comes about. Best combo:" )
     combo = protomodel.bestCombo
     for pred in combo:
-        print ( "theory pred: %s:%s" % ( pred.expResult.globalInfo.id, ",".join ( map ( str, pred.txnames ) ) ) )
+        print ( "theory pred: %s:%s" % ( pred.expResult.globalInfo.id, ",".join ( set ( map ( str, pred.txnames ) ) ) ) )
         # print ( "     `- ", pred.expResult.globalInfo.id, "ana", pred.analysis, "masses", pred.mass, "txnames", pred.txnames, "type", pred.dataType() )
 
 def getExtremeSSMs ( ssm, largest, nm = 7 ):
@@ -869,7 +869,7 @@ def plotDecays ( protomodel, verbosity, outfile="decays.png" ):
         ma = Manipulator ( protomodel )
         ssms = ma.simplifySSMs()
         # soptions+=' --ssmultipliers "%s"' % ssms
-        print ( "%s../smodels_utils/plotting/decayPlotter.py -f %s -o %s %s%s" % \
+        print ( "%s../smodels-utils/smodels_utils/plotting/decayPlotter.py -f %s -o %s %s%s" % \
                 ( colorama.Fore.GREEN, protomodel.currentSLHA, outfile, soptions,
                   colorama.Fore.RESET ) )
     decayPlotter.draw ( protomodel.currentSLHA, outfile, options,

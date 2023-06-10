@@ -118,10 +118,10 @@ class SParticleNames:
             2000011: "X_{e}", 2000012: "X_{\\nu}^{e}",
             2000013: "X_{\\mu}", 2000014: "X_{\\nu}^{\\mu}",
             2000015: "X_{\\tau}", 2000016: "X_{\\nu}^{\\tau}",
-            1000021: "X_{g}", 1000022: "X_{Z}^{1}",
-            1000024: "X_{W}", 1000023: "X_{Z}^{2}",
-            1000037: "X_{W}^{2}", 1000025: "X_{Z}^{3}",
-            1000035: "X_{Z}^{3}",
+            1000021: "X_{g}", 1000022: "X^{1}_{Z}",
+            1000024: "X_{W}", 1000023: "X^{2}_{Z}",
+            1000037: "X^{2}_{W}", 1000025: "X^{3}_{Z}",
+            1000035: "X^{3}_{Z}",
             -1000001: "#bar{X}_{d}", -2000001: "#bar{X}_{d}^{2}",
             -1000002: "#bar{X}_{u}", -2000002: "#bar{X}_{u}^{2}",
             -1000003: "#bar{X}_{s}", -2000003: "#bar{X}_{s}^{2}",
@@ -134,10 +134,10 @@ class SParticleNames:
             -2000011: "#bar{X}_{e}", -2000012: "#bar{X}_{\\nu}^{e}",
             -2000013: "#bar{X}_{\\mu}", -2000014: "#bar{X}_{\\nu}^{\\mu}",
             -2000015: "#bar{X}_{\\tau}", -2000016: "#bar{X}_{\\nu}^{\\tau}",
-            -1000021: "#bar{X}_{g}", -1000022: "#bar{X}_{Z}^{1}",
-            -1000024: "#bar{X}_{W}", -1000023: "#bar{X}_{Z}^{2}",
-            -1000037: "#bar{X}_{W}^{2}", -1000025: "~#bar{X}_{Z}^{3}",
-            -1000035: "#bar{X}_{Z}^{3}"
+            -1000021: "#bar{X}_{g}", -1000022: "#bar{X}^{1}_{Z}",
+            -1000024: "#bar{X}_{W}", -1000023: "#bar{X}^{2}_{Z}",
+            -1000037: "#bar{X}^{2}_{W}", -1000025: "~#bar{X}^{3}_{Z}",
+            -1000035: "#bar{X}^{3}_{Z}"
         }
         self.ids.update ( self.xIDs )
 
@@ -149,9 +149,9 @@ class SParticleNames:
         self.ids={
             1: "d", 2: "u", 3: "s", 4: "c", 5: "b", 6: "t", 11: "e^{-}", 13: "\\mu^{-}",
             15: "\\tau^{-}", 12: "\\nu", 14: "nu", 16:"nu", 21: "g", 22: "\\gamma",
-            24: "W", 23:"Z", 25:"h1", 35: "h2", 36: "a0", 37: "h^{+}",
+            24: "W", 23:"Z", 25:"h", 35: "H", 36: "a0", 37: "h^{+}",
             -15: "\\tau^{+}", -13: "\\mu^{+}", -11: "e", -37: "h^{-}", -24: "W^{-}",
-            -23: "Z", -25: "h1", -35: "h2", -36: "a0", -22: "\\gamma",
+            -23: "Z", -25: "h", -35: "H", -36: "a0", -22: "\\gamma",
             -21: "g", -16: "\\nu", -14: "\\nu", -12: "nu", -1: "d",
             -2: "u", -3: "s", -4: "c", -5: "b", -6: "t" }
         if self.susy:
@@ -267,7 +267,8 @@ class SParticleNames:
         if not pid in self.ids:
             return self.ids[abs(pid)]
 
-        return self.ids[pid]
+        ret = self.ids[pid]
+        return ret
 
     def asciiName ( self, pid ):
         """ get the ascii version of the name """
@@ -396,6 +397,8 @@ if __name__ == "__main__":
     """ as a script, we simply print out the paths """
     print ( "sparticle names" )
     namer = SParticleNames()
+    print ( namer.htmlName ( 25 ) )
+    """
     ctr=0
     f=open("index.html","wt" )
     f.write ( "<html><body>\n" )
@@ -411,3 +414,4 @@ if __name__ == "__main__":
        #if ctr==3:
        #  print ()
        #  ctr=0
+    """
