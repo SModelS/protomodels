@@ -808,7 +808,7 @@ def plotRuler( protomodel, verbosity, horizontal ):
             print ( "[plotHiscore] why is pid %s not in mass dict %s?" % ( pid, str(protomodel.masses) ) )
 
     if verbosity == "debug":
-        print ( '[plotHiscore] ../../smodels_utils/plotting/rulerPlotter.py -o ruler.png --hasResultsFor "%s" %s' % \
+        print ( '[plotHiscore] ../smodels-utils/smodels_utils/plotting/rulerPlotter.py -o ruler.png --hasResultsFor "%s" %s' % \
                 ( str(resultsFor), protomodel.currentSLHA ) )
 
     plotter = rulerPlotter.RulerPlot ( protomodel.currentSLHA, fname,
