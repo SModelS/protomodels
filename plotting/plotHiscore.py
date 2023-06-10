@@ -683,14 +683,14 @@ def writeIndexHtml ( protomodel ):
     if hasattr ( protomodel, "tpList" ):
         rvalues=protomodel.tpList
         rvalues.sort(key=lambda x: x[0],reverse=True )
-        f.write ( "<br><b>%d predictions available. Highest r values are:</b><br><ul>\n" % len(rvalues) )
+        f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
         for rv in rvalues[:5]:
             srv="N/A"
             if type(rv[1]) in [ float, numpy.float64, numpy.float32 ]:
                 srv="%.2f" % rv[1]
             elif type(rv[1]) != type(None):
                 srv=str(rv[1])
-            f.write ( "<li>%s:%s r=%.2f, r<sub>exp</sub>=%s<br>\n" % ( anaNameAndUrl ( rv[2] ), ",".join ( map(str,rv[2].txnames) ), rv[0], srv ) )
+            f.write ( f"<li>{anaNameAndUrl ( rv[2] )}:{','.join ( set (map(str,rv[2].txnames) ) )} r={rv[0]:.2f}, r<sub>exp</sub>={srv}<br>\n" )
         f.write("</ul>\n")
     else:
         print ( "[plotHiscore] protomodel has no r values!" )
