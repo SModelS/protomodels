@@ -280,7 +280,7 @@ class RandomWalker:
                 if protomodelSimp:
                     self.predict(protomodelSimp)
             except Exception as e:
-                self.pprint ( "error ``%s'' (%s) encountered when trying to predict. lets revert and not count it as a step." % (str(e),type(e) ) )
+                self.pprint ( f"{type(e)} ``{str(e)}'' encountered when trying to predict. lets revert and not count it as a step." )
                 self.manipulator.restoreModel()
                 self.manipulator.M.step -= 1 # we dont count that step.
                 import traceback
