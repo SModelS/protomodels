@@ -777,7 +777,7 @@ def copyFilesToGithub():
     for f in files:
         if not os.path.exists ( f ):
             continue
-        O = subprocess.getoutput ( "cp %s ../../smodels.github.io/protomodels/" % f )
+        O = subprocess.getoutput ( f"cp {f} ../../smodels.github.io/protomodels/" )
         if len(O)>0:
             print ( "[plotHiscore.py] when copying files: %s" % O )
 
@@ -881,7 +881,7 @@ def plot ( number, verbosity, picklefile, options, dbpath ):
     protomodel = obtain ( number, picklefile )
 
     protoslha = protomodel.createSLHAFile ()
-    subprocess.getoutput ( "cp %s hiscore.slha" % protoslha )
+    subprocess.getoutput ( f"cp {protoslha} hiscore.slha" )
     m = Manipulator ( protomodel )
     print ( "[plotHiscore] now write pmodel.py" )
     m.writeDictFile()
@@ -940,7 +940,7 @@ def runPlotting ( args ):
     plot ( args.number, args.verbosity, args.picklefile, options, args.dbpath )
     if upload is None:
         return
-    F = "*.png pmodel.py hiscore.slha index.html rawnumbers.html"
+    F = "decays.png ruler.png texdoc.png pmodel.py hiscore.slha index.html rawnumbers.html"
     dest = ""
     destdir = "%s/git" % os.environ["HOME"]
     dest = "%s/smodels.github.io/protomodels/%s/" % ( destdir, upload )
