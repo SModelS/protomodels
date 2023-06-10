@@ -203,6 +203,8 @@ class Predictor:
                     keep_predictions = keep_predictions )
 
         protomodel.delCurrentSLHA()
+        # we keep track of the database version, when predicting
+        protomodel.dbversion = self.database.databaseVersion
         return True
 
     def runSModelS(self, inputFile : PathLike, sigmacut, 
@@ -407,8 +409,7 @@ if __name__ == "__main__":
     from walker.hiscore import Hiscore
     hiscore = Hiscore ( 0, False, args.hiscore )
     hi = hiscore.hiscores[0]
-    print ( "Will scrutinize hiscore obtained with database %s K=%.3f" % \
-            ( hi.dbversion, hi.K ) )
+    print ( f"Will scrutinize hiscore obtained with database {hi.dbversion} K={hi.K:.3f}" )
     oldK = hi.K
 
     hi.K=-3 # make sure it gets recomputed

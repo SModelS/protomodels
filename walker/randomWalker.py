@@ -281,9 +281,13 @@ class RandomWalker:
                     self.predict(protomodelSimp)
             except Exception as e:
                 self.pprint ( f"{type(e)} ``{str(e)}'' encountered when trying to predict. lets revert and not count it as a step." )
+                if False:
+                    import tempfile
+                    f = tempfile.mktemp ( suffix=".slha", prefix="failed", dir="./" )
+                    self.manipulator.M.writeSLHAFile ( f )
                 self.manipulator.restoreModel()
                 self.manipulator.M.step -= 1 # we dont count that step.
-                import traceback
+                import traceback ## FIXME print to file!!
                 traceback.print_exc()
                 return
         else:

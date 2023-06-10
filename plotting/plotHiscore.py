@@ -213,6 +213,37 @@ def writeRawNumbersHtml ( protomodel ):
                     if hasattr ( txn, "sigmaN" ):
                         sig = "%.2f fb" % txn.sigmaN
                 f.write ( '<td style="text-align:right">%s</td>' % sig )
+        if dtype == "combined":
+            S = "?"
+            llhd = tp.likelihood( expected=False )
+            eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
+            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
+            sigma_exp = eUL / 1.96 # the expected scale, sigma
+            Z = ( oUL - eUL ) / sigma_exp
+            # Z = math.sqrt ( chi2 )
+            S = "%.1f &sigma;" % Z
+            # S = "%.2g l" % llhd
+            # print ( "llhd,chi2,Z", llhd,chi2,Z )
+            # p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
+            pids = set()
+            for prod in tp.PIDs:
+                for branch in prod:
+                    for pid in branch:
+                        if type(pid) == int and abs(pid)!=1000022:
+                            pids.add ( abs(pid) )
+                        if type(pid) in [ list, tuple ] and abs(pid[0])!=1000022:
+                            pids.add ( abs(pid[0]) )
+            particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
+            f.write ( '<td>-</td><td>%s</td><td> %.1f fb </td><td> %.1f fb</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
+                    ( topos, tp.getUpperLimit().asNumber(fb), tp.getUpperLimit ( expected = True ).asNumber(fb),
+                      S, particles ) )
+            if hassigs:
+                sig = "-"
+                for txn in tp.txnames:
+                # for txn in tp.dataset.txnameList:
+                    if hasattr ( txn, "sigmaN" ):
+                        sig = "%.2f fb" % txn.sigmaN
+                f.write ( '<td style="text-align:right">%s</td>' % sig )
         f.write ( '</tr>\n' )
     f.write("</table>\n" )
     f.close()
@@ -1029,8 +1060,8 @@ def main ():
             help='override the default rundir [None]',
             type=str, default=None )
     argparser.add_argument ( '--dbpath',
-            help='path to database [<rundir>/database.pcl]',
-            type=str, default="<rundir>/database.pcl" )
+            help='path to database [<rundir>/default.pcl]',
+            type=str, default="<rundir>/default.pcl" )
     argparser.add_argument ( "--destinations",
             help="learn more about the upload destinations", action="store_true" )
     args = argparser.parse_args()
