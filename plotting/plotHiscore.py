@@ -132,7 +132,7 @@ def writeRawNumbersHtml ( protomodel ):
         anaId = tp.analysisId()
         idAndUrl = anaNameAndUrl ( tp )
         dtype = tp.dataType()
-        ltopos = list(map(str,tp.txnames ) )
+        ltopos = list(set(map(str,tp.txnames ) ))
         ltopos.sort()
         topos = ", ".join ( ltopos )
         S = "?"
@@ -221,7 +221,7 @@ def writeRawNumbersHtml ( protomodel ):
             sigma_exp = eUL / 1.96 # the expected scale, sigma
             Z = ( oUL - eUL ) / sigma_exp
             # Z = math.sqrt ( chi2 )
-            S = "%.1f &sigma;" % Z
+            S = f"{Z:.1f} &sigma;"
             # S = "%.2g l" % llhd
             # print ( "llhd,chi2,Z", llhd,chi2,Z )
             # p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
