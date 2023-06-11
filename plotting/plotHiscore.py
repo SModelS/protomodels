@@ -34,6 +34,8 @@ def obtain ( number, picklefile ):
         args.infile = picklefile
         args.fetch = False
         args.maxloss = 0.005
+        args.nmax = 1
+        args.dbpath = picklefile
         hiscoreTools.main ( args )
 
     with open( picklefile,"rb" ) as f:
