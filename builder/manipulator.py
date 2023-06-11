@@ -1110,7 +1110,7 @@ class Manipulator:
             if denom < 1. or denom == None:
                 denom = 1.
             dx = 40. / numpy.sqrt ( len(self.M.unFrozenParticles() ) ) / denom
-        if dx in [ float("nan"), float("inf"), None ]:
+        if dx in [ float("nan"), float("inf"), None ] or dx > 200.:
             dx=40.
 
         if not minMass:
@@ -1118,7 +1118,9 @@ class Manipulator:
         if not maxMass:
             maxMass = self.M.maxMass
         massIsLegal = False
+        ctIterations = 0
         while not massIsLegal:
+            ctIterations += 1
             massIsLegal = True
             tmpmass = self.M.masses[pid]+random.uniform(-dx,dx)
             # Enforce mass interval:
@@ -1141,9 +1143,13 @@ class Manipulator:
                 massIsLegal = False
             if tmpmass in [ float("nan"), float("inf"), None ]:
                 massIsLegal = False
+                self.pprint ( f"huh? we have a tmpmass of {pid} is {tmpmass} was at {self.M.masses[pid]} dx={dx}" )
             dx = dx * 1.2 ## to make sure we always get out of this
-        self.pprint ( "randomly changing mass of %s to %.1f" % \
-                      ( self.namer.asciiName ( pid ), tmpmass ) )
+            if ctIterations > 20: # seems like we are in a super constrained situation
+                self.pprint ( f"huh? we have a tmpmass of {pid} is {tmpmass} was at {self.M.masses[pid]} dx={dx} breaking off after {ctIterations} iterations" )
+                tmpmass = self.M.masses[pid]
+                break
+        self.pprint ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
         self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
         self.M.masses[pid]=tmpmass
 

@@ -88,7 +88,7 @@ def main( nmin, nmax, continueFrom : PathLike,
                         states = pickle.load ( f )
                 pfile = continueFrom
             except Exception as e:
-                print ( f"error when trying to load pickle file {continueFrom}: {e}" )
+                print ( f"error when trying to load file {continueFrom}: {e}" )
                 pfile = None
     walkers = []
     #Set random seed
