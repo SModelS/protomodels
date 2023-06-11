@@ -9,6 +9,7 @@ sys.path.insert(0,"../")
 from ptools.csetup import setup
 setup()
 from builder.manipulator import Manipulator
+from walker.hiscore import Hiscore
 
 def count ( protomodels ):
     return len(protomodels)-protomodels.count(None)
@@ -23,7 +24,6 @@ def sortByK ( protomodels ):
 
 def storeList ( protomodels, savefile ):
     """ store the best protomodels in another hiscore file """
-    from walker.hiscore import Hiscore
     h = Hiscore ( 0, True, savefile, backup=True, hiscores = protomodels )
     h.hiscores = protomodels
     print ( "[hiscore] saving %d protomodels to %s" % \
@@ -137,7 +137,7 @@ def main ( args ):
     if args.fetch:
         import subprocess
         cmd = "scp gpu:/local/wwaltenberger/git/smodels-utils/prototools/H*.hi ."
-        print ( "[hiscore] %s" % cmd )
+        print ( f"[hiscore] {cmd}" )
         out = subprocess.getoutput ( cmd )
         print ( out )
 
@@ -145,6 +145,15 @@ def main ( args ):
         print ( "[hiscore] compiling a hiscore list with %d protomodels" % args.nmax )
         protomodels = compileList( args.nmax ) ## compile list from H<n>.hi files
     else:
+        if not os.path.exists ( infile ):
+            print ( f"[hiscore] {infile} does not exist" )
+            if os.path.exists ( "hiscores.dict" ):
+                print ( f"[hiscore] ... but hiscores.dict does!" )
+                hi = Hiscore.fromDictionaryFile ( "hiscores.dict" )
+                hi.writeListToPickle ( infile )
+            else:
+                sys.exit()
+
         with open(infile,"rb") as f:
             try:
                 protomodels = pickle.load ( f )
@@ -171,15 +180,14 @@ def main ( args ):
 
     # nevents = args.nevents
 
-    if args.nmax > 0:
-        protomodels = protomodels[:args.nmax]
+    #if args.nmax > 0:
+    #    protomodels = protomodels[:args.nmax]
 
     # print ( "we are here", args.outfile, hasattr ( protomodels[0], "analysisContributions" ) )
     if type(args.outfile)==str and (".pcl" in args.outfile or ".hi" in args.outfile ):
         if not hasattr ( protomodels[0], "analysisContributions" ):
             print ( "[hiscore] why does the winner not have analysis contributions?" )
             ma = Manipulator ( protomodels[0] )
-            from walker.hiscore import Hiscore
             hi = Hiscore( 0, True, f"{rundir}/hiscore.hi" )
             hi.computeAnalysisContributions(ma)
             protomodels[0]=ma.M
@@ -187,7 +195,6 @@ def main ( args ):
         if not hasattr ( protomodels[0], "particleContributions" ):
             print ( "[hiscore] why does the winner not have particle contributions?" )
             ma = Manipulator ( protomodels[0] )
-            from walker.hiscore import Hiscore
             from tester.predictor import Predictor
             predictor = None
             dbpath = args.dbpath
@@ -239,7 +246,6 @@ if __name__ == "__main__":
             help='execute python script EXECUTE before going interactive [None]',
             type=str, default=None )
     args = argparser.parse_args()
-    from walker.hiscore import Hiscore
     if not os.path.exists ( args.infile ):
         print ( f"[hiscoreTools] error: input file {args.infile} does not exist." )
         sys.exit()
