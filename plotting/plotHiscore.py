@@ -23,7 +23,7 @@ from os import PathLike
 
 class HiscorePlotter:
     def __init__ ( self ):
-        self.baseurl = "https://smodels.github.io/"
+        self.url = "https://smodels.github.io/"
 
     def obtain ( self, number, hiscorefile : PathLike ) -> ProtoModel:
         """ obtain hiscore number <number>
@@ -669,7 +669,7 @@ class HiscorePlotter:
         f.write ( f"Current best protomodel: <i>K</i>={self.protomodel.K:.2f}" )
         f.write ( f", <i>Z</i>={self.protomodel.Z:.2f}" )
         f.write ( f"</h1><td>" )
-        f.write ( "<img height=60px src=https://smodels.github.io/protomodels/logos/protomodel_lego.png>" )
+        f.write ( f"<img height=60px src={self.url}/protomodels/logos/protomodel_lego.png>" )
         f.write ( "</table>\n" )
         f.write ( "</center>\n" )
         dbver = self.getDatabaseVersion (  )
@@ -677,7 +677,7 @@ class HiscorePlotter:
         dotlessv = dbver.replace(".","")
         dt = int ( time.time() - 1593000000 )
         f.write ( "<b><a href=./hiscore.slha>ProtoModel</a> <a href=./pmodel.py>(dict)</a> " )
-        f.write ( f"produced with <a href=https://smodels.github.io/docs/Validation{dotlessv}>database v{dbver}</a>" )
+        f.write ( f"produced with <a href={self.url}/docs/Validation{dotlessv}>database v{dbver}</a>" )
         f.write ( f", combination strategy <a href=./matrix.png>{strategy}</a> in walker {self.protomodel.walkerid} step {self.protomodel.step}.</b> " )
         if hasattr ( self.protomodel, "particleContributions" ):
             f.write ( "<i>K</i> plots for: <a href=./M1000022.png?%d>%s</a>" % \
@@ -934,13 +934,13 @@ def runPlotting ( args ):
         print ( "       gpu: upload to GPU server, afs space." )
         print ( "            Result can be seen at http://www.hephy.at/user/wwaltenberger/protomodels/" )
         print ( "    github: upload to github git directory." )
-        print ( "            Result can be seen at https://smodels.github.io/protomodels" )
+        print ( f"            Result can be seen at {self.url}/protomodels" )
         print ( "interesting: upload to github git directory, 'interesting' folder." )
-        print ( "             Result can be seen at https://smodels.github.io/protomodels/interesting" )
+        print ( f"             Result can be seen at {self.url}/protomodels/interesting" )
         print ( "latest: upload to github git directory, 'latest' folder." )
-        print ( "             Result can be seen at https://smodels.github.io/protomodels/latest" )
+        print ( f"             Result can be seen at {self.url}/protomodels/latest" )
         print ( "anomaly: upload to github git directory, 'anomaly' folder." )
-        print ( "             Result can be seen at https://smodels.github.io/protomodels/anomaly" )
+        print ( f"             Result can be seen at {self.url}/protomodels/anomaly" )
         return
     upload = args.upload# .lower()
     if upload in [ "none", "None", "" ]:
@@ -958,14 +958,14 @@ def runPlotting ( args ):
         return
     F = "decays.png ruler.png texdoc.png pmodel.py hiscore.slha index.html rawnumbers.html"
     dest = ""
-    destdir = "%s/git" % os.environ["HOME"]
-    dest = "%s/smodels.github.io/protomodels/%s/" % ( destdir, upload )
+    destdir = f'{os.environ["HOME"]}/git'
+    dest = f"{destdir}/smodels.github.io/protomodels/{upload}/"
     if upload == "github":
-        dest = "%s/smodels.github.io/protomodels/" % destdir
+        dest = f"{destdir}/smodels.github.io/protomodels/"
     if upload in [ "interesting", "anomaly", "latest" ]:
-        dest = "%s/smodels.github.io/protomodels/%s/" % ( destdir, upload )
+        dest = f"{destdir}/smodels.github.io/protomodels/{upload}/"
     if "paper" in upload:
-        dest = "%s/smodels.github.io/protomodels/%s/" % ( destdir, upload )
+        dest = f"{destdir}/smodels.github.io/protomodels/{upload}/"
 
     if dest != "":
         if not os.path.exists ( dest ):
