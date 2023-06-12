@@ -146,12 +146,12 @@ def main ( args ):
         protomodels = compileList( args.nmax ) ## compile list from H<n>.hi files
     else:
         if not os.path.exists ( infile ):
-            print ( f"[hiscore] {infile} does not exist" )
             if os.path.exists ( "hiscores.dict" ):
-                print ( f"[hiscore] ... but hiscores.dict does!" )
+                print ( f"[hiscoreTools] {infile} does not exist, but hiscores.dict does! rebuild {infile}." )
                 hi = Hiscore.fromDictionaryFile ( "hiscores.dict" )
                 hi.writeListToPickle ( infile )
             else:
+                print ( f"[hiscoreTools] neither {infile} nor hiscores.dict exists. abort!" )
                 sys.exit()
 
         with open(infile,"rb") as f:
