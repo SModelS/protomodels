@@ -14,7 +14,7 @@ from smodels.tools.physicsUnits import fb, GeV
 from smodels.experiment.databaseObj import Database
 from smodels.theory.model import Model
 from os import PathLike
-from typing import List
+from typing import List, Union
 
 try:
     from tester.combiner import Combiner
@@ -157,6 +157,8 @@ class Predictor:
 
         if hasattr ( self, "predictions" ):
             del self.predictions ## make sure we dont accidentally use old preds
+        self.walkerid = protomodel.walkerid ## set the walker ids, for debugging
+        self.combiner.walkerid = protomodel.walkerid
 
         # Create SLHA file (for running SModelS)
         slhafile = protomodel.createSLHAFile()

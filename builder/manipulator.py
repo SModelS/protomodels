@@ -336,6 +336,8 @@ class Manipulator:
                 self.M.decays[mpid][dpid]=v
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
+        if "walkerid" in D:
+            self.M.walkerid = D["walkerid"]
         if initTestStats:
             if "Z" in D:
                 self.M.Z = D["Z"]

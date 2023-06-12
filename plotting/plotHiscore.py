@@ -711,7 +711,7 @@ class HiscorePlotter:
                 ssms.add ( pids )
 
 
-        f.write ( "SSM plots for: " )
+        f.write ( " SSM plots for: " )
         first = True
         for pids in ssms:
             if not first:
@@ -739,7 +739,7 @@ class HiscorePlotter:
 
         if hasattr ( self.protomodel, "analysisContributions" ):
             print ( "[plotHiscore] contributions-per-analysis are defined" )
-            f.write ( "<td><br><b>K values without analyses: (contribution)</b><br>\n<ul>\n" )
+            f.write ( "<td><br><b>contributions to K:</b><br>\n<ul>\n" )
             conts = []
             Ktot = self.protomodel.K
             dKtot = 0.
