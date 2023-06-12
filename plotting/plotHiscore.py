@@ -19,7 +19,7 @@ from smodels.tools.smodelsLogging import logger
 logger.setLevel("ERROR")
 from os import PathLike
 
-runtime._experimental = True
+# runtime._experimental = True
 
 def obtain ( number, hiscorefile : PathLike ) -> ProtoModel:
     """ obtain hiscore number <number>
@@ -657,12 +657,17 @@ def writeIndexHtml ( protomodel ):
     frozen = protomodel.frozenParticles()
     ssms = getUnfrozenSSMs ( protomodel, frozen, includeOnes=True )
     for k,v in ssms.items():
-        ssm.append ( "%s: %.2g" % ( namer.htmlName(k,addSign=True),v) )
+        ssm.append ( f"{namer.htmlName(k,addSign=True) }: {v:.2g}" )
     f=open("index.html","w")
     f.write ( "<html>\n" )
     f.write ( "<body>\n" )
     f.write ( "<center>\n" )
-    f.write ( "<table><td><h1>Current best protomodel: <i>K</i>=%.2f</h1><td><img height=60px src=https://smodels.github.io/pics/banner.png></table>\n" % ( protomodel.K ) )
+    f.write ( f"<table><td><h1>" )
+    f.write ( f"Current best protomodel: <i>K</i>={protomodel.K:.2f}" )
+    f.write ( f", <i>Z</i>={protomodel.Z:.2f}" )
+    f.write ( f"</h1><td>" )
+    f.write ( "<img height=60px src=https://smodels.github.io/protomodels/logos/protomodel_lego.png>" )
+    f.write ( "</table>\n" )
     f.write ( "</center>\n" )
     dbver = getDatabaseVersion ( protomodel )
     strategy = "aggressive"
@@ -765,7 +770,7 @@ def writeIndexHtml ( protomodel ):
     f.write ( "<img height=580px src=./ruler.png?%d>" % ( t0 ) )
     f.write ( "<td width=55%>" )
     f.write ( "<img height=380px src=./decays.png?%d>\n" % ( t0 ) )
-    f.write ( '<font size=-3><iframe type="text/html" height="220px" width="100%s" frameborder="0" src="./rawnumbers.html?%d"></iframe></font>\n' % ( "%s", t0 ) )
+    f.write ( '<font size=-3><iframe type="text/html" height="230px" width="100%s" frameborder="0" src="./rawnumbers.html?%d"></iframe></font>\n' % ( "%s", t0 ) )
     f.write ( "</table>\n" )
     # f.write ( "<br><font size=-1>Last updated: %s</font>\n" % time.asctime() )
     f.write ( "</body>\n" )

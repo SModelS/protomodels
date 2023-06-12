@@ -213,7 +213,7 @@ def main ( args ):
     if args.outfile is not None:
         storeList ( protomodels, args.outfile )
 
-    if args.check:
+    if hasattr ( args, "check" ) and args.check:
         protomodel = protomodels[0]
         protomodel.predict()
         print ( "[hiscore] args.check, implement" )

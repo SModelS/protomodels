@@ -13,7 +13,8 @@ from walker.hiscore import Hiscore
 from smodels.experiment.databaseObj import Database
 from smodels.tools import runtime
 from smodels.tools.physicsUnits import fb
-runtime._experimental = True
+if False:
+    runtime._experimental = True
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt

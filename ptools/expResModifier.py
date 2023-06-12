@@ -18,7 +18,8 @@ from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from helpers import computeP
 from smodels.tools import runtime
-runtime._experimental = True
+if False:
+    runtime._experimental = True
 from smodels.theory.model import Model
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
@@ -732,8 +733,6 @@ Just filter the database:
                  "lognormal": self.lognormal, "maxmassdist": self.maxmassdist,
                  "fixedsignals": self.fixedsignals,
                  "fixedbackgrounds": self.fixedbackgrounds }
-        if hasattr ( runtime, "_cap_likelihoods" ):
-            meta["_cap_likelihoods"]=runtime._cap_likelihoods
         if hasattr ( runtime, "_drmax" ):
             meta["_drmax"]=runtime._drmax
         if hasattr ( runtime, "_experimental" ):

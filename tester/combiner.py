@@ -731,8 +731,9 @@ def normalizePrior():
     return 1./S
 
 if __name__ == "__main__":
-    from smodels.tools import runtime
-    runtime._experimental = True
+    if False:
+        from smodels.tools import runtime
+        runtime._experimental = True
     import argparse
     argparser = argparse.ArgumentParser(
             description='combiner. if called from commandline, computes the highest Z' )
