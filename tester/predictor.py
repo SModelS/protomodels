@@ -238,8 +238,9 @@ class Predictor:
             combinedRes=self.do_combine
 
         # self.log ( "start getting preds" )
-        from smodels.tools import runtime
-        runtime._experimental = True
+        if False:
+            from smodels.tools import runtime
+            runtime._experimental = True
         combinedIds = set() # the analysis ids of the combined
         srpreds = [] # the SR specific predictions
         predictions = []
