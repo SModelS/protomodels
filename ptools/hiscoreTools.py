@@ -202,8 +202,6 @@ def main ( args ):
                 dbpath =  f"{rundir}/{args.dbpath}"
             if hasattr ( args, "dbpath" ):
                 dbpath = args.dbpath
-            print ( "[hiscoreTools] dbpath is", dbpath, type(dbpath) )
-            raise ValueError ( f"dbpath {dbpath}" )
             if os.path.exists ( dbpath ):
                 predictor = Predictor ( 0, dbpath = dbpath, expected = False, 
                         select= "all", do_combine = False )
