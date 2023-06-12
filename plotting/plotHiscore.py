@@ -17,37 +17,37 @@ from smodels_utils.helper.bibtexTools import BibtexWriter
 from ptools.sparticleNames import SParticleNames
 from smodels.tools.smodelsLogging import logger
 logger.setLevel("ERROR")
+from os import PathLike
 
 runtime._experimental = True
 
-def obtain ( number, picklefile ):
+def obtain ( number, hiscorefile : PathLike ) -> ProtoModel:
     """ obtain hiscore number <number>
     :returns: model
     """
-    if not os.path.exists ( picklefile ):
-        print ( "[plotHiscore] %s does not exist. Trying to produce now with ./hiscore.hi" % picklefile )
+    if not os.path.exists ( hiscorefile ):
+        print ( f"[plotHiscore] {hiscorefile} does not exist. Trying to produce now with ./hiscore.hi" )
         from argparse import Namespace
         args = Namespace()
         args.detailed = False
         args.print = False
         args.outfile = "hiscore.hi"
-        args.infile = picklefile
+        args.infile = hiscorefile
         args.fetch = False
         args.maxloss = 0.005
         args.nmax = 1
-        args.dbpath = picklefile
+        args.dbpath = "default.pcl"
         hiscoreTools.main ( args )
 
-    with open( picklefile,"rb" ) as f:
+    with open( hiscorefile,"rb" ) as f:
         #fcntl.flock( f, fcntl.LOCK_EX )
         hiscores = pickle.load ( f )
         #fcntl.flock( f, fcntl.LOCK_UN )
     if len(hiscores)<number-1:
-        print ( "[plotHiscore] asked for hiscore %d, but I only have %d" % \
-                ( number, len(hiscores) ) )
+        print ( f"[plotHiscore] asked for hiscore {number}, but I only have {len(hiscores)}" )
     Z = hiscores[number].Z
     K = hiscores[number].K
-    print ( "[plotHiscore] obtaining #%d: K=%.3f" % (number, K ) )
+    print ( f"[plotHiscore] obtaining #{number}: K={K:.3f}" )
     return hiscores[ number ]
 
 def gitCommit ( dest, upload, wanted ):
@@ -878,9 +878,9 @@ def plotDecays ( protomodel, verbosity, outfile="decays.png" ):
                         verbosity = verbosity,
                         ssmultipliers = protomodel.ssmultipliers )
 
-def plot ( number, verbosity, picklefile, options, dbpath ):
+def plot ( number, verbosity, hiscorefile, options, dbpath ):
     ## plot hiscore number "number"
-    protomodel = obtain ( number, picklefile )
+    protomodel = obtain ( number, hiscorefile )
 
     protoslha = protomodel.createSLHAFile ()
     subprocess.getoutput ( f"cp {protoslha} hiscore.slha" )
@@ -896,7 +896,6 @@ def plot ( number, verbosity, picklefile, options, dbpath ):
     horizontal = False
     if "horizontal" in options and options["horizontal"]:
         horizontal = True
-    # print ( "[plotHiscore] slha file exists?", os.path.exists ( protomodel.currentSLHA ), protomodel.currentSLHA )
     if plotruler:
         plotRuler ( protomodel, verbosity, horizontal )
     plotdecays = options["decays"]
@@ -939,7 +938,7 @@ def runPlotting ( args ):
                 "keep_tex": args.keep, "tex": args.tex,
                 "horizontal": args.horizontal }
 
-    plot ( args.number, args.verbosity, args.picklefile, options, args.dbpath )
+    plot ( args.number, args.verbosity, args.hiscorefile, options, args.dbpath )
     if upload is None:
         return
     F = "decays.png ruler.png texdoc.png pmodel.py hiscore.slha index.html rawnumbers.html"
@@ -1019,7 +1018,7 @@ def main ():
     argparser.add_argument ( '-n', '--number',
             help='which hiscore to plot [0]',
             type=int, default=0 )
-    argparser.add_argument ( '-f', '--picklefile',
+    argparser.add_argument ( '-f', '--hiscorefile',
             help='pickle file to draw from [<rundir>/hiscore.hi]',
             type=str, default="default"  )
     argparser.add_argument ( '-v', '--verbosity',
@@ -1074,8 +1073,8 @@ def main ():
         args.decays = True
         args.predictions = True
         args.tex = True
-    if args.picklefile == "default":
-        args.picklefile = "%s/hiscore.hi" % rundir
+    if args.hiscorefile == "default":
+        args.hiscorefile = f"{rundir}/hiscore.hi"
     runPlotting ( args )
     if args.test:
         compileTestText()
