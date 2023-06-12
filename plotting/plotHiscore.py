@@ -70,9 +70,8 @@ class HiscorePlotter:
 
         comment = "automated update by plotHiscore.py to %s" % destdir
         print ( "destdir", destdir, "upload", upload, "wanted", wanted )
-        cmd = "cd %s; git pull; git add '%s'; git commit -m '%s'; git push" % \
-               ( destdir, upload, comment )
-        print ( "[plotHiscore] now git-commit: %s" % cmd )
+        cmd = f"cd {destdir}; git pull; git add '{upload}'; git commit -m '{comment}'; git push"
+        print ( f"[plotHiscore] exec: {cmd}" )
         out = subprocess.getoutput ( cmd )
         if out != "":
             print ( "[plotHiscore] %s" % out )
@@ -952,7 +951,7 @@ def runPlotting ( args ):
                 "horizontal": args.horizontal }
 
     hiplt = HiscorePlotter()
-    hiplt.plot ( args.number, args.verbosity, args.hiscorefile, options, 
+    hiplt.plot ( args.number, args.verbosity, args.hiscorefile, options,
                    args.dbpath )
     if upload is None:
         return
