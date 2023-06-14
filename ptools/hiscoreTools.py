@@ -237,8 +237,8 @@ if __name__ == "__main__":
             help='Hiscore file. [hiscore.hi]',
             type=str, default="hiscore.hi" )
     argparser.add_argument ( '-d', '--dbpath',
-            help='Database path. [default.pcl]',
-            type=str, default="default.pcl" )
+            help='Database path. [official]',
+            type=str, default="official" )
     argparser.add_argument ( '-n', '--nointeractive',
             help='Dont start interactive shell',
             action = "store_true" )
