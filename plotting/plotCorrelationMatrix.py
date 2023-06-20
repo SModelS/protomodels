@@ -278,7 +278,8 @@ def draw( args : dict ):
     print ( f"Plotting to {outputfile}" )
     dpi = 200
     if nres < 5:
-        dpi = 20
+        ## fewer than 5 results? make it very small!
+        dpi = 15
     plt.tight_layout( )
     plt.savefig ( outputfile, dpi=dpi )
     if "trim" in args and args["trim"]:
