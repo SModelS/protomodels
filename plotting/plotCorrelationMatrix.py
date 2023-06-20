@@ -13,6 +13,7 @@ from tester import analysisCombiner
 import IPython
 from typing import Union, Dict
 from os import PathLike
+import subprocess
 
 def getCombinationsMatrix ( path : Union[None,Dict,PathLike] ):
     """ get the combinations matrix. If path is matrix dictionary itself, return it.
@@ -138,12 +139,15 @@ def draw( args : dict ):
     import matplotlib
     matplotlib.use('agg')
     labelsize = 14
-    tickpad = -55
+    # x- and y- tickpads are to adjust the position of the analysis id labels
+    xtickpad, ytickpad = -55, -55 
     if nres < 60:
-        tickpad = 0
+        xtickpad = 0
+        ytickpad = 0
         labelsize = 26
     if nres < 5:
-        tickpad = -500
+        xtickpad = -580
+        ytickpad = -580
         labelsize = 80
     matplotlib.rc('xtick', labelsize=labelsize, labelcolor = "gray" )
     matplotlib.rc('ytick', labelsize=labelsize, labelcolor = "gray" )
@@ -215,8 +219,8 @@ def draw( args : dict ):
     fig.set_size_inches(30, 30)
     ax = plt.gca()
     ax.xaxis.set_ticks_position("bottom")
-    ax.tick_params(axis='x', pad=tickpad )
-    ax.tick_params(axis='y', pad=tickpad )
+    ax.tick_params(axis='x', pad=xtickpad )
+    ax.tick_params(axis='y', pad=ytickpad )
     plt.setp(ax.get_xticklabels(), rotation=90,
          ha="center", rotation_mode="default")
     ax.set_xticks ( range(len(labels)) )
@@ -245,15 +249,19 @@ def draw( args : dict ):
             xmax = n
             if args["triangular"]:
                 xmax = n-yt
-            if ct>0:
-                plt.plot ( [ -extrudes, xmax ], [ yt-.5, yt-.5 ], c="black" )
+            lc = "black"
+            alpha = 1
+            if nres<5:
+                lc = "white"
+                alpha = 0.
             ymax = n
             if args["triangular"]:
                 ymax = yt
             for s in [ "bottom", "top", "left", "right" ]:
                 ax.spines[s].set_visible(False)
             if ct>0:
-               plt.plot ( [ n-yt-.5, n-yt-.5], [ymax, -extrudes ], c="black" )
+                plt.plot ( [ -extrudes, xmax ], [ yt-.5, yt-.5 ], c=lc, alpha=alpha )
+                plt.plot ( [ n-yt-.5, n-yt-.5], [ymax, -extrudes ], c=lc, alpha=alpha )
             ct += 1
     if args["drawtimestamp"]:
         plt.text ( .01, .01, "plot produced %s from database v%s" % \
@@ -271,11 +279,16 @@ def draw( args : dict ):
     dpi = 200
     if nres < 5:
         dpi = 20
+    plt.tight_layout( )
     plt.savefig ( outputfile, dpi=dpi )
+    if "trim" in args and args["trim"]:
+        cmd = f"convert {outputfile} -trim trimmed.{outputfile}"
+        subprocess.getoutput ( cmd )
+        cmd = f"mv trimmed.{outputfile} {outputfile}"
+        subprocess.getoutput ( cmd )
     return outputfile
 
 def show ( outputfile ):
-    import subprocess
     cmd = f"timg {outputfile}"
     o = subprocess.getoutput ( cmd )
     print ( o )
@@ -311,6 +324,9 @@ if __name__ == "__main__":
             type=str, default=None )
     argparser.add_argument ( '-t', '--triangular',
             help='plot as lower triangle matrix?',
+            action="store_true" )
+    argparser.add_argument ( '-T', '--trim',
+            help='trim the figure in the end',
             action="store_true" )
     argparser.add_argument ( '-n', '--nofastlim',
             help='discard fastlim results',
