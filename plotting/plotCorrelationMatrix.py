@@ -142,6 +142,9 @@ def draw( args : dict ):
     if nres < 60:
         tickpad = 0
         labelsize = 26
+    if nres < 5:
+        tickpad = -500
+        labelsize = 80
     matplotlib.rc('xtick', labelsize=labelsize, labelcolor = "gray" )
     matplotlib.rc('ytick', labelsize=labelsize, labelcolor = "gray" )
 
@@ -289,7 +292,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '-d', '--database', nargs='?',
             help=f'path to database [{dbpath}]', type=str, default=dbpath )
     argparser.add_argument ( '-c', '--combinationsmatrix', nargs='?',
-            help='path to combinationsmatrix file. If none, get it from protomodels.tester.combinationsmatrix.getMatrix() [None]',
+            help='path to combinationsmatrix file (will call getMatrix() within that file). If none, get it from protomodels.tester.combinationsmatrix.getMatrix() [None]',
             type=str, default=None )
     argparser.add_argument ( '-e', '--experiment', nargs='?',
             help='plot only specific experiment CMS,ATLAS,all [all]',
