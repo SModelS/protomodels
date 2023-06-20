@@ -268,7 +268,10 @@ def draw( args : dict ):
             modifiers += str(sqrtses[0])
         outputfile = outputfile.replace("@M",modifiers)
     print ( f"Plotting to {outputfile}" )
-    plt.savefig ( outputfile, dpi=200 )
+    dpi = 200
+    if nres < 5:
+        dpi = 20
+    plt.savefig ( outputfile, dpi=dpi )
     return outputfile
 
 def show ( outputfile ):
