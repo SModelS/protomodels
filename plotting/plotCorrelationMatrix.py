@@ -118,6 +118,8 @@ def draw( args : dict ):
     d=Database( dbdir, discard_zeroes=False, combinationsmatrix = matrix )
     print(d)
     analysisIds = [ "all" ]
+    if "analyses" in args and args["analyses"]!=None:
+        analysisIds = args["analyses"].split(",")
     exps = [ "CMS", "ATLAS" ]
     if args["experiment"] in [ "CMS", "ATLAS" ]:
         analysisIds = [ args["experiment"]+"*" ]
@@ -272,7 +274,12 @@ def show ( outputfile ):
     o = subprocess.getoutput ( cmd )
     print ( o )
 
+def plotHandCrafted():
+    """ modify this to produce your special version of this plot """
+    sys.exit()
+
 if __name__ == "__main__":
+    # plotHandCrafted()
     import argparse
     argparser = argparse.ArgumentParser(description="correlation/combination matrix plotter")
     argparser.add_argument ( '-S', '--strategy', nargs='?',
@@ -293,6 +300,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-o', '--outputfile', nargs='?',
             help='outputfile (@M gets replaced by [experiment][sqrts]) [matrix@M.png]',
             type=str, default='matrix@M.png' )
+    argparser.add_argument ( '-a', '--analyses', 
+            help='select for comma separated list of analyses [None]',
+            type=str, default=None )
     argparser.add_argument ( '-t', '--triangular',
             help='plot as lower triangle matrix?',
             action="store_true" )
