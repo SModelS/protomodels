@@ -21,8 +21,10 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple] ) \
                 ret.append ( t )
         return ret
     shorts, description = { }, {}
-    shorts["electroweakinos_offshell"]="TChiWZ,TChiWH,TChiWZoff,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiWWoff,TChiZH"
-    shorts["electroweakinos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
+    shorts["gauginos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
+    shorts["gauginos_offshell"]=shorts["gauginos"]+"TChiWZoff,TChiWWoff"
+    shorts["electroweakinos"]='TChiH,TChiChipmSlepStau,TChipChimSlepSnu,TChiHH,TChiWW,TChiWZ,TChipChimSlepSlep,TChipChimStauSnu,TChiZH,TChiWH,TChipChimgg,TChiZZ,TChiChipmStauStau,TChiChipmSlepSlep,TChiChipmSlepL,TChiChipmStauL'
+    shorts["electroweakinos_offshell"]=shorts["electroweakinos"]+"TChiWZoff,TChiWWoff"
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
     description["electroweakinos"]="ewkinos + onshell gauge bosons"
