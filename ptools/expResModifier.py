@@ -23,7 +23,7 @@ if False:
 from smodels.base.model import Model
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
-from smodels.theory.theoryPrediction import theoryPredictionsFor
+from smodels.matching.theoryPrediction import theoryPredictionsFor
 from smodels.tools.simplifiedLikelihoods import Data, UpperLimitComputer
 from smodels.base.physicsUnits import fb
 from smodels.decomposition import decomposer

@@ -10,7 +10,7 @@ from builder import protomodel
 from builder.protomodel import ProtoModel
 from csetup import setup
 from smodels.base.physicsUnits import fb, TeV
-from smodels.theory.theoryPrediction import TheoryPrediction
+from smodels.matching.theoryPrediction import TheoryPrediction
 from smodels.tools import runtime
 from smodels_utils.plotting import rulerPlotter, decayPlotter
 from smodels_utils.helper.bibtexTools import BibtexWriter

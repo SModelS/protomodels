@@ -9,6 +9,8 @@ from smodels.share.models.SMparticles import SMList
 from smodels.share.models.mssm import BSMList
 from smodels.base.physicsUnits import fb
 from smodels.base.model import Model
+import sys, os
+sys.path.insert(0,os.path.abspath ( os.path.dirname(__file__) ) )
 try:
     from tester import analysisCombiner
 except:
@@ -780,7 +782,7 @@ if __name__ == "__main__":
                                      onlyWithExpected= True )
     smses = decomposer.decompose ( model, .01*fb )
     #print ( "[combiner] decomposed into %d topos" % len(smses) )
-    from smodels.theory.theoryPrediction import theoryPredictionsFor
+    from smodels.matching.theoryPrediction import theoryPredictionsFor
     combiner = Combiner()
     allps = []
     for expRes in listOfExpRes:

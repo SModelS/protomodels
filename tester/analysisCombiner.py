@@ -2,7 +2,7 @@
 
 """ Code that decides which analyses can be combined and which cannot """
 
-from smodels.theory.theoryPrediction import TheoryPrediction
+from smodels.matching.theoryPrediction import TheoryPrediction
 from smodels.experiment.infoObj import Info
 import fnmatch
 

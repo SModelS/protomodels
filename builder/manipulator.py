@@ -13,7 +13,7 @@ from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 from smodels.base.physicsUnits import fb, TeV
 from smodels.theory.crossSection import LO
-from smodels.theory.theoryPrediction import TheoryPrediction
+from smodels.matching.theoryPrediction import TheoryPrediction
 import copy, numpy, time, os, sys, itertools, colorama, random
 from typing import Union, Dict, List
 from os import PathLike
