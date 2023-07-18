@@ -5,7 +5,7 @@
 __all__ = [ "Predictor" ]
 
 import pickle, time, os, sys
-from smodels.theory import decomposer
+from smodels.decomposition import decomposer
 from smodels.theory.theoryPrediction import theoryPredictionsFor, TheoryPrediction
 from protomodels.builder.protomodel import ProtoModel
 from smodels.share.models.SMparticles import SMList

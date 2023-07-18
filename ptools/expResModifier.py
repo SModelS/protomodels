@@ -26,7 +26,7 @@ from smodels.particlesLoader import BSMList
 from smodels.theory.theoryPrediction import theoryPredictionsFor
 from smodels.tools.simplifiedLikelihoods import Data, UpperLimitComputer
 from smodels.tools.physicsUnits import fb
-from smodels.theory import decomposer
+from smodels.decomposition import decomposer
 from smodels.tools.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
 

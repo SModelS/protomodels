@@ -22,12 +22,14 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple] ) \
         return ret
     shorts, description = { }, {}
     shorts["gauginos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
-    shorts["gauginos_offshell"]=shorts["gauginos"]+"TChiWZoff,TChiWWoff"
+    shorts["gauginos_offshell"]=shorts["gauginos"]+",TChiWZoff,TChiWWoff"
     shorts["electroweakinos"]='TChiH,TChiChipmSlepStau,TChipChimSlepSnu,TChiHH,TChiWW,TChiWZ,TChipChimSlepSlep,TChipChimStauSnu,TChiZH,TChiWH,TChipChimgg,TChiZZ,TChiChipmStauStau,TChiChipmSlepSlep,TChiChipmSlepL,TChiChipmStauL'
-    shorts["electroweakinos_offshell"]=shorts["electroweakinos"]+"TChiWZoff,TChiWWoff"
+    shorts["electroweakinos_offshell"]=shorts["electroweakinos"]+",TChiWZoff,TChiWWoff"
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
-    description["electroweakinos"]="ewkinos + onshell gauge bosons"
+    description["gauginos"]="ewkinos + onshell gauge bosons"
+    description["electroweakinos"]="TChi* (only on-shell)"
+    description["electroweakinos_offshell"]="TChi*"
     description["stops"]="stops, on- and off-shell"
     description["sbottoms"]="sbottoms"
     if name in shorts:

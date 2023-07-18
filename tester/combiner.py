@@ -4,7 +4,7 @@
 
 __all__ = [ "Combiner" ]
 
-from smodels.theory import decomposer
+from smodels.decomposition import decomposer
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
 from smodels.tools.physicsUnits import fb
@@ -759,7 +759,7 @@ if __name__ == "__main__":
         print ( "[combiner] -u and -e are mutually exclusive" )
         sys.exit()
     from smodels.experiment.databaseObj import Database
-    from smodels.theory import decomposer
+    from smodels.decomposition import decomposer
     from smodels.particlesLoader import BSMList
     from smodels.share.models.SMparticles import SMList
     from smodels.theory.model import Model
