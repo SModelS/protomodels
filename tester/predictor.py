@@ -12,7 +12,7 @@ from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
 from smodels.base.physicsUnits import fb, GeV
 from smodels.experiment.databaseObj import Database
-from smodels.theory.model import Model
+from smodels.base.model import Model
 from os import PathLike
 from typing import List, Union
 

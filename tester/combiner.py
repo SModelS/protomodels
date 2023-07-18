@@ -8,7 +8,7 @@ from smodels.decomposition import decomposer
 from smodels.share.models.SMparticles import SMList
 from smodels.share.models.mssm import BSMList
 from smodels.base.physicsUnits import fb
-from smodels.theory.model import Model
+from smodels.base.model import Model
 try:
     from tester import analysisCombiner
 except:
@@ -762,7 +762,7 @@ if __name__ == "__main__":
     from smodels.decomposition import decomposer
     from smodels.share.models.mssm import BSMList
     from smodels.share.models.SMparticles import SMList
-    from smodels.theory.model import Model
+    from smodels.base.model import Model
     from smodels.base.physicsUnits import fb
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
     model.updateParticles(inputFile=args.slhafile)

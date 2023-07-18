@@ -20,7 +20,7 @@ from helpers import computeP
 from smodels.tools import runtime
 if False:
     runtime._experimental = True
-from smodels.theory.model import Model
+from smodels.base.model import Model
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
 from smodels.theory.theoryPrediction import theoryPredictionsFor
