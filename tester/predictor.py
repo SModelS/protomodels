@@ -9,7 +9,7 @@ from smodels.decomposition import decomposer
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
 from protomodels.builder.protomodel import ProtoModel
 from smodels.share.models.SMparticles import SMList
-from smodels.particlesLoader import BSMList
+from smodels.share.models.mssm import BSMList
 from smodels.base.physicsUnits import fb, GeV
 from smodels.experiment.databaseObj import Database
 from smodels.base.model import Model
@@ -241,7 +241,7 @@ class Predictor:
 
         # self.log ( "start getting preds" )
         if False:
-            from smodels.tools import runtime
+            from smodels.base import runtime
             runtime._experimental = True
         combinedIds = set() # the analysis ids of the combined
         srpreds = [] # the SR specific predictions

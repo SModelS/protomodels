@@ -17,7 +17,7 @@ from ptools import helpers
 from ptools.sparticleNames import SParticleNames
 from typing import Union
 
-from smodels.tools.smodelsLogging import setLogLevel
+from smodels.base.smodelsLogging import setLogLevel
 setLogLevel ( "error" )
 
 

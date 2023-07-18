@@ -11,11 +11,11 @@ from builder.protomodel import ProtoModel
 from csetup import setup
 from smodels.base.physicsUnits import fb, TeV
 from smodels.matching.theoryPrediction import TheoryPrediction
-from smodels.tools import runtime
+from smodels.base import runtime
 from smodels_utils.plotting import rulerPlotter, decayPlotter
 from smodels_utils.helper.bibtexTools import BibtexWriter
 from ptools.sparticleNames import SParticleNames
-from smodels.tools.smodelsLogging import logger
+from smodels.base.smodelsLogging import logger
 logger.setLevel("ERROR")
 from os import PathLike
 

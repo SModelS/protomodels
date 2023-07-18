@@ -734,7 +734,7 @@ def normalizePrior():
 
 if __name__ == "__main__":
     if False:
-        from smodels.tools import runtime
+        from smodels.base import runtime
         runtime._experimental = True
     import argparse
     argparser = argparse.ArgumentParser(

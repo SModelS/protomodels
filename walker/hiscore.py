@@ -264,7 +264,7 @@ class Hiscore:
         """ this function sequentially removes all particles to compute
             their contributions to K """
         if False:
-            from smodels.tools import runtime
+            from smodels.base import runtime
             runtime._experimental = True
 
         #Make sure the model is backep up

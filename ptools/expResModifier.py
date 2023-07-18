@@ -17,17 +17,17 @@ from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from helpers import computeP
-from smodels.tools import runtime
+from smodels.base import runtime
 if False:
     runtime._experimental = True
 from smodels.base.model import Model
 from smodels.share.models.SMparticles import SMList
-from smodels.particlesLoader import BSMList
+from smodels.share.models.mssm import BSMList
 from smodels.matching.theoryPrediction import theoryPredictionsFor
-from smodels.tools.simplifiedLikelihoods import Data, UpperLimitComputer
+from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer
 from smodels.base.physicsUnits import fb
 from smodels.decomposition import decomposer
-from smodels.tools.smodelsLogging import logger
+from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
 
 logger.setLevel("ERROR")

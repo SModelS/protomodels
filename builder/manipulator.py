@@ -12,7 +12,7 @@ __all__ = [ "Manipulator" ]
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 from smodels.base.physicsUnits import fb, TeV
-from smodels.theory.crossSection import LO
+from smodels.base.crossSection import LO
 from smodels.matching.theoryPrediction import TheoryPrediction
 import copy, numpy, time, os, sys, itertools, colorama, random
 from typing import Union, Dict, List

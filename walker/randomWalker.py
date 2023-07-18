@@ -20,7 +20,7 @@ from builder.manipulator import Manipulator
 from tester.predictor import Predictor
 from ptools.sparticleNames import SParticleNames
 from pympler.asizeof import asizeof
-from smodels.tools.smodelsLogging import logger
+from smodels.base.smodelsLogging import logger
 from typing import Callable, Dict, Union
 from os import PathLike
 

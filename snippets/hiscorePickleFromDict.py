@@ -7,7 +7,7 @@ from walker.hiscore import Hiscore
 from builder.manipulator import Manipulator
 from builder.protomodel import ProtoModel
 from tester.predictor import Predictor
-from smodels.tools.smodelsLogging import logger
+from smodels.base.smodelsLogging import logger
 logger.setLevel("ERROR")
 import subprocess
 

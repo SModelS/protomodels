@@ -7,7 +7,7 @@ import numpy as np
 import IPython
 sys.path.append(os.path.abspath('../../smodels'))
 sys.path.append(os.path.abspath('../'))
-#from smodels.tools import runtime
+#from smodels.base import runtime
 #runtime._experimental = True
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches

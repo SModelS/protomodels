@@ -11,7 +11,7 @@ from tester.predictor import Predictor
 from tester.combiner import Combiner
 from walker.hiscore import Hiscore
 from smodels.experiment.databaseObj import Database
-from smodels.tools import runtime
+from smodels.base import runtime
 from smodels.base.physicsUnits import fb
 if False:
     runtime._experimental = True
