@@ -4,7 +4,7 @@
 
 import math
 from smodels.experiment.databaseObj import Database
-from smodels.tools.physicsUnits import GeV
+from smodels.base.physicsUnits import GeV
 
 # ./ptools/fetchFromClip.py -R rundir.frozen1 --database
 db=Database("default.pcl")

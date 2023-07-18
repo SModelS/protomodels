@@ -7,7 +7,7 @@ Collect signficances and p values of UL results
 import smodels.experiment.txnameObj ## gridpoints!!
 smodels.experiment.txnameObj.TxNameData._keep_values = True
 from smodels.experiment.databaseObj import Database
-from smodels.tools.physicsUnits import GeV, fb, pb
+from smodels.base.physicsUnits import GeV, fb, pb
 import random, pickle, sys, time
 import numpy as np
 import scipy.stats

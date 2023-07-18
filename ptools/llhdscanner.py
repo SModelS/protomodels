@@ -7,7 +7,7 @@ from csetup import setup
 setup()
 from smodels.tools.wrapperBase import WrapperBase
 WrapperBase.defaulttempdir="./" ## keep the temps in our folder
-from smodels.tools.physicsUnits import fb
+from smodels.base.physicsUnits import fb
 from smodels.tools.runtime import nCPUs
 from tester.combiner import Combiner
 from tester.predictor import Predictor

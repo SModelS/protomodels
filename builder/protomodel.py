@@ -12,7 +12,7 @@ from smodels.tools.wrapperBase import WrapperBase
 # WrapperBase.defaulttempdir="/dev/shm" ## keep the temps in shared memory
 from tester.combiner import Combiner
 from smodels.tools.xsecComputer import XSecComputer, NLL
-from smodels.tools.physicsUnits import TeV
+from smodels.base.physicsUnits import TeV
 from ptools import helpers
 from ptools.sparticleNames import SParticleNames
 from typing import Union

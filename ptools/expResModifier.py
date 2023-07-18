@@ -25,7 +25,7 @@ from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
 from smodels.theory.theoryPrediction import theoryPredictionsFor
 from smodels.tools.simplifiedLikelihoods import Data, UpperLimitComputer
-from smodels.tools.physicsUnits import fb
+from smodels.base.physicsUnits import fb
 from smodels.decomposition import decomposer
 from smodels.tools.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
@@ -585,7 +585,7 @@ Just filter the database:
         """ add a signal to this UL result. background sampling is
             already taken care of """
         self.pprint ( f"warning, signal playback not yet testededed for ULs" )
-        from smodels.tools.physicsUnits import fb
+        from smodels.base.physicsUnits import fb
         from ptools import helpers
         txns = values["txns"]
         ## so we simply add the theory predicted cross section to the limit
@@ -648,7 +648,7 @@ Just filter the database:
     def addSignalForULMap ( self, dataset, tpred, lumi ):
         """ add a signal to this UL result. background sampling is
             already taken care of """
-        from smodels.tools.physicsUnits import fb
+        from smodels.base.physicsUnits import fb
         from ptools import helpers
         txns = list ( map ( str, tpred.txnames ) )
         txns.sort()
@@ -757,7 +757,7 @@ Just filter the database:
 
     def produceTopoList ( self ):
         """ create smstopolist """
-        from smodels.tools.physicsUnits import fb, GeV
+        from smodels.base.physicsUnits import fb, GeV
         model = Model ( BSMList, SMList )
         model.updateParticles ( inputFile=self.protomodel.currentSLHA )
         mingap=10*GeV

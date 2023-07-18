@@ -11,7 +11,7 @@ __all__ = [ "Manipulator" ]
 #sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
-from smodels.tools.physicsUnits import fb, TeV
+from smodels.base.physicsUnits import fb, TeV
 from smodels.theory.crossSection import LO
 from smodels.theory.theoryPrediction import TheoryPrediction
 import copy, numpy, time, os, sys, itertools, colorama, random

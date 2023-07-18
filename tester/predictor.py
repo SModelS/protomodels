@@ -10,7 +10,7 @@ from smodels.theory.theoryPrediction import theoryPredictionsFor, TheoryPredicti
 from protomodels.builder.protomodel import ProtoModel
 from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
-from smodels.tools.physicsUnits import fb, GeV
+from smodels.base.physicsUnits import fb, GeV
 from smodels.experiment.databaseObj import Database
 from smodels.theory.model import Model
 from os import PathLike

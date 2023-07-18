@@ -2,7 +2,7 @@
 
 """ the plotting script for the llhd scans """
 
-from smodels.tools.physicsUnits import TeV
+from smodels.base.physicsUnits import TeV
 import pickle, sys, copy, subprocess, os, colorama, time, glob, math
 import IPython
 import numpy as np

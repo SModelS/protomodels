@@ -6,8 +6,8 @@ __all__ = [ "Combiner" ]
 
 from smodels.decomposition import decomposer
 from smodels.share.models.SMparticles import SMList
-from smodels.particlesLoader import BSMList
-from smodels.tools.physicsUnits import fb
+from smodels.share.models.mssm import BSMList
+from smodels.base.physicsUnits import fb
 from smodels.theory.model import Model
 try:
     from tester import analysisCombiner
@@ -760,10 +760,10 @@ if __name__ == "__main__":
         sys.exit()
     from smodels.experiment.databaseObj import Database
     from smodels.decomposition import decomposer
-    from smodels.particlesLoader import BSMList
+    from smodels.share.models.mssm import BSMList
     from smodels.share.models.SMparticles import SMList
     from smodels.theory.model import Model
-    from smodels.tools.physicsUnits import fb
+    from smodels.base.physicsUnits import fb
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
     model.updateParticles(inputFile=args.slhafile)
     print ( "[combiner] loading database", args.database )

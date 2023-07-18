@@ -6,7 +6,7 @@ import sys, os, time, math
 sys.path.insert(0,"../")
 from smodels.experiment.databaseObj import Database
 from smodels.tools.smodelsLogging import setLogLevel
-from smodels.tools.physicsUnits import TeV
+from smodels.base.physicsUnits import TeV
 from smodels.tools.colors import colors
 from smodels_utils.helper.various import hasLLHD
 from tester import analysisCombiner

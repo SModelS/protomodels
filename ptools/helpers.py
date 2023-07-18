@@ -7,7 +7,7 @@ import copy, math, time, random, subprocess, os, unum, numpy
 from smodels.experiment.datasetObj import DataSet
 from smodels.experiment.expResultObj import ExpResult
 from smodels.experiment.infoObj import Info
-from smodels.tools.physicsUnits import GeV
+from smodels.base.physicsUnits import GeV
 import scipy.stats
 from os import PathLike
 
