@@ -10,13 +10,14 @@ import copy, os, sys, time, subprocess, math, numpy, shutil
 import scipy.spatial
 sys.path.insert( 0, "../" )
 sys.path.append('../smodels')
-from csetup import setup
+sys.path.insert(0, f'{os.curdir}{"/protomodels"}')
+from .csetup import setup
 setup()
 #sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/protomodels/")
 from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
-from helpers import computeP
+from ptools.helpers import computeP
 from smodels.tools import runtime
 if False:
     runtime._experimental = True
@@ -60,7 +61,7 @@ Just filter the database:
 
 """
 
-    def __init__ ( self, args ):
+    def __init__ ( self, args:dict):
         """ args is a dictionary here,
         :param database: path to database
         :param max: upper limit on an individual excess
@@ -132,7 +133,7 @@ Just filter the database:
             return
         from ptools import helpers
         helpers.seedRandomNumbers( seed )
-        self.pprint ( f"setting random seed to {args.seed}" )
+        self.pprint ( f"setting random seed to {seed}" )
 
     def interact ( self, listOfExpRes ):
         import IPython
@@ -899,7 +900,7 @@ Just filter the database:
         txnd.tri._points = numpy.array ( txnd.tri._points, dtype=numpy.float32 )
         return txnd
 
-    def filter ( self ):
+    def filter ( self, expResArgs:dict=None):
         """ filter the list fo experimental results.
         :param outfile: store result in outfile (a pickle file)
         :param nofastlim: remove fastlim results
@@ -914,7 +915,10 @@ Just filter the database:
                    ( self.outfile, self.suffix ) )
         if self.db == None:
             self.db = Database ( self.dbpath )
-        listOfExpRes = self.db.expResultList ## seems to be the safest bet?
+        if expResArgs is None:
+            listOfExpRes = self.db.expResultList ## seems to be the safest bet?
+        else:
+            listOfExpRes = self.db.getExpResults (**expResArgs) 
         if self.remove_nonagg:
             from smodels_utils.helper.databaseManipulations import filterNonAggregatedFromList
             n = len(listOfExpRes )
@@ -1120,7 +1124,7 @@ Just filter the database:
                     x = txn.txnameData.dataType
         print ( "we're good", self.db.databaseVersion )
 
-    def run ( self ):
+    def run ( self):
         if self.fixedbackgrounds and not self.fixedsignals:
             print ( "[expResModifier] WARNING fixing backgrounds but not signals. Sounds weird" )
         if self.fixedbackgrounds and self.fudge > 1e-2:
@@ -1158,8 +1162,8 @@ Just filter the database:
         else:
             if not self.playback:
                 er = self.modifyDatabase ( ) 
-
-        self.saveStats( statsname )
+        if self.keep:
+            self.saveStats( statsname )
 
         if self.check:
             self.check ( )
