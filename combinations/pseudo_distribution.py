@@ -104,7 +104,8 @@ def get_best_set(binacc:np.ndarray, nllr:np.ndarray, )-> dict:
     index_map = bam.sort_bam_by_weight()
     whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
     whdfs.find_paths(verbose=False, runs=50)
-    return {'path': [index_map[i] for i in whdfs.best.path], 'weight': whdfs.best.weight}
+    result = max(whdfs.remap_path(index_map))
+    return {'path': result.path, 'weight': result.weight}
 
 def get_milti_bset_set(binacc:np.ndarray, nllr:np.ndarray)-> np.ndarray:
     
@@ -128,6 +129,7 @@ def get_milti_bset_set(binacc:np.ndarray, nllr:np.ndarray)-> np.ndarray:
         res = get_best_set(binacc, row)
         result[i, 0] = res['weight']
         result[i, 1] = len(res['path'])
+
     return result
         
 
