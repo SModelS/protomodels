@@ -12,6 +12,9 @@ import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
+if "plotting" in os.getcwd():
+    sys.path.insert(0,"../")
+    # print ( f"{colorama.Fore.RED}[plotLlhds] plotting tool is meant to be called from protomodels top directory, not 'plotting'{colorama.Fore.RESET}" )
 from ptools.sparticleNames import SParticleNames
 matplotlib.rcParams['hatch.linewidth'] = .5  # previous svg hatch linewidth
 
