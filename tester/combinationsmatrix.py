@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 
+from typing import Dict
+
 __all__ = [ "getMatrix" ]
 
-def update ( dest, add ):
-    """ an update routine that appends to containers if they exist """
+def update ( dest : Dict, add : Dict ) -> Dict:
+    """ an update routine that appends to containers if they exist 
+
+    :param dest: the dictionary that will be updated
+    :param add: the update
+    :returns: updated dictionaries
+    """
     for k,v in add.items():
         if not k in dest:
             dest[k]=[]
         for i in v:
-            dest[k].append ( i )
+            if not i in dest[k]:
+                dest[k].append ( i )
     return dest
 
 def getWW():
@@ -104,7 +112,7 @@ def getWW():
     ww["CMS-SUS-21-002"]= [ "CMS-EXO-19-001", "CMS-EXO-19-010", "CMS-PAS-EXO-16-036", "CMS-SUS-16-034", "CMS-SUS-16-035", "CMS-SUS-16-037", "CMS-SUS-16-039", "CMS-SUS-16-039-agg", "CMS-SUS-16-041", "CMS-SUS-16-042", "CMS-SUS-16-045", "CMS-SUS-16-046", "CMS-SUS-16-047", "CMS-SUS-16-051", "CMS-SUS-17-005", "CMS-SUS-17-009", "CMS-SUS-17-010", "CMS-SUS-18-002", "CMS-SUS-18-007", "CMS-SUS-19-008", "CMS-SUS-19-009", "CMS-SUS-19-011", "CMS-SUS-20-001" ]
     return ww
 
-def getTimothee():
+def getTimotheeOld():
     ## timothee's matrix
     allowedTimothee = { "ATLAS-SUSY-2019-09": [ "ATLAS-SUSY-2019-08", "ATLAS-SUSY-2019-02", "ATLAS-SUSY-2018-42", "ATLAS-SUSY-2018-41", "ATLAS-SUSY-2018-32", "ATLAS-SUSY-2018-32", "ATLAS-SUSY-2018-23", "ATLAS-SUSY-2018-16", "ATLAS-SUSY-2018-05" ] }
     allowedTimothee["ATLAS-SUSY-2019-08"] = [ "ATLAS-SUSY-2019-09", "ATLAS-SUSY-2019-02", "ATLAS-SUSY-2018-42", "ATLAS-SUSY-2018-41", "ATLAS-SUSY-2018-32", "ATLAS-SUSY-2018-23", "ATLAS-SUSY-2018-16", "ATLAS-SUSY-2018-06", "ATLAS-SUSY-2018-05" ]
@@ -480,6 +488,8 @@ def getMatrix():
     allowed.update ( allowedCMS8TeV )
     allowed.update ( allowedATLAS13TeV )
     allowed.update ( allowedCMS13TeV )
+    # allowedTimothee = getTimotheeOld()
+    from ewkino_combinations import getCombinabilityMatrix as getTimothee
     allowedTimothee = getTimothee()
     update ( allowed, allowedTimothee )
     allowedTaco = getTaco()
