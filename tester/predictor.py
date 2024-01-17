@@ -247,6 +247,35 @@ class Predictor:
         srpreds = [] # the SR specific predictions
         predictions = []
         # print ( f"in runSModelS we have useBestDataset={bestDataSet}, combinedResults={combinedRes} allpreds={allpreds} do_combine={self.do_combine}" )
+            # get the SR specific predictions
+        srpred = theoryPredictionsFor ( self.database, topos,
+                                       useBestDataset=bestDataSet,
+                                       combinedResults=combinedRes )
+        if srpred != None:
+            for p in srpred:
+                srpreds.append ( p )
+        if allpreds:
+            # get the SR-combined predictions
+            cpreds = theoryPredictionsFor ( self.database, topos,
+                                            useBestDataset=False,
+                                            combinedResults=self.do_combine )
+            if cpreds != None:
+                for c in cpreds:
+                    anaId = c.dataset.globalInfo.id
+                    if c.dataType()!="combined":
+                        continue
+                    combinedIds.add ( anaId ) # add with and without -agg
+                    anaId = anaId.replace("-agg","")
+                    combinedIds.add ( anaId )
+                for c in cpreds:
+                    anaId = c.dataset.globalInfo.id
+                    # if the aggregated version is in, then take this out
+                    if anaId+"-agg" in combinedIds:
+                        continue
+                    # definitely add the combined predictions
+                    c.computeStatistics()
+                    predictions.append ( c )
+        """ smodels v2 version
         for expRes in self.listOfExpRes:
             # get the SR specific predictions
             srpred = theoryPredictionsFor ( expRes, topos,
@@ -276,6 +305,7 @@ class Predictor:
                         # definitely add the combined predictions
                         c.computeStatistics()
                         predictions.append ( c )
+        """
         for srpred in srpreds:
             srId = srpred.dataset.globalInfo.id
             srId = srId.replace("-agg","")

@@ -9,6 +9,7 @@ from smodels.share.models.SMparticles import SMList
 from smodels.share.models.mssm import BSMList
 from smodels.base.physicsUnits import fb
 from smodels.base.model import Model
+from smodels.matching.theoryPrediction import TheoryPrediction
 import sys, os
 sys.path.insert(0,os.path.abspath ( os.path.dirname(__file__) ) )
 try:
@@ -417,7 +418,7 @@ class Combiner:
                 if not n: continue #Could not get events
                 observedN,expectedBG = n
                 bgError = 0.0 #In this case we ignore systematics
-                Nsig = tp.xsection.value.asNumber(fb) #Arbitrary normalization (does not affect muhat)
+                Nsig = tp.xsection.asNumber(fb) #Arbitrary normalization (does not affect muhat)
                 nobs.append(observedN)
                 nbg.append(expectedBG)
                 bgerr.append(bgError)
@@ -426,7 +427,7 @@ class Combiner:
                 observedN = tp.dataset.dataInfo.observedN
                 expectedBG = tp.dataset.dataInfo.expectedBG
                 bgError = tp.dataset.dataInfo.bgError
-                Nsig = tp.xsection.value*tp.expResult.globalInfo.lumi
+                Nsig = tp.xsection*tp.expResult.globalInfo.lumi
                 Nsig = Nsig.asNumber()
                 nobs.append(observedN)
                 nbg.append(expectedBG)
@@ -602,11 +603,15 @@ class Combiner:
         """ compute K from Z and prior (simple) """
         return Z**2 + 2* numpy.log ( prior )
 
-    def getPredictionID ( self, prediction ):
+    def getPredictionID ( self, prediction : TheoryPrediction ):
         """ construct a unique id of a prediction from the analysis ID,
-            pids, data set name """
+            pids (v2) or smsList (v3), data set name """
+        # FIXME check that smsList works
         return "%s:%s:%s" % ( prediction.analysisId(), str(prediction.dataId()),
-                              "; ".join(map(str,prediction.PIDs) ) )
+                              "; ".join(map(str,prediction.smsList) ) )
+        # v2
+        #return "%s:%s:%s" % ( prediction.analysisId(), str(prediction.dataId()),
+        #                      "; ".join(map(str,prediction.PIDs) ) )
 
     def selectMostSignificantSR ( self, predictions ):
         """ given, the predictions, for any analysis and topology,

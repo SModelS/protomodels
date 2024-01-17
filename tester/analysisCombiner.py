@@ -5,6 +5,7 @@
 from smodels.matching.theoryPrediction import TheoryPrediction
 from smodels.experiment.infoObj import Info
 import fnmatch
+from typing import Union
 
 moreComments = { ## collect a few more comments on analyses
     "CMS-SUS-18-002": "lepton veto",
@@ -81,14 +82,7 @@ def canCombine ( predA, predB, results = None ):
             if ret == False:
                 return False
         return True
-    elA, elB = None, None
-    if type(predA)==TheoryPrediction:
-        elA = predA.elements
-        predA = predA.expResult.globalInfo
-    if type(predB)==TheoryPrediction:
-        elB = predB.elements
-        predB = predB.expResult.globalInfo
-    combinable = canCombineUsingMatrix ( predA, predB, elA, elB )
+    combinable = canCombineUsingMatrix ( predA, predB )
     #if ("20-004" in predA.id or "20-004" in predB.id) and "CMS" in predA.id and "CMS" in predB.id and predA.sqrts == predB.sqrts:
     #if ("2016-07" in predA.id or "2016-07" in predB.id) and "ATLAS" in predA.id and "ATLAS" in predB.id and predA.sqrts == predB.sqrts:
     #    print ( f"can i can combine {predA.id} with {predB.id}? {combinable}" )
@@ -105,9 +99,18 @@ def hasOverlap ( elA, elB, globA = None, globB = None ):
                 return True
     return False
 
-def canCombineUsingMatrix ( globA, globB, elA, elB ):
+def canCombineUsingMatrix ( globA : Union[TheoryPrediction,Info], 
+                            globB : Union[TheoryPrediction,Info] ):
     """ method that defines what we allow to combine, using combinationsmatrix.py
-         """
+    """
+    if type(globA)==TheoryPrediction:
+        ## elA = globA.elements ## v2
+        elA = globA.smsList # v3
+        globA = globA.expResult.globalInfo
+    if type(globB)==TheoryPrediction:
+        ## elB = globB.elements ## v2
+        elB = globB.smsList
+        globB = globB.expResult.globalInfo
     if globA.sqrts != globB.sqrts:
         return True
     if getExperimentName(globA) != getExperimentName(globB):

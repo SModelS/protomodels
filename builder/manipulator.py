@@ -548,11 +548,11 @@ class Manipulator:
                 eUL = f"{tp.getUpperLimit ( expected=True ).asNumber(fb):1.2g}*fb"
             if dt in [ "em", "efficiencyMap" ]:
                 dI = tp.dataset.dataInfo
-                pred = f"{float ( (tp.xsection.value * tp.dataset.globalInfo.lumi).asNumber() ):1.2g}"
+                pred = f"{float ( (tp.xsection * tp.dataset.globalInfo.lumi).asNumber() ):1.2g}"
                 fullId = anaId+":"+tp.dataset.dataInfo.dataId
                 print(f'     - {fullId} [{txns}] obsN={dI.observedN} expBG={dI.expectedBG}+/-{dI.bgError} pred={pred}' )
             else:
-                pred=f"{tp.xsection.value.asNumber(fb):.2g}*fb"
+                pred=f"{tp.xsection.asNumber(fb):.2g}*fb"
                 UL = f"{tp.getUpperLimit().asNumber(fb):.2g}*fb"
                 print(f'     - {fullId} [{txns}] pred={pred} UL={UL} eUL={eUL}' ) 
 
@@ -573,7 +573,7 @@ class Manipulator:
             if dt in [ "comb", "combined" ]:
                 eUL = f", UL_exp={tp[2].getUpperLimit ( expected=True ).asNumber(fb):1.2g}*fb"
             UL=f"{tp[2].upperLimit.asNumber(fb):1.2g}*fb"
-            print( f'     - r={tp[2].getRValue():1.2f} {anaId} [{txns}] pred={tp[2].xsection.value.asNumber(fb):1.2g}*fb, UL={UL}{eUL}' )
+            print( f'     - r={tp[2].getRValue():1.2f} {anaId} [{txns}] pred={tp[2].xsection.asNumber(fb):1.2g}*fb, UL={UL}{eUL}' )
 
     def rescaleSignalBy ( self, s ):
         """ multiply the signal strength multipliers with muhat"""
@@ -597,7 +597,7 @@ class Manipulator:
                 else:
                     rexpnew = tp[1]
                 tpNew = tp[2]
-                tpNew.xsection.value *= s #rescale theoryPrediction
+                tpNew.xsection *= s #rescale theoryPrediction
                 #Remove likelihood and chi2, since they are no longer valid
                 #if hasattr(tpNew,'likelihood'):
                 #    del tpNew.likelihood
@@ -606,7 +606,7 @@ class Manipulator:
                 self.M.tpList[i] = (rnew,rexpnew,tpNew)
         if hasattr(self.M,'bestCombo'):
             for tp in self.M.bestCombo:
-                tp.xsection.value *= s #rescale theoryPrediction
+                tp.xsection *= s #rescale theoryPrediction
                 #Remove likelihood and chi2, since they are no longer valid
                 #if hasattr(tp,'likelihood'):
                 #    del tp.likelihood
