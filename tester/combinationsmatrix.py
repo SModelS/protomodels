@@ -489,7 +489,7 @@ def getMatrix():
     allowed.update ( allowedATLAS13TeV )
     allowed.update ( allowedCMS13TeV )
     # allowedTimothee = getTimotheeOld()
-    from ewkino_combinations import getCombinabilityMatrix as getTimothee
+    from .ewkino_combinations import getCombinabilityMatrix as getTimothee
     allowedTimothee = getTimothee()
     update ( allowed, allowedTimothee )
     allowedTaco = getTaco()
