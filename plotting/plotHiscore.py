@@ -25,7 +25,7 @@ class HiscorePlotter:
     def __init__ ( self ):
         self.url = "https://smodels.github.io/"
 
-    def obtain ( self, number, hiscorefile : PathLike ) -> ProtoModel:
+    def obtain ( self, number, hiscorefile : PathLike, dbpath : PathLike ) -> ProtoModel:
         """ obtain hiscore number <number>
         :returns: model
         """
@@ -40,7 +40,8 @@ class HiscorePlotter:
             args.fetch = False
             args.maxloss = 0.005
             args.nmax = 1
-            args.dbpath = "default.pcl"
+            args.dbpath = dbpath
+            # args.dbpath = "default.pcl"
             hiscoreTools.main ( args )
 
         with open( hiscorefile,"rb" ) as f:
@@ -864,8 +865,13 @@ class HiscorePlotter:
         else:
             plotter.drawVertical()
 
-    def plotDecays ( self, verbosity, outfile="decays.png" ):
-        print ( "[plotHiscore] now draw %s" % outfile )
+    def plotDecays ( self, verbosity : str, outfile : str = "decays.png" ):
+        try:
+            import pygraphviz
+        except ModuleNotFoundError as e:
+            print ( f"[plotHiscore] skipping decays, no pygraphviz found!" )
+            return
+        print ( f"[plotHiscore] now draw {outfile}" )
         options = { "tex": True, "color": True, "dot": True, "squarks": True,
                     "weakinos": True, "sleptons": True, "neato": True,
                     "separatecharm": True,
@@ -889,7 +895,7 @@ class HiscorePlotter:
 
     def plot ( self, number, verbosity, hiscorefile, options, dbpath ):
         ## plot hiscore number "number"
-        self.obtain ( number, hiscorefile )
+        self.obtain ( number, hiscorefile, dbpath )
 
         protoslha = self.protomodel.createSLHAFile ()
         subprocess.getoutput ( f"cp {protoslha} hiscore.slha" )
@@ -974,12 +980,13 @@ def runPlotting ( args ):
             if a != "":
                 print ( "[plotHiscore] error when mkdir: %s" % a )
 
-        print ( "[plotHiscore] copying to %s" % dest )
-        cmd = "cp %s %s" % ( F, dest )
-        a = subprocess.getoutput ( cmd )
-        if a != "":
-            print ( "error: %s" % a )
-            sys.exit()
+        if os.path.exists ( F ):
+            print ( f"[plotHiscore] copying {F} to {dest}" )
+            cmd = f"cp {F} {dest}"
+            a = subprocess.getoutput ( cmd )
+            if a != "":
+                print ( "error: %s" % a )
+                sys.exit()
         r = hiplt.gitCommit( dest, upload, args.commit )
         if not r:
             destdir = dest
