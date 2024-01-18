@@ -4,6 +4,7 @@
     from H<n>.pcl """
 
 import time, types, sys, os, subprocess
+from os import PathLike
 from typing import Union
 
 def setup( rundir = None ):
@@ -111,7 +112,8 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
             print ( a )
     return tots,steps
 
-def updateHiscores( rundir=None ):
+def updateHiscores( rundir : Union[None,PathLike] = None, 
+                    dbpath : Union[None,PathLike] = None ):
     args = types.SimpleNamespace()
     args.print = True
     args.interactive = False
@@ -119,7 +121,9 @@ def updateHiscores( rundir=None ):
     args.fetch = False
     args.check = False
     args.nmax = 1
-    args.dbpath = "%s/default.pcl" % rundir
+    if dbpath is None:
+        dbpath = f"{rundir}/default.pcl"
+    args.dbpath = dbpath
     args.outfile = "hiscore.hi"
     if rundir != None:
         args.outfile = "%s/hiscore.hi" % rundir
@@ -135,7 +139,8 @@ def updateHiscores( rundir=None ):
     D = hiscoreTools.main ( args )
     return D
 
-def updateStates( rundir=None):
+def updateStates( rundir : Union[None,PathLike] = None,
+                  dbpath : Union[None,PathLike] = None ):
     args = types.SimpleNamespace()
     args.print = True
     args.rundir = rundir
@@ -143,7 +148,9 @@ def updateStates( rundir=None):
     args.interactive = False
     args.fetch = False
     args.check = False
-    args.dbpath = "%s/default.pcl" % rundir
+    if dbpath is None:
+        dbpath = f"{rundir}/default.pcl"
+    args.dbpath = dbpath
     args.nmax = 20
     args.outfile = "states.dict"
     if rundir != None:
@@ -217,7 +224,7 @@ def main( rundir : Union[None,os.PathLike] = None,
         i+=1
         if maxruns != None and i > maxruns:
             break
-        D = updateHiscores( rundir )
+        D = updateHiscores( rundir, dbpath )
         Z,step,model,K = D["Z"],D["step"],D["model"],D["K"]
         if K > Kold + .001:
             from builder.manipulator import Manipulator
@@ -237,7 +244,7 @@ def main( rundir : Union[None,os.PathLike] = None,
             Kold = K
         if doPlots:
             plot ( Z, K, rundir, uploadTo, dbpath )
-        updateStates( rundir )
+        updateStates( rundir, dbpath )
         time.sleep(60.)
         if os.path.exists ( Kfile ): ## so we can meddle from outside
             with open ( Kfile, "rt" ) as f:

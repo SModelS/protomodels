@@ -148,7 +148,7 @@ def main ( args ):
         if not os.path.exists ( infile ):
             if os.path.exists ( "hiscores.dict" ):
                 print ( f"[hiscoreTools] {infile} does not exist, but hiscores.dict does! rebuild {infile}." )
-                hi = Hiscore.fromDictionaryFile ( "hiscores.dict" )
+                hi = Hiscore.fromDictionaryFile ( "hiscores.dict", dbpath=args.dbpath )
                 hi.writeListToPickle ( infile )
             else:
                 print ( f"[hiscoreTools] neither {infile} nor hiscores.dict exists. abort!" )

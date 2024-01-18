@@ -144,15 +144,18 @@ class Hiscore:
 
     @classmethod
     def fromDictionaryFile ( cls, path : PathLike,
-           firstn : Union[None,int] = 0 ):
+           firstn : Union[None,int] = 0, 
+           dbpath : PathLike = "./default.pcl" ):
         """ initialise from a dictionary file
+
         :param path: filename of .dict file
         :param firstn: initialise only first n entries
+        :param dbpath: path to database
         :returns: Hiscore object
         """
         assert firstn == 0, "firstn != 0 not yet working"
         from tester.predictor import Predictor
-        predictor = Predictor(0, do_combine=True )
+        predictor = Predictor(0, do_combine=True, dbpath = dbpath )
         hiscores = []
         c = 0
         while True:

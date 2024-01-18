@@ -1,3 +1,5 @@
+# template1g.slha
+
 BLOCK DCINFO  # Decay Program information
      1   SDECAY/HDECAY # decay calculator
      2   1.3b  /3.4    # version number
@@ -416,8 +418,13 @@ DECAY   1000016     6.98605523E+01   # snu_tauL decays
 #         PDG            Width
 DECAY   1000024     1.38466665E-03   # chargino1+ decays
 #          BR         NDA      ID1       ID2
-     D1000024_1000022_24      2     1000022        24   # BR(~chi_1+ -> ~chi_10  W+)
-     D1000024_1000023_24      2     1000023        24   # BR(~chi_1+ -> ~chi_20  W+)
+   D1000024_1000022_24    2     1000022    24       # ~chi_1+ -> ~chi_10  W+
+   D1000024_1000023_24    2     1000023    24       # ~chi_1+ -> ~chi_20  W+
+   D1000024_1000022_2     3     1000022     2  -1   # ~chi_1+ -> ~chi_10  u db   new!
+   D1000024_1000022_11    3     1000022   -11  12   # ~chi_1+ -> ~chi_10  e- nu  new!
+   D1000024_1000022_13    3     1000022   -13  14   # ~chi_1+ -> ~chi_10  mu- nu new!
+   D1000024_1000022_15    3     1000022   -15  16   # ~chi_1+ -> ~chi_10  ta- nu new!
+
 #
 #         PDG            Width
 DECAY   1000037     4.93892335E+00   # chargino2+ decays
@@ -432,9 +439,14 @@ DECAY   1000037     4.93892335E+00   # chargino2+ decays
 #         PDG            Width
 DECAY   1000023     1.12364506E-03   # neutralino2 decays
 #          BR         NDA      ID1       ID2
-     D1000023_1000022_23       2     1000022        23   # BR(~chi_20 -> ~chi_10  Z )
-     D1000023_1000022_25       2     1000022        25   # BR(~chi_20 -> ~chi_10  h )
-     D1000023_1000024_24       2     1000024       -24   # BR(~chi_20 -> ~chi_1+  W- )
+   D1000023_1000022_23     2    1000022     23     # ~chi_20 -> ~chi_10  Z 
+   D1000023_1000022_25     2    1000022     25     # ~chi_20 -> ~chi_10  h 
+   D1000023_1000024_24     2    1000024    -24     # ~chi_20 -> ~chi_1+  W- 
+   D1000023_1000022_2      3    1000022     -2   2 # ~chi_20 -> ~chi_10 ub u new!
+   D1000023_1000022_5      3    1000022     -5   5 # ~chi_20 -> ~chi_10 bb b new!
+   D1000023_1000022_11     3    1000022    -11  11 # ~chi_20 -> ~chi_10 e+ e- new!
+   D1000023_1000022_13     3    1000022    -13  13 # ~chi_20 -> ~chi_10 mu+ mu- new!
+   D1000023_1000022_15     3    1000022    -15  15 # ~chi_20 -> ~chi_10 ta+ ta- new!
 #
 #         PDG            Width
 DECAY   1000025     4.86632501E+00   # neutralino3 decays
