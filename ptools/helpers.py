@@ -59,7 +59,9 @@ def computeP ( obs, bg, bgerr, lognormal = False ):
         fakeobs = scipy.stats.poisson.rvs ( lmbda )
         ## == we count half
         ret = ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
-        n *= 10
+        n *= 5
+        if n > 4000000:
+            break
     return ret
 
 def stripUnits( container ):
