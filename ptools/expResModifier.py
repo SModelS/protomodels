@@ -202,15 +202,17 @@ Just filter the database:
         ctr = 0
         x = float("inf")
         ## stop when all values are positive
-        while not allpositive:
+        while not allpositive and ctr < 10:
             ret = copy.deepcopy ( expected )
             ctr += 1
             x = float("inf")
             if x_ != None:
                 x = x_
             D = {}
-            while x > self.max:
+            ctr2 = 0
+            while x > self.max and ctr2 < 10:
                 x = 0.
+                ctr2 += 1
                 if not self.fixedbackgrounds:
                     x = self.drawNuisance() * self.fudge # draw but once from standard-normal
                 # x = stats.norm.rvs() * self.fudge # draw but once from standard-normal
@@ -413,7 +415,9 @@ Just filter the database:
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
             D["orig_p"]=p
         S, origS = float("inf"), float("nan")
-        while S > self.max:
+        ct = 0
+        while S > self.max and ct < 10:
+            ct += 1
             # lmbda = stats.norm.rvs ( exp, err )
             lmbda = exp
             if not self.fixedbackgrounds:
@@ -430,7 +434,7 @@ Just filter the database:
             if toterr > 0.:
                 S = ( obs - exp ) / toterr
                 origS = ( orig - exp ) / toterr
-            if S < self.max:
+            if S < self.max or ct > 9:
                 self.log ( "effmap replacing old nobs=%d (bg=%.2f+/-%.2f, lmbda=%.2f, S=%.2f) with nobs=%d for %s:%s" % \
                     ( orig, exp, err, lmbda, S, obs, dataset.globalInfo.id, dataset.dataInfo.dataId  ) )
                 dataset.dataInfo.observedN = obs

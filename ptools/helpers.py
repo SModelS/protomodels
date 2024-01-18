@@ -43,20 +43,26 @@ def computeP ( obs, bg, bgerr, lognormal = False ):
     :returns: p-value
     """
     n = 50000
-    lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
-    lmbda = lmbda[lmbda>0.]
-    if lognormal:
-        # for lognormal and signals
-        central = bg
-        if self.signalmodel and sigN != None:
-            central = bg + sigN
-        if lognormal and central > ( bgerr / 4. ):
-            loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
-            stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
-            lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
-    fakeobs = scipy.stats.poisson.rvs ( lmbda )
-    ## == we count half
-    return ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
+    ret = 0.
+    while ret < 1e-22 or ret > 1. - 1e-22:
+        lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
+        lmbda = lmbda[lmbda>0.]
+        if lognormal:
+            # for lognormal and signals
+            central = bg
+            if self.signalmodel and sigN != None:
+                central = bg + sigN
+            if lognormal and central > ( bgerr / 4. ):
+                loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
+                stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
+                lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
+        fakeobs = scipy.stats.poisson.rvs ( lmbda )
+        ## == we count half
+        ret = ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
+        n *= 5
+        if n > 4000000:
+            break
+    return ret
 
 def stripUnits( container ):
     """ strip all units from a mass vector """
