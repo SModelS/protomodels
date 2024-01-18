@@ -157,7 +157,8 @@ if __name__ == "__main__":
     s = "txnames:TChiWZ,TChiWZoff,TChiWW,TChiWWoff,TChiWH,TChiH,TChiZZ,TSlepSlep"
     s = "all"
     dbpath = "./default.pcl"
-    dbpath = "~/git/smodels-database"
+    dbpath = "official"
+    # dbpath = "~/git/smodels-database"
     w = RandomWalker( walkerid=0, nsteps = 200, dump_training = False,
                       dbpath=dbpath, cheatcode=0, select=s,
                       rundir="./", nevents=1000, seed = None )

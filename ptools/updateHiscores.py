@@ -4,6 +4,7 @@
     from H<n>.pcl """
 
 import time, types, sys, os, subprocess
+from typing import Union
 
 def setup( rundir = None ):
     # codedir = "/mnt/hephy/pheno/ww/git/"
@@ -158,7 +159,15 @@ def updateStates( rundir=None):
     print ( "[updateHiscores] done updating %s" % args.outfile )
     print ( )
 
-def plot( Z, K, rundir, upload="latest" ):
+def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230", 
+          dbpath : str = "@rundir@/default.pcl" ):
+    """ create all hiscore plots
+
+    :param upload: the "label" of the upload. determines the directory name at
+    https://smodels.github.io/protomodels/
+    Typically: latest, official, 230, ...
+    :param dbpath: path to database, look for default.pcl in rundir by default
+    """
     from plotting import plotHiscore
     from argparse import Namespace
     args = Namespace()
@@ -166,8 +175,9 @@ def plot( Z, K, rundir, upload="latest" ):
     args.number = 0
     args.detailed = False
     args.destinations = False
-    args.picklefile = "%s/hiscore.hi" % rundir
-    args.dbpath = "%s/default.pcl" % rundir
+    args.hiscorefile = f"{rundir}/hiscore.hi"
+    args.dbpath = dbpath.replace("@rundir@",rundir )
+    # args.dbpath = f"{rundir}/default.pcl"
     args.rundir = rundir
     args.verbosity = "info"
     args.horizontal = False
@@ -182,8 +192,12 @@ def plot( Z, K, rundir, upload="latest" ):
         args.commit = True
     plotHiscore.runPlotting ( args )
 
-def main( rundir = None, maxruns=3, doPlots=True, uploadTo="latest" ):
+def main( rundir : Union[None,os.PathLike] = None, 
+          maxruns : int = 3, doPlots : bool=True, 
+          uploadTo : str = "temp", 
+          dbpath : str = "@rundir@/default.pcl" ):
     """ eternal loop that updates hiscore.hi and states.dict
+
     :param maxruns: maximally iterate that many times
     :param doPlots: if False, suppress plotting
     :param uploadTo: upload plots to directory "~/git/smodels.github.io/<uploadTo>"
@@ -222,7 +236,7 @@ def main( rundir = None, maxruns=3, doPlots=True, uploadTo="latest" ):
             Zold = Z
             Kold = K
         if doPlots:
-            plot ( Z, K, rundir, uploadTo )
+            plot ( Z, K, rundir, uploadTo, dbpath )
         updateStates( rundir )
         time.sleep(60.)
         if os.path.exists ( Kfile ): ## so we can meddle from outside
