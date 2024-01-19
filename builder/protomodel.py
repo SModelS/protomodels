@@ -123,7 +123,7 @@ class ProtoModel:
         for p in self.particles:
             decays = []
             for line in slhalines:
-                if "D%s" % p in line:
+                if f"D{p}" in line:
                     p1 = line.find("_")+1
                     dpid = int ( line[p1:] )
                     dpid2 = None
