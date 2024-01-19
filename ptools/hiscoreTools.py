@@ -282,7 +282,7 @@ if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     import copy, numpy, scipy, scipy.stats, math
     co = Combiner() # instantiate for convenience
-    pr = Predictor( 0, do_combine=False ) # instantiate for convenience
+    pr = Predictor( 0, do_combine=False, dbpath=args.dbpath ) # instantiate for convenience
     from ptools import helpers
     # import hiscore #Keep it for convenience
 

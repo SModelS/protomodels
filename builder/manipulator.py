@@ -477,6 +477,7 @@ class Manipulator:
         if abs(BRtot-1.0) < 1e-4:
             #BRs are already normalized.
             return
+        self.log ( f"normalized branchings of {self.namer.asciiName(pid)} by {BRtot:.2f}" )
 
         for dpid in protomodel.decays[pid]:
             protomodel.decays[pid][dpid] *= 1/BRtot
@@ -719,7 +720,7 @@ class Manipulator:
 
         # print ( "the open channels are", openChannels )
         if len(openChannels) < 2:
-            self.pprint ( "number of open channels of %d is %d: cannot change branchings." % (pid, len(openChannels) ) )
+            self.pprint ( f"number of open channels of {pid} is {len(openChannels)}: cannot change branchings." )
             # not enough channels open to tamper with branchings!
             return 0
 
@@ -731,6 +732,7 @@ class Manipulator:
             #Choose random channel:
             chan = random.choice(list(openChannels))
             self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(chan,addDollars=True)} to 1.0" )
+            self.log ( f"changed decay of {self.namer.asciiName(pid)} -> {self.namer.asciiName(chan)} to 1" )
             self.M.decays[pid] = {chan: 1.0}
             return 1
 
@@ -746,6 +748,7 @@ class Manipulator:
                 uZero = random.uniform( 0., 1. )
                 if uZero < zeroBRprob:
                     self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to 0." )
+                    self.log ( f"changed branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to 0" )
                     self.M.decays[pid][dpid] = 0.
                     continue
 
@@ -753,21 +756,21 @@ class Manipulator:
             Min,Max = max(0.,oldbr-dx), min(oldbr+dx,1.)
             br = random.uniform ( Min, Max )
             self.record ( f"change branching of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
+            self.log ( f"changed branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
             self.M.decays[pid][dpid] = br
-
 
         #Make sure there is at least one open channel:
         BRtot = sum(self.M.decays[pid].values())
         if BRtot == 0.0:
             chan = random.choice(list(openChannels))
             self.record ( f"change branching of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(chan,addDollars=True)} to 1.0" )
+            self.log ( f"changed branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(chan)} to 1" )
             self.M.decays[pid][chan] = 1.0
             BRtot = 1.0
 
         #Make sure BRs add up to 1:
         self.normalizeBranchings(pid)
 
-        self.log ( "changed branchings of %s" % (self.namer.asciiName(pid) ) )
         return 1
 
     def randomlyChangeSignalStrengths ( self, prob=0.25, probSingle=0.8, ssmSigma=0.1):
