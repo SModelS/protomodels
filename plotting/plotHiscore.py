@@ -980,13 +980,20 @@ def runPlotting ( args ):
             if a != "":
                 print ( "[plotHiscore] error when mkdir: %s" % a )
 
-        if os.path.exists ( F ):
-            print ( f"[plotHiscore] copying {F} to {dest}" )
-            cmd = f"cp {F} {dest}"
-            a = subprocess.getoutput ( cmd )
-            if a != "":
-                print ( "error: %s" % a )
-                sys.exit()
+        print ( f"[plotHiscore] copying to {dest}:", end="" )
+        first=True
+        for f in F.split(" "):
+            if os.path.exists ( f ):
+                if not first:
+                    print ( ",", end="" )
+                print ( " "+f, end="" )
+                cmd = f"cp {f} {dest}"
+                a = subprocess.getoutput ( cmd )
+                if a != "":
+                    print ( "error: %s" % a )
+                    sys.exit()
+                first = False
+        print ( "." )
         r = hiplt.gitCommit( dest, upload, args.commit )
         if not r:
             destdir = dest
