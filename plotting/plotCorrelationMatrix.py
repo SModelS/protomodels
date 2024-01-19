@@ -7,7 +7,8 @@ sys.path.insert(0,"../")
 from smodels.experiment.databaseObj import Database
 from smodels.base.smodelsLogging import setLogLevel
 from smodels.base.physicsUnits import TeV
-from smodels.tools.colors import colors
+# from smodels.tools.colors import colors
+from smodels.base.smodelsLogging import colors
 from smodels_utils.helper.various import hasLLHD
 from tester import analysisCombiner
 import IPython
@@ -116,7 +117,7 @@ def draw( args : dict ):
 
     # dir = "/home/walten/git/smodels-database/"
     dbdir = args["database"]
-    d=Database( dbdir, discard_zeroes=False, combinationsmatrix = matrix )
+    d=Database( dbdir, combinationsmatrix = matrix )
     print(d)
     analysisIds = [ "all" ]
     if "analyses" in args and args["analyses"]!=None:
