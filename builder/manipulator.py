@@ -14,6 +14,7 @@ from builder.protomodel import ProtoModel
 from smodels.base.physicsUnits import fb, TeV
 from smodels.base.crossSection import LO
 from smodels.matching.theoryPrediction import TheoryPrediction
+import smodels
 import copy, numpy, time, os, sys, itertools, colorama, random
 from typing import Union, Dict, List
 from os import PathLike
@@ -186,6 +187,7 @@ class Manipulator:
         D["walkerid"]=self.M.walkerid
         D["step"]=self.M.step
         D["codever"]=self.M.codeversion
+        D["smodelsver"]=smodels.installation.version()
         D["dbver"]=self.M.dbversion
         if len(comment)>0:
             D["comment"]=comment

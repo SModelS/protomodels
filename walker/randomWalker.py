@@ -35,7 +35,7 @@ def __cleanDirectory ():
 
 class RandomWalker:
     def __init__ ( self, walkerid : int = 0, nsteps : int = 10000, 
-            strategy : str = "aggressive", dump_training : bool = False, 
+            strategy : str = "aggressive", 
             cheatcode : int = 0, dbpath : PathLike = "./database.pcl", 
             expected : bool = False, select : str = "all", 
             catch_exceptions : bool = True, rundir : Union[PathLike,None] = None, 
@@ -96,7 +96,6 @@ class RandomWalker:
             stopTeleportationAfter = -1
         # stopTeleportationAfter = self.maxsteps/3.
         self.stopTeleportationAfter = stopTeleportationAfter
-        self.accelerator = None
         if record_history:
             from ptools.history import History
             self.recorder = History ( f"{self.rundir}/history{walkerid}.list" )
@@ -122,12 +121,6 @@ class RandomWalker:
             self.printStats ( substep=5 )
             self.currentK = self.manipulator.M.K
             self.currentZ = self.manipulator.M.Z
-        if dump_training:
-            from accelerator import Accelerator
-            ## we use the accelerator only to dump the training data
-            self.accelerator = Accelerator ( walkerid= walkerid,
-                                dump_training= True,
-                                is_trained = False  )
 
     def hostname ( self ):
         return socket.gethostname()
@@ -135,8 +128,6 @@ class RandomWalker:
     def setWalkerId ( self, Id ):
         self.walkerid = Id
         self.manipulator.setWalkerId ( Id )
-        if self.accelerator != None:
-            self.accelerator.walkerid = Id
 
     @classmethod
     def fromProtoModel( cls, protomodel : ProtoModel, **args : Dict ):
@@ -147,11 +138,6 @@ class RandomWalker:
         if "walkerid" in args:
             ret.manipulator.setWalkerId ( args["walkerid"] )
         ret.manipulator.backupModel()
-        if dump_training:
-            ## we use the accelerator only to dump the training data
-            from accelerator import Accelerator
-            ret.accelerator = Accelerator ( walkerid= walkerid, dump_training=True,
-                                        is_trained = False )
         return ret
 
     def extractArguments ( func : Callable, **args : Dict ) -> Dict:
@@ -252,8 +238,7 @@ class RandomWalker:
         # self.printStats( substep=11 )
         printMemUsage = False
         if printMemUsage:
-            self.pprint ( "memory footprint (kb): walker %d, model %d, accelerator %d" %\
-                    ( asizeof(self)/1024,asizeof(self.protomodel)/1024,asizeof(self.accelerator)/1024 ))
+            self.pprint ( f"memory footprint (kb): walker {asizeof(self)/1024}, model {asizeof(self.protomodel)/1024}" )
 
         #Trim the model, so we start only with the relevant particles for the
         #best combination in the previous step:
@@ -417,8 +402,6 @@ class RandomWalker:
                 self.pprint ( "u=%.2f > %.2f; K: %.2f -> %.2f: revert." % (u,ratio,self.currentK,
                                 self.protomodel.K) )
                 self.manipulator.restoreModel( reportReversion=True )
-                if hasattr ( self, "oldgrad" ) and self.accelerator != None:
-                    self.accelerator.grad = self.oldgrad
             else:
                 self.pprint ( "u=%.2f <= %.2f ; %.2f -> %.2f: take the step, even though old is better." % (u, ratio,self.currentK,self.protomodel.Z) )
                 self.takeStep()

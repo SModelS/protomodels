@@ -40,7 +40,7 @@ def startWalkers ( walkers, catchem=False, seed = None ):
 
 def main( nmin, nmax, continueFrom : PathLike,
           dbpath : PathLike = "<rundir>/database.pcl",
-          cheatcode = 0, dump_training = False, rundir=None, maxsteps = 10000,
+          cheatcode = 0, rundir=None, maxsteps = 10000,
           nevents = 100000, seed = None,  catchem=True, select="all",
           do_combine = False, record_history = False, update_hiscores = False,
           stopTeleportationAfter : int = -1 ):
@@ -49,7 +49,6 @@ def main( nmin, nmax, continueFrom : PathLike,
     :param nmax: the walker id + 1 of the last walker
     :param continueFrom: start with protomodels given in the pickle file or hiscore dictionary file
     :param cheatcode: in case we wish to start from a cheat model
-    :param dump_training: dump training data for the NN
     :param rundir: overrride default rundir, if None use default
     :param maxsteps: maximum number of steps to be taken
     :param nevents: number of MC events when computing cross-sections
@@ -97,7 +96,6 @@ def main( nmin, nmax, continueFrom : PathLike,
         if pfile is None:
             print ( "[walkingWorker] starting %d @ %s with cheatcode %d" % ( i, rundir, cheatcode ) )
             w = RandomWalker( walkerid=i, nsteps = maxsteps,
-                              dump_training = dump_training,
                               dbpath=dbpath, cheatcode=cheatcode, select=select,
                               rundir=rundir, nevents=nevents, do_combine = do_combine,
                               record_history=record_history, seed=seed,
@@ -108,7 +106,7 @@ def main( nmin, nmax, continueFrom : PathLike,
             ctr = i % nstates
             print ( "[walkingWorker] fromModel %d: loading %d/%d" % ( i, ctr, nstates ) )
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
-                    walkerid = i, nsteps = maxsteps, dump_training=dump_training,
+                    walkerid = i, nsteps = maxsteps,
                     expected = False, select = select, dbpath = dbpath,
                     rundir = rundir, do_combine = do_combine, seed = seed,
                     stopTeleportationAfter = stopTeleportationAfter )
@@ -118,10 +116,9 @@ def main( nmin, nmax, continueFrom : PathLike,
             ctr = i % nstates
             print ( "[walkingWorker] fromDict %d: loading %d/%d" % ( i, ctr, nstates ) )
             w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
-                    strategy = "aggressive", walkerid = i,
-                    dump_training=dump_training, dbpath = dbpath, expected = False,
-                    select = select, rundir = rundir, nevents = nevents,
-                    do_combine = do_combine, 
+                    strategy = "aggressive", walkerid = i, dbpath = dbpath, 
+                    expected = False, select = select, rundir = rundir, 
+                    nevents = nevents, do_combine = do_combine, 
                     seed = seed, stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
     startWalkers ( walkers, catchem=catchem, seed=seed )
@@ -160,7 +157,7 @@ if __name__ == "__main__":
     dbpath = "./default.pcl"
     dbpath = "official"
     # dbpath = "~/git/smodels-database"
-    w = RandomWalker( walkerid=0, nsteps = 200, dump_training = False,
+    w = RandomWalker( walkerid=0, nsteps = 200, 
                       dbpath=dbpath, cheatcode=0, select=s,
                       rundir="./", nevents=1000, seed = None )
     w.walk()
