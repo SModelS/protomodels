@@ -18,6 +18,7 @@ from ptools.sparticleNames import SParticleNames
 from smodels.tools.smodelsLogging import logger
 logger.setLevel("ERROR")
 from os import PathLike
+from colorama import Fore
 
 # runtime._experimental = True
 
@@ -871,6 +872,7 @@ class HiscorePlotter:
         except ModuleNotFoundError as e:
             print ( f"[plotHiscore] skipping decays, no pygraphviz found!" )
             return
+        verbosity = verbosity.lower().strip()
         print ( f"[plotHiscore] now draw {outfile}" )
         options = { "tex": True, "color": True, "dot": True, "squarks": True,
                     "weakinos": True, "sleptons": True, "neato": True,
@@ -878,17 +880,15 @@ class HiscorePlotter:
                     "integratesquarks": False, "leptons": True }
         options["rmin"] = 0.005
         ## FIXME add cross sections.
-        if verbosity == "debug":
+        if verbosity in [ "debug", "info" ]:
             soptions = ""
             for k,v in options.items():
                 if v==True:
                     soptions += "--%s " % k
-            ma = Manipulator ( protomodel )
+            ma = Manipulator ( self.protomodel )
             ssms = ma.simplifySSMs()
             # soptions+=' --ssmultipliers "%s"' % ssms
-            print ( "%s../smodels-utils/smodels_utils/plotting/decayPlotter.py -f %s -o %s %s%s" % \
-                    ( colorama.Fore.GREEN, protomodel.currentSLHA, outfile, soptions,
-                      colorama.Fore.RESET ) )
+            print ( f"{Fore.GREEN}../smodels-utils/smodels_utils/plotting/decayPlotter.py -f {self.protomodel.currentSLHA} -o {outfile} {soptions}{Fore.RESET}" )
         decayPlotter.draw ( self.protomodel.currentSLHA, outfile, options,
                             verbosity = verbosity,
                             ssmultipliers = self.protomodel.ssmultipliers )
