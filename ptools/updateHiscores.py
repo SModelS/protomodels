@@ -167,19 +167,21 @@ def updateStates( rundir : Union[None,PathLike] = None,
     print ( )
 
 def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230", 
-          dbpath : str = "@rundir@/default.pcl" ):
+          dbpath : str = "@rundir@/default.pcl", verbose : bool = False ):
     """ create all hiscore plots
 
     :param upload: the "label" of the upload. determines the directory name at
     https://smodels.github.io/protomodels/
     Typically: latest, official, 230, ...
     :param dbpath: path to database, look for default.pcl in rundir by default
+    :param verbose: be verbose, if true
     """
     from plotting import plotHiscore
     from argparse import Namespace
     args = Namespace()
     args.upload = upload
     args.number = 0
+    args.verbose = verbose
     args.detailed = False
     args.destinations = False
     args.hiscorefile = f"{rundir}/hiscore.hi"
@@ -199,24 +201,25 @@ def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
         args.commit = True
     plotHiscore.runPlotting ( args )
 
-def main( rundir : Union[None,os.PathLike] = None, 
-          maxruns : int = 3, doPlots : bool=True, 
-          uploadTo : str = "temp", 
-          dbpath : str = "@rundir@/default.pcl" ):
-    """ eternal loop that updates hiscore.hi and states.dict
+def loop( rundir : Union[None,os.PathLike] = None, 
+          maxruns : Union[None,int] = 3, doPlots : bool=True, 
+          uploadTo : str = "temp", dbpath : str = "@rundir@/default.pcl",
+          verbose : bool = False ):
+    """ loop (maxruns times) that updates hiscore.hi and states.dict
 
-    :param maxruns: maximally iterate that many times
+    :param maxruns: maximally iterate that many times, if None then loop endlessly
     :param doPlots: if False, suppress plotting
     :param uploadTo: upload plots to directory "~/git/smodels.github.io/<uploadTo>"
+    :param verbose: verbosity
     """
     rundir = setup( rundir )
     i = 0
     Z, Zold, step, K, Kold = 0., 0., 0, -90., -90.
-    Zfile = "%s/Zold.conf" % rundir
+    Zfile = f"{rundir}/Zold.conf"
     if os.path.exists ( Zfile ):
         with open ( Zfile, "rt" ) as f:
             Zold = float ( f.read().strip() )
-    Kfile = "%s/Kold.conf" % rundir
+    Kfile = f"{rundir}/Kold.conf" 
     if os.path.exists ( Kfile ):
         with open ( Kfile, "rt" ) as f:
             Kold = float ( f.read().strip() )
@@ -243,7 +246,7 @@ def main( rundir : Union[None,os.PathLike] = None,
             Zold = Z
             Kold = K
         if doPlots:
-            plot ( Z, K, rundir, uploadTo, dbpath )
+            plot ( Z, K, rundir, uploadTo, dbpath, verbose )
         updateStates( rundir, dbpath )
         time.sleep(60.)
         if os.path.exists ( Kfile ): ## so we can meddle from outside

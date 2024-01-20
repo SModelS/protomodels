@@ -136,7 +136,7 @@ def main( nmin, nmax, continueFrom : PathLike,
                     ( steps[0], nmax*maxsteps ) )
             ctAttempts += 1
             if steps[0] == nmax*maxsteps: ## are we last?
-                updateHiscores.main ( rundir = rundir, maxruns=1,
+                updateHiscores.loop ( rundir = rundir, maxruns=1,
                                       doPlots=False, uploadTo="latest" )
                 succeeded = True
                 break
