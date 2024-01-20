@@ -837,7 +837,7 @@ class HiscorePlotter:
         fname = "ruler.png"
         if horizontal:
             fname = "horizontal.png"
-        print ( "[plotHiscore] now draw %s" % fname )
+        print ( f"[plotHiscore] now draw {fname}" )
         resultsForPIDs = {}
         for tpred in self.protomodel.bestCombo:
             resultsForPIDs = self.getPIDsOfTPred ( tpred, resultsForPIDs )
@@ -1006,35 +1006,7 @@ def runPlotting ( args ):
             print ( "git push" )
         return
 
-    if upload == "gpu":
-        import socket
-        hostname = socket.gethostname()
-        D = "/afs/hephy.at/user/w/wwaltenberger/www/protomodels"
-        ## first the backup
-        if "gpu" in hostname:
-            ## make backup
-            cmd = "cp %s/* %s/backup/" % ( D, D )
-        else:
-            cmd = "ssh hepgpu01.hephy.oeaw.ac.at cp %s/* %s/backup/" % ( D, D )
-        print ( cmd )
-        # now the new stuff
-        O = subprocess.getoutput ( cmd )
-        if len(O)>0:
-            print ( "[plotHiscore.py] when uploading files: %s" % O )
-
-        if "gpu" in hostname:
-            ## make backup
-            cmd = "cp %s/* %s/backup/" % ( D, D )
-            subprocess.getoutput ( cmd )
-            cmd = "cp %s %s" % (F, D )
-        else:
-            cmd = "scp %s hepgpu01.hephy.oeaw.ac.at:%s" % ( F, D )
-        print ( cmd )
-        O = subprocess.getoutput ( cmd )
-        if len(O)>0:
-            print ( "[plotHiscore.py] when uploading files: %s" % O )
-        return
-    print ( "error, dont know what to do with upload sink '%s'" % upload )
+    print ( f"error, dont know what to do with upload sink '{upload}'" )
 
 
 def main ():
