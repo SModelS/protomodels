@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-.. module:: movieMaker
-   :synopsis: a simple movie maker, makes a video clip that shows the evolution of
-              the meta statistics over time
+.. module:: databaseEvolutionVideoMaker
+   :synopsis: makes a video clip that shows the evolution of the meta statistics 
+   over time
 
 .. moduleauthor:: Wolfgang Waltenberger <wolfgang.waltenberger@gmail.com>
 
@@ -11,7 +11,7 @@
 
 import subprocess, os, sys, shutil
 
-class MovieMaker:
+class DatabaseEvolutionVideoMaker:
     def __init__ ( self, dictfile : str ):
         self.dirname = "pics"
         self.dictfile = dictfile
@@ -94,7 +94,7 @@ if __name__ == "__main__":
                          help='the input dictfile [../timestamps.dict]',
                          type=str, default='../timestamps.dict' )
     args = argparser.parse_args()
-    maker = MovieMaker( args.dictfile )
+    maker = DatabaseEvolutionVideoMaker( args.dictfile )
     maker.mkdir()
     maker.mkpics()
     maker.mkffmpeg()
