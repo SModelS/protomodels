@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+""" video maker of evolution of the protomodels while MCMC walking """
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -24,7 +27,7 @@ sns.set_context('paper', font_scale=1.8)
 sns.set_palette(sns.color_palette("deep"))
 
 import argparse
-argparser = argparse.ArgumentParser( description="movie maker" )
+argparser = argparse.ArgumentParser( description="video maker of evolution of the protomodels while MCMC walking" )
 argparser.add_argument ( '-f', '--history',
         help='history file to use [history.list]',
         type=str, default="history.list" )
@@ -169,7 +172,7 @@ currentstep = 8
 if maxstep > len(Ks)-currentstep-20:
     maxstep=len(Ks)-currentstep-20
 
-print ( "[movieMaker] setting maxstep to %d" % maxstep )
+print ( f"[movieMaker] setting maxstep to {maxstep}" )
 
 style = "Simple, tail_width=0.5, head_width=4, head_length=8"
 kw = dict(arrowstyle=style, color="k")
@@ -201,9 +204,9 @@ def getHiscore ( firststep, currentstep, Ks ):
 def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K ):
     """ make a single picture """
     step = firststep + 1 ## make all one-indexed, ok?
-    figname = '%s%.3d.png' % (prefix, step )
+    figname = f'{prefix}{step:03d}.png'
     if intermediateSteps:
-        figname = '%s%.5d.png' % ( prefix, imgnr )
+        figname = f'{prefix}{imgnr:05d}.png'
     if K > maxK:
         lastingHS = maxHS ## keep it for 9 frames
         stepatmax = firststep+currentstep
