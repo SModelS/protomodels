@@ -138,10 +138,8 @@ def canCombineUsingMatrix ( globA : Union[TheoryPrediction,Info],
             return True
     return False
 
-def getSummary():
+def getSummary( dbpath : str = "official" ):
     from smodels.experiment.databaseObj import Database
-    # dbpath = "official"
-    dbpath = "<rundir>/database.pcl"
     print ( f"[analysisCombiner] checking {dbpath}" )
     db = Database ( dbpath )
     results = db.getExpResults()
@@ -171,12 +169,12 @@ def checkOneAnalysis():
     import sys
     sys.path.insert(0,"../")
     argparser = argparse.ArgumentParser(
-            description='print the correlations of one specific analysis')
+            description='print the combinabilities of one specific analysis')
     argparser.add_argument ( '-d', '--dbpath',
-            help='specify path to database [<rundir>/database.pcl]',
-            type=str, default="<rundir>/database.pcl" )
+            help='specify path to database [official]',
+            type=str, default="official" )
     argparser.add_argument ( '-a', '--analysis',
-            help='print for <analysis>',
+            help='print for <analysis> [CMS-SUS-19-006]',
             type=str, default="CMS-SUS-19-006" )
     args = argparser.parse_args()
     from smodels.experiment.databaseObj import Database
@@ -186,11 +184,13 @@ def checkOneAnalysis():
     info = getInfoFromAnaId ( args.analysis, results )
     sqrts = info.sqrts
     collaboration = getExperimentName ( info )
-    prettyName = info.prettyName
+    prettyName = ""
+    if hasattr ( info, "prettyName" ):
+        prettyName = info.prettyName
     if args.analysis in moreComments:
         prettyName += " (%s)" % moreComments[args.analysis]
     # IPython.embed()
-    print ( "correlations for %s: %s" % (  args.analysis, prettyName ) )
+    print ( "combinabilities for %s: %s" % (  args.analysis, prettyName ) )
     combs, nocombs = set(), set()
     pnames = {}
     for er in results:
@@ -202,7 +202,9 @@ def checkOneAnalysis():
         Id = Id.replace("-eff","").replace("-agg","")
         if Id == args.analysis:
             continue
-        pname = er.globalInfo.prettyName
+        pname = ""
+        if hasattr ( er.globalInfo, "prettyName" ):
+            pname = er.globalInfo.prettyName
         if Id in moreComments:
             pname += " (%s)" % moreComments[Id]
         pnames[Id]=pname
@@ -226,4 +228,4 @@ def checkOneAnalysis():
 
 if __name__ == "__main__":
     checkOneAnalysis()
-    # getSummary()
+    # getSummary( dbpath )
