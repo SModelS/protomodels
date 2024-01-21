@@ -26,24 +26,31 @@ class HiscorePlotter:
     def __init__ ( self ):
         self.url = "https://smodels.github.io/"
 
+    def rebuildHiscoreHi ( self, hiscorefile, dbpath ):
+        """ rebuild hiscore.hi """
+        if os.path.exists ( hiscorefile ):
+            print ( f"[plotHiscore] {hiscorefile} exists, but I rebuild anyways. FIXME might wanna change this!" )
+        #    return
+        # print ( f"[plotHiscore] {hiscorefile} does not exist. Trying to produce now with ./hiscore.hi" )
+        print ( f"[plotHiscore] Rebuilding {hiscorefile}" )
+        from argparse import Namespace
+        args = Namespace()
+        args.detailed = False
+        args.print = False
+        args.outfile = "hiscore.hi"
+        args.infile = hiscorefile
+        args.fetch = False
+        args.maxloss = 0.005
+        args.nmax = 1
+        args.dbpath = dbpath
+        # args.dbpath = "default.pcl"
+        hiscoreTools.updateHiscoreHi ( args )
+
     def obtain ( self, number, hiscorefile : PathLike, dbpath : PathLike ) -> ProtoModel:
         """ obtain hiscore number <number>
         :returns: model
         """
-        if not os.path.exists ( hiscorefile ):
-            print ( f"[plotHiscore] {hiscorefile} does not exist. Trying to produce now with ./hiscore.hi" )
-            from argparse import Namespace
-            args = Namespace()
-            args.detailed = False
-            args.print = False
-            args.outfile = "hiscore.hi"
-            args.infile = hiscorefile
-            args.fetch = False
-            args.maxloss = 0.005
-            args.nmax = 1
-            args.dbpath = dbpath
-            # args.dbpath = "default.pcl"
-            hiscoreTools.updateHiscoreHi ( args )
+        self.rebuildHiscoreHi ( hiscorefile, dbpath )
 
         with open( hiscorefile,"rb" ) as f:
             #fcntl.flock( f, fcntl.LOCK_EX )

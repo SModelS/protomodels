@@ -134,8 +134,7 @@ def updateHiscores( rundir : Union[None,PathLike] = None,
     from ptools import hiscoreTools
     import socket
     hostname = socket.gethostname().replace(".cbe.vbc.ac.at","")
-    print ( "[updateHiscores] now update %s on %s:%s" % \
-            ( args.outfile, hostname, rundir ) )
+    print ( f"[updateHiscores] now update {args.outfile} on {hostname}:{rundir}" )
     D = hiscoreTools.updateHiscoreHi ( args )
     return D
 
