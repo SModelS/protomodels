@@ -136,7 +136,7 @@ def updateHiscores( rundir : Union[None,PathLike] = None,
     hostname = socket.gethostname().replace(".cbe.vbc.ac.at","")
     print ( "[updateHiscores] now update %s on %s:%s" % \
             ( args.outfile, hostname, rundir ) )
-    D = hiscoreTools.main ( args )
+    D = hiscoreTools.updateHiscoreHi ( args )
     return D
 
 def updateStates( rundir : Union[None,PathLike] = None,
@@ -161,9 +161,9 @@ def updateStates( rundir : Union[None,PathLike] = None,
     # args.nevents = 50000
     from ptools import hiscoreTools
     print ( )
-    print ( "[updateHiscores] now update %s" % args.outfile )
-    hiscoreTools.main ( args )
-    print ( "[updateHiscores] done updating %s" % args.outfile )
+    print ( f"[updateHiscores] now update {args.outfile}" )
+    hiscoreTools.updateHiscoreHi ( args )
+    print ( f"[updateHiscores] done updating {args.outfile}" )
     print ( )
 
 def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230", 
@@ -229,7 +229,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
             break
         D = updateHiscores( rundir, dbpath )
         Z,step,model,K = D["Z"],D["step"],D["model"],D["K"]
-        if K > Kold + .001:
+        if K > Kold + 1e-10: #  + .001:
             from builder.manipulator import Manipulator
             m = Manipulator ( model )
             T=str(int(time.time()))

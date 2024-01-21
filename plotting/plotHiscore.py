@@ -43,7 +43,7 @@ class HiscorePlotter:
             args.nmax = 1
             args.dbpath = dbpath
             # args.dbpath = "default.pcl"
-            hiscoreTools.main ( args )
+            hiscoreTools.updateHiscoreHi ( args )
 
         with open( hiscorefile,"rb" ) as f:
             #fcntl.flock( f, fcntl.LOCK_EX )
