@@ -10,6 +10,8 @@ from ptools.csetup import setup
 setup()
 from builder.manipulator import Manipulator
 from walker.hiscore import Hiscore
+from typing import Union, Dict
+from argparse import Namespace
 
 def count ( protomodels ):
     return len(protomodels)-protomodels.count(None)
@@ -106,7 +108,7 @@ def compileList( nmax ):
             allprotomodels.append ( None )
     return allprotomodels
 
-def main ( args ):
+def updateHiscoreHi ( args : Namespace ) -> Dict:
     """ the function that updates the hiscore.hi file
     :param args: detailed, outfile, infile, print, fetch, nmax,
                  check, interactive, nevents.
@@ -114,7 +116,6 @@ def main ( args ):
     :returns: { "Z": highest significance,
                 "step": step, "model": model, "K": bayesian_K  }
     """
-
     ret =  { "Z": 0., "step": 0, "model": None, "K": -100. }
 
     if args.detailed:
@@ -129,20 +130,13 @@ def main ( args ):
         trundir = args.rundir
     rundir = setup( trundir )
     if infile == "default":
-        infile = "%s/hiscore.hi" % rundir
+        infile = f"{rundir}/hiscore.hi"
     if args.outfile == infile:
         print ( "[hiscore] outputfile is same as input file. will assume that you do not want me to write out at all." )
         args.outfile = None
 
-    if args.fetch:
-        import subprocess
-        cmd = "scp gpu:/local/wwaltenberger/git/smodels-utils/prototools/H*.hi ."
-        print ( f"[hiscore] {cmd}" )
-        out = subprocess.getoutput ( cmd )
-        print ( out )
-
     if infile is None:
-        print ( "[hiscore] compiling a hiscore list with %d protomodels" % args.nmax )
+        print ( f"[hiscore] compiling a hiscore list with {args.nmax} protomodels" )
         protomodels = compileList( args.nmax ) ## compile list from H<n>.hi files
     else:
         if not os.path.exists ( infile ):
@@ -178,12 +172,6 @@ def main ( args ):
     print ( "[hiscore] hiscore from %s[%d] is at K=%.3f, Z=%.3f (%s)" % \
             ( sin, protomodels[0].walkerid, protomodels[0].K, protomodels[0].Z, pevs ) )
 
-    # nevents = args.nevents
-
-    #if args.nmax > 0:
-    #    protomodels = protomodels[:args.nmax]
-
-    # print ( "we are here", args.outfile, hasattr ( protomodels[0], "analysisContributions" ) )
     if type(args.outfile)==str and (".pcl" in args.outfile or ".hi" in args.outfile ):
         if not hasattr ( protomodels[0], "analysisContributions" ):
             print ( "[hiscore] why does the winner not have analysis contributions?" )
