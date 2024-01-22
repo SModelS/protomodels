@@ -461,7 +461,7 @@ class LlhdPlot:
             print ()
             # print ( "\n[plotLlhds] min(xy) for %s is at m=(%d/%d): %.2f(%.2g)" % ( ana, minXY[0], minXY[1], minXY[2], np.exp(-minXY[2] ) ) )
             if cresults == 0:
-                print ( "[plotLlhds] warning: found no results for %s. skip" % \
+                print ( f"[plotLlhds] warning: found no results for {masspoint}. skip" )
                         str(masspoint) )
                 continue
                 # return
