@@ -55,12 +55,15 @@ if args.fetch:
     cmd = "scp clip-login-1:/scratch-cbe/users/wolfgan.waltenberger/rundir*/history*.list ."
     print ( cmd )
     subprocess.getoutput ( cmd )
-prefix = args.outfile.replace(".mp4","").replace(".webm","")
+# prefix = args.outfile.replace(".mp4","").replace(".webm","")
+tempdir = "temp"
+if not os.path.exists ( tempdir ):
+    os.mkdir ( tempdir )
 
 intermediateSteps = True ## do 10 rendering steps per one random walk step
 
 if args.do_clean:
-    cmd = f'rm -f {prefix}*.png'
+    cmd = f'rm -f {tempdir}/*.png'
     subprocess.getoutput( cmd )
 
 #Set colors:
@@ -137,6 +140,9 @@ for p in modelList:
             t=t.replace("->","$\\rightarrow$")
             ac.append ( t )
     def sortMsgs ( x ):
+        """ sort the messages according to importance.
+        take/revert step takes highest priority but we will later
+        make sure it gets printed at the end """
         if "teleport" in x:
             return 1
         if "unfreeze" in x:
@@ -149,7 +155,11 @@ for p in modelList:
             return 4
         if "ssm" in x:
             return 100
-        return 0
+        if "revert step" in x:
+            return 0
+        if "take step" in x:
+            return 0
+        return 2000
     ac.sort ( key=sortMsgs )
     actions.append(ac)
     bcs.append(p["bestCombo"])
@@ -180,10 +190,10 @@ print ( f"[movieMaker] setting maxstep to {maxstep}" )
 style = "Simple, tail_width=0.5, head_width=4, head_length=8"
 kw = dict(arrowstyle=style, color="k")
 
-cmd = f'ffmpeg -y -i "{prefix}%3d.png" -filter:v "setpts=6.0*PTS" {args.outfile}'
+cmd = f'ffmpeg -y -i "{tempdir}/walk%3d.png" -filter:v "setpts=6.0*PTS" {args.outfile}'
 if intermediateSteps:
-    cmd = f'ffmpeg -y -r 200 -i "{prefix}%5d.png" {args.outfile}'
-    #cmd = f'ffmpeg -y -i "{prefix}%5d.png" {args.outfile}'
+    cmd = f'ffmpeg -y -r 200 -i "{tempdir}/walk%5d.png" {args.outfile}'
+    #cmd = f'ffmpeg -y -i "{tempdir}/%5d.png" {args.outfile}'
 print ( "the command for movie making will be:" )
 print ( cmd )
 
@@ -207,9 +217,9 @@ def getHiscore ( firststep, currentstep, Ks ):
 def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K ):
     """ make a single picture """
     step = firststep + 1 ## make all one-indexed, ok?
-    figname = f'{prefix}{step:03d}.png'
+    figname = f'{tempdir}/walk{step:03d}.png'
     if intermediateSteps:
-        figname = f'{prefix}{imgnr:05d}.png'
+        figname = f'{tempdir}/walk{imgnr:05d}.png'
     if K > maxK:
         lastingHS = maxHS ## keep it for 9 frames
         stepatmax = firststep+currentstep
@@ -304,7 +314,7 @@ def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K
         ac.append ( "" )
     if lac>0:
         ss = math.ceil ( len(ac)/3 )
-        txt="\n".join( ac[:3] )
+        txt="\n".join( ac[1:3] + [ ac[0] ] )
         # txt="\n".join([ x.replace("->","$\\rightarrow$") for x in ac[::ss] ])
         plt.text ( -8+firststep-nstart+offs, -320, txt, c="gray", size=7 )
     bc=bcs[firststep+currentstep]
