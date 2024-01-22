@@ -559,7 +559,7 @@ class ProtoModel:
     def dict ( self ):
         """ return the dictionary that can be written out """
         return { "masses": self.masses, "ssmultipliers": self.ssmultipliers,
-                 "decays": self.decays }
+                 "decays": self.decays, "xsecs": self.getXsecs() }
 
     def relevantSSMultipliers ( self ):
         """ of all the ss mulipliers, return only the relevant ones,

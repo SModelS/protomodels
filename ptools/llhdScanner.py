@@ -11,8 +11,8 @@ from smodels.base.physicsUnits import fb
 from smodels.tools.runtime import nCPUs
 from tester.combiner import Combiner
 from tester.predictor import Predictor
-from plotting.plotHiscore import obtain
-from plotting import plotLlhds
+from plotting import plotLlhds, plotHiscore
+from typing import Dict
 
 def findPids ( rundir ):
     """ search for llhd*pcl files, report the corresponding pids.
@@ -27,7 +27,7 @@ def findPids ( rundir ):
         s = s.replace(".pcl","")
         s = s.replace("1000022","")
         ret.add ( int(s) )
-    print ( "[llhdscanner] pids are %s" % ret )
+    print ( "[llhdScanner] pids are %s" % ret )
     return ret
 
 class LlhdThread:
@@ -143,7 +143,12 @@ def runThread ( threadid: int, rundir: str, M, pid1, pid2, mpid1,
 
 class LlhdScanner:
     """ class that encapsulates a likelihood sweep """
-    def __init__ ( self, protomodel, pid1, pid2, nproc, rundir ):
+    def __init__ ( self, protomodel, pid1, pid2, nproc, rundir : str,
+                   dbpath : str = "official" ):
+        """
+        :param rundir: the rundir
+        :param dbpath: the database path
+        """
         self.rundirarg = rundir
         self.rundir = setup( rundir )
         self.M = protomodel
@@ -152,7 +157,6 @@ class LlhdScanner:
         self.nproc = nproc
         expected = False
         select = "all"
-        dbpath = rundir + "/default.pcl"
         self.predictor = Predictor ( 0, dbpath=dbpath, expected=expected, select=select, do_combine = False )
 
     def pprint ( self, *args ):
@@ -211,27 +215,32 @@ class LlhdScanner:
         #    print ( "mass point", m[0], ",", m[1], ": nres", len(m[2]) )
         return masspoints
 
-    def scanLikelihoodFor ( self, min1, max1, dm1, min2, max2, dm2,
-                            nevents, topo, output ):
+    def scanLikelihoodFor ( self, range1 : Dict, range2 : Dict,
+                            nevents : int, topo : str, output : str ):
         """ plot the likelihoods as a function of pid1 and pid2
+        :param range1: dictionary for range1 with min, max, dm
+        :param range2: dictionary for range1 with min, max, dm
         :param output: prefix for output file [mp]
         """
         self.nevents = nevents
         pid1 = self.pid1
         pid2 = self.pid2
         if pid2 != self.M.LSP:
-            print ("[llhdscanner] we currently assume pid2 to be the LSP, but it is %d" % pid2 )
+            print ("[llhdScanner] we currently assume pid2 to be the LSP, but it is %d" % pid2 )
         import numpy
         c = Combiner()
         anaIds = c.getAnaIdsWithPids ( self.M.bestCombo, [ pid1, pid2 ] )
         ## mass range for pid1
         self.mpid1 = self.M.masses[pid1]
         self.mpid2 = self.M.masses[pid2]
-        rpid1 = numpy.arange ( min1, max1+1e-8, dm1 )
-        rpid2 = numpy.arange ( min2, max2+1e-8, dm2 )
-        print ( "[llhdscanner] range for %d: %s" % ( pid1, self.describeRange( rpid1 ) ) )
-        print ( "[llhdscanner] range for %d: %s" % ( pid2, self.describeRange( rpid2 ) ) )
-        print ( "[llhdscanner] total %d points, %d events for %s" % ( len(rpid1)*len(rpid2), nevents, topo ) )
+        defaults = { 1000023: [200, 801, 100 ], 1000022: [ 50, 501, 100 ], 
+                     1000006: [300,1301, 100 ], 1000024: [200, 801, 100 ] }
+        
+        rpid1 = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
+        rpid2 = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
+        print ( f"[llhdScanner] range for {pid1}: {self.describeRange( rpid1 )}" )
+        print ( f"[llhdScanner] range for {pid2}: {self.describeRange( rpid2 )}" )
+        print ( f"[llhdScanner] total {len(rpid1)*len(rpid2)} points, {nevents} events for {topo}" )
         self.M.createNewSLHAFileName ( prefix="llhd%d" % pid1 )
         #self.M.initializePredictor()
         self.predictor.filterForTopos ( topo )
@@ -270,26 +279,33 @@ class LlhdScanner:
 
     def overrideWithDefaults ( self, args ):
         mins = { 1000005:  100., 1000006:  100., 2000006:  100., 1000021:  300., \
+                 1000023:  200., 1000024:  200.,
                  1000001:  250., 1000002: 250., 1000003: 250., 1000004: 250. }
         maxs = { 1000005: 1500., 1000006: 1460., 2000006: 1260., 1000021: 2351., \
+                 1000023:  700., 1000024:  700.,
                  1000001: 2051., 1000002: 2051., 1000003: 2051., 1000004: 2051. }
         #dm   = { 1000005:   16., 1000006:   16., 2000006:   16., 1000021:  20., \
         #         1000001:   20., 1000002:   20., 1000003:   20., 1000004:  20.  }
         dm   = { 1000005:   10., 1000006:   10., 2000006:   10., 1000021: 15., \
+                 1000023:   10., 1000024:   10.,
                  1000001:   12., 1000002:   12., 1000003:   12., 1000004: 12.  }
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
+                 1000023: "TChiZZoff", 1000024: "TChiWZoff",
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
         LSPmins = { 1000005:    5., 1000006:   5., 2000006:    5., 1000021:    5., \
+                    1000023:    5., 1000024:   5.,
                     1000001:    5., 1000002: 5., 1000003: 5., 1000004: 5. }
         LSPmaxs = { 1000005:  800., 1000006: 900., 2000006:  800., 1000021: 1800., \
+                    1000023:  600., 1000024: 600.,
                     1000001: 1700., 1000002: 1700., 1000003: 1700., 1000004: 1700. }
         #LSPdm   = { 1000005:   12., 1000006:  14., 2000006:  14., 1000021: 14., \
         #           1000001:   12., 1000002:  12., 1000003:  12., 1000004: 12. }
         LSPdm   = { 1000005: 10., 1000006: 10., 2000006: 10., 1000021: 15., \
+                    1000023: 10., 1000024: 10.,
                     1000001: 10., 1000002: 10., 1000003: 10., 1000004: 10. }
         if not args.pid1 in mins:
-            print ( "[llhdscanner] asked for defaults for %d, but none defined." % args.pid1 )
+            print ( f"[llhdScanner] asked for defaults for {args.pid1}, but none defined." )
             return args
         if args.min1 == None:
             args.min1 = mins[args.pid1]
@@ -327,7 +343,7 @@ def main ():
             help='minimum mass of pid1 [None]',
             type=float, default=None )
     argparser.add_argument ( '-M1', '--max1',
-            help='maximum mass of pid1 [2200.]',
+            help='maximum mass of pid1 [None]',
             type=float, default=None )
     argparser.add_argument ( '-d1', '--deltam1',
             help='delta m of pid1 [None]',
@@ -362,6 +378,9 @@ def main ():
     argparser.add_argument ( '-o', '--output',
             help="prefix for output file [llhd]",
             type=str, default="llhd" )
+    argparser.add_argument ( '--dbpath',
+            help="path to database [official]",
+            type=str, default="official" )
     args = argparser.parse_args()
     rundir = setup( args.rundir )
     nproc = args.nproc
@@ -369,17 +388,18 @@ def main ():
         nproc = nCPUs() + nproc
     if args.picklefile == "default":
         args.picklefile = "%s/hiscore.hi" % rundir
-    protomodel = obtain ( args.number, args.picklefile )
+    protomodel = plotHiscore.HiscorePlotter().obtain ( args.number, args.picklefile, args.dbpath )
     pid1s = [ args.pid1 ]
     if args.pid1 == 0:
         pid1s = findPids( rundir )
     for pid1 in pid1s:
-        scanner = LlhdScanner( protomodel, pid1, args.pid2, nproc, rundir )
+        scanner = LlhdScanner( protomodel, pid1, args.pid2, nproc, rundir, args.dbpath )
         args.pid1 = pid1
         args = scanner.overrideWithDefaults ( args )
-        scanner.scanLikelihoodFor ( args.min1, args.max1, args.deltam1,
-                                    args.min2, args.max2, args.deltam2, \
-                                    args.nevents, args.topo, args.output )
+        range1 = { "min": args.min1, "max": args.max1, "dm": args.deltam1 }
+        range2 = { "min": args.min2, "max": args.max2, "dm": args.deltam2 }
+        scanner.scanLikelihoodFor ( range1, range2, args.nevents, args.topo, 
+                args.output )
         if args.draw:
             verbose = args.verbosity
             copy = True

@@ -3,7 +3,8 @@
 """ a class meant for recording the history of a walk.
 When executed, it runs a typical walker with the history recorder. """
 
-import colorama, time
+import time
+from colorama import Fore
 
 class History:
     def __init__ ( self, outfile = "history.list" ):
@@ -42,8 +43,7 @@ class History:
 
     def pprint ( self, *args ):
         """ pprint """
-        print ( "%s[history] %s%s" % \
-                ( colorama.Fore.LIGHTBLUE_EX, " ".join(map(str,args)), colorama.Fore.RESET ) )
+        print ( f"{Fore.LIGHTBLUE}[history] {' '.join(map(str,args))}{Fore.RESET}" )
 
     def save ( self ):
         self.pprint ( f"writing history to {self.outfile}." )
