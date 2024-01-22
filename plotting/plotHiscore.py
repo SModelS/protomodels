@@ -373,7 +373,7 @@ class HiscorePlotter:
                 return xsec.value
         return 0.*fb
 
-    def writeTex ( self, keep_tex ):
+    def writeTex ( self, keep_tex : bool ):
         """ write the comment about ss multipliers and particle contributions, in tex.
         Creates texdoc.png.
         :param keep_tex: keep tex source of texdoc.png
@@ -838,8 +838,9 @@ class HiscorePlotter:
                             ret[apid].add ( name )
         return ret
 
-    def plotRuler( self, verbosity, horizontal ):
+    def plotRuler( self, verbosity : str, horizontal : bool ):
         """ plot the ruler plot, given protomodel.
+        :param verbosity: one of: error, warning, info, debug
         :param horizontal: plot horizontal ruler plot, if true. Else, vertical.
         """
         fname = "ruler.png"
@@ -849,8 +850,6 @@ class HiscorePlotter:
         resultsForPIDs = {}
         for tpred in self.protomodel.bestCombo:
             resultsForPIDs = self.getPIDsOfTPred ( tpred, resultsForPIDs )
-            # print ( "p", pidsofpred )
-            # resultsForPIDs.union ( getPIDsOfTPred ( tpred ) )
         resultsFor = {}
         for pid,values in resultsForPIDs.items():
             if pid in self.protomodel.masses:
@@ -927,14 +926,17 @@ class HiscorePlotter:
         if options["predictions"]:
             self.discussPredictions ( )
         if options["html"] or options["tex"]:
-            texdoc = self.writeTex ( options["keep_tex"] )
+            texdoc = self.writeTex ( options["keep"] )
             if options["html"]:
                 self.writeIndexHtml ( )
             if options["tex"]:
                 self.writeIndexTex( texdoc )
         self.writeRawNumbersLatex ( )
         self.writeRawNumbersHtml ( )
-        self.protomodel.delCurrentSLHA()
+        if options["keep"]:
+            print ( f"[plotHiscore] keeping {self.protomodel.currentSLHA}" )
+        else:
+            self.protomodel.delCurrentSLHA()
 
     def compileTestText( self ):
         subprocess.getoutput ( "pdflatex test.tex" )
@@ -960,7 +962,7 @@ def runPlotting ( args ):
 
     options = { "ruler": args.ruler, "decays": args.decays,
                 "predictions": args.predictions, "html": args.html,
-                "keep_tex": args.keep, "tex": args.tex,
+                "keep": args.keep, "tex": args.tex,
                 "horizontal": args.horizontal }
 
     hiplt = HiscorePlotter()
@@ -1051,7 +1053,7 @@ def main ():
             help='produce test.pdf file',
             action="store_true" )
     argparser.add_argument ( '-k', '--keep',
-            help='keep latex files',
+            help='keep cruft files',
             action="store_true" )
     argparser.add_argument ( '--horizontal',
             help='horizontal, not vertical ruler plot?',
