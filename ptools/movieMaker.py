@@ -374,3 +374,6 @@ for firststep in range ( args.start, maxstep ):
 
 print ( f"[movieMaker] now executing {cmd}" )
 subprocess.getoutput ( cmd )
+if os.path.exists ( args.outfile ):
+    print ( f"[movieMaker] {args.outfile} created. try:" )
+    print ( f"smplayer {args.outfile}" )
