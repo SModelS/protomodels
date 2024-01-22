@@ -88,7 +88,7 @@ class LlhdThread:
         llhds= {}
         for tp in predictions:
             name = "%s:%s:%s" % ( tp.analysisId(), tp.dataId(), ",".join ( [ i.txName for i in tp.txnames ] ) )
-            llhds[ name ] = tp.getLikelihood ( mu )
+            llhds[ name ] = tp.likelihood ( mu )
         return llhds
 
     def clean ( self ):
