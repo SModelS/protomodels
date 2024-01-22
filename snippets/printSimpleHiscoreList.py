@@ -4,6 +4,7 @@
 
 from os import PathLike
 from ptools.sparticleNames import SParticleNames 
+from colorama import Fore
 
 def summarizeHiscores ( dictfile : PathLike = "hiscores.dict" ):
     """ summarize the content of the dict file """
@@ -11,7 +12,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict" ):
     D=eval(f.read() )
     f.close()
     for i,entry in enumerate ( D ):
-        K, Z = entry['K'], entry['Z']
+        K, Z, wid = entry['K'], entry['Z'], entry['walkerid']
         particles = entry["masses"].keys()
         sparticles = ""
         for ip, p in enumerate ( particles ):
@@ -21,7 +22,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict" ):
             mass = entry["masses"][p]
             sparticles += f"{name}={mass:.1f}"
         timestamp = entry["timestamp"]
-        print ( f"#{i}: K={K:.2f}; {sparticles}; {timestamp}" )
+        print ( f"#{i}({wid:3d}): K={Fore.GREEN}{K:.2f}{Fore.RESET}; {sparticles}; {timestamp}" )
 
 
 if __name__ == "__main__":
