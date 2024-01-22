@@ -152,7 +152,8 @@ def ssmProcess ( args ):
     return ret
 
 def produce( hi, pid=1000022, nevents = 100000, dry_run=False,
-             nproc=5, fac = 1.008, rundir = "", preserve_xsecs = False ):
+             nproc=5, fac = 1.008, rundir = "", preserve_xsecs = False,
+             dbpath : str = "official" ):
     """ produce pickle files of mass scans for pid, with nevents
     :param hi: hiscore list object
     :param nproc: number of processes
@@ -204,7 +205,6 @@ def produce( hi, pid=1000022, nevents = 100000, dry_run=False,
             ( pid, mass, nproc, len(mrangetot), nevents ) )
     expected = False
     select = "all"
-    dbpath = rundir + "/default.pcl"
     predictor =  Predictor( 0, dbpath=dbpath, do_combine=False,
                             expected=expected, select=select )
     import multiprocessing
@@ -228,7 +228,7 @@ def produce( hi, pid=1000022, nevents = 100000, dry_run=False,
         f.close()
 
 def produceSSMs( hi, pid1, pid2, nevents = 100000, dry_run=False,
-             nproc=5, fac = 1.008, rundir= "" ):
+             nproc=5, fac = 1.008, rundir= "", dbpath : str = "official" ):
     """ produce pickle files for ssm scan, for (pid1,pid2), with nevents
     :param hi: hiscore list object
     :param nproc: number of processes
@@ -269,7 +269,6 @@ def produceSSMs( hi, pid1, pid2, nevents = 100000, dry_run=False,
     pool = multiprocessing.Pool ( processes = len(ssmranges) )
     expected = False
     select = "all"
-    dbpath = rundir + "/default.pcl"
     predictor =  Predictor( 0, dbpath=dbpath, do_combine=False,
                             expected=expected, select=select )
     args = [ { "model": model, "pids": pids, "nevents": nevents, "ssm": ssm,
@@ -517,6 +516,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-R', '--rundir',
             help='override the default rundir [None]',
             type=str, default=None )
+    argparser.add_argument ( '--dbpath',
+            help='database path [official]',
+            type=str, default="official" )
     argparser.add_argument ( '-P', '--produce',
             help='produce the pickle file',
             action="store_true" )
@@ -557,10 +559,10 @@ if __name__ == "__main__":
     if args.produce:
         hi = getHiscore( args.force_copy, rundir )
         if args.pid2 > 0:
-            produceSSMs( hi, args.pid, args.pid2, args.nevents, args.dry_run, nproc, args.factor, rundir = rundir )
+            produceSSMs( hi, args.pid, args.pid2, args.nevents, args.dry_run, nproc, args.factor, rundir = rundir, dbpath = args.dbpath )
         else:
-            produce( hi, pids, args.nevents, args.dry_run, nproc, args.factor, rundir = rundir, preserve_xsecs = args.preserve_xsecs )
-    pred = Predictor( 0, do_combine = False )
+            produce( hi, pids, args.nevents, args.dry_run, nproc, args.factor, rundir = rundir, preserve_xsecs = args.preserve_xsecs, dbpath = args.dbpath )
+    pred = Predictor( 0, do_combine = False, dbpath = args.dbpath )
     rthreshold = pred.rthreshold
     if args.draw:
         if args.pid != 0:
