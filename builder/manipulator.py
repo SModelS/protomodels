@@ -1017,6 +1017,13 @@ class Manipulator:
             ## heed the wall!
             minMass = max ( self.wallmass, minMass )
 
+        if pid in [ 1000023, 1000024 ]:
+            # for C1 and N2 we want a 10% chance to start in the offshell regime
+            p = random.uniform ( 0, 1 )
+            if p < 0.1:
+                self.log ( f"Unfreezing {self.namer.asciiName(pid)}, randomly chose to restrict to offshell mass!" )
+                maxMax = minMass + 90.
+
         tmpMass = random.uniform ( minMass, maxMass )
         ctr = 0
         while pid in [ 1000006, 2000006 ] and \
@@ -1088,6 +1095,16 @@ class Manipulator:
             minMass = max ( self.wallmass, minMass )
 
         ret = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass, maxMass=maxMass )
+        if pid in [ 1000023, 1000024 ]:
+            # for C1 and N2, if one of the two gets changed, have a 10% that
+            # the other gets set to the same value
+            p=random.uniform(0,1)
+            if p < .1:
+                mass = self.M.masses[pid]
+                otherpid = 1000024 if pid == 1000023 else 1000023
+                self.M.masses[otherpid] = mass * random.uniform ( .99, 1.01 )
+                self.log ( "mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" ) 
+                self.record ( "change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
         #Fix branching ratios and rescale signal strenghts, so other channels are not affected
         self.removeAllOffshell(rescaleSSMs=True)
@@ -1103,7 +1120,9 @@ class Manipulator:
             return False
         return 150. < (mstop-mlsp) < 200.
 
-    def randomlyChangeMassOf ( self, pid, dx=None, minMass = None, maxMass = None ):
+    def randomlyChangeMassOf ( self, pid : int, dx : Union[float,None] = None, 
+            minMass : Union[float,None] = None, 
+            maxMass : Union[float,None] = None ) -> int:
         """ randomly change the mass of pid
         :param dx: the delta x to change. If none, then use a model-dependent
                    default
@@ -1111,6 +1130,8 @@ class Manipulator:
                         If not defined, use the LSP mass.
         :param maxMass: maximum allowed mass for the particle.
                         If not defined, use the protomodel maxMass.
+
+        :returns: 1 for success
         """
         if dx == None:
             denom = self.M.Z + 1.
