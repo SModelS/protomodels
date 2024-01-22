@@ -52,11 +52,11 @@ argparser.add_argument ( '-F', '--fetch',
 args = argparser.parse_args()
 
 if args.fetch:
-    cmd = "scp clip-login-1:/scratch-cbe/users/wolfgan.waltenberger/rundir.history/history.list ."
+    cmd = "scp clip-login-1:/scratch-cbe/users/wolfgan.waltenberger/rundir*/history*.list ."
     print ( cmd )
     subprocess.getoutput ( cmd )
 prefix = args.outfile.replace(".mp4","").replace(".webm","")
-    
+
 intermediateSteps = True ## do 10 rendering steps per one random walk step
 
 if args.do_clean:
@@ -92,8 +92,11 @@ if not "]" in txt[-3:]:
     txt+="]\n"
 
 modelList=eval(txt)
+inistep = modelList[0]["step"] # remove such offsets
+for i,m in enumerate ( modelList ):
+    modelList[i]["step"] = m["step"]-inistep
 
-emptymodel = { "masses": {}, "step": 0, "bestCombo": [], "actions": [], "K": -200., 
+emptymodel = { "masses": {}, "step": 0, "bestCombo": [], "actions": [], "K": -200.,
                "Z": -200. }
 nstart=0
 for i in range(19):
@@ -225,10 +228,10 @@ def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K
             hasWarned[0] = True
         return ret
 
-    fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True, 
+    fig, (ax1, ax2) = plt.subplots( ncols=2, sharey=True,
                       gridspec_kw={'width_ratios': [1, 10]} )
     ctentries=0
-    plt.text ( -3+firststep-nstart+offs, 1250, "hiscore", rotation=90., c="pink", alpha=.5, 
+    plt.text ( -3+firststep-nstart+offs, 1250, "hiscore", rotation=90., c="pink", alpha=.5,
                size=30, horizontalalignment='center', verticalalignment='center', zorder=5 )
     if isHiscore:
         plt.text ( .5+firststep-nstart+offs, 2200, "hiscore!", c=red, size=30, clip_on=False )
@@ -241,8 +244,6 @@ def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K
         datacur = df[firststep+currentstep:firststep+currentstep+1]
         tName = r'$%s$' % namer.texName(pid)
         c = colorDict[pid]
-        #if ctentries>9:
-        #        tName=""
         m = np.where(masses[pid] > 0, masses[pid],np.nan) #Fix for avoid plotting to negative values
         ## the lines
         plt.plot(df['step'][firststep:laststep+2:nsteps],m[firststep:laststep+2:nsteps],'-',linewidth=2, color = c, alpha=.5 )
@@ -254,6 +255,8 @@ def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K
             return (1+.6*k)*80
         for s in data["K"]:
             sizes.append( getSize ( s ) )
+        if max(data[pid]) < 0.:
+            tName = ""
         sns.scatterplot(x=data['step'],y=data[pid], s=sizes, sizes = (80,400),
                         label= tName, color=c, legend=False, ax=ax2, alpha=.5 )
         # s= (1+1.25*maxK)*80. ## no idea why
@@ -263,7 +266,7 @@ def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K
                         label= "", color="black", legend=False, ax=ax2, edgecolor="none",
                         linewidth=0 )
         sns.scatterplot(x=datacur['step'],y=datacur[pid], s=s, sizes = (80,400),
-                        label= "", linewidth=0, edgecolor="none", color=c, 
+                        label= "", linewidth=0, edgecolor="none", color=c,
                         legend=False, ax=ax2 )
         sns.scatterplot(x=datamax['step'],y=datamax[pid], s=smax, sizes = (80,400),
                         label= tName , color=c, legend=False, ax=ax1, zorder=10)
@@ -320,7 +323,7 @@ def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K
                handlelength=0.4,handletextpad=0.35,markerscale=0.8,columnspacing=1.0)
     # plt.tight_layout()
     if args.timestamp:
-        plt.text ( 15+firststep-nstart+offs, -280, time.asctime(), size=8, 
+        plt.text ( 15+firststep-nstart+offs, -280, time.asctime(), size=8,
                    alpha=.5, c="gray" )
     off1 = firststep-nstart+.05+offs
     ax2.set_xlim ( off1, off1 + 21 )
@@ -341,9 +344,9 @@ if args.start>0:
 
 for firststep in range ( args.start, maxstep ):
     if firststep % 10 == 0:
-        print ( "step %d: %s" % ( firststep, time.asctime() ) )
+        print ( f"step {firststep}: {time.asctime()}" )
     lastingHS = 0 ## the "hiscore!" label should last a bit
-    
+
     laststep=firststep+20
     K=Ks[firststep+currentstep]
 
