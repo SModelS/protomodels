@@ -12,7 +12,7 @@ from smodels.tools.wrapperBase import WrapperBase
 # WrapperBase.defaulttempdir="/dev/shm" ## keep the temps in shared memory
 from tester.combiner import Combiner
 from smodels.tools.xsecComputer import XSecComputer, NLL
-from smodels.tools.physicsUnits import TeV
+from smodels.tools.physicsUnits import TeV, fb
 from ptools import helpers
 from ptools.sparticleNames import SParticleNames
 from typing import Union
@@ -558,8 +558,12 @@ class ProtoModel:
 
     def dict ( self ):
         """ return the dictionary that can be written out """
+        tmp = self.getXsecs()[0]
+        xsecs = {}
+        for xsec in tmp:
+            xsecs[xsec.pid]=xsec.value.asNumber(fb)
         return { "masses": self.masses, "ssmultipliers": self.ssmultipliers,
-                 "decays": self.decays, "xsecs": self.getXsecs() }
+                 "decays": self.decays, "xsecs[fb]": xsecs }
 
     def relevantSSMultipliers ( self ):
         """ of all the ss mulipliers, return only the relevant ones,
