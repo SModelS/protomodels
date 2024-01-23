@@ -253,4 +253,4 @@ def loop( rundir : Union[None,os.PathLike] = None,
                 Kold = float ( f.read().strip() )
 
 if __name__ == "__main__":
-    main()
+    loop()
