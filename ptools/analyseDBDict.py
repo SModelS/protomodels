@@ -50,8 +50,10 @@ class Analyzer:
         if self.reportZvalues:
             Ztot = self.Zvalues[8]+self.Zvalues[13]
             self.pprint ( f"Zavg(total) =  {np.mean(Ztot):.2f}+-{np.std(Ztot)/np.sqrt(len(Ztot)):.3f}" )
-            self.pprint ( f"Zavg( 8tev) = {np.mean(self.Zvalues[8]):.2f}+-{np.std(self.Zvalues[8])/np.sqrt(len(self.Zvalues[8])):.3f}" )
-            self.pprint ( f"Zavg(13tev) =  {np.mean(self.Zvalues[13]):.2f}+-{np.std(self.Zvalues[13])/np.sqrt(len(self.Zvalues[13])):.3f}" )
+            if len ( self.Zvalues[8] ) > 0:
+                self.pprint ( f"Zavg( 8tev) = {np.mean(self.Zvalues[8]):.2f}+-{np.std(self.Zvalues[8])/np.sqrt(len(self.Zvalues[8])):.3f}" )
+            if len ( self.Zvalues[13] ) > 0:
+                self.pprint ( f"Zavg(13tev) =  {np.mean(self.Zvalues[13]):.2f}+-{np.std(self.Zvalues[13])/np.sqrt(len(self.Zvalues[13])):.3f}" )
         else:
             self.pprint ( f"pavg={np.mean(pavg):.2f}" )
             self.pprint ( f"pavg(13tev)={np.mean(pavg13):.2f}" )
@@ -140,6 +142,8 @@ class Analyzer:
                 byp[ values["orig_p"] ] = ( anaid, values )
         colls = [ findCollaboration(x) for x in anas ]
         self.pprint ( f"{colls.count('CMS')} CMS and {colls.count('ATLAS')} ATLAS results" )
+        if len(colls)==0:
+            return
         keys = list ( byp.keys() )
         keys.sort( reverse = False )
         #keys.sort( reverse = True )

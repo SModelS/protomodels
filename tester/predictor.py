@@ -7,6 +7,7 @@ __all__ = [ "Predictor" ]
 import pickle, time, os, sys
 from smodels.decomposition import decomposer
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
+sys.path.insert(0,"../")
 from protomodels.builder.protomodel import ProtoModel
 from smodels.share.models.SMparticles import SMList
 from smodels.share.models.mssm import BSMList
