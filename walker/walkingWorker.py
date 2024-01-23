@@ -94,7 +94,10 @@ def main( nmin, nmax, continueFrom : PathLike,
     from walker.randomWalker import RandomWalker
     for i in range(nmin,nmax):
         if pfile is None:
-            print ( "[walkingWorker] starting %d @ %s with cheatcode %d" % ( i, rundir, cheatcode ) )
+            import time
+            import socket
+            hostname = socket.gethostname().replace(".cbe.vbc.ac.at","")
+            print ( f"[walkingWorker:{hostname};{time.strftime('%H:%M:%S')}] starting {i} @ {rundir} with cheatcode {cheatcode}" )
             w = RandomWalker( walkerid=i, nsteps = maxsteps,
                               dbpath=dbpath, cheatcode=cheatcode, select=select,
                               rundir=rundir, nevents=nevents, do_combine = do_combine,

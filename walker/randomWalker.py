@@ -122,9 +122,6 @@ class RandomWalker:
             self.currentK = self.manipulator.M.K
             self.currentZ = self.manipulator.M.Z
 
-    def hostname ( self ):
-        return socket.gethostname()
-
     def setWalkerId ( self, Id ):
         self.walkerid = Id
         self.manipulator.setWalkerId ( Id )
@@ -190,7 +187,7 @@ class RandomWalker:
         """ logging """
         if not hasattr ( self, "walkerid" ):
             self.walkerid=-1
-        print ( "[walk:%d:%s-%s] %s" % ( self.walkerid, self.hostname(), time.strftime("%H:%M:%S"), " ".join(map(str,args))) )
+        print ( f"[randomWalker:{self.walkerid}:{time.strftime('%H:%M:%S')}] {' '.join(map(str,args))}" )
         self.log ( *args )
 
     @property
