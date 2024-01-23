@@ -118,8 +118,10 @@ class Predictor:
         txnames = [ "all" ]
         if self.select.startswith("txnames:"):
             s = self.select.replace("txnames:","")
-            txnames = s.split(",")
-            self.pprint ( "I have been asked to select txnames for %s" % s )
+            from ptools.moreHelpers import namesForSetsOfTopologies
+            txnames = namesForSetsOfTopologies ( s )[0]
+            self.pprint ( f"I have been asked to select txnames for {txnames}" )
+            txnames = txnames.split(",")
 
         listOfExpRes = self.database.getExpResults( dataTypes = dataTypes,
                                                     txnames = txnames,

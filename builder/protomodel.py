@@ -561,7 +561,7 @@ class ProtoModel:
         tmp = self.getXsecs()[0]
         xsecs = {}
         for xsec in tmp:
-            xsecs[(xsec.pid,xsec.sqrts.asNumber(TeV))]=xsec.value.asNumber(fb))
+            xsecs[(xsec.pid,xsec.sqrts.asNumber(TeV))]=xsec.value.asNumber(fb)
         return { "masses": self.masses, "ssmultipliers": self.ssmultipliers,
                  "decays": self.decays, "xsecs[fb]": xsecs }
 

@@ -13,13 +13,18 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple] ) \
     :returns: string with comma separated list of topos, and description
               if not an abbreviation, returns originalname, None
     """
+    if "," in name:
+        name = name.split(",")
     if type(name) in [ list, tuple ]:
-        ret = []
+        topos, descriptions = [], []
         for n in name:
-            tmp = namesForSetsOfTopologies ( n )
-            for t in tmp:
-                ret.append ( t )
-        return ret
+            topo,descr = namesForSetsOfTopologies ( n )
+            topos.append ( topo )
+            if descr == None:
+                descr = topo
+            descriptions.append ( descr )
+        return ( ",".join(topos), "+".join(descriptions) )
+
     shorts, description = { }, {}
     shorts["gauginos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
     shorts["gauginos_offshell"]=shorts["gauginos"]+",TChiWZoff,TChiWWoff"
@@ -98,3 +103,9 @@ def findLargestExcess ( db ):
     pprint ( excesses )
     print ( "[helpers.findLargestExcess] found %d eff maps" % len(results) )
     return excesses
+
+if __name__ == "__main__":
+    In = "T1"
+    In = "electroweakinos"
+    Out = namesForSetsOfTopologies ( In )
+    print ( In, "->", Out )
