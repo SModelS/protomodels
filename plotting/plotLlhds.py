@@ -363,7 +363,7 @@ class LlhdPlot:
         # print ( "found no pretty name", ers[0].globalInfo )
         return anaid
 
-    def plot ( self, ulSeparately=True, pid1=None ):
+    def plot ( self, ulSeparately=True, pid1=None, dbpath = "official" ):
         """ a summary plot, overlaying all contributing analyses 
         :param ulSeparately: if true, then plot UL results on their own
         """
@@ -379,10 +379,11 @@ class LlhdPlot:
             pid1 = self.pid1
         self.pprint ( "plotting summary for %s, %s" % ( pid1, self.topo ) )
         resultsForPIDs = {}
-        from plotting.plotHiscore import getPIDsOfTPred, obtain
-        protomodel = obtain ( 0, self.hiscorefile )
+        from plotting.plotHiscore  import HiscorePlotter
+        plotter= HiscorePlotter()
+        protomodel = plotter.obtain ( 0, self.hiscorefile, dbpath = dbpath )
         for tpred in protomodel.bestCombo:
-            resultsForPIDs = getPIDsOfTPred ( tpred, resultsForPIDs, integrateSRs=False )
+            resultsForPIDs = plotter.getPIDsOfTPred ( tpred, resultsForPIDs, integrateSRs=False )
         stats = self.getAnaStats( integrateSRs=False )
         if stats == None:
             self.pprint ( "found no ana stats?" )
