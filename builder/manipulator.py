@@ -345,6 +345,18 @@ class Manipulator:
                 self.M.Z = D["Z"]
             if "K" in D:
                 self.M.K = D["K"]
+        tmp = D["xsecs[fb]"]
+        xsecs = []
+        from smodels.theory.crossSection import XSection
+        for pid,value in tmp.items():
+            xsec = XSection()
+            xsec.value = value*fb
+            xsec.sqrts = 13*TeV
+            xsec._pid = pid
+            xsecs.append ( xsec )
+        #self.M._stored_xsecs = ( xsecs, "loaded from dict file" )
+        #self.M._xsecMasses = self.M.masses
+        #self.M._xsecSSMs = self.M.ssmultipliers
 
     def cheat ( self, mode = 0 ):
         ## cheating, i.e. starting with models that are known to work well
