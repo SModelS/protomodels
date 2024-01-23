@@ -54,16 +54,18 @@ def main( nmin, nmax, continueFrom : PathLike,
     :param nevents: number of MC events when computing cross-sections
     :param seed: random seed number (optional)
     :param catchem: If True will catch the exceptions and exit.
-    :param select: select only subset of results (all for all, em for efficiency maps only,
-            ul for upper limits only, alternatively select for txnames via
-            e.g. "txnames:T1,T2"
+    :param select: select only subset of results (all for all, em for efficiency 
+    maps only, ul for upper limits only, alternatively select for txnames via
+    e.g. "txnames:T1,T2", short names are recognized, e.g.
+    "txnames:electroweakinos_offshell,T1"
+
     :param do_combine: if true, then also perform combinations, either via
                        simplified likelihoods or via pyhf
     :param record_history: if True, then use history recorders
     :param update_hiscores: if True, then finish your run and
                             after that run hiscore updater
-    :param stopTeleportationAfter: integer, stop teleportation after this step has been
-            reached. -1 or None means, dont run teleportation at all.
+    :param stopTeleportationAfter: integer, stop teleportation after this step has 
+    been reached. -1 or None means, dont run teleportation at all.
     """
 
     if rundir != None and "<rundir>" in dbpath:
