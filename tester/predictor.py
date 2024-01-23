@@ -77,8 +77,8 @@ class Predictor:
             if len(newDS)>0:
                 er.datasets = newDS
                 keepExpRes.append ( er )
-        self.pprint ( "filtered for %s, keeping %d/%d expRes" % \
-                      ( topo, len(keepExpRes), nbefore) )
+        nafter=len(keepExpRes)
+        self.pprint ( f"filtered for {topo}, keeping {nafter}/{nbefore} expRes" )
         self.listOfExpRes = keepExpRes
 
     def filterForTopos ( self, topo ):
@@ -367,13 +367,14 @@ class Predictor:
     def computeSignificance(self, protomodel, predictions, strategy):
         """ compute the K and Z values, and attach them to the protomodel """
 
-        self.log ( f"now find highest significance for {len(predictions)} predictions" )
+        self.log ( f"now find combo with highest Z given {len(predictions)} predictions" )
         ## find highest observed significance
         #(set mumax just slightly below its value, so muhat is always below)
         mumax = protomodel.mumax
         bestCombo,Z,llhd,muhat = self.combiner.findHighestSignificance ( predictions,
                 strategy, expected=False, mumax = mumax )
         prior = self.combiner.computePrior ( protomodel )
+        self.log ( f"prior={prior:.2f}" )
         if hasattr ( protomodel, "keep_meta" ) and protomodel.keep_meta:
             protomodel.bestCombo = bestCombo
         else:

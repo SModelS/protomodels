@@ -43,7 +43,7 @@ class History:
 
     def pprint ( self, *args ):
         """ pprint """
-        print ( f"{Fore.LIGHTBLUE}[history] {' '.join(map(str,args))}{Fore.RESET}" )
+        print ( f"{Fore.LIGHTBLUE_EX}[history] {' '.join(map(str,args))}{Fore.RESET}" )
 
     def save ( self ):
         self.pprint ( f"writing history to {self.outfile}." )

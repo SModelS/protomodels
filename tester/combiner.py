@@ -13,9 +13,11 @@ try:
     from tester import analysisCombiner
 except:
     import analysisCombiner
-import numpy, math, colorama, copy, sys
+import numpy, math, copy, sys, time
+from colorama import Fore
 from scipy import optimize, stats
 from scipy.special import erf
+from typing import List
 # import IPython
 
 class Combiner:
@@ -104,28 +106,30 @@ class Combiner:
                      ( dataType, len(tmp), len(predictions) ) )
         return tmp
 
-    def findCombinations ( self, predictions, strategy ):
+    def findCombinations ( self, predictions : List, strategy : str ) -> List:
         """ finds all allowed combinations of predictions, for
             the given strategy
         :param predictions: list of predictions
         :returns: a list of combinations
         """
+        self.log ( f"now find all combos of {len(predictions)} preds!" )
         combinables=[]
         for iA,predA in enumerate(predictions):
             nexti = iA + 1
             compatibles = self.findCompatibles ( predA, predictions[nexti:], strategy )
             combinables += compatibles
+        self.log ( f"found {len(combinables)} combos!" )
         return combinables
 
-    def highlight ( self, msgType = "info", *args ):
+    def highlight ( self, msgType : str = "info", *args ):
         """ logging, hilit """
         msgType = msgType.lower()
         if msgType == "debug":
             return
-        col = colorama.Fore.GREEN
+        col = Fore.GREEN
         if msgType == "error":
-            col = colorama.Fore.RED
-        print ( "%s[combine:%d] %s%s" % ( col, self.walkerid, " ".join(map(str,args)), colorama.Fore.RESET ) )
+            col = Fore.RED
+        print ( f"{col}[combine:{self.walkerid}] {' '.join(map(str,args))}{Fore.RESET}" )
 
     def error ( self, *args ):
         self.highlight ( "error", *args )
@@ -133,6 +137,11 @@ class Combiner:
     def pprint ( self, *args ):
         """ logging """
         print ( "[combine:%d] %s" % (self.walkerid, " ".join(map(str,args))) )
+
+    def log ( self, *args ):
+        """ logging to file """
+        with open( "walker%d.log" % self.walkerid, "a" ) as f:
+            f.write ( "[combiner-%s] %s\n" % ( time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
     def debug ( self, *args ):
         """ logging """
@@ -195,7 +204,7 @@ class Combiner:
         ret = []
         for c in combinations:
             if self.isSubsetOf ( c, ret ):
-                # self.pprint ( "%s is subset of bigger combo. skip." % getLetterCode(c) )
+                # self.pprint ( f"{getLetterCode(c)} is subset of bigger combo. skip." )
                 continue
             ret.append ( c )
         self.pprint ( f"sorting out subsets, reduced {len(combinations)} -> {len(ret)} combinations." )
@@ -274,6 +283,7 @@ class Combiner:
         :param expected: find the combo with the most significant expected deviation
         :param mumax: Maximum muhat to allow before we run into an exclusion
         """
+        self.log ( "now find largest Z" )
         combinations = self.sortOutSubsets ( combinations )
         # combinations.sort ( key=len, reverse=True ) ## sort them first by length
         # compute CLsb for all combinations
@@ -298,6 +308,7 @@ class Combiner:
             if doProgress:
                 pb.update(ctr)
             Z,muhat_ = self.getSignificance ( c, expected=expected, mumax=mumax )
+            self.log ( f"combination #{ctr}: {Z}" )
             if Z == None:
                 continue
             # self.pprint ( "[combine] significance for %s is %.2f" % ( self.getLetterCode(c), Z ) )
@@ -470,7 +481,7 @@ class Combiner:
             # print ( "findMuHat combo %s start=%f, ret=%s" % ( combination, start, ret.fun ) )
             if ret.status==0:
                 return ret.x[0]
-        self.pprint ( "%serror finding mu hat for %s%s" % (colorama.Fore.RED, self.getLetterCode(combination), colorama.Fore.RESET ) )
+        self.pprint ( "%serror finding mu hat for %s%s" % (Fore.RED, self.getLetterCode(combination), Fore.RESET ) )
         return None
 
     def getLetterCode ( self, combination ):
@@ -633,29 +644,31 @@ class Combiner:
             if maxR > 0. and bestpred != None:
                 ret.append ( bestpred )
                 keptThese.append ( self.getPredictionID ( bestpred ) )
-        self.pprint ( "selected predictions down via SRs from %d to %d." % \
-                      ( len(predictions), len(ret) ) )
+        self.pprint ( f"selected predictions down via SRs from {len(predictions)}"\
+                       " to {len(ret)}." )
         debug = False ## print the selections in debug mode
         if debug:
             for ctr,i in enumerate(predictions):
-                r = i.getUpperLimit() / i.getUpperLimit(expected=True)
-                didwhat = colorama.Fore.RED + "discarded"
+                ul,eul=i.getUpperLimit(),i.getUpperLimit(expected=True)
+                r=float("nan")
+                if type(eul) != type(None) and eul.asNumber(fb) > 0.:
+                    r = ( ul / eul ).asNumber()
+                didwhat = Fore.RED + "discarded"
                 pId = self.getPredictionID( i )
                 if pId in keptThese:
                     didwhat = "kept     "
-                print ( " `- %s: #%d %s: %s/%s r=%.2f%s" % \
-                  ( didwhat, ctr, pId, i.getUpperLimit(),
-                    i.getUpperLimit(expected=True), r, colorama.Fore.RESET ) )
+                print(f" `- {didwhat}: #{ctr} {pId}: r={r:.2f}{Fore.RESET}")
         return ret
 
     def findHighestSignificance ( self, predictions, strategy, expected=False,
                                   mumax = None ):
         """ for the given list of predictions and employing the given strategy,
         find the combo with highest significance
+
         :param expected: find the highest expected significance, not observed
-        :param mumax: maximimal signal strength mu that is allowed before we run into an
-                      exclusion
-        :returns: best combination, significance, likelihood equivalent
+        :param mumax: maximimal signal strength mu that is allowed before we run 
+        into an exclusion
+        :returns: best combination, significance (Z), likelihood equivalent
         """
         predictions = self.selectMostSignificantSR ( predictions )
         self.letters = self.getLetters ( predictions )
