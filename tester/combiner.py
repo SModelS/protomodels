@@ -9,6 +9,7 @@ from smodels.share.models.SMparticles import SMList
 from smodels.particlesLoader import BSMList
 from smodels.tools.physicsUnits import fb
 from smodels.theory.model import Model
+from smodels.theory.theoryPrediction import TheoryPrediction
 try:
     from tester import analysisCombiner
 except:
@@ -17,7 +18,7 @@ import numpy, math, copy, sys, time
 from colorama import Fore
 from scipy import optimize, stats
 from scipy.special import erf
-from typing import List
+from typing import List, Union, Tuple
 # import IPython
 
 class Combiner:
@@ -617,7 +618,23 @@ class Combiner:
         return "%s:%s:%s" % ( prediction.analysisId(), str(prediction.dataId()),
                               "; ".join(map(str,prediction.PIDs) ) )
 
-    def selectMostSignificantSR ( self, predictions ):
+    def sortPredictions ( self, predictions : List ) -> List:
+        d = {}
+        for p in predictions:
+            l0 = p.likelihood ( 0. )
+            l1 = p.likelihood ( 1. )
+            r = -1.
+            if type(l0)!=type(None):
+                r = l1/l0
+            d[r] = p
+        ratios = list(d.keys())
+        ratios.sort(reverse=True)
+        newpreds = []
+        for r in ratios:
+            newpreds.append ( d[r] )
+        return newpreds
+
+    def selectMostSignificantSR ( self, predictions : List ) -> List:
         """ given, the predictions, for any analysis and topology,
             return the most significant SR only.
         :param predictions: all predictions of all SRs
@@ -660,17 +677,18 @@ class Combiner:
                 print(f" `- {didwhat}: #{ctr} {pId}: r={r:.2f}{Fore.RESET}")
         return ret
 
-    def findHighestSignificance ( self, predictions, strategy, expected=False,
-                                  mumax = None ):
+    def findHighestSignificance ( self, predictions : List, strategy : str,
+            expected : bool =False, mumax : Union[None,float] = None ) -> Tuple:
         """ for the given list of predictions and employing the given strategy,
         find the combo with highest significance
 
         :param expected: find the highest expected significance, not observed
-        :param mumax: maximimal signal strength mu that is allowed before we run 
+        :param mumax: maximimal signal strength mu that is allowed before we run
         into an exclusion
         :returns: best combination, significance (Z), likelihood equivalent
         """
         predictions = self.selectMostSignificantSR ( predictions )
+        predictions = self.sortPredictions ( predictions )
         self.letters = self.getLetters ( predictions )
         combinables = self.findCombinations ( predictions, strategy )
         # singlepreds = [ [x] for x in predictions ]
