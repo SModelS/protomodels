@@ -113,8 +113,9 @@ class RandomWalker:
         else:
             self.manipulator.cheat ( cheatcode )
             self.predictor.predict(self.protomodel)
-            self.pprint ( "Cheat model gets Z=%.2f, K=%.2f" % \
-                          ( self.manipulator.M.Z, self.manipulator.M.K ) )
+            if type(Z) != type(None):
+                self.pprint ( f"Cheat model gets Z={self.manipulator.M.Z:.2f}, "\
+                              f"K={self.manipulator.M.K:.2f}" )
             # self.printStats ( substep=4 )
             self.manipulator.backupModel()
             self.hiscoreList.newResult ( self.manipulator )
