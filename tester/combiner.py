@@ -645,7 +645,7 @@ class Combiner:
                 ret.append ( bestpred )
                 keptThese.append ( self.getPredictionID ( bestpred ) )
         self.pprint ( f"selected predictions down via SRs from {len(predictions)}"\
-                       " to {len(ret)}." )
+                      f" to {len(ret)}." )
         debug = False ## print the selections in debug mode
         if debug:
             for ctr,i in enumerate(predictions):
