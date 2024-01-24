@@ -6,8 +6,8 @@ from smodels.base.physicsUnits import TeV
 import pickle, sys, copy, subprocess, os, colorama, time, glob, math
 import IPython
 import numpy as np
-from csetup import setup as gsetup
-gsetup()
+from protomodels.csetup import setup
+setup()
 import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt

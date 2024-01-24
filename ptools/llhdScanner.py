@@ -3,7 +3,7 @@
 """ script used to produce the likelihood scans """
 
 import os, sys, multiprocessing, time, numpy, subprocess, copy, glob
-from csetup import setup
+from protomodels.csetup import setup
 setup()
 from smodels.tools.wrapperBase import WrapperBase
 WrapperBase.defaulttempdir="./" ## keep the temps in our folder

@@ -61,8 +61,8 @@ if __name__ == "__main__":
             help='file to write out recoreded history. ["history.list"]',
             type=str, default="history.list" )
     args = argparser.parse_args()
-    import csetup
-    csetup.setup()
+    from protomodels.csetup import setup
+    setup()
     from walker.randomWalker import RandomWalker
     walker = RandomWalker ( 0, 2000, "aggressive", False, 0, args.database, record_history=True )
     walker.walk()

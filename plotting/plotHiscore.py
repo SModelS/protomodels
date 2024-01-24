@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
 import pickle, os, sys, subprocess, time, glob, colorama, math, numpy
-sys.path.insert(0,"../")
-sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/protomodels/")
-sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/smodels-utils/prototools/")
+sys.path.insert(0,"../../")
+from protomodels.csetup import setup
+setup()
+#sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/protomodels/")
+#sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/smodels-utils/prototools/")
 from ptools import hiscoreTools
 from builder.manipulator import Manipulator
 from builder import protomodel
 from builder.protomodel import ProtoModel
-from csetup import setup
 from smodels.base.physicsUnits import fb, TeV
 from smodels.matching.theoryPrediction import TheoryPrediction
 from smodels.base import runtime
