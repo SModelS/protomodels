@@ -309,7 +309,7 @@ class Combiner:
             if doProgress:
                 pb.update(ctr)
             Z,muhat_ = self.getSignificance ( c, expected=expected, mumax=mumax )
-            self.log ( f"combination #{ctr}: {Z}" )
+            # self.log ( f"combination #{ctr}: {Z}" )
             if Z == None:
                 continue
             # self.pprint ( "[combine] significance for %s is %.2f" % ( self.getLetterCode(c), Z ) )

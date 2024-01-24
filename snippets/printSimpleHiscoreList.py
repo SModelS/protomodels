@@ -22,7 +22,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict" ):
             mass = entry["masses"][p]
             sparticles += f"{name}={mass:.1f}"
         timestamp = entry["timestamp"]
-        print ( f"#{i}({wid:3d}): K={Fore.GREEN}{K:.2f}{Fore.RESET}; {sparticles}; {timestamp}" )
+        print ( f"#{i}({wid:3d}): K={Fore.GREEN}{K:.3f}{Fore.RESET}; {sparticles}; {timestamp}" )
 
 
 if __name__ == "__main__":

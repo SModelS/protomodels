@@ -1,22 +1,33 @@
 #!/usr/bin/env python3
 
+"""
+.. module:: factoryOfWalkers
+   :synopsis: facility that creates armies of randomWalkers
+
+.. moduleauthor:: Wolfgang Waltenberger <wolfgang.waltenberger@gmail.com>  
+
+"""
+
+__all__ = [ "createWalkers" ]
+
 import os, sys
 from os import PathLike
+from typing import Union, Dict
 try:
     from torch import multiprocessing
 except:
     import multiprocessing
 
-def _run ( walker, catchem, seed ):
+def _run ( walker, catch_exceptions, seed ):
     if seed is not None:
         from ptools import helpers
         helpers.seedRandomNumbers( seed + walker.walkerid )
-        print ( f"[walkingWorker] setting random seed to {seed}" )
-    if not catchem:
+        print ( f"[factoryOfWalkers] setting random seed to {seed}" )
+    if not catch_exceptions:
         walker.walk()
         return
     try:
-        walker.walk(catchem)
+        walker.walk(catch_exceptions)
     except Exception as e:
         import time
         with open("exceptions.log","a") as f:
@@ -27,24 +38,48 @@ def _run ( walker, catchem, seed ):
         import colorama
         print ( "%swalker %d threw: %s%s\n" % ( colorama.Fore.RED, walker.walkerid, e, colorama.Fore.RESET ) )
 
-def startWalkers ( walkers, catchem=False, seed = None ):
+def startWalkers ( walkers, catch_exceptions=False, seed = None ):
 
     processes=[]
     for walker in walkers:
-        p = multiprocessing.Process ( target=_run, args=( walker, catchem, seed ) )
+        p = multiprocessing.Process ( target=_run, args=( walker, catch_exceptions, seed ) )
         p.start()
         processes.append(p)
     for p in processes:
         p.join()
 
+def writeMetaInfo ( rundir : str, meta : Dict ):
+    """ write meta info of factory run to run.dict. complain if data is 
+    different from previous info.
+    """
+    dictfile = f"{rundir}/run.dict"
+    if os.path.exists ( dictfile ):
+        oldmeta = {}
+        with open ( dictfile, "rt" ) as f:
+            txt = f.read()
+            f.close()
+            if len(txt)>0:
+                oldmeta = eval(txt)
+            for k,v in oldmeta.items():
+                if not k in meta:
+                    print ( f"[factoryOfWalkers] run's meta info changed: {k} was {v} now not in meta" )  
+                    continue
+                if meta[k] != v:
+                    print ( f"[factoryOfWalkers] run's meta info changed: {k} was {v} not {meta[k]}" )
+    else:
+        with open ( dictfile, "wt" ) as f:
+            f.write ( str(meta)+"\n" )
+            f.close()
 
-def main( nmin, nmax, continueFrom : PathLike,
-          dbpath : PathLike = "<rundir>/database.pcl",
-          cheatcode = 0, rundir=None, maxsteps = 10000,
-          nevents = 100000, seed = None,  catchem=True, select="all",
-          do_combine = False, record_history = False, update_hiscores = False,
-          stopTeleportationAfter : int = -1 ):
+def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
+          dbpath : PathLike = "official", cheatcode : int = 0, 
+          rundir : Union[None,str] = None, maxsteps : int = 10000,
+          nevents : int = 100000, seed : Union[None,int] = None, 
+          catch_exceptions : bool = True, select : str = "all",
+          do_combine : bool = False, record_history : bool = False, 
+          update_hiscores : bool = False, stopTeleportationAfter : int = -1 ):
     """ a worker node to set up to run walkers
+
     :param nmin: the walker id of the first walker
     :param nmax: the walker id + 1 of the last walker
     :param continueFrom: start with protomodels given in the pickle file or hiscore dictionary file
@@ -53,7 +88,7 @@ def main( nmin, nmax, continueFrom : PathLike,
     :param maxsteps: maximum number of steps to be taken
     :param nevents: number of MC events when computing cross-sections
     :param seed: random seed number (optional)
-    :param catchem: If True will catch the exceptions and exit.
+    :param catch_exceptions: If True will catch the exceptions and exit.
     :param select: select only subset of results (all for all, em for efficiency 
     maps only, ul for upper limits only, alternatively select for txnames via
     e.g. "txnames:T1,T2", short names are recognized, e.g.
@@ -67,6 +102,8 @@ def main( nmin, nmax, continueFrom : PathLike,
     :param stopTeleportationAfter: integer, stop teleportation after this step has 
     been reached. -1 or None means, dont run teleportation at all.
     """
+    meta = { "dbpath": dbpath, "select": select, "do_combine": do_combine }
+    writeMetaInfo ( rundir, meta )
 
     if rundir != None and "<rundir>" in dbpath:
         dbpath=dbpath.replace("<rundir>","%s/" % rundir )
@@ -77,7 +114,7 @@ def main( nmin, nmax, continueFrom : PathLike,
             continueFrom = "default"
     if continueFrom.lower() not in [ "none", "" ]:
         if not os.path.exists ( continueFrom ):
-            print ( f"[walkingWorker] error: supplied a save states file ,,{continueFrom}'', but it doesnt exist" )
+            print ( f"[factoryOfWalkers] error: supplied a save states file ,,{continueFrom}'', but it doesnt exist" )
         else:
             import pickle
             try:
@@ -99,7 +136,7 @@ def main( nmin, nmax, continueFrom : PathLike,
             import time
             import socket
             hostname = socket.gethostname().replace(".cbe.vbc.ac.at","")
-            print ( f"[walkingWorker:{hostname};{time.strftime('%H:%M:%S')}] starting {i} @ {rundir} with cheatcode {cheatcode}" )
+            print ( f"[factoryOfWalkers:{hostname};{time.strftime('%H:%M:%S')}] starting {i} @ {rundir} with cheatcode {cheatcode}" )
             w = RandomWalker( walkerid=i, nsteps = maxsteps,
                               dbpath=dbpath, cheatcode=cheatcode, select=select,
                               rundir=rundir, nevents=nevents, do_combine = do_combine,
@@ -109,7 +146,7 @@ def main( nmin, nmax, continueFrom : PathLike,
         elif pfile.endswith(".hi") or pfile.endswith(".pcl"):
             nstates = len(states )
             ctr = i % nstates
-            print ( "[walkingWorker] fromModel %d: loading %d/%d" % ( i, ctr, nstates ) )
+            print ( "[factoryOfWalkers] fromModel %d: loading %d/%d" % ( i, ctr, nstates ) )
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
                     walkerid = i, nsteps = maxsteps,
                     expected = False, select = select, dbpath = dbpath,
@@ -119,14 +156,14 @@ def main( nmin, nmax, continueFrom : PathLike,
         else:
             nstates = len(states )
             ctr = i % nstates
-            print ( "[walkingWorker] fromDict %d: loading %d/%d" % ( i, ctr, nstates ) )
+            print ( "[factoryOfWalkers] fromDict %d: loading %d/%d" % ( i, ctr, nstates ) )
             w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
                     strategy = "aggressive", walkerid = i, dbpath = dbpath, 
                     expected = False, select = select, rundir = rundir, 
                     nevents = nevents, do_combine = do_combine, 
                     seed = seed, stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
-    startWalkers ( walkers, catchem=catchem, seed=seed )
+    startWalkers ( walkers, catch_exceptions=catch_exceptions, seed=seed )
     if update_hiscores:
         import time
         from ptools import updateHiscores
@@ -135,9 +172,9 @@ def main( nmin, nmax, continueFrom : PathLike,
         while ctAttempts < 7:
             steps = updateHiscores.countSteps( writeSubmitFile = False )
             if not type(steps)==tuple:
-                print ( "[walkingWorker] been asked to update hiscores, but dont understand steps %s" % steps )
+                print ( "[factoryOfWalkers] been asked to update hiscores, but dont understand steps %s" % steps )
                 sys.exit(-1)
-            print ( "[walkingWorker] been asked to update hiscores: %d == %d" % \
+            print ( "[factoryOfWalkers] been asked to update hiscores: %d == %d" % \
                     ( steps[0], nmax*maxsteps ) )
             ctAttempts += 1
             if steps[0] == nmax*maxsteps: ## are we last?
@@ -148,9 +185,9 @@ def main( nmin, nmax, continueFrom : PathLike,
             else:
                 time.sleep ( (ctAttempts**2+1)*180 )
         if succeeded:
-            print ( "[walkingWorker] ran updater successfully." )
+            print ( "[factoryOfWalkers] ran updater successfully." )
         else:
-            print ( f"[walkingWorker] tried more {ctAttempts} times. stop trying." )
+            print ( f"[factoryOfWalkers] tried more {ctAttempts} times. stop trying." )
 
 if __name__ == "__main__":
     import sys

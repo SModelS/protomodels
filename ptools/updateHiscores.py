@@ -3,6 +3,8 @@
 """ simple script that perpetually updates hiscore list
     from H<n>.pcl """
 
+__all__ = [ "loop", "didCombine" ]
+
 import time, types, sys, os, subprocess
 from os import PathLike
 from typing import Union
@@ -27,6 +29,18 @@ def setup( rundir = None ):
     rundir = rundir.replace ( "~", os.environ["HOME"] )
     os.chdir ( rundir )
     return rundir
+
+def didCombine ( rundir : str ) -> Union[None,bool]:
+    """ find out if whether or not they did combine in this run """
+    ret = None
+    fname = f"{rundir}/run.dict"
+    if os.path.exists ( fname ):
+        with open ( fname, "rt" ) as f:
+            txt = f.read()
+            d = eval(txt)
+            if "do_combine" in d:
+                ret = d["do_combine"]
+    return ret
 
 def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
     """ count the number of steps taken accoring to walker logs
@@ -113,7 +127,8 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
     return tots,steps
 
 def updateHiscores( rundir : Union[None,PathLike] = None, 
-                    dbpath : Union[None,PathLike] = None ):
+                    dbpath : Union[None,PathLike] = None,
+                    do_combine : bool = False ):
     args = types.SimpleNamespace()
     args.print = True
     args.interactive = False
@@ -203,13 +218,15 @@ def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
 def loop( rundir : Union[None,os.PathLike] = None, 
           maxruns : Union[None,int] = 3, doPlots : bool=True, 
           uploadTo : str = "temp", dbpath : str = "@rundir@/default.pcl",
-          verbose : bool = False ):
+          verbose : bool = False, do_combine : bool = False ):
     """ loop (maxruns times) that updates hiscore.hi and states.dict
 
     :param maxruns: maximally iterate that many times, if None then loop endlessly
     :param doPlots: if False, suppress plotting
     :param uploadTo: upload plots to directory "~/git/smodels.github.io/<uploadTo>"
     :param verbose: verbosity
+    :param do_combine: if we need to reconstruct .hi file, reconstruct the proper
+    way.
     """
     rundir = setup( rundir )
     i = 0

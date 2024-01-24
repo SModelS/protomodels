@@ -3,7 +3,8 @@
 """ A class that centralizes access to the hiscore list over multiple threads.
 """
 
-import pickle, subprocess, colorama, sys, os
+import pickle, subprocess, sys, os
+from colorama import Fore as ansi
 from scipy import stats
 sys.path.insert(0,"../")
 from ptools.csetup import setup
@@ -192,7 +193,7 @@ def updateHiscoreHi ( args : Namespace ) -> Dict:
                 dbpath = args.dbpath
             if os.path.exists ( dbpath ):
                 predictor = Predictor ( 0, dbpath = dbpath, expected = False, 
-                        select= "all", do_combine = False )
+                        select= "all", do_combine = args.do_combine )
             hi = Hiscore( 0, True, f"{rundir}/hiscore.hi", predictor = predictor )
             hi.computeParticleContributions(ma)
             protomodels[0]=ma.M
@@ -230,6 +231,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-n', '--nointeractive',
             help='Dont start interactive shell',
             action = "store_true" )
+    argparser.add_argument ( '-D', '--do_combine',
+            help='Do combine results',
+            action = "store_true" )
     argparser.add_argument ( '-x', '--execute',
             help='execute python script EXECUTE before going interactive [None]',
             type=str, default=None )
@@ -249,17 +253,14 @@ if __name__ == "__main__":
         protomodel = protomodels[0]
     ma = Manipulator ( protomodel )
     ma.M.createNewSLHAFileName()
+    from smodels.tools.physicsUnits import pb, fb, TeV
     print ( "[hiscoreTools] starting interactive session." )
-    print ( "[hiscoreTools]      Variables: %sprotomodels, pb, fb%s" % \
-            ( colorama.Fore.RED, colorama.Fore.RESET ) )
-    print ( "[hiscoreTools]         python: %scopy, numpy, scipy, scipy.stats, math%s" % \
-            ( colorama.Fore.RED, colorama.Fore.RESET ) )
-    print ( "[hiscoreTools]        Modules: %smanipulator, hiscore, combiner, predictor, helpers%s" % \
-            ( colorama.Fore.RED, colorama.Fore.RESET ) )
-    print ( "[hiscoreTools]        Classes: %sProtoModel, Combiner, Predictor, Hiscore, Database%s" % \
-            ( colorama.Fore.RED, colorama.Fore.RESET ) )
-    print ( "[hiscoreTools] Instantiations: %sma, co, hi, pr%s" % \
-            ( colorama.Fore.RED, colorama.Fore.RESET ) )
+    print ( f"[hiscoreTools]      Constants: {ansi.RED}pb, fb, TeV{ansi.RESET}" )
+    print ( f"[hiscoreTools]      Variables: {ansi.RED}protomodels{ansi.RESET}" )
+    print ( f"[hiscoreTools]         python: {ansi.RED}copy, numpy, scipy, scipy.stats, math{ansi.RESET}" )
+    print ( f"[hiscoreTools]        Modules: {ansi.RED}manipulator, hiscore, combiner, predictor, helpers{ansi.RESET}" )
+    print ( f"[hiscoreTools]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscore, Database{ansi.RESET}" )
+    print ( f"[hiscoreTools] Instantiations: {ansi.RED}ma, co, hi, pr{ansi.RESET}" )
     from tester import combiner
     from walker import hiscore
     from tester import predictor
@@ -270,7 +271,7 @@ if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     import copy, numpy, scipy, scipy.stats, math
     co = Combiner() # instantiate for convenience
-    pr = Predictor( 0, do_combine=False, dbpath=args.dbpath ) # instantiate for convenience
+    pr = Predictor( 0, do_combine=args.do_combine, dbpath=args.dbpath ) # instantiate for convenience
     from ptools import helpers
     # import hiscore #Keep it for convenience
 
