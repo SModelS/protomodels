@@ -147,17 +147,20 @@ class Predictor:
             f.write ( "[predictor-%s] %s\n" % ( time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
     def predict ( self, protomodel : ProtoModel, sigmacut = 0.02*fb,
-                  strategy : str = "aggressive", 
-                  keep_predictions : bool = False ) -> bool:
+                  strategy : str = "aggressive",
+                  keep_predictions : bool = False,
+                  keep_slhafile : bool = False ) -> bool:
         """ Compute the predictions and statistical variables, for a
             protomodel.
 
         :param sigmacut: weight cut on the predict xsecs for theoryPredictions
         :param strategy: combination strategy, currently only aggressive is used
         :param keep_predictions: if True, then keep *all* predictions --
-        not just the one that make it into the combination, store them as 
+        not just the one that make it into the combination, store them as
         predictor(self).predictions. Store the predictions for the critic in
         predictor(self).critic_preds.
+        :param keep_slhafile: if True, then keep the temporary slha file,
+        print out its name
         :returns: False, if no combinations could be found, else True
         """
 
@@ -180,7 +183,7 @@ class Predictor:
         self.updateModelPredictions(protomodel,critic_preds)
         # self.log ( "model is excluded? %s" % str(protomodel.excluded) )
 
-        # Compute the maximum allowed (global) mu value given the r-values 
+        # Compute the maximum allowed (global) mu value given the r-values
         # stored in protomodel
         protomodel.mumax = self.getMaxAllowedMu(protomodel)
 
@@ -210,12 +213,14 @@ class Predictor:
             self.predict(protomodel,sigmacut=sigmacut, strategy= strategy,
                     keep_predictions = keep_predictions )
 
-        protomodel.delCurrentSLHA()
+        if keep_slhafile:                                                                         self.pprint ( f"keeping {protomodel.currentSLHA}, as requested" )
+        else:
+            protomodel.delCurrentSLHA()
         # we keep track of the database version, when predicting
         protomodel.dbversion = self.database.databaseVersion
         return True
 
-    def runSModelS(self, inputFile : PathLike, sigmacut, 
+    def runSModelS(self, inputFile : PathLike, sigmacut,
             allpreds : bool, llhdonly : bool ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
@@ -236,7 +241,7 @@ class Predictor:
         # self.log ( "Now decomposing" )
         topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
         self.log ( f"decomposed model into {len(topos)} topologies." )
-            
+
 
         if allpreds:
             bestDataSet=False
@@ -442,8 +447,8 @@ if __name__ == "__main__":
             help='interactive shell',
             action="store_true" )
     args = argparser.parse_args()
-    
-    p = Predictor ( 0, args.database, do_combine=False ) 
+
+    p = Predictor ( 0, args.database, do_combine=False )
 
     sys.path.insert(0,"../")
     from walker.hiscore import Hiscore

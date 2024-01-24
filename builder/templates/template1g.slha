@@ -437,7 +437,7 @@ DECAY   1000037     4.93892335E+00   # chargino2+ decays
 #         PDG            Width
 #
 #         PDG            Width
-DECAY   1000023     1.12364506E-03   # neutralino2 decays
+DECAY   1000023     1.12364506E+00   # neutralino2 decays
 #          BR         NDA      ID1       ID2
    D1000023_1000022_23     2    1000022     23     # ~chi_20 -> ~chi_10  Z 
    D1000023_1000022_25     2    1000022     25     # ~chi_20 -> ~chi_10  h 
