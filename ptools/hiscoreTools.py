@@ -6,8 +6,8 @@
 import pickle, subprocess, sys, os
 from colorama import Fore as ansi
 from scipy import stats
-sys.path.insert(0,"../")
-from ptools.csetup import setup
+sys.path.insert(0,"../../")
+from protomodels.csetup import setup
 setup()
 from builder.manipulator import Manipulator
 from walker.hiscore import Hiscore

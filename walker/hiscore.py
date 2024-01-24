@@ -7,10 +7,11 @@ __all__ = [ "Hiscore" ]
 
 import random, copy, pickle, os, fcntl, time, subprocess, colorama
 from scipy import stats
+from protomodels.csetup import setup
+setup()
 from builder.manipulator import Manipulator
 from tester.combiner import  Combiner
 from ptools import helpers
-from ptools.csetup import setup
 from ptools import sparticleNames
 from typing import Union
 from os import PathLike

@@ -3,7 +3,7 @@
 """ draw Z as a function of a model parameter """
 
 import numpy, sys, os, copy, time, subprocess, glob
-from csetup import setup
+from protomodels.csetup import setup
 setup()
 from smodels.tools.wrapperBase import WrapperBase
 WrapperBase.defaulttempdir="./" ## keep the temps in our folder
