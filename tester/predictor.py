@@ -147,14 +147,17 @@ class Predictor:
             f.write ( "[predictor-%s] %s\n" % ( time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
     def predict ( self, protomodel : ProtoModel, sigmacut = 0.02*fb,
-                  strategy : str = "aggressive", keep_predictions : bool = False ):
+                  strategy : str = "aggressive", 
+                  keep_predictions : bool = False ) -> bool:
         """ Compute the predictions and statistical variables, for a
             protomodel.
 
         :param sigmacut: weight cut on the predict xsecs for theoryPredictions
         :param strategy: combination strategy, currently only aggressive is used
-        :param keep_predictions: if True, then keep all predictions (in self,
-               not in protomodel!!)
+        :param keep_predictions: if True, then keep *all* predictions --
+        not just the one that make it into the combination, store them as 
+        predictor(self).predictions. Store the predictions for the critic in
+        predictor(self).critic_preds.
         :returns: False, if no combinations could be found, else True
         """
 

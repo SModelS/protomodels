@@ -352,12 +352,16 @@ class Manipulator:
             for ss,value in tmp.items():
                 xsec = XSection()
                 xsec.value = value*fb
-                xsec.sqrts = ss[1]*TeV
+                xsec.info.sqrts = ss[1]*TeV
+                xsec.info.label = "from_dict_file"
+                xsec.info.order = 0
                 xsec._pid = ss[0]
                 xsecs.append ( xsec )
-            #self.M._stored_xsecs = ( xsecs, "loaded from dict file" )
-            #self.M._xsecMasses = self.M.masses
-            #self.M._xsecSSMs = self.M.ssmultipliers
+            for xsec in xsecs:
+                print ( f"@@ {xsec} {xsec.info.sqrts}" )
+            self.M._stored_xsecs = ( xsecs, "loaded from dict file" )
+            self.M._xsecMasses = self.M.masses
+            self.M._xsecSSMs = self.M.ssmultipliers
 
     def cheat ( self, mode = 0 ):
         ## cheating, i.e. starting with models that are known to work well
@@ -1466,12 +1470,15 @@ class Manipulator:
         """ print the cross sections in a human-readable way """
         xsecs = self.simplifyXSecs( fbmin )
         for sqrts in xsecs.keys():
+            pidss = list ( xsecs[sqrts].keys() ) # list of list of pids
+            pidss.sort()
             print ( f"{sqrts} TeV:" )
-            pids = list ( xsecs[sqrts].keys() )
-            pids.sort()
-            for pid in pids:
-                xsec = xsecs[sqrts][pid]
-                print ( f" {pid:>22s}: {xsec.value}" )
+            for pids in pidss:
+                xsec = xsecs[sqrts][pids]
+                label = ""
+                if "dict" in xsec.info.label:
+                    label = " (from dict)"
+                print ( f" {str(pids):>22s}: {xsec.value.asNumber(fb):.2f} fb{label}" )
 
     def simplifyDecays ( self ):
         """ return the decays only of the unfrozen particles,
