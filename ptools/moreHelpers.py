@@ -30,9 +30,11 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple] ) \
     shorts["electroweakinos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
+    shorts["colored"]="T1,T2,TGQ,T3GQ,T5GQ,TGQqtt,TGQbtq,TGQbbq,T1bbbb,T1tttt,T1bbbboff,T1ttttoff,T1btbt,T6WW"
     description["electroweakinos"]="ewkinos + onshell gauge bosons"
     description["stops"]="stops, on- and off-shell"
     description["sbottoms"]="sbottoms"
+    description["colored"]="light squarks and gluinos"
     if name in shorts:
         d = None
         if name in description:

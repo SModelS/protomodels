@@ -241,6 +241,14 @@ if __name__ == "__main__":
     if not os.path.exists ( args.infile ):
         print ( f"[hiscoreTools] error: input file {args.infile} does not exist." )
         sys.exit()
+    if os.path.exists ( "./run.dict" ):
+        print ( f"[hiscoreTools] found run.dict file. will use its values." )
+        with open ( "./run.dict", "rt" ) as f:
+            txt = f.read()
+            f.close()
+            d = eval(txt)
+            if "do_combine" in d:
+                args.do_combine = d["do_combine"]
     hi = Hiscore ( 0, False, args.infile )
     protomodels = hi.hiscores
     import builder
