@@ -471,7 +471,7 @@ class Hiscore:
                 self.pprint ( "while writing to pickle file I see that it has changed" )
                 self.updateListFromPickle()
                 return False
-        self.pprint ( "saving new hiscore list to %s" % pickleFile )
+        self.pprint ( f"saving new hiscore list to {pickleFile}" )
         try:
             if self.backup:
                 subprocess.getoutput ( "mv -f %s old_%s" % ( pickleFile, pickleFile ) )
