@@ -76,42 +76,6 @@ def pprintEvs ( protomodel ):
         return "%dK evts" % ( protomodel.nevents/1000 )
     return str(protomodel.nevents)+ " evts"
 
-def compileList( nmax ):
-    """ compile the list from individual H*hi
-    """
-    import glob
-    files = glob.glob ( "H*.hi" )
-    allprotomodels=[]
-    import progressbar
-    pb = progressbar.ProgressBar(widgets=["file #",progressbar.Counter(),
-            "/%d " % len(files), progressbar.Percentage(),
-            progressbar.Bar( marker=progressbar.RotatingMarker() ),
-            progressbar.AdaptiveETA()])
-    pb.maxval = len(files)
-    pb.start()
-    for ctr,fname in enumerate(files):
-        pb.update(ctr)
-        try:
-            with open( fname,"rb+") as f:
-                protomodels = pickle.load ( f )
-                try:
-                    pickle.load(f)
-                except EOFError:
-                    pass
-                ## add protomodels, but without the Nones
-                f.close()
-                allprotomodels += list ( filter ( None.__ne__, protomodels ) )
-                allprotomodels = sortByK ( allprotomodels )
-        except ( AttributeError, Exception, IOError, OSError, FileNotFoundError, EOFError, UnicodeDecodeError, pickle.UnpicklingError ) as e:
-            cmd = f"rm -f {fname}"
-            print ( f"[hiscoreTools] could not open {fname} ({e}). {cmd}." )
-            subprocess.getoutput ( cmd )
-    pb.finish()
-    if nmax > 0:
-        while len(allprotomodels)<nmax:
-            allprotomodels.append ( None )
-    return allprotomodels
-
 def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict", 
                            picklefile : str = "hiscore.hi",
                            entrynr : Union[None,int] = 0 ) -> bool:
@@ -138,7 +102,10 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
     hi = Hiscore ( 0, False, picklefile )
     def compare ( dentry, pentry ):
         ## compare one dictentry with one pickleentry
-        if abs ( dentry["K"] - pentry.K ) > 1e-8:
+        newK = dentry["K"]
+        oldK = pentry.K
+        if ( newK - oldK ) > 1e-4:
+            print ( f"[hiscoreTools] top K value changed {newK:.3f}..{oldK:.3f}" )
             return True
         return False
 
@@ -187,6 +154,7 @@ def updateHiscoreHi ( args : Namespace ) -> Dict:
     :returns: { "Z": highest significance,
                 "step": step, "model": model, "K": bayesian_K  }
     """
+    print ( "FIXME obsolete!!!" )
     # FIXME replace!
     ret =  { "Z": 0., "step": 0, "model": None, "K": -100. }
 
@@ -208,30 +176,10 @@ def updateHiscoreHi ( args : Namespace ) -> Dict:
         args.outfile = None
 
     if infile is None:
-        print ( f"[hiscore] compiling a hiscore list with {args.nmax} protomodels" )
-        protomodels = compileList( args.nmax ) ## compile list from H<n>.hi files
-    else:
-        if not os.path.exists ( infile ):
-            if os.path.exists ( "hiscores.dict" ):
-                print ( f"[hiscoreTools] {infile} does not exist, but hiscores.dict does! rebuild {infile}." )
-                hi = Hiscore.fromDictionaryFile ( "hiscores.dict", dbpath=args.dbpath )
-                hi.writeListToPickle ( infile )
-            else:
-                print ( f"[hiscoreTools] neither {infile} nor hiscores.dict exists. abort!" )
-                sys.exit()
-
-        with open(infile,"rb") as f:
-            try:
-                protomodels = pickle.load ( f )
-                try:
-                    pickle.load ( f )
-                except EOFError:
-                    pass
-                f.close()
-            except (BlockingIOError,OSError) as e:
-                print ( "file handling error on %s: %s" % ( infile, e ) )
-                ## make sure we dont block!
-                raise e
+        infile = "hiscore.hi"
+    dictfile = infile.replace( "hiscore.hi","hiscores.dict" )
+    hi = createHiscoreObj ( dictfile )
+    protomodels = hi.hiscores
 
     if protomodels[0] == None:
         print ( "[hiscore] error, we have an empty hiscore list" )
