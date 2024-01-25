@@ -329,8 +329,8 @@ class Hiscore:
 
         try:
             self.pprint ( "Now computing analysis contributions" )
-            self.pprint ( "Recompute the score. Old one at K=%.2f, Z=%.2f" % \
-                          ( manipulator.M.K, manipulator.M.Z ) )
+            self.pprint ( f"Recompute the score. Old one at K={manipulator.M.K:.3f}"
+                          f", Z={manipulator.M.Z:.2f}" )
             contributionsZ = {}
             contributionsK = {}
             combiner = Combiner()

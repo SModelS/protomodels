@@ -12,7 +12,7 @@ __all__ = [ "createWalkers" ]
 
 import os, sys
 from os import PathLike
-from typing import Union, Dict
+from typing import Union, Dict, List
 try:
     from torch import multiprocessing
 except:
@@ -38,8 +38,14 @@ def _run ( walker, catch_exceptions, seed ):
         import colorama
         print ( "%swalker %d threw: %s%s\n" % ( colorama.Fore.RED, walker.walkerid, e, colorama.Fore.RESET ) )
 
-def startWalkers ( walkers, catch_exceptions=False, seed = None ):
+def startWalkers ( walkers : List, catch_exceptions : bool = False,
+                   seed : Union[None,int] = None ) -> int:
+    """ start the walkers
 
+    :param catch_exceptions: If True will catch the exceptions and exit.
+    :param seed: random seed number (optional)
+    :returns: number of started walkers
+    """
     processes=[]
     for walker in walkers:
         p = multiprocessing.Process ( target=_run, args=( walker, catch_exceptions, seed ) )
@@ -47,6 +53,7 @@ def startWalkers ( walkers, catch_exceptions=False, seed = None ):
         processes.append(p)
     for p in processes:
         p.join()
+    return len(processes)
 
 def writeMetaInfo ( rundir : str, meta : Dict ):
     """ write meta info of factory run to run.dict. complain if data is 
@@ -77,7 +84,8 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
           nevents : int = 100000, seed : Union[None,int] = None, 
           catch_exceptions : bool = True, select : str = "all",
           do_combine : bool = False, record_history : bool = False, 
-          update_hiscores : bool = False, stopTeleportationAfter : int = -1 ):
+          update_hiscores : bool = False, stopTeleportationAfter : int = -1,
+          forbiddenparticles : List[int] = [] ):
     """ a worker node to set up to run walkers
 
     :param nmin: the walker id of the first walker
@@ -101,8 +109,12 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
                             after that run hiscore updater
     :param stopTeleportationAfter: integer, stop teleportation after this step has 
     been reached. -1 or None means, dont run teleportation at all.
+    :param forbiddenparticles: an optional list of particles we wont touch in this
+    run
     """
     meta = { "dbpath": dbpath, "select": select, "do_combine": do_combine }
+    from builder.manipulator import Manipulator
+    Manipulator.forbiddenparticles = forbiddenparticles
     writeMetaInfo ( rundir, meta )
 
     if rundir != None and "<rundir>" in dbpath:

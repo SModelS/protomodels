@@ -989,7 +989,6 @@ def runPlotting ( args ):
             a = subprocess.getoutput ( cmd )
             if a != "":
                 print ( "[plotHiscore] error when mkdir: %s" % a )
-
         print ( f"[plotHiscore] copying to {dest}:", end="" )
         first=True
         for f in F.split(" "):
@@ -997,13 +996,21 @@ def runPlotting ( args ):
                 if not first:
                     print ( ",", end="" )
                 print ( " "+f, end="" )
-                cmd = f"cp {f} {dest}"
+                cmd = "cp"
+                cmd = f"{cmd} {f} {dest}"
                 a = subprocess.getoutput ( cmd )
                 if a != "":
                     print ( "error: %s" % a )
                     sys.exit()
                 first = False
         print ( "." )
+        cleanUp = True ## clean up after moving
+        if cleanUp:
+            toClean = [ "decays.tex", "decays.log", "decays.aux", "decays.pdf",
+                        "rawnumbers.tex", "decays.dot", "decays.svg" ]
+            for f in toClean:
+                if os.path.exists ( f ):
+                    os.unlink ( f )
         r = hiplt.gitCommit( dest, upload, args.commit )
         if not r:
             destdir = dest

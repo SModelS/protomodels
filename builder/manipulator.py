@@ -7,8 +7,6 @@
 
 __all__ = [ "Manipulator" ]
 
-#import sys
-#sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 from smodels.base.physicsUnits import fb, TeV
@@ -26,6 +24,8 @@ class Manipulator:
     walledpids = [ 1000001, 1000002, 1000003, 1000004, 1000021 ]
     # walledpids += [ 1000005, 1000006, 2000005, 2000006 ]
     wallmass = 310.
+    ## forbiddenparticles are particle ids that we do not touch in this run
+    forbiddenparticles = []
 
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike], 
             strategy: str = "aggressive", verbose : bool = False, 
@@ -357,8 +357,6 @@ class Manipulator:
                 xsec.info.order = 0
                 xsec._pid = ss[0]
                 xsecs.append ( xsec )
-            for xsec in xsecs:
-                print ( f"@@ {xsec} {xsec.info.sqrts}" )
             self.M._stored_xsecs = ( xsecs, "loaded from dict file" )
             self.M._xsecMasses = self.M.masses
             self.M._xsecSSMs = self.M.ssmultipliers
@@ -633,24 +631,29 @@ class Manipulator:
                 #if hasattr(tp,'chi2'):
                 #    del tp.chi2
 
-    def randomlyChangeModel(self,sigmaUnFreeze = 0.5, probBR = 0.2, probSS = 0.25,
-                                probSSingle=0.8, ssmSigma=0.1,
-                                probMerge = 0.05, sigmaFreeze = 0.5, probMassive = 0.3,
-                                probMass = 0.05, dx =200):
+    def randomlyChangeModel(self,sigmaUnFreeze : float = 0.5, probBR : float = 0.2, 
+            probSS : float = 0.25, probSSingle : float = 0.8, ssmSigma : float = 0.1,
+            probMerge : float = 0.05, sigmaFreeze : float = 0.5, 
+            probMassive : float = 0.3, probMass : float = 0.05, dx : float = 200):
         """Randomly modify the proto-model following the steps:
-        1) A random particle can be unfrozen (the probability is controlled by sigmaFreeze)
+
+        1) A random particle can be unfrozen with a probability 
+        controlled by sigmaUnFreeze
         2) A random BR can be modified (with probability probBR)
-        3) A random signal strenght can be modified (the probability is controlled by probSS, probSSingle and ssmSigma)
+        3) A random signal strenght can be modified 
+        the probability is controlled by probSS, probSSingle and ssmSigma
         4) Particles can be merged (with probability probMerge)
-        5) A random particle can be frozen (the probability is controlled by sigmaFreeze and probMassive)
-        6) A random mass can be changed by a maximum value of dx (with probability probMass)
+        5) A random particle can be frozen 
+        the probability is controlled by sigmaFreeze and probMassive
+        6) A random mass can be changed by a maximum value of dx
+        with probability of probMass
         """
 
         nChanges = 0
         nChanges += self.randomlyUnfreezeParticle(sigma=sigmaUnFreeze)
         nChanges += self.randomlyChangeBranchings(prob=probBR)
         nChanges += self.randomlyChangeSignalStrengths(prob = probSS,
-                                                probSingle = probSSingle, ssmSigma = ssmSigma)
+                                       probSingle = probSSingle, ssmSigma = ssmSigma)
         nChanges+=self.randomlyFreezeParticle(sigma= sigmaFreeze, probMassive = probMassive)
         if not nChanges: #If nothing has changed, force a random change of masses
             nChanges+=self.randomlyChangeMasses(prob=1.0, dx = dx)
@@ -660,12 +663,14 @@ class Manipulator:
         #Update cross-sections (if needed)
         self.M.getXsecs()
 
-    def randomlyUnfreezeParticle ( self, sigma=0.5, force = False ):
+    def randomlyUnfreezeParticle ( self, sigma=0.5, force = False ) -> int:
         """ Unfreezes a (random) frozen particle according to gaussian distribution
             with a width of <sigma>.
 
         :param sigma: Width of the gaussian distribution
         :param force: If True force the unfreezing.
+
+        :returns: 1 if a particle got unfrozen, 0 if not.
         """
 
         #Decide whether to unfreeze according to the number of active particles
@@ -682,11 +687,15 @@ class Manipulator:
                 return 0
 
         self.log ( "unfreeze random particle" )
-        #Randomly select the pid:
+        # Randomly select the pid:
         frozen = self.M.frozenParticles()
         if len(frozen)==0:
             return 0
         pid = random.choice ( frozen )
+
+        if pid in self.forbiddenparticles:
+            self.log ( f"wanted to unfreeze {pid} but its forbidden" )
+            return 0
 
         #Check for canonical ordering.
         #If pid matches the heavier state and the lighter state is frozen,
@@ -1119,9 +1128,17 @@ class Manipulator:
             if p < .1:
                 mass = self.M.masses[pid]
                 otherpid = 1000024 if pid == 1000023 else 1000023
+                ## remember the frozen particles, so we can check
+                # if we just unfroze this guy
+                were_frozen = self.M.frozenParticles()
                 self.M.masses[otherpid] = mass * random.uniform ( .99, 1.01 )
-                self.log ( "mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" ) 
-                self.record ( "change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
+                self.log ( f"mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" ) 
+                # FIXME if the particle was frozen before, we need to
+                # unfreeze
+                if otherpid in were_frozen:
+                    self.setRandomBranchings(otherpid)
+                    self.initSSMFor(otherpid)
+                self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
         #Fix branching ratios and rescale signal strenghts, so other channels are not affected
         self.removeAllOffshell(rescaleSSMs=True)

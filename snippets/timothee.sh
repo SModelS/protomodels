@@ -1,3 +1,0 @@
-#!/bin/sh
-
-../plotting/plotDBDict.py -d ../222pre1.dict -a "ATLAS-SUSY-2019-08,ATLAS-SUSY-2019-09,ATLAS-SUSY-2018-41,ATLAS-SUSY-2018-23,CMS-SUS-21-002,CMS-SUS-20-001" 
