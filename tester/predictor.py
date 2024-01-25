@@ -128,12 +128,13 @@ class Predictor:
                                                     useNonValidated=True )
         if self.modifier:
             listOfExpRes = self.modifier.modify ( listOfExpRes )
+        self.pprint ( f"I will be working with {len(listOfExpRes)} results" )
 
         self.listOfExpRes = listOfExpRes
         if False:
             f=open("expresults.txt","wt")
             for expRes in self.listOfExpRes:
-                f.write ( "%s %s\n" % (expRes.id(), expRes.datasets[0] ) )
+                f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
             f.close()
 
     def pprint ( self, *args ):

@@ -85,7 +85,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
           catch_exceptions : bool = True, select : str = "all",
           do_combine : bool = False, record_history : bool = False, 
           update_hiscores : bool = False, stopTeleportationAfter : int = -1,
-          forbiddenparticles : List[int] = [] ):
+          forbiddenparticles : List[int|str] = [] ):
     """ a worker node to set up to run walkers
 
     :param nmin: the walker id of the first walker
@@ -112,9 +112,11 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
     :param forbiddenparticles: an optional list of particles we wont touch in this
     run
     """
-    meta = { "dbpath": dbpath, "select": select, "do_combine": do_combine }
+    meta = { "dbpath": dbpath, "select": select, "do_combine": do_combine,
+             "forbidden": forbiddenparticles }
     from builder.manipulator import Manipulator
-    Manipulator.forbiddenparticles = forbiddenparticles
+    from ptools.moreHelpers import namesForSetsOfPids
+    Manipulator.forbiddenparticles = namesForSetsOfPids ( forbiddenparticles )
     writeMetaInfo ( rundir, meta )
 
     if rundir != None and "<rundir>" in dbpath:
