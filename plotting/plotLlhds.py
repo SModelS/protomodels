@@ -134,7 +134,7 @@ class LlhdPlot:
     """ A simple class to make debugging the plots easier """
     def __init__ ( self, pid1, pid2, verbose, copy, max_anas, 
                    interactive, drawtimestamp, compress, rundir,
-                   upload ):
+                   upload, dbpath ):
         """
         :param pid1: pid for x axis, possibly a range of pids
         :param pid2: pid for y axis
@@ -145,7 +145,9 @@ class LlhdPlot:
         :param drawtimestamp: if true, put a timestamp on plot
         :param compress: prepare for compression
         :param upload: upload directory, default is "latest"
+        :param dbpath: path to database
         """
+        self.dbpath = dbpath
         self.rundir = rundir
         self.upload = upload
         self.setup( pid1, pid2 )
@@ -338,10 +340,11 @@ class LlhdPlot:
             return anaid
         if not hasattr ( self, "database" ):
             from smodels.experiment.databaseObj import Database
-            dbname = "./original.pcl" 
-            dbname = "/home/walten/git/smodels-database"
-            dbname = "/scratch-cbe/users/wolfgan.waltenberger/rundir/db31.pcl"
-            self.database = Database ( dbname )
+            #dbname = "./original.pcl" 
+            #dbname = "/home/walten/git/smodels-database"
+            #dbname = "/scratch-cbe/users/wolfgan.waltenberger/rundir/db31.pcl"
+            # dbname = "official"
+            self.database = Database ( self.dbpath )
         from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
         if ":" in anaid:
             anaid = anaid[:anaid.find(":")]
@@ -558,7 +561,7 @@ class LlhdPlot:
         # plt.title ( "HPD regions, %s [%s]" % ( namer.texName(pid1, addSign=False, addDollars=True), self.topo ), fontsize=14 )
         plt.xlabel ( "m(%s) [GeV]" % namer.texName(pid1,addSign=False, addDollars=True), fontsize=14 )
         plt.ylabel ( "m(%s) [GeV]" % namer.texName(self.pid2, addSign=False, addDollars=True), fontsize=14 )
-        circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label='excluded by critic', edgecolor="black" )
+        circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label='excluded by critic (r>1.7)', edgecolor="black" )
         handles.append ( circ1 )
         plt.legend( handles=handles, loc="upper left", fontsize=12 )
         figname = "%s/llhd%d.png" % ( self.rundir, pid1 )

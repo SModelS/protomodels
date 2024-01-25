@@ -104,7 +104,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
         ## compare one dictentry with one pickleentry
         newK = dentry["K"]
         oldK = pentry.K
-        if ( newK - oldK ) > 1e-4:
+        if ( newK - oldK ) > 1e-3:
             print ( f"[hiscoreTools] top K value changed {newK:.3f}..{oldK:.3f}" )
             return True
         return False
