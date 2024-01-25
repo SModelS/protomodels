@@ -2,6 +2,8 @@
 
 """ script used to produce the likelihood scans """
 
+__all__ = [ "LlhdScanner" ]
+
 import os, sys, multiprocessing, time, numpy, subprocess, copy, glob
 from protomodels.csetup import setup
 setup()
@@ -13,6 +15,9 @@ from tester.combiner import Combiner
 from tester.predictor import Predictor
 from plotting import plotLlhds, plotHiscore
 from typing import Dict
+from ptools.sparticleNames import SParticleNames
+
+namer = SParticleNames ( False )
 
 def findPids ( rundir ):
     """ search for llhd*pcl files, report the corresponding pids.
@@ -49,9 +54,10 @@ class LlhdThread:
     def pprint ( self, *args ):
         """ pretty print """
         t = time.strftime("%H:%M:%S")
-        line = "[llhdthread%d-%s] %s" % ( self.threadnr, t, " ".join(map(str,args)))
+        margs = " ".join(map(str,args))
+        line = f"[llhdthread{self.threadnr}-{t}] {margs}"
         print ( line )
-        with open ( "llhdscan%d.log" % self.pid1, "at" ) as f:
+        with open ( f"llhdscan{self.pid1}.log", "at" ) as f:
             f.write ( line+"\n" )
 
     def getPredictions ( self, recycle_xsecs = True ):
@@ -66,6 +72,7 @@ class LlhdThread:
             sigmacut=.001*fb
         ## first get rmax
         worked = self.predictor.predict ( self.M, keep_predictions = True )
+        # print ( f"we did get {len(self.predictor.predictions)} predictions" )
         #slhafile = self.M.createSLHAFile()
         #predictions = self.predictor.runSModelS ( slhafile,
         #        sigmacut = 0.02*fb, allpreds = True, llhdonly = True )
@@ -83,11 +90,12 @@ class LlhdThread:
         self.M.delCurrentSLHA()
         return llhds,self.M.rvalues[:3]
 
-    def getLikelihoods ( self, predictions, mu = 1. ):
+    def getLikelihoods ( self, predictions, mu = 1. ) -> Dict:
         """ return dictionary with the likelihoods per analysis """
         llhds= {}
         for tp in predictions:
-            name = "%s:%s:%s" % ( tp.analysisId(), tp.dataId(), ",".join ( [ i.txName for i in tp.txnames ] ) )
+            txname = ','.join ( [ i.txName for i in tp.txnames ] )
+            name = f"{tp.analysisId()}:{tp.dataId()}:{txname}"
             llhds[ name ] = tp.likelihood ( mu )
         return llhds
 
@@ -96,14 +104,23 @@ class LlhdThread:
         cmd = "rm %s" % self.M.currentSLHA
         subprocess.getoutput ( cmd )
 
+    def setMass ( self, pid : int, mass : float ):
+        """ set mass of <pid> to <mass> """
+        partners = [ ( 1000023, 1000024 ) ]
+        self.M.masses[pid]=mass
+        for pair in partners:
+            if pid in pair:
+                for p in pair:
+                    self.M.masses[p]=mass
+
     def run ( self, rpid1, rpid2 ):
         """ run for the points given """
         oldmasses = {}
         masspoints=[]
         npid1s = len(rpid1)
         for i1,m1 in enumerate(rpid1):
-            self.pprint ( "now starting with %d/%d" % ( i1, npid1s) )
-            self.M.masses[self.pid1]=m1
+            self.pprint ( f"now starting with {i1}/{npid1s}" )
+            self.setMass ( self.pid1, m1 )
             self.M.masses[self.pid2]=self.mpid2 ## reset LSP mass
             for k,v in oldmasses.items():
                 self.pprint ( "WARNING: setting mass of %d back to %d" % ( k, v ) )
@@ -117,16 +134,15 @@ class LlhdThread:
                 self.M.masses[self.pid2]=m2
                 for pid_,m_ in self.M.masses.items():
                     if pid_ != self.pid2 and m_ < m2: ## make sure LSP remains the LSP
-                        self.pprint ( "WARNING: have to raise %d from %d to %d" % ( pid_, m_, m2+1. ) )
+                        self.pprint ( f"WARNING: have to raise {pid_} from {m_} to {m2+1.}" )
                         oldmasses[pid_]=m_
                         self.M.masses[pid_]=m2 + 1.
-                llhds,robs = self.getPredictions ( True )
+                llhds,robs = self.getPredictions ( False )
                 nllhds,nnonzeroes=0,0
                 for mu,llhd in llhds.items():
                     nllhds+=len(llhd)
 
-                self.pprint ( "%d/%d: m1 %d, m2 %d, %d mu's, %d llhds." % \
-                              ( i1, npid1s, m1, m2, len(llhds), nllhds ) )
+                self.pprint ( f"{i1}/{npid1s}: m({namer.asciiName(self.pid1)})={m1}, m2({namer.asciiName(self.pid2)})={m2}, {len(llhds)} mu's, {nllhds} llhds." )
                 masspoints.append ( (m1,m2,llhds,robs) )
         return masspoints
 
@@ -144,7 +160,8 @@ def runThread ( threadid: int, rundir: str, M, pid1, pid2, mpid1,
 class LlhdScanner:
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, pid1, pid2, nproc, rundir : str,
-                   dbpath : str = "official" ):
+                   dbpath : str = "official", select : str = "all",
+                   do_combine : bool = True ):
         """
         :param rundir: the rundir
         :param dbpath: the database path
@@ -155,16 +172,18 @@ class LlhdScanner:
         self.pid1 = pid1
         self.pid2 = pid2
         self.nproc = nproc
-        expected = False
-        select = "all"
-        self.predictor = Predictor ( 0, dbpath=dbpath, expected=expected, select=select, do_combine = False )
+        # expected = False
+        self.predictor = Predictor ( 0, dbpath=dbpath, 
+                select=select, do_combine = do_combine )
+        print ( f"self.predictor = Predictor ( 0, dbpath='{dbpath}', select='{select}', do_combine = {do_combine} )" )
 
     def pprint ( self, *args ):
         """ pretty print """
         t = time.strftime("%H:%M:%S")
-        line = "[llhdscanner:%s] %s" % ( t, " ".join(map(str,args)))
+        margs = " ".join(map(str,args))
+        line = f"[llhdscanner:{t}] {margs}"
         print ( line )
-        with open ( "llhdscan%d.log" % self.pid1, "at" ) as f:
+        with open ( f"llhdscan{self.pid1}.log", "at" ) as f:
             f.write ( line+"\n" )
 
     def describeRange ( self, r ):
@@ -250,8 +269,7 @@ class LlhdScanner:
                                self.mpid1, self.mpid2, self.nevents, self.predictor )
         llhds,robs = thread0.getPredictions ( False )
         thread0.clean()
-        self.pprint ( "protomodel point: m1 %d, m2 %d, %d llhds" % \
-                      ( self.mpid1, self.mpid2, len(llhds) ) )
+        self.pprint ( f"protomodel point: m1({namer.asciiName(self.pid1)})={self.mpid1:.2f}, m2({namer.asciiName(self.pid2)})={self.mpid2:.2f}, {len(llhds)} llhds" )
         masspoints = [ (self.mpid1,self.mpid2,llhds,robs) ]
 
         if True:
@@ -279,30 +297,30 @@ class LlhdScanner:
 
     def overrideWithDefaults ( self, args ):
         mins = { 1000005:  100., 1000006:  100., 2000006:  100., 1000021:  300., \
-                 1000023:  200., 1000024:  200.,
+                 1000023:  200., 1000024:  50.,
                  1000001:  250., 1000002: 250., 1000003: 250., 1000004: 250. }
         maxs = { 1000005: 1500., 1000006: 1460., 2000006: 1260., 1000021: 2351., \
-                 1000023:  700., 1000024:  700.,
+                 1000023:  700., 1000024:  100.,
                  1000001: 2051., 1000002: 2051., 1000003: 2051., 1000004: 2051. }
         #dm   = { 1000005:   16., 1000006:   16., 2000006:   16., 1000021:  20., \
         #         1000001:   20., 1000002:   20., 1000003:   20., 1000004:  20.  }
         dm   = { 1000005:   10., 1000006:   10., 2000006:   10., 1000021: 15., \
-                 1000023:   10., 1000024:   10.,
+                 1000023:   10., 1000024:   5.,
                  1000001:   12., 1000002:   12., 1000003:   12., 1000004: 12.  }
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
                  1000023: "TChiZZoff", 1000024: "TChiWZoff",
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
         LSPmins = { 1000005:    5., 1000006:   5., 2000006:    5., 1000021:    5., \
-                    1000023:    5., 1000024:   5.,
+                    1000023:    5., 1000024:   0.,
                     1000001:    5., 1000002: 5., 1000003: 5., 1000004: 5. }
         LSPmaxs = { 1000005:  800., 1000006: 900., 2000006:  800., 1000021: 1800., \
-                    1000023:  600., 1000024: 600.,
+                    1000023:  600., 1000024: 100.,
                     1000001: 1700., 1000002: 1700., 1000003: 1700., 1000004: 1700. }
         #LSPdm   = { 1000005:   12., 1000006:  14., 2000006:  14., 1000021: 14., \
         #           1000001:   12., 1000002:  12., 1000003:  12., 1000004: 12. }
         LSPdm   = { 1000005: 10., 1000006: 10., 2000006: 10., 1000021: 15., \
-                    1000023: 10., 1000024: 10.,
+                    1000023: 10., 1000024: 5.,
                     1000001: 10., 1000002: 10., 1000003: 10., 1000004: 10. }
         if not args.pid1 in mins:
             print ( f"[llhdScanner] asked for defaults for {args.pid1}, but none defined." )
@@ -378,9 +396,14 @@ def main ():
     argparser.add_argument ( '-o', '--output',
             help="prefix for output file [llhd]",
             type=str, default="llhd" )
+    argparser.add_argument ( '-s', '--select',
+            help="what do we select for [all]",
+            type=str, default="all" )
     argparser.add_argument ( '--dbpath',
             help="path to database [official]",
             type=str, default="official" )
+    argparser.add_argument ( '-c', '--do_combine',
+            help='do_combine', action='store_true' )
     args = argparser.parse_args()
     rundir = setup( args.rundir )
     nproc = args.nproc
@@ -388,12 +411,16 @@ def main ():
         nproc = nCPUs() + nproc
     if args.picklefile == "default":
         args.picklefile = "%s/hiscore.hi" % rundir
+    print ( "FIXME use fetchHiscore method here!" )
+    sys.exit()
     protomodel = plotHiscore.HiscorePlotter().obtain ( args.number, args.picklefile, args.dbpath )
     pid1s = [ args.pid1 ]
     if args.pid1 == 0:
         pid1s = findPids( rundir )
     for pid1 in pid1s:
-        scanner = LlhdScanner( protomodel, pid1, args.pid2, nproc, rundir, args.dbpath )
+        scanner = LlhdScanner( protomodel, pid1, args.pid2, nproc, rundir, 
+                dbpath = args.dbpath, select = args.select, 
+                do_combine = args.do_combine )
         args.pid1 = pid1
         args = scanner.overrideWithDefaults ( args )
         range1 = { "min": args.min1, "max": args.max1, "dm": args.deltam1 }
@@ -409,7 +436,8 @@ def main ():
             compress = False
             upload = "latest"
             plot = plotLlhds.LlhdPlot ( pid1, args.pid2, verbose, copy, max_anas,
-                                       interactive, drawtimestamp, compress, rundir, upload )
+                  interactive, drawtimestamp, compress, rundir, upload, args.dbpath )
+            print ( f"plotLlhds.LlhdPlot ( {pid1}, {args.pid2}, {verbose}, {copy}, {max_anas}, {interactive}, {drawtimestamp}, {compress}, {rundir}, {upload}, {args.dbpath} )" )
             plot.plot()
 
 if __name__ == "__main__":
