@@ -5,6 +5,38 @@
 
 from typing import Union, Text, List, Tuple
 
+def namesForSetsOfPids ( names: List[str|int] ) -> Tuple[int]:
+    """ short names for various sets of pids. used as abbreviations
+    for forbiddenparticles
+
+    :param names: e.g. [ "stops","sbottoms",2000037"
+    :returns: list of pids as ints e.g. "1000006,1000005"
+    """
+    dic = { "stops": [ 1000006, 2000006 ], 
+            "sbottoms": [ 1000005, 2000005 ],
+            "squarks": [ 1000001, 2000001, 1000002, 2000002, 1000003, 2000003, \
+                         1000004, 2000004 ],
+            "gluinos": [ 1000021 ],
+            "charginos": [ 1000024, 1000037 ],
+            "neutralinos": [ 1000023, 1000025, 1000036 ],
+            "sneutrinos": [ 1000012, 1000014, 1000016 ],
+            "sleptons": [ 1000011, 1000013, 1000015 ],
+            "electroweakinos": [ 1000024, 1000037, 1000023, 1000025, 1000036 ]
+    }
+    ret = []
+    for n in names:
+        if n in dic.keys():
+            for pid in dic[n]:
+                ret.append ( pid )
+        else:
+            try:
+                n=int(n)
+            except ValueError as e:
+                print ( f"[moreHelpers.namesForSetsOfPids] do not know {n}, will ignore" )
+                continue
+            ret.append ( n )
+    return ret
+
 def namesForSetsOfTopologies ( name : Union[Text,List,Tuple] ) \
         -> Tuple[Text,Union[Text,None]]:
     """ some abbreviations for sets of topologies,
@@ -103,7 +135,10 @@ def findLargestExcess ( db ):
     return excesses
 
 if __name__ == "__main__":
-    In = "T1"
+    """"
     In = "electroweakinos"
     Out = namesForSetsOfTopologies ( In )
+    """
+    In = [ "stops","sbottoms",2000037 ]
+    Out = namesForSetsOfPids ( In )
     print ( In, "->", Out )

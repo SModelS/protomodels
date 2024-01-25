@@ -126,7 +126,7 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
             print ( a )
     return tots,steps
 
-def updateHiscores( rundir : Union[None,PathLike] = None, 
+def updateHiscores( rundir : Union[None,PathLike] = None,
                     dbpath : Union[None,PathLike] = None,
                     do_combine : bool = False ):
     args = types.SimpleNamespace()
@@ -180,7 +180,7 @@ def updateStates( rundir : Union[None,PathLike] = None,
     print ( f"[updateHiscores] done updating {args.outfile}" )
     print ( )
 
-def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230", 
+def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
           dbpath : str = "@rundir@/default.pcl", verbose : bool = False ):
     """ create all hiscore plots
 
@@ -215,15 +215,16 @@ def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
         args.commit = True
     plotHiscore.runPlotting ( args )
 
-def loop( rundir : Union[None,os.PathLike] = None, 
-          maxruns : Union[None,int] = 3, doPlots : bool=True, 
-          uploadTo : str = "temp", dbpath : str = "@rundir@/default.pcl",
+def loop( rundir : Union[None,os.PathLike] = None,
+          maxruns : Union[None,int] = 3, createPlots : bool=True,
+          uploadTo : str = "temp", dbpath : str = "official",
           verbose : bool = False, do_combine : bool = False ):
-    """ loop (maxruns times) that updates hiscore.hi and states.dict
+    """ loop (maxruns times) that updates hiscore.hi
 
     :param maxruns: maximally iterate that many times, if None then loop endlessly
-    :param doPlots: if False, suppress plotting
+    :param createPlots: if False, suppress plotting
     :param uploadTo: upload plots to directory "~/git/smodels.github.io/<uploadTo>"
+    :param dbpath: path to database, @rundir@ will replaced with actual rundir
     :param verbose: verbosity
     :param do_combine: if we need to reconstruct .hi file, reconstruct the proper
     way.
@@ -235,7 +236,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
     if os.path.exists ( Zfile ):
         with open ( Zfile, "rt" ) as f:
             Zold = float ( f.read().strip() )
-    Kfile = f"{rundir}/Kold.conf" 
+    Kfile = f"{rundir}/Kold.conf"
     if os.path.exists ( Kfile ):
         with open ( Kfile, "rt" ) as f:
             Kold = float ( f.read().strip() )
@@ -249,21 +250,20 @@ def loop( rundir : Union[None,os.PathLike] = None,
             from builder.manipulator import Manipulator
             m = Manipulator ( model )
             T=str(int(time.time()))
-            m.writeDictFile ( "pmodel-%s.py" % T, comment="history keeper" )
-            with open ( "%shistory.txt" % rundir, "at" ) as f:
-                f.write ( "%s, step=%d, Z=%.4f, K=%.4f, t=%s\n" % ( time.asctime(),step,Z,K,T) )
+            m.writeDictFile ( f"pmodel-{T}.py", comment="history keeper" )
+            with open ( f"{rundir}history.txt", "at" ) as f:
+                f.write ( f"{time.asctime()}, step={step}, Z={Z:.4f}, K={K:.4f}, t={T}\n" )
                 f.close()
             with open ( Zfile, "wt" ) as f:
-                f.write ( "%s\n" % str(Z) )
+                f.write ( f"{str(Z)}\n" )
                 f.close()
             with open ( Kfile, "wt" ) as f:
-                f.write ( "%s\n" % str(K) )
+                f.write ( f"{str(K)}\n" )
                 f.close()
             Zold = Z
             Kold = K
-        if doPlots:
+        if createPlots:
             plot ( Z, K, rundir, uploadTo, dbpath, verbose )
-        updateStates( rundir, dbpath )
         time.sleep(60.)
         if os.path.exists ( Kfile ): ## so we can meddle from outside
             with open ( Kfile, "rt" ) as f:

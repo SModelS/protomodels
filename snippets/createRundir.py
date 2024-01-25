@@ -14,6 +14,8 @@ def create ( path : str ):
     o = subprocess.getoutput ( cmd )
     cmd = f"ln -s {path} ~/{os.path.basename{path}"
     o = subprocess.getoutput ( cmd )
+    cmd = f"ln -s ~/git/protomodels/ptools/hiscoreTools.py {path}/"
+    o = subprocess.getoutput ( cmd )
 
 if __name__ == "__main__":
     import sys
