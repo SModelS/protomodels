@@ -23,10 +23,13 @@ except:
     from combiner import Combiner
 
 class Predictor:
-    def __init__ ( self, walkerid : int, dbpath : PathLike = "./default.pcl",
+    def __init__ ( self, walkerid : int, dbpath : PathLike = "official",
                    expected : bool = False, select : str = "all",
                    do_combine : bool = False ):
         """
+        the predictor class, i.e. the class that computes the predictions,
+        finds the best combinations, and computes the final test statistics
+
         :param do_combine: if True, then also use combined results,
                            both via simplified likelihoods and pyhf.
         """
@@ -42,13 +45,14 @@ class Predictor:
         force_load = None
         if dbpath.endswith ( ".pcl" ):
             force_load = "pcl"
-        ntries = 0
-        while not os.path.exists ( dbpath ):
-            ## give it a few tries
-            ntries += 1
-            time.sleep ( ntries * 5 )
-            if ntries > 5:
-                break
+        if "/" in dbpath:
+            ntries = 0
+            while not os.path.exists ( dbpath ):
+                ## give it a few tries
+                ntries += 1
+                time.sleep ( ntries * 5 )
+                if ntries > 5:
+                    break
         self.database=Database( dbpath, force_load = force_load )
         self.fetchResults()
         self.combiner = Combiner(self.walkerid)

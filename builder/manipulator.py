@@ -401,7 +401,17 @@ class Manipulator:
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
             dId = i.dataId() if i.dataId() != None else "UL"
             print ( f" `- {i.analysisId()}:{dId}: {txns}" )
-            print ( f"              {'; '.join(map(str,i.PIDs))}" )
+            for pids in i.PIDs[:2]:
+                s = str(pids)
+                if len(s) > 80:
+                    s=s[:76]+" ..."
+                print ( f"              {s}" )
+            if len(i.PIDs)>3:
+                print ( "               ..." )
+            # pids = '; '.join(map(str,i.PIDs))
+            # if len(pids)>100:
+            #    pids = pids[:96]+" ..."
+            # print ( f"              {pids}" )
 
     def printAllTheoryPredictions ( self ):
         """ pretty print all theory predictions for the model """
