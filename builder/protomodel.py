@@ -398,7 +398,7 @@ class ProtoModel:
                     self.computer.loXsecs = []
                     self.computer.xsecs = []
 
-                comment = "produced at step %d" % ( self.step )
+                comment = f"produced at step {self.step}"
                 pidsp = self.unFrozenParticles()
                 pidsp.sort()
                 namer = SParticleNames ( susy=False )
