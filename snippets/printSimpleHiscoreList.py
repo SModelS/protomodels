@@ -2,6 +2,7 @@
 
 """ summarize the data in hiscores.dict to have an overview """
 
+import os
 from os import PathLike
 from ptools.sparticleNames import SParticleNames 
 from colorama import Fore
@@ -13,11 +14,14 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
     :param dictfile: path to dictionary file
     :param extended: extended output, add description timestamp
     """
+    if not os.path.exists ( dictfile ):
+        print ( f"[printSimpleHiscoreList] {dictfile} does not exist" )
+        return
     f=open( dictfile, "rt" )
     D=eval(f.read() )
     f.close()
     for i,entry in enumerate ( D ):
-        if extended and i > 5:
+        if extended and i > 2:
             break
         K, Z, wid = entry['K'], entry['Z'], entry['walkerid']
         particles = entry["masses"].keys()
@@ -31,7 +35,8 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
         timestamp = entry["timestamp"]
         if extended:
             print ( f"#{i}({wid:3d}): K={Fore.GREEN}{K:.3f}{Fore.RESET}; {sparticles}" )
-            print ( f"       `---: {entry['description']} {timestamp}" )
+            print ( f"       `---: {entry['description']}" )
+            print ( f"       `---: {timestamp}" )
             print ( )
         else:
             print ( f"#{i}({wid:3d}): K={Fore.GREEN}{K:.3f}{Fore.RESET}; {sparticles} {timestamp}" )

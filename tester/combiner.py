@@ -608,7 +608,7 @@ class Combiner:
             return - math.log ( ret )
         return ret
 
-    def computeK ( self, Z, prior ):
+    def computeK ( self, Z : float, prior : float ) -> float:
         """ compute K from Z and prior (simple) """
         return Z**2 + 2* numpy.log ( prior )
 
@@ -677,8 +677,25 @@ class Combiner:
                 print(f" `- {didwhat}: #{ctr} {pId}: r={r:.2f}{Fore.RESET}")
         return ret
 
-    def findHighestSignificance ( self, predictions : List, strategy : str,
-            expected : bool =False, mumax : Union[None,float] = None ) -> Tuple:
+    def penalizeForMissingResults ( self, 
+            predictions : List[TheoryPrediction] ) -> float:
+        """ very simple hack for now, penalize if predictions are all
+        from the same experiment 
+
+        :returns: penalty -- 5 units if experiment is missing
+        """
+        hasExperiment = { "ATLAS": False, "CMS": False }
+        for p in predictions:
+            for experiment in [ "CMS", "ATLAS" ]:
+                if experiment in p.dataset.globalInfo.id:
+                    hasExperiment[experiment]=True
+        if hasExperiment["ATLAS"] and hasExperiment["CMS"]:
+            return 0.
+        return -5.
+
+    def findHighestSignificance ( self, predictions : List[TheoryPrediction], 
+            strategy : str, expected : bool =False, 
+            mumax : Union[None,float] = None ) -> Tuple:
         """ for the given list of predictions and employing the given strategy,
         find the combo with highest significance
 

@@ -384,6 +384,9 @@ class Predictor:
         bestCombo,Z,llhd,muhat = self.combiner.findHighestSignificance ( predictions,
                 strategy, expected=False, mumax = mumax )
         prior = self.combiner.computePrior ( protomodel )
+        ## temporary hack: penalize for missing experiment
+        missingExpPenalty = self.combiner.penalizeForMissingResults ( predictions )
+        prior += missingExpPenalty
         self.log ( f"prior={prior:.2f}" )
         if hasattr ( protomodel, "keep_meta" ) and protomodel.keep_meta:
             protomodel.bestCombo = bestCombo
