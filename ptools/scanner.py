@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" draw Z as a function of a model parameter """
+""" draw K/Z/r as a function of a model parameter """
 
 import numpy, sys, os, copy, time, subprocess, glob
 from protomodels.csetup import setup
@@ -11,36 +11,16 @@ from builder.manipulator import Manipulator
 from smodels.tools.runtime import nCPUs
 from tester.predictor import Predictor
 from ptools.sparticleNames import SParticleNames
+from ptools.hiscoreTools import fetchHiscoreObj
 
-def getHiscore( force_copy = False, rundir = None ):
-    """ get the hiscore from the picklefile
-    :param force_copy: if True, force a cp command on the pickle file
-    """
-    from walker.hiscore import Hiscore
-    # spids = str(pids).replace("[","").replace("]","").replace(" ","").replace(",","").replace("0","")
-    picklefile =rundir + "hiscore2.hi" # % spids
-    backupfile = rundir+"hiscore.hi"
-    # picklefile =rundir + "hiscore.hi" # % spids
-    ## do this always
-    h2Outdated = False
-    if os.path.exists ( picklefile ) and os.path.exists ( backupfile ):
-        if os.stat ( picklefile ).st_mtime < os.stat ( backupfile ).st_mtime:
-            h2Outdated = True
-    if force_copy or (not os.path.exists ( picklefile )) or h2Outdated:
-        cmd = "cp %s %s" % ( backupfile, picklefile )
-        import subprocess
-        o = subprocess.getoutput ( cmd )
-        print ( "[scanner] %s: %s" % ( cmd, o ) )
-    import socket
-    hostname = socket.gethostname().replace(".cbe.vbc.ac.at","")
-    print ( "[scanner] retrieving hiscore object %s on %s .... " % \
-             ( picklefile, hostname ) )
-    hi = Hiscore( walkerid=0, save_hiscores=False, picklefile = picklefile )
-    Z=hi.hiscores[0].Z
-    K=hi.hiscores[0].K
-    print ( "[scanner] done retrieving hiscore object, highest at K=%.2f, Z=%.2f" % \
-             (K, Z ) )
-    return hi
+def setMass ( model, pid : int, mass : float ):
+    """ set mass of <pid> to <mass> """
+    partners = [ ( 1000023, 1000024 ) ]
+    model.masses[pid]=mass
+    for pair in partners:
+        if pid in pair:
+            for p in pair:
+                model.masses[p]=mass
 
 def predProcess ( args ):
     """ one thread that computes predictions for masses given in mrange
@@ -62,11 +42,12 @@ def predProcess ( args ):
     right_xsecs = copy.deepcopy ( model._stored_xsecs )
     for ctr,m in enumerate(mrange):
         model.createNewSLHAFileName ( prefix = "s%dp%d%.2f" % ( i, pid, m ) )
-        model.masses[pid]=m
+        setMass ( model, pid, m )
         if preserve_xsecs:
+            pass
             ## fake a computation of xsecs, update the masses check
-            model._stored_xsecs = copy.deepcopy ( right_xsecs )
-            model._xsecMasses = dict([[pid,m] for pid,m in model.masses.items()])
+            #model._stored_xsecs = copy.deepcopy ( right_xsecs )
+            #model._xsecMasses = dict([[pid,m] for pid,m in model.masses.items()])
         ts = time.strftime("%H:%M:%S" )
         print ( "[scanner:%d-%s] start with %d/%d, m=%.1f (%d events)" % \
                 ( i, ts, ctr, len(mrange), m, nevents ) )
@@ -78,7 +59,10 @@ def predProcess ( args ):
             model.rvalues = [ 0, 0, 0 ]
         else:
             predictor.predict ( model ) # , nevents = nevents, check_thresholds=False )
-        ret[m]=(model.Z,model.rvalues[0],model.K)
+        ret[m]={ "Z": model.Z, "r": model.rvalues[0],"K": model.K }
+        print ()
+        print ( f"ret={ret[m]}" )
+        print ()
         # model.delCurrentSLHA()
     return ret
 
@@ -379,6 +363,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         cmass = pickle.load ( f ) ## cmass is pids
         nevents = pickle.load ( f )
         timestamp = pickle.load ( f )
+    print ( "Zs", Zs )
     x = list(Zs.keys())
     x.sort()
     y, yr, ydashed = [], [], []
@@ -387,21 +372,21 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
     for i in x:
         y_ = Zs[i]
         y0=y_
-        if type(y_)==tuple:
+        if type(y_)==dict:
             idx = 2
             if len(y_)==2:
                 idx = 0
-            y0 = y_[idx]
-            if y_[1] > rthreshold+.05 and plotrmax:
-                rsarea.append ( y_[1] )
+            y0 = y_["K"]
+            if y_["r"] > rthreshold+.05 and plotrmax:
+                rsarea.append ( y_["r"] )
                 y0 = -1.
             else:
                 rsarea.append ( 0. )
-            rs.append ( y_[1] )
-            ydashed.append ( Zs[i][idx] )
+            rs.append ( y_["r"] )
+            ydashed.append ( Zs[i]["K"] )
         y2_ = y0
-        if y2_ < 0.:
-            y2_ = float("nan")
+        #if y2_ < 0.:
+        #    y2_ = float("nan")
         y.append ( y0 )
         yr.append ( y2_ )
     pname = namer.texName ( pid, addDollars=False )
@@ -423,7 +408,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
     ax1.set_xlabel ( "$m(%s)$ [GeV]" % pname, fontsize=16 )
     maxyr = numpy.nanmax(ydashed)
     # print ( "ydashed", ydashed )
-    ax1.set_ylim ( bottom = 2., top=8.4 )
+    # ax1.set_ylim ( bottom = 0., top=8.4 )
     #ax1.set_ylim ( bottom = 2., top=maxyr*1.03 )
     rsarea[0]=0.
     rsarea[-1]=0.
@@ -454,10 +439,12 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
     if isSSMPlot():
         param="%.3f" % cmass
     Zmax = getClosest( cmass, Zs )
-    if type(Zmax)==tuple:
-        Zmax=Zmax[idx]
+    if type(Zmax)==dict:
+        Zmax=Zmax["K"]
     # label = "proto-model\n K(%s)=%.2f" % (param, Zmax )
     label = "proto-model"
+    print ( "Zmax", Zmax )
+    print ( "cmass", cmass )
     ax1.scatter ( [ cmass ], [ Zmax ], label=label, marker="^", s=130, c="g", zorder=10 )
     # plt.title ( "Test statistic $K=K(%s)$" % pname, fontsize=14 )
     if drawtimestamp:
@@ -557,7 +544,7 @@ if __name__ == "__main__":
     if pids == 0:
         pids = allpids
     if args.produce:
-        hi = getHiscore( args.force_copy, rundir )
+        hi = fetchHiscoreObj ( )
         if args.pid2 > 0:
             produceSSMs( hi, args.pid, args.pid2, args.nevents, args.dry_run, nproc, args.factor, rundir = rundir, dbpath = args.dbpath )
         else:

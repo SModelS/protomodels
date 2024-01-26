@@ -289,10 +289,10 @@ class LlhdScanner:
 
     def overrideWithDefaults ( self, args ):
         mins = { 1000005:  100., 1000006:  100., 2000006:  100., 1000021:  300., \
-                 1000023:  200., 1000024:  30.,
+                 1000023:  200., 1000024:  50.,
                  1000001:  250., 1000002: 250., 1000003: 250., 1000004: 250. }
         maxs = { 1000005: 1500., 1000006: 1460., 2000006: 1260., 1000021: 2351., \
-                 1000023:  700., 1000024:  170.,
+                 1000023:  700., 1000024:  200.,
                  1000001: 2051., 1000002: 2051., 1000003: 2051., 1000004: 2051. }
         dm   = { 1000005:   10., 1000006:   20., 2000006:   10., 1000021: 15., \
                  1000023:   10., 1000024:    3.,
@@ -305,7 +305,7 @@ class LlhdScanner:
                     1000023:    5., 1000024:   0.,
                     1000001:    5., 1000002: 5., 1000003: 5., 1000004: 5. }
         LSPmaxs = { 1000005:  800., 1000006: 900., 2000006:  800., 1000021: 1800., \
-                    1000023:  600., 1000024: 110.,
+                    1000023:  600., 1000024: 140.,
                     1000001: 1700., 1000002: 1700., 1000003: 1700., 1000004: 1700. }
         LSPdm   = { 1000005: 10., 1000006: 20., 2000006: 10., 1000021: 15., \
                     1000023: 10., 1000024:  3.,
@@ -402,8 +402,8 @@ def main ():
         nproc = nCPUs() + nproc
     if args.hiscores == "default":
         args.hiscores = f"{rundir}/hiscores.dict"
-    from ptools.hiscoreTools import createHiscoreObj
-    hi = createHiscoreObj ( args.hiscores, None, args.dbpath )
+    from ptools.hiscoreTools import fetchHiscoreObj
+    hi = fetchHiscoreObj ( args.hiscores, None, args.dbpath )
     protomodel = hi.hiscores[0]
     # protomodel = plotHiscore.HiscorePlotter().obtain ( args.number, args.picklefile, args.dbpath )
 
