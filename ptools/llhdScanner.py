@@ -246,10 +246,6 @@ class LlhdScanner:
         ## mass range for pid1
         self.mpid1 = self.M.masses[pid1]
         self.mpid2 = self.M.masses[pid2]
-        """
-        defaults = { 1000023: [200, 801, 100 ], 1000022: [ 50, 501, 100 ], 
-                     1000006: [300,1301, 100 ], 1000024: [200, 801, 100 ] }
-        """
         
         rpid1 = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
         rpid2 = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
@@ -293,10 +289,10 @@ class LlhdScanner:
 
     def overrideWithDefaults ( self, args ):
         mins = { 1000005:  100., 1000006:  100., 2000006:  100., 1000021:  300., \
-                 1000023:  200., 1000024:  50.,
+                 1000023:  200., 1000024:  30.,
                  1000001:  250., 1000002: 250., 1000003: 250., 1000004: 250. }
         maxs = { 1000005: 1500., 1000006: 1460., 2000006: 1260., 1000021: 2351., \
-                 1000023:  700., 1000024:  100.,
+                 1000023:  700., 1000024:  170.,
                  1000001: 2051., 1000002: 2051., 1000003: 2051., 1000004: 2051. }
         dm   = { 1000005:   10., 1000006:   10., 2000006:   10., 1000021: 15., \
                  1000023:   10., 1000024:    3.,
@@ -309,7 +305,7 @@ class LlhdScanner:
                     1000023:    5., 1000024:   0.,
                     1000001:    5., 1000002: 5., 1000003: 5., 1000004: 5. }
         LSPmaxs = { 1000005:  800., 1000006: 900., 2000006:  800., 1000021: 1800., \
-                    1000023:  600., 1000024: 100.,
+                    1000023:  600., 1000024: 110.,
                     1000001: 1700., 1000002: 1700., 1000003: 1700., 1000004: 1700. }
         LSPdm   = { 1000005: 10., 1000006: 10., 2000006: 10., 1000021: 15., \
                     1000023: 10., 1000024:  3.,
@@ -388,7 +384,7 @@ def main ():
     argparser.add_argument ( '-o', '--output',
             help="prefix for output file [llhd]",
             type=str, default="llhd" )
-    argparser.add_argument ( '-o', '--uploadTo',
+    argparser.add_argument ( '-u', '--uploadTo',
             help="where do we upload to, on smodels.github.io [latest]",
             type=str, default="latest" )
     argparser.add_argument ( '-s', '--select',

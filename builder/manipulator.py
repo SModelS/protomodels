@@ -421,7 +421,14 @@ class Manipulator:
             i = c[2]
             dId = i.dataId() if i.dataId() != None else "UL"
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
-            print ( f" - {i.analysisId()}:{dId}:{txns} {'; '.join(map(str,i.PIDs))}" )
+            print ( f" - {i.analysisId()}:{dId}:{txns}" )
+            for pids in i.PIDs[:2]:
+                s = str(pids)
+                if len(s) > 80:
+                    s=s[:76]+" ..."
+                print ( f"              {s}" )
+            if len(i.PIDs)>3:
+                print ( "               ..." )
 
     def removeAllOffshell ( self, rescaleSSMs=False, protomodel = None ):
         """ remove all offshell decays and decays of frozen particles. Renormalize all branchings """

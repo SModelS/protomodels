@@ -102,10 +102,13 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
     hi = Hiscore ( 0, False, picklefile )
     def compare ( dentry, pentry ):
         ## compare one dictentry with one pickleentry
-        newK = dentry["K"]
-        oldK = pentry.K
-        if ( newK - oldK ) > 1e-3:
-            print ( f"[hiscoreTools] top K value changed {newK:.3f}..{oldK:.3f}" )
+        newV = dentry["K"] + dentry["Z"] + sum(dentry["masses"].values()) + \
+               sum(dentry["ssmultipliers"].values())
+
+        oldV = pentry.K + pentry.Z + sum(pentry.masses.values()) + \
+               sum(pentry.ssmultipliers.values())
+        if ( newV - oldV ) > 1e-3:
+            print ( f"[hiscoreTools] top V value changed {newV:.3f}..{oldV:.3f}" )
             return True
         return False
 
