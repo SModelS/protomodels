@@ -3,9 +3,9 @@
 """ A class that centralizes access to the hiscore list over multiple threads.
 """
 
-__all__ = [ "updateHiscoreHi", "hiscoreHiNeedsUpdate", "createHiscoreObj" ]
+__all__ = [ "updateHiscoreHi", "hiscoreHiNeedsUpdate", "fetchHiscoreObj" ]
 
-import pickle, subprocess, sys, os
+import pickle, subprocess, sys, os, time
 from colorama import Fore as ansi
 from scipy import stats
 sys.path.insert(0,"../../")
@@ -126,7 +126,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
             return True
     return False
 
-def createHiscoreObj ( dictfile : str = "hiscores.dict", 
+def fetchHiscoreObj ( dictfile : str = "hiscores.dict", 
                        picklefile : Union[None,str] = None,
                        dbpath : str = "official" ) -> Hiscore:
     """ create Hiscore object from hiscore.hi file. 
@@ -180,7 +180,7 @@ def updateHiscoreHi ( args : Namespace ) -> Dict:
     if infile is None:
         infile = "hiscore.hi"
     dictfile = infile.replace( "hiscore.hi","hiscores.dict" )
-    hi = createHiscoreObj ( dictfile )
+    hi = fetchHiscoreObj ( dictfile )
     protomodels = hi.hiscores
 
     if protomodels[0] == None:
@@ -271,4 +271,8 @@ def mergeTwoModels ( model1 : Dict, model2: Dict ) -> Union[None,Dict]:
                     ret["ssmultipliers"][pidpair]=ssms
         else:
             ret["masses"][pid]=.5*m + .5*ret["masses"][pid]
+    for drop in [ "K", "Z", "xsecs[fb]", "walkerid", "step" ]:
+        if drop in ret:
+            ret.pop( drop )
+    ret["timestamp"] = time.asctime()
     return ret
