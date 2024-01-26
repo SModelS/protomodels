@@ -13,7 +13,7 @@ from smodels.base.physicsUnits import fb
 from smodels.tools.runtime import nCPUs
 from tester.combiner import Combiner
 from tester.predictor import Predictor
-from plotting import plotLlhds, plotHiscore
+from plotting import plotLlhds
 from typing import Dict
 from ptools.sparticleNames import SParticleNames
 
@@ -25,14 +25,14 @@ def findPids ( rundir ):
     """
     ret = set()
     files = glob.glob("llhd*pcl")
-    files += glob.glob("%s/llhd*pcl" % rundir )
+    files += glob.glob( f"{rundir}/llhd*pcl" )
     for f in files:
         p = f.find("llhd")
         s = f[p+4:]
         s = s.replace(".pcl","")
         s = s.replace("1000022","")
         ret.add ( int(s) )
-    print ( "[llhdScanner] pids are %s" % ret )
+    print ( f"[llhdScanner] pids are {ret}" )
     return ret
 
 class LlhdThread:
@@ -43,7 +43,7 @@ class LlhdThread:
         self.rundir = setup( rundir )
         self.threadnr = threadnr
         self.M = copy.deepcopy ( protomodel )
-        self.M.createNewSLHAFileName ( prefix="lthrd%d_%d" % (threadnr, pid1 ) )
+        self.M.createNewSLHAFileName ( prefix=f"lthrd{threadnr}_{pid1}" )
         self.pid1 = pid1
         self.pid2 = pid2
         self.mpid1 = mpid1
@@ -72,13 +72,6 @@ class LlhdThread:
             sigmacut=.001*fb
         ## first get rmax
         worked = self.predictor.predict ( self.M, keep_predictions = True )
-        # print ( f"we did get {len(self.predictor.predictions)} predictions" )
-        #slhafile = self.M.createSLHAFile()
-        #predictions = self.predictor.runSModelS ( slhafile,
-        #        sigmacut = 0.02*fb, allpreds = True, llhdonly = True )
-        #robs = self.M.checkForExcluded ( predsforexcl )
-        #preds = [ x[2] for x in self.M.tpList ]
-        # preds = [ x[2] for x in se ]
 
         ## now get the likelihoods
         llhds={}
@@ -191,10 +184,10 @@ class LlhdScanner:
         if len(r)==0:
             return ""
         if len(r)==1:
-            return "%d" % r[0]
+            return f"{r[0]}"
         if len(r)==2:
-            return "%d,%d" % ( r[0], r[1] )
-        return "%d,%d ... %d" % ( r[0], r[1], r[-1] )
+            return f"{r[0]},{r[1]}"
+        return f"{r[0]},{r[1]} ... {r[-1]}"
 
     def getMassPoints ( self, rpid1, rpid2 ):
         """ run for the given mass points
@@ -237,6 +230,7 @@ class LlhdScanner:
     def scanLikelihoodFor ( self, range1 : Dict, range2 : Dict,
                             nevents : int, topo : str, output : str ):
         """ plot the likelihoods as a function of pid1 and pid2
+
         :param range1: dictionary for range1 with min, max, dm
         :param range2: dictionary for range1 with min, max, dm
         :param output: prefix for output file [mp]
@@ -245,15 +239,17 @@ class LlhdScanner:
         pid1 = self.pid1
         pid2 = self.pid2
         if pid2 != self.M.LSP:
-            print ("[llhdScanner] we currently assume pid2 to be the LSP, but it is %d" % pid2 )
+            print ( f"[llhdScanner] we currently assume pid2 to be the LSP, but it is {pid2}" )
         import numpy
         c = Combiner()
         anaIds = c.getAnaIdsWithPids ( self.M.bestCombo, [ pid1, pid2 ] )
         ## mass range for pid1
         self.mpid1 = self.M.masses[pid1]
         self.mpid2 = self.M.masses[pid2]
+        """
         defaults = { 1000023: [200, 801, 100 ], 1000022: [ 50, 501, 100 ], 
                      1000006: [300,1301, 100 ], 1000024: [200, 801, 100 ] }
+        """
         
         rpid1 = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
         rpid2 = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
@@ -281,10 +277,10 @@ class LlhdScanner:
         newpoints = self.getMassPoints ( rpid1, rpid2 )
         masspoints += newpoints
         import pickle
-        picklefile = "%s%d%d.pcl" % ( output, pid1, pid2 )
+        picklefile = f"{output}{pid1}{pid2}.pcl"
         if os.path.exists ( picklefile ):
-            subprocess.getoutput ( "cp %s %s.old" % ( picklefile, picklefile ) )
-        self.pprint ( "now saving to %s" % picklefile )
+            subprocess.getoutput ( f"cp {picklefile} {picklefile}.old" )
+        self.pprint ( f"now saving to {picklefile}" )
         f=open( picklefile ,"wb" )
         pickle.dump ( masspoints, f )
         pickle.dump ( self.mpid1, f )
@@ -302,10 +298,8 @@ class LlhdScanner:
         maxs = { 1000005: 1500., 1000006: 1460., 2000006: 1260., 1000021: 2351., \
                  1000023:  700., 1000024:  100.,
                  1000001: 2051., 1000002: 2051., 1000003: 2051., 1000004: 2051. }
-        #dm   = { 1000005:   16., 1000006:   16., 2000006:   16., 1000021:  20., \
-        #         1000001:   20., 1000002:   20., 1000003:   20., 1000004:  20.  }
         dm   = { 1000005:   10., 1000006:   10., 2000006:   10., 1000021: 15., \
-                 1000023:   10., 1000024:   5.,
+                 1000023:   10., 1000024:    3.,
                  1000001:   12., 1000002:   12., 1000003:   12., 1000004: 12.  }
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
                  1000023: "TChiZZoff", 1000024: "TChiWZoff",
@@ -317,10 +311,8 @@ class LlhdScanner:
         LSPmaxs = { 1000005:  800., 1000006: 900., 2000006:  800., 1000021: 1800., \
                     1000023:  600., 1000024: 100.,
                     1000001: 1700., 1000002: 1700., 1000003: 1700., 1000004: 1700. }
-        #LSPdm   = { 1000005:   12., 1000006:  14., 2000006:  14., 1000021: 14., \
-        #           1000001:   12., 1000002:  12., 1000003:  12., 1000004: 12. }
         LSPdm   = { 1000005: 10., 1000006: 10., 2000006: 10., 1000021: 15., \
-                    1000023: 10., 1000024: 5.,
+                    1000023: 10., 1000024:  3.,
                     1000001: 10., 1000002: 10., 1000003: 10., 1000004: 10. }
         if not args.pid1 in mins:
             print ( f"[llhdScanner] asked for defaults for {args.pid1}, but none defined." )
@@ -384,8 +376,8 @@ def main ():
     argparser.add_argument ( '-e', '--nevents',
             help='number of events [100000]',
             type=int, default=100000 )
-    argparser.add_argument ( '-p', '--picklefile',
-            help='pickle file to draw from [<rundir>/hiscore.hi]',
+    argparser.add_argument ( '-H', '--hiscores',
+            help='hiscore file to draw from [<rundir>/hiscores.dict]',
             type=str, default="default" )
     argparser.add_argument ( '-D', '--draw',
             help='also perform the plotting, ie call plotLlhds',
@@ -396,6 +388,9 @@ def main ():
     argparser.add_argument ( '-o', '--output',
             help="prefix for output file [llhd]",
             type=str, default="llhd" )
+    argparser.add_argument ( '-o', '--uploadTo',
+            help="where do we upload to, on smodels.github.io [latest]",
+            type=str, default="latest" )
     argparser.add_argument ( '-s', '--select',
             help="what do we select for [all]",
             type=str, default="all" )
@@ -409,11 +404,13 @@ def main ():
     nproc = args.nproc
     if nproc < 1:
         nproc = nCPUs() + nproc
-    if args.picklefile == "default":
-        args.picklefile = "%s/hiscore.hi" % rundir
-    print ( "FIXME use fetchHiscore method here!" )
-    sys.exit()
-    protomodel = plotHiscore.HiscorePlotter().obtain ( args.number, args.picklefile, args.dbpath )
+    if args.hiscores == "default":
+        args.hiscores = f"{rundir}/hiscores.dict"
+    from ptools.hiscoreTools import createHiscoreObj
+    hi = createHiscoreObj ( args.hiscores, None, args.dbpath )
+    protomodel = hi.hiscores[0]
+    # protomodel = plotHiscore.HiscorePlotter().obtain ( args.number, args.picklefile, args.dbpath )
+
     pid1s = [ args.pid1 ]
     if args.pid1 == 0:
         pid1s = findPids( rundir )
@@ -434,10 +431,18 @@ def main ():
             interactive = False
             drawtimestamp = True
             compress = False
-            upload = "latest"
+            upload = args.uploadTo
             plot = plotLlhds.LlhdPlot ( pid1, args.pid2, verbose, copy, max_anas,
                   interactive, drawtimestamp, compress, rundir, upload, args.dbpath )
-            print ( f"plotLlhds.LlhdPlot ( {pid1}, {args.pid2}, {verbose}, {copy}, {max_anas}, {interactive}, {drawtimestamp}, {compress}, {rundir}, {upload}, {args.dbpath} )" )
+            scriptfilename = "llhdPlotScript.py"
+            with open ( scriptfilename, "wt" ) as f:
+                print ( f"[llhdScanner] created llhdPlotScript.py" )
+                f.write ( "#!/usr/bin/env python3\n\n" )
+                f.write ( "from plotting import plotLlhds\n" )
+                f.write ( f"plot = plotLlhds.LlhdPlot ( {pid1}, {args.pid2}, '{verbose}', {copy}, {max_anas}, {interactive}, {drawtimestamp}, {compress}, '{rundir}', '{upload}', '{args.dbpath}' )\n" )
+                f.write ( f"plot.plot()\n" )
+                f.close()
+                os.chmod ( scriptfilename, 0o755 )
             plot.plot()
 
 if __name__ == "__main__":

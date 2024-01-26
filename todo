@@ -1,0 +1,35 @@
+!) find out why UL result is used, not comb result!
+
+*) fix the float point pids issue xsecComputer.match
+*) fix the K=nan issue
+
+*) add also steps that shift N1,C1,N2 simultaneously
+*) add also steps that shift the whole spectrum simultaneously
+*) add also steps that increase/decrease mass and xsecs simultaneously
+?) clean up likelihood scanner code
+?) see if the Z scanner works
+*) see if transitions between offshell region and onshell region work
+?) make hiscore.hi a simple transparent cache for hiscores.dict
+*) harmonize models in dict files and in pmodel.py files
+*) ruler should use same particle namer as the rest
+*) penalize for extreme signal strength multipliers
+
++) penalize if we are out-of-grid of one experiment
++) drop the "states"? maybe not yet!
+
+.) adapt ruler
+.) fix the movie maker (if it is broken)
+.) do_combine needs to propagate
+.) make sure model always gets same K,Z scores when rerunning
+.) if C1 or N2 changes, have a small chance for the other to jump to same mass
+.) when C1 or N2 unfreeze, have a certain chance for them to unfreeze to 
+   offshell regime
+.) introduce more detailed hiscores dictionaries
+.) csetup should be in toplevel dir
+.) upHi, clean up after uploading
+.) forbidden particles, introduce monikers
+.) forbidden particles, introduce monikers
+.) allow to restrict particle set
+.) see if teleportation still works
+.) see if the likelihood scanner works
+
