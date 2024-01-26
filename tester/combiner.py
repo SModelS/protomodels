@@ -657,10 +657,11 @@ class Combiner:
         for Id,preds in sortByAnaId.items():
             maxR, bestpred = 0., None
             for pred in preds:
+                oul = pred.getUpperLimit(expected=False)
                 eul = pred.getUpperLimit(expected=True)
-                if eul is None:
+                if oul is None or eul is None:
                     continue
-                r = pred.getUpperLimit() / eul
+                r = oul / eul
                 if r > maxR:
                     maxR = r
                     bestpred = pred

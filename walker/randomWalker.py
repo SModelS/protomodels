@@ -263,7 +263,14 @@ class RandomWalker:
                 if protomodelSimp:
                     self.predict(protomodelSimp)
             except Exception as e:
+                self.pprint ( f"@@@ caught exception @@@" )
                 self.pprint ( f"{type(e)} ``{str(e)}'' encountered when trying to predict. lets revert and not count it as a step." )
+                import traceback
+                self.pprint ( f"traceback says:: {traceback.format_exc()}" )
+                self.pprint ( f"masses are at {self.manipulator.M.masses}" )
+                self.pprint ( f"ssms   are at {self.manipulator.M.ssmultipliers}" )
+                self.pprint ( f"decays are at {self.manipulator.M.decays}" )
+                self.pprint ( f"@@@ end exception @@@" )
                 if False:
                     import tempfile
                     f = tempfile.mktemp ( suffix=".slha", prefix="failed", dir="./" )

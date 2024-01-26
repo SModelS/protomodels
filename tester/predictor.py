@@ -315,6 +315,8 @@ class Predictor:
                         combinedIds.add ( anaId )
                     for c in cpreds:
                         anaId = c.dataset.globalInfo.id
+                        if c.dataType()!="combined":
+                            continue
                         # if the aggregated version is in, then take this out
                         if anaId+"-agg" in combinedIds:
                             continue

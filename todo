@@ -1,5 +1,3 @@
-!) find out why UL result is used, not comb result!
-
 *) fix the float point pids issue xsecComputer.match
 *) fix the K=nan issue
 
@@ -13,6 +11,9 @@
 *) harmonize models in dict files and in pmodel.py files
 *) ruler should use same particle namer as the rest
 *) penalize for extreme signal strength multipliers
+*) penalize against flavor violation in three body decays
+*) predictors used in llhd scanner should log to different files
+*) write tool to merge two models
 
 +) penalize if we are out-of-grid of one experiment
 +) drop the "states"? maybe not yet!
@@ -32,4 +33,5 @@
 .) allow to restrict particle set
 .) see if teleportation still works
 .) see if the likelihood scanner works
+.) find out why UL result is used, not comb result!
 

@@ -14,6 +14,7 @@ from smodels.base.crossSection import LO
 from smodels.matching.theoryPrediction import TheoryPrediction
 import smodels
 import copy, numpy, time, os, sys, itertools, colorama, random
+from colorama import Fore as ansi
 from typing import Union, Dict, List
 from os import PathLike
 
@@ -213,17 +214,17 @@ class Manipulator:
     def highlight ( self, msgType = "info", *args ):
         """ logging, hilit """
         module = "manipulator"
-        col = colorama.Fore.GREEN
+        col = ansi.GREEN
         if msgType.lower() in [ "error", "red" ]:
-            col = colorama.Fore.RED
+            col = ansi.RED
         elif msgType.lower() in [ "warn", "warning", "yellow" ]:
-            col = colorama.Fore.YELLOW
+            col = ansi.YELLOW
         elif msgType.lower() in [ "green", "info" ]:
-            col = colorama.Fore.GREEN
+            col = ansi.GREEN
         else:
             self.highlight ( "red", "I think we called highlight without msg type" )
         print ( "%s[%s-%s] %s%s" % ( col, module,
-            time.strftime("%H:%M:%S"), " ".join(map(str,args)), colorama.Fore.RESET ) )
+            time.strftime("%H:%M:%S"), " ".join(map(str,args)), ansi.RESET ) )
         self.log ( *args )
 
     def pprint ( self, *args ):
@@ -387,20 +388,49 @@ class Manipulator:
         """
         return self.M
 
-    def setWalkerId ( self, Id ):
+    def setWalkerId ( self, Id : int ):
         """ set the walker id of protomodel """
         self.M.walkerid = Id
 
-    def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None ):
+    def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
+            detailed : bool = False ):
         """ pretty print prediction combos.
-            If None, print best combo """
+            If None, print best combo 
+        :param combo: None, to print the best combo, else print that combo
+        :param detailed: if true, print more detailed report
+        """
         print ( "best combo:" )
         if combo == None:
             combo = self.M.bestCombo
         for i in combo:
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
             dId = i.dataId() if i.dataId() != None else "UL"
-            print ( f" `- {i.analysisId()}:{dId}: {txns}" )
+            print ( f" `- {ansi.GREEN}{i.analysisId()}:{dId}: {txns}{ansi.RESET}" )
+            line = "               "
+            if detailed:
+                import math
+                dtype = i.dataType()
+                if dtype == "efficiencyMap":
+                    dI = i.dataset.dataInfo
+                    eBG = dI.expectedBG
+                    if eBG == int(eBG):
+                        eBG=int(eBG)
+                    bgErr = dI.bgError 
+                    if bgErr == int(bgErr):
+                        bgErr=int(bgErr)
+                    toterr = math.sqrt ( bgErr**2 + eBG )
+                    line += f"obs={dI.observedN} exp={eBG:.2f}+-{bgErr}"
+                    if toterr > 0.:
+                        line += f" Z={ansi.RED}{(dI.observedN - eBG ) / toterr :.1f}*sigma{ansi.RESET}"
+                    print ( line )
+                if dtype in [ "upperLimit", "combined" ]:
+                    eUL = i.getUpperLimit ( expected = True ).asNumber(fb)
+                    oUL = i.getUpperLimit ( expected = False ).asNumber(fb)
+                    sigma_exp = eUL / 1.96 # the expected scale, sigma
+                    Z = ( oUL - eUL ) / sigma_exp 
+                    line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={ansi.RED}{Z:.1f}*sigma{ansi.RESET}"
+                    print ( line )
+                
             for pids in i.PIDs[:2]:
                 s = str(pids)
                 if len(s) > 80:
@@ -408,10 +438,6 @@ class Manipulator:
                 print ( f"              {s}" )
             if len(i.PIDs)>3:
                 print ( "               ..." )
-            # pids = '; '.join(map(str,i.PIDs))
-            # if len(pids)>100:
-            #    pids = pids[:96]+" ..."
-            # print ( f"              {pids}" )
 
     def printAllTheoryPredictions ( self ):
         """ pretty print all theory predictions for the model """

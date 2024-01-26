@@ -94,7 +94,7 @@ class LlhdThread:
 
     def clean ( self ):
         """ clean up after the run """
-        cmd = "rm %s" % self.M.currentSLHA
+        cmd = f"rm {self.M.currentSLHA}"
         subprocess.getoutput ( cmd )
 
     def setMass ( self, pid : int, mass : float ):
@@ -205,7 +205,7 @@ class LlhdScanner:
         return_dict=manager.dict()
         # print ( "chunked", chunkedRPid1 )
         for ctr,chunk in enumerate(chunkedRPid1):
-            self.M.walkerid = ctr
+            self.M.walkerid = 2000+ctr
             p = multiprocessing.Process ( target = runThread, args = ( ctr, self.rundir, self.M, self.pid1, self.pid2, self.mpid1, self.mpid2, self.nevents, chunk, rpid2, self.predictor, return_dict ) )
             p.start()
             processes.append ( p )
@@ -255,7 +255,7 @@ class LlhdScanner:
         self.M.createNewSLHAFileName ( prefix="llhd%d" % pid1 )
         #self.M.initializePredictor()
         self.predictor.filterForTopos ( topo )
-        self.M.walkerid = 0
+        self.M.walkerid = 2000
 
         thread0 = LlhdThread ( 0, self.rundir, self.M, self.pid1, self.pid2, \
                                self.mpid1, self.mpid2, self.nevents, self.predictor )
@@ -294,7 +294,7 @@ class LlhdScanner:
         maxs = { 1000005: 1500., 1000006: 1460., 2000006: 1260., 1000021: 2351., \
                  1000023:  700., 1000024:  170.,
                  1000001: 2051., 1000002: 2051., 1000003: 2051., 1000004: 2051. }
-        dm   = { 1000005:   10., 1000006:   10., 2000006:   10., 1000021: 15., \
+        dm   = { 1000005:   10., 1000006:   20., 2000006:   10., 1000021: 15., \
                  1000023:   10., 1000024:    3.,
                  1000001:   12., 1000002:   12., 1000003:   12., 1000004: 12.  }
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
@@ -307,7 +307,7 @@ class LlhdScanner:
         LSPmaxs = { 1000005:  800., 1000006: 900., 2000006:  800., 1000021: 1800., \
                     1000023:  600., 1000024: 110.,
                     1000001: 1700., 1000002: 1700., 1000003: 1700., 1000004: 1700. }
-        LSPdm   = { 1000005: 10., 1000006: 10., 2000006: 10., 1000021: 15., \
+        LSPdm   = { 1000005: 10., 1000006: 20., 2000006: 10., 1000021: 15., \
                     1000023: 10., 1000024:  3.,
                     1000001: 10., 1000002: 10., 1000003: 10., 1000004: 10. }
         if not args.pid1 in mins:
