@@ -146,7 +146,7 @@ class Hiscore:
     @classmethod
     def fromDictionaryFile ( cls, path : PathLike,
            firstn : Union[None,int] = 0, 
-           dbpath : PathLike = "./default.pcl" ):
+           dbpath : PathLike = "official" ):
         """ initialise from a dictionary file
 
         :param path: filename of .dict file
