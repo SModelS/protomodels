@@ -3,7 +3,7 @@
 """ A class that centralizes access to the hiscore list over multiple threads.
 """
 
-__all__ = [ "updateHiscoreHi", "hiscoreHiNeedsUpdate", "fetchHiscoreObj" ]
+__all__ = [ "hiscoreHiNeedsUpdate", "fetchHiscoreObj" ]
 
 import pickle, subprocess, sys, os, time
 from colorama import Fore as ansi
@@ -106,8 +106,8 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
 
         oldV = pentry.K + pentry.Z + sum(pentry.masses.values()) + \
                sum(pentry.ssmultipliers.values())
-        if ( newV - oldV ) > 1e-3:
-            print ( f"[hiscoreTools] top V value changed {newV:.3f}..{oldV:.3f}" )
+        if abs( newV - oldV ) > 1e-3:
+            # print ( f"[hiscoreTools] top V value changed {newV:.3f}..{oldV:.3f}" )
             return True
         return False
 
@@ -140,104 +140,16 @@ def fetchHiscoreObj ( dictfile : str = "hiscores.dict",
     """
     if picklefile is None:
         picklefile = dictfile.replace(".dict",".cache" )
+    from ptools import helpers
+    shortname = helpers.simplifyUnixPath ( picklefile )
     if not hiscoreHiNeedsUpdate ( dictfile, picklefile, 0 ):
-        print ( f"[hiscoreTools] can reuse cache: {picklefile}" )
+        print ( f"[hiscoreTools] can reuse cache: {shortname}" )
         return Hiscore ( 0, False, picklefile )
-    print ( f"[hiscoreTools] updating cache: {picklefile}" )
+    print ( f"[hiscoreTools] updating cache: {shortname}" )
     hi = Hiscore.fromDictionaryFile ( dictfile, dbpath=dbpath )
     hi.writeListToPickle ( picklefile )
     return hi
         
-def updateHiscoreHi ( args : Namespace ) -> Dict:
-    """ the function that updates the hiscores.cache file
-    :param args: detailed, outfile, infile, print, fetch, nmax,
-                 check, interactive, nevents.
-                 see "if __main__" part below.
-    :returns: { "Z": highest significance,
-                "step": step, "model": model, "K": bayesian_K  }
-    """
-    print ( "FIXME obsolete!!!" )
-    # FIXME replace!
-    ret =  { "Z": 0., "step": 0, "model": None, "K": -100. }
-
-    if args.detailed:
-        args.print = True
-    if args.outfile.lower() in [ "none", "", "false" ]:
-        args.outfile = None
-    infile = args.infile
-    if type(infile) is str and infile.lower() in [ "none", "" ]:
-        infile = None
-    trundir = None
-    if hasattr ( args, "rundir" ):
-        trundir = args.rundir
-    rundir = setup( trundir )
-    if infile == "default":
-        infile = f"{rundir}/hiscores.cache"
-    if args.outfile == infile:
-        print ( "[hiscore] outputfile is same as input file. will assume that you do not want me to write out at all." )
-        args.outfile = None
-
-    if infile is None:
-        infile = "hiscores.cache"
-    dictfile = infile.replace( ".cache",".dict" )
-    hi = fetchHiscoreObj ( dictfile )
-    protomodels = hi.hiscores
-
-    if protomodels[0] == None:
-        print ( "[hiscore] error, we have an empty hiscore list" )
-        return ret
-
-    sin = infile
-    #if sin == None:
-    #    sin = "H*.hi"
-    pevs = pprintEvs ( protomodels[0] )
-    print ( f"[hiscore] hiscore from {sin}[{protomodels[0].walkerid}] is at K={protomodels[0].K:.3f}, Z={protomodels[0].Z:.3f} ({pevs})" )
-
-    if type(args.outfile)==str and (".cache" in args.outfile or ".hi" in args.outfile ):
-        if not hasattr ( protomodels[0], "analysisContributions" ):
-            print ( "[hiscore] why does the winner not have analysis contributions?" )
-            ma = Manipulator ( protomodels[0] )
-            hi = Hiscore( 0, True, f"{rundir}/hiscores.cache" )
-            hi.computeAnalysisContributions(ma)
-            protomodels[0]=ma.M
-            hi.writeListToPickle()
-        if not hasattr ( protomodels[0], "particleContributions" ):
-            print ( "[hiscore] why does the winner not have particle contributions?" )
-            ma = Manipulator ( protomodels[0] )
-            from tester.predictor import Predictor
-            predictor = None
-            dbpath = args.dbpath
-            if not "/" in dbpath:
-                dbpath =  f"{rundir}/{args.dbpath}"
-            if hasattr ( args, "dbpath" ):
-                dbpath = args.dbpath
-            if os.path.exists ( dbpath ):
-                predictor = Predictor ( 0, dbpath = dbpath, expected = False, 
-                        select= "all", do_combine = args.do_combine )
-            hi = Hiscore( 0, True, f"{rundir}/hiscores.cache", predictor = predictor )
-            hi.computeParticleContributions(ma)
-            protomodels[0]=ma.M
-            hi.writeListToPickle()
-
-    if args.outfile is not None:
-        storeList ( protomodels, args.outfile )
-
-    if hasattr ( args, "check" ) and args.check:
-        protomodel = protomodels[0]
-        protomodel.predict()
-        print ( "[hiscore] args.check, implement" )
-
-    if args.print:
-        printProtoModels ( protomodels, args.detailed, min ( 10, args.nmax ) )
-
-    if len(protomodels)>0 and protomodels[0] != None:
-        ret["Z"]=protomodels[0].Z
-        ret["K"]=protomodels[0].K
-        ret["step"]=protomodels[0].step
-        ret["model"]=protomodels[0]
-        return ret
-    return ret
-
 def mergeTwoModels ( model1 : Dict, model2: Dict ) -> Union[None,Dict]:
     """ merge two models, add all particles from both models.
     If a particle appears in both models, its mass will be the average 
