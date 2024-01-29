@@ -428,15 +428,15 @@ class Hiscore:
                 m.M.cleanBestCombo ()
                 self.hiscores[ctr+1]=m.M
 
-    def writeListToDictFile ( self, dictFile=None ):
+    def writeListToDictFile ( self, dictFile : Union[None,str] = None ):
         """ write the models in append mode in a single dictFile.
         :param dictFile: write to dictFile. If None, then self.pickleFile
                          is used, but with ".dict" as extension.
         """
         if dictFile==None:
             dictFile = self.pickleFile
-        if dictFile.endswith(".pcl"):
-            dictFile = dictFile[:-4]+".py"
+        if dictFile.endswith(".cache"):
+            dictFile = dictFile[:-6]+".dict"
         f=open(dictFile,"wt")
         f.write("[")
         f.close()

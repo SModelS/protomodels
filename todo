@@ -6,7 +6,6 @@
 ?) clean up likelihood scanner code
 ?) see if the Z scanner works
 *) see if transitions between offshell region and onshell region work
-*) ruler should use same particle namer as the rest
 *) penalize for extreme signal strength multipliers
 +) penalize if we are out-of-grid of one experiment:
    intermediate: we have combiner.penalizeForMissingResults
@@ -38,3 +37,4 @@
 .) rename hiscore.hi to hiscores.cache
 .) make hiscores.cache a simple transparent cache for hiscores.dict,
 .) plotHiscore print also "item" for combined results
+.) ruler should use same particle namer as the rest
