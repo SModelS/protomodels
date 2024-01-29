@@ -656,6 +656,7 @@ class ProtoModel:
         else:
             return helpers.lightObjCopy(self)
 
+    """
     def saveToFile(self,filename=None):
 
         if filename is None:
@@ -667,6 +668,7 @@ class ProtoModel:
             pickle.dump(lightModel,f)
 
         return filename
+    """
 
 
 if __name__ == "__main__":

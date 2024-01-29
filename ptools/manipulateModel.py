@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 
+""" class for all sorts of model manipulations
+"""
+
 import sys, os
 
 class ModelManipulator:
     def __init__ ( self, inputfile, outputfile ):
+        """
+        .. code-block:: python3
+
+        >>> m = ModelManipulator ( 'in.dict', 'out.dict' )
+        >>> m.multiply ( 2 ) # multiply all ssms by two
+        >>> m.write()
+        """
         self.inputfile = inputfile
         self.outputfile = outputfile
         self.read()
@@ -39,11 +49,11 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
                         description='simple tool to manipulate a protomodel in a file' )
     argparser.add_argument ( '-i', '--input',
-            help='inputfile [pmodel.py]',
-            type=str, default="pmodel.py" )
+            help='inputfile [pmodel.dict]',
+            type=str, default="pmodel.dict" )
     argparser.add_argument ( '-o', '--output',
-            help='outputfile [out.py]',
-            type=str, default="out.py" )
+            help='outputfile [out.dict]',
+            type=str, default="out.dict" )
     argparser.add_argument ( '-m', '--multiply',
             help='multiply all ssms with this value [1.0]',
             type=float, default=1.0 )

@@ -14,6 +14,7 @@ from smodels.share.models.mssm import BSMList
 from smodels.base.physicsUnits import fb, GeV
 from smodels.experiment.databaseObj import Database
 from smodels.base.model import Model
+from smodels.theory.exceptions import SModelSTheoryError as SModelSError
 from os import PathLike
 from typing import List, Union
 
@@ -233,13 +234,24 @@ class Predictor:
         :param allpreds: if true, return all predictions of analyses, else
                          only best signal region
         :param llhdonly: if true, return only results with likelihoods
+
+        :returns: list of all theory predictions
         """
 
         if not os.path.exists ( inputFile ):
             self.pprint ( f"error, cannot find inputFile {inputFile}" )
             return []
         model = Model ( BSMList, SMList )
-        model.updateParticles ( inputFile=inputFile )
+        try:
+            model.updateParticles ( inputFile=inputFile )
+        except SModelSError as e:
+            if "No cross-sections found" in str(e):
+                # okay, everything under control, we just return empty list
+                # of theory predictions
+                return []
+            else:
+                # no idea what that is. pass it on.
+                raise e
 
         mingap=10*GeV
 

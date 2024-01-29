@@ -267,9 +267,9 @@ class RandomWalker:
                 self.pprint ( f"{type(e)} ``{str(e)}'' encountered when trying to predict. lets revert and not count it as a step." )
                 import traceback
                 self.pprint ( f"traceback says:: {traceback.format_exc()}" )
-                self.pprint ( f"masses are at {self.manipulator.M.masses}" )
-                self.pprint ( f"ssms   are at {self.manipulator.M.ssmultipliers}" )
-                self.pprint ( f"decays are at {self.manipulator.M.decays}" )
+                self.pprint ( f"model is:" )
+                d = self.manipulator.writeDictFile(None)
+                self.pprint ( f"{str(d)}" )
                 self.pprint ( f"@@@ end exception @@@" )
                 if False:
                     import tempfile

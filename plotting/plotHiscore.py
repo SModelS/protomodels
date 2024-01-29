@@ -685,7 +685,7 @@ class HiscorePlotter:
         strategy = "aggressive"
         dotlessv = dbver.replace(".","")
         dt = int ( time.time() - 1593000000 )
-        f.write ( "<b><a href=./hiscore.slha>ProtoModel</a> <a href=./pmodel.py>(dict)</a> " )
+        f.write ( "<b><a href=./hiscore.slha>ProtoModel</a> <a href=./pmodel.dict>(dict)</a> " )
         f.write ( f"produced with <a href={self.url}/docs/Validation{dotlessv}>database v{dbver}</a>" )
         f.write ( f", combination strategy <a href=./matrix.png>{strategy}</a> in walker {self.protomodel.walkerid} step {self.protomodel.step}.</b> " )
         if hasattr ( self.protomodel, "particleContributions" ):
@@ -793,7 +793,7 @@ class HiscorePlotter:
 
     def copyFilesToGithub( self ):
         files = [ "hiscore.slha", "index.html", "decays.png",
-                  "ruler.png", "texdoc.png", "pmodel.py", "rawnumbers.html" ]
+                  "ruler.png", "texdoc.png", "pmodel.dict", "rawnumbers.html" ]
         # files += [ "matrix.png" ]
         for f in files:
             if not os.path.exists ( f ):
@@ -907,7 +907,7 @@ class HiscorePlotter:
         protoslha = self.protomodel.createSLHAFile ()
         subprocess.getoutput ( f"cp {protoslha} hiscore.slha" )
         m = Manipulator ( self.protomodel )
-        print ( "[plotHiscore] now write pmodel.py" )
+        print ( "[plotHiscore] now write pmodel.dict" )
         m.writeDictFile()
         opts = [ "ruler", "decays", "predictions", "copy", "html" ]
         for i in opts:
@@ -971,7 +971,7 @@ def runPlotting ( args ):
                    args.dbpath )
     if upload is None:
         return
-    F = "decays.png ruler.png texdoc.png pmodel.py hiscore.slha index.html rawnumbers.html"
+    F = "decays.png ruler.png texdoc.png pmodel.dict hiscore.slha index.html rawnumbers.html"
     dest = ""
     destdir = f'{os.environ["HOME"]}/git'
     dest = f"{destdir}/smodels.github.io/protomodels/{upload}/"
