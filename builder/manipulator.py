@@ -744,7 +744,7 @@ class Manipulator:
         pid = random.choice ( frozen )
 
         if pid in self.forbiddenparticles:
-            self.log ( f"wanted to unfreeze {pid} but its forbidden" )
+            self.log ( f"wanted to unfreeze {self.namer.asciiName(pid)} but its forbidden" )
             return 0
 
         #Check for canonical ordering.
@@ -826,7 +826,7 @@ class Manipulator:
                 uZero = random.uniform( 0., 1. )
                 if uZero < zeroBRprob:
                     self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to 0." )
-                    self.log ( f"changed branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to 0" )
+                    self.log ( f"changed branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} from {oldbr:.2f} to 0" )
                     self.M.decays[pid][dpid] = 0.
                     continue
 
@@ -1038,8 +1038,7 @@ class Manipulator:
                 minmass = protomodel.masses[i]
                 pid = i
         # p = random.choice ( unfrozen )
-        protomodel.log ( "Freezing most massive %s (%.1f)" % \
-                        ( self.namer.asciiName(pid), minmass ) )
+        protomodel.log ( f"Freezing most massive {self.namer.asciiName(pid)} ({minmass:.1f})" )
         self.freezeParticle ( pid, protomodel = protomodel )
         return 1
 
@@ -1067,8 +1066,8 @@ class Manipulator:
             for pids in self.canonicalOrder:
                 if pid == pids[0] and pids[1] in unfrozen:
                     return 0
-        protomodel.log ( "Freezing %s." % ( self.namer.asciiName(pid) ) )
-        self.record ( "freeze %s" % ( self.namer.texName(pid,addDollars=True) ) )
+        protomodel.log ( f"Freezing {self.namer.asciiName(pid)}" )
+        self.record ( f"freeze {self.namer.texName(pid,addDollars=True)}" )
         #Remove pid from masses, decays and signal multipliers:
         if  pid in protomodel.masses:
             protomodel.masses.pop(pid)
@@ -1412,7 +1411,7 @@ class Manipulator:
                 self.log ( "set decays of %s/%s to %.2f" % ( p1, pids, br ) )
                 protomodel.decays[p1][pids] = br
 
-        self.log ( "now normalize branchings of %d" % p1 )
+        self.log ( f"now normalize branchings of {self.namer.asciiName(p1)}" )
         self.normalizeBranchings ( p1, protomodel=protomodel )
 
         #Now replace all decays to p2 by decays to p1
