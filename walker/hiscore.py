@@ -193,7 +193,8 @@ class Hiscore:
                         success=True
                 except SyntaxError as e:
                     time.sleep( .1+3*tryRead )
-        D=m.M.dict() ## FIXME use writeDictFile instead!
+        D=m.writeDictFile ( None, ndecimals = 6 )
+        """
         D["K"]=m.M.K
         D["Z"]=m.M.Z
         if hasattr ( m, "seed" ) and m.seed != None:
@@ -202,22 +203,23 @@ class Hiscore:
         D["timestamp"]=time.asctime()
         D["walkerid"]=m.M.walkerid
         D["description"]=m.M.description
+        """
         # D=m.writeDictFile(outfile = None, ndecimals=6 )
         newlist = self.insertHiscore ( oldhiscores, D )
         self.pprint ( f"write model to {hiscorefile}" )
         with open ( hiscorefile, "wt" ) as f:
             f.write ( "[" )
             for ctr,l in enumerate(newlist):
-                f.write ( "%s" % l )
+                f.write ( f"{l}" )
                 if ctr < len(newlist)-1:
                     f.write ( ",\n" % ( l ) )
             f.write ( "]\n" )
             f.close()
         with open ( "Kold.conf", "wt" ) as f:
-            f.write ( "%f\n" % m.M.K  )
+            f.write ( f"{m.M.K}\n" )
             f.close()
         with open ( "Kmin.conf", "wt" ) as f:
-            f.write ( "%f\n" % newlist[-1]["K"] )
+            f.write ( f"{newlist[-1]['K']}\n" )
             f.close()
         return True
 

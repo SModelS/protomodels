@@ -250,7 +250,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
             from builder.manipulator import Manipulator
             m = Manipulator ( model )
             T=str(int(time.time()))
-            m.writeDictFile ( f"pmodel-{T}.py", comment="history keeper" )
+            m.writeDictFile ( f"pmodel-{T}.dict", comment="history keeper" )
             with open ( f"{rundir}history.txt", "at" ) as f:
                 f.write ( f"{time.asctime()}, step={step}, Z={Z:.4f}, K={K:.4f}, t={T}\n" )
                 f.close()

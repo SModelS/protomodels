@@ -240,7 +240,7 @@ def getBest( pattern ):
     return Ks
 
 def defineModel1 ( ):
-    """ define the winning model, copy it to $RUNDIR/pmodel1.py """
+    """ define the winning model, copy it to $RUNDIR/pmodel1.dict """
     Ks = getBest ( "real*" )
     bestf,bestK = None, 0.
     for k,v in Ks.items():
@@ -248,17 +248,19 @@ def defineModel1 ( ):
             bestK = v
             bestf = k
     rundir = os.environ["RUNDIR"]
-    cmd = "cp %s %s/%s" % ( bestf, rundir, "pmodel1.py" )
+    cmd = f"cp {bestf} {rundir}/{pmodel1.dict}"
     with open ( bestf, "rt" ) as r:
         lines = r.readlines()
-    with open ( f"{rundir}/pmodel1.py", "wt" ) as f:
+    with open ( f"{rundir}/pmodel1.dict", "wt" ) as f:
         f.write ( lines[0][1:-2]+ "\n" )
         f.close()
     #print ( cmd )
     #subprocess.getoutput ( cmd )
     print ( "now run in ~/git/protomodels/ptools:" )
-    print ( "S=signal; for i in `seq 1 19`; do ./expResModifier.py -R %s.${S}${i} -d %s/original.pcl -s ${S}${i} -P %s/pmodel1.py; ./expResModifier.py -R %s.${S}${i} -d %s.${S}${i}/${S}${i}.pcl --remove_orig --nofastlim --onlyvalidated --nosuperseded --dontsample -s ${S}${i} --symlink -o %s.${S}${i}/filtered${i}.pcl; done" % ( rundir, rundir, rundir, rundir, rundir, rundir ) )
-    #print ( "for i in `seq 1 19`; do ./expResModifier.py -R %s.signal${i} -d %s/original.pcl -s signal${i} -P %s/pmodel1.py; ./expResModifier.py -R %s.signal${i} -d %s.signal${i}/signal${i}.pcl --remove_orig --nofastlim --onlyvalidated --nosuperseded --dontsample -s signal${i} --symlink -o %s.signal${i}/filtered${i}.pcl; done" % ( rundir, rundir, rundir, rundir, rundir, rundir ) )
+    cmd = "./expResModifier.py"
+    args = "--remove_orig --nofastlim --onlyvalidated --nosuperseded --dontsample"
+    dbpath = "official"
+    print ( f"S=signal; for i in `seq 1 19`; do {cmd} -R {rundir}.${S}${i} -d {dbpath} -s ${S}${i} -P {rundir}/pmodel1.dict; {cmd} -R {rundir}.${S}${i} -d {dbpath} {args} -s ${S}${i} --symlink -o {rundir}.${S}${i}/filtered${i}.pcl; done"
     print ( )
 
 if __name__ == "__main__":

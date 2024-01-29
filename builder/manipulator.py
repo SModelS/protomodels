@@ -15,7 +15,7 @@ from smodels.theory.theoryPrediction import TheoryPrediction
 import smodels
 import copy, numpy, time, os, sys, itertools, colorama, random
 from colorama import Fore as ansi
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 from os import PathLike
 
 class Manipulator:
@@ -132,10 +132,12 @@ class Manipulator:
         self.M.step = step ## continue counting!
         self.M.bestCombo = None
 
-    def writeDictFile ( self, outfile = "pmodel.py", cleanOut=True,
-                        comment = "", appendMode=False, ndecimals=3 ):
+    def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict", 
+            cleanOut : bool = True, comment : str = "", appendMode : bool = False, 
+            ndecimals : int = 6 ) -> Dict:
         """ write out the dict file to outfile
-        :param outfile: output file, but replacing %t with int(time.time()). If none,
+
+        :param outfile: output file, but replacing %t with int(time.time()). If None,
                         then dont write file, just create dictionary object
         :param cleanOut: clean the dictionary from defaults
         :param comment: add a comment field
@@ -190,6 +192,7 @@ class Manipulator:
         D["codever"]=self.M.codeversion
         D["smodelsver"]=smodels.installation.version()
         D["dbver"]=self.M.dbversion
+        D["description"]=self.M.description
         if len(comment)>0:
             D["comment"]=comment
         if outfile == None:
@@ -201,7 +204,7 @@ class Manipulator:
         if appendMode:
             mode,comma = "at",","
         with open ( fname, mode ) as f:
-            f.write ( "%s%s\n" % (D,comma) )
+            f.write ( f"{D}{comma}\n" )
             f.close()
         return D
 
@@ -232,6 +235,10 @@ class Manipulator:
         module = "manipulator"
         print ( "[%s] %s" % (module, " ".join(map(str,args))) )
         self.log ( *args )
+
+    def debug ( self, *args ):
+        """ debugging msgs """
+        pass
 
     def log ( self, *args ):
         """ logging to file """
@@ -310,7 +317,7 @@ class Manipulator:
     def initFromDict ( self, D : Dict, filename : str = "", 
             initTestStats : bool = False ):
         """ setup the protomodel from dictionary D.
-        :param D: dictionary, as defined in pmodel*.py files.
+        :param D: dictionary, as defined in pmodel*.dict files.
         :param filename: name of origin. not necessary, only for logging.
         :param initTestStats: if True, set also test statistics K and Z
         """
@@ -366,9 +373,9 @@ class Manipulator:
         ## cheating, i.e. starting with models that are known to work well
         if mode == 0: ## no cheating
             return
-        filename = "pmodel%d.py" % mode
+        filename = f"pmodel{mode}.dict"
         if not os.path.exists ( filename ):
-            self.highlight ( "red", "cheat mode %d started, but no %s/%s found" % ( mode, os.getcwd(), filename ) )
+            self.highlight ( "red", f"cheat mode {mode} started, but no {os.getcwd()}/{filename} found" )
             sys.exit(-1)
         # scom = ""
         with open ( filename, "rt" ) as f:
@@ -481,7 +488,7 @@ class Manipulator:
                                         protomodel=protomodel)
 
     def setRandomBranchings ( self, pid, protomodel=None):
-        """Assign random BRs to particle.
+        """ Assign random BRs to particle.
         """
 
         if not protomodel:
@@ -748,7 +755,7 @@ class Manipulator:
                 pid = pids[0] #Unfreeze the lighter state
                 break
 
-        self.log ( "Unfreezing %s:" % ( self.namer.asciiName(pid) ) )
+        self.log ( f"Unfreezing {self.namer.asciiName(pid)}" )
         return self.unFreezeParticle(pid)
 
     def randomlyChangeBranchings ( self, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05 ):
@@ -844,12 +851,17 @@ class Manipulator:
 
         return 1
 
-    def randomlyChangeSignalStrengths ( self, prob=0.25, probSingle=0.8, ssmSigma=0.1):
-        """ randomly change one of the signal strengths according to a gaussian distribution centered around the original SSM.
+    def randomlyChangeSignalStrengths ( self, prob : float =0.25, 
+            probSingle : float =0.8, ssmSigma=0.1 ) -> int:
+        """ randomly change one of the signal strengths according to a gaussian 
+        distribution centered around the original SSM.
 
         :param prob: Probability for changing the signal strengths
-        :param probSingle: Probability for changing the signal strength of a single particle
+        :param probSingle: Probability for changing the signal strength of a 
+        single particle
         :param ssmSigma: Width for the gaussian
+
+        :returns: 1 if something got changed, else 0
         """
 
         uSSM = random.uniform(0,1)
@@ -930,9 +942,20 @@ class Manipulator:
                  ( self.namer.asciiName(p), numpy.mean ( ssms ), numpy.std ( ssms) ) )
         return 1
 
-    def changeSSM ( self, pids, newssm ):
+    def pidPairIsInSSMs ( self, pids : Tuple ) -> bool:
+        """ is a given pid pair in SSMs? """
+        if pids[1] < pids[0]:
+            pids = ( pids[1], pids[0] )
+        return pids in self.M.ssmultipliers.keys()
+
+    def changeSSM ( self, pids : Tuple, newssm, recursive : bool = True ):
         """ change the signal strength multiplier of pids to newssm,
-            if we have stored xsecs, we correct them, also """
+            if we have stored xsecs, we correct them, also 
+
+        :param pids: Tuple of particle ids, e.g. (1000024,1000023)
+        :param recursive: if true, then change also for all other signs, e.g.
+        (-pids[0],-pids[1]), etc
+        """
         if type(pids) != tuple:
             self.highlight ( "error", "when changing SSMs, need to supply PIDs as a tuple!" )
             return
@@ -940,19 +963,29 @@ class Manipulator:
             self.highlight ( "error", "when changing SSMs, need to supply PIDs as a tuple of two pids!" )
             return
         if pids[1] < pids[0]:
-            self.highlight ( "warn", "when changing SSMs, pids are wrongly ordered. Reverting them." )
+            self.debug ( "warn", "when changing SSMs, pids are wrongly ordered. Reverting them." )
             pids = ( pids[1], pids[0] )
 
         if not pids in self.M.ssmultipliers:
-            self.highlight ( "warn", "when changing SSMs, cannot find %s. not changing anything." % str(pids) )
+            self.highlight ( "warn", f"when changing SSMs, cannot find {str(pids)}. not changing anything." )
             return
         oldssm = self.M.ssmultipliers[pids]
         if newssm > 10000.:
             newssm = 10000.
         self.record ( f"change ssm of {self.namer.texName(pids,addDollars=True)} to {newssm:.2f}" )
         self.M.ssmultipliers[pids]=newssm
-        self.highlight ( "info", "changing ssm of %s from %.2f to %.2f" % \
-                                   ( str(pids), oldssm, newssm ) )
+        self.highlight ( "info", f"changing ssm of {str(pids)} from {oldssm:.2f} to {newssm:.2f}" )
+
+        if not recursive:
+            return
+        ## change for all signs
+        if self.pidPairIsInSSMs ( (-pids[0],pids[1]) ):
+            self.changeSSM ( (-pids[0],pids[1]), newssm, recursive=False )
+        if self.pidPairIsInSSMs ( ( pids[0],- pids[1]) ):
+            self.changeSSM ( (pids[0],- pids[1]), newssm, recursive=False )
+        if self.pidPairIsInSSMs ( ( - pids[0],- pids[1]) ):
+            self.changeSSM ( (-pids[0],- pids[1]), newssm, recursive=False )
+            
 
     def randomlyFreezeParticle ( self, sigma= 0.5, probMassive = 0.3):
         """ freezes a random unfrozen particle according to gaussian distribution with width sigma.
@@ -1108,17 +1141,17 @@ class Manipulator:
                 if pid == 1000006:
                     maxMass = mstop2 + 20.
 
-        self.record ( "unfreeze %s to %.1f" % \
-                      ( self.namer.texName(pid,addDollars=True), tmpMass ) )
+        self.record ( f"unfreeze {self.namer.texName(pid,addDollars=True)} to "\
+                      f"{tmpMass:.1f}" )
         #Randomly select mass of unfrozen particle:
         protomodel.masses[pid] = tmpMass
-        self.pprint ( "Unfroze mass of %s to %.1f" % \
-                ( self.namer.asciiName(pid), protomodel.masses[pid] ) )
+        self.pprint ( f"Unfroze mass of {self.namer.asciiName(pid)} to "\
+                      f"{protomodel.masses[pid]:.1f}" )
 
         #Set random branchings
         self.setRandomBranchings(pid)
 
-        #Add pid pair production and associated production to protomodel.ssmmultipliers:
+        #Add pid pair production and associated production to protomodel.ssmultipliers:
         self.initSSMFor(pid)
 
         return 1
