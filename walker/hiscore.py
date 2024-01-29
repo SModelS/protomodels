@@ -19,7 +19,7 @@ from os import PathLike
 class Hiscore:
     """ encapsulates the hiscore list. """
     def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
-                   picklefile: PathLike="hiscores.hi", backup : bool = True,
+                   picklefile: PathLike="hiscores.cache", backup : bool = True,
                    hiscores = None, predictor = None ):
         """ the constructor
         :param save_hiscores: if true, then assume you want to save, not just read.

@@ -522,7 +522,7 @@ if __name__ == "__main__":
             help='when scanning masses, adjust the SSMs so that the xsecs are constant',
             action="store_true" )
     argparser.add_argument ( '-F', '--force_copy',
-            help='force copying the hiscores.hi file',
+            help='force copying the hiscores.cache file',
             action="store_true" )
     argparser.add_argument ( '-u', '--upload',
             help='choose upload directory [latest]',
