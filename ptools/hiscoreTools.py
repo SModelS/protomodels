@@ -76,9 +76,9 @@ def pprintEvs ( protomodel ):
     return str(protomodel.nevents)+ " evts"
 
 def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict", 
-                           picklefile : str = "hiscore.hi",
+                           picklefile : str = "hiscores.hi",
                            entrynr : Union[None,int] = 0 ) -> bool:
-    """ is hiscore.hi behind hiscores.dict, so it needs an update?
+    """ is hiscores.hi behind hiscores.dict, so it needs an update?
     :param entrynr: check for for this entry, 0 is first. 
     If None, check all
 
@@ -129,17 +129,17 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
 def fetchHiscoreObj ( dictfile : str = "hiscores.dict", 
                        picklefile : Union[None,str] = None,
                        dbpath : str = "official" ) -> Hiscore:
-    """ create Hiscore object from hiscore.hi file. 
-    update hiscore.hi file before, if needed.
+    """ create Hiscore object from hiscores.hi file. 
+    update hiscores.hi file before, if needed.
 
-    :param dictfile: dictionary to update hiscore.hi from, if needed.
+    :param dictfile: dictionary to update hiscores.hi from, if needed.
     :param picklefile: the cached hiscore pickle file. if None,
-    then dictfile but replace hiscores.dict with hiscore.hi
+    then dictfile but replace hiscores.dict with hiscores.hi
 
     :returns: hiscore object
     """
     if picklefile is None:
-        picklefile = dictfile.replace("hiscores.dict","hiscore.hi" )
+        picklefile = dictfile.replace(".dict",".hi" )
     if not hiscoreHiNeedsUpdate ( dictfile, picklefile, 0 ):
         print ( f"[hiscoreTools] can reuse cache: {picklefile}" )
         return Hiscore ( 0, False, picklefile )
@@ -149,7 +149,7 @@ def fetchHiscoreObj ( dictfile : str = "hiscores.dict",
     return hi
         
 def updateHiscoreHi ( args : Namespace ) -> Dict:
-    """ the function that updates the hiscore.hi file
+    """ the function that updates the hiscores.hi file
     :param args: detailed, outfile, infile, print, fetch, nmax,
                  check, interactive, nevents.
                  see "if __main__" part below.
@@ -172,14 +172,14 @@ def updateHiscoreHi ( args : Namespace ) -> Dict:
         trundir = args.rundir
     rundir = setup( trundir )
     if infile == "default":
-        infile = f"{rundir}/hiscore.hi"
+        infile = f"{rundir}/hiscores.hi"
     if args.outfile == infile:
         print ( "[hiscore] outputfile is same as input file. will assume that you do not want me to write out at all." )
         args.outfile = None
 
     if infile is None:
-        infile = "hiscore.hi"
-    dictfile = infile.replace( "hiscore.hi","hiscores.dict" )
+        infile = "hiscores.hi"
+    dictfile = infile.replace( ".hi",".dict" )
     hi = fetchHiscoreObj ( dictfile )
     protomodels = hi.hiscores
 
@@ -197,7 +197,7 @@ def updateHiscoreHi ( args : Namespace ) -> Dict:
         if not hasattr ( protomodels[0], "analysisContributions" ):
             print ( "[hiscore] why does the winner not have analysis contributions?" )
             ma = Manipulator ( protomodels[0] )
-            hi = Hiscore( 0, True, f"{rundir}/hiscore.hi" )
+            hi = Hiscore( 0, True, f"{rundir}/hiscores.hi" )
             hi.computeAnalysisContributions(ma)
             protomodels[0]=ma.M
             hi.writeListToPickle()
@@ -214,7 +214,7 @@ def updateHiscoreHi ( args : Namespace ) -> Dict:
             if os.path.exists ( dbpath ):
                 predictor = Predictor ( 0, dbpath = dbpath, expected = False, 
                         select= "all", do_combine = args.do_combine )
-            hi = Hiscore( 0, True, f"{rundir}/hiscore.hi", predictor = predictor )
+            hi = Hiscore( 0, True, f"{rundir}/hiscores.hi", predictor = predictor )
             hi.computeParticleContributions(ma)
             protomodels[0]=ma.M
             hi.writeListToPickle()

@@ -61,10 +61,10 @@ def countSteps( Dir ):
 def count():
     """ count the total number of steps take in a run """
     Dir = "/scratch-cbe/users/wolfgan.waltenberger/"
-    Dirs = glob.glob ( f"{Dir}/rundir.*/hiscore.hi" )
+    Dirs = glob.glob ( f"{Dir}/rundir.*/hiscores.hi" )
     Dirs.sort()
     for d in Dirs:
-        wdir = d.replace("/hiscore.hi","")
+        wdir = d.replace("/hiscores.hi","")
         nsteps = countSteps ( wdir )
         if nsteps < 50000:
             print ( wdir, nsteps )

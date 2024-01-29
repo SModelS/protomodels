@@ -1742,7 +1742,7 @@ class Manipulator:
 
 if __name__ == "__main__":
     import pickle
-    f=open("hiscore.hi","rb" )
+    f=open("hiscores.hi","rb" )
     protomodels = pickle.load(f)
     f.close()
     ma = Manipulator ( protomodels[0], verbose=True )
