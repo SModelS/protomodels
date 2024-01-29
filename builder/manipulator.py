@@ -199,7 +199,7 @@ class Manipulator:
             return D
         fname = outfile.replace("%t", str(int(time.time())) )
         if not appendMode:
-            self.pprint ( "writing model to %s" % fname )
+            self.pprint ( f"writing model to {fname}" )
         mode,comma = "wt",""
         if appendMode:
             mode,comma = "at",","
@@ -331,7 +331,7 @@ class Manipulator:
             line = line[:-2]
             self.pprint ( line )
         else:
-            self.highlight ( "info", "starting with %s/%s%s" % ( os.getcwd(), filename, scom ) )
+            self.highlight ( "info", f"starting with {os.getcwd()}/{filename}{scom}" )
         #Reset all model attributes:
         self.M.initializeModel()
         #Set attributes to dictionary values:

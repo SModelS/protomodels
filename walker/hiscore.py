@@ -402,8 +402,8 @@ class Hiscore:
             for i in self.hiscores:
                 if i != None:
                     nhs += 1
-            self.pprint ( "loaded %d hiscores from %s." % \
-                          ( nhs, self.pickleFile ) )
+            pfname = helpers.simplifyUnixPath ( self.pickleFile )
+            self.pprint ( f"loaded {nhs} hiscores from {pfname}" )
             # assert ( len(self.hiscores) == self.nkeep )
             self.fileAttempts=0
         except Exception as e:
@@ -473,10 +473,11 @@ class Hiscore:
                 self.pprint ( "while writing to pickle file I see that it has changed" )
                 self.updateListFromPickle()
                 return False
-        self.pprint ( f"saving new hiscore list to {pickleFile}" )
+        shortname = helpers.simplifyUnixPath(pickleFile)
+        self.pprint ( f"saving new hiscore list to {shortname}" )
         try:
             if self.backup:
-                subprocess.getoutput ( "mv -f %s old_%s" % ( pickleFile, pickleFile ) )
+                subprocess.getoutput ( f"mv -f {pickleFile} old_{pickleFile}" )
             # self.clean()
             with open( pickleFile, "wb" ) as f:
                 fcntl.flock ( f, fcntl.LOCK_EX )

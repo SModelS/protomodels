@@ -11,6 +11,15 @@ from smodels.tools.physicsUnits import GeV
 import scipy.stats
 from os import PathLike
 
+
+def simplifyUnixPath ( path : str ) -> str:
+    """ simple code to simplify file paths in printouts """
+    path = path.replace( os.getcwd(), "./" )
+    path = path.replace( os.environ["HOME"], "~" )
+    while "//" in path:
+        path = path.replace("//","/")
+    return path
+
 def readDictionaryFile ( filename : PathLike ) -> dict:
     """ read the database dictionary files, as produced by expResModifier.py -C
     :param filename: path to the dictionary file

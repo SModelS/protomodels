@@ -27,42 +27,18 @@ class HiscorePlotter:
     def __init__ ( self ):
         self.url = "https://smodels.github.io/"
 
-    def rebuildHiscoreHi ( self, hiscorefile, dbpath ):
-        """ rebuild hiscores.cache """
-        if os.path.exists ( hiscorefile ):
-            print ( f"[plotHiscore] {hiscorefile} exists, but I rebuild anyways. FIXME might wanna change this!" )
-        #    return
-        # print ( f"[plotHiscore] {hiscorefile} does not exist. Trying to produce now with ./hiscores.cache" )
-        print ( f"[plotHiscore] Rebuilding {hiscorefile}" )
-        from argparse import Namespace
-        args = Namespace()
-        args.detailed = False
-        args.print = False
-        args.outfile = "hiscores.cache"
-        args.infile = hiscorefile
-        args.fetch = False
-        args.maxloss = 0.005
-        args.nmax = 1
-        args.dbpath = dbpath
-        # args.dbpath = "default.pcl"
-        hiscoreTools.updateHiscoreHi ( args )
-
-    def obtain ( self, number, hiscorefile : PathLike, dbpath : PathLike ) -> ProtoModel:
+    def obtain ( self, number : int, hiscorefile : PathLike = "hiscores.dict", 
+                 dbpath : PathLike = "official" ) -> ProtoModel:
         """ obtain hiscore number <number>
-        :returns: model
-        """
-        self.rebuildHiscoreHi ( hiscorefile, dbpath )
 
-        with open( hiscorefile,"rb" ) as f:
-            #fcntl.flock( f, fcntl.LOCK_EX )
-            hiscores = pickle.load ( f )
-            #fcntl.flock( f, fcntl.LOCK_UN )
-        if len(hiscores)<number-1:
-            print ( f"[plotHiscore] asked for hiscore {number}, but I only have {len(hiscores)}" )
-        Z = hiscores[number].Z
-        K = hiscores[number].K
+        :returns: protomodel object
+        """
+        from ptools import hiscoreTools
+        hi = hiscoreTools.fetchHiscoreObj ( hiscorefile )
+        Z = hi.hiscores[number].Z
+        K = hi.hiscores[number].K
         print ( f"[plotHiscore] obtaining #{number}: K={K:.3f}" )
-        ret = hiscores[ number ]
+        ret = hi.hiscores[ number ]
         self.protomodel = ret
         return ret
 
@@ -284,11 +260,11 @@ class HiscorePlotter:
             if usePrettyNames:
                 ananame = prettyTexAnalysisName ( None, anaid = anaId )
             dtype = tp.dataType()
-            print ( "[plotHiscore] item %s (%s)" % ( anaId, dtype ) )
+            print ( f"[plotHiscore] item {anaId} ({dtype})" )
             dt = { "upperLimit": "ul", "efficiencyMap": "em" }
             # f.write ( "%s & %s & " % ( anaId, dt[dtype] ) )
             ref = bibtex.query ( anaId )
-            f.write ( "%s~\\cite{%s} & " % ( ananame, ref ) )
+            f.write ( f"{ananame}~\\cite{{ref}} & " )
             if dtype == "efficiencyMap":
                 dI = tp.dataset.dataInfo
                 obsN = dI.observedN
@@ -332,7 +308,7 @@ class HiscorePlotter:
                 sigmapred="%.2f" % sigN
                 f.write ( "%s & %s & %s $\\pm$ %s & %s & %s & %s \\\\ \n" % \
                           ( did, obs, eBG, bgErr, S, particles, sigmapred ) )
-            if dtype == "upperLimit":
+            if dtype in [ "upperLimit", "combined" ]:
                 S = "?"
                 llhd = tp.likelihood ( expected=False )
                 eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
@@ -340,7 +316,7 @@ class HiscorePlotter:
                 sigma_exp = eUL / 1.96 # the expected scale, sigma
                 Z = ( oUL - eUL ) / sigma_exp
                 # Z = math.sqrt ( chi2 )
-                S = "%.1f $\sigma$" % Z
+                S = f"{Z:.1f} $\sigma$"
                 pids = set()
                 for prod in tp.PIDs:
                     for branch in prod:
@@ -353,8 +329,8 @@ class HiscorePlotter:
                                         pids.add ( abs(p) )
                 particles = namer.texName ( pids, addDollars=True, addSign = False,
                                             addBrackets = False )
-                sigmapred="%.2f fb" % ( tp.xsection.value.asNumber(fb) )
-                print ( f"  `- observed {oUL}, expected {eUL}" )
+                sigmapred=f"{tp.xsection.value.asNumber(fb)} fb"
+                print ( f"  `- observed {oUL:.2f}, expected {eUL:.2f}" )
                 f.write ( f" & {oUL:.1f} fb & {eUL:.1f} fb & {S} & {particles} & {sigmapred} \\\\ \n" )
         f.write("\end{tabular}\n" )
         f.close()
