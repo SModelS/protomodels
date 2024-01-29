@@ -157,9 +157,9 @@ class LlhdPlot:
         self.copy = copy
         self.rthreshold = 1.7
         self.interactive = interactive
-        self.hiscorefile = "./hiscores.hi"
+        self.hiscorefile = "./hiscores.cache"
         if rundir != None:
-            self.hiscorefile = f"{rundir}/hiscores.hi"
+            self.hiscorefile = f"{rundir}/hiscores.cache"
         self.setVerbosity ( verbose )
         masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
         self.masspoints = masspoints
@@ -289,7 +289,7 @@ class LlhdPlot:
 
     def setup ( self, pid1, pid2 ):
         """ setup rundir, picklefile path and hiscore file path """
-        self.hiscorefile = self.rundir + "/hiscores.hi"
+        self.hiscorefile = self.rundir + "/hiscores.cache"
         if not os.path.exists ( self.hiscorefile ):
             self.pprint ( "could not find hiscore file %s" % self.hiscorefile )
  

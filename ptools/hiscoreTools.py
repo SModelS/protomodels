@@ -33,7 +33,7 @@ def storeList ( protomodels, savefile ):
     h = Hiscore ( 0, True, savefile, backup=True, hiscores = protomodels )
     h.hiscores = protomodels
     print ( f"[hiscore] saving {count(protomodels)} protomodels to {savefile}" )
-    if savefile.endswith ( ".pcl" ) or savefile.endswith( ".hi" ):
+    if savefile.endswith ( ".cache" ) or savefile.endswith( ".hi" ):
         h.writeListToPickle ( check=False )
         if "states" in savefile: ## do both for the states
             h.writeListToDictFile()
@@ -76,9 +76,9 @@ def pprintEvs ( protomodel ):
     return str(protomodel.nevents)+ " evts"
 
 def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict", 
-                           picklefile : str = "hiscores.hi",
+                           picklefile : str = "hiscores.cache",
                            entrynr : Union[None,int] = 0 ) -> bool:
-    """ is hiscores.hi behind hiscores.dict, so it needs an update?
+    """ is hiscores.cache behind hiscores.dict, so it needs an update?
     :param entrynr: check for for this entry, 0 is first. 
     If None, check all
 
@@ -129,17 +129,17 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
 def fetchHiscoreObj ( dictfile : str = "hiscores.dict", 
                        picklefile : Union[None,str] = None,
                        dbpath : str = "official" ) -> Hiscore:
-    """ create Hiscore object from hiscores.hi file. 
-    update hiscores.hi file before, if needed.
+    """ create Hiscore object from hiscores.cache file. 
+    update hiscores.cache file before, if needed.
 
-    :param dictfile: dictionary to update hiscores.hi from, if needed.
+    :param dictfile: dictionary to update hiscores.cache from, if needed.
     :param picklefile: the cached hiscore pickle file. if None,
-    then dictfile but replace hiscores.dict with hiscores.hi
+    then dictfile but replace hiscores.dict with hiscores.cache
 
     :returns: hiscore object
     """
     if picklefile is None:
-        picklefile = dictfile.replace(".dict",".hi" )
+        picklefile = dictfile.replace(".dict",".cache" )
     if not hiscoreHiNeedsUpdate ( dictfile, picklefile, 0 ):
         print ( f"[hiscoreTools] can reuse cache: {picklefile}" )
         return Hiscore ( 0, False, picklefile )
@@ -149,7 +149,7 @@ def fetchHiscoreObj ( dictfile : str = "hiscores.dict",
     return hi
         
 def updateHiscoreHi ( args : Namespace ) -> Dict:
-    """ the function that updates the hiscores.hi file
+    """ the function that updates the hiscores.cache file
     :param args: detailed, outfile, infile, print, fetch, nmax,
                  check, interactive, nevents.
                  see "if __main__" part below.
@@ -172,14 +172,14 @@ def updateHiscoreHi ( args : Namespace ) -> Dict:
         trundir = args.rundir
     rundir = setup( trundir )
     if infile == "default":
-        infile = f"{rundir}/hiscores.hi"
+        infile = f"{rundir}/hiscores.cache"
     if args.outfile == infile:
         print ( "[hiscore] outputfile is same as input file. will assume that you do not want me to write out at all." )
         args.outfile = None
 
     if infile is None:
-        infile = "hiscores.hi"
-    dictfile = infile.replace( ".hi",".dict" )
+        infile = "hiscores.cache"
+    dictfile = infile.replace( ".cache",".dict" )
     hi = fetchHiscoreObj ( dictfile )
     protomodels = hi.hiscores
 
@@ -188,16 +188,16 @@ def updateHiscoreHi ( args : Namespace ) -> Dict:
         return ret
 
     sin = infile
-    if sin == None:
-        sin = "H*.hi"
+    #if sin == None:
+    #    sin = "H*.hi"
     pevs = pprintEvs ( protomodels[0] )
     print ( f"[hiscore] hiscore from {sin}[{protomodels[0].walkerid}] is at K={protomodels[0].K:.3f}, Z={protomodels[0].Z:.3f} ({pevs})" )
 
-    if type(args.outfile)==str and (".pcl" in args.outfile or ".hi" in args.outfile ):
+    if type(args.outfile)==str and (".cache" in args.outfile or ".hi" in args.outfile ):
         if not hasattr ( protomodels[0], "analysisContributions" ):
             print ( "[hiscore] why does the winner not have analysis contributions?" )
             ma = Manipulator ( protomodels[0] )
-            hi = Hiscore( 0, True, f"{rundir}/hiscores.hi" )
+            hi = Hiscore( 0, True, f"{rundir}/hiscores.cache" )
             hi.computeAnalysisContributions(ma)
             protomodels[0]=ma.M
             hi.writeListToPickle()
@@ -214,7 +214,7 @@ def updateHiscoreHi ( args : Namespace ) -> Dict:
             if os.path.exists ( dbpath ):
                 predictor = Predictor ( 0, dbpath = dbpath, expected = False, 
                         select= "all", do_combine = args.do_combine )
-            hi = Hiscore( 0, True, f"{rundir}/hiscores.hi", predictor = predictor )
+            hi = Hiscore( 0, True, f"{rundir}/hiscores.cache", predictor = predictor )
             hi.computeParticleContributions(ma)
             protomodels[0]=ma.M
             hi.writeListToPickle()
