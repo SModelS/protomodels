@@ -430,7 +430,7 @@ if __name__ == "__main__":
             help='Path to database pickle file [./default.pcl]',
             type=str, default="./default.pcl" )
     argparser.add_argument ( '-f', '--hiscore',
-            help='input model, to be taken from hiscore file [./hiscore.hi]',
+            help='input model, to be taken from hiscore file [./hiscores.hi]',
             type=str, default="./model.slha" )
     argparser.add_argument ( '-o', '--output',
             help='output pickle file [./predictions.pcl]',

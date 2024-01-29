@@ -137,11 +137,11 @@ def updateHiscores( rundir : Union[None,PathLike] = None,
     args.check = False
     args.nmax = 1
     if dbpath is None:
-        dbpath = f"{rundir}/default.pcl"
+        dbpath = f"official"
     args.dbpath = dbpath
-    args.outfile = "hiscore.hi"
+    args.outfile = "hiscores.hi"
     if rundir != None:
-        args.outfile = "%s/hiscore.hi" % rundir
+        args.outfile = f"{rundir}/hiscores.hi" 
     args.infile = None
     args.rundir = rundir
     # args.maxloss = .01
@@ -198,7 +198,7 @@ def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
     args.verbose = verbose
     args.detailed = False
     args.destinations = False
-    args.hiscorefile = f"{rundir}/hiscore.hi"
+    args.hiscorefile = f"{rundir}/hiscores.hi"
     args.dbpath = dbpath.replace("@rundir@",rundir )
     # args.dbpath = f"{rundir}/default.pcl"
     args.rundir = rundir
@@ -219,7 +219,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
           maxruns : Union[None,int] = 3, createPlots : bool=True,
           uploadTo : str = "temp", dbpath : str = "official",
           verbose : bool = False, do_combine : bool = False ):
-    """ loop (maxruns times) that updates hiscore.hi
+    """ loop (maxruns times) that updates hiscores.hi
 
     :param maxruns: maximally iterate that many times, if None then loop endlessly
     :param createPlots: if False, suppress plotting

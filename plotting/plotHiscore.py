@@ -28,17 +28,17 @@ class HiscorePlotter:
         self.url = "https://smodels.github.io/"
 
     def rebuildHiscoreHi ( self, hiscorefile, dbpath ):
-        """ rebuild hiscore.hi """
+        """ rebuild hiscores.hi """
         if os.path.exists ( hiscorefile ):
             print ( f"[plotHiscore] {hiscorefile} exists, but I rebuild anyways. FIXME might wanna change this!" )
         #    return
-        # print ( f"[plotHiscore] {hiscorefile} does not exist. Trying to produce now with ./hiscore.hi" )
+        # print ( f"[plotHiscore] {hiscorefile} does not exist. Trying to produce now with ./hiscores.hi" )
         print ( f"[plotHiscore] Rebuilding {hiscorefile}" )
         from argparse import Namespace
         args = Namespace()
         args.detailed = False
         args.print = False
-        args.outfile = "hiscore.hi"
+        args.outfile = "hiscores.hi"
         args.infile = hiscorefile
         args.fetch = False
         args.maxloss = 0.005
@@ -1034,7 +1034,7 @@ def main ():
             help='which hiscore to plot [0]',
             type=int, default=0 )
     argparser.add_argument ( '-f', '--hiscorefile',
-            help='pickle file to draw from [<rundir>/hiscore.hi]',
+            help='pickle file to draw from [<rundir>/hiscores.hi]',
             type=str, default="default"  )
     argparser.add_argument ( '-v', '--verbosity',
             help='verbosity -- debug, info, warn, err [info]',
@@ -1089,7 +1089,7 @@ def main ():
         args.predictions = True
         args.tex = True
     if args.hiscorefile == "default":
-        args.hiscorefile = f"{rundir}/hiscore.hi"
+        args.hiscorefile = f"{rundir}/hiscores.hi"
     runPlotting ( args )
     if args.test:
         compileTestText()
