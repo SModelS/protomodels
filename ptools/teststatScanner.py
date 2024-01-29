@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
-""" draw K/Z/r as a function of a model parameter """
+__all__ = [ "produce", "produceSSMs", "draw" ]
+
+""" draw K/Z/r as a function of a model parameter,
+i.e. scan the various test statistics 
+"""
 
 import numpy, sys, os, copy, time, subprocess, glob
 from protomodels.csetup import setup
@@ -484,7 +488,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(
-            description='script that takes care of the Z(m) plots' )
+            description='script that scans/plots various test statistics such as K,Z,r' )
     argparser.add_argument ( '-p', '--pid', '--pid1',
             help='pid to consider. If zero, then consider a predefined list [0]',
             type=int, default=0 )

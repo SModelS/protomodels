@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 
-""" simple script that perpetually updates hiscore list
-    from H<n>.pcl """
+""" simple script that perpetually updates the hiscores.cache file,
+and the plots """
 
 __all__ = [ "loop", "didCombine" ]
 
 import time, types, sys, os, subprocess
 from os import PathLike
-from typing import Union
+from typing import Union, Dict
 
 def setup( rundir = None ):
     # codedir = "/mnt/hephy/pheno/ww/git/"
     codedir = "/scratch-cbe/users/wolfgan.waltenberger/git/"
-    sys.path.insert(0,"%ssmodels/" % codedir )
-    sys.path.insert(0,"%ssmodels-utils/" % codedir )
-    sys.path.insert(0,"%s/protomodels/" % codedir )
-    sys.path.insert(0,"%ssmodels-utils/prototools/" % codedir )
+    sys.path.insert(0,f"{codedir}smodels/" )
+    sys.path.insert(0,f"{codedir}smodels-utils/" )
+    sys.path.insert(0,f"{codedir}/protomodels/" )
     if rundir != None:
         rundir = rundir.replace ( "~", os.environ["HOME"] )
         os.chdir ( rundir )
@@ -128,29 +127,14 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
 
 def updateHiscores( rundir : Union[None,PathLike] = None,
                     dbpath : Union[None,PathLike] = None,
-                    do_combine : bool = False ):
-    args = types.SimpleNamespace()
-    args.print = True
-    args.interactive = False
-    args.detailed = False
-    args.fetch = False
-    args.check = False
-    args.nmax = 1
-    if dbpath is None:
-        dbpath = f"official"
-    args.dbpath = dbpath
-    args.outfile = "hiscores.cache"
-    if rundir != None:
-        args.outfile = f"{rundir}/hiscores.cache" 
-    args.infile = None
-    args.rundir = rundir
-    # args.maxloss = .01
-    # args.nevents = 50000
+                    do_combine : bool = False ) -> Dict:
+    dictfile = f"{rundir}/hiscores.dict"
+    cachefile = f"{rundir}/hiscores.cache"
     from ptools import hiscoreTools
-    import socket
-    hostname = socket.gethostname().replace(".cbe.vbc.ac.at","")
-    print ( f"[updateHiscores] now update {args.outfile} on {hostname}:{rundir}" )
-    D = hiscoreTools.updateHiscoreHi ( args )
+    hi = hiscoreTools.fetchHiscoreObj ( dictfile, cachefile, dbpath )
+    from builder.manipulator import Manipulator
+    D = Manipulator ( hi.hiscores[0] ).writeDictFile ( None )
+    D["model"]=hi.hiscores[0]
     return D
 
 def updateStates( rundir : Union[None,PathLike] = None,
@@ -181,7 +165,7 @@ def updateStates( rundir : Union[None,PathLike] = None,
     print ( )
 
 def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
-          dbpath : str = "@rundir@/default.pcl", verbose : bool = False ):
+          dbpath : str = "official", verbose : bool = False ):
     """ create all hiscore plots
 
     :param upload: the "label" of the upload. determines the directory name at
@@ -198,7 +182,7 @@ def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
     args.verbose = verbose
     args.detailed = False
     args.destinations = False
-    args.hiscorefile = f"{rundir}/hiscores.cache"
+    args.hiscorefile = f"{rundir}/hiscores.dict"
     args.dbpath = dbpath.replace("@rundir@",rundir )
     # args.dbpath = f"{rundir}/default.pcl"
     args.rundir = rundir
