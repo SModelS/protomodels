@@ -26,16 +26,16 @@ except:
 class Predictor:
     def __init__ ( self, walkerid : int, dbpath : PathLike = "official",
                    expected : bool = False, select : str = "all",
-                   do_combine : bool = False ):
+                   do_srcombine : bool = False ):
         """
         the predictor class, i.e. the class that computes the predictions,
         finds the best combinations, and computes the final test statistics
 
-        :param do_combine: if True, then also use combined results,
+        :param do_srcombine: if True, then also use combined results,
                            both via simplified likelihoods and pyhf.
         """
         self.walkerid = walkerid
-        self.do_combine = do_combine
+        self.do_srcombine = do_srcombine
         self.modifier = None
         self.select = select
         self.expected = expected
@@ -265,7 +265,7 @@ class Predictor:
             combinedRes=False
         else:
             bestDataSet=True
-            combinedRes=self.do_combine
+            combinedRes=self.do_srcombine
 
         # self.log ( "start getting preds" )
         if False:
@@ -297,6 +297,8 @@ class Predictor:
                     combinedIds.add ( anaId )
                 for c in cpreds:
                     anaId = c.dataset.globalInfo.id
+                    if c.dataType()!="combined":
+                        continue
                     # if the aggregated version is in, then take this out
                     if anaId+"-agg" in combinedIds:
                         continue
@@ -316,7 +318,7 @@ class Predictor:
                 # get the SR-combined predictions
                 cpreds = theoryPredictionsFor ( expRes, topos,
                                                 useBestDataset=False,
-                                                combinedResults=self.do_combine )
+                                                combinedResults=self.do_srcombine )
                 if cpreds != None:
                     for c in cpreds:
                         anaId = c.dataset.globalInfo.id
@@ -470,11 +472,11 @@ if __name__ == "__main__":
             action="store_true" )
     args = argparser.parse_args()
 
-    p = Predictor ( 0, args.database, do_combine=False )
+    p = Predictor ( 0, args.database, do_srcombine=False )
 
     sys.path.insert(0,"../")
-    from walker.hiscore import Hiscore
-    hiscore = Hiscore ( 0, False, args.hiscore )
+    from walker.hiscore import Hiscores
+    hiscore = Hiscores ( 0, False, args.hiscore )
     hi = hiscore.hiscores[0]
     print ( f"Will scrutinize hiscore obtained with database {hi.dbversion} K={hi.K:.3f}" )
     oldK = hi.K

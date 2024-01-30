@@ -83,7 +83,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
           rundir : Union[None,str] = None, maxsteps : int = 10000,
           nevents : int = 100000, seed : Union[None,int] = None, 
           catch_exceptions : bool = True, select : str = "all",
-          do_combine : bool = False, record_history : bool = False, 
+          do_srcombine : bool = False, record_history : bool = False, 
           update_hiscores : bool = False, stopTeleportationAfter : int = -1,
           forbiddenparticles : List[int|str] = [] ):
     """ a worker node to set up to run walkers
@@ -102,7 +102,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
     e.g. "txnames:T1,T2", short names are recognized, e.g.
     "txnames:electroweakinos_offshell,T1"
 
-    :param do_combine: if true, then also perform combinations, either via
+    :param do_srcombine: if true, then also perform combinations, either via
                        simplified likelihoods or via pyhf
     :param record_history: if True, then use history recorders
     :param update_hiscores: if True, then finish your run and
@@ -112,7 +112,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
     :param forbiddenparticles: an optional list of particles we wont touch in this
     run
     """
-    meta = { "dbpath": dbpath, "select": select, "do_combine": do_combine,
+    meta = { "dbpath": dbpath, "select": select, "do_srcombine": do_srcombine,
              "forbidden": forbiddenparticles }
     from builder.manipulator import Manipulator
     from ptools.moreHelpers import namesForSetsOfPids
@@ -153,7 +153,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             print ( f"[factoryOfWalkers:{hostname};{time.strftime('%H:%M:%S')}] starting {i} @ {rundir} with cheatcode {cheatcode}" )
             w = RandomWalker( walkerid=i, nsteps = maxsteps,
                               dbpath=dbpath, cheatcode=cheatcode, select=select,
-                              rundir=rundir, nevents=nevents, do_combine = do_combine,
+                              rundir=rundir, nevents=nevents, do_srcombine = do_srcombine,
                               record_history=record_history, seed=seed,
                               stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
@@ -164,7 +164,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
                     walkerid = i, nsteps = maxsteps,
                     expected = False, select = select, dbpath = dbpath,
-                    rundir = rundir, do_combine = do_combine, seed = seed,
+                    rundir = rundir, do_srcombine = do_srcombine, seed = seed,
                     stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
         else:
@@ -174,7 +174,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
                     strategy = "aggressive", walkerid = i, dbpath = dbpath, 
                     expected = False, select = select, rundir = rundir, 
-                    nevents = nevents, do_combine = do_combine, 
+                    nevents = nevents, do_srcombine = do_srcombine, 
                     seed = seed, stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
     startWalkers ( walkers, catch_exceptions=catch_exceptions, seed=seed )

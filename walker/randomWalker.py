@@ -14,7 +14,7 @@ except:
     from ptools import setPath
 sys.path.insert(0,f"/scratch-cbe/users/{os.environ['USER']}/git/smodels-utils/protomodels/")
 sys.path.insert(0,"../")
-from walker.hiscore import Hiscore
+from walker.hiscores import Hiscores
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
@@ -39,7 +39,7 @@ class RandomWalker:
             cheatcode : int = 0, dbpath : PathLike = "./database.pcl", 
             expected : bool = False, select : str = "all", 
             catch_exceptions : bool = True, rundir : Union[PathLike,None] = None, 
-            nevents : int = 100000, do_combine : bool = False, 
+            nevents : int = 100000, do_srcombine : bool = False, 
             record_history : bool = False, seed : Union[int,None] = None,
             stopTeleportationAfter : int = -1 ):
         """ initialise the walker
@@ -52,7 +52,7 @@ class RandomWalker:
                 select for txnames via e.g. "txnames:T1,T2"
         :param catch_exceptions: should we catch exceptions
         :param nevents: number of MC events when computing cross-sections
-        :param do_combine: if true, then also perform combinations, either via
+        :param do_srcombine: if true, then also perform combinations, either via
                            simplified likelihoods or via pyhf
         :param record_history: if true, attach a history recorder class
         :param seed: random seed, int or None
@@ -75,12 +75,12 @@ class RandomWalker:
 
         #Initialize Predictor
         self.predictor =  Predictor( self.walkerid, dbpath=dbpath,
-                              expected=expected, select=select, do_combine=do_combine )
+                              expected=expected, select=select, do_srcombine=do_srcombine )
 
         #Initialize Hiscore (with access to the predictor)
-        picklefile = f"{self.rundir}/H{walkerid}.hi"
+        picklefile = f"{self.rundir}/H{walkerid}.cache"
         save_hiscores = True
-        self.hiscoreList = Hiscore ( walkerid, save_hiscores=save_hiscores, 
+        self.hiscoreList = Hiscores ( walkerid, save_hiscores=save_hiscores, 
                 picklefile=picklefile, backup=False, predictor=self.predictor )
         self.hiscoreList.nkeep = 1
 
@@ -475,5 +475,5 @@ if __name__ == "__main__":
     dbpath = "/users/wolfgan.waltenberger/git/smodels-database"
     dbpath = "official"
     walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath, 
-                nevents = 5000, do_combine = True ) 
+                nevents = 5000, do_srcombine = True ) 
     walker.walk()

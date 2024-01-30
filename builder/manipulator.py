@@ -49,7 +49,7 @@ class Manipulator:
             >>> # instantiate a model plus manipulator from hiscore file
             >>> m = Manipulator( "hiscores.dict" )
             >>> # get the predictions
-            >>> predictor = Predictor(0, do_combine=True )
+            >>> predictor = Predictor(0, do_srcombine=True )
             >>> predictor.predict ( m.M, keep_predictions=True )
             >>> # print test statistics, 
             >>> # best combination, most constraining analyses, etc
@@ -974,7 +974,7 @@ class Manipulator:
             newssm = 10000.
         self.record ( f"change ssm of {self.namer.texName(pids,addDollars=True)} to {newssm:.2f}" )
         self.M.ssmultipliers[pids]=newssm
-        self.highlight ( "info", f"changing ssm of {str(pids)} from {oldssm:.2f} to {newssm:.2f}" )
+        self.highlight ( "info", f"changing ssm of {self.namer.asciiName(pids)} from {oldssm:.2f} to {newssm:.2f}" )
 
         if not recursive:
             return

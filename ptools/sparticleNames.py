@@ -135,7 +135,7 @@ class SParticleNames:
             -2000013: "#bar{X}_{\\mu}", -2000014: "#bar{X}_{\\nu}^{\\mu}",
             -2000015: "#bar{X}_{\\tau}", -2000016: "#bar{X}_{\\nu}^{\\tau}",
             -1000021: "#bar{X}_{g}", -1000022: "#bar{X}^{1}_{Z}",
-            -1000024: "#bar{X}_{W}", -1000023: "#bar{X}^{2}_{Z}",
+            -1000024: "#bar{X}^{1}_{W}", -1000023: "#bar{X}^{2}_{Z}",
             -1000037: "#bar{X}^{2}_{W}", -1000025: "~#bar{X}^{3}_{Z}",
             -1000035: "#bar{X}^{3}_{Z}"
         }
@@ -273,7 +273,9 @@ class SParticleNames:
     def asciiName ( self, pid ):
         """ get the ascii version of the name """
         ret = self.name ( pid )
-        ret = ret.replace("_","").replace("{","").replace("}","").replace("^","").replace("\\","")
+        ret = ret.replace("_","").replace("{","").replace("}","").replace("^","")
+        ret = ret.replace("\\","")
+        ret = ret.replace("#bar","~")
         return ret
 
     def pid ( self, name ):

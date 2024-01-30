@@ -3,7 +3,7 @@
 """ A class that centralizes access to the hiscore list over multiple threads.
 """
 
-__all__ = [ "hiscoreHiNeedsUpdate", "fetchHiscoreObj" ]
+__all__ = [ "hiscoreHiNeedsUpdate", "fetchHiscoresObj" ]
 
 import pickle, subprocess, sys, os, time
 from colorama import Fore as ansi
@@ -13,24 +13,25 @@ from protomodels.csetup import setup
 setup()
 from builder.manipulator import Manipulator
 from builder.protomodel import ProtoModel
-from walker.hiscore import Hiscore
-from typing import Union, Dict
+from walker.hiscores import Hiscores
+from typing import Union, Dict, List
 from argparse import Namespace
 
-def count ( protomodels ):
+def count ( protomodels : List[ProtoModel] ) -> int:
     return len(protomodels)-protomodels.count(None)
 
-def sortByZ ( protomodels ):
+def sortByZ ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
     protomodels.sort ( reverse=True, key = lambda x: x.Z )
-    return protomodels[:5] ## only 5
+    return protomodels[:n] ## only n
 
-def sortByK ( protomodels ):
+def sortByK ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
     protomodels.sort ( reverse=True, key = lambda x: x.K )
-    return protomodels[:5] ## only 5
+    return protomodels[:n] ## only n
 
+"""
 def storeList ( protomodels, savefile ):
-    """ store the best protomodels in another hiscore file """
-    h = Hiscore ( 0, True, savefile, backup=True, hiscores = protomodels )
+    # store the best protomodels in another hiscore file 
+    h = Hiscores ( 0, True, savefile, backup=True, hiscores = protomodels )
     h.hiscores = protomodels
     print ( f"[hiscore] saving {count(protomodels)} protomodels to {savefile}" )
     if savefile.endswith ( ".cache" ) or savefile.endswith( ".hi" ):
@@ -39,6 +40,7 @@ def storeList ( protomodels, savefile ):
             h.writeListToDictFile()
     else: ## assume a dict file
         h.writeListToDictFile()
+"""
 
 def discuss ( protomodel, name ):
     print ( "Currently %7s K=%.3f, Z=%.3f [%d/%d particles, %d predictions] (walker #%d)" % \
@@ -97,8 +99,8 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
             print ( f"[hiscoreTools] entry #{entrynr} not existent" )
             return False
         f.close()
-    from walker.hiscore import Hiscore
-    hi = Hiscore ( 0, False, picklefile )
+    from walker.hiscores import Hiscores
+    hi = Hiscores ( 0, False, picklefile )
     def compare ( dentry, pentry ):
         ## compare one dictentry with one pickleentry
         newV = dentry["K"] + dentry["Z"] + sum(dentry["masses"].values()) + \
@@ -126,10 +128,10 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
             return True
     return False
 
-def fetchHiscoreObj ( dictfile : str = "hiscores.dict", 
+def fetchHiscoresObj ( dictfile : str = "hiscores.dict", 
                        picklefile : Union[None,str] = None,
-                       dbpath : str = "official" ) -> Hiscore:
-    """ create Hiscore object from hiscores.cache file. 
+                       dbpath : str = "official" ) -> Hiscores:
+    """ create Hiscores object from hiscores.cache file. 
     update hiscores.cache file before, if needed.
 
     :param dictfile: dictionary to update hiscores.cache from, if needed.
@@ -144,9 +146,9 @@ def fetchHiscoreObj ( dictfile : str = "hiscores.dict",
     shortname = helpers.simplifyUnixPath ( picklefile )
     if not hiscoreHiNeedsUpdate ( dictfile, picklefile, 0 ):
         print ( f"[hiscoreTools] can reuse cache: {shortname}" )
-        return Hiscore ( 0, False, picklefile )
+        return Hiscores ( 0, False, picklefile )
     print ( f"[hiscoreTools] updating cache: {shortname}" )
-    hi = Hiscore.fromDictionaryFile ( dictfile, dbpath=dbpath )
+    hi = Hiscores.fromDictionaryFile ( dictfile, dbpath=dbpath )
     hi.writeListToPickle ( picklefile )
     return hi
         

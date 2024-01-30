@@ -34,7 +34,7 @@ class HiscorePlotter:
         :returns: protomodel object
         """
         from ptools import hiscoreTools
-        hi = hiscoreTools.fetchHiscoreObj ( hiscorefile )
+        hi = hiscoreTools.fetchHiscoresObj ( hiscorefile )
         Z = hi.hiscores[number].Z
         K = hi.hiscores[number].K
         print ( f"[plotHiscore] obtaining #{number}: K={K:.3f}" )
@@ -330,7 +330,7 @@ class HiscorePlotter:
                 particles = namer.texName ( pids, addDollars=True, addSign = False,
                                             addBrackets = False )
                 sigmapred=f"{tp.xsection.value.asNumber(fb)} fb"
-                print ( f"  `- observed {oUL:.2f}, expected {eUL:.2f}" )
+                print ( f"  `- observed {oUL:.2f}*fb, expected {eUL:.2f}*fb {Z:.1f} sigma" )
                 f.write ( f" & {oUL:.1f} fb & {eUL:.1f} fb & {S} & {particles} & {sigmapred} \\\\ \n" )
         f.write("\end{tabular}\n" )
         f.close()
