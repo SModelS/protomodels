@@ -1280,7 +1280,7 @@ class Manipulator:
                 massIsLegal = False
             if tmpmass in [ float("nan"), float("inf"), None ]:
                 massIsLegal = False
-                self.pprint ( f"huh? we have a tmpmass of {pid} is {tmpmass} was at {self.M.masses[pid]} dx={dx}" )
+                self.pprint ( f"huh? we have a tmpmass of {self.namer.asciiName(pid)} at {tmpmass}, was at {self.M.masses[pid]}, dx={dx}" )
             dx = dx * 1.2 ## to make sure we always get out of this
             if ctIterations > 20: # seems like we are in a super constrained situation
                 self.pprint ( f"huh? we have a tmpmass of {pid} is {tmpmass} was at {self.M.masses[pid]} dx={dx} breaking off after {ctIterations} iterations" )

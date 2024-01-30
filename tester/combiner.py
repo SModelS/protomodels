@@ -517,9 +517,9 @@ class Combiner:
         if name == "gauss1":
             a,b,c = 2, 8, 32 ## the "sigmas" of the Gaussians. Higher values means less punishment
             prior = numpy.exp ( -(1/2) * ( (nparticles/a)**2 + (nbranchings/b)**2 + (nssms/c)**2 ) )
+        # verbose = True
         if verbose:
-            self.pprint ( "prior ``%s'': %d particles, %d branchings, %.1f equivalent unique ssms: %.2f" % \
-                      ( name, nparticles, nbranchings, nssms, prior ) )
+            self.pprint ( f"prior ``{name}'': {nparticles} particles, {nbranchings} branchings, {nssms:.1f} equivalent unique ssms: {prior}" )
         if nll:
             return - numpy.log ( prior )
         return prior
@@ -689,7 +689,7 @@ class Combiner:
         """ very simple hack for now, penalize if predictions are all
         from the same experiment 
 
-        :returns: penalty -- 5 units if experiment is missing
+        :returns: penalty -- 1e-3 if experiment is missing
         """
         hasExperiment = { "ATLAS": False, "CMS": False }
         for p in predictions:
@@ -697,8 +697,9 @@ class Combiner:
                 if experiment in p.dataset.globalInfo.id:
                     hasExperiment[experiment]=True
         if hasExperiment["ATLAS"] and hasExperiment["CMS"]:
-            return 0.
-        return -5.
+            return 1.
+        self.pprint ( f"penalty! we only have {','.join( k for k,v in hasExperiment.items() if v )}" )
+        return 1e-3
 
     def findHighestSignificance ( self, predictions : List[TheoryPrediction], 
             strategy : str, expected : bool =False, 

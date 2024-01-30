@@ -437,7 +437,7 @@ class Predictor:
         prior = self.combiner.computePrior ( protomodel )
         ## temporary hack: penalize for missing experiment
         missingExpPenalty = self.combiner.penalizeForMissingResults ( predictions )
-        prior += missingExpPenalty
+        prior *= missingExpPenalty
         self.log ( f"prior={prior:.2f}" )
         if hasattr ( protomodel, "keep_meta" ) and protomodel.keep_meta:
             protomodel.bestCombo = bestCombo
@@ -445,10 +445,10 @@ class Predictor:
             protomodel.bestCombo = self.combiner.removeDataFromBestCombo ( bestCombo )
         protomodel.Z = Z
 
-        if Z is not None: # Z is None when no combination was found
-            protomodel.K = self.combiner.computeK ( Z, prior )
-        else:
+        if Z is None: # Z is None when no combination was found
             protomodel.K = None
+        else:
+            protomodel.K = self.combiner.computeK ( Z, prior )
         protomodel.llhd = llhd
         protomodel.muhat = muhat
         protomodel.letters = self.combiner.getLetterCode(protomodel.bestCombo)
