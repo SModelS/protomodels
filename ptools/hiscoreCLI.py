@@ -27,7 +27,7 @@ def cli( infile : str = "hiscores.dict",
     print ( f"[hiscoreCLI]         python: {ansi.RED}copy, numpy, scipy, scipy.stats, math{ansi.RESET}" )
     from smodels.tools.physicsUnits import pb, fb, GeV, TeV
     print ( f"[hiscoreCLI]      Constants: {ansi.RED}pb, fb, GeV, TeV{ansi.RESET}" )
-    from ptools.hiscoreTools import fetchHiscoreObj
+    from ptools.hiscoreTools import fetchHiscoresObj
     from builder import manipulator
     from walker import hiscores
     from tester import combiner, predictor
@@ -40,8 +40,8 @@ def cli( infile : str = "hiscores.dict",
     from tester.predictor import Predictor
     from smodels.experiment.databaseObj import Database
     print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database{ansi.RESET}" )
-    hi = fetchHiscoreObj ( infile, None, dbpath )
-    print ( f"[hiscoreCLI] {ansi.RED}hi = fetchHiscoreObj ('{infile}', ... ) # Hiscore {ansi.RESET}" )
+    hi = fetchHiscoresObj ( infile, None, dbpath )
+    print ( f"[hiscoreCLI] {ansi.RED}hi = fetchHiscoresObj ('{infile}', ... ) # Hiscore {ansi.RESET}" )
     #print ( f"[hiscoreCLI]      Variables: {ansi.RED}protomodel{ansi.RESET}" )
     protomodel = hi.hiscores[0]
     print ( f"[hiscoreCLI] {ansi.RED}protomodel = hi.hiscores[0]{ansi.RESET}" )

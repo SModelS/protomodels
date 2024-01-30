@@ -1,10 +1,10 @@
+!) see if the teststatScanner works
 !) penalize for flavor violation
 
 *) add also steps that shift N1,C1,N2 simultaneously
 *) add also steps that shift the whole spectrum simultaneously
 *) add also steps that increase/decrease mass and xsecs simultaneously
 ?) clean up likelihood scanner code
-?) see if the teststatScanner works
 *) see if transitions between offshell region and onshell region work
 *) penalize for extreme signal strength multipliers
 *) check the nans of the prior when running the teststat scanner
