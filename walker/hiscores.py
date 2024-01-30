@@ -3,7 +3,7 @@
 """ A class that centralizes access to the hiscore list over multiple threads.
 """
 
-__all__ = [ "Hiscore" ]
+__all__ = [ "Hiscores" ]
 
 import random, copy, pickle, os, fcntl, time, subprocess, colorama
 from scipy import stats
@@ -16,7 +16,7 @@ from ptools import sparticleNames
 from typing import Union
 from os import PathLike
 
-class Hiscore:
+class Hiscores:
     """ encapsulates the hiscore list. """
     def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
                    picklefile: PathLike="hiscores.cache", backup : bool = True,
@@ -152,11 +152,11 @@ class Hiscore:
         :param path: filename of .dict file
         :param firstn: initialise only first n entries
         :param dbpath: path to database
-        :returns: Hiscore object
+        :returns: Hiscores object
         """
         assert firstn == 0, "firstn != 0 not yet working"
         from tester.predictor import Predictor
-        predictor = Predictor(0, do_combine=True, dbpath = dbpath )
+        predictor = Predictor(0, do_srcombine=True, dbpath = dbpath )
         hiscores = []
         c = 0
         while True:
@@ -532,6 +532,6 @@ if __name__ == "__main__":
     for x in [ 6.9, 6.7, 6.5, 6.4, 6.3, 6.2, 6.1, 6.0, 5.9, 5.8 ]:
         L.append ( { "K": x, "x": "blah" } )
     hi={"K": 7.3, "x": "new"}
-    hilist = Hiscore ( 0, False )
+    hilist = Hiscores ( 0, False )
     print ( hilist.insertHiscore( L, hi ) )
     # hilist.updateHiscoreFile( )

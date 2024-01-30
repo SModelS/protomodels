@@ -10,7 +10,7 @@
 """
 
 def cli( infile : str = "hiscores.dict", 
-         dbpath : str = "official", do_combine : bool= True ):
+         dbpath : str = "official", do_srcombine : bool= True ):
     """ fire up the interactive shell, preconfigured!
 
     Example usage (at the interactive shell)
@@ -29,17 +29,17 @@ def cli( infile : str = "hiscores.dict",
     print ( f"[hiscoreCLI]      Constants: {ansi.RED}pb, fb, GeV, TeV{ansi.RESET}" )
     from ptools.hiscoreTools import fetchHiscoreObj
     from builder import manipulator
-    from walker import hiscore
+    from walker import hiscores
     from tester import combiner, predictor
     from ptools import helpers
-    print ( f"[hiscoreCLI]        Modules: {ansi.RED}manipulator, hiscore, combiner, predictor, helpers{ansi.RESET}" )
-    from walker.hiscore import Hiscore
+    print ( f"[hiscoreCLI]        Modules: {ansi.RED}manipulator, hiscores, combiner, predictor, helpers{ansi.RESET}" )
+    from walker.hiscores import Hiscores
     from builder.protomodel import ProtoModel
     from builder.manipulator import Manipulator
     from tester.combiner import Combiner
     from tester.predictor import Predictor
     from smodels.experiment.databaseObj import Database
-    print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscore, Database{ansi.RESET}" )
+    print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database{ansi.RESET}" )
     hi = fetchHiscoreObj ( infile, None, dbpath )
     print ( f"[hiscoreCLI] {ansi.RED}hi = fetchHiscoreObj ('{infile}', ... ) # Hiscore {ansi.RESET}" )
     #print ( f"[hiscoreCLI]      Variables: {ansi.RED}protomodel{ansi.RESET}" )
@@ -51,7 +51,7 @@ def cli( infile : str = "hiscores.dict",
     print ( f"[hiscoreCLI] {ansi.RED}co = Combiner ( protomodel ){ansi.RESET}" )
     co = Combiner() # instantiate for convenience
     print ( f"[hiscoreCLI] {ansi.RED}pr = Predictor ( ){ansi.RESET}" )
-    pr = Predictor( 0, do_combine=do_combine, dbpath=dbpath ) # instantiate for convenience
+    pr = Predictor( 0, do_srcombine=do_srcombine, dbpath=dbpath ) # instantiate for convenience
     # print ( f"[hiscoreCLI] Instantiations: {ansi.RED}ma, co, hi, pr{ansi.RESET}" )
 
     if args.execute not in [ "", None ]:
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '-n', '--nointeractive',
             help='Dont start interactive shell',
             action = "store_true" )
-    argparser.add_argument ( '-D', '--do_combine',
+    argparser.add_argument ( '-D', '--do_srcombine',
             help='Do combine results',
             action = "store_true" )
     argparser.add_argument ( '-x', '--execute',
@@ -93,6 +93,6 @@ if __name__ == "__main__":
             txt = f.read()
             f.close()
             d = eval(txt)
-            if "do_combine" in d:
-                args.do_combine = d["do_combine"]
-    cli ( args.infile, args.dbpath, args.do_combine )
+            if "do_srcombine" in d:
+                args.do_srcombine = d["do_srcombine"]
+    cli ( args.infile, args.dbpath, args.do_srcombine )

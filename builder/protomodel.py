@@ -450,11 +450,14 @@ class ProtoModel:
             # print ( "[protomodel] del", self.currentSLHA )
             os.unlink ( self.currentSLHA )
 
-    def createNewSLHAFileName ( self, prefix : str = "cur" ):
-        """ create a new SLHA file name. Needed when e.g. unpickling """
+    def createNewSLHAFileName ( self, prefix : str = "cur" ) -> str:
+        """ create a new SLHA file name. Needed when e.g. unpickling 
+        :returns: slha filename
+        """
         self.delCurrentSLHA()
         self.currentSLHA = tempfile.mktemp( prefix=f".{prefix}{self.walkerid}_",
                     suffix=".slha",dir=self.SLHATEMPDIR)
+        return self.currentSLHA
 
     def checkTemplateSLHA ( self ):
         if not os.path.exists ( self.templateSLHA ):

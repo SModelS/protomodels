@@ -154,7 +154,7 @@ class LlhdScanner:
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, pid1, pid2, nproc, rundir : str,
                    dbpath : str = "official", select : str = "all",
-                   do_combine : bool = True ):
+                   do_srcombine : bool = True ):
         """
         :param rundir: the rundir
         :param dbpath: the database path
@@ -167,8 +167,8 @@ class LlhdScanner:
         self.nproc = nproc
         # expected = False
         self.predictor = Predictor ( 0, dbpath=dbpath, 
-                select=select, do_combine = do_combine )
-        print ( f"self.predictor = Predictor ( 0, dbpath='{dbpath}', select='{select}', do_combine = {do_combine} )" )
+                select=select, do_srcombine = do_srcombine )
+        print ( f"self.predictor = Predictor ( 0, dbpath='{dbpath}', select='{select}', do_srcombine = {do_srcombine} )" )
 
     def pprint ( self, *args ):
         """ pretty print """
@@ -393,8 +393,8 @@ def main ():
     argparser.add_argument ( '--dbpath',
             help="path to database [official]",
             type=str, default="official" )
-    argparser.add_argument ( '-c', '--do_combine',
-            help='do_combine', action='store_true' )
+    argparser.add_argument ( '-c', '--do_srcombine',
+            help='do_srcombine', action='store_true' )
     args = argparser.parse_args()
     rundir = setup( args.rundir )
     nproc = args.nproc
@@ -402,8 +402,8 @@ def main ():
         nproc = nCPUs() + nproc
     if args.hiscores == "default":
         args.hiscores = f"{rundir}/hiscores.dict"
-    from ptools.hiscoreTools import fetchHiscoreObj
-    hi = fetchHiscoreObj ( args.hiscores, None, args.dbpath )
+    from ptools.hiscoreTools import fetchHiscoresObj
+    hi = fetchHiscoresObj ( args.hiscores, None, args.dbpath )
     protomodel = hi.hiscores[0]
     # protomodel = plotHiscore.HiscorePlotter().obtain ( args.number, args.picklefile, args.dbpath )
 
@@ -413,7 +413,7 @@ def main ():
     for pid1 in pid1s:
         scanner = LlhdScanner( protomodel, pid1, args.pid2, nproc, rundir, 
                 dbpath = args.dbpath, select = args.select, 
-                do_combine = args.do_combine )
+                do_srcombine = args.do_srcombine )
         args.pid1 = pid1
         args = scanner.overrideWithDefaults ( args )
         range1 = { "min": args.min1, "max": args.max1, "dm": args.deltam1 }

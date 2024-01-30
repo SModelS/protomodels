@@ -15,7 +15,8 @@ from builder.manipulator import Manipulator
 from smodels.tools.runtime import nCPUs
 from tester.predictor import Predictor
 from ptools.sparticleNames import SParticleNames
-from ptools.hiscoreTools import fetchHiscoreObj
+from ptools.hiscoreTools import fetchHiscoresObj
+from walker.hiscores import Hiscores
 
 def setMass ( model, pid : int, mass : float ):
     """ set mass of <pid> to <mass> """
@@ -31,8 +32,7 @@ def predProcess ( args ):
     """
     i = args["i"]
     import time
-    # time.sleep(5*i) ## would that help??
-    print ( "[scanner:%d] starting thread" % ( i ) )
+    print ( f"[teststatScanner:{i}] starting thread" )
     model = args["model"]
     model.walkerid = 100000+10000*i + model.walkerid
     pid = args["pid"]
@@ -45,7 +45,8 @@ def predProcess ( args ):
     ret = {}
     right_xsecs = copy.deepcopy ( model._stored_xsecs )
     for ctr,m in enumerate(mrange):
-        model.createNewSLHAFileName ( prefix = "s%dp%d%.2f" % ( i, pid, m ) )
+        fname = model.createNewSLHAFileName ( prefix = f"s{i}p{pid}{m:.2f}" )
+        print ( f"[teststatScanner] fname {fname}" )
         setMass ( model, pid, m )
         if preserve_xsecs:
             pass
@@ -139,14 +140,16 @@ def ssmProcess ( args ):
         ret[model.muhat*ssm]=(model.Z,model.rvalues[0],model.K,model.muhat)
     return ret
 
-def produce( hi, pid=1000022, nevents = 100000, dry_run=False,
-             nproc=5, fac = 1.008, rundir = "", preserve_xsecs = False,
-             dbpath : str = "official" ):
+def produce( hi : Hiscores, pid : int = 1000022, nevents : int = 100000, 
+        dry_run : bool = False, nproc : int = 5, fac : float = 1.008, 
+        rundir : str = "", preserve_xsecs : bool = False,
+        dbpath : str = "official", do_srcombine : bool = True ):
     """ produce pickle files of mass scans for pid, with nevents
     :param hi: hiscore list object
     :param nproc: number of processes
     :param fac: factor with which to multiply interval
     :param preserve_xsecs: adjust the SSMs to that xsecs are preserved
+    :param do_srcombine: sr-combinations
     """
     if type(pid) in [ list, tuple, set ]:
         pid = set(map(abs,pid))
@@ -163,14 +166,14 @@ def produce( hi, pid=1000022, nevents = 100000, dry_run=False,
         if model.masses[pid]<80.:
             fac = 1.006
     if preserve_xsecs and not hasattr ( model, "stored_xsecs" ):
-        print ( "[scanner] preserve_xsec mode, so computing the xsecs now" )
+        print ( "[teststatScanner] preserve_xsec mode, so computing the xsecs now" )
         model.computeXSecs( keep_slha = True )
     if model == None:
-        print ( "[scanner] cannot find a model in %s" % hi.pickleFile )
+        print ( f"[teststatScanner] cannot find a model in {hi.pickleFile}" )
     apid = abs(pid)
     mass = model.masses[pid]
     if mass > 9e5:
-        print ( "mass %d too high. Wont produce." % mass )
+        print ( f"[teststatScanner] mass {mass} too high. Wont produce." )
         return
     # model.createNewSLHAFileName ( prefix = "scan%s" % pid )
     Zs = {}
@@ -189,11 +192,11 @@ def produce( hi, pid=1000022, nevents = 100000, dry_run=False,
         mrangetot.append( m2 )
     mrangetot.sort()
     mranges = [ mrangetot[i::nproc] for i in range(nproc) ]
-    print ( "[scanner] start scanning with m(%d)=%.1f with %d procs, %d mass points, %d events" % \
+    print ( "[teststatScanner] start scanning with m(%d)=%.1f with %d procs, %d mass points, %d events" % \
             ( pid, mass, nproc, len(mrangetot), nevents ) )
     expected = False
     select = "all"
-    predictor =  Predictor( 0, dbpath=dbpath, do_combine=False,
+    predictor =  Predictor( 0, dbpath=dbpath, do_srcombine=do_srcombine,
                             expected=expected, select=select )
     import multiprocessing
     pool = multiprocessing.Pool ( processes = len(mranges) )
@@ -216,11 +219,13 @@ def produce( hi, pid=1000022, nevents = 100000, dry_run=False,
         f.close()
 
 def produceSSMs( hi, pid1, pid2, nevents = 100000, dry_run=False,
-             nproc=5, fac = 1.008, rundir= "", dbpath : str = "official" ):
+             nproc=5, fac = 1.008, rundir= "", dbpath : str = "official",
+             do_srcombine : bool = True ):
     """ produce pickle files for ssm scan, for (pid1,pid2), with nevents
     :param hi: hiscore list object
     :param nproc: number of processes
     :param fac: factor with which to multiply interval
+    :param do_srcombine: sr-combinations
     """
     if fac == None:
         fac = 1.008
@@ -230,11 +235,11 @@ def produceSSMs( hi, pid1, pid2, nevents = 100000, dry_run=False,
     if pid2 < pid1:
         pids = ( pid2, pid1 )
     if not pids in model.ssmultipliers:
-        print ( "[scanner] could not find pids %s in multipliers" % ( str(pids) ) )
+        print ( "[teststatScanner] could not find pids %s in multipliers" % ( str(pids) ) )
         print ( "only", model.ssmultipliers )
         return
     ssm = model.ssmultipliers[pids]
-    # print ( "[scanner] starting with %s: %.2f" % ( pids, ssm ) )
+    # print ( "[teststatScanner] starting with %s: %.2f" % ( pids, ssm ) )
     Zs = {}
     fm = .6 ## lower bound (relative) on mass
     # mrange = numpy.arange ( ssm * fm, ssm / fm, .01*ssm )
@@ -251,13 +256,13 @@ def produceSSMs( hi, pid1, pid2, nevents = 100000, dry_run=False,
     if nproc > len(ssmrangetot):
         nproc = len(ssmrangetot)
     ssmranges = [ ssmrangetot[i::nproc] for i in range(nproc) ]
-    print ( "[scanner] start scanning with ssm(%d,%d)=%.2f with %d procs, %d ssm points, %d events" % \
+    print ( "[teststatScanner] start scanning with ssm(%d,%d)=%.2f with %d procs, %d ssm points, %d events" % \
             ( pid1, pid2, ssm, nproc, len(ssmrangetot), nevents ) )
     import multiprocessing
     pool = multiprocessing.Pool ( processes = len(ssmranges) )
     expected = False
     select = "all"
-    predictor =  Predictor( 0, dbpath=dbpath, do_combine=False,
+    predictor =  Predictor( 0, dbpath=dbpath, do_srcombine=do_srcombine,
                             expected=expected, select=select )
     args = [ { "model": model, "pids": pids, "nevents": nevents, "ssm": ssm,
                "predictor": predictor, "rundir": rundir, "dry_run": dry_run,
@@ -338,14 +343,14 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
     if pid2 == 0: ## means all
         pidpairs = findPidPairs( rundir )
         if len(pidpairs) == 0:
-            print ( "[scanner] could not find ssm*pcl files. Maybe run ./fetchFromClip.py --ssms" )
+            print ( "[teststatScanner] could not find ssm*pcl files. Maybe run ./fetchFromClip.py --ssms" )
             return
         for pids in pidpairs:
             try:
                 draw ( pids[0], interactive, pids[1], copy, drawtimestamp, \
                        rundir, plotrmax, upload = upload )
             except Exception as e:
-                print ( "[scanner] %s" % e )
+                print ( "[teststatScanner] %s" % e )
         return
 
     def isSSMPlot():
@@ -472,10 +477,10 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         IPython.embed( using=False )
 
     if stdvar < 1e-10:
-        print ( "[scanner] standard deviation is a %.2f. Not plotting." % stdvar )
+        print ( "[teststatScanner] standard deviation is a %.2f. Not plotting." % stdvar )
         return
 
-    print ( "[scanner] creating %s" % figname )
+    print ( f"[teststatScanner] creating {figname}" )
     plt.tight_layout()
     plt.savefig ( figname )
     plt.close()
@@ -483,7 +488,7 @@ def draw( pid= 1000022, interactive=False, pid2=0, copy=False,
         dest = os.path.expanduser ( "~/git/smodels.github.io" )
         cmd = "cp %s/%s %s/protomodels/%s/" % ( rundir,figname, dest, upload )
         o = subprocess.getoutput ( cmd )
-        print ( "[scanner] %s: %s" % ( cmd, o ) )
+        print ( "[teststatScanner] %s: %s" % ( cmd, o ) )
 
 if __name__ == "__main__":
     import argparse
@@ -499,7 +504,7 @@ if __name__ == "__main__":
             help='number of processes, if zero then determine automatically [0]',
             type=int, default=0 )
     argparser.add_argument ( '-f', '--factor',
-            help='multiplication factor [None=1.008]',
+            help='multiplication factor [1.008]',
             type=float, default=None )
     argparser.add_argument ( '-e', '--nevents',
             help='number of events [100000]',
@@ -537,7 +542,11 @@ if __name__ == "__main__":
     argparser.add_argument ( '-N', '--notimestamp',
             help='dont put a timestamp on it',
             action="store_true" )
+    argparser.add_argument ( '--dont_combine',
+            help='dont combine',
+            action="store_true" )
     args = argparser.parse_args()
+    do_srcombine = not args.dont_combine
     drawtimestamp = not args.notimestamp
     rundir = setup( args.rundir )
     nproc = args.nproc
@@ -548,12 +557,12 @@ if __name__ == "__main__":
     if pids == 0:
         pids = allpids
     if args.produce:
-        hi = fetchHiscoreObj ( )
+        hi = fetchHiscoresObj ( )
         if args.pid2 > 0:
             produceSSMs( hi, args.pid, args.pid2, args.nevents, args.dry_run, nproc, args.factor, rundir = rundir, dbpath = args.dbpath )
         else:
             produce( hi, pids, args.nevents, args.dry_run, nproc, args.factor, rundir = rundir, preserve_xsecs = args.preserve_xsecs, dbpath = args.dbpath )
-    pred = Predictor( 0, do_combine = False, dbpath = args.dbpath )
+    pred = Predictor( 0, do_srcombine = do_srcombine, dbpath = args.dbpath )
     rthreshold = pred.rthreshold
     if args.draw:
         if args.pid != 0:
@@ -566,4 +575,4 @@ if __name__ == "__main__":
                           rundir, plotrmax = False, rthreshold = rthreshold, 
                           upload = args.upload )
                 except Exception as e:
-                    print ( "[scanner] skipping %d: %s" % ( pid, e ) )
+                    print ( f"[teststatScanner] skipping {pid}: {e}" )

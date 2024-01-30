@@ -9,7 +9,7 @@ from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
 from tester.combiner import Combiner
-from walker.hiscore import Hiscore
+from walker.hiscores import Hiscores
 from smodels.experiment.databaseObj import Database
 from smodels.tools import runtime
 from smodels.tools.physicsUnits import fb

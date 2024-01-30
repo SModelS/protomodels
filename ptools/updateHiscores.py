@@ -3,7 +3,7 @@
 """ simple script that perpetually updates the hiscores.cache file,
 and the plots """
 
-__all__ = [ "loop", "didCombine" ]
+__all__ = [ "loop", "didSRCombine" ]
 
 import time, types, sys, os, subprocess
 from os import PathLike
@@ -29,16 +29,16 @@ def setup( rundir = None ):
     os.chdir ( rundir )
     return rundir
 
-def didCombine ( rundir : str ) -> Union[None,bool]:
-    """ find out if whether or not they did combine in this run """
+def didSRCombine ( rundir : str ) -> Union[None,bool]:
+    """ find out whether or not they did sr-combine in this run """
     ret = None
     fname = f"{rundir}/run.dict"
     if os.path.exists ( fname ):
         with open ( fname, "rt" ) as f:
             txt = f.read()
             d = eval(txt)
-            if "do_combine" in d:
-                ret = d["do_combine"]
+            if "do_srcombine" in d:
+                ret = d["do_srcombine"]
     return ret
 
 def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
@@ -127,11 +127,11 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
 
 def updateHiscores( rundir : Union[None,PathLike] = None,
                     dbpath : Union[None,PathLike] = None,
-                    do_combine : bool = False ) -> Dict:
+                    do_srcombine : bool = False ) -> Dict:
     dictfile = f"{rundir}/hiscores.dict"
     cachefile = f"{rundir}/hiscores.cache"
     from ptools import hiscoreTools
-    hi = hiscoreTools.fetchHiscoreObj ( dictfile, cachefile, dbpath )
+    hi = hiscoreTools.fetchHiscoresObj ( dictfile, cachefile, dbpath )
     from builder.manipulator import Manipulator
     D = Manipulator ( hi.hiscores[0] ).writeDictFile ( None )
     D["model"]=hi.hiscores[0]
@@ -202,7 +202,7 @@ def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
 def loop( rundir : Union[None,os.PathLike] = None,
           maxruns : Union[None,int] = 3, createPlots : bool=True,
           uploadTo : str = "temp", dbpath : str = "official",
-          verbose : bool = False, do_combine : bool = False ):
+          verbose : bool = False, do_srcombine : bool = False ):
     """ loop (maxruns times) that updates hiscores.cache
 
     :param maxruns: maximally iterate that many times, if None then loop endlessly
@@ -210,7 +210,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
     :param uploadTo: upload plots to directory "~/git/smodels.github.io/<uploadTo>"
     :param dbpath: path to database, @rundir@ will replaced with actual rundir
     :param verbose: verbosity
-    :param do_combine: if we need to reconstruct .hi file, reconstruct the proper
+    :param do_srcombine: if we need to reconstruct .hi file, reconstruct the proper
     way.
     """
     rundir = setup( rundir )
@@ -248,6 +248,8 @@ def loop( rundir : Union[None,os.PathLike] = None,
             Kold = K
         if createPlots:
             plot ( Z, K, rundir, uploadTo, dbpath, verbose )
+        else:
+            print ( "[updateHiscores] was not asked to create plots" )
         time.sleep(60.)
         if os.path.exists ( Kfile ): ## so we can meddle from outside
             with open ( Kfile, "rt" ) as f:
