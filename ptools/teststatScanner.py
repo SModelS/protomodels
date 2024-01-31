@@ -6,7 +6,7 @@ __all__ = [ "TeststatScanner" ]
 i.e. scan the various test statistics 
 """
 
-import numpy, sys, os, copy, time, subprocess, glob
+import numpy, sys, os, copy, time, subprocess, glob, pickle
 from protomodels.csetup import setup
 setup()
 from smodels.tools.wrapperBase import WrapperBase
@@ -31,6 +31,7 @@ class TeststatScanner:
         if self.nproc < 1:
             self.nproc = nCPUs() + self.nproc
         self.hi = fetchHiscoresObj ( )
+        self.show_plot = self.args["show_plot"] # dont take this one from pickle
 
     def setMass ( self, model, pid : int, mass : float ):
         """ set mass of <pid> to <mass> """
@@ -58,7 +59,6 @@ class TeststatScanner:
         right_xsecs = copy.deepcopy ( model._stored_xsecs )
         for ctr,m in enumerate(mrange):
             fname = model.createNewSLHAFileName ( prefix = f"s{i}p{pid}{m:.2f}" )
-            # print ( f"@@3 fname {fname}" )
             self.setMass ( model, pid, m )
             if self.args['preserve_xsecs']:
                 pass
@@ -68,18 +68,32 @@ class TeststatScanner:
             ts = time.strftime("%H:%M:%S" )
             print ( f"[teststatScanner:{i}-{ts}] start with {ctr}/{len(mrange)}, "\
                     f"m({self.namer.asciiName(pid)})={m:.1f} ({self.args['nevents']} events)" )
+            ret[m]={}
             if self.args['dry_run']:
                 print ( f"[teststatScanner:{i}-{ts}] dry-run, not doing anything" )
-                model.K = 0.
-                model.Z = 0.
-                model.rvalues = [ 0, 0, 0 ]
+                ret[m]["K"] = 0.
+                ret[m]["Z"] = 0.
+                ret[m][ "r"] = [ 0, 0, 0 ]
             else:
-                predictor.predict ( model ) # , nevents = nevents, check_thresholds=False )
-            ret[m]={ "Z": model.Z, "r": model.rvalues[0],"K": model.K }
+                _ = predictor.predict ( model, keep_predictions = True )
+                ret[m]["K"] = model.K
+                ret[m]["Z"] = model.Z
+                ret[m][ "r"] = model.rvalues
+                if hasattr ( predictor, "critic_preds" ):
+                    critics = []
+                    for p in predictor.critic_preds:
+                        dId = p.dataId()
+                        if p.dataType() in [ "upperLimit" ]:
+                            dId = "ul"
+                        c = p.analysisId() + ":" + dId
+                        critics.append ( c )
+                    ret[m]["critics"]= critics
             print ()
             def prettyPrint(v):
                 if type(v) in [ float, numpy.float64 ]:
                     return f"{v:.2f}"
+                if type(v) in [ list ]:
+                    return prettyPrint(v[0])
                 return v
             print ( f"[teststatScanner] m({self.namer.asciiName(pid)})={m:.1f}: { ', '.join ( f'{k}={prettyPrint(v)}' for k,v in ret[m].items() ) }" )
             print ()
@@ -182,7 +196,7 @@ class TeststatScanner:
             print ( f"[teststatScanner] mass {mass} too high. Wont produce." )
             return
         # model.createNewSLHAFileName ( prefix = f"scan{str(pid)}" )
-        Zs = {}
+        values = {}
         fm = .6 ## lower bound (relative) on mass
         # mrange = numpy.arange ( mass * fm, mass / fm, .008*mass )
         mrangetot = [ mass ]
@@ -205,21 +219,19 @@ class TeststatScanner:
                 expected=expected, select=self.args['select'] )
         import multiprocessing
         pool = multiprocessing.Pool ( processes = len(mranges) )
-        args = [ { "model": model, "rundir": rundir, "pid": pid, "nevents": self.args['nevents'], "predictor": predictor, "dry_run": self.args['dry_run'], "i": i, "mrange": x } for i,x in enumerate(mranges) ]
-        Zs={}
+        args = [ { "model": model, "rundir": self.args["rundir"], "pid": pid, "nevents": self.args['nevents'], "predictor": predictor, "dry_run": self.args['dry_run'], "i": i, "mrange": x } for i,x in enumerate(mranges) ]
+        values={}
         tmp = pool.map ( self.predProcess, args )
         # model.delCurrentSLHA()
         for r in tmp:
-            Zs.update(r)
+            values.update(r)
         if self.args['dry_run']:
             return
-        import pickle
         with open ( f"scanM{pid}.pcl", "wb" ) as f:
-            pickle.dump ( Zs, f )
+            pickle.dump ( values, f )
             pickle.dump ( mass, f )
-            pickle.dump ( self.args['nevents'], f )
             pickle.dump ( time.asctime(), f )
-            pickle.dump ( self.args['preserve_xsecs'], f )
+            pickle.dump ( self.args, f )
             f.close()
 
     def produceSSMs( self, pid1, pid2 ):
@@ -239,7 +251,7 @@ class TeststatScanner:
             return
         ssm = model.ssmultipliers[pids]
         # print ( f"[teststatScanner] starting with {str(pids)}: {ssm:.2f}"
-        Zs = {}
+        values = {}
         fm = .6 ## lower bound (relative) on mass
         # mrange = numpy.arange ( ssm * fm, ssm / fm, .01*ssm )
         ssmrangetot = [ ssm ]
@@ -266,21 +278,20 @@ class TeststatScanner:
         args = [ { "model": model, "pids": pids, "nevents": self.args['nevents'], "ssm": ssm,
                    "predictor": predictor, "rundir": rundir, "dry_run": self.args['dry_run'],
                    "i": i, "ssmrange": x } for i,x in enumerate(ssmranges) ]
-        Zs={}
+        values={}
         tmp = pool.map ( self.ssmProcess, args )
         for r in tmp:
-            Zs.update(r)
+            values.update(r)
         if self.args['dry_run']:
             return
-        import pickle
         filename = f"ssm{pids[0]}{pids[1]}.pcl"
         if os.path.exists ( filename ):
             subprocess.getoutput ( f"cp {filename} {filename}old" )
         with open ( filename, "wb" ) as f:
-            pickle.dump ( Zs, f )
+            pickle.dump ( values, f )
             pickle.dump ( ssm, f )
-            pickle.dump ( self.args['nevents'], f )
             pickle.dump ( time.asctime(), f )
+            pickle.dump ( self.args, f )
             f.close()
 
     def findPidPairs ( self ):
@@ -358,58 +369,50 @@ class TeststatScanner:
         import matplotlib
         matplotlib.use("Agg")
         from matplotlib import pyplot as plt
-        import pickle
         picklefile = f"{self.rundir}/scanM{pid}.pcl"
         if isSSMPlot():
             picklefile = f"{self.rundir}/ssm{pid}{pid2}.pcl"
         with open ( picklefile, "rb" ) as f:
-            Zs = pickle.load( f )
+            values = pickle.load( f )
             cmass = pickle.load ( f ) ## cmass is pids
-            nevents = pickle.load ( f )
-            self.args['nevents']=nevents
             timestamp = pickle.load ( f )
-        # print ( "Zs", Zs )
-        x = list(Zs.keys())
+            self.args = pickle.load ( f )
+            nevents = self.args["nevents"]
+        x = list(values.keys()) ## the x's correspond to e.g. the particle masses
         x.sort()
-        y, yr, ydashed = [], [], []
+        Kvalues, Kdashed = [], []
+        # Kdashed is for regions excluded by critic
         rs = []
         rsarea = []
         for i in x:
-            y_ = Zs[i]
+            y_ = values[i]
             y0=y_
-            if type(y_)==dict:
-                y0 = y_["K"]
-                if y_["r"] > self.rthreshold+.05 and plotrmax:
-                    rsarea.append ( y_["r"] )
-                    y0 = -1.
-                else:
-                    rsarea.append ( 0. )
-                rs.append ( y_["r"] )
-                K = Zs[i]["K"]
-                if K == None:
-                    K = float("nan")
-                ydashed.append ( K )
-            y2_ = y0
-            if y0 == None:
+            y0 = y_["K"]
+            if y_["r"][0] > self.rthreshold+.05 and plotrmax:
+                rsarea.append ( y_["r"][0] )
                 y0 = float("nan")
-            y.append ( y0 )
-            yr.append ( y2_ )
+            else:
+                rsarea.append ( 0. )
+            rs.append ( y_["r"][0] )
+            K = values[i]["K"]
+            if K == None:
+                K = float("nan")
+            Kdashed.append ( K )
+            Kvalues.append ( y0 )
         pname = self.namer.texName ( pid, addDollars=False )
         if isSSMPlot():
             pname = self.namer.texName ( pid2, addDollars=False, addSign=True )+\
                     self.namer.texName ( pid, addDollars=False, addSign=True )
         fig,ax1 = plt.subplots()
-        plt.plot ( x, ydashed, linewidth=.3, c="tab:blue", zorder=0 )
-        plt.plot ( x, yr, linewidth=2., label=f"$K({pname})$", 
-                   c="tab:blue", zorder=0 )
+        plt.plot ( x, Kdashed, linewidth=.3, c="tab:blue", zorder=0 )
+        plt.plot ( x, Kvalues, linewidth=2., c="tab:blue", zorder=0, label=f"$K({pname})$" )
         ax1.tick_params ( axis="y", labelcolor="tab:blue", labelsize=12, 
                           labelleft=True )
         ax1.tick_params ( axis="x", labelsize=12 )
         ax1.set_ylabel ( "K", c="tab:blue", fontsize=15 )
         # ax1.set_xlabel ( "m [GeV]", fontsize=13 )
         ax1.set_xlabel ( f"$m({pname})$ [GeV]", fontsize=16 )
-        maxyr = numpy.nanmax(ydashed)
-        # print ( "ydashed", ydashed )
+        maxyr = numpy.nanmax(Kvalues)
         # ax1.set_ylim ( bottom = 0., top=8.4 )
         #ax1.set_ylim ( bottom = 2., top=maxyr*1.03 )
         rsarea[0]=0.
@@ -420,33 +423,51 @@ class TeststatScanner:
             ax2.plot ( x, rs, label="$r_\mathrm{max}$", c="tab:red", zorder=2 )
             ax2.tick_params ( axis="y", labelcolor="tab:red", labelsize=12 )
             #ax2.set_ylim ( bottom=min(rs)*.7, top = 1.9 )
-            ax2.set_ylim ( bottom=0., top = 1.9 )
+            bottom = 0.
+            top = min ( 2.1, max(rs)+.2 )
+            ax2.set_ylim ( bottom=bottom, top = top )
+            nbins = int ( numpy.ceil ( ( top - bottom ) / 0.5 ) )
+            # tick only every 0.5
+            ax2.locator_params(nbins = nbins )
             ax2.set_ylabel ( "$r_\mathrm{max}$", c="tab:red", fontsize=16 )
         if len(rsarea) == len(x) and plotrmax:
             # ax3 = ax1.twinx()
             ax2.fill ( x, rsarea, lw=0, edgecolor="white", alpha=.2, 
                        facecolor="tab:red", zorder=-1 )
-        ymax = numpy.nanmax(y)
-        imax = y.index ( ymax )
+        ymax = numpy.nanmax(Kvalues)
+        imax = Kvalues.index ( ymax )
         xmax = x[imax]
         param=f"{xmax} GeV"
         if isSSMPlot():
             param=f"{xmax:.3f}"
-        # label = f"maximum K\n K({param})={ymax:.2f}"
-        label = "maximum K"
+        label = f"maximum K\n K({xmax:.2f})={ymax:.2f}"
+        #label = "maximum K"
         ax1.scatter ( [ xmax ], [ ymax ], label=label, s=130, c="k", marker="v", zorder=5 )
         if type(cmass)==tuple:
             cmass = x[int(len(x)/2)]
         param = f"{cmass} GeV"
         if isSSMPlot():
             param= f"{cmass:.3f}" 
-        Zmax = self.getClosest( cmass, Zs )
+        Zmax = self.getClosest( cmass, values )
         if type(Zmax)==dict:
             Zmax=Zmax["K"]
         # label = f"proto-model\n K({param})={Zmax:.2f}"
-        label = "proto-model"
+        label = f"proto-model\nK({cmass:.2f})={Zmax:.2f}"
         print ( f"[teststatScanner] Zmax=Z({cmass:.3f})={Zmax:.3f}" )
+        print ( f"[teststatScanner] r({cmass})={values[cmass]['r'][0]:.2f}:{values[cmass]['critics'][0]}" )
         ax1.scatter ( [ cmass ], [ Zmax ], label=label, marker="^", s=130, c="g", zorder=10 )
+        plotCriticAtMax = True
+        if plotCriticAtMax:
+            #ratmax_text = f"r({cmass:.2f})=\n{values[cmass]['critics'][0]}"
+            ratmax_text = f"{values[cmass]['critics'][0]}"
+            ratmax_text = ratmax_text.replace("-agg","")
+            p1 = ratmax_text.find(":")
+            if p1 > 0:
+                ratmax_text = ratmax_text[:p1]
+            ax1.scatter ( [], [],
+                   label = ratmax_text, s = 100, marker="*", c="tab:red", zorder=5 )
+            ax2.scatter ( [ cmass ], [ values[cmass]['r'][0] ],
+                   label = ratmax_text, s = 100, marker="*", c="tab:red", zorder=5 )
         # plt.title ( f"Test statistic $K=K({pname})$", fontsize=14 )
         if not self.args["notimestamp"]:
             plt.text ( .72, -.14, timestamp, c="gray", transform = ax1.transAxes )
@@ -461,7 +482,7 @@ class TeststatScanner:
         figname = f"M{pid}.png"
         if isSSMPlot():
             figname = f"ssm_{pid}_{pid2}.png"
-        stdvar =  numpy.std ( y )
+        stdvar =  numpy.std ( Kvalues )
 
         if interactive:
             import IPython
@@ -480,10 +501,10 @@ class TeststatScanner:
             cmd = f"cp {self.rundir}/{figname} {dest}/protomodels/{self.args['uploadTo']}/"
             o = subprocess.getoutput ( cmd )
             print ( f"[teststatScanner] {cmd}: {o}" )
-        if self.args["show_plot"]:
+        if self.show_plot:
             cmd = f"see {self.rundir}/{figname}"
             o = subprocess.getoutput ( cmd )
-            print ( o )
+            print ( f"[teststatScanner] {cmd}: {o}" ) 
         return figname
 
 if __name__ == "__main__":
@@ -525,7 +546,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '-r', '--plot_rmax',
             help='plot also rmax', action="store_true" )
     argparser.add_argument ( '-s', '--show_plot',
-            help='plot also rmax', action="store_true" )
+            help='show the plot, after plotting', action="store_true" )
     argparser.add_argument ( '-I', '--interactive',
             help='interactive mode, starts ipython (only works with -d, and not in bulk mode)',
             action="store_true" )
