@@ -37,7 +37,7 @@ def namesForSetsOfPids ( names: List[str|int] ) -> Tuple[int]:
             ret.append ( n )
     return ret
 
-def namesForSetsOfTopologies ( name : Union[Text,List,Tuple] ) \
+def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
         -> Tuple[Text,Union[Text,None]]:
     """ some abbreviations for sets of topologies,
     e.g. electroweakino -> TChiWZ, TChiWH, .... 
@@ -45,6 +45,8 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple] ) \
     :returns: string with comma separated list of topos, and description
               if not an abbreviation, returns originalname, None
     """
+    if name is None:
+        return "all", None
     if "," in name:
         name = name.split(",")
     if type(name) in [ list, tuple ]:
