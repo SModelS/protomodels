@@ -80,10 +80,19 @@ if __name__ == "__main__":
     argparser.add_argument ( '-D', '--do_srcombine',
             help='Do combine results',
             action = "store_true" )
+    argparser.add_argument ( '--dont_srcombine',
+            help='Do NOT combine results',
+            action = "store_true" )
     argparser.add_argument ( '-x', '--execute',
             help='execute python script EXECUTE before going interactive [None]',
             type=str, default=None )
     args = argparser.parse_args()
+    if args.dont_srcombine:
+        args.do_srcombine = False
+    else:
+        if args.do_srcombine == False:
+            print ( f"[hiscoreCLI] really? no srcombine? will anyhow set to true" )
+            args.do_srcombine = True
     if not os.path.exists ( args.infile ):
         print ( f"[hiscoreCLI] error: input file {args.infile} does not exist." )
         sys.exit()

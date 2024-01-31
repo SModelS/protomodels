@@ -20,6 +20,7 @@ from smodels.tools.smodelsLogging import logger
 logger.setLevel("ERROR")
 from os import PathLike
 from colorama import Fore
+from typing import Union
 
 # runtime._experimental = True
 
@@ -429,11 +430,14 @@ class HiscorePlotter:
             print ( f"[plotHiscore] Exception when latexing: {e}" )
         return src
 
-    def anaNameAndUrl ( self, ana, forPdf=False ):
+    def anaNameAndUrl ( self, ana : Union[str,TheoryPrediction], 
+            forPdf : bool = False ) -> str:
         """ given analysis, return analysis name and URL,
         as html code or pdf hyperref
         :param ana: ExpRes or TheoryPred or str object
         :param forPdf: if True, create for Pdf hyperref, else for html
+
+        :returns: html or hyperref string
         """
         if forPdf:
             ## FIXME implement!
@@ -717,7 +721,7 @@ class HiscorePlotter:
                     srv="%.2f" % rv[1]
                 elif type(rv[1]) != type(None):
                     srv=str(rv[1])
-                f.write ( f"<li>{self.anaNameAndUrl ( rv[2] )}:{','.join ( set (map(str,rv[2].txnames) ) )} r={rv[0]:.2f}, r<sub>exp</sub>={srv}<br>\n" )
+                f.write ( f"<li>{self.anaNameAndUrl ( rv[2] )}:{rv[2].dataType(short=True)}:{','.join ( set (map(str,rv[2].txnames) ) )} r={rv[0]:.2f}, r<sub>exp</sub>={srv}<br>\n" )
             f.write("</ul>\n")
         else:
             print ( "[plotHiscore] protomodel has no r values!" )

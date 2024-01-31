@@ -152,6 +152,22 @@ class Predictor:
         with open( "walker%d.log" % self.walkerid, "a" ) as f:
             f.write ( "[predictor-%s] %s\n" % ( time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
+    def removeRedundantULResults ( self, 
+            predictions : List[TheoryPrediction] ) -> List[TheoryPrediction]:
+        """ from the given predictions, return UL results, if there is 
+        also a combined result """
+        ret = []
+        hasCombined = set()
+        for p in predictions:
+            if str(p.dataId()) == "(combined)":
+                hasCombined.add ( p.analysisId() )
+        for p in predictions:
+            if p.dataType() == "upperLimit":
+                if p.analysisId() in hasCombined:
+                    continue
+            ret.append ( p )
+        return ret
+
     def predict ( self, protomodel : ProtoModel, sigmacut = 0.02*fb,
                   strategy : str = "aggressive",
                   keep_predictions : bool = False,
@@ -182,6 +198,7 @@ class Predictor:
         # thats the run for the critic
         critic_preds = self.runSModelS( slhafile, sigmacut,  allpreds=False,
                                            llhdonly=False )
+        critic_preds = self.removeRedundantULResults ( critic_preds )
 
         if keep_predictions:
             self.critic_preds = critic_preds
