@@ -17,7 +17,7 @@ from tester.predictor import Predictor
 from ptools.sparticleNames import SParticleNames
 from ptools.hiscoreTools import fetchHiscoresObj
 from walker.hiscores import Hiscores
-from typing import Union, List
+from typing import Union, List, Dict
 
 class TeststatScanner:
     def __init__ ( self, args ):
@@ -42,12 +42,33 @@ class TeststatScanner:
                 for p in pair:
                     model.masses[p]=mass
 
+    def createCriticResults ( self, predictor : Predictor ) -> Dict:
+        """ create a list of the analysis ids of the critic
+        """
+        critics = []
+        if not hasattr ( predictor, "critic_preds" ):
+            return critics
+        for p in predictor.critic_preds:
+            dId = p.dataId()
+            if p.dataType() in [ "upperLimit" ]:
+                dId = "ul"
+            c = p.analysisId() + ":" + dId
+            txnames = set()
+            try:
+                txnames = { x.txName for x in p.dataset.txnameList }
+            except AttributeError as e:
+                for d in p.dataset._datasets:
+                    for x in d.txnameList:
+                        txnames.add ( x.txName )
+            c += ":" + ",".join ( txnames )
+            critics.append ( c )
+        return critics
+
     def predProcess ( self, args ):
         """ one thread that computes predictions for masses given in mrange
         """
         i = args["i"]
-        import time
-        print ( f"[teststatScanner:{i}] starting thread" )
+        self.pprint ( f"{i}: starting thread" )
         model = args["model"]
         model.walkerid = 100000+10000*i + model.walkerid
         pid = args["pid"]
@@ -65,12 +86,11 @@ class TeststatScanner:
                 ## fake a computation of xsecs, update the masses check
                 #model._stored_xsecs = copy.deepcopy ( right_xsecs )
                 #model._xsecMasses = dict([[pid,m] for pid,m in model.masses.items()])
-            ts = time.strftime("%H:%M:%S" )
-            print ( f"[teststatScanner:{i}-{ts}] start with {ctr}/{len(mrange)}, "\
+            self.pprint ( f"{i}: start with {ctr}/{len(mrange)}, "\
                     f"m({self.namer.asciiName(pid)})={m:.1f} ({self.args['nevents']} events)" )
             ret[m]={}
             if self.args['dry_run']:
-                print ( f"[teststatScanner:{i}-{ts}] dry-run, not doing anything" )
+                self.pprint ( f"{i}: dry-run, not doing anything" )
                 ret[m]["K"] = 0.
                 ret[m]["Z"] = 0.
                 ret[m][ "r"] = [ 0, 0, 0 ]
@@ -78,16 +98,8 @@ class TeststatScanner:
                 _ = predictor.predict ( model, keep_predictions = True )
                 ret[m]["K"] = model.K
                 ret[m]["Z"] = model.Z
-                ret[m][ "r"] = model.rvalues
-                if hasattr ( predictor, "critic_preds" ):
-                    critics = []
-                    for p in predictor.critic_preds:
-                        dId = p.dataId()
-                        if p.dataType() in [ "upperLimit" ]:
-                            dId = "ul"
-                        c = p.analysisId() + ":" + dId
-                        critics.append ( c )
-                    ret[m]["critics"]= critics
+                ret[m]["r"] = model.rvalues
+                ret[m]["critics"] = self.createCriticResults ( predictor )
             print ()
             def prettyPrint(v):
                 if type(v) in [ float, numpy.float64 ]:
@@ -95,47 +107,17 @@ class TeststatScanner:
                 if type(v) in [ list ]:
                     return prettyPrint(v[0])
                 return v
-            print ( f"[teststatScanner] m({self.namer.asciiName(pid)})={m:.1f}: { ', '.join ( f'{k}={prettyPrint(v)}' for k,v in ret[m].items() ) }" )
-            print ()
+            self.pprint ( f"m({self.namer.asciiName(pid)})={m:.1f}: { ', '.join ( f'{k}={prettyPrint(v)}' for k,v in ret[m].items() ) }" )
+            self.pprint ()
             # model.delCurrentSLHA()
         return ret
-
-    """
-    def printCombo ( self, combo, comment="" ):
-        # pretty print a theory pred combo
-        print ( f"combination {comment}" )
-        for tp in combo:
-            print( f" `- {tp.analysisId()}" )
-
-    def printXSecs ( self, xsecs, comment="" ):
-        # pretty print the list of xsecs
-        print ( f"xsecs {comment}" )
-        for xsec in xsecs:
-            print ( f" `- {xsec.info}, {xsec.value} [{str(xsec.pid):.30s}]" )
-
-    def printModel ( self, model, comment="" ):
-        print ( f"model {comment}" )
-        txt=""
-        for pid,m in model.masses.items():
-            if m>5e5:
-                continue
-            txt+=f"{pid}:{m}, "
-        print ( f" `- m {txt[:-2]}"
-        txt=""
-        for pids,ssm in model.ssmultipliers.items():
-            if abs(ssm-1)<1e-2:
-                continue
-            txt+=f"{pids}:{ssm:.2f}, "
-        print ( f" `- ssm {txt[:-2]}" )
-    """
 
     def ssmProcess ( self, args ):
         """ one thread that computes predictions for ssms given in ssmrange
         """
         i = args["i"]
-        import time
         # time.sleep(5*i) ## would that help??
-        print ( f"[teststatScanner:{i}] starting thread" )
+        self.pprint ( f"{i}: starting thread" )
         model = args["model"]
         pids = args["pids"]
         predictor = args["predictor"]
@@ -145,32 +127,44 @@ class TeststatScanner:
         model.walkerid = 200000+10000*i + model.walkerid
         model.createNewSLHAFileName ( prefix = f"ssm{i}p{pids[0]}{pids[1]}{ssm:.2f}" )
         if not pids in model.ssmultipliers:
-            print ( f"[teststatScanner:{i}] error cannot find pids {str(pids)}" )
+            self.pprint ( f"{i}: error cannot find pids {str(pids)}" )
             return
         ret = {}
-        ts = time.strftime("%H:%M:%S" )
         model.delXSecs()
         # model.predict ( nevents = nevents, recycle_xsecs = True )
         predictor.predict ( model )
-        print ( f"[teststatScanner:{i}-{ts}] before we begin, Z is {model.Z:.3f}" )
+        self.pprint ( f"{i}: before we begin, Z is {model.Z:.3f}" )
 
         for ctr,ssm in enumerate(ssmrange):
             ssmold = model.ssmultipliers[pids]
-            print ( f"[teststatScanner:{i}] we change the ssm from {ssmold:.3f} to {ssm:.3f}" )
+            self.pprint ( f"{i}: we change the ssm from {ssmold:.3f} to {ssm:.3f}" )
             ma = Manipulator ( model )
             ma.changeSSM ( pids, ssm )
             model = ma.M
-            ts = time.strftime("%H:%M:%S" )
-            print ( f"[teststatScanner:{i}-{ts}] start with {ctr}/{len(ssmrange)}, ssm={ssm:.2f} ({self.args['nevents']} events)" )
+            self.pprint ( f"{i}: start with {ctr}/{len(ssmrange)}, ssm={ssm:.2f} ({self.args['nevents']} events)" )
             # model.predict ( nevents = nevents, recycle_xsecs = True )
-            predictor.predict ( model ) # #nevents = nevents, recycle_xsecs = True )
-            print ( f"[teststatScanner:{i}-{ts}]   `- Z={model.Z:.3f}" )
-            ret[model.muhat*ssm]=(model.Z,model.rvalues[0],model.K,model.muhat)
+            predictor.predict ( model, keep_predictions = True )
+            self.pprint ( f"{i}:   `- Z={model.Z:.3f}" )
+            mssm = model.muhat*ssm
+            ret[ssm]={ "Z": model.Z, "r": model.rvalues, 
+                "K": model.K,"muhat": model.muhat }
+            ret[ssm]["critics"] = self.createCriticResults ( predictor )
+
         return ret
+
+    def pprint ( self, *args ):
+        """ pretty print """
+        t = time.strftime("%H:%M:%S")
+        margs = " ".join(map(str,args))
+        line = f"[teststatScanner-{t}] {margs}"
+        print ( line )
+        with open ( f"teststatscanner{self.pid1}.log", "at" ) as f:
+            f.write ( line+"\n" )
 
     def produce( self, pid : int = 1000022 ):
         """ produce pickle files of mass scans for pid
         """
+        self.pid1 = pid
         if type(pid) in [ list, tuple, set ]:
             pid = set(map(abs,pid))
             for p in pid:
@@ -186,14 +180,14 @@ class TeststatScanner:
             if model.masses[pid]<80.:
                 fac = 1.006
         if self.args['preserve_xsecs'] and not hasattr ( model, "stored_xsecs" ):
-            print ( "[teststatScanner] preserve_xsec mode, so computing the xsecs now" )
+            self.pprint ( "preserve_xsec mode, so computing the xsecs now" )
             model.computeXSecs( keep_slha = True )
         if model == None:
-            print ( f"[teststatScanner] cannot find a model in {self.hi.pickleFile}" )
+            self.pprint ( f"cannot find a model in {self.hi.pickleFile}" )
         apid = abs(pid)
         mass = model.masses[pid]
         if mass > 9e5:
-            print ( f"[teststatScanner] mass {mass} too high. Wont produce." )
+            self.pprint ( f"mass {mass} too high. Wont produce." )
             return
         # model.createNewSLHAFileName ( prefix = f"scan{str(pid)}" )
         values = {}
@@ -212,7 +206,7 @@ class TeststatScanner:
             mrangetot.append( m2 )
         mrangetot.sort()
         mranges = [ mrangetot[i::self.nproc] for i in range(self.nproc) ]
-        print ( f"[teststatScanner] start scanning with m({self.namer.asciiName(pid)})={mass:.1f} with {self.nproc} procs, {len(mrangetot)} mass points, {self.args['nevents']} events, select={self.args['select']}, do_srcombine={self.args['do_srcombine']}" )
+        self.pprint ( f"start scanning with m({self.namer.asciiName(pid)})={mass:.1f} with {self.nproc} procs, {len(mrangetot)} mass points, {self.args['nevents']} events, select={self.args['select']}, do_srcombine={self.args['do_srcombine']}" )
         expected = False
         predictor =  Predictor( 0, dbpath=self.args['dbpath'], 
                 do_srcombine=self.args['do_srcombine'],
@@ -237,20 +231,25 @@ class TeststatScanner:
     def produceSSMs( self, pid1, pid2 ):
         """ produce pickle files for ssm scan, for (pid1,pid2)
         """
+        self.pid1, self.pid2 = pid1, pid2
         fac = self.args["factor"]
         if fac == None:
             fac = 1.008
-        print ( "[teststatScanner] produceSSMs", pid1, pid2 )
+        self.pprint ( f"produceSSMs {pid1} {pid2}" )
         model = self.hi.hiscores[0]
+        origpids = ( pid1, pid2 )
         pids = ( pid1, pid2 )
         if pid2 < pid1:
             pids = ( pid2, pid1 )
         if not pids in model.ssmultipliers:
-            print ( f"[teststatScanner] could not find pids {str(pids)} in multipliers" )
-            print ( f"                  only", model.ssmultipliers )
+            self.pprint ( f"could not find pids {str(pids)} in multipliers" )
+            self.pprint ( f"only {model.ssmultipliers}" )
             return
         ssm = model.ssmultipliers[pids]
-        # print ( f"[teststatScanner] starting with {str(pids)}: {ssm:.2f}"
+        if ssm == 0.:
+            self.pprint ( f"WARNING ssm is zero!!" )
+            ssm = 1e-3
+        # self.pprint ( f"starting with {str(pids)}: {ssm:.2f}"
         values = {}
         fm = .6 ## lower bound (relative) on mass
         # mrange = numpy.arange ( ssm * fm, ssm / fm, .01*ssm )
@@ -268,15 +267,17 @@ class TeststatScanner:
         if nproc > len(ssmrangetot):
             nproc = len(ssmrangetot)
         ssmranges = [ ssmrangetot[i::nproc] for i in range(nproc) ]
-        print ( f"[teststatScanner] start scanning with ssm({pid1},{pid2})={ssm:.2f} with {nproc} procs, {len(ssmrangetot)} ssm points, {self.args['nevents']} events" )
+        # ssmranges[0].insert(0,ssm) # compute it early!
+        self.pprint ( f"start scanning with ssm({pid1},{pid2})={ssm:.2f} with {nproc} procs, {len(ssmrangetot)} ssm points, {self.args['nevents']} events" )
         import multiprocessing
         pool = multiprocessing.Pool ( processes = len(ssmranges) )
         expected = False
         predictor =  Predictor( 0, dbpath=self.args["dbpath"], 
                 do_srcombine=self.args['do_srcombine'],
                 expected=expected, select=self.args['select'] )
-        args = [ { "model": model, "pids": pids, "nevents": self.args['nevents'], "ssm": ssm,
-                   "predictor": predictor, "rundir": rundir, "dry_run": self.args['dry_run'],
+        args = [ { "model": model, "pids": pids, "nevents": self.args['nevents'], 
+                   "ssm": ssm, "predictor": predictor, "rundir": self.args["rundir"], 
+                   "dry_run": self.args['dry_run'],
                    "i": i, "ssmrange": x } for i,x in enumerate(ssmranges) ]
         values={}
         tmp = pool.map ( self.ssmProcess, args )
@@ -284,7 +285,7 @@ class TeststatScanner:
             values.update(r)
         if self.args['dry_run']:
             return
-        filename = f"ssm{pids[0]}{pids[1]}.pcl"
+        filename = f"ssm{origpids[0]}{origpids[1]}.pcl"
         if os.path.exists ( filename ):
             subprocess.getoutput ( f"cp {filename} {filename}old" )
         with open ( filename, "wb" ) as f:
@@ -347,11 +348,12 @@ class TeststatScanner:
 
         :returns: filename of plot(s)
         """
+        self.pid1, self.pid2 = pid, pid2
         plotrmax = self.args['plot_rmax']
         if pid2 == 0: ## means all
             pidpairs = self.findPidPairs( )
             if len(pidpairs) == 0:
-                print ( "[teststatScanner] could not find ssm*pcl files. Maybe run ./fetchFromClip.py --ssms" )
+                self.pprint ( "could not find ssm*pcl files. Maybe run ./fetchFromClip.py --ssms" )
                 return
             fnames = []
             for pids in pidpairs:
@@ -359,7 +361,7 @@ class TeststatScanner:
                     fname = draw ( pids[0], interactive, pids[1] )
                     fnames.append ( fname )
                 except Exception as e:
-                    print ( f"[teststatScanner] {str(e)}" )
+                    self.pprint ( f"{str(e)}" )
             return fnames
 
         def isSSMPlot():
@@ -453,8 +455,13 @@ class TeststatScanner:
             Zmax=Zmax["K"]
         # label = f"proto-model\n K({param})={Zmax:.2f}"
         label = f"proto-model\nK({cmass:.2f})={Zmax:.2f}"
-        print ( f"[teststatScanner] Zmax=Z({cmass:.3f})={Zmax:.3f}" )
-        print ( f"[teststatScanner] r({cmass})={values[cmass]['r'][0]:.2f}:{values[cmass]['critics'][0]}" )
+        self.pprint ( f"Zmax=Z({cmass:.3f})={Zmax:.3f}" )
+        """
+        vvs = list ( values.keys() )
+        vvs.sort()
+        print ( "values", vvs )
+        """
+        self.pprint ( f"r({cmass})={values[cmass]['r'][0]:.2f}:{values[cmass]['critics'][0]}" )
         ax1.scatter ( [ cmass ], [ Zmax ], label=label, marker="^", s=130, c="g", zorder=10 )
         plotCriticAtMax = True
         if plotCriticAtMax:
@@ -489,10 +496,10 @@ class TeststatScanner:
             IPython.embed( using=False )
 
         if stdvar < 1e-10:
-            print ( f"[teststatScanner] standard deviation is a {stdvar:.2f}. Not plotting." )
+            self.pprint ( f"standard deviation is a {stdvar:.2f}. Not plotting." )
             # return
 
-        print ( f"[teststatScanner] creating {figname}" )
+        self.pprint ( f"creating {figname}" )
         plt.tight_layout()
         plt.savefig ( figname )
         plt.close()
@@ -500,11 +507,11 @@ class TeststatScanner:
             dest = os.path.expanduser ( "~/git/smodels.github.io" )
             cmd = f"cp {self.rundir}/{figname} {dest}/protomodels/{self.args['uploadTo']}/"
             o = subprocess.getoutput ( cmd )
-            print ( f"[teststatScanner] {cmd}: {o}" )
+            self.pprint ( f"{cmd}: {o}" )
         if self.show_plot:
             cmd = f"see {self.rundir}/{figname}"
             o = subprocess.getoutput ( cmd )
-            print ( f"[teststatScanner] {cmd}: {o}" ) 
+            self.pprint ( f"{cmd}: {o}" ) 
         return figname
 
 if __name__ == "__main__":
@@ -587,4 +594,4 @@ if __name__ == "__main__":
                 try:
                     scanner.draw( pid, args.interactive, args.pid2  )
                 except Exception as e:
-                    print ( f"[teststatScanner] skipping {pid}: {e}" )
+                    self.pprint ( f"skipping {pid}: {e}" )
