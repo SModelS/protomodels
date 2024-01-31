@@ -24,6 +24,8 @@ class Analyzer:
         self.reportZvalues = True
         self.filenames = []
         topos, _ = namesForSetsOfTopologies ( topos )
+        if topos == "all":
+            topos = None
         
         self.topos = set()
         if topos != None:
