@@ -144,13 +144,13 @@ class Predictor:
 
     def pprint ( self, *args ):
         """ logging """
-        print ( "[predictor] %s" % ( " ".join(map(str,args))) )
+        print ( f'[predictor] {" ".join(map(str,args))}' )
         self.log ( *args )
 
     def log ( self, *args ):
         """ logging to file """
-        with open( "walker%d.log" % self.walkerid, "a" ) as f:
-            f.write ( "[predictor-%s] %s\n" % ( time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
+        with open( f"walker{self.walkerid}.log", "a" ) as f:
+            f.write ( f'[predictor-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
 
     def removeRedundantULResults ( self, 
             predictions : List[TheoryPrediction] ) -> List[TheoryPrediction]:
@@ -453,9 +453,15 @@ class Predictor:
                 strategy, expected=False, mumax = mumax )
         prior = self.combiner.computePrior ( protomodel )
         ## temporary hack: penalize for missing experiment
-        missingExpPenalty = self.combiner.penalizeForMissingResults ( predictions )
-        prior *= missingExpPenalty
-        self.log ( f"prior={prior:.2f}" )
+        missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )
+        extremeSSMs = self.combiner.penaltyForExtremeSSMs ( protomodel )
+        undemocraticFlavors = self.combiner.penaltyForUndemocraticFlavors ( protomodel )
+        oldprior = prior
+        prior *= missingExpPenalty * extremeSSMs * undemocraticFlavors
+        self.log ( f"prior={prior:.2f} before_penalties={oldprior:.2f} "\
+                   f"missingExp={missingExpPenalty:.2f} "\
+                   f"extremeSSMs={extremeSSMs:.2f} "\
+                   f"undemocraticFlavors={undemocraticFlavors:.2f}" )
         if hasattr ( protomodel, "keep_meta" ) and protomodel.keep_meta:
             protomodel.bestCombo = bestCombo
         else:

@@ -10,7 +10,6 @@ from smodels.tools.wrapperBase import WrapperBase
 # the default tempdir of wrapper base is /tmp
 # WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 # WrapperBase.defaulttempdir="/dev/shm" ## keep the temps in shared memory
-from tester.combiner import Combiner
 from smodels.tools.xsecComputer import XSecComputer, NLL
 from smodels.base.physicsUnits import TeV, fb
 from ptools import helpers
@@ -144,15 +143,15 @@ class ProtoModel:
 
         pNames = [namer.asciiName ( pid ) for pid in self.unFrozenParticles()]
         pNames = ','.join(pNames)
-        pStr = 'ProtoModel (%s):' %(pNames)
+        pStr = f'ProtoModel ({pNames}):'
         if self.K:
-            pStr += ' K = %1.2f' %self.K
+            pStr += f' K = {self.K:1.2f}'
         else:
-            pStr += ' K = %s' %self.K
+            pStr += f' K = {self.K}'
         if self.Z:
-            pStr += ', Z = %1.2f' %self.Z
+            pStr += f', Z = {self.Z:1.2f}'
         else:
-            pStr += ', Z = %s' %self.Z
+            pStr += f', Z = {self.Z}'
 
         return pStr
 
@@ -161,11 +160,11 @@ class ProtoModel:
         sK = str(self.K)
         import numpy as np
         if type(self.K) in [ float, np.float64 ]:
-            sK="%1.2f" % self.K
+            sK=f"{self.K:1.2f}"
         sZ = str(self.Z)
         if type(self.Z) in [ float, np.float64 ]:
-            sZ="%1.2f" % self.Z
-        pStr = 'ProtoModel (%s, %s)' % ( sK, sZ )
+            sZ=f"{self.Z:1.2f}"
+        pStr = f'ProtoModel ({sK}, {sZ})'
         return pStr
 
     def hasAntiParticle ( self, pid ):
@@ -229,7 +228,7 @@ class ProtoModel:
             if isinstance(dpid,(list,tuple)):
                 pidList = [abs(p) for p in dpid if abs(p) in self.particles]
             else:
-                self.highlight ( "warn", "a decay channel without the SM particle is specified in %s:%s" % (pid,str(dpid) ) )
+                self.highlight ( "warn", f"a decay channel without the SM particle is specified in {pid}:{str(dpid)}" )
                 pidList = [abs(dpid)]
             #Skip decays to unfrozen particles
             if not all([dp in unfrozen for dp in pidList]):
@@ -259,21 +258,20 @@ class ProtoModel:
             col = colorama.Fore.GREEN
         else:
             self.highlight ( "red", "I think we called highlight without msg type" )
-        print ( "%s[%s:%s] %s%s" % ( col, module,
-            time.strftime("%H:%M:%S"), " ".join(map(str,args)), colorama.Fore.RESET ) )
+        print ( f'{col}[{module}:{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}{colorama.Fore.RESET}' )
         self.log ( *args )
 
     def pprint ( self, *args ):
         """ logging """
         module = "protomodel"
-        print ( "[%s] %s" % (module, " ".join(map(str,args))) )
+        print ( f"[{module}] {' '.join(map(str,args))}" )
         self.log ( *args )
 
     def log ( self, *args ):
         """ logging to file """
         module = "protomodel"
-        with open( "walker%d.log" % self.walkerid, "a" ) as f:
-            f.write ( "[%s-%s] %s\n" % ( module, time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
+        with open( f"walker{self.walkerid}.log", "a" ) as f:
+            f.write ( f'[{module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
 
     def frozenParticles ( self ):
         """ returns a list of all particles that can be regarded as frozen, i.e.
@@ -287,6 +285,7 @@ class ProtoModel:
         """ remove unneeded stuff before storing """
         if hasattr ( self, "keep_meta" ) and self.keep_meta:
             return ## dont remove best combo
+        from tester.combiner import Combiner
         combiner = Combiner( self.walkerid )
         if hasattr ( self, "bestCombo" ) and self.bestCombo != None:
             self.bestCombo = combiner.removeDataFromBestCombo ( self.bestCombo )
@@ -363,7 +362,7 @@ class ProtoModel:
         for pid,m in self.masses.items():
             if m > 99000:
                 continue
-            particles.append ( "%s: %d" % (  namer.asciiName ( pid ), m ) )
+            particles.append ( f"{namer.asciiName ( pid )}: {m}" )
         print ( ", ".join ( particles ) )
 
     def computeXSecs ( self, nevents : int = None, keep_slha : bool = False ):
@@ -403,8 +402,7 @@ class ProtoModel:
                 pidsp.sort()
                 namer = SParticleNames ( susy=False )
                 prtcles = ", ".join ( map ( namer.asciiName, pidsp ) )
-                self.log ( "done computing %d xsecs for pids %s" % \
-                           ( len(xsecs), prtcles ) )
+                self.log ( f"done computing {len(xsecs)} xsecs for pids {prtcles}" )
                 self._stored_xsecs = ( xsecs, comment )
                 self._xsecMasses = dict([[pid,m] for pid,m in self.masses.items()])
                 self._xsecSSMs = dict([[pid,ssm] for pid,ssm in self.ssmultipliers.items()])
@@ -418,8 +416,7 @@ class ProtoModel:
                     os.remove( tmpSLHA )
                 countAttempts += 1
                 if countAttempts > 1:
-                    self.log( "error computing cross-sections: %s, attempt # %d" % \
-                              (e, countAttempts ) )
+                    self.log( f"error computing cross-sections: {e}, attempt # {countAttempts}" )
                 helpers.cpPythia8()
                 time.sleep ( random.uniform ( 5, 10 ) )
                 if countAttempts > 5:
@@ -478,7 +475,7 @@ class ProtoModel:
             for i,l in enumerate(lines):
                 for pid in self.particles:
                     #Skip lines which have no mass or decay tags
-                    if not "M%d" % pid in l and not "D%d" %pid in l:
+                    if not f"M{pid}" in l and not f"D{pid}" in l:
                         continue
 
                     #Get information for particle
@@ -490,8 +487,8 @@ class ProtoModel:
                         decays = {} #no decays to frozen particles
 
                     #Replace mass tag:
-                    if "M%d" % pid in l:
-                        l = l.replace("M%d" % pid,"%.1f" % mass )
+                    if f"M{pid}" in l:
+                        l = l.replace( f"M{pid}", f"{mass:.1f}" )
                     else:
                         decayTag = l.strip().split()[0]
                         decayPids = decayTag.replace('D','').split('_')
@@ -500,7 +497,7 @@ class ProtoModel:
                             dpids = dpids[0]
                         if dpids in decays:
                             br = decays[dpids]
-                            l = l.replace(decayTag, "%.5f" %br)
+                            l = l.replace(decayTag, f"{br:.5f}" )
                         else:
                             l = ""
 
@@ -551,7 +548,7 @@ class ProtoModel:
                     hasXSecs = True
                 else:
                     ctAttempts += 1
-                    self.pprint ( "empty cross section container at attempt %d? whats going on?" % ctAttempts )
+                    fself.pprint ( "empty cross section container at attempt {ctAttempts}? whats going on?"  )
                     self.delXSecs()
                     if ctAttempts > 5:
                         break
@@ -593,8 +590,7 @@ class ProtoModel:
             ndecays += len(v)
             nd += 1
         nssms = len(self.ssmultipliers)
-        print ( "%d masses, %d[%d] decays, %d ss multipliers" % \
-                (len(self.masses), ndecays, nd, nssms ) )
+        print ( f"{len(self.masses)} masses, {ndecays}[{nd}] decays, {nssms} ss multipliers" )
 
     def delXSecs ( self ):
         """ delete stored cross section, if they exist """
@@ -652,27 +648,13 @@ class ProtoModel:
 
     def lightCopy(self,rmAttr=None):
         """Makes a light copy of the model using helpers.lightObjCopy.
-        If rmAttr is None, it will remove the default attributes defined in helpers.lightObjCopy."""
+        If rmAttr is None, it will remove the default attributes defined in 
+        helpers.lightObjCopy."""
 
         if rmAttr is not None:
             return helpers.lightObjCopy(self,rmAttr=rmAttr)
         else:
             return helpers.lightObjCopy(self)
-
-    """
-    def saveToFile(self,filename=None):
-
-        if filename is None:
-            filename = 'pmodel.pcl'
-
-        #Make a light version of the protomodel
-        lightModel = self.lightCopy()
-        with open(filename,'wb') as f:
-            pickle.dump(lightModel,f)
-
-        return filename
-    """
-
 
 if __name__ == "__main__":
     p = ProtoModel( 1 )

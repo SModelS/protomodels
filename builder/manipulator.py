@@ -1118,10 +1118,12 @@ class Manipulator:
             ## heed the wall!
             minMass = max ( self.wallmass, minMass )
 
+        offshell = False
         if pid in [ 1000023, 1000024 ]:
             # for C1 and N2 we want a 10% chance to start in the offshell regime
             p = random.uniform ( 0, 1 )
             if p < 0.1:
+                offshell = True
                 self.log ( f"Unfreezing {self.namer.asciiName(pid)}, randomly chose to restrict to offshell mass!" )
                 maxMax = minMass + 90.
 
@@ -1147,8 +1149,13 @@ class Manipulator:
         self.pprint ( f"Unfroze mass of {self.namer.asciiName(pid)} to "\
                       f"{protomodel.masses[pid]:.1f}" )
 
-        #Set random branchings
-        self.setRandomBranchings(pid)
+        if offshell: # start with democratic flavors if offshell
+            openChannels = self.M.getOpenChannels(pid)
+            for dpid in openChannels:
+                protomodel.decays[pid][dpid] = 1. / (len(openChannels))
+        else:
+            # Set random branchings
+            self.setRandomBranchings(pid)
 
         #Add pid pair production and associated production to protomodel.ssmultipliers:
         self.initSSMFor(pid)
