@@ -237,7 +237,7 @@ class Combiner:
         """ obtain the significance of this combo
         :param expected: get the expected significance, not observed
         :param mumax: maximum muhat before we run into exclusions
-        :returns: Z (significance) and muhat ( signal strength multiplier that maximizes Z)
+        :returns: T (significance) and muhat ( signal strength multiplier that maximizes T)
         """
         if len(combo)==0.:
             return 0.,0.
@@ -278,19 +278,19 @@ class Combiner:
         chi2 = 2 * ( math.log ( LH1 ) - math.log ( LH0 ) ) ## chi2 with one degree of freedom
         if chi2 < 0.:
             chi2 = 0.
-        Z = numpy.sqrt ( chi2 )
-        return Z, muhat
+        T = numpy.sqrt ( chi2 )
+        return T, muhat
 
-    def _findLargestZ ( self, combinations, expected=False, mumax=None ):
+    def _findLargestT ( self, combinations, expected=False, mumax=None ):
         """ find the combo with the most significant deviation
         :param expected: find the combo with the most significant expected deviation
         :param mumax: Maximum muhat to allow before we run into an exclusion
         """
-        self.log ( "now find largest Z" )
+        self.log ( "now find largest T" )
         combinations = self.sortOutSubsets ( combinations )
         # combinations.sort ( key=len, reverse=True ) ## sort them first by length
         # compute CLsb for all combinations
-        highestZ,highest,muhat=None,"",mumax
+        highestT,highest,muhat=None,"",mumax
         ## we will not look at combos that are subsets.
         doProgress=True
         try:
@@ -310,18 +310,18 @@ class Combiner:
         for ctr,c in enumerate(combinations):
             if doProgress:
                 pb.update(ctr)
-            Z,muhat_ = self.getSignificance ( c, expected=expected, mumax=mumax )
-            # self.log ( f"combination #{ctr}: {Z}" )
-            if Z == None:
+            T,muhat_ = self.getSignificance ( c, expected=expected, mumax=mumax )
+            # self.log ( f"combination #{ctr}: {T}" )
+            if T == None:
                 continue
-            # self.pprint ( "[combine] significance for %s is %.2f" % ( self.getLetterCode(c), Z ) )
-            if highestZ is None or Z > highestZ:
-                highestZ = Z
+            # self.pprint ( "[combine] significance for %s is %.2f" % ( self.getLetterCode(c), T ) )
+            if highestT is None or T > highestT:
+                highestT = T
                 highest = c
                 muhat = muhat_
         if doProgress:
             pb.finish()
-        return highest,highestZ,muhat
+        return highest,highestT,muhat
 
     def get95CL ( self, combination, expected ):
         """ compute the CLsb value for one specific combination
@@ -614,9 +614,9 @@ class Combiner:
             return - math.log ( ret )
         return ret
 
-    def computeK ( self, Z : float, prior : float ) -> float:
-        """ compute K from Z and prior (simple) """
-        return Z**2 + 2* numpy.log ( prior )
+    def computeK ( self, T : float, prior : float ) -> float:
+        """ compute K from T and prior (simple) """
+        return T**2 + 2* numpy.log ( prior )
 
     def getPredictionID ( self, prediction : TheoryPrediction ):
         """ construct a unique id of a prediction from the analysis ID,
@@ -765,7 +765,7 @@ class Combiner:
         :param expected: find the highest expected significance, not observed
         :param mumax: maximimal signal strength mu that is allowed before we run
         into an exclusion
-        :returns: best combination, significance (Z), likelihood equivalent
+        :returns: best combination, significance (T), likelihood equivalent
         """
         predictions = self.selectMostSignificantSR ( predictions )
         predictions = self.sortPredictions ( predictions )
@@ -775,16 +775,16 @@ class Combiner:
         ## optionally, add individual predictions ... nah!!
         ## combinables = singlepreds + combinables
         self.discussCombinations ( combinables )
-        bestCombo,Z,muhat = self._findLargestZ ( combinables, expected=expected,
+        bestCombo,T,muhat = self._findLargestT ( combinables, expected=expected,
                                                  mumax = mumax )
         bestCombo = sorted( bestCombo, key = lambda tp: tp.expResult.globalInfo.id )
-        ## compute a likelihood equivalent for Z
-        if Z is not None:
-            llhd = stats.norm.pdf(Z)
+        ## compute a likelihood equivalent for T
+        if T is not None:
+            llhd = stats.norm.pdf(T)
         else:
             llhd = None
-        # self.pprint ( "bestCombo %s, %s, %s " % ( Z, llhd, muhat ) )
-        return bestCombo,Z,llhd,muhat
+        # self.pprint ( "bestCombo %s, %s, %s " % ( T, llhd, muhat ) )
+        return bestCombo,T,llhd,muhat
 
     def removeDataFromBestCombo ( self, bestCombo ):
         """ remove the data from all theory predictions, we dont need them. """
@@ -847,7 +847,7 @@ if __name__ == "__main__":
         runtime._experimental = True
     import argparse
     argparser = argparse.ArgumentParser(
-            description='combiner. if called from commandline, computes the highest Z' )
+            description='combiner. if called from commandline, computes the highest T' )
     argparser.add_argument ( '-f', '--slhafile',
             help='slha file to test [test.slha]',
             type=str, default="test.slha" )
@@ -900,14 +900,14 @@ if __name__ == "__main__":
             continue
         for pred in preds:
             allps.append ( pred )
-    combo,globalZ,llhd,muhat = combiner.findHighestSignificance ( allps, "aggressive", expected=args.expected )
-    print ( "[combiner] global Z is %.2f: %s (muhat=%.2f)" % (globalZ, combiner.getComboDescription(combo),muhat ) )
+    combo,globalT,llhd,muhat = combiner.findHighestSignificance ( allps, "aggressive", expected=args.expected )
+    print ( "[combiner] global T is %.2f: %s (muhat=%.2f)" % (globalT, combiner.getComboDescription(combo),muhat ) )
     for expRes in listOfExpRes:
         preds = theoryPredictionsFor ( expRes, smses )
         if preds == None:
             continue
-        Z, muhat_ = combiner.getSignificance ( preds, expected=args.expected, mumax = None )
-        print ( "%s has %d predictions, local Z is %.2f" % ( expRes.globalInfo.id, len(preds), Z ) )
+        T, muhat_ = combiner.getSignificance ( preds, expected=args.expected, mumax = None )
+        print ( "%s has %d predictions, local T is %.2f" % ( expRes.globalInfo.id, len(preds), T ) )
         for pred in preds:
             pred.computeStatistics()
             tpe = pred.dataType(True)

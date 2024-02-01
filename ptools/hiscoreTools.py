@@ -20,37 +20,23 @@ from argparse import Namespace
 def count ( protomodels : List[ProtoModel] ) -> int:
     return len(protomodels)-protomodels.count(None)
 
-def sortByZ ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
-    protomodels.sort ( reverse=True, key = lambda x: x.Z )
+def sortByT ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
+    protomodels.sort ( reverse=True, key = lambda x: x.T )
     return protomodels[:n] ## only n
 
 def sortByK ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
     protomodels.sort ( reverse=True, key = lambda x: x.K )
     return protomodels[:n] ## only n
 
-"""
-def storeList ( protomodels, savefile ):
-    # store the best protomodels in another hiscore file 
-    h = Hiscores ( 0, True, savefile, backup=True, hiscores = protomodels )
-    h.hiscores = protomodels
-    print ( f"[hiscore] saving {count(protomodels)} protomodels to {savefile}" )
-    if savefile.endswith ( ".cache" ) or savefile.endswith( ".hi" ):
-        h.writeListToPickle ( check=False )
-        if "states" in savefile: ## do both for the states
-            h.writeListToDictFile()
-    else: ## assume a dict file
-        h.writeListToDictFile()
-"""
-
 def discuss ( protomodel, name ):
-    print ( "Currently %7s K=%.3f, Z=%.3f [%d/%d particles, %d predictions] (walker #%d)" % \
-            (name, protomodel.K, protomodel.Z, len(protomodel.unFrozenParticles()),len(protomodel.masses.keys()),len(protomodel.bestCombo), protomodel.walkerid ) )
+    print ( "Currently %7s K=%.3f, T=%.3f [%d/%d particles, %d predictions] (walker #%d)" % \
+            (name, protomodel.K, protomodel.T, len(protomodel.unFrozenParticles()),len(protomodel.masses.keys()),len(protomodel.bestCombo), protomodel.walkerid ) )
 
 def discussBest ( protomodel, detailed ):
     """ a detailed discussion of number 1 """
-    p = 2. * ( 1. - stats.norm.cdf ( protomodel.Z ) ) ## two times because one-sided
-    print ( "Current      best K=%.3f, Z=%.3f, p=%.2g [%d/%d particles, %d predictions] (walker #%d)" % \
-            ( protomodel.K, protomodel.Z, p, len(protomodel.unFrozenParticles()),len(protomodel.masses.keys()),len(protomodel.bestCombo), protomodel.walkerid ) )
+    p = 2. * ( 1. - stats.norm.cdf ( protomodel.T ) ) ## two times because one-sided
+    print ( "Current      best K=%.3f, T=%.3f, p=%.2g [%d/%d particles, %d predictions] (walker #%d)" % \
+            ( protomodel.K, protomodel.T, p, len(protomodel.unFrozenParticles()),len(protomodel.masses.keys()),len(protomodel.bestCombo), protomodel.walkerid ) )
     if detailed:
         print ( f"Solution was found in step #{protomodel.step}" )
         for i in protomodel.bestCombo:
@@ -103,10 +89,10 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
     hi = Hiscores ( 0, False, picklefile )
     def compare ( dentry, pentry ):
         ## compare one dictentry with one pickleentry
-        newV = dentry["K"] + dentry["Z"] + sum(dentry["masses"].values()) + \
+        newV = dentry["K"] + dentry["T"] + sum(dentry["masses"].values()) + \
                sum(dentry["ssmultipliers"].values())
 
-        oldV = pentry.K + pentry.Z + sum(pentry.masses.values()) + \
+        oldV = pentry.K + pentry.T + sum(pentry.masses.values()) + \
                sum(pentry.ssmultipliers.values())
         if abs( newV - oldV ) > 1e-3:
             # print ( f"[hiscoreTools] top V value changed {newV:.3f}..{oldV:.3f}" )
@@ -185,7 +171,7 @@ def mergeTwoModels ( model1 : Dict, model2: Dict ) -> Union[None,Dict]:
                     ret["ssmultipliers"][pidpair]=ssms
         else:
             ret["masses"][pid]=.5*m + .5*ret["masses"][pid]
-    for drop in [ "K", "Z", "xsecs[fb]", "walkerid", "step" ]:
+    for drop in [ "K", "T", "xsecs[fb]", "walkerid", "step" ]:
         if drop in ret:
             ret.pop( drop )
     ret["timestamp"] = time.asctime()

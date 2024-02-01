@@ -164,7 +164,7 @@ def updateStates( rundir : Union[None,PathLike] = None,
     print ( f"[updateHiscores] done updating {args.outfile}" )
     print ( )
 
-def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
+def plot( T : float, K : float, rundir : os.PathLike, upload : str ="230",
           dbpath : str = "official", verbose : bool = False ):
     """ create all hiscore plots
 
@@ -215,11 +215,11 @@ def loop( rundir : Union[None,os.PathLike] = None,
     """
     rundir = setup( rundir )
     i = 0
-    Z, Zold, step, K, Kold = 0., 0., 0, -90., -90.
-    Zfile = f"{rundir}/Zold.conf"
-    if os.path.exists ( Zfile ):
-        with open ( Zfile, "rt" ) as f:
-            Zold = float ( f.read().strip() )
+    T, Told, step, K, Kold = 0., 0., 0, -90., -90.
+    Tfile = f"{rundir}/Told.conf"
+    if os.path.exists ( Tfile ):
+        with open ( Tfile, "rt" ) as f:
+            Told = float ( f.read().strip() )
     Kfile = f"{rundir}/Kold.conf"
     if os.path.exists ( Kfile ):
         with open ( Kfile, "rt" ) as f:
@@ -229,25 +229,25 @@ def loop( rundir : Union[None,os.PathLike] = None,
         if maxruns != None and i > maxruns:
             break
         D = updateHiscores( rundir, dbpath )
-        Z,step,model,K = D["Z"],D["step"],D["model"],D["K"]
+        T,step,model,K = D["T"],D["step"],D["model"],D["K"]
         if K > Kold + 1e-10: #  + .001:
             from builder.manipulator import Manipulator
             m = Manipulator ( model )
-            T=str(int(time.time()))
-            m.writeDictFile ( f"pmodel-{T}.dict", comment="history keeper" )
+            t=str(int(time.time()))
+            m.writeDictFile ( f"pmodel-{t}.dict", comment="history keeper" )
             with open ( f"{rundir}history.txt", "at" ) as f:
-                f.write ( f"{time.asctime()}, step={step}, Z={Z:.4f}, K={K:.4f}, t={T}\n" )
+                f.write ( f"{time.asctime()}, step={step}, T={T:.4f}, K={K:.4f}, t={t}\n" )
                 f.close()
-            with open ( Zfile, "wt" ) as f:
-                f.write ( f"{str(Z)}\n" )
+            with open ( Tfile, "wt" ) as f:
+                f.write ( f"{str(T)}\n" )
                 f.close()
             with open ( Kfile, "wt" ) as f:
                 f.write ( f"{str(K)}\n" )
                 f.close()
-            Zold = Z
+            Told = T
             Kold = K
         if createPlots:
-            plot ( Z, K, rundir, uploadTo, dbpath, verbose )
+            plot ( T, K, rundir, uploadTo, dbpath, verbose )
         else:
             print ( "[updateHiscores] was not asked to create plots" )
         time.sleep(60.)

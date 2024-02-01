@@ -44,8 +44,8 @@ class RandomWalker:
             stopTeleportationAfter : int = -1 ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
-        :param cheatcode: cheat mode. 0 is no cheating, 1 is with ranges, 2
-                      is the Z323 model.
+        :param cheatcode: cheat mode. 0 is no cheating, any other uses
+        pmodel<cheatcode> for initialisation.
         :param expected: remove possible signals from database
         :param select: select only subset of results (all for all, em for
                 efficiency maps only, ul for upper limits only, alternatively
@@ -107,21 +107,21 @@ class RandomWalker:
 
         if cheatcode <= 0:
             self.takeStep() # the first step should be considered as "taken"
-            #Set current Z and K values to threshold values
-            self.currentZ = -0.1
+            #Set current T and K values to threshold values
+            self.currentT = -0.1
             self.currentK = -20.0
         else:
             self.manipulator.cheat ( cheatcode )
             self.predictor.predict(self.protomodel)
-            if type(self.manipulator.M.Z) != type(None):
-                self.pprint ( f"Cheat model gets Z={self.manipulator.M.Z:.2f}, "\
+            if type(self.manipulator.M.T) != type(None):
+                self.pprint ( f"Cheat model gets T={self.manipulator.M.T:.2f}, "\
                               f"K={self.manipulator.M.K:.2f}" )
             # self.printStats ( substep=4 )
             self.manipulator.backupModel()
             self.hiscoreList.newResult ( self.manipulator )
             self.printStats ( substep=5 )
             self.currentK = self.manipulator.M.K
-            self.currentZ = self.manipulator.M.Z
+            self.currentT = self.manipulator.M.T
 
     def setWalkerId ( self, Id ):
         self.walkerid = Id
@@ -293,7 +293,7 @@ class RandomWalker:
 
 
         #If no combination could be found, return
-        if self.manipulator.M.Z is None:
+        if self.manipulator.M.T is None:
             return
 
         #the muhat multiplier gets multiplied into the signal strengths
@@ -302,13 +302,12 @@ class RandomWalker:
         self.log ( "Top r values after rescaling are: %.2f, %.2f" % \
                    ( self.manipulator.M.rvalues[0], self.manipulator.M.rvalues[1] ) )
 
-        self.log ( "Step %d: found highest Z: %.2f" % \
-                   ( self.protomodel.step, self.protomodel.Z ) )
+        self.log ( "Step %d: found highest T: %.2f" % \
+                   ( self.protomodel.step, self.protomodel.T ) )
 
         nUnfrozen = len ( self.protomodel.unFrozenParticles() )
-        self.pprint ( "best combo for strategy ``%s'' is %s: %s: [K=%.2f, Z=%.2f, %d unfrozen]" % \
-            ( self.manipulator.strategy, self.protomodel.letters, self.protomodel.description, self.protomodel.K, self.protomodel.Z, nUnfrozen ) )
-        smaxstp = "%s" % self.maxsteps
+        self.pprint (f"best combo for strategy ``{self.manipulator.strategy}'' is {self.protomodel.letters}: {self.protomodel.description}: [K={self.protomodel.K:.2f}, T={self.protomodel.T:.2f}, {nUnfrozen} unfrozen]" )
+        smaxstp = f"{self.maxsteps}"
         if self.maxsteps < 0:
             smaxstp = "inf"
 
@@ -374,9 +373,9 @@ class RandomWalker:
         """ take the step, save it as last step """
         ## Backup model
         self.manipulator.backupModel()
-        # Update current K and Z values
+        # Update current K and T values
         self.currentK = self.protomodel.K
-        self.currentZ = self.protomodel.Z
+        self.currentT = self.protomodel.T
         self.manipulator.record( "take step" )
 
     def highlight ( self, msgType = "info", *args ):
@@ -408,7 +407,7 @@ class RandomWalker:
                                 self.protomodel.K) )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.pprint ( "u=%.2f <= %.2f ; %.2f -> %.2f: take the step, even though old is better." % (u, ratio,self.currentK,self.protomodel.Z) )
+                self.pprint ( "u=%.2f <= %.2f ; %.2f -> %.2f: take the step, even though old is better." % (u, ratio,self.currentK,self.protomodel.T) )
                 self.takeStep()
 
     def log ( self, *args ):
@@ -471,7 +470,7 @@ if __name__ == "__main__":
     D = {'masses': {1000022: 299., 1000006: 1159.7, 1000001: 875.37}, 
          'ssmultipliers': {(1000022, 1000022): 0.06, (1000006, 1000006): 0.482, (-1000006, 1000006): 0.482, (-1000006, -1000006): 0.482, (1000006, 1000022): 0.482, (-1000006, 1000022): 0.482, (1000001, 1000001): 0.83, (-1000001, 1000001): 0.83, (-1000001, -1000001): 0.83, (1000001, 1000022): 0.83, (-1000001, 1000022): 0.83, (1000001, 1000006): 0.83, (-1000001, 1000006): 0.83, (-1000006, 1000001): 0.83, (-1000006, -1000001): 0.83}, 
          'decays': {1000022: {}, 1000006: {(1000022, 6): 1.0}, 1000001: {(1000022, 1): 1.0}}, 
-         'K': 6.34, 'Z': 3.14, 'step': 16, 'timestamp': 'Wed May 24 23:18:37 2023', 'walkerid': 2}
+         'K': 6.34, 'T': 3.14, 'step': 16, 'timestamp': 'Wed May 24 23:18:37 2023', 'walkerid': 2}
     dbpath = "/users/wolfgan.waltenberger/git/smodels-database"
     dbpath = "official"
     walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath, 

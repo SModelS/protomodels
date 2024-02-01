@@ -7,6 +7,7 @@ setup()
 #sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/protomodels/")
 #sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/smodels-utils/prototools/")
 from ptools import hiscoreTools
+from ptools.helpers import computeZFromT
 from builder.manipulator import Manipulator
 from builder import protomodel
 from builder.protomodel import ProtoModel
@@ -36,7 +37,6 @@ class HiscorePlotter:
         """
         from ptools import hiscoreTools
         hi = hiscoreTools.fetchHiscoresObj ( hiscorefile )
-        Z = hi.hiscores[number].Z
         K = hi.hiscores[number].K
         print ( f"[plotHiscore] obtaining #{number}: K={K:.3f}" )
         ret = hi.hiscores[ number ]
@@ -656,7 +656,8 @@ class HiscorePlotter:
         f.write ( "<center>\n" )
         f.write ( f"<table><td><h1>" )
         f.write ( f"Current best protomodel: <i>K</i>={self.protomodel.K:.2f}" )
-        f.write ( f", <i>Z</i>={self.protomodel.Z:.2f}" )
+        Z = computeZFromT ( self.protomodel.T )
+        f.write ( f", <i>T</i>={Z:.2f}" )
         f.write ( f"</h1><td>" )
         f.write ( f"<img height=60px src={self.url}/protomodels/logos/protomodel_lego.png>" )
         f.write ( "</table>\n" )
