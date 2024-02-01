@@ -4,8 +4,9 @@
 """
 
 import sys, os
+from builder.loggerbase import LoggerBase
 
-class ModelManipulator:
+class ModelManipulator ( LoggerBase ):
     def __init__ ( self, inputfile, outputfile ):
         """
         .. code-block:: python3
@@ -14,13 +15,10 @@ class ModelManipulator:
         >>> m.multiply ( 2 ) # multiply all ssms by two
         >>> m.write()
         """
+        super(ModelManipulator,self).__init__ ( 0 )
         self.inputfile = inputfile
         self.outputfile = outputfile
         self.read()
-
-    def pprint ( self, *args ):
-        """ logging """
-        print ( "[manipulateModel] %s" % ( " ".join(map(str,args))) )
 
     def read ( self ):
         if not os.path.exists ( self.inputfile ):

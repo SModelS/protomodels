@@ -15,8 +15,9 @@ from ptools import helpers
 from ptools import sparticleNames
 from typing import Union
 from os import PathLike
+from builder.loggerbase import LoggerBase
 
-class Hiscores:
+class Hiscores ( LoggerBase ):
     """ encapsulates the hiscore list. """
     def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
                    picklefile: PathLike="hiscores.cache", backup : bool = True,
@@ -28,6 +29,7 @@ class Hiscores:
         :param hiscores: if None, try to get them from file, if a list,
                          then these are the hiscore protomodels.
         """
+        super ( Hiscores, self ).__init__ ( walkerid )
         self.walkerid = walkerid
         self.save_hiscores = save_hiscores
         self.backup = backup ## backup hiscore lists?
@@ -513,19 +515,6 @@ class Hiscores:
         self.addResult ( ma )
         # self.writeListToPickle() ## and write it to pickle
         return True
-
-    def pprint ( self, *args ):
-        """ logging """
-        print ( "[hiscore:%d] %s" % ( self.walkerid, " ".join(map(str,args))) )
-        self.log ( *args )
-
-    def log ( self, *args ):
-        """ logging to file """
-        # logfile = "walker%d.log" % self.walkerid
-        logfile = "walker%d.log" % self.walkerid
-        with open( logfile, "at" ) as f:
-            tm = time.strftime("%b %d %H:%M:%S")
-            f.write ( "[hiscore-%s] %s\n" % ( tm, " ".join(map(str,args)) ) )
 
 if __name__ == "__main__":
     L=[ {"K": 7.6, "x": "d"}, {"K": 7.2, "x": "e"}, {"K": 7.1, "x": "f"} ]

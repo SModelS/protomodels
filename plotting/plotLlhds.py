@@ -12,8 +12,11 @@ import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
+if "plotting" in os.getcwd():
+    sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
 matplotlib.rcParams['hatch.linewidth'] = .5  # previous svg hatch linewidth
+from protomodels.builder.loggerbase import LoggerBase
 
 def integrateLlhds ( Z, RMAX, rthreshold ):
     """ compute the integral of the likelihood over all points """
@@ -130,7 +133,7 @@ def getPidList( pid1, rundir ):
     print ( "[plotLlhds] creating plots for pids: %s" % ", ".join ( map(str,pids) ) )
     return pids
 
-class LlhdPlot:
+class LlhdPlot ( LoggerBase ):
     """ A simple class to make debugging the plots easier """
     def __init__ ( self, pid1, pid2, verbose, copy, max_anas, 
                    interactive, drawtimestamp, compress, rundir,
@@ -147,6 +150,7 @@ class LlhdPlot:
         :param upload: upload directory, default is "latest"
         :param dbpath: path to database
         """
+        super ( LlhdPlot, self ).__init__ ( 0 )
         self.dbpath = dbpath
         self.rundir = rundir
         self.upload = upload
@@ -279,13 +283,6 @@ class LlhdPlot:
             else:
                 llhds.append ( (llhd[0],llhd[1],getMu1(llhd[2]),[0.,0.,0.]) )
         return llhds,mx,my,nevents,topo,timestamp
-
-    def pprint ( self, *args ):
-        print ( "[plotLlhds] %s" % " ".join(map(str,args)) )  
-
-    def debug ( self, *args ):
-        if self.verbose >= self.DEBUG:
-            print ( "[plotLlhds] %s" % " ".join(map(str,args)) )  
 
     def setup ( self, pid1, pid2 ):
         """ setup rundir, picklefile path and hiscore file path """

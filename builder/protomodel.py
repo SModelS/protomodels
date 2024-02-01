@@ -17,13 +17,16 @@ from ptools.sparticleNames import SParticleNames
 from typing import Union
 
 from smodels.base.smodelsLogging import setLogLevel
+from builder.loggerbase import LoggerBase
 setLogLevel ( "error" )
 
 
-class ProtoModel:
+class ProtoModel ( LoggerBase ):
     """ encodes one theoretical model, i.e. the particles, their masses, their
         branchings, their signal strength modifiers.
     """
+    # __slots__ = [ "walkerid", "keep_meta" ]
+
     LSP = 1000022 ## the LSP is hard coded
     # SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
     SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
@@ -36,6 +39,7 @@ class ProtoModel:
         :param nevents: minimum number of MC events when computing cross-sections
         :param dbversion: the version of the database, to track provenance
         """
+        super(ProtoModel,self).__init__ ( walkerid )
         self.walkerid = walkerid
         self.keep_meta = keep_meta ## keep all meta info? big!
         self.version = 1 ## version of this class
@@ -245,33 +249,6 @@ class ProtoModel:
         openChannels = list(openChannels)
 
         return openChannels
-
-    def highlight ( self, msgType : str = "info", *args ):
-        """ logging, hilit """
-        module = "protomodel"
-        col = colorama.Fore.GREEN
-        if msgType.lower() in [ "error", "red" ]:
-            col = colorama.Fore.RED
-        elif msgType.lower() in [ "warn", "warning", "yellow" ]:
-            col = colorama.Fore.YELLOW
-        elif msgType.lower() in [ "green", "info" ]:
-            col = colorama.Fore.GREEN
-        else:
-            self.highlight ( "red", "I think we called highlight without msg type" )
-        print ( f'{col}[{module}:{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}{colorama.Fore.RESET}' )
-        self.log ( *args )
-
-    def pprint ( self, *args ):
-        """ logging """
-        module = "protomodel"
-        print ( f"[{module}] {' '.join(map(str,args))}" )
-        self.log ( *args )
-
-    def log ( self, *args ):
-        """ logging to file """
-        module = "protomodel"
-        with open( f"walker{self.walkerid}.log", "a" ) as f:
-            f.write ( f'[{module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
 
     def frozenParticles ( self ):
         """ returns a list of all particles that can be regarded as frozen, i.e.

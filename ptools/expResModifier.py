@@ -29,10 +29,11 @@ from smodels.base.physicsUnits import fb
 from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
+from protomodels.builder.loggerbase import LoggerBase
 
 logger.setLevel("ERROR")
 
-class ExpResModifier:
+class ExpResModifier ( LoggerBase ):
     epilog="""
 Examples:
 =========
@@ -75,6 +76,7 @@ Just filter the database:
                             for a signal to populate an UL map
         :param compute_ps: compute p-values for all SRs
         """
+        super ( ExpResModifier, self ).__init__ ( walkerid )
         self.defaults()
         if "max" in args and args["max"] == None:
             args["max"] = 100
@@ -279,29 +281,11 @@ Just filter the database:
         # f.write ("[slurm.py] %s\n" % " ".join ( sys.argv ) )
         f.close()
 
-    def pprint ( self, *args ):
-        """ logging """
-        print ( "[expResModifier] %s" % ( " ".join(map(str,args))) )
-        with open( self.logfile, "a" ) as f:
-            f.write ( "[expResModifier] %s\n" % ( " ".join(map(str,args)) ) )
-
     def startLogger ( self ):
         subprocess.getoutput ( "mv %s modifier.old" % self.logfile )
         self.log ( "starting at %s with zmax of %s" % \
                    ( time.asctime(), self.max ) )
         self.log ( "arguments were %s" % ( " ".join ( sys.argv ) ) )
-
-    def log ( self, *args ):
-        """ logging to file """
-        # logfile = "walker%d.log" % self.walkerid
-        with open( self.logfile, "a" ) as f:
-            f.write ( "[expResModifier] %s\n" % ( " ".join(map(str,args)) ) )
-
-    def info ( self, *args ):
-        """ logging to file, but also write to screen """
-        self.log ( *args )
-        if self.verbose > 1:
-            print ( "[expResModifier] %s" % ( " ".join(map(str,args)) ) )
 
     def finalize ( self ):
         """ finalize, for the moment its just deleting slha files """

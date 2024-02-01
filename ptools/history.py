@@ -4,13 +4,14 @@
 When executed, it runs a typical walker with the history recorder. """
 
 import time
-from colorama import Fore
+from protomodels.builder.loggerbase import LoggerBase
 
-class History:
+class History ( LoggerBase ):
     def __init__ ( self, outfile = "history.list" ):
         """
         :param outfile: the file to story history in
         """
+        super ( History, self ).__init__ ( 0 )
         self.outfile = outfile
         self.handle = open ( outfile, "wt" )
         self.handle.write ( f"# history recording {time.asctime()}\n" )
@@ -40,10 +41,6 @@ class History:
         self.pprint ( f"adding protomodel to {self.outfile}." )
         self.handle.write ( str(D)+",\n" )
         self.handle.flush()
-
-    def pprint ( self, *args ):
-        """ pprint """
-        print ( f"{Fore.LIGHTBLUE_EX}[history] {' '.join(map(str,args))}{Fore.RESET}" )
 
     def save ( self ):
         self.pprint ( f"writing history to {self.outfile}." )

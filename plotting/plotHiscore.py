@@ -51,12 +51,10 @@ class HiscorePlotter:
         """
         if not wanted:
             return False
+        comment = f"automated update by plotHiscore.py to {upload}:\n    K={self.protomodel.K:.3f} Z={self.protomodel.Z:.2f} walkerid={self.protomodel.walkerid}"
         destdir = dest
-        destdir = destdir.replace(os.environ["HOME"],"~")
-        # destdir = destdir.replace(upload,"")
+        destdir = destdir.replace(upload,"")
         destdir = destdir.replace("//","")
-        comment = f"automated update by plotHiscore.py to {destdir}:\n K={hiplt.protomodel.K:.3f} Z={hiplot.protomodel.Z:.2f}"
-        print ( "destdir", destdir, "upload", upload, "wanted", wanted )
         cmd = f"cd {destdir}; git pull; git add '{upload}'; git commit -m '{comment}'; git push"
         print ( f"[plotHiscore] exec: {cmd}" )
         out = subprocess.getoutput ( cmd )

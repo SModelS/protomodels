@@ -16,9 +16,10 @@ import smodels
 import copy, numpy, time, os, sys, itertools, colorama, random
 from colorama import Fore as ansi
 from typing import Union, Dict, List, Tuple
+from builder.loggerbase import LoggerBase
 from os import PathLike
 
-class Manipulator:
+class Manipulator ( LoggerBase ):
     """ contains the protomodel manipulation algorithms. """
 
     # walledpids are particle ids that have a minimum mass requirement
@@ -55,6 +56,10 @@ class Manipulator:
             >>> # best combination, most constraining analyses, etc
             >>> m.describe()
         """
+        super(Manipulator, self).__init__ ( 0 )
+        if type ( protomodel ) == ProtoModel:
+            ## make sure we log correctly asap
+            self.walkerid = protomodel.walkerid
         self.namer = SParticleNames ( False )
         self.M = protomodel
         if type(protomodel) == dict:
@@ -64,6 +69,7 @@ class Manipulator:
             self.M = ProtoModel ( )
             if protomodel.endswith ( ".dict" ):
                 self.initFromDictFile ( protomodel, nth = nth )
+        self.walkerid = self.M.walkerid
         self.seed = seed
         self.strategy = strategy
         self.verbose = verbose
@@ -213,38 +219,6 @@ class Manipulator:
         if signed:
             return pid in lst
         return pid in lst or -pid in lst
-
-    def highlight ( self, msgType = "info", *args ):
-        """ logging, hilit """
-        module = "manipulator"
-        col = ansi.GREEN
-        if msgType.lower() in [ "error", "red" ]:
-            col = ansi.RED
-        elif msgType.lower() in [ "warn", "warning", "yellow" ]:
-            col = ansi.YELLOW
-        elif msgType.lower() in [ "green", "info" ]:
-            col = ansi.GREEN
-        else:
-            self.highlight ( "red", "I think we called highlight without msg type" )
-        print ( "%s[%s-%s] %s%s" % ( col, module,
-            time.strftime("%H:%M:%S"), " ".join(map(str,args)), ansi.RESET ) )
-        self.log ( *args )
-
-    def pprint ( self, *args ):
-        """ logging """
-        module = "manipulator"
-        print ( "[%s] %s" % (module, " ".join(map(str,args))) )
-        self.log ( *args )
-
-    def debug ( self, *args ):
-        """ debugging msgs """
-        pass
-
-    def log ( self, *args ):
-        """ logging to file """
-        module = "manipulator"
-        with open( "walker%d.log" % self.M.walkerid, "at" ) as f:
-            f.write ( "[%s-%s] %s\n" % ( module, time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
     def initFromDictFile ( self, filename : PathLike, initTestStats : bool = False,
            nth : int = 0 ) -> bool:

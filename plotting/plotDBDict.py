@@ -15,8 +15,9 @@ from typing import Union
 sys.path.insert(0,"../")
 from ptools.helpers import computeP
 from ptools.moreHelpers import namesForSetsOfTopologies
+from protomodels.builder.loggerbase import LoggerBase
 
-class Plotter:
+class Plotter ( LoggerBase ):
 
     def roughviz_template( self, data, labels, values, plot_svg, **kwargs):
         """ the template for the roughviz plot, we will overwrite the
@@ -169,6 +170,7 @@ class Plotter:
         :param title: a title
         :param pvalues: if true then plot p-values, if false plot significances
         """
+        super ( Plotter, self ).__init__ ( 0 )
         self.defaults()
         for a,value in args.items():
             if a=="options":
@@ -260,12 +262,6 @@ class Plotter:
             self.rough( )
         else:
             self.plot( )
-
-    def pprint ( self, args, verbose = 0 ):
-        # x = " ".join(map(str,args))
-        x = args
-        if verbose > self.verbose:
-            print ( f"[plotDBDict] {x}" )
 
     def selectedCollaboration( self, anaid ):
         """ does anaid pass the collaboration selection? """

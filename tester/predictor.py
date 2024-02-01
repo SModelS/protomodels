@@ -17,13 +17,14 @@ from smodels.base.model import Model
 from smodels.theory.exceptions import SModelSTheoryError as SModelSError
 from os import PathLike
 from typing import List, Union
+from protomodels.builder.loggerbase import LoggerBase
 
 try:
     from tester.combiner import Combiner
 except:
     from combiner import Combiner
 
-class Predictor:
+class Predictor ( LoggerBase ):
     def __init__ ( self, walkerid : int, dbpath : PathLike = "official",
                    expected : bool = False, select : str = "all",
                    do_srcombine : bool = False ):
@@ -34,6 +35,7 @@ class Predictor:
         :param do_srcombine: if True, then also use combined results,
                            both via simplified likelihoods and pyhf.
         """
+        super ( Predictor, self ).__init__ ( walkerid )
         self.walkerid = walkerid
         self.do_srcombine = do_srcombine
         self.modifier = None
@@ -141,16 +143,6 @@ class Predictor:
             for expRes in self.listOfExpRes:
                 f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
             f.close()
-
-    def pprint ( self, *args ):
-        """ logging """
-        print ( f'[predictor] {" ".join(map(str,args))}' )
-        self.log ( *args )
-
-    def log ( self, *args ):
-        """ logging to file """
-        with open( f"walker{self.walkerid}.log", "a" ) as f:
-            f.write ( f'[predictor-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
 
     def removeRedundantULResults ( self, 
             predictions : List[TheoryPrediction] ) -> List[TheoryPrediction]:

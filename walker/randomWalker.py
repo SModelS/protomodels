@@ -23,6 +23,7 @@ from pympler.asizeof import asizeof
 from smodels.base.smodelsLogging import logger
 from typing import Callable, Dict, Union
 from os import PathLike
+from builder.loggerbase import LoggerBase
 
 logger.setLevel("ERROR")
 
@@ -33,7 +34,7 @@ def __cleanDirectory ():
     subprocess.getoutput ( "mv walker*.log tmp/" )
     subprocess.getoutput ( "mv exceptions.log tmp/" )
 
-class RandomWalker:
+class RandomWalker ( LoggerBase ):
     def __init__ ( self, walkerid : int = 0, nsteps : int = 10000, 
             strategy : str = "aggressive", 
             cheatcode : int = 0, dbpath : PathLike = "./database.pcl", 
@@ -59,6 +60,7 @@ class RandomWalker:
         :param stopTeleportationAfter: int or None. we stop teleportation after
                 this step nr.  If negative or None, we dont teleport at all
         """
+        super ( RandomWalker, self ).__init__ ( walkerid )
         dbpath = os.path.expanduser ( dbpath )
         if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
             self.pprint ( f"Wrong call of constructor: {walkerid}, {nsteps}, {strategy}" )
@@ -183,13 +185,6 @@ class RandomWalker:
         # ret.printStats ( substep=3 )
         ret.manipulator.backupModel()
         return ret
-
-    def pprint ( self, *args ):
-        """ logging """
-        if not hasattr ( self, "walkerid" ):
-            self.walkerid=-1
-        print ( f"[randomWalker:{self.walkerid}:{time.strftime('%H:%M:%S')}] {' '.join(map(str,args))}" )
-        self.log ( *args )
 
     @property
     def protomodel(self):
@@ -379,11 +374,6 @@ class RandomWalker:
         self.currentZ = self.protomodel.Z
         self.manipulator.record( "take step" )
 
-    def highlight ( self, msgType = "info", *args ):
-        """ logging, hilit """
-        col = colorama.Fore.GREEN
-        print ( "%s[walk:%d] %s%s" % ( col, self.walkerid, " ".join(map(str,args)), colorama.Fore.RESET ) )
-
     def decideOnTakingStep ( self ):
         """ depending on the ratio of K values, decide on whether to take the step or not.
             If ratio > 1., take the step, if < 1, let chance decide. """
@@ -410,11 +400,6 @@ class RandomWalker:
             else:
                 self.pprint ( "u=%.2f <= %.2f ; %.2f -> %.2f: take the step, even though old is better." % (u, ratio,self.currentK,self.protomodel.Z) )
                 self.takeStep()
-
-    def log ( self, *args ):
-        """ logging to file """
-        with open( "%s/walker%d.log" % ( self.rundir, self.walkerid ), "a" ) as f:
-            f.write ( "[randomWalker-%s] %s\n" % ( time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
 
     def record ( self ):
         """ if recorder is defined, then record. """
