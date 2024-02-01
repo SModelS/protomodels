@@ -703,7 +703,7 @@ class Combiner:
         if hasExperiment["ATLAS"] and hasExperiment["CMS"]:
             return 1.
         self.pprint ( f"penalty! we only have {','.join( k for k,v in hasExperiment.items() if v )}" )
-        return 1e-3
+        return .1 # penalize!
 
     def penaltyForUndemocraticFlavors ( self, protomodel ) -> float:
         """ very simple hack for now, penalize for undemocratic flavor decays
