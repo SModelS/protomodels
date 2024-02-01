@@ -86,7 +86,7 @@ class ProtoModel:
         self.llhd=0.
         self.muhat = 1.
         self.mumax = None # the maximum mu allowed by the critic
-        self.Z = 0.0
+        self.T = 0.0
         self.K = None
         self.letters = ""
         self.description = ""
@@ -148,10 +148,10 @@ class ProtoModel:
             pStr += f' K = {self.K:1.2f}'
         else:
             pStr += f' K = {self.K}'
-        if self.Z:
-            pStr += f', Z = {self.Z:1.2f}'
+        if self.T:
+            pStr += f', T = {self.T:1.2f}'
         else:
-            pStr += f', Z = {self.Z}'
+            pStr += f', T = {self.T}'
 
         return pStr
 
@@ -161,10 +161,10 @@ class ProtoModel:
         import numpy as np
         if type(self.K) in [ float, np.float64 ]:
             sK=f"{self.K:1.2f}"
-        sZ = str(self.Z)
-        if type(self.Z) in [ float, np.float64 ]:
-            sZ=f"{self.Z:1.2f}"
-        pStr = f'ProtoModel ({sK}, {sZ})'
+        sT = str(self.T)
+        if type(self.T) in [ float, np.float64 ]:
+            sT=f"{self.T:1.2f}"
+        pStr = f'ProtoModel ({sK}, {sT})'
         return pStr
 
     def hasAntiParticle ( self, pid ):
@@ -634,7 +634,7 @@ class ProtoModel:
         newmodel.llhd = self.llhd
         newmodel.muhat = self.muhat
         newmodel.mumax = self.mumax
-        newmodel.Z = self.Z
+        newmodel.T = self.T
         newmodel.K = self.K
         newmodel.letters = self.letters[:]
         newmodel.description = self.description[:]

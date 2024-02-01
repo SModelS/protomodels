@@ -28,7 +28,7 @@ class VerticalTest(unittest.TestCase):
 
         self.assertAlmostEqual ( walker.protomodel.K, 2.396, 2 )
         self.assertEqual ( len(walker.hiscoreList.hiscores), 1 )
-        self.assertAlmostEqual ( walker.hiscoreList.hiscores[0].Z, 2.22952,2 )
+        self.assertAlmostEqual ( walker.hiscoreList.hiscores[0].T, 2.22952,2 )
         self.assertEqual ( walker.hiscoreList.hiscores[0].step, 4 )
         self.assertAlmostEqual ( walker.protomodel.masses[1000001], 791.1794, 2 )
         self.assertAlmostEqual ( walker.protomodel.masses[1000022], 240.3092, 2 )

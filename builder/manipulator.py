@@ -185,7 +185,7 @@ class Manipulator:
         if hasattr ( self, "seed" ) and self.seed != None:
             D["seed"]=self.seed
         D["timestamp"]=time.asctime()
-        D["Z"]=round(self.M.Z,ndecimals)
+        D["T"]=round(self.M.T,ndecimals)
         D["K"]=round(self.M.K,ndecimals)
         D["walkerid"]=self.M.walkerid
         D["step"]=self.M.step
@@ -251,7 +251,7 @@ class Manipulator:
         """ setup the protomodel from dictionary in file <filename>.
             If it is a list of dictionaries, take the 1st entry.
         :param filename: name of file
-        :param initTestStats: if True, set also test statistics K and Z
+        :param initTestStats: if True, set also test statistics K and T
         :param nth: if we find a list of models, pick the nth. 0 = 1st. If nth
                     does not exist, return False
         :returns: true, if successful
@@ -319,7 +319,7 @@ class Manipulator:
         """ setup the protomodel from dictionary D.
         :param D: dictionary, as defined in pmodel*.dict files.
         :param filename: name of origin. not necessary, only for logging.
-        :param initTestStats: if True, set also test statistics K and Z
+        :param initTestStats: if True, set also test statistics K and T
         """
         scom = ""
         if "comment" in D:
@@ -349,8 +349,8 @@ class Manipulator:
         if "walkerid" in D:
             self.M.walkerid = D["walkerid"]
         if initTestStats:
-            if "Z" in D:
-                self.M.Z = D["Z"]
+            if "T" in D:
+                self.M.T = D["T"]
             if "K" in D:
                 self.M.K = D["K"]
         if "xsecs[fb]" in D:
@@ -593,16 +593,16 @@ class Manipulator:
         """ lengthy description of protomodel
         :param allTheoryPredictions: if true, list all theory preds
         """
-        sK, sZ = str(self.M.K), str(self.M.Z)
+        sK, sT = str(self.M.K), str(self.M.T)
         try:
             sK="%1.2f" % self.M.K
         except:
             pass
         try:
-            sZ="%1.2f" % self.M.Z
+            sT="%1.2f" % self.M.T
         except:
             pass
-        print( f'\nK = {sK}, Z = {sZ}, muhat = {self.M.muhat:1.2f}, mumax={self.M.mumax:1.3g}' )
+        print( f'\nK = {sK}, T = {sT}, muhat = {self.M.muhat:1.2f}, mumax={self.M.mumax:1.3g}' )
         print('  * Best Combo:')
         for tp in self.M.bestCombo:
             txns = ",".join ( set ( map ( str, tp.txnames ) ) )
@@ -728,10 +728,10 @@ class Manipulator:
         nUnfrozen = len( self.M.unFrozenParticles() )
         if (not force) and nUnfrozen > 1:
             nTotal = len ( self.M.particles )
-            denom = self.M.Z+1.
+            denom = self.M.T+1.
             if denom < 1.:
                 denom = 1.
-            mu = 1. - .7 / denom ## make it more unlikely when Z is high
+            mu = 1. - .7 / denom ## make it more unlikely when T is high
             uUnfreeze = random.gauss( mu ,sigma)
             if uUnfreeze < nUnfrozen/float(nTotal):
                 return 0
@@ -973,8 +973,9 @@ class Manipulator:
             newssm = 10000.
         self.record ( f"change ssm of {self.namer.texName(pids,addDollars=True)} to {newssm:.2f}" )
         self.M.ssmultipliers[pids]=newssm
-        if 2. * abs ( oldssm - newssm ) / ( oldssm + newssm ) > 1e-4:
-            self.highlight ( "info", f"changing ssm of {self.namer.asciiName(pids)} from {oldssm:.2f} to {newssm:.2f}" )
+        if (oldssm + newssm) > 0.:
+            if 2. * abs ( oldssm - newssm ) / ( oldssm + newssm ) > 1e-4:
+                self.highlight ( "info", f"changing ssm of {self.namer.asciiName(pids)} from {oldssm:.2f} to {newssm:.2f}" )
 
         if not recursive:
             return
@@ -1000,10 +1001,10 @@ class Manipulator:
             return 0
 
         nTotal = len ( self.M.particles )
-        denom = self.M.Z+1.
+        denom = self.M.T+1.
         if denom < 1.:
             denom = 1.
-        mu = .4 / denom ## make it more unlikely when Z is high
+        mu = .4 / denom ## make it more unlikely when T is high
         uFreeze = random.gauss(mu,sigma)
         if uFreeze > nUnfrozen/float(nTotal):
             return 0
@@ -1250,7 +1251,7 @@ class Manipulator:
         :returns: 1 for success
         """
         if dx == None:
-            denom = self.M.Z + 1.
+            denom = self.M.T + 1.
             if denom < 1. or denom == None:
                 denom = 1.
             dx = 40. / numpy.sqrt ( len(self.M.unFrozenParticles() ) ) / denom
@@ -1717,7 +1718,7 @@ class Manipulator:
     def backupModel ( self ):
         """ backup the current state """
 
-        self._backup = { "llhd": self.M.llhd, "letters": self.M.letters, "Z": self.M.Z,
+        self._backup = { "llhd": self.M.llhd, "letters": self.M.letters, "T": self.M.T,
                          "K": self.M.K, "muhat": self.M.muhat,
                          "description": self.M.description,
                          "tpList": copy.deepcopy(self.M.tpList),

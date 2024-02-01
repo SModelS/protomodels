@@ -210,7 +210,7 @@ class Predictor:
         # stored in protomodel
         protomodel.mumax = self.getMaxAllowedMu(protomodel)
 
-        # now use all prediction with likelihood values to compute the Z of the model
+        # now use all prediction with likelihood values to compute the T of the model
         predictions = self.runSModelS( slhafile, sigmacut, allpreds=True,
                                                llhdonly=True )
 
@@ -219,18 +219,18 @@ class Predictor:
 
         # Compute significance and store in the model:
         self.computeSignificance( protomodel, predictions, strategy )
-        if protomodel.Z is None:
-            self.log ( f"done with prediction. Could not find combinations (Z={protomodel.Z})" )
+        if protomodel.T is None:
+            self.log ( f"done with prediction. Could not find combinations (T={protomodel.T})" )
             protomodel.delCurrentSLHA()
             return False
         else:
-            self.log ( f"done with prediction. best Z={protomodel.Z:.2f} (muhat={protomodel.muhat:.2f})" )
+            self.log ( f"done with prediction. best T={protomodel.T:.2f} (muhat={protomodel.muhat:.2f})" )
 
         protomodel.cleanBestCombo()
 
         #Recompute predictions with higher accuracy for high score models:
-        if protomodel.Z > 4.1 and protomodel.nevents < 55000:
-            self.log ( f"Z {protomodel.Z:.2f}>2.7, repeat with higher stats!" )
+        if protomodel.T > 4.1 and protomodel.nevents < 55000:
+            self.log ( f"T {protomodel.T:.2f}>2.7, repeat with higher stats!" )
             protomodel.nevents = 100000
             protomodel.computeXSecs()
             self.predict(protomodel,sigmacut=sigmacut, strategy= strategy,
@@ -411,13 +411,14 @@ class Predictor:
         return mumax
 
     def computeSignificance(self, protomodel, predictions, strategy):
-        """ compute the K and Z values, and attach them to the protomodel """
+        """ compute the K and T values, and attach them to the protomodel """
+        # FIXME this is not the significance, rename!
 
-        self.log ( f"now find combo with highest Z given {len(predictions)} predictions" )
+        self.log ( f"now find combo with highest T given {len(predictions)} predictions" )
         ## find highest observed significance
         #(set mumax just slightly below its value, so muhat is always below)
         mumax = protomodel.mumax
-        bestCombo,Z,llhd,muhat = self.combiner.findHighestSignificance ( predictions,
+        bestCombo,T,llhd,muhat = self.combiner.findHighestSignificance ( predictions,
                 strategy, expected=False, mumax = mumax )
         prior = self.combiner.computePrior ( protomodel )
         ## temporary hack: penalize for missing experiment
@@ -434,12 +435,12 @@ class Predictor:
             protomodel.bestCombo = bestCombo
         else:
             protomodel.bestCombo = self.combiner.removeDataFromBestCombo ( bestCombo )
-        protomodel.Z = Z
+        protomodel.T = T
 
-        if Z is None: # Z is None when no combination was found
+        if T is None: # T is None when no combination was found
             protomodel.K = None
         else:
-            protomodel.K = self.combiner.computeK ( Z, prior )
+            protomodel.K = self.combiner.computeK ( T, prior )
         protomodel.llhd = llhd
         protomodel.muhat = muhat
         protomodel.letters = self.combiner.getLetterCode(protomodel.bestCombo)
