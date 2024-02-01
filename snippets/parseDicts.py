@@ -21,7 +21,7 @@ def produce():
                 if v < 5000. and k != 1000022:
                     P.append(k)
             P.sort()
-            print ( fname, "K", D[0]["K"], "T", D[0]["T"], "particles", P )
+            print ( fname, "K", D[0]["K"], "Z", D[0]["Z"], "particles", P )
 
 
 def countSteps( Dir ):

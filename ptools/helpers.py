@@ -11,21 +11,6 @@ from smodels.tools.physicsUnits import GeV
 import scipy.stats
 from os import PathLike
 
-def computeZFromT ( T : float ) -> float:
-    """ given the T test statistic, compute the significance Z 
-    i.e. given that T**2 follows a chi2 statistic with one degree of freedom,
-    what would the equivalent value of a test statistic Z be for a 
-    one-sided standard normal test statistic.
-    """
-    from scipy import stats
-    """
-    p = stats.chi2.cdf ( T**2, df=1 )
-    Z = stats.norm.ppf ( p )
-    """
-    # two-sided
-    p = 1 - stats.chi2.cdf ( T**2, df=1 )
-    Z = stats.norm.ppf ( 1- p/2. )
-    return Z
 
 def simplifyUnixPath ( path : str ) -> str:
     """ simple code to simplify file paths in printouts """

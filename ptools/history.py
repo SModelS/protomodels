@@ -24,7 +24,7 @@ class History:
         protomodel = ma.M
         D = protomodel.dict()
         D["K"]=protomodel.K
-        D["T"]=protomodel.T
+        D["Z"]=protomodel.Z
         D["step"]=protomodel.step
         bc=[]
         if protomodel.bestCombo != None:
