@@ -2,7 +2,7 @@
 
 """ Class that encapsulates the manipulations we perform on the protomodels,
     so that the protomodel class is a data-centric class, and this one
-    an algorithm-centric class. 
+    an algorithm-centric class.
 """
 
 __all__ = [ "Manipulator" ]
@@ -28,14 +28,14 @@ class Manipulator:
     ## forbiddenparticles are particle ids that we do not touch in this run
     forbiddenparticles = []
 
-    def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike], 
-            strategy: str = "aggressive", verbose : bool = False, 
+    def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike],
+            strategy: str = "aggressive", verbose : bool = False,
             do_record : bool = False, seed : Union[bool,int] = None,
             nth : int = 0 ):
         """
-        :param protomodel: is either a protomodel, or a hiscore dictionary, 
+        :param protomodel: is either a protomodel, or a hiscore dictionary,
         or a path to a protomodel
-        :param strategy: what combination strategy? 
+        :param strategy: what combination strategy?
         currently we only have "aggressive"
         :param do_record: do record actions taken
         :param seed: random seed
@@ -43,7 +43,7 @@ class Manipulator:
         from nth entry in that dict file
 
         Example usage:
-        
+
         .. code-block:: python3
 
             >>> # instantiate a model plus manipulator from hiscore file
@@ -51,7 +51,7 @@ class Manipulator:
             >>> # get the predictions
             >>> predictor = Predictor(0, do_srcombine=True )
             >>> predictor.predict ( m.M, keep_predictions=True )
-            >>> # print test statistics, 
+            >>> # print test statistics,
             >>> # best combination, most constraining analyses, etc
             >>> m.describe()
         """
@@ -132,8 +132,8 @@ class Manipulator:
         self.M.step = step ## continue counting!
         self.M.bestCombo = None
 
-    def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict", 
-            cleanOut : bool = True, comment : str = "", appendMode : bool = False, 
+    def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict",
+            cleanOut : bool = True, comment : str = "", appendMode : bool = False,
             ndecimals : int = 6 ) -> Dict:
         """ write out the dict file to outfile
 
@@ -314,7 +314,7 @@ class Manipulator:
         return ret
 
 
-    def initFromDict ( self, D : Dict, filename : str = "", 
+    def initFromDict ( self, D : Dict, filename : str = "",
             initTestStats : bool = False ):
         """ setup the protomodel from dictionary D.
         :param D: dictionary, as defined in pmodel*.dict files.
@@ -361,13 +361,15 @@ class Manipulator:
                 xsec = XSection()
                 xsec.value = value*fb
                 xsec.info.sqrts = ss[1]*TeV
-                xsec.info.label = "from_dict_file"
+                xsec.info.label = f"{ss[1]} TeV (LO) [from_dict_file]"
+                # xsec.info.label = "from_dict_file"
                 xsec.info.order = 0
                 xsec._pid = ss[0]
                 xsecs.append ( xsec )
             self.M._xsecMasses = copy.deepcopy ( self.M.masses )
             self.M._xsecSSMs = copy.deepcopy ( self.M.ssmultipliers )
             self.M._stored_xsecs = ( xsecs, "loaded from dict file" )
+            self.M.computeXSecs()
 
     def cheat ( self, mode = 0 ):
         ## cheating, i.e. starting with models that are known to work well
@@ -402,7 +404,7 @@ class Manipulator:
     def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
             detailed : bool = False ):
         """ pretty print prediction combos.
-            If None, print best combo 
+            If None, print best combo
         :param combo: None, to print the best combo, else print that combo
         :param detailed: if true, print more detailed report
         """
@@ -422,7 +424,7 @@ class Manipulator:
                     eBG = dI.expectedBG
                     if eBG == int(eBG):
                         eBG=int(eBG)
-                    bgErr = dI.bgError 
+                    bgErr = dI.bgError
                     if bgErr == int(bgErr):
                         bgErr=int(bgErr)
                     toterr = math.sqrt ( bgErr**2 + eBG )
@@ -434,10 +436,10 @@ class Manipulator:
                     eUL = i.getUpperLimit ( expected = True ).asNumber(fb)
                     oUL = i.getUpperLimit ( expected = False ).asNumber(fb)
                     sigma_exp = eUL / 1.96 # the expected scale, sigma
-                    Z = ( oUL - eUL ) / sigma_exp 
+                    Z = ( oUL - eUL ) / sigma_exp
                     line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={ansi.RED}{Z:.1f}*sigma{ansi.RESET}"
                     print ( line )
-                
+
             for pids in i.PIDs[:2]:
                 s = str(pids)
                 if len(s) > 80:
@@ -622,12 +624,12 @@ class Manipulator:
             else:
                 pred=f"{tp.xsection.value.asNumber(fb):.2g}*fb"
                 UL = f"{tp.getUpperLimit().asNumber(fb):.2g}*fb"
-                print(f'     - {fullId} [{txns}] pred={pred} UL={UL} eUL={eUL}' ) 
+                print(f'     - {fullId} [{txns}] pred={pred} UL={UL} eUL={eUL}' )
 
         print ( )
         print('  * Constraints:')
         for tp in sorted( self.M.tpList, key = lambda x: x[0], reverse=True ):
-            if not allTheoryPredictions and tp[0] < 1.0: 
+            if not allTheoryPredictions and tp[0] < 1.0:
                 # if not all theory predictions are asked for, only do r>=1
                 continue
             txns = ",".join ( set ( map ( str, tp[2].txnames ) ) )
@@ -681,19 +683,19 @@ class Manipulator:
                 #if hasattr(tp,'chi2'):
                 #    del tp.chi2
 
-    def randomlyChangeModel(self,sigmaUnFreeze : float = 0.5, probBR : float = 0.2, 
+    def randomlyChangeModel(self,sigmaUnFreeze : float = 0.5, probBR : float = 0.2,
             probSS : float = 0.25, probSSingle : float = 0.8, ssmSigma : float = 0.1,
-            probMerge : float = 0.05, sigmaFreeze : float = 0.5, 
+            probMerge : float = 0.05, sigmaFreeze : float = 0.5,
             probMassive : float = 0.3, probMass : float = 0.05, dx : float = 200):
         """Randomly modify the proto-model following the steps:
 
-        1) A random particle can be unfrozen with a probability 
+        1) A random particle can be unfrozen with a probability
         controlled by sigmaUnFreeze
         2) A random BR can be modified (with probability probBR)
-        3) A random signal strenght can be modified 
+        3) A random signal strenght can be modified
         the probability is controlled by probSS, probSSingle and ssmSigma
         4) Particles can be merged (with probability probMerge)
-        5) A random particle can be frozen 
+        5) A random particle can be frozen
         the probability is controlled by sigmaFreeze and probMassive
         6) A random mass can be changed by a maximum value of dx
         with probability of probMass
@@ -851,13 +853,13 @@ class Manipulator:
 
         return 1
 
-    def randomlyChangeSignalStrengths ( self, prob : float =0.25, 
+    def randomlyChangeSignalStrengths ( self, prob : float =0.25,
             probSingle : float =0.8, ssmSigma=0.1 ) -> int:
-        """ randomly change one of the signal strengths according to a gaussian 
+        """ randomly change one of the signal strengths according to a gaussian
         distribution centered around the original SSM.
 
         :param prob: Probability for changing the signal strengths
-        :param probSingle: Probability for changing the signal strength of a 
+        :param probSingle: Probability for changing the signal strength of a
         single particle
         :param ssmSigma: Width for the gaussian
 
@@ -949,7 +951,7 @@ class Manipulator:
 
     def changeSSM ( self, pids : Tuple, newssm, recursive : bool = True ):
         """ change the signal strength multiplier of pids to newssm,
-            if we have stored xsecs, we correct them, also 
+            if we have stored xsecs, we correct them, also
 
         :param pids: Tuple of particle ids, e.g. (1000024,1000023)
         :param recursive: if true, then change also for all other signs, e.g.
@@ -985,7 +987,7 @@ class Manipulator:
             self.changeSSM ( (pids[0],- pids[1]), newssm, recursive=False )
         if self.pidPairIsInSSMs ( ( - pids[0],- pids[1]) ):
             self.changeSSM ( (-pids[0],- pids[1]), newssm, recursive=False )
-            
+
 
     def randomlyFreezeParticle ( self, sigma= 0.5, probMassive = 0.3):
         """ freezes a random unfrozen particle according to gaussian distribution with width sigma.
@@ -1214,7 +1216,7 @@ class Manipulator:
                 # if we just unfroze this guy
                 were_frozen = self.M.frozenParticles()
                 self.M.masses[otherpid] = mass * random.uniform ( .99, 1.01 )
-                self.log ( f"mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" ) 
+                self.log ( f"mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" )
                 # FIXME if the particle was frozen before, we need to
                 # unfreeze
                 if otherpid in were_frozen:
@@ -1236,8 +1238,8 @@ class Manipulator:
             return False
         return 150. < (mstop-mlsp) < 200.
 
-    def randomlyChangeMassOf ( self, pid : int, dx : Union[float,None] = None, 
-            minMass : Union[float,None] = None, 
+    def randomlyChangeMassOf ( self, pid : int, dx : Union[float,None] = None,
+            minMass : Union[float,None] = None,
             maxMass : Union[float,None] = None ) -> int:
         """ randomly change the mass of pid
         :param dx: the delta x to change. If none, then use a model-dependent

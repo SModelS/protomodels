@@ -418,7 +418,7 @@ class ProtoModel:
                 if countAttempts > 1:
                     self.log( f"error computing cross-sections: {e}, attempt # {countAttempts}" )
                     self.pprint( f"error computing cross-sections: {e}, attempt # {countAttempts}" )
-                helpers.cpPythia8()
+                # helpers.cpPythia8()
                 time.sleep ( random.uniform ( 5, 10 ) )
                 if countAttempts > 5:
                     break

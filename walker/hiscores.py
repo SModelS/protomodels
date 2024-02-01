@@ -476,7 +476,7 @@ class Hiscores:
         shortname = helpers.simplifyUnixPath(pickleFile)
         self.pprint ( f"saving new hiscore list to {shortname}" )
         try:
-            if self.backup:
+            if self.backup and os.path.exists ( pickleFile ):
                 subprocess.getoutput ( f"mv -f {pickleFile} old_{pickleFile}" )
             # self.clean()
             with open( pickleFile, "wb" ) as f:
@@ -491,7 +491,7 @@ class Hiscores:
         except OSError or BlockingIOError as e:
             self.fileAttempts+=1
             if self.fileAttempts>2:
-                self.pprint ( f"error when writing ({self.fileAttempts}) pickle file: {e}" )
+                self.pprint ( f"error when writing ({self.fileAttempts}th attempt) pickle file {self.pickleFile} ({shortname}): {e}" )
             if self.fileAttempts<5: # try again
                 time.sleep ( .2 )
                 self.writeListToPickle( pickleFile, check )
