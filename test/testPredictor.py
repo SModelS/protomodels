@@ -31,7 +31,7 @@ class PredictionsTest(unittest.TestCase):
         protomodel.codeversion = None
         pNew = protomodel.copy()
         pNew.templateSLHA = os.path.abspath('../builder/templates/template1g.slha')
-        pNew.T = None
+        pNew.Z = None
         pNew.llhd = None
         pNew.bestCombo = None
         pNew.muhat = None
@@ -52,7 +52,7 @@ class PredictionsTest(unittest.TestCase):
         newPrior = predictor.combiner.computePrior(pNew,name="expo1",nll=True)
         newK = pNew.K - 2*oldPrior + 2*newPrior
         self.assertTrue(abs(3.9-newK)/3.9 < 0.1)
-        self.assertTrue(abs(2.3-pNew.T)/2.3 < 0.1)
+        self.assertTrue(abs(2.3-pNew.Z)/2.3 < 0.1)
         self.assertEqual(15,len(pNew.rvalues))
         self.assertEqual('BDGK',pNew.letters)
         #From previous (pre-refac) version:
@@ -64,7 +64,7 @@ class PredictionsTest(unittest.TestCase):
         #Compare against new default:
         predictor.rthreshold = 1.3
         predictor.predict(pNew)
-        self.assertAlmostEqual(protomodel.T,pNew.T,3)
+        self.assertAlmostEqual(protomodel.Z,pNew.Z,3)
         self.assertAlmostEqual(protomodel.K,pNew.K,3)
         self.assertAlmostEqual(protomodel.muhat,pNew.muhat,3)
         self.assertAlmostEqual(protomodel.mumax,pNew.mumax,3)

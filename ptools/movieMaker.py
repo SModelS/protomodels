@@ -96,8 +96,8 @@ if not "]" in txt[-3:]:
 
 modelList=eval(txt)
 
-emptymodel = { "masses": {}, "step": 0, "bestCombo": [], "actions": [], "K": -200.,
-               "T": -200. }
+emptymodel = { "masses": {}, "step": 0, "bestCombo": [], "actions": [], "K": -200., 
+               "Z": -200. }
 nstart=0
 for i in range(19):
     nstart+=1
@@ -121,7 +121,7 @@ particles = list(set(particles))
 steps = np.array([p["step"] for p in modelList])
 nparticles = np.array([len(p["masses"]) for p in modelList])
 Kvalues = np.array([p["K"] if (p["K"] and p["K"] > 0) else 0.0 for p in modelList])
-Tvalues = np.array([p["T"] if (p["T"] and p["T"] > 0) else 0.0 for p in modelList])
+Zvalues = np.array([p["Z"] if (p["Z"] and p["Z"] > 0) else 0.0 for p in modelList])
 masses = dict([[pid,[]] for pid in particles])
 Ks,actions,bcs=[],[],[]
 for p in modelList:
@@ -168,7 +168,7 @@ for p in modelList:
             masses[pid].append(-100.0)
 for pid in masses:
     masses[pid] = np.array(masses[pid])
-dataDict = {'step' : steps, 'K' : Kvalues, 'T' : Tvalues,
+dataDict = {'step' : steps, 'K' : Kvalues, 'Z' : Zvalues,
                    'nparticles' : nparticles}
 dataDict.update(masses)
 df = pd.DataFrame(dataDict)

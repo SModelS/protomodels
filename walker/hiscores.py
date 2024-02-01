@@ -44,11 +44,11 @@ class Hiscores:
             self.hiscores = hiscores
             self.mtime = time.time()
 
-    def currentMinT ( self ):
-        """ the current minimum T to make it into the list. """
+    def currentMinZ ( self ):
+        """ the current minimum Z to make it into the list. """
         if self.hiscores[-1] == None:
             return 0.
-        return self.hiscores[-1].T
+        return self.hiscores[-1].Z
 
     def currentMinK ( self, zeroIsMin=False ):
         """ the current minimum K to make it into the list.
@@ -65,15 +65,15 @@ class Hiscores:
             return max ( mk, 0. )
         return mk
 
-    def globalMaxT ( self ):
-        """ globally (across all walkers), the highest T """
+    def globalMaxZ ( self ):
+        """ globally (across all walkers), the highest Z """
         ret = 0.
         if self.hiscores[0] != None:
-            if self.hiscores[0].T > ret:
-                ret = self.hiscores[0].T
-        Toldfile = "Told.conf"
-        if os.path.exists ( Toldfile ):
-            with open ( Toldfile, "rt" ) as f:
+            if self.hiscores[0].Z > ret:
+                ret = self.hiscores[0].Z
+        Zoldfile = "Zold.conf"
+        if os.path.exists ( Zoldfile ):
+            with open ( Zoldfile, "rt" ) as f:
                 lines = f.readlines()
                 if len(lines)>0:
                     ret = float(lines[0])
@@ -113,8 +113,8 @@ class Hiscores:
         dK = abs ( a["K"] - b["K"] )
         if dK > 1e-5:
             return False
-        dT = abs ( a["T"] - b["T"] )
-        if dT > 1e-5:
+        dZ = abs ( a["Z"] - b["Z"] )
+        if dZ > 1e-5:
             return False
         if a["masses"].keys() != b["masses"].keys():
             return False
@@ -194,6 +194,17 @@ class Hiscores:
                 except SyntaxError as e:
                     time.sleep( .1+3*tryRead )
         D=m.writeDictFile ( None, ndecimals = 6 )
+        """
+        D["K"]=m.M.K
+        D["Z"]=m.M.Z
+        if hasattr ( m, "seed" ) and m.seed != None:
+            D["seed"]=m.seed
+        D["step"]=m.M.step
+        D["timestamp"]=time.asctime()
+        D["walkerid"]=m.M.walkerid
+        D["description"]=m.M.description
+        """
+        # D=m.writeDictFile(outfile = None, ndecimals=6 )
         newlist = self.insertHiscore ( oldhiscores, D )
         self.pprint ( f"write model to {hiscorefile}" )
         with open ( hiscorefile, "wt" ) as f:
@@ -266,9 +277,10 @@ class Hiscores:
         manipulator.backupModel()
 
         unfrozen = manipulator.M.unFrozenParticles( withLSP=False )
-        oldT = manipulator.M.T
+        oldZ = manipulator.M.Z
         oldK = manipulator.M.K
         particleContributions = {} ## save the scores for the non-discarded particles.
+        #particleContributionsZ = {} ## save the scores for the non-discarded particles, Zs
 
         #Make sure predictor is accesible
         if not self.predictor:
@@ -287,30 +299,32 @@ class Hiscores:
             #Recompute cross-secions:
             manipulator.M.getXsecs()
             manipulator.M.K = 0.0
-            manipulator.M.T = 0.0
+            manipulator.M.Z = 0.0
             self.predictor.predict( manipulator.M )
             if manipulator.M.K is None:
                 self.pprint ( "when removing %s, K could not longer be computed. Setting to zero"% ( self.namer.asciiName(pid)))
                 manipulator.M.K = 0.0
-                manipulator.M.T = 0.0
+                manipulator.M.Z = 0.0
             if oldK <= 0:
                 percK = 0.
             else:
                 percK = ( manipulator.M.K - oldK ) / oldK
-                self.pprint ( "when removing %s, K changed: %.3f -> %.3f (%.1f%s), T: %.3f -> %.3f (%d evts)" % \
-                    ( self.namer.asciiName(pid), oldK, manipulator.M.K, 100.*percK, "%", oldT,manipulator.M.T, manipulator.M.nevents ) )
+                self.pprint ( "when removing %s, K changed: %.3f -> %.3f (%.1f%s), Z: %.3f -> %.3f (%d evts)" % \
+                    ( self.namer.asciiName(pid), oldK, manipulator.M.K, 100.*percK, "%", oldZ,manipulator.M.Z, manipulator.M.nevents ) )
 
-            #Store the new T and K values in the original model:
+            #Store the new Z and K values in the original model:
             particleContributions[pid]=manipulator.M.K
+            #particleContributionsZ[pid]=manipulator.M.Z
             #Make sure to restore the model to its initial (full particle content) state
             manipulator.restoreModel()
             #Store contributions in the protomodel:
             manipulator.M.particleContributions = particleContributions
+            #manipulator.M.particleContributionsZ = particleContributionsZ
 
         self.pprint ( "stored %d particle contributions" % len(manipulator.M.particleContributions) )
 
     def computeAnalysisContributions( self, manipulator ):
-        """ compute the contributions to T of the individual analyses
+        """ compute the contributions to Z of the individual analyses
         :returns: the model with the analysic constributions attached as
                   .analysisContributions
         """
@@ -318,19 +332,23 @@ class Hiscores:
         try:
             self.pprint ( "Now computing analysis contributions" )
             self.pprint ( f"Recompute the score. Old one at K={manipulator.M.K:.3f}"
-                          f", T={manipulator.M.T:.2f}" )
+                          f", Z={manipulator.M.Z:.2f}" )
+            contributionsZ = {}
             contributionsK = {}
             combiner = Combiner()
+            dZtot, dKtot = 0., 0.
             bestCombo = copy.deepcopy ( manipulator.M.bestCombo )
+            #self.pprint ( "we have %d entries in best combo" % len(bestCombo) )
             prior = combiner.computePrior ( manipulator.M )
+            #self.pprint ( "the prior is %s" % prior )
             for ctr,pred in enumerate(bestCombo):
                 #self.pprint ( "Now starting to compute for %d" % ctr )
                 combo = bestCombo[:ctr]+bestCombo[ctr+1:]
                 # combo = copy.deepcopy ( bestCombo )[:ctr]+copy.deepcopy ( bestCombo)[ctr+1:]
                 #self.pprint ( "deep copy still worked: %d" % (len(combo)) )
-                T, muhat_ = combiner.getSignificance ( combo )
-                #self.pprint ( "T for %d is %s" % ( ctr, T ) )
-                K = combiner.computeK ( T, prior )
+                Z, muhat_ = combiner.getSignificance ( combo )
+                #self.pprint ( "Z for %d is %s" % ( ctr, Z ) )
+                K = combiner.computeK ( Z, prior )
                 #self.pprint ( "K for %d is %s" % ( ctr, K ) )
                 contributionsK [ ctr ] = K
             self.pprint ( "finished computing contributions" )
@@ -485,8 +503,8 @@ class Hiscores:
         :param ma: the manipulator object
         :returns: true, if it entered the hiscore list
         """
-        self.pprint ( "New result with K=%.2f, T=%.2f, needs to pass K>%.2f, saving: %s" % \
-                ( ma.M.K, ma.M.T, self.currentMinK(),
+        self.pprint ( "New result with K=%.2f, Z=%.2f, needs to pass K>%.2f, saving: %s" % \
+                ( ma.M.K, ma.M.Z, self.currentMinK(),
                   "yes" if self.save_hiscores else "no" ) )
         if not self.save_hiscores:
             return False

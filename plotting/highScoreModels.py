@@ -168,7 +168,7 @@ particles = list(set(particles))
 #Build useful dataset:
 nparticles = np.array([len(p.unFrozenParticles()) for p in modelList])
 Kvalues = np.array([p.K if (p.K and p.K > 0) else 0.0 for p in modelList])
-Tvalues = np.array([p.T if (p.T and p.T > 0) else 0.0 for p in modelList])
+Zvalues = np.array([p.Z if (p.Z and p.Z > 0) else 0.0 for p in modelList])
 masses = dict([[pid,[]] for pid in particles])
 for p in modelList:
     for pid in masses:

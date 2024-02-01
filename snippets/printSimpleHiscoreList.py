@@ -5,7 +5,6 @@
 import os
 from os import PathLike
 from ptools.sparticleNames import SParticleNames 
-from ptools.helpers import computeZFromT
 from colorama import Fore as ansi
 
 def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
@@ -24,7 +23,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
     for i,entry in enumerate ( D ):
         if extended and i > 2:
             break
-        K, T, wid = entry['K'], entry['T'], entry['walkerid']
+        K, Z, wid = entry['K'], entry['Z'], entry['walkerid']
         particles = entry["masses"].keys()
         sparticles = ""
         for ip, p in enumerate ( particles ):
@@ -37,7 +36,6 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
         r1 = timestamp.find(" ")
         r2 = timestamp.rfind(" ")
         timestamp = timestamp[r1:r2]
-        Z = computeZFromT ( T )
         if extended:
             print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET} Z={Z:.3f}; {sparticles}" )
             print ( f"       `---: {entry['description']}" )

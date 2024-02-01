@@ -19,7 +19,7 @@ def getDicts():
             f.close()
             # print ( "l", lines[0][1:-2] )
             Dicts[nr]=eval(lines[0][1:-2])
-            for x in [ "ssmultipliers", "decays", "timestamp", "dbver", "T", "codever", \
+            for x in [ "ssmultipliers", "decays", "timestamp", "dbver", "Z", "codever", \
                        "step" ]:
                 Dicts[nr].pop( x )
     return Dicts

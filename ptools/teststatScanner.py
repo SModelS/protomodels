@@ -2,7 +2,7 @@
 
 __all__ = [ "TeststatScanner" ]
 
-""" draw K/T/r as a function of a model parameter,
+""" draw K/Z/r as a function of a model parameter,
 i.e. scan the various test statistics 
 """
 
@@ -92,12 +92,12 @@ class TeststatScanner:
             if self.args['dry_run']:
                 self.pprint ( f"#{i}: dry-run, not doing anything" )
                 ret[m]["K"] = 0.
-                ret[m]["T"] = 0.
+                ret[m]["Z"] = 0.
                 ret[m][ "r"] = [ 0, 0, 0 ]
             else:
                 _ = predictor.predict ( model, keep_predictions = True )
                 ret[m]["K"] = model.K
-                ret[m]["T"] = model.T
+                ret[m]["Z"] = model.Z
                 ret[m]["r"] = model.rvalues
                 ret[m]["critics"] = self.createCriticResults ( predictor )
             print ()
@@ -133,7 +133,7 @@ class TeststatScanner:
         model.delXSecs()
         # model.predict ( nevents = nevents, recycle_xsecs = True )
         predictor.predict ( model )
-        self.pprint ( f"#{i}: before we begin, T is {model.T:.3f}" )
+        self.pprint ( f"#{i}: before we begin, Z is {model.Z:.3f}" )
 
         for ctr,ssm in enumerate(ssmrange):
             # fname = model.createNewSLHAFileName ( prefix = f"ssm{i}p{pids[0]}{pids[1]}{ssm:.2f}" )
@@ -144,10 +144,10 @@ class TeststatScanner:
             predictor.predict ( ma.M, keep_predictions = True )
             self.pprint ( f"#{i}: we change the ssm from {ssmold:.3f} to {ssm:.3f}" )
             self.pprint ( f"#{i}: start with {ctr}/{len(ssmrange)}, ssm={ssm:.2f} ({self.args['nevents']} events)" )
-            self.pprint ( f"#{i}:   `- K({ssm:.3f})={ma.M.K:.3f} T={ma.M.T:.3f}" )
+            self.pprint ( f"#{i}:   `- K({ssm:.3f})={ma.M.K:.3f} Z={ma.M.Z:.3f}" )
             import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
             mssm = ma.M.muhat*ssm
-            ret[ssm]={ "T": ma.M.T, "r": ma.M.rvalues, 
+            ret[ssm]={ "Z": ma.M.Z, "r": ma.M.rvalues, 
                 "K": ma.M.K,"muhat": ma.M.muhat }
             ret[ssm]["critics"] = self.createCriticResults ( predictor )
             #if False : # os.exists ( fname ):
@@ -334,6 +334,7 @@ class TeststatScanner:
             ret.add ( int(s) )
         return ret
 
+
     def getClosest ( self, key, D, maxDist=1e-5 ):
         """ get the entry in dictionary D whose key is closest to k 
         :returns: D[key] of something close. None if nothing was found within maxDist
@@ -456,16 +457,19 @@ class TeststatScanner:
         param = f"{cmass} GeV"
         if isSSMPlot():
             param= f"{cmass:.3f}" 
-        Tmax = self.getClosest( cmass, values )
-        Kmax = ymax
-        if type(Tmax)==dict:
-            Tmax=Tmax["T"]
-            Kmax=Tmax["T"]
-        # label = f"proto-model\n K({param})={Tmax:.2f}"
-        label = f"proto-model\nK({cmass:.2f})={ymax:.2f}"
-        self.pprint ( f"Tmax=T({cmass:.3f})={Tmax:.3f}" )
+        Zmax = self.getClosest( cmass, values )
+        if type(Zmax)==dict:
+            Zmax=Zmax["K"]
+        # label = f"proto-model\n K({param})={Zmax:.2f}"
+        label = f"proto-model\nK({cmass:.2f})={Zmax:.2f}"
+        self.pprint ( f"Zmax=Z({cmass:.3f})={Zmax:.3f}" )
+        """
+        vvs = list ( values.keys() )
+        vvs.sort()
+        print ( "values", vvs )
+        """
         self.pprint ( f"r({cmass})={values[cmass]['r'][0]:.2f}:{values[cmass]['critics'][0]}" )
-        ax1.scatter ( [ cmass ], [ Tmax ], label=label, marker="^", s=130, c="g", zorder=10 )
+        ax1.scatter ( [ cmass ], [ Zmax ], label=label, marker="^", s=130, c="g", zorder=10 )
         plotCriticAtMax = True
         if plotCriticAtMax:
             #ratmax_text = f"r({cmass:.2f})=\n{values[cmass]['critics'][0]}"
@@ -520,7 +524,7 @@ class TeststatScanner:
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(
-            description='script that scans/plots various test statistics such as K,T,r' )
+            description='script that scans/plots various test statistics such as K,Z,r' )
     argparser.add_argument ( '-p', '--pid', '--pid1',
             help='pid to consider. If zero, then consider a predefined list [0]',
             type=int, default=0 )
