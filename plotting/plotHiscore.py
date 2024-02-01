@@ -43,7 +43,7 @@ class HiscorePlotter:
         self.protomodel = ret
         return ret
 
-    def gitCommit ( self, dest, upload, wanted ):
+    def gitCommit ( self, dest, upload, wanted : bool ):
         """ if wanted, then git commit and git push to smodels.githuib.io
         :param dest: e.g. "/scratch-cbe/users/w.w/git/smodels.github.io/protomodels/latest/"
         :param upload: e.g. "latest"
@@ -52,10 +52,10 @@ class HiscorePlotter:
         if not wanted:
             return False
         destdir = dest
-        destdir = destdir.replace(upload,"")
+        destdir = destdir.replace(os.environ["HOME"],"~")
+        # destdir = destdir.replace(upload,"")
         destdir = destdir.replace("//","")
-
-        comment = "automated update by plotHiscore.py to %s" % destdir
+        comment = f"automated update by plotHiscore.py to {destdir}:\n K={hiplt.protomodel.K:.3f} Z={hiplot.protomodel.Z:.2f}"
         print ( "destdir", destdir, "upload", upload, "wanted", wanted )
         cmd = f"cd {destdir}; git pull; git add '{upload}'; git commit -m '{comment}'; git push"
         print ( f"[plotHiscore] exec: {cmd}" )
@@ -968,7 +968,7 @@ def runPlotting ( args ):
             cmd = f"mkdir {dest}" ## -p ?
             a = subprocess.getoutput ( cmd )
             if a != "":
-                print ( "[plotHiscore] error when mkdir: %s" % a )
+                print ( f"[plotHiscore] error when mkdir: {a}" )
         print ( f"[plotHiscore] copying to {dest}:", end="" )
         first=True
         for f in F.split(" "):
@@ -997,8 +997,8 @@ def runPlotting ( args ):
             destdir = destdir.replace(upload,"")
             destdir = destdir.replace("//","")
             print ( "[plotHiscore] done. now please do yourself: " )
-            print ( "cd %s" % destdir )
-            print ( "git add %s" % upload )
+            print ( f"cd {destdir}" )
+            print ( f"git add {upload}" )
             print ( "git commit -m 'manual update'" )
             print ( "git push" )
         return

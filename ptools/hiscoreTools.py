@@ -95,6 +95,8 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
     with open ( dictfile, "rt" ) as f:
         txt = f.read()
         dictcontent = eval(txt)
+        if type(dictcontent)==dict: # make it work with single models also
+            dictcontent = [ dictcontent ]
         if type(entrynr) != type(None) and entrynr >= len(dictcontent):
             print ( f"[hiscoreTools] entry #{entrynr} not existent" )
             return False
