@@ -12,14 +12,16 @@ import matplotlib.mlab as mlab
 from smodels_utils.helper.various import getSqrts, findCollaboration
 from ptools.moreHelpers import namesForSetsOfTopologies
 from typing import Union, Text, List
+from protomodels.builder.loggerbase import LoggerBase
 
-class Analyzer:
+class Analyzer ( LoggerBase ):
     def __init__ ( self, pathname : str, topos : Union[Text,None,List], 
                    nocolors : bool = False ):
         """
         :param pathname: filename of dictionary
         :param topos: topologies to filter for
         """
+        super ( Analyzer, self ).__init__ ( 0 )
         self.setColors ( nocolors )
         self.reportZvalues = True
         self.filenames = []
@@ -122,9 +124,6 @@ class Analyzer:
                 topo = vk[p:]
                 topos.append ( topo )
         return ",".join(topos)
-
-    def pprint ( self, *args ):
-        print ( f"[analyseDBDict] {self.green}{' '.join(args)}{self.reset}" )
 
     def analyzeFile ( self, filename : str, nlargest : int, nsmallest : int,
            enum : bool ):

@@ -8,13 +8,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
+from protomodels.builder.loggerbase import LoggerBase
 
-class VariancePlotter:
+class VariancePlotter ( LoggerBase ):
     def __init__ ( self ):
+        super ( VariancePlotter, self ).__init__ ( walkerid )
         self.filenames = "history*.list"
-
-    def pprint ( self, *args ):
-        print ( "[drawVarianceOfWalk] %s" % " ".join(map(str,args)) )  
 
     def fetchData( self ):
         cmd = "rm -r history*list"

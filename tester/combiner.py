@@ -10,6 +10,8 @@ from smodels.particlesLoader import BSMList
 from smodels.tools.physicsUnits import fb
 from smodels.theory.model import Model
 from smodels.theory.theoryPrediction import TheoryPrediction
+from protomodels.builder.loggerbase import LoggerBase
+
 try:
     from tester import analysisCombiner
 except:
@@ -21,8 +23,9 @@ from scipy.special import erf
 from typing import List, Union, Tuple
 # import IPython
 
-class Combiner:
+class Combiner ( LoggerBase ):
     def __init__ ( self, walkerid: int=0 ):
+        super ( Combiner, self ).__init__ ( walkerid )
         self.walkerid = walkerid
 
     def getAllPidsOfCombo ( self, combo ):
@@ -121,32 +124,6 @@ class Combiner:
             combinables += compatibles
         self.log ( f"found {len(combinables)} combos!" )
         return combinables
-
-    def highlight ( self, msgType : str = "info", *args ):
-        """ logging, hilit """
-        msgType = msgType.lower()
-        if msgType == "debug":
-            return
-        col = Fore.GREEN
-        if msgType == "error":
-            col = Fore.RED
-        print ( f"{col}[combine:{self.walkerid}] {' '.join(map(str,args))}{Fore.RESET}" )
-
-    def error ( self, *args ):
-        self.highlight ( "error", *args )
-
-    def pprint ( self, *args ):
-        """ logging """
-        print ( "[combine:%d] %s" % (self.walkerid, " ".join(map(str,args))) )
-
-    def log ( self, *args ):
-        """ logging to file """
-        with open( "walker%d.log" % self.walkerid, "a" ) as f:
-            f.write ( "[combiner-%s] %s\n" % ( time.strftime("%H:%M:%S"), " ".join(map(str,args)) ) )
-
-    def debug ( self, *args ):
-        """ logging """
-        self.highlight ( "debug", *args )
 
     def discussCombinations ( self, combinables ):
         """ simple method that writes some stats about a combination to the log file """
@@ -721,7 +698,7 @@ class Combiner:
                     l = 1. - delta_br / 20.
                     ret *= l
             elif ( 1000022, 13 ) in decays and decays[(1000022,13)] not in [ 0., 1.]:
-                # no electron, but muon!
+                # no electron, but muon and tau!
                 if (1000022, 15) in decays:
                     delta_br = abs ( decays[(1000022,13)]-decays[(1000022,15)] )
                     l = 1. - delta_br / 20.

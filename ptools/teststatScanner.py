@@ -18,9 +18,11 @@ from ptools.sparticleNames import SParticleNames
 from ptools.hiscoreTools import fetchHiscoresObj
 from walker.hiscores import Hiscores
 from typing import Union, List, Dict
+from builder.loggerbase import LoggerBase
 
-class TeststatScanner:
+class TeststatScanner ( LoggerBase ):
     def __init__ ( self, args ):
+        super ( TeststatScanner, self ).__init__ ( 0 )
         self.namer = SParticleNames ( susy = False )
         self.args = vars(args)
         # get the standard rthreshold
@@ -71,6 +73,7 @@ class TeststatScanner:
         self.pprint ( f"#{i}: starting thread" )
         model = args["model"]
         model.walkerid = 100000+10000*i + model.walkerid
+        model.loggerid = model.walkerid
         pid = args["pid"]
         predictor = args["predictor"]
         nevents = args["nevents"]
@@ -125,6 +128,7 @@ class TeststatScanner:
         ssmrange = args["ssmrange"]
         origssm = args["ssm"]
         model.walkerid = 200000+10000*i + model.walkerid
+        model.loggerid = model.walkerid
         model.createNewSLHAFileName ( prefix = f"ssm{i}p{pids[0]}{pids[1]}{origssm:.2f}" )
         if not pids in model.ssmultipliers:
             self.pprint ( f"#{i}: error cannot find pids {str(pids)}" )
@@ -145,7 +149,7 @@ class TeststatScanner:
             self.pprint ( f"#{i}: we change the ssm from {ssmold:.3f} to {ssm:.3f}" )
             self.pprint ( f"#{i}: start with {ctr}/{len(ssmrange)}, ssm={ssm:.2f} ({self.args['nevents']} events)" )
             self.pprint ( f"#{i}:   `- K({ssm:.3f})={ma.M.K:.3f} Z={ma.M.Z:.3f}" )
-            import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+            # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
             mssm = ma.M.muhat*ssm
             ret[ssm]={ "Z": ma.M.Z, "r": ma.M.rvalues, 
                 "K": ma.M.K,"muhat": ma.M.muhat }
@@ -154,15 +158,6 @@ class TeststatScanner:
             #    os.unlink ( fname )
 
         return ret
-
-    def pprint ( self, *args ):
-        """ pretty print """
-        t = time.strftime("%H:%M:%S")
-        margs = " ".join(map(str,args))
-        line = f"[teststatScanner-{t}] {margs}"
-        print ( line )
-        with open ( f"teststatscanner{self.pid1}.log", "at" ) as f:
-            f.write ( line+"\n" )
 
     def produce( self, pid : int = 1000022 ):
         """ produce pickle files of mass scans for pid

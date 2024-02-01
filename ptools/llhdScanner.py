@@ -17,6 +17,7 @@ from plotting import plotLlhds
 from typing import Dict
 from ptools.sparticleNames import SParticleNames
 
+
 namer = SParticleNames ( False )
 
 def findPids ( rundir ):
@@ -35,11 +36,12 @@ def findPids ( rundir ):
     print ( f"[llhdScanner] pids are {ret}" )
     return ret
 
-class LlhdThread:
+class LlhdThread ( LoggerBase ):
     """ one thread of the sweep """
     def __init__ ( self, threadnr: int, rundir: str,
                    protomodel, pid1, pid2, mpid1, mpid2, nevents: int,
                    predictor ):
+        super ( LlhdThread, self ).__init__ ( threadnr )
         self.rundir = setup( rundir )
         self.threadnr = threadnr
         self.M = copy.deepcopy ( protomodel )
@@ -50,15 +52,6 @@ class LlhdThread:
         self.mpid2 = mpid2
         self.nevents = nevents
         self.predictor = predictor
-
-    def pprint ( self, *args ):
-        """ pretty print """
-        t = time.strftime("%H:%M:%S")
-        margs = " ".join(map(str,args))
-        line = f"[llhdthread{self.threadnr}-{t}] {margs}"
-        print ( line )
-        with open ( f"llhdscan{self.pid1}.log", "at" ) as f:
-            f.write ( line+"\n" )
 
     def getPredictions ( self, recycle_xsecs = True ):
         """ get predictions, return likelihoods """
@@ -150,7 +143,7 @@ def runThread ( threadid: int, rundir: str, M, pid1, pid2, mpid1,
     thread.clean()
     return newpoints
 
-class LlhdScanner:
+class LlhdScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, pid1, pid2, nproc, rundir : str,
                    dbpath : str = "official", select : str = "all",
@@ -159,6 +152,7 @@ class LlhdScanner:
         :param rundir: the rundir
         :param dbpath: the database path
         """
+        super ( LlhdScanner, self ).__init__ ( 0 )
         self.rundirarg = rundir
         self.rundir = setup( rundir )
         self.M = protomodel
@@ -169,15 +163,6 @@ class LlhdScanner:
         self.predictor = Predictor ( 0, dbpath=dbpath, 
                 select=select, do_srcombine = do_srcombine )
         print ( f"self.predictor = Predictor ( 0, dbpath='{dbpath}', select='{select}', do_srcombine = {do_srcombine} )" )
-
-    def pprint ( self, *args ):
-        """ pretty print """
-        t = time.strftime("%H:%M:%S")
-        margs = " ".join(map(str,args))
-        line = f"[llhdscanner:{t}] {margs}"
-        print ( line )
-        with open ( f"llhdscan{self.pid1}.log", "at" ) as f:
-            f.write ( line+"\n" )
 
     def describeRange ( self, r ):
         """ describe range r in a string """
