@@ -417,6 +417,7 @@ class ProtoModel:
                 countAttempts += 1
                 if countAttempts > 1:
                     self.log( f"error computing cross-sections: {e}, attempt # {countAttempts}" )
+                    self.pprint( f"error computing cross-sections: {e}, attempt # {countAttempts}" )
                 helpers.cpPythia8()
                 time.sleep ( random.uniform ( 5, 10 ) )
                 if countAttempts > 5:
@@ -548,7 +549,7 @@ class ProtoModel:
                     hasXSecs = True
                 else:
                     ctAttempts += 1
-                    fself.pprint ( "empty cross section container at attempt {ctAttempts}? whats going on?"  )
+                    self.pprint ( f"empty cross section container at attempt {ctAttempts}? whats going on?"  )
                     self.delXSecs()
                     if ctAttempts > 5:
                         break

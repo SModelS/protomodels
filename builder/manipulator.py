@@ -365,9 +365,9 @@ class Manipulator:
                 xsec.info.order = 0
                 xsec._pid = ss[0]
                 xsecs.append ( xsec )
+            self.M._xsecMasses = copy.deepcopy ( self.M.masses )
+            self.M._xsecSSMs = copy.deepcopy ( self.M.ssmultipliers )
             self.M._stored_xsecs = ( xsecs, "loaded from dict file" )
-            self.M._xsecMasses = self.M.masses
-            self.M._xsecSSMs = self.M.ssmultipliers
 
     def cheat ( self, mode = 0 ):
         ## cheating, i.e. starting with models that are known to work well
@@ -973,7 +973,7 @@ class Manipulator:
             newssm = 10000.
         self.record ( f"change ssm of {self.namer.texName(pids,addDollars=True)} to {newssm:.2f}" )
         self.M.ssmultipliers[pids]=newssm
-        if 2. * abs ( oldssm - newssm ) / ( oldssm + newssm ) > 1e-3:
+        if 2. * abs ( oldssm - newssm ) / ( oldssm + newssm ) > 1e-4:
             self.highlight ( "info", f"changing ssm of {self.namer.asciiName(pids)} from {oldssm:.2f} to {newssm:.2f}" )
 
         if not recursive:
