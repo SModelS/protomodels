@@ -68,7 +68,7 @@ class TeststatScanner:
         """ one thread that computes predictions for masses given in mrange
         """
         i = args["i"]
-        self.pprint ( f"{i}: starting thread" )
+        self.pprint ( f"#{i}: starting thread" )
         model = args["model"]
         model.walkerid = 100000+10000*i + model.walkerid
         pid = args["pid"]
@@ -86,11 +86,11 @@ class TeststatScanner:
                 ## fake a computation of xsecs, update the masses check
                 #model._stored_xsecs = copy.deepcopy ( right_xsecs )
                 #model._xsecMasses = dict([[pid,m] for pid,m in model.masses.items()])
-            self.pprint ( f"{i}: start with {ctr}/{len(mrange)}, "\
+            self.pprint ( f"#{i}: start with {ctr}/{len(mrange)}, "\
                     f"m({self.namer.asciiName(pid)})={m:.1f} ({self.args['nevents']} events)" )
             ret[m]={}
             if self.args['dry_run']:
-                self.pprint ( f"{i}: dry-run, not doing anything" )
+                self.pprint ( f"#{i}: dry-run, not doing anything" )
                 ret[m]["K"] = 0.
                 ret[m]["Z"] = 0.
                 ret[m][ "r"] = [ 0, 0, 0 ]
@@ -117,38 +117,41 @@ class TeststatScanner:
         """
         i = args["i"]
         # time.sleep(5*i) ## would that help??
-        self.pprint ( f"{i}: starting thread" )
+        self.pprint ( f"#{i}: starting thread" )
         model = args["model"]
         pids = args["pids"]
         predictor = args["predictor"]
         nevents = args["nevents"]
         ssmrange = args["ssmrange"]
-        ssm = args["ssm"]
+        origssm = args["ssm"]
         model.walkerid = 200000+10000*i + model.walkerid
-        model.createNewSLHAFileName ( prefix = f"ssm{i}p{pids[0]}{pids[1]}{ssm:.2f}" )
+        model.createNewSLHAFileName ( prefix = f"ssm{i}p{pids[0]}{pids[1]}{origssm:.2f}" )
         if not pids in model.ssmultipliers:
-            self.pprint ( f"{i}: error cannot find pids {str(pids)}" )
+            self.pprint ( f"#{i}: error cannot find pids {str(pids)}" )
             return
         ret = {}
         model.delXSecs()
         # model.predict ( nevents = nevents, recycle_xsecs = True )
         predictor.predict ( model )
-        self.pprint ( f"{i}: before we begin, Z is {model.Z:.3f}" )
+        self.pprint ( f"#{i}: before we begin, Z is {model.Z:.3f}" )
 
         for ctr,ssm in enumerate(ssmrange):
+            # fname = model.createNewSLHAFileName ( prefix = f"ssm{i}p{pids[0]}{pids[1]}{ssm:.2f}" )
             ssmold = model.ssmultipliers[pids]
-            self.pprint ( f"{i}: we change the ssm from {ssmold:.3f} to {ssm:.3f}" )
             ma = Manipulator ( model )
-            ma.changeSSM ( pids, ssm )
-            model = ma.M
-            self.pprint ( f"{i}: start with {ctr}/{len(ssmrange)}, ssm={ssm:.2f} ({self.args['nevents']} events)" )
+            ma.changeSSM ( pids, ssm, recursive = True )
             # model.predict ( nevents = nevents, recycle_xsecs = True )
-            predictor.predict ( model, keep_predictions = True )
-            self.pprint ( f"{i}:   `- Z={model.Z:.3f}" )
-            mssm = model.muhat*ssm
-            ret[ssm]={ "Z": model.Z, "r": model.rvalues, 
-                "K": model.K,"muhat": model.muhat }
+            predictor.predict ( ma.M, keep_predictions = True )
+            self.pprint ( f"#{i}: we change the ssm from {ssmold:.3f} to {ssm:.3f}" )
+            self.pprint ( f"#{i}: start with {ctr}/{len(ssmrange)}, ssm={ssm:.2f} ({self.args['nevents']} events)" )
+            self.pprint ( f"#{i}:   `- K({ssm:.3f})={ma.M.K:.3f} Z={ma.M.Z:.3f}" )
+            import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+            mssm = ma.M.muhat*ssm
+            ret[ssm]={ "Z": ma.M.Z, "r": ma.M.rvalues, 
+                "K": ma.M.K,"muhat": ma.M.muhat }
             ret[ssm]["critics"] = self.createCriticResults ( predictor )
+            #if False : # os.exists ( fname ):
+            #    os.unlink ( fname )
 
         return ret
 
@@ -269,8 +272,7 @@ class TeststatScanner:
         ssmranges = [ ssmrangetot[i::nproc] for i in range(nproc) ]
         # ssmranges[0].insert(0,ssm) # compute it early!
         self.pprint ( f"start scanning with ssm({pid1},{pid2})={ssm:.2f} with {nproc} procs, {len(ssmrangetot)} ssm points, {self.args['nevents']} events" )
-        import multiprocessing
-        pool = multiprocessing.Pool ( processes = len(ssmranges) )
+            
         expected = False
         predictor =  Predictor( 0, dbpath=self.args["dbpath"], 
                 do_srcombine=self.args['do_srcombine'],
@@ -280,9 +282,14 @@ class TeststatScanner:
                    "dry_run": self.args['dry_run'],
                    "i": i, "ssmrange": x } for i,x in enumerate(ssmranges) ]
         values={}
-        tmp = pool.map ( self.ssmProcess, args )
-        for r in tmp:
-            values.update(r)
+        if nproc == 1:
+            values = self.ssmProcess ( args[0] )
+        else:
+            import multiprocessing
+            pool = multiprocessing.Pool ( processes = len(ssmranges) )
+            tmp = pool.map ( self.ssmProcess, args )
+            for r in tmp:
+                values.update(r)
         if self.args['dry_run']:
             return
         filename = f"ssm{origpids[0]}{origpids[1]}.pcl"
@@ -290,7 +297,7 @@ class TeststatScanner:
             subprocess.getoutput ( f"cp {filename} {filename}old" )
         with open ( filename, "wb" ) as f:
             pickle.dump ( values, f )
-            pickle.dump ( ssm, f )
+            pickle.dump ( origssm, f )
             pickle.dump ( time.asctime(), f )
             pickle.dump ( self.args, f )
             f.close()

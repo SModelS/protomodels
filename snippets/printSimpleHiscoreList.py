@@ -5,7 +5,7 @@
 import os
 from os import PathLike
 from ptools.sparticleNames import SParticleNames 
-from colorama import Fore
+from colorama import Fore as ansi
 
 def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
     extended : bool = False  ):
@@ -33,13 +33,16 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             mass = entry["masses"][p]
             sparticles += f"{name}={mass:.1f}"
         timestamp = entry["timestamp"]
+        r1 = timestamp.find(" ")
+        r2 = timestamp.rfind(" ")
+        timestamp = timestamp[r1:r2]
         if extended:
-            print ( f"#{i}({wid:3d}): K={Fore.GREEN}{K:.3f}{Fore.RESET} Z={Z:.3f}; {sparticles}" )
+            print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET} Z={Z:.3f}; {sparticles}" )
             print ( f"       `---: {entry['description']}" )
             print ( f"       `---: {timestamp}" )
             print ( )
         else:
-            print ( f"#{i}({wid:3d}): K={Fore.GREEN}{K:.3f}{Fore.RESET}; {sparticles} {timestamp}" )
+            print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET}; Z={Z:.2f}; {sparticles} {timestamp}" )
 
 
 if __name__ == "__main__":

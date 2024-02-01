@@ -927,8 +927,7 @@ class Manipulator:
             self.M.ssmultipliers[randomProd]=v
             return 1
         f = random.uniform ( .8, 1.2 )
-        self.log ( "randomly changing ssms of %s by a factor of %.2f" % \
-                     ( self.namer.asciiName ( p ), f ) )
+        self.log ( f"randomly changing ssms of {self.namer.asciiName ( p )} by a factor of {f:.2f}" )
         ssms = []
         for dpd,v in self.M.ssmultipliers.items():
             if p in dpd or -p in dpd:
@@ -974,7 +973,8 @@ class Manipulator:
             newssm = 10000.
         self.record ( f"change ssm of {self.namer.texName(pids,addDollars=True)} to {newssm:.2f}" )
         self.M.ssmultipliers[pids]=newssm
-        self.highlight ( "info", f"changing ssm of {self.namer.asciiName(pids)} from {oldssm:.2f} to {newssm:.2f}" )
+        if 2. * abs ( oldssm - newssm ) / ( oldssm + newssm ) > 1e-3:
+            self.highlight ( "info", f"changing ssm of {self.namer.asciiName(pids)} from {oldssm:.2f} to {newssm:.2f}" )
 
         if not recursive:
             return
