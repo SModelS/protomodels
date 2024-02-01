@@ -34,7 +34,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             sparticles += f"{name}={mass:.1f}"
         timestamp = entry["timestamp"]
         if extended:
-            print ( f"#{i}({wid:3d}): K={Fore.GREEN}{K:.3f}{Fore.RESET}; {sparticles}" )
+            print ( f"#{i}({wid:3d}): K={Fore.GREEN}{K:.3f}{Fore.RESET} Z={Z:.3f}; {sparticles}" )
             print ( f"       `---: {entry['description']}" )
             print ( f"       `---: {timestamp}" )
             print ( )

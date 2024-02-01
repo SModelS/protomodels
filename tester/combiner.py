@@ -530,12 +530,16 @@ class Combiner:
                 return False
         return True
 
-    def computePrior ( self, protomodel, nll=False, verbose=False, name="expo1" ):
+    def computePrior ( self, protomodel, nll : bool =False, 
+        verbose : bool =False, name : str ="expo1" ) -> float:
         """ compute the prior for protomodel, used to introduce regularization,
-            i.e. punishing for non-zero parameters, imposing sparsity.
+            i.e. penalizing for non-zero parameters, imposing sparsity.
+
         :param nll: if True, return negative log likelihood
         :param verbose: print how you get the prior.
         :param name: name of prior (expo1, gauss1, etc). See self.priorForNDF.
+
+        :returns: a priori probability of the model
         """
 
         unfrozen = protomodel.unFrozenParticles ( withLSP=True )
@@ -678,7 +682,7 @@ class Combiner:
                 print(f" `- {didwhat}: #{ctr} {pId}: r={r:.2f}{Fore.RESET}")
         return ret
 
-    def penalizeForMissingResults ( self, 
+    def penaltyForMissingResults ( self, 
             predictions : List[TheoryPrediction] ) -> float:
         """ very simple hack for now, penalize if predictions are all
         from the same experiment 
@@ -694,6 +698,57 @@ class Combiner:
             return 1.
         self.pprint ( f"penalty! we only have {','.join( k for k,v in hasExperiment.items() if v )}" )
         return 1e-3
+
+    def penaltyForUndemocraticFlavors ( self, protomodel ) -> float:
+        """ very simple hack for now, penalize for undemocratic flavor decays
+
+        :returns: penalty -- 1 - delta(branching_ratios)/C for each flavor decay
+        """
+        ret = 1.
+        for pid, decays in protomodel.decays.items():
+            if not pid in [ 1000024, 1000023 ]:
+                continue
+            if len ( decays ) == 1: # only one flavor? allow!
+                continue
+            ## is there an electron decay?
+            if ( 1000022, 11 ) in decays and decays[(1000022,11)] not in [ 0., 1.]:
+                if (1000022, 13) in decays:
+                    delta_br = abs ( decays[(1000022,11)]-decays[(1000022,13)] )
+                    l = 1. - delta_br / 5.
+                    ret *= l
+                if (1000022, 15) in decays:
+                    delta_br = abs ( decays[(1000022,11)]-decays[(1000022,15)] )
+                    l = 1. - delta_br / 20.
+                    ret *= l
+            elif ( 1000022, 13 ) in decays and decays[(1000022,13)] not in [ 0., 1.]:
+                # no electron, but muon!
+                if (1000022, 15) in decays:
+                    delta_br = abs ( decays[(1000022,13)]-decays[(1000022,15)] )
+                    l = 1. - delta_br / 20.
+                    ret *= l
+        return ret
+
+    def penaltyForExtremeSSMs ( self, protomodel ) -> float:
+        """ very simple hack for now, penalize for unusual values of
+        the signal strength multipliers, where unusual means orders of magnitudes
+        different from unity.
+
+        :returns: penalty -- 1 - log10(ssm)/20. per ssm
+        """
+        ret = 1.
+        for k,v in protomodel.ssmultipliers.items():
+            if v == 0. or 0.01 < v < 100.:
+                continue
+            if v < 1.:
+                ## 0.01 is 0.9, 0.001 is 0.85, 1e-6 is 0.7
+                l = 1 + numpy.log10 ( v ) / 20.
+            if v > 1.:
+                ## 100 is 0.9, 1000 is 0.85, 1e6 is 0.7
+                l = 1 - numpy.log10 ( v ) / 20.
+            if l < 1e-10:
+                l = 1e-10
+            ret *= l
+        return ret
 
     def findHighestSignificance ( self, predictions : List[TheoryPrediction], 
             strategy : str, expected : bool =False, 

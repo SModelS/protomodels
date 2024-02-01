@@ -1,13 +1,13 @@
 !) see if the teststatScanner works
 !) penalize for flavor violation
+!) penalize for extreme signal strength multipliers
 
 *) add also steps that shift N1,C1,N2 simultaneously
 *) add also steps that shift the whole spectrum simultaneously
 *) add also steps that increase/decrease mass and xsecs simultaneously
+*) unify the logging and printing facilities
 ?) clean up likelihood scanner code
 *) see if transitions between offshell region and onshell region work
-*) penalize for extreme signal strength multipliers
-*) check the nans of the prior when running the teststat scanner
 +) penalize if we are out-of-grid of one experiment:
    intermediate: we have combiner.penalizeForMissingResults
 +) drop the "states"? maybe not yet!
@@ -39,3 +39,4 @@
 .) make hiscores.cache a simple transparent cache for hiscores.dict,
 .) plotHiscore print also "item" for combined results
 .) ruler should use same particle namer as the rest
+.) check the nans of the prior when running the teststat scanner
