@@ -59,7 +59,7 @@ class HiscorePlotter:
         print ( f"[plotHiscore] exec: {cmd}" )
         out = subprocess.getoutput ( cmd )
         if out != "":
-            print ( "[plotHiscore] %s" % out )
+            print ( f"[plotHiscore] {out}" )
         return True
 
     def discussPredictions ( self ):

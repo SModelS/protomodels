@@ -343,7 +343,7 @@ class Manipulator ( LoggerBase ):
             self.M._xsecMasses = copy.deepcopy ( self.M.masses )
             self.M._xsecSSMs = copy.deepcopy ( self.M.ssmultipliers )
             self.M._stored_xsecs = ( xsecs, "loaded from dict file" )
-            self.M.computeXSecs()
+            # self.M.computeXSecs()
 
     def cheat ( self, mode = 0 ):
         ## cheating, i.e. starting with models that are known to work well
@@ -923,13 +923,15 @@ class Manipulator ( LoggerBase ):
             pids = ( pids[1], pids[0] )
         return pids in self.M.ssmultipliers.keys()
 
-    def changeSSM ( self, pids : Tuple, newssm, recursive : bool = True ):
+    def changeSSM ( self, pids : Tuple, newssm, recursive : bool = True,
+                    verbose : bool = True ):
         """ change the signal strength multiplier of pids to newssm,
             if we have stored xsecs, we correct them, also
 
         :param pids: Tuple of particle ids, e.g. (1000024,1000023)
         :param recursive: if true, then change also for all other signs, e.g.
         (-pids[0],-pids[1]), etc
+        :param verbose: if False, then dont mention it. used for recursive.
         """
         if type(pids) != tuple:
             self.highlight ( "error", "when changing SSMs, need to supply PIDs as a tuple!" )
@@ -947,20 +949,23 @@ class Manipulator ( LoggerBase ):
         oldssm = self.M.ssmultipliers[pids]
         if newssm > 10000.:
             newssm = 10000.
-        self.record ( f"change ssm of {self.namer.texName(pids,addDollars=True)} to {newssm:.2f}" )
+        if verbose:
+            self.record ( f"change ssm of {self.namer.texName(pids,addDollars=True)} to {newssm:.2f}" )
         self.M.ssmultipliers[pids]=newssm
-        if 2. * abs ( oldssm - newssm ) / ( oldssm + newssm ) > 1e-4:
-            self.highlight ( "info", f"changing ssm of {self.namer.asciiName(pids)} from {oldssm:.2f} to {newssm:.2f}" )
+        if (oldssm + newssm) > 0.:
+            if 2. * abs ( oldssm - newssm ) / ( oldssm + newssm ) > 1e-4:
+                if verbose:
+                    self.highlight ( "info", f"changing ssm of {self.namer.asciiName(pids)} from {oldssm:.2f} to {newssm:.2f}" )
 
         if not recursive:
             return
         ## change for all signs
         if self.pidPairIsInSSMs ( (-pids[0],pids[1]) ):
-            self.changeSSM ( (-pids[0],pids[1]), newssm, recursive=False )
+            self.changeSSM ( (-pids[0],pids[1]), newssm, recursive=False, verbose=False )
         if self.pidPairIsInSSMs ( ( pids[0],- pids[1]) ):
-            self.changeSSM ( (pids[0],- pids[1]), newssm, recursive=False )
+            self.changeSSM ( (pids[0],- pids[1]), newssm, recursive=False, verbose=False )
         if self.pidPairIsInSSMs ( ( - pids[0],- pids[1]) ):
-            self.changeSSM ( (-pids[0],- pids[1]), newssm, recursive=False )
+            self.changeSSM ( (-pids[0],- pids[1]), newssm, recursive=False, verbose=False )
 
 
     def randomlyFreezeParticle ( self, sigma= 0.5, probMassive = 0.3):

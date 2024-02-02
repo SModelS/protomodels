@@ -137,6 +137,7 @@ def updateHiscores( rundir : Union[None,PathLike] = None,
     D["model"]=hi.hiscores[0]
     return D
 
+"""
 def updateStates( rundir : Union[None,PathLike] = None,
                   dbpath : Union[None,PathLike] = None ):
     args = types.SimpleNamespace()
@@ -163,6 +164,7 @@ def updateStates( rundir : Union[None,PathLike] = None,
     hiscoreTools.updateHiscoreHi ( args )
     print ( f"[updateHiscores] done updating {args.outfile}" )
     print ( )
+"""
 
 def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
           dbpath : str = "official", verbose : bool = False ):
@@ -195,7 +197,7 @@ def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
     args.tex = False
     args.keep = False
     args.commit = False
-    if K > 5.0:
+    if K > 4.0:
         args.commit = True
     plotHiscore.runPlotting ( args )
 
@@ -228,7 +230,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
         i+=1
         if maxruns != None and i > maxruns:
             break
-        D = updateHiscores( rundir, dbpath )
+        D = updateHiscores( rundir, dbpath, do_srcombine )
         Z,step,model,K = D["Z"],D["step"],D["model"],D["K"]
         if K > Kold + 1e-10: #  + .001:
             from builder.manipulator import Manipulator
