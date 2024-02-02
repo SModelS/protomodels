@@ -154,8 +154,7 @@ def seedRandomNumbers ( seed ):
 def cpPythia8 ( ):
     """ as a very ugly workaround for now, if something goes wrong with
         cross sections, cp the pythia8 install. """
-    libdir = "/users/wolfgan.waltenberger/git/smodels/smodels/lib"
-    # ~/git/smodels/smodels/lib/pythia8/pythia8226/share/Pythia8/xmldoc/Welcome.xml
+    libdir = f"{os.environ['HOME']}/git/smodels/smodels/lib"
     if os.path.exists ( libdir + "/pythia8/pythia8226/share/Pythia8/xmldoc/Welcome.xml" ):
         return
     lockfile = libdir+"/lock"
@@ -165,16 +164,18 @@ def cpPythia8 ( ):
         ctr += 1
         if ctr > 5:
             break
-    cmd = "touch %s" % lockfile
-    subprocess.getoutput ( cmd )
-    cmd = "rm -rf %s/pythia8old" % libdir
-    subprocess.getoutput ( cmd )
-    cmd = "mv %s/pythia8 %s/pythia8old" % ( libdir, libdir )
-    subprocess.getoutput ( cmd )
-    cmd = "cp -r %s/pythia8backup %s/pythia8" % ( libdir, libdir )
-    subprocess.getoutput ( cmd )
-    cmd = "rm -f %s" % lockfile
-    subprocess.getoutput ( cmd )
+    cmd = f"touch {lockfile}"
+    o = subprocess.getoutput ( cmd )
+    cmd = f"chmod -R u+w {libdir}/pythia8old {libdir}/pythia8"
+    o = subprocess.getoutput ( cmd )
+    cmd = f"rm -rf {libdir}/pythia8old"
+    o = subprocess.getoutput ( cmd )
+    cmd = f"mv {libdir}/pythia8 {libdir}/pythia8old"
+    o = subprocess.getoutput ( cmd )
+    cmd = f"cp -r {libdir}/pythia8backup {libdir}/pythia8"
+    o = subprocess.getoutput ( cmd )
+    cmd = f"rm -f {lockfile} lockfile"
+    o = subprocess.getoutput ( cmd )
 
 def lrEquiv ( l, r ):
     """ check if the two strings are equivalent up to L vs R """
