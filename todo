@@ -1,6 +1,5 @@
 !) see if the teststatScanner works
-!) penalize for flavor violation
-!) penalize for extreme signal strength multipliers
+!) builder: if em results are available, do not use the UL results
 
 *) add also steps that shift N1,C1,N2 simultaneously
 *) add also steps that shift the whole spectrum simultaneously
@@ -40,3 +39,6 @@
 .) ruler should use same particle namer as the rest
 .) check the nans of the prior when running the teststat scanner
 .) unify the logging and printing facilities
+.) add critic to dictionaries
+.) penalize for flavor violation
+.) penalize for extreme signal strength multipliers
