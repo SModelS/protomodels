@@ -138,6 +138,15 @@ class Manipulator ( LoggerBase ):
         self.M.step = step ## continue counting!
         self.M.bestCombo = None
 
+    def shiftAllMassesBy ( self, dm : float ):
+        """ shift the masses of all unfrozen particles by dm [GeV]
+        (simple covenience function)
+
+        :param dm: the shift of all masses, in GeV
+        """
+        for pid,m in self.M.masses.items():
+            self.M.masses[pid]=m+dm
+
     def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict",
             cleanOut : bool = True, comment : str = "", appendMode : bool = False,
             ndecimals : int = 6 ) -> Dict:
@@ -199,6 +208,8 @@ class Manipulator ( LoggerBase ):
         D["smodelsver"]=smodels.installation.version()
         D["dbver"]=self.M.dbversion
         D["description"]=self.M.description
+        if hasattr ( self.M, "critic_description" ):
+            D["critic_description"]=self.M.critic_description
         if len(comment)>0:
             D["comment"]=comment
         if outfile == None:
@@ -619,8 +630,8 @@ class Manipulator ( LoggerBase ):
             UL=f"{tp[2].upperLimit.asNumber(fb):1.2g}*fb"
             print( f'     - r={tp[2].getRValue():1.2f} {anaId} [{txns}] pred={tp[2].xsection.value.asNumber(fb):1.2g}*fb, UL={UL}{eUL}' )
 
-    def rescaleSignalBy ( self, s ):
-        """ multiply the signal strength multipliers with muhat"""
+    def rescaleSignalBy ( self, s : float ):
+        """ multiply the signal strength multipliers with s """
 
         if s == 0.:
             self.pprint ( "rescaling by zero? Ignore." )

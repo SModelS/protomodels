@@ -221,6 +221,7 @@ class Predictor ( LoggerBase ):
         protomodel.cleanBestCombo()
 
         #Recompute predictions with higher accuracy for high score models:
+        ## FIXME not a good idea! should probably remove!
         if protomodel.Z > 4.1 and protomodel.nevents < 55000:
             self.log ( f"Z {protomodel.Z:.2f}>2.7, repeat with higher stats!" )
             protomodel.nevents = 100000
@@ -384,11 +385,20 @@ class Predictor ( LoggerBase ):
         while len(rvalues)<2:
             rvalues.append(0.)
         rvalues.sort(reverse = True )
+        tpList.sort ( reverse = True )
         srs = "%s" % ", ".join ( [ "%.2f" % x for x in rvalues[:3] ] )
         self.log ( "top r values before rescaling are: %s" % srs )
         protomodel.rvalues = rvalues #Do not include initial zero values
         # protomodel.excluded = protomodel.rvalues[0] > self.rthreshold #The 0.99 deals with the case rmax = threshold
         protomodel.tpList = tpList[:]
+        critic_description = []
+        for tp in tpList[:3]:
+            rtype = tp[2].dataType(short=True)
+            tmp = f"{tp[2].analysisId()}({rtype}):{tp[0]:.2f}"
+            critic_description.append ( tmp )
+        if len(tpList)>3:
+            critic_description.append ( "...")
+        protomodel.critic_description = ",".join ( critic_description )
 
     def getMaxAllowedMu(self, protomodel):
         """ Compute the maximum (global) signal strength normalization

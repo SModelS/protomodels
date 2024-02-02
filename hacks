@@ -1,0 +1,23 @@
+*) we are currently penalizing for non-democratic flavors,
+	 see tester/combiner.py:penaltyForUndemocraticFlavors
+
+*) we are currently penalizing for extreme signal strength modifiers (ssms),
+	 see tester/combiner.py:penaltyForExtremeSSMs
+
+*) we are currently penalizing if one experiment is entirely missing 
+   in the builder's list of predictions, 
+   see tester/combiner.py:penaltyForMissingResults
+
+*) no hack but the penalties all get multiplied with the prior in 
+   tester/predictor.py:computeSignificance
+
+*) when "unfreezing" (adding) an C1 or a N2 particle, there is a 10%
+	 chance to unfreeze to the offshell region, see
+	 builder/manipulator.py:unFreezeParticle
+
+*) when changing the mass of a C1 or a N2, there is a 10% that the other particle
+   (N2 or C1) gets changed to the same mass, see
+   builder/manipulator.py:randomlyChangeMasses
+
+*) squarks and gluinos have a minimum mass of 310 GeV, see
+ 	builder/manipulator.py "walledpids"

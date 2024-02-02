@@ -16,6 +16,7 @@ from tester.predictor import Predictor
 from plotting import plotLlhds
 from typing import Dict
 from ptools.sparticleNames import SParticleNames
+from builder.loggerbase import LoggerBase
 
 
 namer = SParticleNames ( False )
@@ -346,7 +347,7 @@ def main ():
             help='maximum mass of pid2 [None]',
             type=float, default=None )
     argparser.add_argument ( '-d2', '--deltam2',
-            help='delta m of pid1 [None]',
+            help='delta m of pid2 [None]',
             type=float, default=None )
     argparser.add_argument ( '-t', '--topo',
             help='topology [None]',
