@@ -179,7 +179,7 @@ class TeststatScanner ( LoggerBase ):
                 fac = 1.006
         if self.args['preserve_xsecs'] and not hasattr ( model, "stored_xsecs" ):
             self.pprint ( "preserve_xsec mode, so computing the xsecs now" )
-            model.computeXSecs( keep_slha = True )
+            model.computeXSecs( nevents = 100000, keep_slha = True )
         if model == None:
             self.pprint ( f"cannot find a model in {self.hi.pickleFile}" )
         apid = abs(pid)
@@ -326,7 +326,12 @@ class TeststatScanner ( LoggerBase ):
             p = f.find("scanM")
             s = f[p+5:]
             s = s.replace(".pcl","")
-            ret.add ( int(s) )
+            try:
+                ret.add ( int(s) )
+            except ValueError as e:
+                self.pprint  ( f"when trying to find pids to scan: {e}. will ignore {f}." )
+                ## if there are additional files: ignore them.
+                pass
         return ret
 
 
@@ -579,9 +584,9 @@ if __name__ == "__main__":
             action="store_true" )
     args = argparser.parse_args()
     scanner = TeststatScanner( args )
-    allpids = scanner.findPids( )
     pids = args.pid
     if pids == 0:
+        allpids = scanner.findPids( )
         pids = allpids
     if args.produce:
         if args.pid2 > 0:
@@ -592,6 +597,7 @@ if __name__ == "__main__":
         if args.pid != 0:
             scanner.draw( pids, args.interactive, pid2 = args.pid2 )
         else:
+            allpids = scanner.findPids( )
             for pid in allpids:
                 try:
                     scanner.draw( pid, args.interactive, args.pid2  )

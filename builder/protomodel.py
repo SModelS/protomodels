@@ -353,6 +353,7 @@ class ProtoModel ( LoggerBase ):
 
         if not nevents:
             nevents = self.nevents
+        self.computer.nevents = nevents
 
         hasComputed = False
         countAttempts = 0
