@@ -683,7 +683,7 @@ class HiscorePlotter:
         ossms = { (-1000006,1000006), (1000021,1000021), (-2000006,2000006) }
         for fname in glob.glob("ssm_*_*.png" ):
             pids = fname.replace("ssm_","").replace(".png","")
-            pids = tuple ( map ( int, pids.split("_") ) )
+            pids = tuple ( map ( str, pids.split("_") ) )
             ossms.add ( pids )
         frozen = self.protomodel.frozenParticles()
         # take out all frozen ssm plots
@@ -691,7 +691,7 @@ class HiscorePlotter:
         for pids in ossms:
             hasFrozenPid=False
             for pid in pids:
-                if pid in frozen or -pid in frozen:
+                if pid in frozen: #  or -pid in frozen:
                     hasFrozenPid = True
                     break
             if not hasFrozenPid:
@@ -703,9 +703,7 @@ class HiscorePlotter:
         for pids in ssms:
             if not first:
                 f.write ( ", " )
-            f.write ( "<a href=./ssm_%d_%d.png?%d>(%s,%s)</a>" % \
-                      ( pids[0],pids[1], dt, namer.htmlName(pids[0],addSign=True),
-                        namer.htmlName(pids[1],addSign=True) ) )
+            f.write ( f"<a href=./ssm_{pids[0]}_{pids[1]}.png?{dt}>({pids[0]},{pids[1]})</a>"  )
             first = False
         f.write ( "<br>\n" )
         f.write ( "<table width=80%>\n<tr><td>\n" )
