@@ -144,6 +144,7 @@ class TeststatScanner ( LoggerBase ):
             ssmold = model.ssmultipliers[pids]
             ma = Manipulator ( model )
             ma.changeSSM ( pids, ssm, recursive = True )
+            ma.M.computeXSecs ( nevents = 100000 )
             # model.predict ( nevents = nevents, recycle_xsecs = True )
             predictor.predict ( ma.M, keep_predictions = True )
             self.pprint ( f"#{i}: we change the ssm from {ssmold:.3f} to {ssm:.3f}" )
@@ -179,7 +180,9 @@ class TeststatScanner ( LoggerBase ):
                 fac = 1.006
         if self.args['preserve_xsecs'] and not hasattr ( model, "stored_xsecs" ):
             self.pprint ( "preserve_xsec mode, so computing the xsecs now" )
-            model.computeXSecs( nevents = 100000, keep_slha = True )
+        model.delXSecs()
+        model.nevents = 100000
+        model.computeXSecs( nevents = 100000, keep_slha = True )
         if model == None:
             self.pprint ( f"cannot find a model in {self.hi.pickleFile}" )
         apid = abs(pid)
@@ -219,7 +222,7 @@ class TeststatScanner ( LoggerBase ):
             values.update(r)
         if self.args['dry_run']:
             return
-        with open ( f"scanM{pid}.pcl", "wb" ) as f:
+        with open ( f"scanM{self.namer.asciiName(pid)}.pcl", "wb" ) as f:
             pickle.dump ( values, f )
             pickle.dump ( mass, f )
             pickle.dump ( time.asctime(), f )
@@ -249,7 +252,8 @@ class TeststatScanner ( LoggerBase ):
             ssm = 1e-3
         # self.pprint ( f"starting with {str(pids)}: {ssm:.2f}"
         values = {}
-        fm = .6 ## lower bound (relative) on mass
+        ## meaning we our range goes from ssm_hat * fm to ssm_hat / fm
+        fm = .4 ## relative lower bound on ssm
         # mrange = numpy.arange ( ssm * fm, ssm / fm, .01*ssm )
         ssmrangetot = [ ssm ]
         ssm1,ssm2 = ssm, ssm
@@ -266,7 +270,7 @@ class TeststatScanner ( LoggerBase ):
             nproc = len(ssmrangetot)
         ssmranges = [ ssmrangetot[i::nproc] for i in range(nproc) ]
         # ssmranges[0].insert(0,ssm) # compute it early!
-        self.pprint ( f"start scanning with ssm({pid1},{pid2})={ssm:.2f} with {nproc} procs, {len(ssmrangetot)} ssm points, {self.args['nevents']} events" )
+        self.pprint ( f"start scanning with ssm({self.namer.asciiName(pid1)},{self.namer.asciiName(pid2)})={ssm:.2f} with {nproc} procs, {len(ssmrangetot)} ssm points, {self.args['nevents']} events" )
             
         expected = False
         predictor =  Predictor( 0, dbpath=self.args["dbpath"], 
@@ -287,12 +291,12 @@ class TeststatScanner ( LoggerBase ):
                 values.update(r)
         if self.args['dry_run']:
             return
-        filename = f"ssm{origpids[0]}{origpids[1]}.pcl"
+        filename = f"ssm{self.namer.asciiName(origpids[0])}{self.namer.asciiName(origpids[1])}.pcl"
         if os.path.exists ( filename ):
             subprocess.getoutput ( f"cp {filename} {filename}old" )
         with open ( filename, "wb" ) as f:
             pickle.dump ( values, f )
-            pickle.dump ( origssm, f )
+            pickle.dump ( ssm, f )
             pickle.dump ( time.asctime(), f )
             pickle.dump ( self.args, f )
             f.close()
@@ -378,9 +382,9 @@ class TeststatScanner ( LoggerBase ):
         import matplotlib
         matplotlib.use("Agg")
         from matplotlib import pyplot as plt
-        picklefile = f"{self.rundir}/scanM{pid}.pcl"
+        picklefile = f"{self.rundir}/scanM{self.namer.asciiName(pid)}.pcl"
         if isSSMPlot():
-            picklefile = f"{self.rundir}/ssm{pid}{pid2}.pcl"
+            picklefile = f"{self.rundir}/ssm{self.namer.asciiName(pid)}{self.namer.asciiName(pid2)}.pcl"
         with open ( picklefile, "rb" ) as f:
             values = pickle.load( f )
             cmass = pickle.load ( f ) ## cmass is pids
@@ -493,9 +497,9 @@ class TeststatScanner ( LoggerBase ):
             ax1.legend( fontsize = 12 )
             plt.xlabel ( f"$m({pname})$ [GeV]", fontsize=16 )
 
-        figname = f"M{pid}.png"
+        figname = f"M{self.namer.asciiName(pid)}.png"
         if isSSMPlot():
-            figname = f"ssm_{pid}_{pid2}.png"
+            figname = f"ssm_{self.namer.asciiName(pid)}_{self.namer.asciiName(pid2)}.png"
         stdvar =  numpy.std ( Kvalues )
 
         if interactive:
