@@ -5,6 +5,8 @@
 
 __all__ = [ "Hiscores" ]
 
+import sys,os
+sys.path.insert(0, os.path.expanduser("~/"))
 import random, copy, pickle, os, fcntl, time, subprocess, colorama
 from scipy import stats
 from protomodels.csetup import setup

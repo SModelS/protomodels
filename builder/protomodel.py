@@ -28,8 +28,8 @@ class ProtoModel ( LoggerBase ):
     # __slots__ = [ "walkerid", "keep_meta" ]
 
     LSP = 1000022 ## the LSP is hard coded
-    # SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
-    SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
+    SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
+    #SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
 
     def __init__ ( self, walkerid : int = 0, keep_meta : bool = True, 
                    nevents : int = 10000, dbversion : str = "????" ):
