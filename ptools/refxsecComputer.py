@@ -382,14 +382,11 @@ class RefXSecComputer:
             if xsecall == None:
                 continue
             xsec = self.interpolate ( channel["masses"], xsecall )
-            print(channel,"xsecall:",xsecall is not None, "interpolation:", xsec is not None)
             if xsec == None:
                 print('NO XSECTION. USE PYTHIA?')
                 continue
             if ssmultipliers != None and ( pids[1], pids[0] ) in ssmultipliers:
                 pids = ( pids[1], pids[0] )
-            print(pids)
-            print(pids in ssmultipliers)
             if ssmultipliers != None and pids in ssmultipliers:
                 ssm = ssmultipliers[pids]
                 channel["ssm"] = ssm
