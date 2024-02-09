@@ -6,11 +6,12 @@ __all__ = [ "ProtoModel" ]
 
 import random, tempfile, os, time, colorama, copy, sys, pickle, random
 sys.path.insert(0,"../")
-from smodels.tools.wrapperBase import WrapperBase 
+from smodels.tools.wrapperBase import WrapperBase
 # the default tempdir of wrapper base is /tmp
 # WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 # WrapperBase.defaulttempdir="/dev/shm" ## keep the temps in shared memory
 from smodels.tools.xsecComputer import XSecComputer, NLL
+from ptools.refxsecComputer import RefXSecComputer
 from smodels.tools.physicsUnits import TeV, fb
 from ptools import helpers
 from ptools.sparticleNames import SParticleNames
@@ -31,7 +32,7 @@ class ProtoModel ( LoggerBase ):
     SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
     #SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
 
-    def __init__ ( self, walkerid : int = 0, keep_meta : bool = True, 
+    def __init__ ( self, walkerid : int = 0, keep_meta : bool = True,
                    nevents : int = 10000, dbversion : str = "????" ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
@@ -77,7 +78,8 @@ class ProtoModel ( LoggerBase ):
                 self.templateSLHA = "templates/template2g.slha"
             # self.templateSLHA = "templates/template_many.slha"
         self.templateSLHA = os.path.join ( os.path.dirname ( __file__ ), self.templateSLHA )
-        self.computer = XSecComputer ( NLL, self.nevents, pythiaVersion=8, maycompile=False )
+        # self.computer = XSecComputer ( NLL, self.nevents, pythiaVersion=8, maycompile=False )
+        self.computer = RefXSecComputer()
         self.codeversion = "2.0"
         self.initializeModel()
 
@@ -345,7 +347,7 @@ class ProtoModel ( LoggerBase ):
     def computeXSecs ( self, nevents : int = None, keep_slha : bool = False ):
         """ compute xsecs given the masses and signal strenght multipliers of the model.
          The results are stored in self._stored_xsecs and should be accessed through getXsecs.
-        :param nevents: If defined, cross-sections will be computed with this number of 
+        :param nevents: If defined, cross-sections will be computed with this number of
                         MC events, if None, the value used is self.nevents.
         :param keep_slha: if true, then keep slha file at the end
 
@@ -366,15 +368,13 @@ class ProtoModel ( LoggerBase ):
                                            suffix=".slha",dir=self.SLHATEMPDIR )
                 tmpSLHA = self.createSLHAFile(tmpSLHA, addXsecs = False)
                 for sqrts in [8, 13]:
-                    self.computer.compute( sqrts*TeV, tmpSLHA, unlink=True,
-                                    loFromSlha=False, ssmultipliers = self.ssmultipliers )
-                    for x in self.computer.loXsecs:
-                        xsecs.append ( x )
+                    self.computer.compute( sqrts, tmpSLHA, ssmultipliers = self.ssmultipliers )
+                    # for x in self.computer.loXsecs:
+                    #     xsecs.append ( x )
+                    # self.computer.loXsecs = []
                     for x in self.computer.xsecs:
                         xsecs.append ( x )
-                    self.computer.loXsecs = []
                     self.computer.xsecs = []
-
                 comment = f"produced at step {self.step}"
                 pidsp = self.unFrozenParticles()
                 pidsp.sort()
@@ -427,7 +427,7 @@ class ProtoModel ( LoggerBase ):
             os.unlink ( self.currentSLHA )
 
     def createNewSLHAFileName ( self, prefix : str = "cur" ) -> str:
-        """ create a new SLHA file name. Needed when e.g. unpickling 
+        """ create a new SLHA file name. Needed when e.g. unpickling
         :returns: slha filename
         """
         self.delCurrentSLHA()
@@ -485,7 +485,7 @@ class ProtoModel ( LoggerBase ):
                     outF.write(l)
             outF.close()
 
-    def createSLHAFile ( self, outputSLHA : Union[str,None] = None, 
+    def createSLHAFile ( self, outputSLHA : Union[str,None] = None,
                          addXsecs : bool = True ):
         """ Creates the SLHA file with the masses, decays and cross-sections stored in the model.
 
@@ -627,7 +627,7 @@ class ProtoModel ( LoggerBase ):
 
     def lightCopy(self,rmAttr=None):
         """Makes a light copy of the model using helpers.lightObjCopy.
-        If rmAttr is None, it will remove the default attributes defined in 
+        If rmAttr is None, it will remove the default attributes defined in
         helpers.lightObjCopy."""
 
         if rmAttr is not None:
