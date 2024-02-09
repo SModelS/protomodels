@@ -383,7 +383,7 @@ class RefXSecComputer:
                 continue
             xsec = self.interpolate ( channel["masses"], xsecall )
             if xsec == None:
-                print('NO XSECTION. USE PYTHIA?')
+                print(f'No cross section obtained for channel {channel}')
                 continue
             if ssmultipliers != None and ( pids[1], pids[0] ) in ssmultipliers:
                 pids = ( pids[1], pids[0] )
@@ -576,7 +576,7 @@ class RefXSecComputer:
             columns["xsec"]=2
             isEWK=False
             order = NNLL # 4
-        if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000023, 1000025 ]:
+        if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000023, 1000025 ]: # Charginos(-) neutralinos production
             filename = "xsecN2C1m%d.txt" % sqrts
             order = NLL
             isEWK=True
@@ -592,7 +592,7 @@ class RefXSecComputer:
             #         pb = True
             #     else:
             #         logger.info ( f"Asking for ({pid1,pid2}) production but masses differ ({masses[0],masses[1]}) for {sqrts} TeV. We only have for mass-degenerate case. Will use it." )
-        if (pid1 in [ 1000023, 1000025 ] and pid2 in [ 1000024, 1000037 ]) or (pid1 == 1000024 and pid2 == 1000025): # 'or' condition because pid1 < pid2
+        if (pid1 in [ 1000023, 1000025 ] and pid2 in [ 1000024, 1000037 ]) or (pid1 == 1000024 and pid2 == 1000025): # Charginos(+) neutralinos productions -- 'or' condition because pid1 < pid2
             filename = "xsecN2C1p%d.txt" % sqrts
             order = NLL
             pb = False
@@ -608,35 +608,20 @@ class RefXSecComputer:
             #         pb = True
             #     else:
             #         logger.info ( f"Asking for ({pid1,pid2}) production but masses differ ({masses[0],masses[1]}) at {sqrts} TeV. We only have for mass-degenerate case. Will use it." )
-        if pid1 in [ 1000022 ] and pid2 in [ 1000023 ]:
+        if pid1 in [ 1000022, 1000023, 1000025 ] and pid2 in [ 1000023, 1000025 ]: # Neutralinos pair production
             if masses[1]+masses[0] == 0.:
-                logger.info ( "Asking for massless N2 N1 production. Will return None." )
+                logger.info ( f"Asking for massless {(pid1,pid2)} production. Will return None." )
                 return None, None, None
             # dm = abs ( masses[1] - masses[0] ) / ( masses[1] + masses[0] )
             # if dm > .01:
             #     logger.info ( f"Asking for N2 N1 production but masses differ ({masses[0],masses[1]}). We only have for mass-degenerate case. Will use it." )
-            if sqrts == 8:
-                logger.info ( "Asking for N2 N1 production at 8 TeV. We only have 13 TeV. Will use C1 C1 xsecs instead." )
-                filename = "xsecC1C1%d.txt" % sqrts
-            else:
-                filename = "xsecN2N1p%d.txt" % sqrts
+            logger.info ( f"Asking for {(pid1,pid2)} production. Will use C1 C1 xsecs (No N1 N2 cross sections at 8 TeV)." )
+            filename = "xsecC1C1%d.txt" % sqrts
+            #filename = "xsecN2N1p%d.txt" % sqrts
             order = NLL
             pb = False
             isEWK=True
-        if pid1 in [ 1000023, 1000025 ] and pid2 in [ 1000023, 1000025 ]:
-            if sqrts == 8:
-                logger.info ( f"Asking for {(pid1,pid2)} production xsecs at {sqrts} TeV. N2 N1 xsecs only available at 13 TeV. Will use C1 C1 xsecs instead." )
-                filename = "xsecC1C1%d.txt" % sqrts
-            else:
-                logger.info ( f"Asking for {(pid1,pid2)} production xsecs at {sqrts} TeV. Will recycle the N2 N1 ones." )
-                filename = "xsecN2N1p%d.txt" % sqrts
-            # if ewk == "degenerate":
-            #     filename = "xsecEWKdegenerate%d.txt" % sqrts
-            #     comment = "fully degenerate N1, N2, C1"
-            order = NLL
-            pb = False
-            isEWK = True
-        if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000024, 1000037 ]:
+        if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000024, 1000037 ]: # Charginos pair productions
             filename = "xsecC1C1%d.txt" % sqrts
             order = NLL #3
             pb = False
