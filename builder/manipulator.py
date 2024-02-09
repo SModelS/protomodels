@@ -1142,9 +1142,14 @@ class Manipulator ( LoggerBase ):
                       f"{protomodel.masses[pid]:.1f}" )
 
         if offshell: # start with democratic flavors if offshell
+            if pid not in protomodel.decays.keys():protomodel.decays[pid] = {}      #make sure that the offshell pid is present in protomodel.decays
             openChannels = self.M.getOpenChannels(pid)
             for dpid in openChannels:
+                #print("\nDecay pid ", dpid)
+                print("\nPM decay ", protomodel.decays.items())
                 protomodel.decays[pid][dpid] = 1. / (len(openChannels))
+                #print("\nPM decay keys", protomodel.decays.keys())
+                #print("\nPM decay values", protomodel.decays.values())
         else:
             # Set random branchings
             self.setRandomBranchings(pid)
