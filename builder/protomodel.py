@@ -37,6 +37,7 @@ class ProtoModel ( LoggerBase ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
                           this a heavyweight object)
+        :param walkerid: id of current walker
         :param nevents: minimum number of MC events when computing cross-sections
         :param dbversion: the version of the database, to track provenance
         """
@@ -132,13 +133,20 @@ class ProtoModel ( LoggerBase ):
                     p1 = line.find("_")+1
                     dpid = int ( line[p1:] )
                     dpid2 = None
+                    dpid3 = None
                     if line.count("_")==2:
                         p2 = line.rfind("_")
                         dpid = int ( line[p1:p2] )
                         dpid2 = int(line[p2+1:])
+                    elif line.count("_")==3:
+                        dp = line.split('_')
+                        dpid = int(dp[1])
+                        dpid2 = int(dp[2])
+                        dpid3 = int(dp[3])
                     dpd = dpid
                     if dpid2 != None:
-                        dpd = (dpid,dpid2)
+                        if dpid3!= None: dpd = (dpid,dpid2,dpid3)
+                        else: dpd = (dpid,dpid2)
                     decays.append ( dpd )
             self.possibledecays[p]=decays
 
@@ -294,8 +302,8 @@ class ProtoModel ( LoggerBase ):
                     continue
                 else:
                     return False
-                if abs ( ss - os ) / ss > 1e-6:
-                    return False
+            if abs ( ss - os ) / ss > 1e-6:
+                return False
         ## now check decays
         pids = set ( self.decays.keys() )
         pids = pids.union ( set ( other.decays.keys() ) )
@@ -345,7 +353,7 @@ class ProtoModel ( LoggerBase ):
         print ( ", ".join ( particles ) )
 
     def computeXSecs ( self, nevents : int = None, keep_slha : bool = False ):
-        """ compute xsecs given the masses and signal strenght multipliers of the model.
+        """ compute xsecs given the masses and signal strength multipliers of the model.
          The results are stored in self._stored_xsecs and should be accessed through getXsecs.
         :param nevents: If defined, cross-sections will be computed with this number of
                         MC events, if None, the value used is self.nevents.
@@ -463,7 +471,7 @@ class ProtoModel ( LoggerBase ):
                         decays = self.decays[pid]
                     else:
                         mass = 1e6 #decoupled mass
-                        decays = {} #no decays to frozen particles
+                        decays = {} #no decays for frozen particles
 
                     #Replace mass tag:
                     if f"M{pid}" in l:
