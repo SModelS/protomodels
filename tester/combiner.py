@@ -687,20 +687,28 @@ class Combiner ( LoggerBase ):
                 continue
             if len ( decays ) == 1: # only one flavor? allow!
                 continue
+            ## e, mu, tau = 11, 13, 15
+            branchings = { 11: float("nan"), 13: float("nan"), 
+                           15: float("nan") }
+            for dpids, br in decays.items():
+                for p in [ 11, 13, 15 ]:
+                    if p in dpids:
+                        branchings[p]=br
+
             ## is there an electron decay?
-            if ( 1000022, 11 ) in decays and decays[(1000022,11)] not in [ 0., 1.]:
-                if (1000022, 13) in decays:
-                    delta_br = abs ( decays[(1000022,11)]-decays[(1000022,13)] )
+            if np.isfinite ( branchings[11] )and branchings[11] not in [ 0., 1.]:
+                if np.isfinite ( branchings[13] ):
+                    delta_br = abs ( branchings[11]-branchings[13] )
                     l = 1. - delta_br / 5.
                     ret *= l
-                if (1000022, 15) in decays:
-                    delta_br = abs ( decays[(1000022,11)]-decays[(1000022,15)] )
+                if np.isfinite ( branchings[15] ):
+                    delta_br = abs ( branchings[11]-branchings[15] )
                     l = 1. - delta_br / 20.
                     ret *= l
-            elif ( 1000022, 13 ) in decays and decays[(1000022,13)] not in [ 0., 1.]:
+            elif np.isifinite ( branchings[13] ) and  branchings[13] not in [ 0., 1.]:
                 # no electron, but muon and tau!
-                if (1000022, 15) in decays:
-                    delta_br = abs ( decays[(1000022,13)]-decays[(1000022,15)] )
+                if np.isfinite ( branchings[15] ):
+                    delta_br = abs ( branchings[13]-branchings[15] )
                     l = 1. - delta_br / 20.
                     ret *= l
         return ret
