@@ -474,7 +474,7 @@ class Manipulator ( LoggerBase ):
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs,
                                         protomodel=protomodel)
 
-    def setRandomBranchings ( self, pid, protomodel=None):
+    def setRandomBranchings ( self, pid, offshell=False, protomodel=None):
         """ Assign random BRs to particle.
         """
 
@@ -485,15 +485,31 @@ class Manipulator ( LoggerBase ):
         if pid == protomodel.LSP:
             return
 
-        #Erase BRs (if any has been stored)
+        #Erase BRs (if any has been stored) for offshell too?
         protomodel.decays[pid] = {}
-
+        
         #Get the allowed decay channels:
         openChannels = self.M.getOpenChannels(pid)
         nitems = len(openChannels)
+        '''
+        if offshell: # start with democratic flavors if offshell
+            if pid not in protomodel.decays.keys():protomodel.decays[pid] = {}      #make sure that the offshell pid is present in protomodel.decays
+            openChannels = self.M.getOpenChannels(pid)
+            for dpid in openChannels:
+                #print("\nDecay pid ", dpid)
+                print("\nPM decay ", protomodel.decays.items())
+                protomodel.decays[pid][dpid] = 1. / (len(openChannels))
+        '''
+        
         for dpid in openChannels:
+            brf = 1.0
+            if offshell:
+                id = int(dpid)
+                if id in range(1,7): brf = 6.0              #if id = 01,03,05,
+                elif id in range(11,17): brf = 3.0
+                
             br = random.gauss ( 1. / nitems, numpy.sqrt ( .5 / nitems )  )
-            br = max ( 0., br )
+            br = brf*max ( 0., br )
             protomodel.decays[pid][dpid] = br
 
         #Make sure there is at least one open channel:
