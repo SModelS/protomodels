@@ -11,6 +11,7 @@ from smodels.tools.physicsUnits import fb
 from smodels.theory.model import Model
 from smodels.theory.theoryPrediction import TheoryPrediction
 from protomodels.builder.loggerbase import LoggerBase
+import numpy as np
 
 try:
     from tester import analysisCombiner
