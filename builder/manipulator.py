@@ -433,17 +433,26 @@ class Manipulator ( LoggerBase ):
             if len(i.PIDs)>3:
                 print ( "               ..." )
 
-    def printAllTheoryPredictions ( self ):
-        """ pretty print all theory predictions for the model """
+    def printAllTheoryPredictions ( self, detailed : bool = False ):
+        """ pretty print all theory predictions for the model 
+        :param detailed: if true, give more details
+        """
         print ( "theory predictions:" )
         combo = self.M.tpList
         for c in combo:
-            i = c[2]
+            i = c["tp"]
             dId = i.dataId() if i.dataId() != None else "UL"
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
             print ( f" - {i.analysisId()}:{dId}:{txns}" )
+            if detailed:
+                robs, rexp = "n/a", "n/a"
+                if c['robs'] is not None:
+                    robs = f"{c['robs']:.1f}"
+                if c['rexp'] is not None:
+                    rexp = f"{c['rexp']:.1f}"
+                print ( f"   - robs={robs} rexp={rexp}" )
             for pids in i.PIDs[:2]:
-                s = str(pids)
+                s = f"{self.namer.asciiName(pids)}"
                 if len(s) > 80:
                     s=s[:76]+" ..."
                 print ( f"              {s}" )
@@ -629,8 +638,8 @@ class Manipulator ( LoggerBase ):
 
         print ( )
         print('  * Constraints:')
-        for tp in sorted( self.M.tpList, key = lambda x: x[0], reverse=True ):
-            if not allTheoryPredictions and tp[0] < 1.0:
+        for tp in sorted( self.M.tpList, key = lambda x: x['robs'], reverse=True ):
+            if not allTheoryPredictions and tp['robs'] < 1.0:
                 # if not all theory predictions are asked for, only do r>=1
                 continue
             txns = ",".join ( set ( map ( str, tp[2].txnames ) ) )
@@ -662,19 +671,19 @@ class Manipulator ( LoggerBase ):
 
         if hasattr(self.M,'tpList'):
             for i,tp in enumerate(self.M.tpList[:]):
-                rnew = tp[0]*s
-                if tp[1]:
-                    rexpnew = tp[1]*s
+                rnew = tp['robs']*s
+                if tp['rexp']:
+                    rexpnew = tp['rexp']*s
                 else:
-                    rexpnew = tp[1]
-                tpNew = tp[2]
+                    rexpnew = tp['rexp']
+                tpNew = tp['tp']
                 tpNew.xsection.value *= s #rescale theoryPrediction
                 #Remove likelihood and chi2, since they are no longer valid
                 #if hasattr(tpNew,'likelihood'):
                 #    del tpNew.likelihood
                 #if hasattr(tpNew,'chi2'):
                 #    del tpNew.chi2
-                self.M.tpList[i] = (rnew,rexpnew,tpNew)
+                self.M.tpList[i] = { "robs": rnew,"rexp": rexpnew, "tp": tpNew }
         if hasattr(self.M,'bestCombo'):
             for tp in self.M.bestCombo:
                 tp.xsection.value *= s #rescale theoryPrediction

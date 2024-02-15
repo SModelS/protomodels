@@ -379,22 +379,21 @@ class Predictor ( LoggerBase ):
                 self.pprint ( "I received %s as r. What do I do with this?" % r )
                 r = 23.
             rexp = theorypred.getRValue(expected=True)
-            # tpList.append( (r, rexp, self.combiner.removeDataFromTheoryPred ( theorypred ) ) )
-            tpList.append( (r, rexp, theorypred ) )
+            tpList.append( { "robs": r, "rexp": rexp, "tp": theorypred } )
             rvalues.append(r)
         while len(rvalues)<2:
             rvalues.append(0.)
         rvalues.sort(reverse = True )
-        tpList.sort ( reverse = True )
-        srs = "%s" % ", ".join ( [ "%.2f" % x for x in rvalues[:3] ] )
-        self.log ( "top r values before rescaling are: %s" % srs )
+        tpList.sort ( key = lambda x: x['robs'], reverse = True )
+        srs = ", ".join ( [ f"{x:.2f}" for x in rvalues[:3] ] )
+        self.log ( f"top r values before rescaling are: {srs}" )
         protomodel.rvalues = rvalues #Do not include initial zero values
         # protomodel.excluded = protomodel.rvalues[0] > self.rthreshold #The 0.99 deals with the case rmax = threshold
         protomodel.tpList = tpList[:]
         critic_description = []
         for tp in tpList[:3]:
-            rtype = tp[2].dataType(short=True)
-            tmp = f"{tp[2].analysisId()}({rtype}):{tp[0]:.2f}"
+            rtype = tp['tp'].dataType(short=True)
+            tmp = f"{tp['tp'].analysisId()}({rtype}):{tp['robs']:.2f}"
             critic_description.append ( tmp )
         if len(tpList)>3:
             critic_description.append ( "...")
