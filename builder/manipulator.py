@@ -22,10 +22,10 @@ from os import PathLike
 class Manipulator ( LoggerBase ):
     """ contains the protomodel manipulation algorithms. """
 
-    # walledpids are particle ids that have a minimum mass requirement
-    walledpids = [ 1000001, 1000002, 1000003, 1000004, 1000021 ]
-    # walledpids += [ 1000005, 1000006, 2000005, 2000006 ]
-    wallmass = 310.
+    # walledpids are particle ids that have a minimum mass requirement,
+    # given as the values in the dictionary
+    walledpids = { 1000001 : 310, 1000002 : 310, 1000003 : 310, 1000004 : 310, 
+                   1000021 : 310, 1000023 : 100, 1000024 : 100 }
     ## forbiddenparticles are particle ids that we do not touch in this run
     forbiddenparticles = []
 
@@ -1119,7 +1119,7 @@ class Manipulator ( LoggerBase ):
 
         if pid in self.walledpids:
             ## heed the wall!
-            minMass = max ( self.wallmass, minMass )
+            minMass = max ( self.walledpids[pid], minMass )
 
         offshell = False
         if pid in [ 1000023, 1000024 ]:
@@ -1203,7 +1203,7 @@ class Manipulator ( LoggerBase ):
         # an artificial wall because the maps are bounded from below
         if abs(pid) in self.walledpids:
             ## heed the wall!
-            minMass = max ( self.wallmass, minMass )
+            minMass = max ( self.walledpids[abs(pid)], minMass )
 
         ret = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass, maxMass=maxMass )
         if pid in [ 1000023, 1000024 ]:

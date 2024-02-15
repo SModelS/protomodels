@@ -128,12 +128,14 @@ def fetch( globber, useHiscores = False ):
 
 def belowMassWall ( D, name ):
     """ check if anything is below the mass wall """
-    walledpids = [ 1000001, 1000002, 1000003, 1000004, 1000021 ]
-    wallmass = 310.
+    #walledpids = { 1000001 : 310, 1000002 : 310, 1000003 : 310, 1000004 : 310, 
+    #               1000021 : 310, 1000023 : 100, 1000024 : 100 }
+    from manipulator import Manipulator
+    walledpids = Manipulator.walledpids
     masses = D["masses"]
     ctr=0
     for pid in walledpids:
-        if pid in masses and masses[pid] < wallmass:
+        if pid in masses and masses[pid] < walledpids[pid]:
             print ( f"{name} has {namer.asciiName(pid)} below mass wall: m={masses[pid]}" )
             ctr+=1
     return ctr
