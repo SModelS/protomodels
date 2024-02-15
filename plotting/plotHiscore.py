@@ -483,16 +483,16 @@ class HiscorePlotter:
         from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
         for rv in rvalues[:5]:
             srv="N/A"
-            if type(rv[1]) in [ float, numpy.float64, numpy.float32 ]:
-                srv="%.2f" % rv[1]
+            if type(rv['rexp']) in [ float, numpy.float64, numpy.float32 ]:
+                srv="%.2f" % rv['rexp']
             else:
-                srv=str(rv[1])
-            anaId = rv[2].analysisId()
-            prettyName = getPrettyName( rv[2] )
+                srv=str(rv['rexp'])
+            anaId = rv['tp'].analysisId()
+            prettyName = getPrettyName( rv['tp'] )
             prettyName = prettyTexAnalysisName ( prettyName, anaid = anaId )
             ref = bibtex.query ( anaId )
-            txnames = ",".join ( map(str,rv[2].txnames) )
-            allpids = rv[2].PIDs
+            txnames = ",".join ( map(str,rv['tp'].txnames) )
+            allpids = rv['tp'].PIDs
             pids=[]
             for p in allpids:
                 tmp=[]
@@ -509,13 +509,13 @@ class HiscorePlotter:
                 prod.append (tmp)
             prod = "; ".join(prod)
             sigmapred = "20.13"
-            sigmapred = rv[2].xsection.value.asNumber(fb)
+            sigmapred = rv['tp'].xsection.value.asNumber(fb)
             sigmaexp = "--"
-            if type(rv[2].getUpperLimit ( expected = True )) != type(None):
-                sigmaexp = "%.2f" % rv[2].getUpperLimit ( expected=True ).asNumber(fb)
-            sigmaobs = rv[2].getUpperLimit().asNumber(fb)
+            if type(rv['tp'].getUpperLimit ( expected = True )) != type(None):
+                sigmaexp = "%.2f" % rv['tp'].getUpperLimit ( expected=True ).asNumber(fb)
+            sigmaobs = rv['tp'].getUpperLimit().asNumber(fb)
             g.write ( "%s~\\cite{%s} & %s & %.2f & %.2f & %s & %.2f\\\\\n" % \
-                    ( prettyName, ref, prod, sigmapred, sigmaobs, sigmaexp, rv[0] ) )
+                    ( prettyName, ref, prod, sigmapred, sigmaobs, sigmaexp, rv['robs'] ) )
         g.write ( "\\end{tabular}\n" )
         g.close()
 
@@ -553,7 +553,7 @@ class HiscorePlotter:
         f.write ( "\n" )
         if hasattr ( protomodel, "tpList" ):
             rvalues=protomodel.tpList
-            rvalues.sort(key=lambda x: x[0],reverse=True )
+            rvalues.sort(key=lambda x: x['robs'],reverse=True )
             writeRValuesTex ( rvalues )
             #writeRValuesTexOld ( rvalues )
         else:
@@ -709,15 +709,15 @@ class HiscorePlotter:
         f.write ( "<table width=80%>\n<tr><td>\n" )
         if hasattr ( self.protomodel, "tpList" ):
             rvalues=self.protomodel.tpList
-            rvalues.sort(key=lambda x: x[0],reverse=True )
+            rvalues.sort(key=lambda x: x['robs'],reverse=True )
             f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
             for rv in rvalues[:5]:
                 srv="N/A"
-                if type(rv[1]) in [ float, numpy.float64, numpy.float32 ]:
-                    srv="%.2f" % rv[1]
-                elif type(rv[1]) != type(None):
-                    srv=str(rv[1])
-                f.write ( f"<li>{self.anaNameAndUrl ( rv[2] )}:{rv[2].dataType(short=True)}:{','.join ( set (map(str,rv[2].txnames) ) )} r={rv[0]:.2f}, r<sub>exp</sub>={srv}<br>\n" )
+                if type(rv['rexp']) in [ float, numpy.float64, numpy.float32 ]:
+                    srv="%.2f" % rv['rexp']
+                elif type(rv['rexp']) != type(None):
+                    srv=str(rv['rexp'])
+                f.write ( f"<li>{self.anaNameAndUrl ( rv['tp'] )}:{rv['tp'].dataType(short=True)}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>\n" )
             f.write("</ul>\n")
         else:
             print ( "[plotHiscore] protomodel has no r values!" )

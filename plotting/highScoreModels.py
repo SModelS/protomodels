@@ -66,7 +66,7 @@ colorDict[1000015] = colorDict[1000011]
 def getLikelihoods(protomodel,muvals,normalize=True):
     
     #Sort tpList
-    critic = sorted(protomodel.tpList, key = lambda tp: tp[0], reverse = True)[0][2]
+    critic = sorted(protomodel.tpList, key = lambda tp: tp['robs'], reverse = True)[0]['tp']
 
     #Combiner likelihood:
     combiner = Combiner(0)
