@@ -1153,6 +1153,8 @@ class Manipulator ( LoggerBase ):
 
         if offshell: # start with democratic flavors if offshell
             openChannels = self.M.getOpenChannels(pid)
+            if not pid in protomodel.decays:
+                protomodel.decays[pid]={}
             for dpid in openChannels:
                 protomodel.decays[pid][dpid] = 1. / (len(openChannels))
         else:
