@@ -251,7 +251,7 @@ class SParticleNames:
             ret=[]
             for p in pid:
                 ret.append ( self.name ( p, addSign ) )
-            return ", ".join ( ret )
+            return "["+", ".join ( ret )+"]"
 
         if abs(pid) in [ 1000005, 1000006 ] and addOnes:
             ret = self.name ( pid, addSign, addOnes=False )

@@ -79,9 +79,9 @@ class PredictionsTest(unittest.TestCase):
             self.assertAlmostEqual(pred.xsection.value.asNumber(),pNew.bestCombo[i].xsection.value.asNumber(),3)
             self.assertAlmostEqual(pred.upperLimit.asNumber(),pNew.bestCombo[i].upperLimit.asNumber(),3)
         for i,pred in enumerate(protomodel.tpList):
-            self.assertAlmostEqual(pred[0],pNew.tpList[i][0])
-            self.assertEqual(str(pred[2].expResult),str(pNew.tpList[i][2].expResult))
-            self.assertAlmostEqual(pred[2].xsection.value.asNumber(),pNew.tpList[i][2].xsection.value.asNumber(),3)
+            self.assertAlmostEqual(pred['robs'],pNew.tpList[i]['robs'])
+            self.assertEqual(str(pred['tp'].expResult),str(pNew.tpList[i]['tp'].expResult))
+            self.assertAlmostEqual(pred['tp'].xsection.value.asNumber(),pNew.tpList[i]['tp'].xsection.value.asNumber(),3)
 
 
         #Remove files generated during run
