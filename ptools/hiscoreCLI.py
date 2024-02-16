@@ -38,11 +38,14 @@ def cli( infile : str = "hiscores.dict",
     from builder.manipulator import Manipulator
     from tester.combiner import Combiner
     from tester.predictor import Predictor
+    from ptools.sparticleNames import SParticleNames
     from smodels.experiment.databaseObj import Database
-    print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database{ansi.RESET}" )
+    print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database, SParticleNames{ansi.RESET}" )
     hi = fetchHiscoresObj ( infile, None, dbpath )
     print ( f"[hiscoreCLI] {ansi.RED}hi = fetchHiscoresObj ('{infile}', ... ) # Hiscore {ansi.RESET}" )
-    #print ( f"[hiscoreCLI]      Variables: {ansi.RED}protomodel{ansi.RESET}" )
+    namer = SParticleNames()
+    from importlib import reload
+    print ( f"[hiscoreCLI] {ansi.RED}namer = SParticleNames(){ansi.RESET}" )
     protomodel = hi.hiscores[0]
     print ( f"[hiscoreCLI] {ansi.RED}protomodel = hi.hiscores[0]{ansi.RESET}" )
     ma = Manipulator ( protomodel )

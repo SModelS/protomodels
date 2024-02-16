@@ -148,10 +148,11 @@ class LlhdScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, pid1, pid2, nproc, rundir : str,
                    dbpath : str = "official", select : str = "all",
-                   do_srcombine : bool = True ):
+                   do_srcombine : bool = True, skip_production : bool = False ):
         """
         :param rundir: the rundir
         :param dbpath: the database path
+        :param skip_production: if possible, skip production, go to plotting
         """
         super ( LlhdScanner, self ).__init__ ( 0 )
         self.rundirarg = rundir
@@ -160,6 +161,7 @@ class LlhdScanner ( LoggerBase ):
         self.pid1 = pid1
         self.pid2 = pid2
         self.nproc = nproc
+        self.skip_production = skip_production
         # expected = False
         self.predictor = Predictor ( 0, dbpath=dbpath, 
                 select=select, do_srcombine = do_srcombine )
@@ -226,6 +228,10 @@ class LlhdScanner ( LoggerBase ):
         pid2 = self.pid2
         if pid2 != self.M.LSP:
             print ( f"[llhdScanner] we currently assume pid2 to be the LSP, but it is {pid2}" )
+        picklefile = f"{output}{pid1}{pid2}.pcl"
+        if os.path.exists ( picklefile ) and self.skip_production:
+            print ( f"[llhdScanner] we were asked to skip production: {picklefile} exists." )
+            return
         import numpy
         c = Combiner()
         anaIds = c.getAnaIdsWithPids ( self.M.bestCombo, [ pid1, pid2 ] )
@@ -259,7 +265,6 @@ class LlhdScanner ( LoggerBase ):
         newpoints = self.getMassPoints ( rpid1, rpid2 )
         masspoints += newpoints
         import pickle
-        picklefile = f"{output}{pid1}{pid2}.pcl"
         if os.path.exists ( picklefile ):
             subprocess.getoutput ( f"cp {picklefile} {picklefile}.old" )
         self.pprint ( f"now saving to {picklefile}" )
@@ -381,6 +386,8 @@ def main ():
             type=str, default="official" )
     argparser.add_argument ( '-c', '--do_srcombine',
             help='do_srcombine', action='store_true' )
+    argparser.add_argument ( '-S', '--skip_production',
+            help='if possible, skip production', action='store_true' )
     args = argparser.parse_args()
     rundir = setup( args.rundir )
     nproc = args.nproc
@@ -391,7 +398,6 @@ def main ():
     from ptools.hiscoreTools import fetchHiscoresObj
     hi = fetchHiscoresObj ( args.hiscores, None, args.dbpath )
     protomodel = hi.hiscores[0]
-    # protomodel = plotHiscore.HiscorePlotter().obtain ( args.number, args.picklefile, args.dbpath )
 
     pid1s = [ args.pid1 ]
     if args.pid1 == 0:
@@ -399,7 +405,8 @@ def main ():
     for pid1 in pid1s:
         scanner = LlhdScanner( protomodel, pid1, args.pid2, nproc, rundir, 
                 dbpath = args.dbpath, select = args.select, 
-                do_srcombine = args.do_srcombine )
+                do_srcombine = args.do_srcombine, 
+                skip_production = args.skip_production )
         args.pid1 = pid1
         args = scanner.overrideWithDefaults ( args )
         range1 = { "min": args.min1, "max": args.max1, "dm": args.deltam1 }

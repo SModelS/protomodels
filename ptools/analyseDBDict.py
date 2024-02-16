@@ -7,6 +7,7 @@ matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
 import os, glob, pickle, sys
+sys.path.insert(0,"../")
 import scipy.stats
 import matplotlib.mlab as mlab
 from smodels_utils.helper.various import getSqrts, findCollaboration
