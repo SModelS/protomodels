@@ -9,7 +9,7 @@
 
 """
 
-from __future__ import print_function
+from typing import Union, List, Tuple
 import sys
 
 class SParticleNames:
@@ -161,8 +161,10 @@ class SParticleNames:
 
         ## make sure the inversions are defined as well
         self.names={}
+        self.asciiNames={}
         for (key,value) in self.ids.items():
             self.names[value]=key
+            self.asciiNames[self.asciiName(key)]=key
 
     def isSM ( self, pid ):
         """ is pid a standard model pid? """
@@ -226,7 +228,7 @@ class SParticleNames:
                             m(Xt)
         :param addOnes: if true, add ^{1} to Xt and Xb
         """
-        n = self.name ( pid, addSign, addOnes=addOnes )
+        n = self.name ( pid, addSign, addOnes=addOnes, addBrackets = False )
         n = n.replace ( "#", "\\" )
         if addOnes and "1" in n:
             n = n.replace("1","^{1}")
@@ -242,16 +244,20 @@ class SParticleNames:
             n = "(" + n + ")"
         return n
 
-    def name ( self, pid, addSign=False, addOnes=False ):
+    def name ( self, pid, addSign=False, addOnes=False, addBrackets = False ):
         """ get the name for a particle id 
         :param addSign: if true, denote also charge
         :param addOnes: if true, add ^{1} to Xt and Xb
+        :param addBrackets: if true, add brackets
         """
         if type(pid) in [ tuple, set, list ]:
             ret=[]
             for p in pid:
                 ret.append ( self.name ( p, addSign ) )
-            return "["+", ".join ( ret )+"]"
+            ret = ", ".join ( ret )
+            if addBrackets:
+                ret = f"({ret})"
+            return ret
 
         if abs(pid) in [ 1000005, 1000006 ] and addOnes:
             ret = self.name ( pid, addSign, addOnes=False )
@@ -270,19 +276,31 @@ class SParticleNames:
         ret = self.ids[pid]
         return ret
 
-    def asciiName ( self, pid ):
-        """ get the ascii version of the name """
-        ret = self.name ( pid )
+    def asciiName ( self, pid : Union[List,int], addBrackets : bool = False ) -> str:
+        """ get the ascii name of pid or list of pids
+        """
+        ret = self.name ( pid, addBrackets = addBrackets )
         ret = ret.replace("_","").replace("{","").replace("}","").replace("^","")
         ret = ret.replace("\\","")
         ret = ret.replace("#bar","~")
         return ret
 
-    def pid ( self, name ):
-        """ get the pid for a particle name """
+    def pid ( self, name : str, signed : bool = True ) -> Union[None,int]:
+        """ get the pid for a particle name 
+        :param name: get the pid for particle with that name
+        :param signed: if true, return signed value
+        """
         if not name in self.names:
-            return 0
-        return self.names[name]
+            if not name in self.asciiNames:
+                return None
+            ret = self.asciiNames[name]
+            if not signed:
+                ret = abs(ret)
+            return ret
+        ret = self.names[name]
+        if not signed:
+            ret = abs(ret)
+        return ret
 
     def has ( self, i ):
         """ do we have particle? can be pid or name """

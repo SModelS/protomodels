@@ -110,7 +110,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
 
         oldV = pentry.K + pentry.Z + sum(pentry.masses.values()) + \
                sum(pentry.ssmultipliers.values())
-        if abs( newV - oldV ) > 1e-3:
+        if 2. * abs( newV - oldV ) / ( newV + oldV ) > 1e-3:
             # print ( f"[hiscoreTools] top V value changed {newV:.3f}..{oldV:.3f}" )
             return True
         return False
