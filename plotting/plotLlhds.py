@@ -161,9 +161,9 @@ class LlhdPlot ( LoggerBase ):
         self.copy = copy
         self.rthreshold = 1.7
         self.interactive = interactive
-        self.hiscorefile = "./hiscores.cache"
+        self.hiscorefile = "./hiscores.dict"
         if rundir != None:
-            self.hiscorefile = f"{rundir}/hiscores.cache"
+            self.hiscorefile = f"{rundir}/hiscores.dict"
         self.setVerbosity ( verbose )
         masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
         self.masspoints = masspoints
@@ -216,7 +216,7 @@ class LlhdPlot ( LoggerBase ):
         :returns: results for this analysis (possibly data type, possibly signal region) 
                   and topology
         """
-        #self.pprint ( "asking for %s" % ana )
+        # self.pprint ( f"asking for {ana}:{masspoint}" )
         ret,sr = None, None
         dType = "any"
         if ":" in ana:
@@ -286,9 +286,9 @@ class LlhdPlot ( LoggerBase ):
 
     def setup ( self, pid1, pid2 ):
         """ setup rundir, picklefile path and hiscore file path """
-        self.hiscorefile = self.rundir + "/hiscores.cache"
+        self.hiscorefile = self.rundir + "/hiscores.dict"
         if not os.path.exists ( self.hiscorefile ):
-            self.pprint ( "could not find hiscore file %s" % self.hiscorefile )
+            self.pprint ( f"could not find hiscore file {self.hiscorefile}" )
  
         self.pid1 = pid1
         self.pid2 = pid2
@@ -425,7 +425,7 @@ class LlhdPlot ( LoggerBase ):
             r,sr = self.getResultFor ( ana, self.masspoints[0][2] )
             if r:
                 s="(%.2f)" % (-np.log(r))
-            print ( "[plotLlhds] result for", ana,"is", s )
+            print ( f"[plotLlhds] result for {ana} is {s}" )
             cresults = 0
             for cm,masspoint in enumerate(self.masspoints[1:]):
                 #if cm % 10 != 0:
@@ -459,7 +459,7 @@ class LlhdPlot ( LoggerBase ):
             print ()
             # print ( "\n[plotLlhds] min(xy) for %s is at m=(%d/%d): %.2f(%.2g)" % ( ana, minXY[0], minXY[1], minXY[2], np.exp(-minXY[2] ) ) )
             if cresults == 0:
-                print ( f"[plotLlhds] warning: found no results for {masspoint}. skip" )
+                # print ( f"[plotLlhds] warning: found no results for {masspoint}. skip" )
                 continue
                 # return
             x.add ( xmax*1.03 )

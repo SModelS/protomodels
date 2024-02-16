@@ -20,7 +20,7 @@ from smodels.base.smodelsLogging import logger
 logger.setLevel("ERROR")
 from os import PathLike
 from colorama import Fore
-from typing import Union
+from typing import Union, Dict
 
 # runtime._experimental = True
 
@@ -69,7 +69,7 @@ class HiscorePlotter:
             print ( "theory pred: %s:%s" % ( pred.expResult.globalInfo.id, ",".join ( set ( map ( str, pred.txnames ) ) ) ) )
             # print ( "     `- ", pred.expResult.globalInfo.id, "ana", pred.analysis, "masses", pred.mass, "txnames", pred.txnames, "type", pred.dataType() )
 
-    def getExtremeSSMs ( self, ssm, largest, nm = 7 ):
+    def getExtremeSSMs ( self, ssm : Dict, largest : bool , nm : int = 7 ):
         """ get latex code describing the most extreme signal strength multipliers.
         :param largest: if true, describe the largest, else the smallest.
         :param nm: number of ssms to describe. -1 means "all"
@@ -92,10 +92,10 @@ class HiscorePlotter:
             if k == 0 and ssm[k] == "\\mathrm{none}":
                 s += "\\mathrm{none}  "
             else:
-                s += "%s=%s; " % ( ssm[k], k )
+                s += f"{ssm[k]}={k}; "
         if len(s)>2:
             s = s[:-2]
-        ret = "%signal strength multipliers: $%s$" % ( extreme, s )
+        ret = f"{extreme}ignal strength multipliers: ${s}$"
         return ret
 
     def hasSignals ( self ):
@@ -363,9 +363,9 @@ class HiscorePlotter:
             xsec = self.findXSecOfPids ( xsecs, pids )
             if xsec < 0.001 * fb: ## only for xsecs we care about
                 continue
-            sv = "%.2g" % v
+            sv = f"{v:.2g}"
             if v < .1:
-                sv = "%.1g" % v
+                sv = f"{v:.1g}"
             if not sv in cpids:
                 cpids[sv]=[]
             cpids[sv].append ( pids )
