@@ -76,7 +76,7 @@ Just filter the database:
                             for a signal to populate an UL map
         :param compute_ps: compute p-values for all SRs
         """
-        super ( ExpResModifier, self ).__init__ ( walkerid )
+        super ( ExpResModifier, self ).__init__ ( 0 )
         self.defaults()
         if "max" in args and args["max"] == None:
             args["max"] = 100
