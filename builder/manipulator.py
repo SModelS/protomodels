@@ -483,8 +483,9 @@ class Manipulator ( LoggerBase ):
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs,
                                         protomodel=protomodel)
 
-    def setRandomBranchings ( self, pid, offshell=False, protomodel=None):
-        """ Assign random BRs to particle.
+    def setBranchings ( self, pid, protomodel=None):
+        """ Intialize BRs to diffrent open decay channels for pid.
+            Either assign 'democratic' BRs or assign random BRs.
         """
 
         if not protomodel:
@@ -500,25 +501,28 @@ class Manipulator ( LoggerBase ):
         #Get the allowed decay channels:
         openChannels = self.M.getOpenChannels(pid)
         nitems = len(openChannels)
-        '''
-        if offshell: # start with democratic flavors if offshell
-            if pid not in protomodel.decays.keys():protomodel.decays[pid] = {}      #make sure that the offshell pid is present in protomodel.decays
-            openChannels = self.M.getOpenChannels(pid)
-            for dpid in openChannels:
-                #print("\nDecay pid ", dpid)
-                print("\nPM decay ", protomodel.decays.items())
-                protomodel.decays[pid][dpid] = 1. / (len(openChannels))
-        '''
         
+        offshell = False
+        if pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[1000022]) < 80.377: offshell = True
+        elif pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[1000022]) < 91.1876: offshell = True
+        
+        if offshell:
+            for dpid in openChannels:
+                if pid == 1000024:
+                    if 11 in dpid or 13 in dpid or 15 in dpid: protomodel.decays[pid][dpid] = 1.0/9.0
+                    elif 2 in dpid: protomodel.decays[pid][dpid] = 6.0/9.0
+                    else: protomodel.decays[pid][dpid] = 0.0   #??
+                elif pid == 1000023:
+                    if 11 in dpid or 13 in dpid or 15 in dpid: protomodel.decays[pid][dpid] = 1.0/18.0
+                    elif 2 in dpid: protomodel.decays[pid][dpid] = 12.0/18.0
+                    elif 5 in dpid: protomodel.decays[pid][dpid] = 3.0/18.0
+                    else: protomodel.decays[pid][dpid] = 0.0   #??
+            return #normalizeBranchings?
+                        
+
         for dpid in openChannels:
-            brf = 1.0
-            if offshell:
-                id = int(dpid)
-                if id in range(1,7): brf = 6.0              #if id = 01,03,05,
-                elif id in range(11,17): brf = 3.0
-                
             br = random.gauss ( 1. / nitems, numpy.sqrt ( .5 / nitems )  )
-            br = brf*max ( 0., br )
+            br = max ( 0., br )
             protomodel.decays[pid][dpid] = br
 
         #Make sure there is at least one open channel:
@@ -1166,18 +1170,9 @@ class Manipulator ( LoggerBase ):
         self.pprint ( f"Unfroze mass of {self.namer.asciiName(pid)} to "\
                       f"{protomodel.masses[pid]:.1f}" )
 
-        if offshell: # start with democratic flavors if offshell
-            if pid not in protomodel.decays.keys():protomodel.decays[pid] = {}      #make sure that the offshell pid is present in protomodel.decays
-            openChannels = self.M.getOpenChannels(pid)
-            for dpid in openChannels:
-                #print("\nDecay pid ", dpid)
-                print("\nPM decay ", protomodel.decays.items())
-                protomodel.decays[pid][dpid] = 1. / (len(openChannels))
-                #print("\nPM decay keys", protomodel.decays.keys())
-                #print("\nPM decay values", protomodel.decays.values())
-        else:
-            # Set random branchings
-            self.setRandomBranchings(pid)
+      
+        # Set branchings
+        self.setBranchings(pid)
 
         #Add pid pair production and associated production to protomodel.ssmultipliers:
         self.initSSMFor(pid)
@@ -1240,7 +1235,7 @@ class Manipulator ( LoggerBase ):
                 # FIXME if the particle was frozen before, we need to
                 # unfreeze
                 if otherpid in were_frozen:
-                    self.setRandomBranchings(otherpid)
+                    self.setBranchings(otherpid)
                     self.initSSMFor(otherpid)
                 self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
