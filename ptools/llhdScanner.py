@@ -158,13 +158,16 @@ class LlhdScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, pid1, pid2, nproc, rundir : str,
                    dbpath : str = "official", select : str = "all",
-                   do_srcombine : bool = True, skip_production : bool = False ):
+                   do_srcombine : bool = True, skip_production : bool = False, 
+                   dry_run : bool = False ):
         """
         :param rundir: the rundir
         :param dbpath: the database path
         :param skip_production: if possible, skip production, go to plotting
+        :param dry_run: dont actually perform the actions
         """
         super ( LlhdScanner, self ).__init__ ( 0 )
+        self.dry_run = dry_run
         self.rundirarg = rundir
         self.rundir = setup( rundir )
         self.M = protomodel
@@ -182,10 +185,10 @@ class LlhdScanner ( LoggerBase ):
         if len(r)==0:
             return ""
         if len(r)==1:
-            return f"{r[0]}"
+            return f"{r[0]:.2f}"
         if len(r)==2:
-            return f"{r[0]},{r[1]}"
-        return f"{r[0]},{r[1]} ... {r[-1]}"
+            return f"{r[0]:.2f},{r[1]:.2f}"
+        return f"{r[0]:.2f},{r[1]:.2f} ... {r[-1]:.2f}"
 
     def getMassPoints ( self, rpid1, rpid2 ):
         """ run for the given mass points
@@ -193,6 +196,12 @@ class LlhdScanner ( LoggerBase ):
         :param rpid2: list of masses for pid2
         :returns: masspoints
         """
+        if self.dry_run:
+            self.pprint ( f"dry_run. stopping here" )
+            sys.exit()
+            self.pprint ( f"dry_run. would run for pid1={rpid1}" )
+            self.pprint ( f"pid2={rpid2}" )
+            sys.exit()
         if self.nproc == 1:
             return runThread ( 0, self.rundir, self.M, self.pid1, self.pid2, \
                                self.mpid1, self.mpid2, self.nevents, rpid1, rpid2,
@@ -289,46 +298,27 @@ class LlhdScanner ( LoggerBase ):
         self.M.delCurrentSLHA()
 
     def overrideWithDefaults ( self, args ):
-        mins = { 1000005:  100., 1000006:  100., 2000006:  100., 1000021:  300., \
-                 1000023:  200., 1000024:  50.,
-                 1000001:  250., 1000002: 250., 1000003: 250., 1000004: 250. }
-        maxs = { 1000005: 1500., 1000006: 1460., 2000006: 1260., 1000021: 2351., \
-                 1000023:  700., 1000024:  200.,
-                 1000001: 2051., 1000002: 2051., 1000003: 2051., 1000004: 2051. }
-        dm   = { 1000005:   10., 1000006:   20., 2000006:   10., 1000021: 15., \
-                 1000023:   10., 1000024:    3.,
-                 1000001:   12., 1000002:   12., 1000003:   12., 1000004: 12.  }
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
                  1000023: "electroweakinos_offshell", 
                  1000024: "electroweakinos_offshell",
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
-        LSPmins = { 1000005:    5., 1000006:   5., 2000006:    5., 1000021:    5., \
-                    1000023:    5., 1000024:   0.,
-                    1000001:    5., 1000002: 5., 1000003: 5., 1000004: 5. }
-        LSPmaxs = { 1000005:  800., 1000006: 900., 2000006:  800., 1000021: 1800., \
-                    1000023:  600., 1000024: 140.,
-                    1000001: 1700., 1000002: 1700., 1000003: 1700., 1000004: 1700. }
-        LSPdm   = { 1000005: 10., 1000006: 20., 2000006: 10., 1000021: 15., \
-                    1000023: 10., 1000024:  3.,
-                    1000001: 10., 1000002: 10., 1000003: 10., 1000004: 10. }
-        if not args.pid1 in mins:
-            print ( f"[llhdScanner] asked for defaults for {args.pid1}, but none defined." )
-            return args
-        if args.min1 == None:
-            args.min1 = mins[args.pid1]
-        if args.max1 == None:
-            args.max1 = maxs[args.pid1]
-        if args.deltam1 == None:
-            args.deltam1 = dm[args.pid1]
-        if args.min2 == None:
-            args.min2 = LSPmins[args.pid1]
-        if args.max2 == None:
-            args.max2 = LSPmaxs[args.pid1]
-        if args.deltam2 == None:
-            args.deltam2 = LSPdm[args.pid1]
         if args.topo == None:
             args.topo = topo[args.pid1]
+        self.mpid1 = self.M.masses[self.pid1]
+        self.mpid2 = self.M.masses[self.pid2]
+        if args.min1 == None:
+            args.min1 = self.mpid1*.7
+        if args.max1 == None:
+            args.max1 = self.mpid1*1.5
+        if args.deltam1 == None:
+            args.deltam1 = ( args.max1 - args.min1 ) / 20.
+        if args.min2 == None:
+            args.min2 = self.mpid2*.7
+        if args.max2 == None:
+            args.max2 = self.mpid2*1.5
+        if args.deltam2 == None:
+            args.deltam2 = ( args.max2 - args.min2 ) / 15.
         return args
 
 def main ():
@@ -380,6 +370,9 @@ def main ():
     argparser.add_argument ( '-D', '--draw',
             help='also perform the plotting, ie call plotLlhds',
             action='store_true' )
+    argparser.add_argument ( '--dry_run',
+            help='just tell us what you would be doing, dont actually do it',
+            action='store_true' )
     argparser.add_argument ( '-v', '--verbosity',
             help='verbosity -- debug, info, warn, err [info]',
             type=str, default="info" )
@@ -417,7 +410,8 @@ def main ():
         scanner = LlhdScanner( protomodel, pid1, args.pid2, nproc, rundir, 
                 dbpath = args.dbpath, select = args.select, 
                 do_srcombine = args.do_srcombine, 
-                skip_production = args.skip_production )
+                skip_production = args.skip_production,
+                dry_run = args.dry_run )
         args.pid1 = pid1
         args = scanner.overrideWithDefaults ( args )
         range1 = { "min": args.min1, "max": args.max1, "dm": args.deltam1 }
