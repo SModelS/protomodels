@@ -672,6 +672,8 @@ class Combiner ( LoggerBase ):
 
         :returns: penalty -- 1e-3 if experiment is missing
         """
+        if len(predictions)==0:
+            return .01 # penalize but doesnt matter, there is no likelihood
         hasExperiment = { "ATLAS": False, "CMS": False }
         for p in predictions:
             for experiment in [ "CMS", "ATLAS" ]:

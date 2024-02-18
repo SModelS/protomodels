@@ -65,7 +65,11 @@ class LlhdThread ( LoggerBase ):
         if max(self.M.masses)>2000:
             sigmacut=.001*fb
         ## first get rmax
+        if hasattr ( self.predictor, "predictions" ):
+            del self.predictor.predictions
         worked = self.predictor.predict ( self.M, keep_predictions = True )
+        
+        # print ( "@@5 worked", worked, len(self.predictor.predictions) )
 
         ## now get the likelihoods
         llhds={}
@@ -97,8 +101,9 @@ class LlhdThread ( LoggerBase ):
         self.M.masses[pid]=mass
         for pair in partners:
             if pid in pair:
-                for p in pair:
-                    self.M.masses[p]=mass
+                for p in pair: # set only if it was introduced
+                    if p in self.M.masses: #  and self.M.masses[p]<6000:
+                        self.M.masses[p]=mass
 
     def run ( self, rpid1, rpid2 ):
         """ run for the points given """
@@ -114,7 +119,12 @@ class LlhdThread ( LoggerBase ):
                 self.M.masses[k]=v
             oldmasses={}
             self.M.delXSecs() ## make sure we compute
-            self.M.getXsecs()
+            xsecs = self.M.getXsecs()
+            xsectot = 0.*fb
+            for xsec in xsecs[0]:
+                xsectot += xsec.value
+            if xsectot.asNumber ( fb ) < 1e-10:
+                self.pprint ( "WARNING no xsec??" )
             for i2,m2 in enumerate(rpid2):
                 if m2 > m1: ## we assume pid2 to be the daughter
                     continue
@@ -244,7 +254,7 @@ class LlhdScanner ( LoggerBase ):
         print ( f"[llhdScanner] range for {pid1}: {self.describeRange( rpid1 )}" )
         print ( f"[llhdScanner] range for {pid2}: {self.describeRange( rpid2 )}" )
         print ( f"[llhdScanner] total {len(rpid1)*len(rpid2)} points, {nevents} events for {topo}" )
-        self.M.createNewSLHAFileName ( prefix="llhd%d" % pid1 )
+        self.M.createNewSLHAFileName ( prefix=f"llhd{pid1}" )
         #self.M.initializePredictor()
         self.predictor.filterForTopos ( topo )
         self.M.walkerid = 2000
@@ -289,7 +299,8 @@ class LlhdScanner ( LoggerBase ):
                  1000023:   10., 1000024:    3.,
                  1000001:   12., 1000002:   12., 1000003:   12., 1000004: 12.  }
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
-                 1000023: "TChiZZoff", 1000024: "TChiWZoff",
+                 1000023: "electroweakinos_offshell", 
+                 1000024: "electroweakinos_offshell",
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
         LSPmins = { 1000005:    5., 1000006:   5., 2000006:    5., 1000021:    5., \

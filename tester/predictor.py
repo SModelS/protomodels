@@ -88,19 +88,40 @@ class Predictor ( LoggerBase ):
         self.pprint ( f"filtered for {topo}, keeping {nafter}/{nbefore} expRes" )
         self.listOfExpRes = keepExpRes
 
-    def filterForTopos ( self, topo ):
-        """ filter the list of expRes, keep only the ones for topo """
+    def matchesTopos ( self, topo, listOfTopos ):
+        """ tell me if topo is in listOfTopos """
+        if topo in listOfTopos:
+            return True
+        return False
+
+    def filterForTopos ( self, topos : Union[List,str] ):
+        """ filter the list of expRes, keep only the ones for topo 
+        :param topos: the topologies, either as list or as string with commas
+        """
         keepExpRes = []
         nbefore = len(self.listOfExpRes)
+        if type(topos) == str:
+            from ptools import moreHelpers
+            topos = topos.split(",")
+        actualtopos = set()
+        for topo in topos:
+            names = moreHelpers.namesForSetsOfTopologies(topo)
+            ts = names[0].split(",")
+            for t in ts:
+                actualtopos.add ( t )
         for er in self.listOfExpRes:
             txnames = [ x.txName for x in er.getTxNames() ]
-            if not topo in txnames: ## can safely skip
+            anyMatch = False
+            for t in actualtopos:
+                if self.matchesTopos ( t, txnames ):
+                    anyMatch = True
+            if not anyMatch: ## can safely skip
                 continue
             newDS = []
             for dataset in er.datasets:
                 newTxNames = []
                 for txName in dataset.txnameList:
-                    if txName.txName != topo:
+                    if not self.matchesTopos ( txName.txName, actualtopos ):
                         continue
                     newTxNames.append ( txName )
                 if len(newTxNames)>0:
@@ -109,8 +130,7 @@ class Predictor ( LoggerBase ):
             if len(newDS)>0:
                 er.datasets = newDS
                 keepExpRes.append ( er )
-        self.pprint ( "filtered for %s, keeping %d/%d expRes" % \
-                      ( topo, len(keepExpRes), nbefore) )
+        self.pprint ( f"filtered for {','.join(actualtopos)}, keeping {len(keepExpRes)}/{nbefore} expRes" )
         self.listOfExpRes = keepExpRes
 
     def fetchResults ( self ):
