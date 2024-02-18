@@ -14,7 +14,7 @@ from smodels.tools.xsecComputer import XSecComputer, NLL
 from smodels.tools.physicsUnits import TeV, fb
 from ptools import helpers
 from ptools.sparticleNames import SParticleNames
-from typing import Union
+from typing import Union, List, Tuple
 
 from smodels.tools.smodelsLogging import setLogLevel
 from builder.loggerbase import LoggerBase
@@ -185,7 +185,7 @@ class ProtoModel ( LoggerBase ):
         a.sort()
         return tuple(a)
 
-    def getXsecs(self):
+    def getXsecs(self) -> Tuple[List,str]:
         """
         Return the cross-sections.
         If they have already been computed (and stored in self._stored_xsecs)
