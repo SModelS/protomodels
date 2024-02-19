@@ -14,7 +14,7 @@ from smodels.tools.runtime import nCPUs
 from tester.combiner import Combiner
 from tester.predictor import Predictor
 from plotting import plotLlhds
-from typing import Dict
+from typing import Dict, Tuple, Union
 from ptools.sparticleNames import SParticleNames
 from builder.loggerbase import LoggerBase
 
@@ -54,8 +54,11 @@ class LlhdThread ( LoggerBase ):
         self.nevents = nevents
         self.predictor = predictor
 
-    def getPredictions ( self, recycle_xsecs = True ):
-        """ get predictions, return likelihoods """
+    def getPredictions ( self, recycle_xsecs : bool = True ) -> Tuple[Dict,Dict]:
+        """ get predictions, return likelihoods 
+
+        :returns: tuple of likelihoods and critics' responses
+        """
         self.M.createSLHAFile( )
         sigmacut=.02*fb
         if max(self.M.masses)>1600:
@@ -79,7 +82,13 @@ class LlhdThread ( LoggerBase ):
             llhds[float(mu)] = self.getLikelihoods ( self.predictor.predictions, mu=mu )
         del self.predictor.predictions
         self.M.delCurrentSLHA()
-        return llhds,self.M.rvalues[:3]
+        critics={}
+        for critic in self.M.critic_description.split(","):
+            tokens = critic.split(":")
+            if len(tokens)>1:
+                critics[tokens[0]]=float(tokens[1])
+
+        return llhds,critics
 
     def getLikelihoods ( self, predictions, mu = 1. ) -> Dict:
         """ return dictionary with the likelihoods per analysis """
@@ -115,7 +124,7 @@ class LlhdThread ( LoggerBase ):
             self.setMass ( self.pid1, m1 )
             self.M.masses[self.pid2]=self.mpid2 ## reset LSP mass
             for k,v in oldmasses.items():
-                self.pprint ( "WARNING: setting mass of %d back to %d" % ( k, v ) )
+                self.pprint ( f"WARNING: setting mass of {k} back to {v}" )
                 self.M.masses[k]=v
             oldmasses={}
             self.M.delXSecs() ## make sure we compute
@@ -139,8 +148,9 @@ class LlhdThread ( LoggerBase ):
                 for mu,llhd in llhds.items():
                     nllhds+=len(llhd)
 
-                self.pprint ( f"{i1}/{npid1s}: m({namer.asciiName(self.pid1)})={m1}, m2({namer.asciiName(self.pid2)})={m2}, {len(llhds)} mu's, {nllhds} llhds." )
-                masspoints.append ( (m1,m2,llhds,robs) )
+                self.pprint ( f"{i1}/{npid1s}: m({namer.asciiName(self.pid1)})={m1:.1f}, m2({namer.asciiName(self.pid2)})={m2:.1f}, {len(llhds)} mu's, {nllhds} llhds." )
+                point = { "mx": m1, "my": m2, "llhd": llhds, "critic": robs } 
+                masspoints.append ( point )
         return masspoints
 
 def runThread ( threadid: int, rundir: str, M, pid1, pid2, mpid1,
@@ -224,7 +234,7 @@ class LlhdScanner ( LoggerBase ):
         for k,v in return_dict.items():
             # print ( "collecting from thread %s" % str(k) )
             for mp in v:
-                key=(mp[0],mp[1])
+                key=(mp["mx"],mp["my"])
                 # print ( "key", key )
                 if key in hasStored:
                     continue
@@ -273,7 +283,7 @@ class LlhdScanner ( LoggerBase ):
         llhds,robs = thread0.getPredictions ( False )
         thread0.clean()
         self.pprint ( f"protomodel point: m1({namer.asciiName(self.pid1)})={self.mpid1:.2f}, m2({namer.asciiName(self.pid2)})={self.mpid2:.2f}, {len(llhds)} llhds" )
-        masspoints = [ (self.mpid1,self.mpid2,llhds,robs) ]
+        masspoints = [ {"mx": self.mpid1, "my": self.mpid2,"llhd": llhds, "critic": robs } ]
 
         if True:
             ## freeze out all other particles
@@ -432,11 +442,15 @@ def main ():
             with open ( scriptfilename, "wt" ) as f:
                 print ( f"[llhdScanner] created llhdPlotScript.py" )
                 f.write ( "#!/usr/bin/env python3\n\n" )
+                f.write ( "import sys\n" )
+                f.write ( "interactive=False\n" )
+                f.write ( "if '-i' in sys.argv:\n" )
+                f.write ( "    interactive=True\n" )
                 f.write ( "from plotting import plotLlhds\n" )
                 f.write ( f"plot = plotLlhds.LlhdPlot ( pid1={pid1}, pid2={args.pid2}, verbose='{verbose}', copy={copy},\n" )
-                f.write ( f"   max_anas={max_anas}, interactive={interactive}, drawtimestamp={drawtimestamp}, compress={compress},\n" )
-                f.write ( f"   rundir='{rundir}',\n" )
-                f.write ( f"   upload='{upload}', dbpath='{args.dbpath}' )\n" )
+                f.write ( f"    max_anas={max_anas}, interactive=interactive, drawtimestamp={drawtimestamp}, compress={compress},\n" )
+                f.write ( f"    rundir='{rundir}',\n" )
+                f.write ( f"    upload='{upload}', dbpath='{args.dbpath}' )\n" )
                 f.write ( f"plot.plot()\n" )
                 f.close()
                 os.chmod ( scriptfilename, 0o755 )

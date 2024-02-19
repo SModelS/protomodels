@@ -20,17 +20,6 @@ matplotlib.rcParams['hatch.linewidth'] = .5  # previous svg hatch linewidth
 from protomodels.builder.loggerbase import LoggerBase
 from typing import Dict, Tuple, Union
 
-def integrateLlhds ( Z, RMAX, rthreshold ):
-    """ compute the integral of the likelihood over all points """
-    I = 0.
-    for x,row in enumerate(Z):
-        for y,nll in enumerate(row):
-            if RMAX[x][y]>rthreshold:
-                continue
-            if not np.isnan(nll):
-                I += np.exp ( - nll )
-    return I
-
 def findMin ( oldZ ):
     """ find the minimum in Z """
     idx = np.nanargmin ( oldZ ) 
@@ -38,44 +27,6 @@ def findMin ( oldZ ):
     x = int ( ( idx - y ) / oldZ.shape[1] )
     m = oldZ[x][y]
     return x,y,m
-
-def computeHPD ( Z, RMAX, alpha = .9, verbose = True, rthreshold=1.7 ):
-    """ compute the regions of highest posterior density to the alpha quantile
-    """
-    newZ = copy.deepcopy ( Z )
-    if alpha > .999999: # give all points with likelihoods
-        for x,row in enumerate(newZ):
-            for y,_ in enumerate(row):
-                if _ > 0.:
-                    newZ[x][y]=1.
-                else:
-                    newZ[x][y]=0.
-        return newZ
-    I = integrateLlhds ( Z, RMAX, rthreshold )
-    S = 0.
-    points = []
-    n = 0
-    oldZ = copy.deepcopy ( Z )
-    for x,row in enumerate(newZ):
-        for y,_ in enumerate(row):
-            rmax = 0.
-            if type(RMAX) != type(None):
-                rmax = RMAX[x][y]
-            if rmax > rthreshold: ## kill the excluded areas
-                oldZ[x][y]= float("nan") # oldZ[x][y] # float("nan")
-            n += 1
-            newZ[x][y] = 0.
-    ctr = 0
-    if not np.all(np.isnan(oldZ)):
-        while S < alpha: ## as long as we dont have enough area
-            x,y,m = findMin(oldZ)
-            ctr+= 1
-            S += np.exp ( -m)/I ## add up
-            oldZ[x][y]=float("nan") ## kill this one
-            newZ[x][y]=1 +1./ctr
-    if verbose:
-        print ( "%d/%d points in %d%s HPD" % ( sum(sum(newZ)), n, int(alpha*100), "%" ) )
-    return newZ
 
 def filterSmaller ( X, Y ):
     """ filter out whenever X < Y """
@@ -182,10 +133,66 @@ class LlhdPlot ( LoggerBase ):
         self.rdict = {}
         if masspoints == None:
             return
+        countCritics = {} ## count occurrences of analyses in critic
+        # to determine which analyses dominate the critic
         for m in masspoints:
-            self.massdict[ (m[0],m[1]) ] = m[2]
-            if len(m)>3:
-                self.rdict[ (m[0],m[1]) ] = m[3]
+            self.massdict[ (m["mx"],m["my"]) ] = m["llhd"]
+            self.rdict[ (m["mx"],m["my"]) ] = m["critic"]
+            for ana,r in m["critic"].items():
+                if r>self.rthreshold:
+                    if not ana in countCritics:
+                        countCritics[ana]=0
+                    countCritics[ana]+=1
+        self.criticsOccurences = countCritics
+
+    def integrateLlhds ( self, Z, RMAX ):
+        """ compute the integral of the likelihood over all points """
+        I = 0.
+        for x,row in enumerate(Z):
+            for y,nll in enumerate(row):
+                if RMAX[x][y]>self.rthreshold:
+                    continue
+                if not np.isnan(nll):
+                    I += np.exp ( - nll )
+        return I
+
+    def computeHPD ( self, Z, RMAX, alpha : float = .9, verbose : bool = True ):
+        """ compute the regions of highest posterior density to the alpha quantile
+        """
+        newZ = copy.deepcopy ( Z )
+        if alpha > .999999: # give all points with likelihoods
+            for x,row in enumerate(newZ):
+                for y,_ in enumerate(row):
+                    if _ > 0.:
+                        newZ[x][y]=1.
+                    else:
+                        newZ[x][y]=0.
+            return newZ
+        I = self.integrateLlhds ( Z, RMAX )
+        S = 0.
+        points = []
+        n = 0
+        oldZ = copy.deepcopy ( Z )
+        for x,row in enumerate(newZ):
+            for y,_ in enumerate(row):
+                rmax = 0.
+                if type(RMAX) != type(None):
+                    rmax = RMAX[x][y]
+                if rmax > self.rthreshold: ## kill the excluded areas
+                    oldZ[x][y]= float("nan") # oldZ[x][y] # float("nan")
+                n += 1
+                newZ[x][y] = 0.
+        ctr = 0
+        if not np.all(np.isnan(oldZ)):
+            while S < alpha: ## as long as we dont have enough area
+                x,y,m = findMin(oldZ)
+                ctr+= 1
+                S += np.exp ( -m)/I ## add up
+                oldZ[x][y]=float("nan") ## kill this one
+                newZ[x][y]=1 +1./ctr
+        if verbose:
+            print ( f"{sum(sum(newZ))}/{n} points in {int(alpha*100)}% HPD" )
+        return newZ
 
     def topoMatches ( self, topo ):
         """ does topo match self.topo """
@@ -208,7 +215,7 @@ class LlhdPlot ( LoggerBase ):
             if "err" in verbose:
                 self.verbose = 10
                 return
-            self.pprint ( "I dont understand verbosity ``%s''. Setting to debug." % verbose )
+            self.pprint ( f"I dont understand verbosity ``{verbose}''. Setting to debug." )
             self.verbose = 40
 
     def getHash ( self, m1=None, m2=None ):
@@ -248,7 +255,7 @@ class LlhdPlot ( LoggerBase ):
                 # if signal regions are given, they need to match
                 if tokens[1] != dType:
                     continue
-                self.debug ( "found a match for", tokens[0], tokens[1], v )
+                self.debug ( f"found a match for {tokens[0]}, {tokens[1]}, {v}" )
             # print ( "topo", self.topo, "tokens[2]", tokens[2], self.topoMatches ( tokens[2] ) )
             if not self.topoMatches ( tokens[2] ):
                 self.pprint ( f"topology {tokens[2]} does not match {self.topo}, will skip" )
@@ -291,13 +298,17 @@ class LlhdPlot ( LoggerBase ):
             return None
         for llhd in allhds:
             if self.pid1 in [ 1000001, 1000002, 1000003, 1000004 ]:
-                if llhd[0]<310.:
-                    print ( "light squark mass wall, skipping mx %d < 310 GeV" % llhd[0] )
+                if llhd['mx']<310.:
+                    print ( f"light squark mass wall, skipping mx {llhd['mx']} < 310 GeV" )
                     continue
-            if len(llhd)==4:
-                llhds.append ( (llhd[0],llhd[1],getMu1(llhd[2]),llhd[3]) )
+            app = copy.deepcopy ( llhd )
+            if type(app)==tuple:
+                print ( f"FIXME why is this a tuple? {app[:2]}" )
+                app= { "mx": llhd[0], "my": llhd[1], "llhd": getMu1(llhd[2]),
+                       "critic": llhd[3] }
             else:
-                llhds.append ( (llhd[0],llhd[1],getMu1(llhd[2]),[0.,0.,0.]) )
+                app["llhd"] = getMu1(llhd["llhd"])
+            llhds.append ( app )
         return llhds,mx,my,nevents,topo,timestamp
 
     def setup ( self, pid1, pid2 ):
@@ -310,13 +321,12 @@ class LlhdPlot ( LoggerBase ):
         self.pid2 = pid2
         if type(self.pid1) in [ tuple, list ]:
             pid1 = self.pid1[0]
-        self.picklefile = "%s/llhd%d%d.pcl" % ( self.rundir, pid1, self.pid2 )
+        self.picklefile = f"{self.rundir}/llhd{pid1}{self.pid2}.pcl"
         if not os.path.exists ( self.picklefile ):
             llhdp = self.picklefile
-            self.picklefile = "%s/mp%d%d.pcl" % ( self.rundir, pid1, self.pid2 )
+            self.picklefile = f"{self.rundir}/mp{pid1}{self.pid2}.pcl" 
         if not os.path.exists ( self.picklefile ):
-            self.pprint ( "could not find pickle files %s and %s" % \
-                          ( llhdp, self.picklefile ) )
+            self.pprint(f"could not find pickle files {llhdp} and {self.picklefile}")
 
     def describe ( self ):
         """ describe the situation """
@@ -415,14 +425,14 @@ class LlhdPlot ( LoggerBase ):
                    "pink", "indigo", "olive", "orchid", "darkseagreen", "teal" ]
         xmin,xmax,ymin,ymax=9000,0,9000,0
         for m in self.masspoints:
-            if m[0] < xmin:
-                xmin = m[0]
-            if m[0] > xmax:
-                xmax = m[0]
-            if m[1] < ymin:
-                ymin = m[1]
-            if m[1] > ymax:
-                ymax = m[1]
+            if m["mx"] < xmin:
+                xmin = m["mx"]
+            if m["mx"] > xmax:
+                xmax = m["mx"]
+            if m["my"] < ymin:
+                ymin = m["my"]
+            if m["my"] > ymax:
+                ymax = m["my"]
         if abs(xmin-310.)<1e-5:
             xmin=330. ## cut off the left margin
         self.pprint ( f"plot ranges: x=[{xmin:.1f},{xmax:.1f}] y=[{ymin:.1f},{ymax:.1f}]" )
@@ -441,19 +451,19 @@ class LlhdPlot ( LoggerBase ):
             minXY=( float("nan"),float("nan"), float("inf") )
             s="none"
             ## first, check for the hiscore point
-            r,sr = self.getResultFor ( ana, self.masspoints[0][2] )
+            r,sr = self.getResultFor ( ana, self.masspoints[0]["llhd"] )
             if r:
                 s=f"({-np.log(r):.2f})"
-            self.pprint ( f"{ana} @ hiscore m=({self.masspoints[0][0]:.1f},{self.masspoints[0][1]:.1f}): '{s}'" )
+            self.pprint ( f"{ana} @ hiscore m=({self.masspoints[0]['mx']:.1f},{self.masspoints[0]['my']:.1f}): '{s}'" )
             cresults = 0
             ## then, run on all other points
             for cm,masspoint in enumerate(self.masspoints[1:]):
                 if cm % 100 == 0:
                     print ( ".", end="", flush=True )
-                m1,m2,llhds,robs=masspoint[0],masspoint[1],masspoint[2],masspoint[3]
+                m1,m2,llhds,robs=masspoint["mx"],masspoint["my"],masspoint["llhd"],masspoint["critic"]
                 rmax=float("nan")
                 if len(robs)>0:
-                    rmax=robs[0]
+                    rmax=max(robs.values())
                 if m2 > m1:
                     print ( f"m2,m1 mass inversion? {m1,m2}" )
                 x.add ( m1 )
@@ -507,12 +517,12 @@ class LlhdPlot ( LoggerBase ):
                 self.R = R
                 self.X = X
                 self.Y = Y
-            hldZ100 = computeHPD ( Z, None, 1., False, rthreshold=self.rthreshold )
+            hldZ100 = self.computeHPD ( Z, None, 1., False )
             cont100 = plt.contour ( X, Y, hldZ100, levels=[0.25], colors = [ color ], linestyles = [ "dotted" ], zorder=10 )
-            #hldZ95 = computeHPD ( Z, .95, False )
+            #hldZ95 = self.computeHPD ( Z, .95, False )
             #cont95 = plt.contour ( X, Y, hldZ95, levels=[0.5], colors = [ color ], linestyles = [ "dashed" ] )
             #plt.clabel ( cont95, fmt="95%.0s" )
-            hldZ50 = computeHPD ( Z, RMAX, .68, False, rthreshold=self.rthreshold )
+            hldZ50 = self.computeHPD ( Z, RMAX, .68, False )
             cont50c = plt.contour ( X, Y, hldZ50, levels=[1.0], colors = [ color ], zorder=10 )
             cont50 = plt.contourf ( X, Y, hldZ50, levels=[1.,10.], colors = [ color, color ], alpha=getAlpha( color ), zorder=10 )
             plt.clabel ( cont50c, fmt="68%.0s" )
@@ -543,7 +553,7 @@ class LlhdPlot ( LoggerBase ):
         self.ZCOMB = ZCOMB
         contRMAX = plt.contour ( X, Y, RMAX, levels=[self.rthreshold], colors = [ "gray" ], zorder=10 )
         contRMAXf = plt.contourf ( X, Y, RMAX, levels=[self.rthreshold,float("inf")], colors = [ "gray" ], hatches = ['////'], alpha=getAlpha( "gray" ), zorder=10 )
-        hldZcomb68 = computeHPD ( ZCOMB, RMAX, .68, False, rthreshold=self.rthreshold )
+        hldZcomb68 = self.computeHPD ( ZCOMB, RMAX, .68, False  )
         contZCOMB = plt.contour ( X, Y, hldZcomb68, levels=[.25], colors = [ "black" ], zorder=10 )
 
         # ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="s", s=110, color="gray", label="excluded", alpha=.3, zorder=20 )
@@ -578,11 +588,11 @@ class LlhdPlot ( LoggerBase ):
         # plt.title ( "HPD regions, %s [%s]" % ( self.namer.texName(pid1, addSign=False, addDollars=True), self.topo ), fontsize=14 )
         plt.xlabel ( "m(%s) [GeV]" % self.namer.texName(pid1,addSign=False, addDollars=True), fontsize=14 )
         plt.ylabel ( "m(%s) [GeV]" % self.namer.texName(self.pid2, addSign=False, addDollars=True), fontsize=14 )
-        circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label='excluded by critic (r>1.7)', edgecolor="black" )
+        circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold})', edgecolor="black" )
         handles.append ( circ1 )
         legend = plt.legend( handles=handles, loc="best", fontsize=12 )
         figname = f"{self.rundir}/llhd{pid1}.png"
-        self.pprint ( "saving to %s" % figname )
+        self.pprint ( f"saving to {figname}" )
         plt.savefig ( figname )
         if self.interactive:
             self.axes = ax
@@ -601,8 +611,8 @@ class LlhdPlot ( LoggerBase ):
         self.pprint ( "%s: %s" % ( cmd, o ) )
 
 
-    def getAnaStats ( self, integrateSRs=True, integrateTopos=True,
-                      integrateDataType=True  ):
+    def getAnaStats ( self, integrateSRs : bool = True, integrateTopos : bool = True,
+                      integrateDataType : bool =True  ) -> Dict:
         """ given the likelihood dictionaries D, get
             stats of which analysis occurs how often 
         :param integrateTopos: sum over all topologies
@@ -613,9 +623,9 @@ class LlhdPlot ( LoggerBase ):
         if self.masspoints == None:
             return None
         for masspoint in self.masspoints:
-            m1,m2,llhds=masspoint[0],masspoint[1],masspoint[2]
-            if len(masspoint)>3:
-                robs = masspoint[3]
+            # print ( "masspoint", masspoint )
+            m1,m2,llhds=masspoint["mx"],masspoint["my"],masspoint["llhd"]
+            robs = masspoint["critic"]
             for k,v in llhds.items():
                 tokens = k.split(":")
                 if not integrateTopos and self.topo not in tokens[2]:
