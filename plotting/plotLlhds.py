@@ -3,7 +3,8 @@
 """ the plotting script for the llhd scans """
 
 from smodels.tools.physicsUnits import TeV
-import pickle, sys, copy, subprocess, os, colorama, time, glob, math
+import pickle, sys, copy, subprocess, os, time, glob, math
+from colorama import Fore as ansi
 import IPython
 import numpy as np
 from protomodels.csetup import setup
@@ -17,6 +18,7 @@ if "plotting" in os.getcwd():
 from ptools.sparticleNames import SParticleNames
 matplotlib.rcParams['hatch.linewidth'] = .5  # previous svg hatch linewidth
 from protomodels.builder.loggerbase import LoggerBase
+from typing import Dict, Tuple, Union
 
 def integrateLlhds ( Z, RMAX, rthreshold ):
     """ compute the integral of the likelihood over all points """
@@ -64,12 +66,13 @@ def computeHPD ( Z, RMAX, alpha = .9, verbose = True, rthreshold=1.7 ):
             n += 1
             newZ[x][y] = 0.
     ctr = 0
-    while S < alpha: ## as long as we dont have enough area
-        x,y,m = findMin(oldZ)
-        ctr+= 1
-        S += np.exp ( -m)/I ## add up
-        oldZ[x][y]=float("nan") ## kill this one
-        newZ[x][y]=1 +1./ctr
+    if not np.all(np.isnan(oldZ)):
+        while S < alpha: ## as long as we dont have enough area
+            x,y,m = findMin(oldZ)
+            ctr+= 1
+            S += np.exp ( -m)/I ## add up
+            oldZ[x][y]=float("nan") ## kill this one
+            newZ[x][y]=1 +1./ctr
     if verbose:
         print ( "%d/%d points in %d%s HPD" % ( sum(sum(newZ)), n, int(alpha*100), "%" ) )
     return newZ
@@ -117,7 +120,7 @@ def getPidList( pid1, rundir ):
     pids = set()
     ## obtain pids from mp files
     # files = glob.glob ( "%s/mp*pcl" % rundir )
-    files = glob.glob ( "%s/llhd*pcl" % rundir )
+    files = glob.glob ( f"{rundir}/llhd*pcl" )
     for f in files:
         t = f.replace(rundir,"")
         t = t.replace("mp","")
@@ -151,6 +154,7 @@ class LlhdPlot ( LoggerBase ):
         :param dbpath: path to database
         """
         super ( LlhdPlot, self ).__init__ ( 0 )
+        self.namer = SParticleNames ( susy = False )
         self.dbpath = dbpath
         self.rundir = rundir
         self.upload = upload
@@ -171,6 +175,8 @@ class LlhdPlot ( LoggerBase ):
         self.my = my
         self.nevents = nevents
         self.topo = topo
+        from ptools.moreHelpers import namesForSetsOfTopologies
+        self.toponames = namesForSetsOfTopologies ( self.topo )[0]
         self.timestamp = timestamp
         self.massdict = {}
         self.rdict = {}
@@ -180,6 +186,11 @@ class LlhdPlot ( LoggerBase ):
             self.massdict[ (m[0],m[1]) ] = m[2]
             if len(m)>3:
                 self.rdict[ (m[0],m[1]) ] = m[3]
+
+    def topoMatches ( self, topo ):
+        """ does topo match self.topo """
+        ret = topo in self.toponames
+        return ret
 
     def setVerbosity ( self, verbose ):
         self.verbose = verbose
@@ -208,21 +219,24 @@ class LlhdPlot ( LoggerBase ):
             m2 = self.my
         return int(1e3*m1) + int(1e0*m2)
 
-    def getResultFor ( self, ana, masspoint ):
+    def getResultFor ( self, ana, masspoint : Dict ) -> Tuple:
         """ return result for ana/topo pair 
+
         :param ana: the analysis id. optionally a data type can be specificed, e.g.
-                    as :em. Alternatively, a signal region can be specified.
+        as :em. Alternatively, a signal region can be specified.
         :param masspoint: a point from self.masspoints
-        :returns: results for this analysis (possibly data type, possibly signal region) 
-                  and topology
+
+        :returns: results for this analysis (possibly data type, 
+        possibly signal region) and topology
         """
-        # self.pprint ( f"asking for {ana}:{masspoint}" )
+        # self.pprint ( f"asking for {ana}" )
         ret,sr = None, None
         dType = "any"
         if ":" in ana:
             ana,dType = ana.split(":")
         for k,v in masspoint.items():
             tokens = k.split(":")
+            # print ( "tokens", tokens )
             if dType == "ul" and tokens[1] != "None":
                 continue
             if dType == "em" and tokens[1] == "None":
@@ -235,7 +249,9 @@ class LlhdPlot ( LoggerBase ):
                 if tokens[1] != dType:
                     continue
                 self.debug ( "found a match for", tokens[0], tokens[1], v )
-            if self.topo not in tokens[2]:
+            # print ( "topo", self.topo, "tokens[2]", tokens[2], self.topoMatches ( tokens[2] ) )
+            if not self.topoMatches ( tokens[2] ):
+                self.pprint ( f"topology {tokens[2]} does not match {self.topo}, will skip" )
                 continue
             if ret == None or v > ret:
                 ret = v
@@ -360,8 +376,10 @@ class LlhdPlot ( LoggerBase ):
         # print ( "found no pretty name", ers[0].globalInfo )
         return anaid
 
-    def plot ( self, ulSeparately=True, pid1=None, dbpath = "official" ):
+    def plot ( self, ulSeparately : bool = True, pid1 : Union[None,int] = None, 
+               dbpath : str = "official" ):
         """ a summary plot, overlaying all contributing analyses 
+
         :param ulSeparately: if true, then plot UL results on their own
         """
         if pid1 == None and type(self.pid1) in [ list, tuple ]:
@@ -374,8 +392,9 @@ class LlhdPlot ( LoggerBase ):
             return
         if pid1 == None:
             pid1 = self.pid1
-        self.pprint ( "plotting summary for %s, %s" % ( pid1, self.topo ) )
+        self.pprint ( f"plotting likelihoods for {self.namer.asciiName(pid1)}: {self.topo}" )
         resultsForPIDs = {}
+        ## this is just to obtain the hiscore
         from plotting.plotHiscore  import HiscorePlotter
         plotter= HiscorePlotter()
         protomodel = plotter.obtain ( 0, self.hiscorefile, dbpath = dbpath )
@@ -406,38 +425,37 @@ class LlhdPlot ( LoggerBase ):
                 ymax = m[1]
         if abs(xmin-310.)<1e-5:
             xmin=330. ## cut off the left margin
-        print ( "[plotLlhds] range x [%d,%d] y [%d,%d]" % ( xmin, xmax, ymin, ymax ) )
+        self.pprint ( f"plot ranges: x=[{xmin:.1f},{xmax:.1f}] y=[{ymin:.1f},{ymax:.1f}]" )
         handles = []
         existingPoints = []
         combL = {}
-        namer = SParticleNames ( susy = False )
         for ctr,ana in enumerate ( anas ): ## loop over the analyses
             if ctr >= self.max_anas:
-                self.pprint ( "too many (%d > %d) analyses." % (len(anas),self.max_anas) )
+                self.pprint ( f"too many ({len(anas)} > {self.max_anas}) analyses." )
                 for ana in anas[ctr:]:
-                    self.pprint ( "  - skipping %s" % ana )
+                    self.pprint ( f"  - skipping {ana}" )
                 break
             color = colors[ctr]
             x,y=set(),set()
             L, R = {}, {}
-            minXY=( 0.,0., float("inf") )
-            s=""
+            minXY=( float("nan"),float("nan"), float("inf") )
+            s="none"
+            ## first, check for the hiscore point
             r,sr = self.getResultFor ( ana, self.masspoints[0][2] )
             if r:
-                s="(%.2f)" % (-np.log(r))
-            print ( f"[plotLlhds] result for {ana} is {s}" )
+                s=f"({-np.log(r):.2f})"
+            self.pprint ( f"{ana} @ hiscore m=({self.masspoints[0][0]:.1f},{self.masspoints[0][1]:.1f}): '{s}'" )
             cresults = 0
+            ## then, run on all other points
             for cm,masspoint in enumerate(self.masspoints[1:]):
-                #if cm % 10 != 0:
-                #    continue
-                if cm % 1000 == 0:
+                if cm % 100 == 0:
                     print ( ".", end="", flush=True )
                 m1,m2,llhds,robs=masspoint[0],masspoint[1],masspoint[2],masspoint[3]
                 rmax=float("nan")
                 if len(robs)>0:
                     rmax=robs[0]
                 if m2 > m1:
-                    print ( "m2,m1 mass inversion?",m1,m2 )
+                    print ( f"m2,m1 mass inversion? {m1,m2}" )
                 x.add ( m1 )
                 y.add ( m2 )
                 zt = float("nan")
@@ -457,15 +475,16 @@ class LlhdPlot ( LoggerBase ):
                     combL[h] = combL[h] + zt
                 R[h]=rmax
             print ()
-            # print ( "\n[plotLlhds] min(xy) for %s is at m=(%d/%d): %.2f(%.2g)" % ( ana, minXY[0], minXY[1], minXY[2], np.exp(-minXY[2] ) ) )
+            self.pprint ( f"{ana}: {cresults}/{len(self.masspoints)} results" )
             if cresults == 0:
-                # print ( f"[plotLlhds] warning: found no results for {masspoint}. skip" )
                 continue
                 # return
-            x.add ( xmax*1.03 )
-            x.add ( xmin*.93 )
-            y.add ( ymax+50. )
-            y.add ( 0. )
+            #x.add ( xmax*1.03 )
+            #x.add ( xmin*.93 )
+            #y.add ( ymax+50. )
+            #y.add ( 0. )
+            #y.add ( ymax*1.01 )
+            #y.add ( ymin*.97 )
             x,y=list(x),list(y)
             x.sort(); y.sort()
             X, Y = np.meshgrid ( x, y )
@@ -506,8 +525,9 @@ class LlhdPlot ( LoggerBase ):
             a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=180, color="black", zorder=20 )
             anan = ana.replace(":None",":UL") # + " (%.2f)" % (minXY[2])
             label = self.getPrettyName ( ana )
-            a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=110, color=color, 
-                            label=label, alpha=1., zorder=20 )
+            # print ( f"@@5 ana {ana} label {label} dType {dType}" )
+            a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=110, 
+                    color=color, label=label, alpha=1., zorder=20 )
             existingPoints.append ( minXY )
             handles.append ( a )
         ZCOMB = float("nan")*X
@@ -528,7 +548,7 @@ class LlhdPlot ( LoggerBase ):
 
         # ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="s", s=110, color="gray", label="excluded", alpha=.3, zorder=20 )
         print()
-        self.pprint ( "timestamp:", self.timestamp, self.topo, max(x) )
+        # self.pprint ( "timestamp:", self.timestamp, self.topo, max(x) )
         dx,dy = max(x)-min(x),max(y)-min(y)
         if self.drawtimestamp:
             plt.text( max(x)-.37*dx,min(y)-.11*dy,self.timestamp, c="gray" )
@@ -555,22 +575,23 @@ class LlhdPlot ( LoggerBase ):
         handles.append ( c )
         if sr == None:
             sr = "UL"
-        # plt.title ( "HPD regions, %s [%s]" % ( namer.texName(pid1, addSign=False, addDollars=True), self.topo ), fontsize=14 )
-        plt.xlabel ( "m(%s) [GeV]" % namer.texName(pid1,addSign=False, addDollars=True), fontsize=14 )
-        plt.ylabel ( "m(%s) [GeV]" % namer.texName(self.pid2, addSign=False, addDollars=True), fontsize=14 )
+        # plt.title ( "HPD regions, %s [%s]" % ( self.namer.texName(pid1, addSign=False, addDollars=True), self.topo ), fontsize=14 )
+        plt.xlabel ( "m(%s) [GeV]" % self.namer.texName(pid1,addSign=False, addDollars=True), fontsize=14 )
+        plt.ylabel ( "m(%s) [GeV]" % self.namer.texName(self.pid2, addSign=False, addDollars=True), fontsize=14 )
         circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label='excluded by critic (r>1.7)', edgecolor="black" )
         handles.append ( circ1 )
-        plt.legend( handles=handles, loc="upper left", fontsize=12 )
-        figname = "%s/llhd%d.png" % ( self.rundir, pid1 )
+        legend = plt.legend( handles=handles, loc="best", fontsize=12 )
+        figname = f"{self.rundir}/llhd{pid1}.png"
         self.pprint ( "saving to %s" % figname )
         plt.savefig ( figname )
         if self.interactive:
             self.axes = ax
             self.plt = plt
+            import IPython
+            IPython.embed( colors = "neutral" )
         plt.close()
         if self.copy:
             self.copyFile ( figname )
-        return
 
     def copyFile ( self, filename ):
         """ copy filename to smodels.github.io/protomodels/<upload>/ """
@@ -617,15 +638,15 @@ class LlhdPlot ( LoggerBase ):
         :param verbose: verbosity: debug, info, warn, or error
         """
         stats = self.getAnaStats( integrateDataType=False )
-        print ( "%6d masspoints with %s" % ( len(self.masspoints), self.topo ) )
+        print ( f"{len(self.masspoints):6d} masspoints with {self.topo}" )
         for k,v in stats.items():
-            print ( "%6d: %s" % ( v, k ) )
+            print ( f"{v:6d}: {k}" )
 
     def compress ( self ):
         """ produce a pcl file with only a fraction of the points. 
             good for testing and development """
         backupfile = self.picklefile.replace(".pcl",".bu.pcl")
-        subprocess.getoutput ( "cp %s %s" % ( self.picklefile, backupfile ))
+        subprocess.getoutput ( f"cp {self.picklefile} {backupfile}" )
         newfile = self.picklefile.replace(".pcl",".comp.pcl")
         mx,my=set(),set()
         for m in self.masspoints:
@@ -678,8 +699,7 @@ class LlhdPlot ( LoggerBase ):
     def interact ( self ):
         import IPython
         varis = "plot.describe()"
-        print ( "%s[plot] interactive session. Try: %s%s" % \
-                ( colorama.Fore.GREEN, varis, colorama.Fore.RESET ) )
+        print ( f"{ansi.GREEN}[plot] interactive session. Try: {varis}{ansi.RESET}" )
         IPython.embed( using=False )
 
 if __name__ == "__main__":
