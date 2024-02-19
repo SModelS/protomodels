@@ -85,7 +85,7 @@ class LlhdThread ( LoggerBase ):
         """ return dictionary with the likelihoods per analysis """
         llhds= {}
         for tp in predictions:
-            txname = ','.join ( [ i.txName for i in tp.txnames ] )
+            txname = ','.join ( set( [ i.txName for i in tp.txnames ] ) )
             name = f"{tp.analysisId()}:{tp.dataId()}:{txname}"
             llhds[ name ] = tp.likelihood ( mu )
         return llhds
@@ -300,7 +300,7 @@ class LlhdScanner ( LoggerBase ):
     def overrideWithDefaults ( self, args ):
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
                  1000023: "electroweakinos_offshell", 
-                 1000024: "electroweakinos_offshell",
+                 1000024: "electroweakinos_offshell,T1",
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
         if args.topo == None:
@@ -433,7 +433,10 @@ def main ():
                 print ( f"[llhdScanner] created llhdPlotScript.py" )
                 f.write ( "#!/usr/bin/env python3\n\n" )
                 f.write ( "from plotting import plotLlhds\n" )
-                f.write ( f"plot = plotLlhds.LlhdPlot ( {pid1}, {args.pid2}, '{verbose}', {copy}, {max_anas}, {interactive}, {drawtimestamp}, {compress}, '{rundir}', '{upload}', '{args.dbpath}' )\n" )
+                f.write ( f"plot = plotLlhds.LlhdPlot ( pid1={pid1}, pid2={args.pid2}, verbose='{verbose}', copy={copy},\n" )
+                f.write ( f"   max_anas={max_anas}, interactive={interactive}, drawtimestamp={drawtimestamp}, compress={compress},\n" )
+                f.write ( f"   rundir='{rundir}',\n" )
+                f.write ( f"   upload='{upload}', dbpath='{args.dbpath}' )\n" )
                 f.write ( f"plot.plot()\n" )
                 f.close()
                 os.chmod ( scriptfilename, 0o755 )
