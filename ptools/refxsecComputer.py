@@ -17,7 +17,6 @@ from smodels.tools.smodelsLogging import logger, setLogLevel
 from smodels.tools.physicsUnits import fb, pb, GeV, TeV, mb, unum
 from smodels.theory.crossSection import LO, NLO, NLL, NNLL
 from smodels.theory import crossSection
-from smodels_utils.SModelSUtils import installDirectory
 from smodels.theory.exceptions import SModelSTheoryError as SModelSError
 from smodels import installation as smodelsinstallation
 import os, sys, io, shutil, pyslha
@@ -37,8 +36,7 @@ class RefXSecComputer:
         self.verbose = verbose
         if verbose:
             setLogLevel ( "info" )
-        self.shareDir = os.path.join ( installDirectory(), "smodels_utils", \
-                                       "morexsecs", "tables" )
+        self.shareDir = "../ptools/xsecTables/"
 
     def warn ( self, *txt ):
         stxt=str(*txt)
@@ -371,7 +369,6 @@ class RefXSecComputer:
         xsecs = crossSection.XSectionList()
         for channel in channels:
             # obtain xsecs for all masses, but for the given channel
-            # for sqrts in self.sqrtses: # FIXME
             pids = channel["pids"]
             if pids[1] < pids[0]:
                 pids = ( pids[1], pids[0] )
@@ -382,8 +379,10 @@ class RefXSecComputer:
             if xsecall == None:
                 continue
             xsec = self.interpolate ( channel["masses"], xsecall )
+            if xsecall is None or xsec is None:
+                print(channel,"xsecall:",xsecall is not None, "interpolation:", xsec is not None)
             if xsec == None:
-                print(f'No cross section obtained for channel {channel}')
+                print(f'*** No cross section obtained for channel {channel} ***')
                 continue
             if ssmultipliers != None and ( pids[1], pids[0] ) in ssmultipliers:
                 pids = ( pids[1], pids[0] )
@@ -391,6 +390,10 @@ class RefXSecComputer:
                 ssm = ssmultipliers[pids]
                 channel["ssm"] = ssm
                 xsec = xsec * ssm
+            else:
+                print(f"*** No signal strength multiplier for {pids} ***")
+                print(pids,pids in ssmultipliers)
+                print(ssmultipliers)
             channel["xsec"] = xsec
             channel["sqrts"] = sqrts
             channel["order"] = order
@@ -413,17 +416,17 @@ class RefXSecComputer:
         # print ( "findOpenChannels" )
         channels = []
         # productions of same-sign-pid pairs when the particle is within reach
-        samesignmodes = ( 1000021, 1000023, 1000025 )
+        samesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006, 1000021, 1000023, 1000025 )
         # production of opposite-sign-pid pairs when the particle is within reach
-        oppositesignmodes = ( 1000006, 1000005, 1000011, 1000013, 1000015, 1000024, 1000037 )
+        oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006, 1000011, 1000012, 1000013, 1000014, 1000015, 1000016, 1000024, 1000037 )
 
         # associate production
-        associateproduction = ( ( 1000001, 1000021 ), ( 1000022, 1000023 ), ( 1000024, 1000023 ), ( -1000024, 1000023 ), ( 1000023, 1000025 ), ( 1000024, 1000025 ), ( -1000024, 1000025 ),
-                                ( 1000037, 1000023 ), ( -1000037, 1000023 ), ( -1000024, 1000037 ), ( -1000037, 1000024 ), ( 1000037, 1000025 ), ( -1000037, 1000025 )
+        associateproduction = ( ( 1000001, 1000021 ), ( 1000002, 1000021 ), ( 1000003, 1000021 ), ( 1000004, 1000021 ), ( 1000005, 1000021 ), ( 2000005, 1000021 ), ( 1000006, 1000021 ), ( 2000006, 1000021 ),
+                                ( 1000011, -1000012 ), ( 1000013, -1000014 ), ( 1000015, -1000016 ), ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016 ),
+                                ( 1000022, 1000023 ), ( 1000024, 1000023 ), ( -1000024, 1000023 ), ( 1000023, 1000025 ), ( 1000037, 1000023 ), ( -1000037, 1000023 ),
+                                ( 1000024, 1000025 ), ( -1000024, 1000025 ), ( -1000024, 1000037 ), ( -1000037, 1000024 ),
+                                ( 1000037, 1000025 ), ( -1000037, 1000025 )
                               )
-        ## production modes to add that needs two different particles
-        ## to be unfrozen
-        # associateproductions = { ( 1000001, 1000021 ): ( 1000001, 1000021 ), ( 1000023, 1000024 ): ( 1000023, 1000024 ), ( -1000023, 1000024 ): ( -1000023, 1000024 ) }
 
         for pid,mass in masses.items():
             if pid < 999999:
@@ -539,9 +542,7 @@ class RefXSecComputer:
         f.close()
         # print ( "get", columns )
         for line in lines:
-            if line.find("#")>-1:
-                line = line[:line.find("#")]
-            if "mass [GeV]" in line: ## skip
+            if line.startswith("#"):
                 continue
             tokens = line.split ()
             if len(tokens)<2:
@@ -564,25 +565,45 @@ class RefXSecComputer:
         :param ewk: specify the ewkino process (hino, or wino, or None)
         """
         logger.debug ( f"asking for cross sections for pids={pid1,pid2}, {sqrts} TeV" )
-        filename=None
+        filename = None
         order = 0
         pb = True
         columns = { "mass": 0, "xsec": 1 }
-        isEWK=False
+        isEWK = False
         comment = ""
         # comment="refxsec [pb]"
-        if pid1 in [ 1000021 ] and pid2 == pid1:
+        if pid1 in [ 1000021 ] and pid2 == pid1: # Gluino pair production
             filename = "xsecgluino%d.txt" % sqrts
-            columns["xsec"]=2
-            isEWK=False
+            columns["xsec"] = 2
             order = NNLL # 4
+            if masses[0] < 500:
+                order = NLL
+        if pid1 in [ 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006 ] and pid2 in [ 1000021 ]: # Gluino-squark productions
+            filename = "xsecsquark%d.txt" % sqrts
+            columns["xsec"] = 2
+            order = NNLL
+        if pid1 in [ -1000001, -1000002, -1000003, -1000004 ] and pid2 == -pid1: # Squark-antisquark productions (light quarks)
+            filename = "xsecsquark%d.txt" % sqrts
+            columns["xsec"] = 2
+            order = NNLL
+        if pid1 in [ -1000005, -2000005, -1000006, -2000006 ] and pid2 == -pid1: # Squark-antisquark productions (heavy quarks)
+            filename = "xsecstop%d.txt" % sqrts
+            columns["xsec"] = 2
+            order = NNLL
+        if pid1 in [ 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006 ] and pid2 == pid1: # Squark-squark productions
+            filename = "xsecsquark%d.txt" % sqrts
+            columns["xsec"] = 2
+            order = NNLL
+        if pid1 in [ -1000011, -1000012, -1000013, -1000014, -1000015, -1000016 ] and pid2 in [ 1000011, 1000012, 1000013, 1000014, 1000015, 1000016 ]: # Slepton pair productions
+            filename = "xsecslepslep%d.txt" % sqrts
+            if sqrts == 8:
+                pb == False
         if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000023, 1000025 ]: # Charginos(-) neutralinos production
             filename = "xsecN2C1m%d.txt" % sqrts
             order = NLL
-            isEWK=True
-            pb = False
-            if sqrts == 8:
-                pb = True
+            isEWK = True
+            if sqrts == 13:
+                pb = False
             # smass = masses[0]+masses[1]
             # if type(masses) == tuple and smass > 1e-6 and abs(masses[1]-masses[0])/smass > 1e-3:
             #     if sqrts == 13:
@@ -595,10 +616,9 @@ class RefXSecComputer:
         if (pid1 in [ 1000023, 1000025 ] and pid2 in [ 1000024, 1000037 ]) or (pid1 == 1000024 and pid2 == 1000025): # Charginos(+) neutralinos productions -- 'or' condition because pid1 < pid2
             filename = "xsecN2C1p%d.txt" % sqrts
             order = NLL
-            pb = False
-            if sqrts == 8:
-                pb = True
-            isEWK=True
+            if sqrts == 13:
+                pb = False
+            isEWK = True
             # smasses = masses[1]+masses[0]
             # if type(masses) == tuple and smasses > 1e-6 and abs(masses[1]-masses[0])/smasses > 1e-3:
             #     if sqrts == 13:
@@ -620,28 +640,12 @@ class RefXSecComputer:
             #filename = "xsecN2N1p%d.txt" % sqrts
             order = NLL
             pb = False
-            isEWK=True
+            isEWK = True
         if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000024, 1000037 ]: # Charginos pair productions
             filename = "xsecC1C1%d.txt" % sqrts
             order = NLL #3
             pb = False
             isEWK = True
-        if pid1 in [ -1000005, -1000006, -2000006 ] and pid2 == -pid1:
-            filename = "xsecstop%d.txt" % sqrts
-            order = NNLL #3
-            columns["xsec"]=2
-        if pid1 in [ -1000011, -1000013, -1000015 ] and pid2 == -pid1:
-            ## left handed slep- slep+ production.
-            filename = "xsecslepLslepL%d.txt" % sqrts
-            if sqrts == 8:
-                pb = False
-            order = NLL #3
-        if pid1 in [ -2000011, -2000013, -2000015 ] and pid2 == -pid1:
-            ## right handed slep- slep+ production.
-            filename = "xsecslepRslepR%d.txt" % sqrts
-            if sqrts == 8:
-                pb = False
-            order = NLL #3
         if filename == None:
             logger.info ( f"could not identify filename for xsecs for {pid1,pid2}" )
             # logger.info ( "seems like we dont have ref xsecs for the pids %d/%d?" % ( pid1, pid2 ) )

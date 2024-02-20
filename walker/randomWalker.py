@@ -14,6 +14,9 @@ except:
     from ptools import setPath
 sys.path.insert(0,f"/scratch-cbe/users/{os.environ['USER']}/git/smodels-utils/protomodels/")
 sys.path.insert(0,"../")
+sys.path.insert(0,"../../")
+sys.path.insert(0,"../smodels/")
+sys.path.remove('/home/pascal/SModelS/smodels')
 from walker.hiscores import Hiscores
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
@@ -35,14 +38,13 @@ def __cleanDirectory ():
     subprocess.getoutput ( "mv exceptions.log tmp/" )
 
 class RandomWalker ( LoggerBase ):
-    def __init__ ( self, walkerid : int = 0, nsteps : int = 10000, 
-            strategy : str = "aggressive", 
-            cheatcode : int = 0, dbpath : PathLike = "./database.pcl", 
-            expected : bool = False, select : str = "all", 
-            catch_exceptions : bool = True, rundir : Union[PathLike,None] = None, 
-            nevents : int = 100000, do_srcombine : bool = False, 
-            record_history : bool = False, seed : Union[int,None] = None,
-            stopTeleportationAfter : int = -1 ):
+    def __init__ ( self, walkerid : int = 0, nsteps : int = 10000,
+            strategy : str = "aggressive",
+            cheatcode : int = 0, dbpath : PathLike = "./database.pcl",
+            expected : bool = False, select : str = "all",
+            catch_exceptions : bool = True, rundir : Union[PathLike,None] = None,
+            do_srcombine : bool = False, record_history : bool = False,
+            seed : Union[int,None] = None, stopTeleportationAfter : int = -1 ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 is no cheating, 1 is with ranges, 2
@@ -52,7 +54,6 @@ class RandomWalker ( LoggerBase ):
                 efficiency maps only, ul for upper limits only, alternatively
                 select for txnames via e.g. "txnames:T1,T2"
         :param catch_exceptions: should we catch exceptions
-        :param nevents: number of MC events when computing cross-sections
         :param do_srcombine: if true, then also perform combinations, either via
                            simplified likelihoods or via pyhf
         :param record_history: if true, attach a history recorder class
@@ -82,15 +83,15 @@ class RandomWalker ( LoggerBase ):
         #Initialize Hiscore (with access to the predictor)
         picklefile = f"{self.rundir}/H{walkerid}.cache"
         save_hiscores = True
-        self.hiscoreList = Hiscores ( walkerid, save_hiscores=save_hiscores, 
+        self.hiscoreList = Hiscores ( walkerid, save_hiscores=save_hiscores,
                 picklefile=picklefile, backup=False, predictor=self.predictor )
         self.hiscoreList.nkeep = 1
 
         #Initialize ProtoModel and Manipulator:
-        protomodel = ProtoModel( self.walkerid, keep_meta = True, nevents = nevents, 
+        protomodel = ProtoModel( self.walkerid, keep_meta = True,
                 dbversion = self.predictor.database.databaseVersion )
 
-        self.manipulator = Manipulator ( protomodel, strategy, 
+        self.manipulator = Manipulator ( protomodel, strategy,
                         do_record = record_history, seed = seed )
         self.catch_exceptions = catch_exceptions
         self.maxsteps = nsteps
@@ -153,8 +154,8 @@ class RandomWalker ( LoggerBase ):
     @classmethod
     def fromDictionary( cls, dictionary : Union[PathLike,Dict], **args : Dict ):
         """ create a RandomWalker from a hiscore dictionary. Continue walking
-            from the model in that dictionary 
-        :param dictionary: either a dictionary, or a string containing a dictionary, 
+            from the model in that dictionary
+        :param dictionary: either a dictionary, or a string containing a dictionary,
         or the path to a dictionary
         """
         if type(dictionary) == str and dictionary.endswith ( ".dict" ):
@@ -173,7 +174,7 @@ class RandomWalker ( LoggerBase ):
                     logger.info ( f" ... seemed to work!" )
             except Exception as e:
                 logger.error  ( f"could not interpret the content of {dictionary}: {e}" )
-                
+
         ret = cls( **args ) ## simply pass on all the arguments
 
         pm = RandomWalker.extractArguments ( ProtoModel.__init__, **args )
@@ -418,7 +419,7 @@ class RandomWalker ( LoggerBase ):
             self.manipulator.backupModel()
 
         while self.maxsteps < 0 or self.protomodel.step<self.maxsteps:
-
+            # print("\n***One new loop:***\n", "\nMasses:", self.protomodel.masses,"\nDecays:",self.protomodel.decays,"\nSSMultipliers:",self.protomodel.ssmultipliers,"\nXsecs:",[xsec.value for xsec in self.protomodel.getXsecs()[0]],"\n")
             if not catchem:
                 self.onestep()
             else:
@@ -453,12 +454,11 @@ class RandomWalker ( LoggerBase ):
         self.pprint ( "Was asked to stop after %d steps" % self.maxsteps )
 
 if __name__ == "__main__":
-    D = {'masses': {1000022: 299., 1000006: 1159.7, 1000001: 875.37}, 
-         'ssmultipliers': {(1000022, 1000022): 0.06, (1000006, 1000006): 0.482, (-1000006, 1000006): 0.482, (-1000006, -1000006): 0.482, (1000006, 1000022): 0.482, (-1000006, 1000022): 0.482, (1000001, 1000001): 0.83, (-1000001, 1000001): 0.83, (-1000001, -1000001): 0.83, (1000001, 1000022): 0.83, (-1000001, 1000022): 0.83, (1000001, 1000006): 0.83, (-1000001, 1000006): 0.83, (-1000006, 1000001): 0.83, (-1000006, -1000001): 0.83}, 
-         'decays': {1000022: {}, 1000006: {(1000022, 6): 1.0}, 1000001: {(1000022, 1): 1.0}}, 
+    D = {'masses': {1000022: 299., 1000006: 1159.7, 1000001: 875.37},
+         'ssmultipliers': {(1000022, 1000022): 0.06, (1000006, 1000006): 0.482, (-1000006, 1000006): 0.482, (-1000006, -1000006): 0.482, (1000006, 1000022): 0.482, (-1000006, 1000022): 0.482, (1000001, 1000001): 0.83, (-1000001, 1000001): 0.83, (-1000001, -1000001): 0.83, (1000001, 1000022): 0.83, (-1000001, 1000022): 0.83, (1000001, 1000006): 0.83, (-1000001, 1000006): 0.83, (-1000006, 1000001): 0.83, (-1000006, -1000001): 0.83},
+         'decays': {1000022: {}, 1000006: {(1000022, 6): 1.0}, 1000001: {(1000022, 1): 1.0}},
          'K': 6.34, 'Z': 3.14, 'step': 16, 'timestamp': 'Wed May 24 23:18:37 2023', 'walkerid': 2}
     dbpath = "/users/wolfgan.waltenberger/git/smodels-database"
     dbpath = "official"
-    walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath, 
-                nevents = 5000, do_srcombine = True ) 
+    walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath, do_srcombine = True )
     walker.walk()

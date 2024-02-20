@@ -32,13 +32,11 @@ class ProtoModel ( LoggerBase ):
     SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
     #SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
 
-    def __init__ ( self, walkerid : int = 0, keep_meta : bool = True,
-                   nevents : int = 10000, dbversion : str = "????" ):
+    def __init__ ( self, walkerid : int = 0, keep_meta : bool = True, dbversion : str = "????" ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
                           this a heavyweight object)
         :param walkerid: id of current walker
-        :param nevents: minimum number of MC events when computing cross-sections
         :param dbversion: the version of the database, to track provenance
         """
         super(ProtoModel,self).__init__ ( walkerid )
@@ -46,8 +44,6 @@ class ProtoModel ( LoggerBase ):
         self.keep_meta = keep_meta ## keep all meta info? big!
         self.version = 1 ## version of this class
         self.maxMass = 2400. ## maximum masses we consider
-        self.minevents = nevents #Minimum number of events for computing xsecs
-        self.nevents = nevents #Initial number of events for computing xsecs
         self.step = 0 ## count the steps
         self.dbversion = dbversion ## keep track of the database version
         self.particles = [ 1000001, 2000001, 1000002, 2000002, 1000003, 2000003,
@@ -79,7 +75,6 @@ class ProtoModel ( LoggerBase ):
                 self.templateSLHA = "templates/template2g.slha"
             # self.templateSLHA = "templates/template_many.slha"
         self.templateSLHA = os.path.join ( os.path.dirname ( __file__ ), self.templateSLHA )
-        # self.computer = XSecComputer ( NLL, self.nevents, pythiaVersion=8, maycompile=False )
         self.computer = RefXSecComputer()
         self.codeversion = "2.0"
         self.initializeModel()
@@ -215,7 +210,7 @@ class ProtoModel ( LoggerBase ):
         #If something has changed, re-compute the cross-sections.
         #Xsecs are computed, self._xsecMasses and self._xsecSSM are updated.
         #The results are sored in the SLHA and self._stored_xsec.
-        self.computeXSecs(nevents = self.nevents)
+        self.computeXSecs()
 
         return self._stored_xsecs
 
@@ -352,18 +347,12 @@ class ProtoModel ( LoggerBase ):
             particles.append ( f"{namer.asciiName ( pid )}: {m}" )
         print ( ", ".join ( particles ) )
 
-    def computeXSecs ( self, nevents : int = None, keep_slha : bool = False ):
+    def computeXSecs ( self, keep_slha : bool = False ):
         """ compute xsecs given the masses and signal strength multipliers of the model.
          The results are stored in self._stored_xsecs and should be accessed through getXsecs.
-        :param nevents: If defined, cross-sections will be computed with this number of
-                        MC events, if None, the value used is self.nevents.
         :param keep_slha: if true, then keep slha file at the end
 
         """
-
-        if not nevents:
-            nevents = self.nevents
-        self.computer.nevents = nevents
 
         hasComputed = False
         countAttempts = 0
@@ -599,8 +588,6 @@ class ProtoModel ( LoggerBase ):
         #Copy information
         newmodel.keep_meta = self.keep_meta
         newmodel.maxMass = self.maxMass
-        newmodel.minevents = self.minevents
-        newmodel.nevents = self.nevents
         newmodel.step = self.step
         newmodel.dbversion = self.dbversion
         newmodel.codeversion = self.codeversion
