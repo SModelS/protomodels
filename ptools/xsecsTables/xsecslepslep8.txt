@@ -1,0 +1,22 @@
+# NLO NLL: any single generation, sum of left- and right-handed sleptons
+# From https://twiki.cern.ch/twiki/bin/view/CMSPublic/Sleptons
+# mass [GeV] 	xsec [fb]
+50	2952.7
+75	731.375
+100	181.16
+125	83.9567
+150	38.91
+175	21.83224
+200	12.25
+225	7.60394
+250	4.72
+275	3.12574
+300	2.07
+325	1.431533
+350	0.99
+375	0.703554
+400	0.5
+425	0.36739
+450	0.27
+475	0.201242
+500	0.15
