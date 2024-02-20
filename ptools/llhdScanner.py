@@ -11,10 +11,11 @@ from smodels.tools.wrapperBase import WrapperBase
 WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 from smodels.tools.physicsUnits import fb
 from smodels.tools.runtime import nCPUs
+from smodels.theory.theoryPrediction import TheoryPrediction
 from tester.combiner import Combiner
 from tester.predictor import Predictor
 from plotting import plotLlhds
-from typing import Dict, Tuple, Union
+from typing import Dict, Tuple, Union, List
 from ptools.sparticleNames import SParticleNames
 from builder.loggerbase import LoggerBase
 
@@ -54,10 +55,13 @@ class LlhdThread ( LoggerBase ):
         self.nevents = nevents
         self.predictor = predictor
 
-    def getPredictions ( self, recycle_xsecs : bool = True ) -> Tuple[Dict,Dict]:
+    def getPredictions ( self, recycle_xsecs : bool = True ) -> Dict:
         """ get predictions, return likelihoods 
 
-        :returns: tuple of likelihoods and critics' responses
+        :param recycle_xsecs: if true, then recycle the cross sections, dont
+        recompute
+        :returns: a diction with likelihoods ("llhd"), critics' responses ("critic"),
+        observed ("oul") and expected ("eul") upper limits on mu.
         """
         self.M.createSLHAFile( )
         sigmacut=.02*fb
@@ -80,6 +84,8 @@ class LlhdThread ( LoggerBase ):
         #                             llhdonly=True, sigmacut=sigmacut )
         for mu in numpy.arange(.4,1.8,.05):
             llhds[float(mu)] = self.getLikelihoods ( self.predictor.predictions, mu=mu )
+        ouls = self.getLikelihoods ( self.predictor.predictions, False )
+        euls = self.getLikelihoods ( self.predictor.predictions, True )
         del self.predictor.predictions
         self.M.delCurrentSLHA()
         critics={}
@@ -88,14 +94,33 @@ class LlhdThread ( LoggerBase ):
             if len(tokens)>1:
                 critics[tokens[0]]=float(tokens[1])
 
-        return llhds,critics
+        return { "llhd": llhds, "critic": critics, "oul": ouls, "eul": euls }
+
+    def getLimits ( self, predictions : List[TheoryPrediction], 
+                    expected : bool ) -> Dict:
+        """ get the limits for all predictions 
+
+        :param expected: if true, get expected limits on mu, else observed
+        """
+        limits = {}
+        for tp in predictions:
+            txname = ','.join ( set( [ i.txName for i in tp.txnames ] ) )
+            dId = tp.dataId()
+            if dId == "(combined)":
+                dId = "(comb)"
+            name = f"{tp.analysisId()}:{dId}:{txname}"
+            limits[ name ] = tp.getUpperLimitOnMu ( expected = expected )
+        return limits
 
     def getLikelihoods ( self, predictions, mu = 1. ) -> Dict:
         """ return dictionary with the likelihoods per analysis """
         llhds= {}
         for tp in predictions:
             txname = ','.join ( set( [ i.txName for i in tp.txnames ] ) )
-            name = f"{tp.analysisId()}:{tp.dataId()}:{txname}"
+            dId = tp.dataId()
+            if dId == "(combined)":
+                dId = "(comb)"
+            name = f"{tp.analysisId()}:{dId}:{txname}"
             llhds[ name ] = tp.likelihood ( mu )
         return llhds
 
@@ -143,13 +168,15 @@ class LlhdThread ( LoggerBase ):
                         self.pprint ( f"WARNING: have to raise {pid_} from {m_} to {m2+1.}" )
                         oldmasses[pid_]=m_
                         self.M.masses[pid_]=m2 + 1.
-                llhds,robs = self.getPredictions ( False )
+                point = self.getPredictions ( False )
+                llhds = point["llhd"]
                 nllhds,nnonzeroes=0,0
                 for mu,llhd in llhds.items():
                     nllhds+=len(llhd)
 
                 self.pprint ( f"{i1}/{npid1s}: m({namer.asciiName(self.pid1)})={m1:.1f}, m2({namer.asciiName(self.pid2)})={m2:.1f}, {len(llhds)} mu's, {nllhds} llhds." )
-                point = { "mx": m1, "my": m2, "llhd": llhds, "critic": robs } 
+                point["mx"] = m1 
+                point["my"] = m2
                 masspoints.append ( point )
         return masspoints
 
@@ -270,8 +297,8 @@ class LlhdScanner ( LoggerBase ):
         
         rpid1 = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
         rpid2 = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
-        print ( f"[llhdScanner] range for {pid1}: {self.describeRange( rpid1 )}" )
-        print ( f"[llhdScanner] range for {pid2}: {self.describeRange( rpid2 )}" )
+        print ( f"[llhdScanner] range for {namer.asciiName(pid1)}: {self.describeRange( rpid1 )}" )
+        print ( f"[llhdScanner] range for {namer.asciiName(pid2)}: {self.describeRange( rpid2 )}" )
         print ( f"[llhdScanner] total {len(rpid1)*len(rpid2)} points, {nevents} events for {topo}" )
         self.M.createNewSLHAFileName ( prefix=f"llhd{pid1}" )
         #self.M.initializePredictor()
@@ -280,10 +307,14 @@ class LlhdScanner ( LoggerBase ):
 
         thread0 = LlhdThread ( 0, self.rundir, self.M, self.pid1, self.pid2, \
                                self.mpid1, self.mpid2, self.nevents, self.predictor )
-        llhds,robs = thread0.getPredictions ( False )
+        point = thread0.getPredictions ( False )
+        llhds = point["llhd"]
+        critics = point["critic"]
         thread0.clean()
         self.pprint ( f"protomodel point: m1({namer.asciiName(self.pid1)})={self.mpid1:.2f}, m2({namer.asciiName(self.pid2)})={self.mpid2:.2f}, {len(llhds)} llhds" )
-        masspoints = [ {"mx": self.mpid1, "my": self.mpid2,"llhd": llhds, "critic": robs } ]
+        point [ "mx" ] = self.mpid1
+        point [ "my" ] = self.mpid2
+        masspoints = [ point ]
 
         if True:
             ## freeze out all other particles
@@ -452,6 +483,8 @@ def main ():
                 f.write ( f"    rundir='{rundir}',\n" )
                 f.write ( f"    upload='{upload}', dbpath='{args.dbpath}' )\n" )
                 f.write ( f"plot.plot()\n" )
+                f.write ( f"if '-s' in sys.argv:\n" )
+                f.write ( f"    plot.show()\n" )
                 f.close()
                 os.chmod ( scriptfilename, 0o755 )
             plot.plot()
