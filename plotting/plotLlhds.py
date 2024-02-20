@@ -84,7 +84,7 @@ def getPidList( pid1, rundir ):
     if len(pids)==0:
         print ( "[plotLlhds] could not find any llhd*pcl files. Perhaps you wish to perform ../moretools/fetchFromClip.py --llhds=" )
         sys.exit()
-    print ( "[plotLlhds] creating plots for pids: %s" % ", ".join ( map(str,pids) ) )
+    print ( f"[plotLlhds] creating plots for pids: {', '.join ( map(str,pids) )}" )
     return pids
 
 class LlhdPlot ( LoggerBase ):
@@ -144,6 +144,20 @@ class LlhdPlot ( LoggerBase ):
                         countCritics[ana]=0
                     countCritics[ana]+=1
         self.criticsOccurences = countCritics
+        self.pprint ( "Critic is composed of:" )
+        for k,v in countCritics.items():
+            self.pprint ( f"    {k}: {v} times" )
+
+    def getMostOutspokenCritic ( self ) -> str:
+        """ given self.criticsOccurences, report the most
+        important critic """
+        ret,count="?",0
+        for k,v in self.criticsOccurences.items():
+            if v > count:
+                ret=k
+                count=v
+        ret = ret.replace("(comb)","")
+        return ret
 
     def integrateLlhds ( self, Z, RMAX ):
         """ compute the integral of the likelihood over all points """
@@ -226,44 +240,45 @@ class LlhdPlot ( LoggerBase ):
             m2 = self.my
         return int(1e3*m1) + int(1e0*m2)
 
-    def getResultFor ( self, ana, masspoint : Dict ) -> Tuple:
+    def getHighestLlhdFor ( self, ana, llhddict : Dict ) -> Dict:
         """ return result for ana/topo pair 
 
         :param ana: the analysis id. optionally a data type can be specificed, e.g.
         as :em. Alternatively, a signal region can be specified.
-        :param masspoint: a point from self.masspoints
+        :param llhddict: a dictionary of likelihoods of one of the llhddicts, 
+        e.g. self.llhddicts[0]["llhd"]
 
-        :returns: results for this analysis (possibly data type, 
-        possibly signal region) and topology
+        :returns: Dictionary with highest likelihood and name of signal region, 
+        (both being None if nothing is found)
         """
-        # self.pprint ( f"asking for {ana}" )
-        ret,sr = None, None
+        max_llhd,sr = None, None
         dType = "any"
         if ":" in ana:
             ana,dType = ana.split(":")
-        for k,v in masspoint.items():
-            tokens = k.split(":")
-            # print ( "tokens", tokens )
+            if dType == "(combined)":
+                dType = "(comb)"
+        for name,llhd in llhddict.items():
+            tokens = name.split(":")
             if dType == "ul" and tokens[1] != "None":
                 continue
             if dType == "em" and tokens[1] == "None":
                 continue
             if ana != tokens[0]:
                 continue
-            # self.pprint ( "asking for %s, %s %s" % ( tokens[0], tokens[1], dType ) )
             if tokens[1] != None and dType not in [ "any", "ul", "None" ]:
                 # if signal regions are given, they need to match
                 if tokens[1] != dType:
                     continue
-                self.debug ( f"found a match for {tokens[0]}, {tokens[1]}, {v}" )
-            # print ( "topo", self.topo, "tokens[2]", tokens[2], self.topoMatches ( tokens[2] ) )
+                self.debug ( f"found a match for {tokens[0]}, {tokens[1]}, l={llhd}" )
             if not self.topoMatches ( tokens[2] ):
                 self.pprint ( f"topology {tokens[2]} does not match {self.topo}, will skip" )
                 continue
-            if ret == None or v > ret:
-                ret = v
+            if max_llhd == None or llhd > max_llhd:
+                max_llhd = llhd
                 sr = tokens[1]
-        return ret,sr
+        ret = { "llhd": max_llhd, "sr": sr }
+        # print ( f"@@3 getHighestLlhdFor {ana} ret: {ret} dType {dType} llhddict {llhddict}" )
+        return ret
 
     def loadPickleFile ( self, returnAll=False ):
         """ load dictionary from picklefile 
@@ -280,11 +295,10 @@ class LlhdPlot ( LoggerBase ):
                 topo = pickle.load ( f )
                 timestamp = pickle.load ( f )
             except EOFError as e:
-                print ( "[plotLlhds] EOF error %s, when reading %s" % \
-                        ( e, self.picklefile ) )
+                self.pprint ( f"EOF error {e}, when reading {self.picklefile}")
             f.close()
         if allhds == None:
-            print ( "couldnt read llhds in %s" % self.picklefile )
+            self.pprint ( f"couldnt read llhds in {self.picklefile}" )
             return None,None,None,None,None,None
         if returnAll:
             return allhds,mx,my,nevents,topo,timestamp
@@ -330,8 +344,7 @@ class LlhdPlot ( LoggerBase ):
 
     def describe ( self ):
         """ describe the situation """
-        print ( "%d masspoints obtained from %s, hiscore stored in %s" % \
-                ( len ( self.masspoints), self.picklefile, self.hiscorefile ) )
+        print ( f"{len ( self.masspoints)} masspoints obtained from {self.picklefile}, hiscore stored in {self.hiscorefile}" )
         print ( "Data members: plot.masspoints, plot.massdict, plot.timestamp, plot.mx, plot.my" )
         print ( "              plot.pid1, plot.pid2, plot.topo" )
         print ( "Function members: plot.findClosestPoint()" )
@@ -451,10 +464,12 @@ class LlhdPlot ( LoggerBase ):
             minXY=( float("nan"),float("nan"), float("inf") )
             s="none"
             ## first, check for the hiscore point
-            r,sr = self.getResultFor ( ana, self.masspoints[0]["llhd"] )
-            if r:
-                s=f"({-np.log(r):.2f})"
-            self.pprint ( f"{ana} @ hiscore m=({self.masspoints[0]['mx']:.1f},{self.masspoints[0]['my']:.1f}): '{s}'" )
+            ret = self.getHighestLlhdFor ( ana, self.masspoints[0]["llhd"] )
+            sr = ret["sr"]
+            llhd = ret["llhd"]
+            if llhd:
+                s=f"{-np.log(llhd):.2f}"
+            self.pprint ( f"{ana} @ hiscore m=({self.masspoints[0]['mx']:.1f},{self.masspoints[0]['my']:.1f}): nll_max={s}" )
             cresults = 0
             ## then, run on all other points
             for cm,masspoint in enumerate(self.masspoints[1:]):
@@ -469,7 +484,9 @@ class LlhdPlot ( LoggerBase ):
                 x.add ( m1 )
                 y.add ( m2 )
                 zt = float("nan")
-                result,sr = self.getResultFor ( ana, llhds )
+                ret = self.getHighestLlhdFor ( ana, llhds )
+                result = ret [ "llhd" ]
+                sr = ret [ "sr" ]
                 if result:
                     zt = - np.log( result )
                     cresults += 1
@@ -489,12 +506,11 @@ class LlhdPlot ( LoggerBase ):
             if cresults == 0:
                 continue
                 # return
-            #x.add ( xmax*1.03 )
-            #x.add ( xmin*.93 )
-            #y.add ( ymax+50. )
-            #y.add ( 0. )
-            #y.add ( ymax*1.01 )
-            #y.add ( ymin*.97 )
+            if False:
+                x.add ( xmax*1.03 )
+                x.add ( xmin*.93 )
+                y.add ( ymax*1.01 )
+                y.add ( ymin*.97 )
             x,y=list(x),list(y)
             x.sort(); y.sort()
             X, Y = np.meshgrid ( x, y )
@@ -585,10 +601,10 @@ class LlhdPlot ( LoggerBase ):
         handles.append ( c )
         if sr == None:
             sr = "UL"
-        # plt.title ( "HPD regions, %s [%s]" % ( self.namer.texName(pid1, addSign=False, addDollars=True), self.topo ), fontsize=14 )
-        plt.xlabel ( "m(%s) [GeV]" % self.namer.texName(pid1,addSign=False, addDollars=True), fontsize=14 )
-        plt.ylabel ( "m(%s) [GeV]" % self.namer.texName(self.pid2, addSign=False, addDollars=True), fontsize=14 )
-        circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold})', edgecolor="black" )
+        plt.title ( f"HPD regions, {self.namer.texName(pid1, addSign=False, addDollars=True)} [{self.topo}]", fontsize=14 )
+        plt.xlabel ( f"m({self.namer.texName(pid1,addSign=False, addDollars=True)}) [GeV]", fontsize=14 )
+        plt.ylabel ( f"m({self.namer.texName(self.pid2, addSign=False, addDollars=True)}) [GeV]" )
+        circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold}):\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
         handles.append ( circ1 )
         legend = plt.legend( handles=handles, loc="best", fontsize=12 )
         figname = f"{self.rundir}/llhd{pid1}.png"
@@ -602,13 +618,14 @@ class LlhdPlot ( LoggerBase ):
         plt.close()
         if self.copy:
             self.copyFile ( figname )
+        self.figname = figname ## store filename
 
     def copyFile ( self, filename ):
         """ copy filename to smodels.github.io/protomodels/<upload>/ """
         dest = os.path.expanduser ( "~/git/smodels.github.io" )
-        cmd = "cp %s %s/protomodels/%s/" % ( filename, dest, self.upload )
+        cmd = f"cp {filename} {dest}/protomodels/{self.upload}/"
         o = subprocess.getoutput ( cmd )
-        self.pprint ( "%s: %s" % ( cmd, o ) )
+        self.pprint ( f"{cmd}: {o}" )
 
 
     def getAnaStats ( self, integrateSRs : bool = True, integrateTopos : bool = True,
@@ -712,6 +729,14 @@ class LlhdPlot ( LoggerBase ):
         print ( f"{ansi.GREEN}[plot] interactive session. Try: {varis}{ansi.RESET}" )
         IPython.embed( using=False )
 
+    def show( self ):
+        cmd = f"see {self.figname}"
+        o = subprocess.getoutput ( cmd )
+        print ( o )
+        # from smodels_utils.plotting.mpkitty import timg
+        # timg ( self.figname )
+
+
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(
@@ -752,6 +777,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-I', '--interactive',
             help='interactive mode',
             action="store_true" )
+    argparser.add_argument ( '-s', '--show',
+            help='show plot at the end',
+            action="store_true" )
     args = argparser.parse_args()
     drawtimestamp = not args.notimestamp
 
@@ -774,7 +802,11 @@ if __name__ == "__main__":
             plot.compress()
             sys.exit()
 
-        plot.plot()
+        filename = plot.plot()
+
+        if args.show:
+            from smodels_utils.plotting.mpkitty import timg
+            timg ( filename )
 
         if args.interactive:
             plot.interact()
