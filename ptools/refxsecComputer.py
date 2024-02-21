@@ -36,7 +36,13 @@ class RefXSecComputer:
         self.verbose = verbose
         if verbose:
             setLogLevel ( "info" )
-        self.shareDir = "../ptools/xsecTables/"
+        codedir = "../"
+        try:
+            import csetup
+            codedir = csetup.setup()
+        except ImportError as e:
+            pass
+        self.shareDir = f"{codedir}/ptools/xsecTables/"
 
     def warn ( self, *txt ):
         stxt=str(*txt)
