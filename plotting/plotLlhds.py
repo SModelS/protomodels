@@ -144,9 +144,16 @@ class LlhdPlot ( LoggerBase ):
                         countCritics[ana]=0
                     countCritics[ana]+=1
         self.criticsOccurences = countCritics
-        self.pprint ( "Critic is composed of:" )
-        for k,v in countCritics.items():
-            self.pprint ( f"    {k}: {v} times" )
+        self.printCritic()
+
+    def printCritic ( self ):
+        self.pprint ( "Leading critics:" )
+        reverted = { v:k for k,v in self.criticsOccurences.items() }
+        keys = list ( reverted.keys())
+        keys.sort( reverse=True )
+        for k in keys[:3]:
+            v = reverted[k]
+            self.pprint ( f"    {v}: {k} vetoes" )
 
     def getMostOutspokenCritic ( self ) -> str:
         """ given self.criticsOccurences, report the most
@@ -288,12 +295,13 @@ class LlhdPlot ( LoggerBase ):
         allhds = None
         with open ( self.picklefile, "rb" ) as f:
             try:
-                allhds = pickle.load ( f )
-                mx = pickle.load ( f )
-                my = pickle.load ( f )
-                nevents = pickle.load ( f )
-                topo = pickle.load ( f )
-                timestamp = pickle.load ( f )
+                dic = pickle.load ( f )
+                allhds = dic["masspoints"]
+                mx = dic["mpid1"]
+                my = dic["mpid2"]
+                nevents = dic["nevents"]
+                topo = dic["topo"]
+                timestamp = dic["timestamp"]
             except EOFError as e:
                 self.pprint ( f"EOF error {e}, when reading {self.picklefile}")
             f.close()
@@ -475,10 +483,10 @@ class LlhdPlot ( LoggerBase ):
             for cm,masspoint in enumerate(self.masspoints[1:]):
                 if cm % 100 == 0:
                     print ( ".", end="", flush=True )
-                m1,m2,llhds,robs=masspoint["mx"],masspoint["my"],masspoint["llhd"],masspoint["critic"]
+                m1,m2,llhds,critic=masspoint["mx"],masspoint["my"],masspoint["llhd"],masspoint["critic"]
                 rmax=float("nan")
-                if len(robs)>0:
-                    rmax=max(robs.values())
+                if len(critic)>0:
+                    rmax=max(critic.values())
                 if m2 > m1:
                     print ( f"m2,m1 mass inversion? {m1,m2}" )
                 x.add ( m1 )
@@ -642,7 +650,7 @@ class LlhdPlot ( LoggerBase ):
         for masspoint in self.masspoints:
             # print ( "masspoint", masspoint )
             m1,m2,llhds=masspoint["mx"],masspoint["my"],masspoint["llhd"]
-            robs = masspoint["critic"]
+            critic = masspoint["critic"]
             for k,v in llhds.items():
                 tokens = k.split(":")
                 if not integrateTopos and self.topo not in tokens[2]:

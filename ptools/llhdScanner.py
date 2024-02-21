@@ -84,8 +84,8 @@ class LlhdThread ( LoggerBase ):
         #                             llhdonly=True, sigmacut=sigmacut )
         for mu in numpy.arange(.4,1.8,.05):
             llhds[float(mu)] = self.getLikelihoods ( self.predictor.predictions, mu=mu )
-        ouls = self.getLikelihoods ( self.predictor.predictions, False )
-        euls = self.getLikelihoods ( self.predictor.predictions, True )
+        ouls = self.getLimits ( self.predictor.predictions, False )
+        euls = self.getLimits ( self.predictor.predictions, True )
         del self.predictor.predictions
         self.M.delCurrentSLHA()
         critics={}
@@ -329,12 +329,10 @@ class LlhdScanner ( LoggerBase ):
             subprocess.getoutput ( f"cp {picklefile} {picklefile}.old" )
         self.pprint ( f"now saving to {picklefile}" )
         f=open( picklefile ,"wb" )
-        pickle.dump ( masspoints, f )
-        pickle.dump ( self.mpid1, f )
-        pickle.dump ( self.mpid2, f )
-        pickle.dump ( nevents, f )
-        pickle.dump ( topo, f )
-        pickle.dump ( time.asctime(), f )
+        Dict = { "masspoints": masspoints, "mpid1": self.mpid1,
+                 "mpid2": self.mpid2, "nevents": nevents, "topo": topo,
+                 "timestamp": time.asctime(), "pid1": pid1, "pid2": pid2 }
+        pickle.dump ( Dict, f )
         f.close()
         self.M.delCurrentSLHA()
 

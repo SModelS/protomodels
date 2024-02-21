@@ -21,6 +21,8 @@ def cli( infile : str = "hiscores.dict",
     >>> ma.M.masses[1000024] = 70.
     >>> pr.predict ( ma.M, keep_predictions = True )
     """
+    import csetup
+    csetup.setup()
     from colorama import Fore as ansi
     print ( "[hiscoreCLI] starting interactive session." )
     import copy, numpy, scipy, scipy.stats
