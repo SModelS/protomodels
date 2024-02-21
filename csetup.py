@@ -45,5 +45,5 @@ def setup( rundir = None, codedir = None ):
     p1 = cwd.find("protomodels")
     if p1 > 0:
         cwd = cwd[:p1+11]
-    print ( "cwd", cwd ) 
+    ## print ( "cwd", cwd ) 
     return cwd

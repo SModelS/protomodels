@@ -25,8 +25,8 @@ class Manipulator ( LoggerBase ):
     # walledpids are particle ids that have a minimum mass requirement,
     # given as the values in the dictionary
     walledpids = { 1000001 : 310, 1000002 : 310, 1000003 : 310, 1000004 : 310, 
-                   1000021 : 310, 1000023 : 100, 1000024 : 100, 1000037 : 100,
-                   1000025 : 100 }
+                   1000021 : 310, 1000023 : 20, 1000024 : 100, 1000037 : 100,
+                   1000025 : 20 }
     ## forbiddenparticles are particle ids that we do not touch in this run
     forbiddenparticles = []
 
