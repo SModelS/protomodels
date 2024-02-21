@@ -41,5 +41,9 @@ def setup( rundir = None, codedir = None ):
             rundir = rundir.replace ( "~", home )
             os.chdir ( rundir )
         return rundir
-    os.chdir ( "./" )
-    return "./"
+    cwd = os.getcwd()
+    p1 = cwd.find("protomodels")
+    if p1 > 0:
+        cwd = cwd[:p1+11]
+    print ( "cwd", cwd ) 
+    return cwd
