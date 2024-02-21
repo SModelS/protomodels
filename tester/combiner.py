@@ -508,7 +508,7 @@ class Combiner ( LoggerBase ):
                 return False
         return True
 
-    def computePrior ( self, protomodel, nll : bool =False, 
+    def computePrior ( self, protomodel, nll : bool =False,
         verbose : bool =False, name : str ="expo1" ) -> float:
         """ compute the prior for protomodel, used to introduce regularization,
             i.e. penalizing for non-zero parameters, imposing sparsity.
@@ -660,10 +660,10 @@ class Combiner ( LoggerBase ):
                 print(f" `- {didwhat}: #{ctr} {pId}: r={r:.2f}{Fore.RESET}")
         return ret
 
-    def penaltyForMissingResults ( self, 
+    def penaltyForMissingResults ( self,
             predictions : List[TheoryPrediction] ) -> float:
         """ very simple hack for now, penalize if predictions are all
-        from the same experiment 
+        from the same experiment
 
         :returns: penalty -- 1e-3 if experiment is missing
         """
@@ -691,7 +691,7 @@ class Combiner ( LoggerBase ):
             if len ( decays ) == 1: # only one flavor? allow!
                 continue
             ## e, mu, tau = 11, 13, 15
-            branchings = { 11: float("nan"), 13: float("nan"), 
+            branchings = { 11: float("nan"), 13: float("nan"),
                            15: float("nan") }
             for dpids, br in decays.items():
                 for p in [ 11, 13, 15 ]:
@@ -708,7 +708,7 @@ class Combiner ( LoggerBase ):
                     delta_br = abs ( branchings[11]-branchings[15] )
                     l = 1. - delta_br / 20.
                     ret *= l
-            elif np.isifinite ( branchings[13] ) and  branchings[13] not in [ 0., 1.]:
+            elif np.isfinite ( branchings[13] ) and  branchings[13] not in [ 0., 1.]:
                 # no electron, but muon and tau!
                 if np.isfinite ( branchings[15] ):
                     delta_br = abs ( branchings[13]-branchings[15] )
@@ -738,8 +738,8 @@ class Combiner ( LoggerBase ):
             ret *= l
         return ret
 
-    def findHighestSignificance ( self, predictions : List[TheoryPrediction], 
-            strategy : str, expected : bool =False, 
+    def findHighestSignificance ( self, predictions : List[TheoryPrediction],
+            strategy : str, expected : bool =False,
             mumax : Union[None,float] = None ) -> Tuple:
         """ for the given list of predictions and employing the given strategy,
         find the combo with highest significance
