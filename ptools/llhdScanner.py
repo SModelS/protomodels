@@ -353,11 +353,11 @@ class LlhdScanner ( LoggerBase ):
         if args.deltam1 == None:
             args.deltam1 = ( args.max1 - args.min1 ) / 20.
         if args.min2 == None:
-            args.min2 = self.mpid2*.7
+            args.min2 = max ( self.mpid2*.7 - 10., 1. )
         if args.max2 == None:
-            args.max2 = self.mpid2*1.5
+            args.max2 = self.mpid2*1.8 + 10.
         if args.deltam2 == None:
-            args.deltam2 = ( args.max2 - args.min2 ) / 15.
+            args.deltam2 = ( args.max2 - args.min2 ) / 20.
         return args
 
 def main ():
@@ -441,6 +441,7 @@ def main ():
     from ptools.hiscoreTools import fetchHiscoresObj
     hi = fetchHiscoresObj ( args.hiscores, None, args.dbpath )
     protomodel = hi.hiscores[0]
+    #print ( f"[llhdScanner] fetched {protomodel} from {args.hiscores}" )
 
     pid1s = [ args.pid1 ]
     if args.pid1 == 0:

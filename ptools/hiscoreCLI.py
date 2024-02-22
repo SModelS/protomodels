@@ -21,6 +21,9 @@ def cli( infile : str = "hiscores.dict",
     >>> ma.M.masses[1000024] = 70.
     >>> pr.predict ( ma.M, keep_predictions = True )
     """
+    import sys
+    sys.path.insert(0,"../")
+    sys.path.insert(0,"../../")
     import csetup
     csetup.setup()
     from colorama import Fore as ansi
@@ -42,7 +45,8 @@ def cli( infile : str = "hiscores.dict",
     from tester.predictor import Predictor
     from ptools.sparticleNames import SParticleNames
     from smodels.experiment.databaseObj import Database
-    print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database, SParticleNames{ansi.RESET}" )
+    print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database," )
+    print ( f"                             SParticleNames{ansi.RESET}" )
     hi = fetchHiscoresObj ( infile, None, dbpath )
     print ( f"[hiscoreCLI] {ansi.RED}hi = fetchHiscoresObj ('{infile}', ... ) # Hiscore {ansi.RESET}" )
     namer = SParticleNames()
