@@ -80,8 +80,9 @@ class LlhdThread ( LoggerBase ):
 
         ## now get the likelihoods
         llhds={}
-        #predictions = P.predict ( self.M.currentSLHA, allpreds=True,
-        #                             llhdonly=True, sigmacut=sigmacut )
+        ## start with the SM likelihood
+        llhds[0.] = self.getLikelihoods ( self.predictor.predictions, mu=0. )
+        ## get for the others FIXME should adapt to ssm?
         for mu in numpy.arange(.4,1.8,.05):
             llhds[float(mu)] = self.getLikelihoods ( self.predictor.predictions, mu=mu )
         ouls = self.getLimits ( self.predictor.predictions, False )
@@ -225,7 +226,7 @@ class LlhdScanner ( LoggerBase ):
             return f"{r[0]:.2f}"
         if len(r)==2:
             return f"{r[0]:.2f},{r[1]:.2f}"
-        return f"{r[0]:.2f},{r[1]:.2f} ... {r[-1]:.2f}"
+        return f"{r[0]:.2f},{r[1]:.2f} ... {r[-1]:.2f} -> {len(r)} points"
 
     def getMassPoints ( self, rpid1, rpid2 ):
         """ run for the given mass points
@@ -329,10 +330,11 @@ class LlhdScanner ( LoggerBase ):
             subprocess.getoutput ( f"cp {picklefile} {picklefile}.old" )
         self.pprint ( f"now saving to {picklefile}" )
         f=open( picklefile ,"wb" )
-        Dict = { "masspoints": masspoints, "mpid1": self.mpid1,
-                 "mpid2": self.mpid2, "nevents": nevents, "topo": topo,
-                 "timestamp": time.asctime(), "pid1": pid1, "pid2": pid2 }
-        pickle.dump ( Dict, f )
+        mydict = { "masspoints": masspoints, "mpid1": self.mpid1,
+                   "mpid2": self.mpid2, "nevents": nevents, "topo": topo,
+                   "timestamp": time.asctime(), "pid1": pid1, "pid2": pid2,
+                   "model": self.M.dict() }
+        pickle.dump ( mydict, f )
         f.close()
         self.M.delCurrentSLHA()
 
@@ -401,8 +403,8 @@ def main ():
             help='override the default rundir [None]',
             type=str, default=None )
     argparser.add_argument ( '-e', '--nevents',
-            help='number of events [100000]',
-            type=int, default=100000 )
+            help='number of events [50000]',
+            type=int, default=50000 )
     argparser.add_argument ( '-H', '--hiscores',
             help='hiscore file to draw from [<rundir>/hiscores.dict]',
             type=str, default="default" )
