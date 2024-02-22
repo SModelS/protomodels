@@ -248,7 +248,7 @@ class LlhdPlot ( LoggerBase ):
         return int(1e3*m1) + int(1e0*m2)
 
     def getHighestLlhdFor ( self, ana, llhddict : Dict ) -> Dict:
-        """ return result for ana/topo pair 
+        """ return llhds for ana
 
         :param ana: the analysis id. optionally a data type can be specificed, e.g.
         as :em. Alternatively, a signal region can be specified.

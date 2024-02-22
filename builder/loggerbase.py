@@ -50,7 +50,7 @@ class LoggerBase:
 
     def pprint ( self, *args ):
         """ logging """
-        print ( f"[{self.module}] {' '.join(map(str,args))}" )
+        print ( f"[{self.module}:{self.walkerid}] {' '.join(map(str,args))}" )
         self.log ( *args )
 
     def log ( self, *args ):
