@@ -10,7 +10,6 @@ from smodels.tools.wrapperBase import WrapperBase
 # the default tempdir of wrapper base is /tmp
 # WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 # WrapperBase.defaulttempdir="/dev/shm" ## keep the temps in shared memory
-from smodels.tools.xsecComputer import XSecComputer, NLL
 from ptools.refxsecComputer import RefXSecComputer
 from smodels.tools.physicsUnits import TeV, fb
 from ptools import helpers

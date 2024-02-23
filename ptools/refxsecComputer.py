@@ -21,6 +21,7 @@ from smodels.theory.exceptions import SModelSTheoryError as SModelSError
 from smodels import installation as smodelsinstallation
 import os, sys, io, shutil, pyslha
 
+
 class RefXSecComputer:
     """
     The xsec computer that simply looks up reference cross sections,
@@ -356,6 +357,31 @@ class RefXSecComputer:
                 ret.append ( c )
         return ret
 
+    def getPythiaCard( self, pids ):
+        """
+        Gives path to the pythia config file, modified to compute only the relevant channels
+        :param pids: IDs of particles to produce
+        :returns: path to the pythia config file
+        """
+        codedir = "../"
+        try:
+            import csetup
+            codedir = csetup.setup()
+        except ImportError as e:
+            pass
+        cfg = f"{codedir}/ptools/pythia8.cfg"
+        with open(cfg,'r') as file:
+            lines = file.readlines()
+        for i,line in enumerate(lines):
+            if line.split() and line.split()[0] == "SUSY:idA":
+                lines[i] = 'SUSY:idA = %d           ! 0: all\n' % abs(pids[0])
+            if line.split() and line.split()[0] == "SUSY:idB":
+                lines[i] = 'SUSY:idB = %d           ! 0: all\n' % abs(pids[1])
+        with open(cfg,'w') as file:
+            for line in lines:
+                file.write(line)
+        return cfg
+
     def compute( self, sqrts, slhafile, ssmultipliers = None,
                  ignore_pids = None, ewk = "wino" ):
         """
@@ -385,10 +411,33 @@ class RefXSecComputer:
             if xsecall == None:
                 continue
             xsec = self.interpolate ( channel["masses"], xsecall )
-            if xsecall is None or xsec is None:
-                print(channel,"xsecall:",xsecall is not None, "interpolation:", xsec is not None)
+            if xsecall is None:
+                print(f"NO CROSS SECTION TABLE FOUND FOR {channel}")
             if xsec == None:
-                print(f'*** No cross section obtained for channel {channel} ***')
+                print(f'*** NO CROSS SECTION OBTAINED FOR CHANNEL {channel} FOR {sqrts} TeV ***')
+                print("*** FALLING BACK TO PYTHIA ***")
+                from protomodels.smodels.smodels.tools.xsecComputer import XSecComputer, NLL
+                xsecComputer = XSecComputer ( NLL, 5000, pythiaVersion=8, maycompile=True )
+                pythia = xsecComputer.getPythia()
+                pythia.tempdir = None # reset, to make sure it works in parallel mode
+                pythia.nevents = xsecComputer.nevents
+                pythia.sqrts = sqrts
+                pythia.pythiacard = self.getPythiaCard ( pids )
+                loXsecs = pythia.run( slhafile, unlink=True )
+                xsecComputer.loXsecs = loXsecs
+                xsecComputer.loXsecs.sort()
+                xsecComputer.xsecs = xsecComputer.addHigherOrders ( sqrts * TeV, slhafile )
+                xsecComputer.xsecs.sort()
+                for x in xsecComputer.loXsecs: # If no NLL xsec, use LO xsec instead
+                    if set(pids) == set(x.pid):
+                        xsec = x.value.asNumber(pb)
+                for x in xsecComputer.xsecs:
+                    if set(pids) == set(x.pid):
+                        xsec = x.value.asNumber(pb)
+                # xsec = xsecComputer.compute( sqrts*TeV, slhafile, unlink=False, loFromSlha=False, ssmultipliers = None )
+                print(f'PYTHIA8 CROSS SECTION: {xsec}')
+            if xsec == None:
+                print('*** FAILED ALSO WITH PYTHIA. NO CROSS SECTION RETURNED ***')
                 continue
             if ssmultipliers != None and ( pids[1], pids[0] ) in ssmultipliers:
                 pids = ( pids[1], pids[0] )
@@ -422,9 +471,9 @@ class RefXSecComputer:
         # print ( "findOpenChannels" )
         channels = []
         # productions of same-sign-pid pairs when the particle is within reach
-        samesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006, 1000021, 1000023, 1000025 )
+        samesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006, 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 )
         # production of opposite-sign-pid pairs when the particle is within reach
-        oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006, 1000011, 1000012, 1000013, 1000014, 1000015, 1000016, 1000024, 1000037 )
+        oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006, 1000011, 1000013, 1000015, 1000024, 1000037 )
 
         # associate production
         associateproduction = ( ( 1000001, 1000021 ), ( 1000002, 1000021 ), ( 1000003, 1000021 ), ( 1000004, 1000021 ), ( 1000005, 1000021 ), ( 2000005, 1000021 ), ( 1000006, 1000021 ), ( 2000006, 1000021 ),
