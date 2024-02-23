@@ -348,18 +348,19 @@ class LlhdScanner ( LoggerBase ):
             args.topo = topo[args.pid1]
         self.mpid1 = self.M.masses[self.pid1]
         self.mpid2 = self.M.masses[self.pid2]
+        nbinsx, nbinsy = 20, 20 # how many bins do we want per dimension
         if args.min1 == None:
             args.min1 = self.mpid1*.7
         if args.max1 == None:
             args.max1 = self.mpid1*1.5
         if args.deltam1 == None:
-            args.deltam1 = ( args.max1 - args.min1 ) / 20.
+            args.deltam1 = ( args.max1 - args.min1 ) / nbinsx
         if args.min2 == None:
             args.min2 = max ( self.mpid2*.7 - 10., 1. )
         if args.max2 == None:
             args.max2 = self.mpid2*1.8 + 10.
         if args.deltam2 == None:
-            args.deltam2 = ( args.max2 - args.min2 ) / 20.
+            args.deltam2 = ( args.max2 - args.min2 ) / nbinsy
         return args
 
 def main ():
