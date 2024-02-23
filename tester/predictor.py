@@ -11,7 +11,7 @@ sys.path.insert(0,"../")
 from protomodels.builder.protomodel import ProtoModel
 from smodels.share.models.SMparticles import SMList
 from smodels.share.models.mssm import BSMList
-from smodels.base.physicsUnits import fb, GeV
+from smodels.base.physicsUnits import fb, GeV, TeV
 from smodels.experiment.databaseObj import Database
 from smodels.base.model import Model
 from smodels.theory.exceptions import SModelSTheoryError as SModelSError
@@ -131,6 +131,20 @@ class Predictor ( LoggerBase ):
                 er.datasets = newDS
                 keepExpRes.append ( er )
         self.pprint ( f"filtered for {','.join(actualtopos)}, keeping {len(keepExpRes)}/{nbefore} expRes" )
+        self.listOfExpRes = keepExpRes
+
+    def filterForSqrts ( self, keep : List = [ 13 ] ):
+        """ filter listOfExpRes for sqrts.
+
+        :param keep: list of sqrtses to *keep*
+        """
+        keepExpRes = []
+        for er in self.listOfExpRes:
+            sqrts = er.globalInfo.sqrts.asNumber(TeV)
+            for k in keep:
+                ds = abs ( sqrts - k )
+                if ds < 1e-5:
+                    keepExpRes.append ( er )
         self.listOfExpRes = keepExpRes
 
     def fetchResults ( self ):
