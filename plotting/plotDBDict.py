@@ -420,7 +420,7 @@ class Plotter ( LoggerBase ):
                             passesTx=False
                             break
                 if not passesTx:
-                    self.pprint ( f"skipping {k}: does not pass Tx filter", verbose = 1 )
+                    self.pprint ( f"skipping {k}: does not pass Tx filter" )
                     continue
 
                 sqrts = self.getSqrts100 ( k, v["lumi"] )
@@ -470,7 +470,7 @@ class Plotter ( LoggerBase ):
                         if checkIfNonAgg:
                             if not nonaggid in self.skippedAgg:
                                 self.skippedAgg.add ( nonaggid )
-                                self.pprint ( f"skipping {anaid}: we also have non-aggregated results for this analysis", verbose = 3 )
+                                self.pprint ( f"skipping {anaid}: we also have non-aggregated results for this analysis" )
                             continue
                     P[sqrts].append( p )
                     weights[sqrts].append ( w )
@@ -497,16 +497,15 @@ class Plotter ( LoggerBase ):
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
         Pfaketot = np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] )
         self.pprint ( "real Ps: %d entries at %.3f +/- %.2f" %
-                ( len(Ptot), np.mean(Ptot), np.std(Ptot)  ), verbose = 1 )
+                ( len(Ptot), np.mean(Ptot), np.std(Ptot)  ) )
         self.pprint ( "fake Ps: %d entries at %.3f +/- %.2f" %
-                ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ),
-                verbose = 1 )
+                ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ) )
         for i in [ "8", "13_lt", "13_gt" ]:
             w, v = self.computeWeightedMean ( P[i], weights[i] )
             n = len(P[i])
             if n > 0:
                 self.pprint ( "real Ps, %s: %d entries at %.3f +/- %.2f" %
-                        ( i, n, w, v ), verbose = 1 )
+                        ( i, n, w, v ) )
 
     def computeWeightedMean ( self, ps, ws ):
         """ weighted average of p values
@@ -679,7 +678,7 @@ class Plotter ( LoggerBase ):
             title += ", fudge=%.2f" % fudge
         selecting = "selecting "
         if self.description != None:
-            self.pprint ( f"we selected {','.join(self.topologies)}", verbose = 1 )
+            self.pprint ( f"we selected {','.join(self.topologies)}" )
             title += f", {self.description}"
             # title += f",selecting {self.origtopos}"
         if len (self.topologies )>0 and self.description == None:
@@ -860,7 +859,7 @@ class Plotter ( LoggerBase ):
         if plotStats:
             plt.text ( .67, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="black", fontsize=7 )
         # plt.ylabel ( "# Signal Regions" )
-        self.pprint ( f"plotting {self.outfile}", verbose = 5 )
+        self.pprint ( f"plotting {self.outfile}" )
         if self.comment != None:
             plt.text ( .65, -.11, self.comment, transform=ax.transAxes,
                        style="italic" )
