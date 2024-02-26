@@ -363,25 +363,26 @@ class RefXSecComputer:
         :param pids: IDs of particles to produce
         :returns: path to the pythia config file
         """
+        import tempfile
         codedir = "../"
         try:
             import csetup
             codedir = csetup.setup()
         except ImportError as e:
             pass
-        os.system(f"cp {codedir}/ptools/pythia8.cfg {codedir}/ptools/pythia8_{pids[0]}_{pids[1]}.cfg")
-        cfg = f"{codedir}/ptools/pythia8_{pids[0]}_{pids[1]}.cfg"
-        with open(cfg,'r') as file:
+        originalConfig = f"{codedir}/ptools/pythia8.cfg"
+        temporaryConfig = tempfile.mktemp( prefix=f"pyhtia8_{pids[0]}_{pids[1]}", suffix=".cfg", dir="/tmp/" )
+        with open(originalConfig,'r') as file:
             lines = file.readlines()
         for i,line in enumerate(lines):
             if line.split() and line.split()[0] == "SUSY:idA":
                 lines[i] = 'SUSY:idA = %d           ! 0: all\n' % abs(pids[0])
             if line.split() and line.split()[0] == "SUSY:idB":
                 lines[i] = 'SUSY:idB = %d           ! 0: all\n' % abs(pids[1])
-        with open(cfg,'w') as file:
+        with open(temporaryConfig,'w') as file:
             for line in lines:
                 file.write(line)
-        return cfg
+        return temporaryConfig
 
     def compute( self, sqrts, slhafile, ssmultipliers = None,
                  ignore_pids = None, ewk = "wino" ):
@@ -413,33 +414,38 @@ class RefXSecComputer:
                 continue
             xsec = self.interpolate ( channel["masses"], xsecall )
             if xsecall is None:
-                logger.info (f"NO CROSS SECTION TABLE FOUND FOR {channel}")
+                logger.debug (f"NO CROSS SECTION TABLE FOUND FOR {channel}")
             if xsec == None:
-                logger.info (f'NO CROSS SECTION OBTAINED FOR CHANNEL {channel} FOR {sqrts} TeV. WILL TRY WITH PYTHIA8.')
-                from smodels.tools.xsecComputer import XSecComputer, NLL
-                xsecComputer = XSecComputer ( NLL, 5000, pythiaVersion=8, maycompile=True )
-                pythia = xsecComputer.getPythia()
-                pythia.tempdir = None # reset, to make sure it works in parallel mode
-                pythia.nevents = xsecComputer.nevents
-                pythia.sqrts = sqrts
-                pythia.pythiacard = self.getPythiaCard ( pids )
-                loXsecs = pythia.run( slhafile, unlink=True )
-                xsecComputer.loXsecs = loXsecs
-                xsecComputer.loXsecs.sort()
-                xsecComputer.xsecs = xsecComputer.addHigherOrders ( sqrts * TeV, slhafile )
-                xsecComputer.xsecs.sort()
-                for x in xsecComputer.loXsecs: # If no NLL xsec, use LO xsec instead
-                    if set(pids) == set(x.pid):
-                        xsec = x.value.asNumber(pb)
-                for x in xsecComputer.xsecs:
-                    if set(pids) == set(x.pid):
-                        xsec = x.value.asNumber(pb)
-                comment += " Computed with Pythia8"
-                os.system(f'rm {pythia.pythiacard}')
-                pythia.pythiacard = None
-                logger.info (f'PYTHIA8 CROSS SECTION: {xsec}')
+                try:
+                    logger.debug (f'NO CROSS SECTION OBTAINED FOR CHANNEL {channel} FOR {sqrts} TeV. WILL TRY WITH PYTHIA8.')
+                    from smodels.tools.xsecComputer import XSecComputer, NLL
+                    xsecComputer = XSecComputer ( NLL, 5000, pythiaVersion=8, maycompile=True )
+                    pythia = xsecComputer.getPythia()
+                    pythia.tempdir = None # reset, to make sure it works in parallel mode
+                    pythia.nevents = xsecComputer.nevents
+                    pythia.sqrts = sqrts
+                    pythia.pythiacard = self.getPythiaCard ( pids )
+                    loXsecs = pythia.run( slhafile, unlink=True )
+                    xsecComputer.loXsecs = loXsecs
+                    xsecComputer.loXsecs.sort()
+                    xsecComputer.xsecs = xsecComputer.addHigherOrders ( sqrts * TeV, slhafile )
+                    xsecComputer.xsecs.sort()
+                    for x in xsecComputer.loXsecs: # If no NLL xsec, use LO xsec instead
+                        if set(pids) == set(x.pid):
+                            xsec = x.value.asNumber(pb)
+                    for x in xsecComputer.xsecs:
+                        if set(pids) == set(x.pid):
+                            xsec = x.value.asNumber(pb)
+                    comment += " Computed with Pythia8"
+                    os.unlik(pythia.pythiacard)
+                    pythia.pythiacard = None
+                    logger.debug (f'PYTHIA8 CROSS SECTION: {xsec}')
+                except Exception as e:
+                    os.unlink(pythia.pythiacard)
+                    pythia.pythiacard = None
+                    logger.debug (f'PYTHIA COMPUTATION FAILED: {e}')
             if xsec == None:
-                logger.info ('*** FAILED ALSO WITH PYTHIA. NO CROSS SECTION RETURNED ***')
+                logger.debug ('*** FAILED ALSO WITH PYTHIA. NO CROSS SECTION RETURNED ***')
                 continue
             if ssmultipliers != None and ( pids[1], pids[0] ) in ssmultipliers:
                 pids = ( pids[1], pids[0] )
@@ -448,9 +454,9 @@ class RefXSecComputer:
                 channel["ssm"] = ssm
                 xsec = xsec * ssm
             else:
-                logger.info (f"*** No signal strength multiplier for {pids} ***")
-                logger.info (pids,pids in ssmultipliers)
-                logger.info (ssmultipliers)
+                logger.debug (f"*** No signal strength multiplier for {pids} ***")
+                logger.debug (pids,pids in ssmultipliers)
+                logger.debug (ssmultipliers)
             channel["xsec"] = xsec
             channel["sqrts"] = sqrts
             channel["order"] = order
