@@ -29,6 +29,11 @@ class Manipulator ( LoggerBase ):
                    1000025 : 20 }
     ## forbiddenparticles are particle ids that we do not touch in this run
     forbiddenparticles = []
+    
+    mass_W = 80.377
+    mwidth_W = 0.012
+    mass_Z = 91.1876
+    mwidth_Z = 0.0021
 
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike],
             strategy: str = "aggressive", verbose : bool = False,
@@ -484,13 +489,12 @@ class Manipulator ( LoggerBase ):
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs,
                                         protomodel=protomodel)
 
-    def initBranchings ( self, pid, protomodel=None):
+    def initBranchings ( self, pid):
         """ Intialize BRs to diffrent open decay channels for pid.
             Either assign 'democratic' BRs or assign random BRs.
         """
 
-        if not protomodel:
-            protomodel = self.M
+        protomodel = self.M
 
         #Do not modify the LSP decays
         if pid == protomodel.LSP:
@@ -511,8 +515,8 @@ class Manipulator ( LoggerBase ):
         nitems = len(openChannels)
         
         offshell = False
-        if pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[1000022]) < 80.377: offshell = True
-        elif pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[1000022]) < 91.1876: offshell = True
+        if pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
+        if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
         
         for dk in dkeys:
             decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
@@ -522,17 +526,19 @@ class Manipulator ( LoggerBase ):
             for dpid in decay_chan:
                 if offshell:
                     if pid == 1000023:
-                        if '11' in dk: protomodel.decays[pid][dpid] = 1.0/18.0
-                        elif '2' in dk: protomodel.decays[pid][dpid] = 12.0/18.0
-                        elif '5' in dk: protomodel.decays[pid][dpid] = 3.0/18.0
+                        if '11' in dk[-2:]: protomodel.decays[pid][dpid] = 1.0/18.0
+                        elif '2' in dk[-1]: protomodel.decays[pid][dpid] = 12.0/18.0
+                        elif '5' in dk[-1]: protomodel.decays[pid][dpid] = 3.0/18.0
                         else: protomodel.decays[pid][dpid] = 0.0
                     elif pid == 1000024:
-                        if '11' in dk: protomodel.decays[pid][dpid] = 1.0/9.0
-                        elif '2' in dk: protomodel.decays[pid][dpid] = 6.0/9.0
+                        if '12' in dk[-2:]: protomodel.decays[pid][dpid] = 1.0/9.0
+                        elif '1' in dk[-1]: protomodel.decays[pid][dpid] = 6.0/9.0
                         else: protomodel.decays[pid][dpid] = 0.0
                 else:
                     if len(dpid) == 3: protomodel.decays[pid][dpid] = 0.0  #turn off offshell 3 body decays
                     else: protomodel.decays[pid][dpid] = br
+        
+        if offshell: return
 
         #Make sure there is at least one open channel:
         BRtot = sum(self.M.decays[pid].values())
@@ -549,6 +555,7 @@ class Manipulator ( LoggerBase ):
 
         #Make sure to normalize the branchings:
         self.normalizeBranchings(pid, protomodel=protomodel)
+        protomodel.decays = self.simplifyDecays()
 
     def normalizeBranchings ( self, pid, rescaleSSMs=False, protomodel=None ):
         """ normalize branchings of a particle if the total BR is differs from 1.0.
