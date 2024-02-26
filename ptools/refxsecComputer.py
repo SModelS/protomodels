@@ -434,7 +434,7 @@ class RefXSecComputer:
                 for x in xsecComputer.xsecs:
                     if set(pids) == set(x.pid):
                         xsec = x.value.asNumber(pb)
-                comment += "Computed with Pythia8"
+                comment += " Computed with Pythia8"
                 os.system(f'rm {pythia.pythiacard}')
                 pythia.pythiacard = None
                 logger.info (f'PYTHIA8 CROSS SECTION: {xsec}')
@@ -708,12 +708,12 @@ class RefXSecComputer:
             filename = filename.replace(".txt","hino.txt" )
         if isEWK:
             if comment == "":
-                comment = " (%s)" % ewk
+                comment = f"({ewk})"
         path = os.path.join ( self.shareDir, filename )
         if self.verbose:
             print ( f"[refxsecComputer] will query {filename}" )
         if not os.path.exists ( path ):
-            logger.error ( "%s missing" % path )
+            logger.error ( f"{path} missing" )
             sys.exit(-1)
         xsecs = self.getXSecsFrom ( path, pb, columns )
         return xsecs,order,comment
