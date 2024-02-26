@@ -16,7 +16,6 @@ sys.path.insert(0,f"/scratch-cbe/users/{os.environ['USER']}/git/smodels-utils/pr
 sys.path.insert(0,"../")
 sys.path.insert(0,"../../")
 sys.path.insert(0,"../smodels/")
-sys.path.remove('/home/pascal/SModelS/smodels')
 from walker.hiscores import Hiscores
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator

@@ -19,8 +19,8 @@ def setup( rundir = None, codedir = None ):
     # codedir = "/mnt/hephy/pheno/ww/git/"
     if codedir == None:
         codedir = "/scratch-cbe/users/wolfgan.waltenberger/git/"
-    sys.path.insert(0,"%ssmodels/" % codedir )
-    sys.path.insert(0,"%sprotomodels/" % codedir )
+    sys.path.insert(0, f"{codedir}/smodels/" )
+    sys.path.insert(0, f"{codedir}/protomodels/" )
     if rundir != None:
         if not "/" in rundir[:-1]:
             rundir = f"/scratch-cbe/users/wolfgan.waltenberger/{rundir}"
@@ -35,13 +35,14 @@ def setup( rundir = None, codedir = None ):
             rundir = rundir.replace ( "~", home )
             os.chdir ( rundir )
         return rundir
-    if os.path.exists ( "%s/rundir.conf" % home ):
-        with open ( "%s/rundir.conf" % home ) as f:
+    if os.path.exists ( f"{home}/rundir.conf" ):
+        with open ( f"{home}/rundir.conf" ) as f:
             rundir = f.read().strip()
             rundir = rundir.replace ( "~", home )
             os.chdir ( rundir )
         return rundir
-    cwd = os.getcwd()
+    cwd = __file__
+    #cwd = os.getcwd()
     p1 = cwd.find("protomodels")
     if p1 > 0:
         cwd = cwd[:p1+11]
