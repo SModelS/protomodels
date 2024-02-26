@@ -95,6 +95,7 @@ class ProtoModel ( LoggerBase ):
         self.decays = {} ## the actual branchings
         self.masses = {}
         self.possibledecays = {} ## list all possible decay channels
+        self.decay_keys = {} #list the key associated with each decay of a pid
         self._stored_xsecs = () #Store cross-sections. It should only be accesses through getXsecs()!
         self._xsecMasses = {} #Store the masses used for computing the cross-sections
         self._xsecSSMs = {} #Store the signal strenght multiplier used for computing the cross-sections
@@ -107,42 +108,44 @@ class ProtoModel ( LoggerBase ):
             pids += [(self.LSP,-self.LSP),(-self.LSP,-self.LSP)]
         for pidpair in pids:
             self.ssmultipliers[tuple(sorted(pidpair))]= 1.0
-
+        
+        slha_decay_keys = []
+        
         with open ( self.templateSLHA ) as slhaf:
             tmp = slhaf.readlines()
-            slhalines = []
             for line in tmp:
                 p = line.find("#" )
                 if p > -1:
                     line = line[:p]
                 if "D" in line and not "DECAY" in line:
-                    slhaline = line.strip().split(" ")[0]
-                    # print ( "slhaline", slhaline )
-                    slhalines.append ( slhaline )
-
+                    slhaline = line.strip().split(" ")
+                    slhaline = [l for l in slhaline if l!='']
+                    #decay_key = [slhaline[0],slhaline[1:]]
+                    slha_decay_keys.append(slhaline)
+                            
+        
         for p in self.particles:
             decays = []
-            for line in slhalines:
-                if f"D{p}" in line:
-                    p1 = line.find("_")+1
-                    dpid = int ( line[p1:] )
-                    dpid2 = None
-                    dpid3 = None
-                    if line.count("_")==2:
-                        p2 = line.rfind("_")
-                        dpid = int ( line[p1:p2] )
-                        dpid2 = int(line[p2+1:])
-                    elif line.count("_")==3:
-                        dp = line.split('_')
-                        dpid = int(dp[1])
-                        dpid2 = int(dp[2])
-                        dpid3 = int(dp[3])
-                    dpd = dpid
-                    if dpid2 != None:
-                        if dpid3!= None: dpd = (dpid,dpid2,dpid3)
-                        else: dpd = (dpid,dpid2)
+            dkey = {}
+            for key in slha_decay_keys:
+                if f"D{p}" in key[0]:
+                    dpid,dpid2,dpid3,dpd = None,None,None,None
+
+                    if int(key[1]) == 2:                    #2body decay
+                        dpid = abs(int(key[2]))
+                        dpid2 = abs(int(key[-1]))
+                        dpd = (dpid,dpid2)
+                    elif int(key[1]) == 3:                  #3body decay
+                        dpid = abs(int(key[2]))
+                        dpid2 = abs(int(key[3]))
+                        dpid3 = abs(int(key[4]))
+                        dpd = (dpid,dpid2,dpid3)
+
                     decays.append ( dpd )
+                    dkey.update({dpd: key[0]})
+            
             self.possibledecays[p]=decays
+            self.decay_keys[p] = dkey
 
     def __str__(self):
         """ return basic information on model
@@ -251,7 +254,7 @@ class ProtoModel ( LoggerBase ):
             openChannels.add ( dpid )
 
         openChannels = list(openChannels)
-
+        
         return openChannels
 
     def frozenParticles ( self ):
