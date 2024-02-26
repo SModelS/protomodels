@@ -1630,9 +1630,12 @@ class Manipulator ( LoggerBase ):
             for pids in pidss:
                 xsec = xsecs[sqrts][pids]
                 label = ""
+                comment = ""
+                if hasattr ( xsec, "comment" ):
+                    comment = xsec.comment
                 if "dict" in xsec.info.label:
                     label = " (from dict)"
-                print ( f" {str(pids):>22s}: {xsec.value.asNumber(fb):.2f} fb{label}" )
+                print ( f" {str(pids):>22s}: {xsec.value.asNumber(fb):.2f} fb{label} {comment}" )
 
     def simplifyDecays ( self ):
         """ return the decays only of the unfrozen particles,

@@ -369,7 +369,8 @@ class RefXSecComputer:
             codedir = csetup.setup()
         except ImportError as e:
             pass
-        cfg = f"{codedir}/ptools/pythia8.cfg"
+        os.system(f"cp {codedir}/ptools/pythia8.cfg {codedir}/ptools/pythia8_{pids[0]}_{pids[1]}.cfg")
+        cfg = f"{codedir}/ptools/pythia8_{pids[0]}_{pids[1]}.cfg"
         with open(cfg,'r') as file:
             lines = file.readlines()
         for i,line in enumerate(lines):
@@ -412,11 +413,10 @@ class RefXSecComputer:
                 continue
             xsec = self.interpolate ( channel["masses"], xsecall )
             if xsecall is None:
-                print(f"NO CROSS SECTION TABLE FOUND FOR {channel}")
+                logger.info (f"NO CROSS SECTION TABLE FOUND FOR {channel}")
             if xsec == None:
-                print(f'*** NO CROSS SECTION OBTAINED FOR CHANNEL {channel} FOR {sqrts} TeV ***')
-                print("*** FALLING BACK TO PYTHIA ***")
-                from protomodels.smodels.smodels.tools.xsecComputer import XSecComputer, NLL
+                logger.info (f'NO CROSS SECTION OBTAINED FOR CHANNEL {channel} FOR {sqrts} TeV. WILL TRY WITH PYTHIA8.')
+                from smodels.tools.xsecComputer import XSecComputer, NLL
                 xsecComputer = XSecComputer ( NLL, 5000, pythiaVersion=8, maycompile=True )
                 pythia = xsecComputer.getPythia()
                 pythia.tempdir = None # reset, to make sure it works in parallel mode
@@ -434,10 +434,12 @@ class RefXSecComputer:
                 for x in xsecComputer.xsecs:
                     if set(pids) == set(x.pid):
                         xsec = x.value.asNumber(pb)
-                # xsec = xsecComputer.compute( sqrts*TeV, slhafile, unlink=False, loFromSlha=False, ssmultipliers = None )
-                print(f'PYTHIA8 CROSS SECTION: {xsec}')
+                comment += " Computed with Pythia8"
+                os.system(f'rm {pythia.pythiacard}')
+                pythia.pythiacard = None
+                logger.info (f'PYTHIA8 CROSS SECTION: {xsec}')
             if xsec == None:
-                print('*** FAILED ALSO WITH PYTHIA. NO CROSS SECTION RETURNED ***')
+                logger.info ('*** FAILED ALSO WITH PYTHIA. NO CROSS SECTION RETURNED ***')
                 continue
             if ssmultipliers != None and ( pids[1], pids[0] ) in ssmultipliers:
                 pids = ( pids[1], pids[0] )
@@ -446,9 +448,9 @@ class RefXSecComputer:
                 channel["ssm"] = ssm
                 xsec = xsec * ssm
             else:
-                print(f"*** No signal strength multiplier for {pids} ***")
-                print(pids,pids in ssmultipliers)
-                print(ssmultipliers)
+                logger.info (f"*** No signal strength multiplier for {pids} ***")
+                logger.info (pids,pids in ssmultipliers)
+                logger.info (ssmultipliers)
             channel["xsec"] = xsec
             channel["sqrts"] = sqrts
             channel["order"] = order
@@ -706,12 +708,12 @@ class RefXSecComputer:
             filename = filename.replace(".txt","hino.txt" )
         if isEWK:
             if comment == "":
-                comment = " (%s)" % ewk
+                comment = f"({ewk})"
         path = os.path.join ( self.shareDir, filename )
         if self.verbose:
             print ( f"[refxsecComputer] will query {filename}" )
         if not os.path.exists ( path ):
-            logger.error ( "%s missing" % path )
+            logger.error ( f"{path} missing" )
             sys.exit(-1)
         xsecs = self.getXSecsFrom ( path, pb, columns )
         return xsecs,order,comment
