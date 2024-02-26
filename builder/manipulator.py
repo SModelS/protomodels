@@ -484,7 +484,7 @@ class Manipulator ( LoggerBase ):
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs,
                                         protomodel=protomodel)
 
-    def setBranchings ( self, pid, protomodel=None):
+    def initBranchings ( self, pid, protomodel=None):
         """ Intialize BRs to diffrent open decay channels for pid.
             Either assign 'democratic' BRs or assign random BRs.
         """
@@ -1210,7 +1210,7 @@ class Manipulator ( LoggerBase ):
 
       
         # Set branchings
-        self.setBranchings(pid)
+        self.initBranchings(pid)
 
         #Add pid pair production and associated production to protomodel.ssmultipliers:
         self.initSSMFor(pid)
@@ -1273,7 +1273,7 @@ class Manipulator ( LoggerBase ):
                 # FIXME if the particle was frozen before, we need to
                 # unfreeze
                 if otherpid in were_frozen:
-                    self.setBranchings(otherpid)
+                    self.initBranchings(otherpid)
                     self.initSSMFor(otherpid)
                 self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
