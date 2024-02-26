@@ -120,7 +120,7 @@ class Plotter ( LoggerBase ):
 
     def defaults ( self ):
         self.nbins = None # 10 for p-values, 13 for significances
-        self.Zmax = 3.25
+        self.Zmax = None
         self.before = None
         self.show = False
         self.pvalues = False # if False, then p-values if true then significances
@@ -184,6 +184,7 @@ class Plotter ( LoggerBase ):
             else:
                 self.nbins = 10
         self.origtopos = args["topologies"]
+        self.printMsgs = { "pass": 0 }
         if self.origtopos == None:
             self.origtopos = "all"
         self.description = None
@@ -258,10 +259,22 @@ class Plotter ( LoggerBase ):
         self.meta = {}
         self.data = {}
         self.read()
+        if self.Zmax is None:
+            self.determineZmax()
         if self.roughviz:
             self.rough( )
         else:
             self.plot( )
+
+    def determineZmax ( self ):
+        """ obtain self.Zmax from data """
+        Zmax = 0.
+        for dictfile,filecontent in self.data.items():
+            for anaid,values in filecontent.items():
+                if values["orig_Z"] > Zmax:
+                    Zmax = values["orig_Z"]
+        self.Zmax = np.ceil ( Zmax * 4. ) / 4.
+        # self.pprint ( f"Zmax is {Zmax:.2f}" )
 
     def selectedCollaboration( self, anaid ):
         """ does anaid pass the collaboration selection? """
@@ -420,7 +433,11 @@ class Plotter ( LoggerBase ):
                             passesTx=False
                             break
                 if not passesTx:
-                    self.pprint ( f"skipping {k}: does not pass Tx filter" )
+                    self.printMsgs["pass"]+=1
+                    if self.printMsgs["pass"]<4:
+                        self.pprint ( f"skipping {k}: does not pass Tx filter" )
+                    if self.printMsgs["pass"]==4:
+                        self.pprint ( f"(quenching 'does not pass filter' msgs)" )
                     continue
 
                 sqrts = self.getSqrts100 ( k, v["lumi"] )
@@ -555,8 +572,10 @@ class Plotter ( LoggerBase ):
             if p == 0.:
                 return -10 # big number
             Z = - scipy.stats.norm.ppf ( p )
+            #if abs(Z) > 2.5:
+            #    print ( "@@2 Z", Z, "p", p )
             return Z
-        print ( "cannot compute significance for",p,type(p) )
+        self.pprint ( f"cannot compute significance for {p} {type(p)}" )
         sys.exit()
         return None
         # scipy.stats.norm.ppf
@@ -931,8 +950,8 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '--show',
             help='show plot', action='store_true' )
     argparser.add_argument ( '--Zmax',
-            help='maximum Z signifances to plot (|Z|) [3.25]',
-            type=float, default=3.25 )
+            help='maximum Z signifances to plot (|Z|) [None]',
+            type=float, default=None )
     if type(cmdline) in [ str ]:
         cmdline = cmdline.split()
         if "plotDBDict.py" in cmdline[0]:
