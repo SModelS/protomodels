@@ -154,7 +154,9 @@ class Analyzer ( LoggerBase ):
             sqrts = getSqrts ( ana )
             values = byp[k][1]
             p = values["orig_p"]
-            Z = - scipy.stats.norm.ppf ( p )
+            # Z = - scipy.stats.norm.ppf ( p )
+            Z = values["orig_Z"]
+            # print ( "@@2 Z", Z, values["orig_Z"] )
             self.pvalues[sqrts].append(p)
             self.Zvalues[sqrts].append(Z)
         for ctr,k in enumerate(keys[:nlargest]):
