@@ -1,6 +1,7 @@
-# NLO-NLL wino-like C1C1, singlet, 
+# NLO-NLL wino-like C1C1, singlet,
 # https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SUSYCrossSections13TeVx1x1wino
 # mC1 mC1 [GeV] xsec [fb] uncertainty [fb]
+50 374054.71 
 100 11611.9 518.613
 125 5090.52 249.469
 150 2612.31 138.156
@@ -78,4 +79,3 @@
 1950 0.00432007 0.000896908
 1975 0.00371358 0.000851482
 2000 0.00323064 0.000814089
-

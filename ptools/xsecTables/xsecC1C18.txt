@@ -1,6 +1,7 @@
 # Chargino Chargino Cross Section vs Chargino mass as used by CMS in SUS12022
 # https://twiki.cern.ch/twiki/bin/view/CMSPublic/WinoCc
 # mC1 [GeV]	Cross Section [fb]	Uncertainty [fb]
+50 214171.24
 100 5823.4 201.055
 105 4891.13 178.509
 110 4108.1 149.932
