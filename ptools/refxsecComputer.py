@@ -471,7 +471,7 @@ class RefXSecComputer:
         # print ( "findOpenChannels" )
         channels = []
         # productions of same-sign-pid pairs when the particle is within reach
-        samesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006, 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 )
+        samesignmodes = ( 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 )
         # production of opposite-sign-pid pairs when the particle is within reach
         oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006, 1000011, 1000013, 1000015, 1000024, 1000037 )
 
@@ -643,10 +643,6 @@ class RefXSecComputer:
             order = NNLL
         if pid1 in [ -1000005, -2000005, -1000006, -2000006 ] and pid2 == -pid1: # Squark-antisquark productions (heavy quarks)
             filename = "xsecstop%d.txt" % sqrts
-            columns["xsec"] = 2
-            order = NNLL
-        if pid1 in [ 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006 ] and pid2 == pid1: # Squark-squark productions
-            filename = "xsecsquark%d.txt" % sqrts
             columns["xsec"] = 2
             order = NNLL
         if pid1 in [ -1000011, -1000012, -1000013, -1000014, -1000015, -1000016 ] and pid2 in [ 1000011, 1000012, 1000013, 1000014, 1000015, 1000016 ]: # Slepton pair productions
