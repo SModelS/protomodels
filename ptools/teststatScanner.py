@@ -76,7 +76,6 @@ class TeststatScanner ( LoggerBase ):
         model.loggerid = model.walkerid
         pid = args["pid"]
         predictor = args["predictor"]
-        nevents = args["nevents"]
         rundir = args["rundir"]
         mrange = args["mrange"]
         ret = {}
@@ -90,7 +89,7 @@ class TeststatScanner ( LoggerBase ):
                 #model._stored_xsecs = copy.deepcopy ( right_xsecs )
                 #model._xsecMasses = dict([[pid,m] for pid,m in model.masses.items()])
             self.pprint ( f"#{i}: start with {ctr}/{len(mrange)}, "\
-                    f"m({self.namer.asciiName(pid)})={m:.1f} ({self.args['nevents']} events)" )
+                    f"m({self.namer.asciiName(pid)})={m:.1f}" )
             ret[m]={}
             if self.args['dry_run']:
                 self.pprint ( f"#{i}: dry-run, not doing anything" )
@@ -124,7 +123,6 @@ class TeststatScanner ( LoggerBase ):
         model = args["model"]
         pids = args["pids"]
         predictor = args["predictor"]
-        nevents = args["nevents"]
         ssmrange = args["ssmrange"]
         origssm = args["ssm"]
         model.walkerid = 200000+10000*i + model.walkerid
@@ -135,7 +133,6 @@ class TeststatScanner ( LoggerBase ):
             return
         ret = {}
         model.delXSecs()
-        # model.predict ( nevents = nevents, recycle_xsecs = True )
         predictor.predict ( model )
         self.pprint ( f"#{i}: before we begin, Z is {model.Z:.3f}" )
 
@@ -144,11 +141,10 @@ class TeststatScanner ( LoggerBase ):
             ssmold = model.ssmultipliers[pids]
             ma = Manipulator ( model )
             ma.changeSSM ( pids, ssm, recursive = True )
-            ma.M.computeXSecs ( nevents = 100000 )
-            # model.predict ( nevents = nevents, recycle_xsecs = True )
+            ma.M.computeXSecs ( )
             predictor.predict ( ma.M, keep_predictions = True )
             self.pprint ( f"#{i}: we change the ssm from {ssmold:.3f} to {ssm:.3f}" )
-            self.pprint ( f"#{i}: start with {ctr}/{len(ssmrange)}, ssm={ssm:.2f} ({self.args['nevents']} events)" )
+            self.pprint ( f"#{i}: start with {ctr}/{len(ssmrange)}, ssm={ssm:.2f}" )
             self.pprint ( f"#{i}:   `- K({ssm:.3f})={ma.M.K:.3f} Z={ma.M.Z:.3f}" )
             # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
             mssm = ma.M.muhat*ssm
@@ -181,8 +177,7 @@ class TeststatScanner ( LoggerBase ):
         if self.args['preserve_xsecs'] and not hasattr ( model, "stored_xsecs" ):
             self.pprint ( "preserve_xsec mode, so computing the xsecs now" )
         model.delXSecs()
-        model.nevents = 100000
-        model.computeXSecs( nevents = 100000, keep_slha = True )
+        model.computeXSecs( keep_slha = True )
         if model == None:
             self.pprint ( f"cannot find a model in {self.hi.pickleFile}" )
         apid = abs(pid)
@@ -207,14 +202,14 @@ class TeststatScanner ( LoggerBase ):
             mrangetot.append( m2 )
         mrangetot.sort()
         mranges = [ mrangetot[i::self.nproc] for i in range(self.nproc) ]
-        self.pprint ( f"start scanning with m({self.namer.asciiName(pid)})={mass:.1f} with {self.nproc} procs, {len(mrangetot)} mass points, {self.args['nevents']} events, select={self.args['select']}, do_srcombine={self.args['do_srcombine']}" )
+        self.pprint ( f"start scanning with m({self.namer.asciiName(pid)})={mass:.1f} with {self.nproc} procs, {len(mrangetot)} mass points, select={self.args['select']}, do_srcombine={self.args['do_srcombine']}" )
         expected = False
         predictor =  Predictor( 0, dbpath=self.args['dbpath'], 
                 do_srcombine=self.args['do_srcombine'],
                 expected=expected, select=self.args['select'] )
         import multiprocessing
         pool = multiprocessing.Pool ( processes = len(mranges) )
-        args = [ { "model": model, "rundir": self.args["rundir"], "pid": pid, "nevents": self.args['nevents'], "predictor": predictor, "dry_run": self.args['dry_run'], "i": i, "mrange": x } for i,x in enumerate(mranges) ]
+        args = [ { "model": model, "rundir": self.args["rundir"], "pid": pid, "predictor": predictor, "dry_run": self.args['dry_run'], "i": i, "mrange": x } for i,x in enumerate(mranges) ]
         values={}
         tmp = pool.map ( self.predProcess, args )
         # model.delCurrentSLHA()
@@ -270,15 +265,14 @@ class TeststatScanner ( LoggerBase ):
             nproc = len(ssmrangetot)
         ssmranges = [ ssmrangetot[i::nproc] for i in range(nproc) ]
         # ssmranges[0].insert(0,ssm) # compute it early!
-        self.pprint ( f"start scanning with ssm({self.namer.asciiName(pid1)},{self.namer.asciiName(pid2)})={ssm:.2f} with {nproc} procs, {len(ssmrangetot)} ssm points, {self.args['nevents']} events" )
+        self.pprint ( f"start scanning with ssm({self.namer.asciiName(pid1)},{self.namer.asciiName(pid2)})={ssm:.2f} with {nproc} procs, {len(ssmrangetot)} ssm points" )
             
         expected = False
         predictor =  Predictor( 0, dbpath=self.args["dbpath"], 
                 do_srcombine=self.args['do_srcombine'],
                 expected=expected, select=self.args['select'] )
-        args = [ { "model": model, "pids": pids, "nevents": self.args['nevents'], 
-                   "ssm": ssm, "predictor": predictor, "rundir": self.args["rundir"], 
-                   "dry_run": self.args['dry_run'],
+        args = [ { "model": model, "pids": pids, "ssm": ssm, "predictor": predictor, 
+                   "rundir": self.args["rundir"], "dry_run": self.args['dry_run'],
                    "i": i, "ssmrange": x } for i,x in enumerate(ssmranges) ]
         values={}
         if nproc == 1:
@@ -390,7 +384,6 @@ class TeststatScanner ( LoggerBase ):
             cmass = pickle.load ( f ) ## cmass is pids
             timestamp = pickle.load ( f )
             self.args = pickle.load ( f )
-            nevents = self.args["nevents"]
         x = list(values.keys()) ## the x's correspond to e.g. the particle masses
         x.sort()
         Kvalues, Kdashed = [], []
@@ -541,9 +534,6 @@ if __name__ == "__main__":
     argparser.add_argument ( '-f', '--factor',
             help='multiplication factor [1.008]',
             type=float, default=None )
-    argparser.add_argument ( '-e', '--nevents',
-            help='number of events [100000]',
-            type=int, default=100000 )
     argparser.add_argument ( '-R', '--rundir',
             help='override the default rundir [None]',
             type=str, default=None )

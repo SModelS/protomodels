@@ -65,7 +65,8 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
     shorts["colored"]="T1,T2,TGQ,T3GQ,T5GQ,TGQqtt,TGQbtq,TGQbbq,T1bbbb,T1tttt,T1bbbboff,T1ttttoff,T1btbt,T6WW"
-    description["electroweakinos"]="ewkinos + onshell gauge bosons"
+    description["electroweakinos"]="ewkinos with onshell gauge bosons"
+    description["electroweakinos_offshell"]="ewkinos, on- and offshell decays"
     description["stops"]="stops, on- and off-shell"
     description["sbottoms"]="sbottoms"
     description["colored"]="light squarks and gluinos"
@@ -129,11 +130,10 @@ def findLargestExcess ( db ):
             ds = ds[0]
             obsN = ds.dataInfo.observedN
             eBG = ds.dataInfo.expectedBG
-            print ( "Z=%.2f: %15s, %s: %d/%.2f" % \
-                    ( k, ds.globalInfo.id, str(ds.dataInfo.dataId), obsN, eBG ) )
+            print ( f"Z={k:.2f}: {ds.globalInfo.id:15s}, {ds.dataInfo.dataId}: {obsN}/{eBG:.2f}" )
 
     pprint ( excesses )
-    print ( "[helpers.findLargestExcess] found %d eff maps" % len(results) )
+    print ( f"[helpers.findLargestExcess] found {len(results)} eff maps" )
     return excesses
 
 if __name__ == "__main__":
