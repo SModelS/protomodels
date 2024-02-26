@@ -245,18 +245,17 @@ Just filter the database:
                     allpositive = False
                 ret.y_values[i] = obs ## now we simply shift
             if ctr > 2:
-                self.log ( "WARNING seems like I am having a hard time getting all "\
-                        "values of %s positive." % globalInfo.id )
+                self.log ( f"WARNING seems like I am having a hard time getting all "\
+                        "values of {globalInfo.id} positive." )
 
         label = globalInfo.id + ":ul:" + txname.txName
         D["fudge"]=self.fudge
         if self.timestamps:
             D["timestamp"]=globalInfo.lastUpdate
         self.addToStats ( label, D )
-        self.log ( "computed new UL result %s:%s, x=%.2f" % \
-                   ( globalInfo.id, txname.txName, x ) )
+        self.log ( f"computed new UL result {globalInfo.id}:{txname.txName}, x={x:.2f}" )
         if x > 3.5:
-            self.log ( "WARNING high UL x=%.2f!!!" % x )
+            self.log ( f"WARNING high UL x={x:.2f}!!!" )
         return ret
 
     def bgUpperLimit ( self, dataset ):
@@ -274,18 +273,15 @@ Just filter the database:
         args = ""
         for i in sys.argv:
             if " " in i or "," in i:
-                i = '"%s"' % i
+                i = f'"{i}"'
             args += i + " "
-        f.write ( "[expResModifier.py-%s] %s\n" % \
-                  ( time.strftime("%H:%M:%S"), args.strip() ) )
-        # f.write ("[slurm.py] %s\n" % " ".join ( sys.argv ) )
+        f.write ( f"[expResModifier.py-{time.strftime('%H:%M:%S')}] {args.strip()}\n")
         f.close()
 
     def startLogger ( self ):
-        subprocess.getoutput ( "mv %s modifier.old" % self.logfile )
-        self.log ( "starting at %s with zmax of %s" % \
-                   ( time.asctime(), self.max ) )
-        self.log ( "arguments were %s" % ( " ".join ( sys.argv ) ) )
+        subprocess.getoutput ( f"mv {self.logfile} modifier.old" )
+        self.log ( f"starting at {time.asctime()} with zmax of {self.max}" )
+        self.log ( f"arguments were {' '.join ( sys.argv )}" )
 
     def finalize ( self ):
         """ finalize, for the moment its just deleting slha files """
@@ -305,7 +301,7 @@ Just filter the database:
         if filename == "":
             return None
         if not os.path.exists ( filename ):
-            self.pprint ( "When trying to construct protomodel, %s does not exist" % filename )
+            self.pprint ( f"When trying to construct protomodel, {filename} does not exist" )
             return None
         shutil.copyfile ( filename, self.rundir+"/my.signal" )
         walkerid = 0
@@ -321,8 +317,7 @@ Just filter the database:
         ma.initFromDict ( m, initTestStats=True )
         ma.M.computeXSecs( keep_slha = True )
         self.log ( f"xsecs produced {ma.M.currentSLHA}" )
-        self.log ( " `- does currentslha exist? %s" % \
-                   os.path.exists ( ma.M.currentSLHA ) )
+        self.log ( f" `- does currentslha exist? {os.path.exists ( ma.M.currentSLHA )}" )
         ma.printXSecs()
         self.protomodel = ma.M
         return self.protomodel
@@ -364,12 +359,12 @@ Just filter the database:
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
         self.produceProtoModel ( self.pmodel, self.db.databaseVersion )
         # print ( "pm produced", os.path.exists ( self.protomodel.currentSLHA ) )
-        self.log ( "%d results before faking bgs" % len(listOfExpRes) )
+        self.log ( f"{len(listOfExpRes)} results before faking bgs" )
         updatedListOfExpRes = self.fakeBackgrounds ( listOfExpRes )
         # print ( "fb produced", os.path.exists ( self.protomodel.currentSLHA ) )
-        self.log ( "%d results after faking bgs" % len(updatedListOfExpRes) )
+        self.log ( f"{len(updatedListOfExpRes)} results after faking bgs" )
         updatedListOfExpRes = self.addSignals ( updatedListOfExpRes )
-        self.log ( "%d results after adding signals" % len(updatedListOfExpRes) )
+        self.log ( f"{len(updatedListOfExpRes)} results after adding signals" )
         if hasattr ( self.db, "subs" ): ## for smodels 2.1
             self.db.subs[0].expResultList = updatedListOfExpRes
             self.db.subs = [ self.db.subs[0] ]
@@ -378,8 +373,7 @@ Just filter the database:
         newver = self.db.databaseVersion + self.suffix
         self.db.txt_meta.databaseVersion = newver
         self.db.pcl_meta.databaseVersion = newver
-        self.pprint ( "Constructed fake database with %d (of %d) results" % \
-                ( len(updatedListOfExpRes), len(listOfExpRes) ) )
+        self.pprint ( f"Constructed fake database with {len(updatedListOfExpRes)} (of {len(listOfExpRes)}) results" )
         if self.outfile != "":
             self.db.createBinaryFile( self.outfile )
         return self.db
@@ -398,9 +392,12 @@ Just filter the database:
             p = computeP ( orig, exp, err )
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
             D["orig_p"]=p
-        S, origS = float("inf"), float("nan")
+            origZ = - scipy.stats.norm.ppf ( p )
+            D["orig_Z"]=origZ
+            self.comments["orig_Z"]="the significance Z of the original observation"
+        Z = float("inf")
         ct = 0
-        while S > self.max and ct < 10:
+        while Z > self.max and ct < 10:
             ct += 1
             # lmbda = stats.norm.rvs ( exp, err )
             lmbda = exp
@@ -414,22 +411,20 @@ Just filter the database:
             if not self.fixedbackgrounds:
                 obs = stats.poisson.rvs ( lmbda )
                 toterr = math.sqrt ( err**2 + exp )
-            S, origS = 0., 0.
-            if toterr > 0.:
-                S = ( obs - exp ) / toterr
-                origS = ( orig - exp ) / toterr
-            if S < self.max or ct > 9:
-                self.log ( "effmap replacing old nobs=%d (bg=%.2f+/-%.2f, lmbda=%.2f, S=%.2f) with nobs=%d for %s:%s" % \
-                    ( orig, exp, err, lmbda, S, obs, dataset.globalInfo.id, dataset.dataInfo.dataId  ) )
+            if True: # toterr > 0.:
+                pnew = computeP ( orig, exp, err )
+                Z = - scipy.stats.norm.ppf ( pnew )
+                # Z = ( obs - exp ) / toterr
+                # origZ = ( orig - exp ) / toterr
+            if Z < self.max or ct > 9:
+                self.log ( f"effmap replacing old nobs={orig} (bg={exp:.2f}+/-{err:.2f}, lmbda={lmbda:.2f}, Z={Z:.2f}) with nobs={obs} for {dataset.globalInfo.id}:{dataset.dataInfo.dataId}" )
                 dataset.dataInfo.observedN = obs
-        if S > 3.5:
-            self.log ( "WARNING!!! high em S=%.2f!!!!" % S )
-        D["Sbg"]=S
-        self.comments["Sbg"]="the significance of the observation, bg only"
-        D["S"]=S
-        self.comments["S"]="the significance of the observation, taking into account the signal"
-        D["origS"]=origS
-        self.comments["origS"]="the significance of the original observation"
+        if Z > 3.5:
+            self.log ( f"WARNING!!! high em Z={Z:.2f}!!!!" )
+        D["Zbg"]=Z
+        self.comments["Zbg"]="the significance of the observation, bg only"
+        D["Z"]=Z
+        self.comments["Z"]="the significance of the observation, taking into account the signal"
         self.comments["lmbda"]="Poissonian lambda of the fake background"
         D["lmbda"]=lmbda
         D["newObs"]=obs
@@ -460,9 +455,7 @@ Just filter the database:
             already taken care of """
         txns = list ( map ( str, tpred.txnames ) )
         txns.sort()
-        self.log ( "add EM matching tpred %s/%s %s: %s" % \
-                ( tpred.analysisId(), tpred.dataId(), ",".join(txns), \
-                  tpred.xsection.value ) )
+        self.log ( f"add EM matching tpred {tpred.analysisId()}/{tpred.dataId()} {','.join(txns)}: {tpred.xsection.value}" )
         label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
         orig = dataset.dataInfo.observedN
         sigLambda = float ( tpred.xsection.value * lumi )
@@ -483,13 +476,12 @@ Just filter the database:
         self.comments["sigN"]="the number of events from the added signal"
         txnsc = "_".join( txns )
         ## sigNT<x> denotes the contributions from the individual theory preds
-        D["sigN%s" % txnsc ] = sigN
+        D[ f"sigN{txnsc}" ] = sigN
         D["obsBg"]=self.stats[label]["newObs"]
         err = dataset.dataInfo.bgError * self.fudge
         dataset.dataInfo.sigN = sigN ## keep track of signal
         if sigN == 0:
-                self.log ( " `- signal sigN=%d re obsN=%d too small. skip." % \
-                           ( sigN, orig ) )
+                self.log ( f" `- signal sigN={sigN} re obsN={orig} too small. skip.")
                 dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
                 dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
                 D["newObs"]=orig
@@ -497,26 +489,24 @@ Just filter the database:
                 return dataset
         ## the signal is less than permille of bg?
         if orig > 0. and sigN / orig < 1e-3:
-                self.log ( " `- signal sigN=%d re obsN=%d too small. skip." % \
-                           ( sigN, orig ) )
+                self.log ( f" `- signal sigN={sigN} re obsN={orig} too small. skip.")
                 dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
                 dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
                 D["newObs"]=orig
                 self.addToStats ( label, D )
                 return dataset
-        self.log ( " `- effmap adding sigN=%d to obsN=%d -> newObs=%d" % \
-                   ( sigN, orig, orig + sigN ) )
+        self.log ( f" `- effmap adding sigN={sigN} to obsN={orig} -> newObs={orig+sigN}" )
         dataset.dataInfo.trueBG = orig ## keep track of true bg
         dataset.dataInfo.observedN = orig + sigN
         D["newObs"]=dataset.dataInfo.observedN
         exp = dataset.dataInfo.expectedBG
         err = dataset.dataInfo.bgError * self.fudge
         toterr = math.sqrt ( err**2 + exp )
-        S = 0.
+        Z = 0.
         if toterr > 0.:
-            S = ( dataset.dataInfo.observedN - exp ) / toterr
-        D["S"]=S
-        self.comments["S"]="the significance of the observation, taking into account the signal"
+            Z = ( dataset.dataInfo.observedN - exp ) / toterr
+        D["Z"]=Z
+        self.comments["Z"]="the significance of the observation, taking into account the signal"
         ## now recompute the limits!!
         alpha = .05
         if orig == 0.0:
@@ -591,7 +581,6 @@ Just filter the database:
         if not txname.txName in txns:
             return txname.txnameData
         hasAdded = 0
-        # print ( "  `-- adding %s to %s" % ( sigmaN, txname ), type(txname), type(txname.txnameData) )
         txnd = txname.txnameData
         etxnd = txname.txnameDataExp
         coordsTpred = txnd.dataToCoordinates ( values["masses"], txnd._V, txnd.delta_x ) ## coordinates of tpred
@@ -621,7 +610,6 @@ Just filter the database:
                 self.comments["yold"]="old y value (fb) closest to signal protomodel for UL map"
                 self.comments["ynew"]="new y value (fb) closest to signal protomodel for UL map"
                 D["ynew"]=oldv+sigmaN
-            # print ( "    `--- adding %s %s" % ( oldv, sigmaN ) )
             txnd.y_values[yi]=oldv + sigmaN
             hasAdded += 1
             if hasAdded == 0:
@@ -640,12 +628,7 @@ Just filter the database:
         from ptools import helpers
         txns = list ( map ( str, tpred.txnames ) )
         txns.sort()
-        self.log ( "add UL matching tpred %s: <%s> %s {%s}" % \
-                ( tpred.analysisId(), tpred.xsection.value, \
-                  tpred.PIDs, ",".join(txns) ) )
-        #print ( " `- add UL matching tpred %s: %s[%s] ds:%s" % \
-        #        ( tpred.analysisId(), tpred.xsection.value, \
-        #          tpred.PIDs, dataset ) )
+        self.log ( f"add UL matching tpred {tpred.analysisId()}: <{tpred.xsection.value}> {tpred.PIDs} {','.join(txns)}" )
         ## so we simply add the theory predicted cross section to the limit
         sigmaN = tpred.xsection.value.asNumber(fb)
         label = tpred.analysisId() + ":ul:" + ",".join(txns)
@@ -662,7 +645,6 @@ Just filter the database:
             if not self.txNameIsIn ( txname, tpred ):
                 continue
             hasAdded = 0
-            #print ( "  `-- adding %s to %s" % ( sigmaN, txname ) )
             txnd = txname.txnameData
             etxnd = txname.txnameDataExp
             coordsTpred = txnd.dataToCoordinates ( tpred.mass, txnd._V, txnd.delta_x ) ## coordinates of tpred
@@ -694,7 +676,6 @@ Just filter the database:
                     self.comments["yold"]="old y value (fb) closest to signal protomodel for UL map"
                     self.comments["ynew"]="new y value (fb) closest to signal protomodel for UL map"
                     D["ynew"]=oldv+sigmaN
-                # print ( "    `--- adding %s %s" % ( oldv, sigmaN ) )
                 txnd.y_values[yi]=oldv + sigmaN
                 hasAdded += 1
             if hasAdded == 0:
@@ -717,7 +698,7 @@ Just filter the database:
         self.log ( f"saving stats to {filename}" )
         meta = { "dbpath": self.dbpath, "Zmax": self.max,
                  "database": self.dbversion, "fudge": self.fudge,
-                 "protomodel": '"%s"' % self.protomodel, "timestamp": time.asctime(),
+                 "protomodel": f'"{self.protomodel}"', "timestamp": time.asctime(),
                  "lognormal": self.lognormal, "maxmassdist": self.maxmassdist,
                  "fixedsignals": self.fixedsignals,
                  "fixedbackgrounds": self.fixedbackgrounds }
@@ -765,8 +746,7 @@ Just filter the database:
                 ctr+=1
                 els += str(el) + ", "
         els=els[:-2]
-        self.log ( "now add the signals from %s, %d topologies: %s" % \
-                   ( self.getPModelName(), ctr, els ) )
+        self.log ( f"now add the signals from {self.getPModelName()}, {ctr} topologies: {els}" )
         addedUL, addedEM = 0, 0
         print ( f"{len(listOfExpRes)} results: ", end="" )
         for l,expRes in enumerate(listOfExpRes):
@@ -777,8 +757,6 @@ Just filter the database:
                 ret.append ( expRes )
                 continue
             lumi = expRes.globalInfo.lumi
-            #self.pprint ( "adding a signal for %s (lumi %s)" % \
-            #              ( expRes.id(), lumi ) )
             for i,dataset in enumerate(expRes.datasets):
                 dt = dataset.dataInfo.dataType
                 dsname = dataset.dataInfo.dataId
@@ -809,8 +787,6 @@ Just filter the database:
                 # ret.append ( expRes )
                 continue
             lumi = expRes.globalInfo.lumi
-            #self.pprint ( "adding a signal for %s (lumi %s)" % \
-            #              ( expRes.id(), lumi ) )
             for i,dataset in enumerate(expRes.datasets):
                 dt = dataset.dataInfo.dataType
                 dsname = dataset.dataInfo.dataId
@@ -847,8 +823,7 @@ Just filter the database:
         # print ( "adding signals", os.path.exists ( self.protomodel.currentSLHA ) )
         ret = []
         self.produceTopoList()
-        self.log ( "now add the signals from %s, K=%s, %d topos, %d procs" % \
-                   ( self.getPModelName(), len(self.topos), self.nproc ) )
+        self.log ( f"now add the signals from {self.getPModelName()}, K='?', {len(self.topos)} topos, {self.nproc} procs" )
         import multiprocessing
         ## listOfExpRes=listOfExpRes[:10]
         chunks = [ listOfExpRes[i::self.nproc] for i in range(self.nproc) ]
@@ -874,7 +849,7 @@ Just filter the database:
                 elif dt == "efficiencyMap":
                     expRes.datasets[i] = self.sampleEfficiencyMap ( dataset )
                 else:
-                    print ( "[expResModifier] dataset type %s unknown" % dt )
+                    print ( f"[expResModifier] dataset type {dt} unknown" )
             ret.append ( expRes )
         self.log ( "done faking the backgrounds" )
         return ret
@@ -898,8 +873,7 @@ Just filter the database:
         """
         if not ( self.nofastlim or self.onlyvalidated or self.nosuperseded or self.remove_orig or self.remove_nonagg ):
             return
-        self.log ( "starting to filter %s. suffix is %s." % \
-                   ( self.outfile, self.suffix ) )
+        self.log ( f"starting to filter {self.outfile}. suffix is {self.suffix}." )
         if self.db == None:
             self.db = Database ( self.dbpath )
         listOfExpRes = self.db.expResultList ## seems to be the safest bet?
@@ -915,16 +889,16 @@ Just filter the database:
             addThisOne = True
             if self.nofastlim:
                 if hasattr ( er.globalInfo, "contact" ) and "fastlim" in er.globalInfo.contact:
-                    print ( " `- skipping fastlim %s" % er.globalInfo.id )
+                    print ( f" `- skipping fastlim {er.globalInfo.id}" )
                     addThisOne = False
                     self.hasFiltered = True
             if self.nosuperseded:
                 if hasattr ( er.globalInfo, "supersededBy" ):
-                    print ( " `- skipping superseded %s" % er.globalInfo.id )
+                    print ( f" `- skipping superseded {er.globalInfo.id}" )
                     addThisOne = False
                     self.hasFiltered = True
             if hasattr ( er.globalInfo, "private" ) and er.globalInfo.private in [ "True", True ]:
-                    print ( " `- skipping private %s" % er.globalInfo.id )
+                    print ( f" `- skipping private {er.globalInfo.id}" )
                     addThisOne = False
                     self.hasFiltered = True
             if not addThisOne:
@@ -938,8 +912,7 @@ Just filter the database:
                     for txn in ds.txnameList:
                         if txn.validated == False:
                             if hasIssued == 0:
-                                print ( " `- skipping non-validated %s/%s/%s" % \
-                                    ( txn.txName, ds.dataInfo.dataId, er.globalInfo.id ) )
+                                print ( f" `- skipping non-validated {txn.txName}/{ds.dataInfo.dataId}/{er.globalInfo.id}" )
                             if hasIssued == 1:
                                 print ( " `- (suppressed more, similar messages)" )
                             hasIssued += 1
@@ -1069,7 +1042,7 @@ Just filter the database:
 
     def upload( self ):
         import filecmp
-        # cmd = "cp %s ./modifier.log %s" % ( args.outfile, self.rundir )
+        # cmd = f"cp {args.outfile} ./modifier.log {self.rundir}"
         for f in [ args.outfile, self.logfile ]:
             if not filecmp.cmp ( f, self.rundir+"/"+os.path.basename ( f ) ):
                 cmd = f"cp {f} {self.rundir}"
@@ -1080,7 +1053,7 @@ Just filter the database:
             cmd = f"rm {fname}"
             a = subprocess.getoutput ( cmd )
             print ( "[expResModifier]", cmd, a )
-        cmd = "ln -s %s/%s %s/default.pcl" % ( self.rundir, args.outfile, self.rundir )
+        cmd = f"ln -s {self.rundir}/{args.outfile} {self.rundir}/default.pcl"
         a = subprocess.getoutput ( cmd )
         print ( "[expResModifier]", cmd, a )
 
@@ -1126,7 +1099,7 @@ Just filter the database:
             self.rundir = os.getcwd()
         if type(self.rundir)==str and not "/" in self.rundir and \
                 not self.rundir.startswith("."):
-            self.rundir = "/scratch-cbe/users/wolfgan.waltenberger/" + self.rundir
+            self.rundir = f"/scratch-cbe/users/wolfgan.waltenberger/{self.rundir}"
         if self.outfile == "":
             self.outfile = self.suffix+".pcl"
         statsname = None
@@ -1135,7 +1108,7 @@ Just filter the database:
             statsname = "playback.dict"
 
         if not self.outfile.endswith(".pcl"):
-            print ( "[expResModifier] warning, shouldnt the name of your outputfile ``%s'' end with .pcl?" % self.outfile )
+            print ( f"[expResModifier] warning, shouldnt the name of your outputfile ``{self.outfile}'' end with .pcl?" )
         self.filter ( )
         if self.dontsample:
             print ( "[expResModifier] we were asked to not sample, so we exit now." )
