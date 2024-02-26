@@ -414,7 +414,7 @@ class RefXSecComputer:
             xsec = self.interpolate ( channel["masses"], xsecall )
             if xsecall is None:
                 logger.info (f"NO CROSS SECTION TABLE FOUND FOR {channel}")
-            if True:
+            if xsec == None:
                 logger.info (f'NO CROSS SECTION OBTAINED FOR CHANNEL {channel} FOR {sqrts} TeV. WILL TRY WITH PYTHIA8.')
                 from smodels.tools.xsecComputer import XSecComputer, NLL
                 xsecComputer = XSecComputer ( NLL, 5000, pythiaVersion=8, maycompile=True )
