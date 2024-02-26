@@ -153,7 +153,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             print ( f"[factoryOfWalkers:{hostname};{time.strftime('%H:%M:%S')}] starting {i} @ {rundir} with cheatcode {cheatcode}" )
             w = RandomWalker( walkerid=i, nsteps = maxsteps,
                               dbpath=dbpath, cheatcode=cheatcode, select=select,
-                              rundir=rundir, nevents=nevents, do_srcombine = do_srcombine,
+                              rundir=rundir, do_srcombine = do_srcombine,
                               record_history=record_history, seed=seed,
                               stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )

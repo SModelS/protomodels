@@ -14,6 +14,8 @@ except:
     from ptools import setPath
 sys.path.insert(0,f"/scratch-cbe/users/{os.environ['USER']}/git/smodels-utils/protomodels/")
 sys.path.insert(0,"../")
+sys.path.insert(0,"../../")
+sys.path.insert(0,"../smodels/")
 from walker.hiscores import Hiscores
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
