@@ -124,7 +124,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '-a', '--analysis',
             help="analysis to plot. if empty, plot for all.", type=str, default=None )
     argparser.add_argument ( '-p', '--picklefile',
-            help="the picklefile", type=str, default="llhd10000241000022.pcl" )
+            help="the picklefile", type=str, default="llhdX1WX1Z.pcl" )
     argparser.add_argument ( '-I', '--interactive',
             help='interactive mode',
             action="store_true" )
