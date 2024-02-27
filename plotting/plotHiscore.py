@@ -129,7 +129,7 @@ class HiscorePlotter:
             topos = ", ".join ( ltopos )
             S = "?"
             dt = { "upperLimit": "ul", "efficiencyMap": "em", "combined": "comb" }
-            f.write ( "<tr><td>%s</td><td>%s</td> " % ( idAndUrl, dt[dtype] ) )
+            f.write ( f"<tr><td>{idAndUrl}</td><td>{dt[dtype]}</td> " )
             #f.write ( "<tr><td>%s</td><td>%s</td> " % ( anaId, dt[dtype] ) )
             if dtype == "efficiencyMap":
                 dI = tp.dataset.dataInfo
@@ -146,7 +146,8 @@ class HiscorePlotter:
                     bgErr=int(bgErr)
                 toterr = math.sqrt ( bgErr**2 + eBG )
                 if toterr > 0.:
-                    S = "%.1f &sigma;" % ( (dI.observedN - eBG ) / toterr )
+                    sigma = (dI.observedN - eBG ) / toterr
+                    S = f"{sigma:.1f} &sigma;" 
                 pids = set()
                 for prod in tp.PIDs:
                     for branch in prod:
@@ -162,16 +163,16 @@ class HiscorePlotter:
                                               addBrackets = False )
                 sobsN = str(obsN)
                 if type(obsN) == float:
-                    sobsN = "%.2f" % obsN
+                    sobsN = f"{obsN:.2f}" 
                 f.write ( '<td>%s</td><td>%s</td><td>%s</td><td>%s +/- %s</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
                           ( did, topos, sobsN, eBG, bgErr, S, particles ) )
                 if hassigs:
                     sig = "-"
                     if hasattr ( dI, "sigN" ):
-                        sig = "%s" % dI.sigN
+                        sig = f"{dI.sigN}" 
                         if type(dI.sigN) in [ float ]:
-                            sig = "%.2f" % dI.sigN
-                    f.write ( '<td style="text-align:right">%s</td>' % sig )
+                            sig = f"{dI.sigN:.2f}"
+                    f.write ( f'<td style="text-align:right">{sig}</td>' )
             if dtype == "upperLimit":
                 S = "?"
                 llhd = tp.likelihood( expected=False )
@@ -180,7 +181,7 @@ class HiscorePlotter:
                 sigma_exp = eUL / 1.96 # the expected scale, sigma
                 Z = ( oUL - eUL ) / sigma_exp
                 # Z = math.sqrt ( chi2 )
-                S = "%.1f &sigma;" % Z
+                S = f"{Z:.1g} &sigma;"
                 # S = "%.2g l" % llhd
                 # print ( "llhd,chi2,Z", llhd,chi2,Z )
                 # p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
@@ -195,7 +196,7 @@ class HiscorePlotter:
                 #particles = helpers.toHtml ( pids, addSign = False,
                 #                              addBrackets = False )
                 particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
-                f.write ( '<td>-</td><td>%s</td><td> %.1f fb </td><td> %.1f fb</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
+                f.write ( '<td>-</td><td>%s</td><td> %.1g fb </td><td> %.1g fb</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
                         ( topos, tp.getUpperLimit().asNumber(fb), tp.getUpperLimit ( expected = True ).asNumber(fb),
                           S, particles ) )
                 if hassigs:
@@ -203,8 +204,8 @@ class HiscorePlotter:
                     for txn in tp.txnames:
                     # for txn in tp.dataset.txnameList:
                         if hasattr ( txn, "sigmaN" ):
-                            sig = "%.2f fb" % txn.sigmaN
-                    f.write ( '<td style="text-align:right">%s</td>' % sig )
+                            sig = f"{txn.sigmaN:.2f} fb"
+                    f.write ( f'<td style="text-align:right">{sig}</td>' )
             if dtype == "combined":
                 S = "?"
                 llhd = tp.likelihood( expected=False )
@@ -226,7 +227,7 @@ class HiscorePlotter:
                             if type(pid) in [ list, tuple ] and abs(pid[0])!=1000022:
                                 pids.add ( abs(pid[0]) )
                 particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
-                f.write ( '<td>-</td><td>%s</td><td> %.1f fb </td><td> %.1f fb</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
+                f.write ( '<td>-</td><td>%s</td><td> %.1g fb </td><td> %.1g fb</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
                         ( topos, tp.getUpperLimit().asNumber(fb), tp.getUpperLimit ( expected = True ).asNumber(fb),
                           S, particles ) )
                 if hassigs:

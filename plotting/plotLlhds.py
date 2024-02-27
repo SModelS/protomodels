@@ -79,7 +79,9 @@ def getPidList( pid1, rundir ):
         t = t.replace(".pcl","")
         t = t.replace(".pcl","")
         t = t.replace("1000022","")
-        pids.add ( int(t) )
+        print ( f"[plotLlhds] @@2 adding {t} {type(t)}" )
+        pids.add ( self.namer.pid(t) )
+        # pids.add ( int(t) )
     pids = list ( pids )
     if len(pids)==0:
         print ( "[plotLlhds] could not find any llhd*pcl files. Perhaps you wish to perform ../moretools/fetchFromClip.py --llhds=" )
@@ -343,10 +345,10 @@ class LlhdPlot ( LoggerBase ):
         self.pid2 = pid2
         if type(self.pid1) in [ tuple, list ]:
             pid1 = self.pid1[0]
-        self.picklefile = f"{self.rundir}/llhd{pid1}{self.pid2}.pcl"
+        self.picklefile = f"{self.rundir}/llhd{self.namer.asciiName(pid1)}{self.namer.asciiName(self.pid2)}.pcl"
         if not os.path.exists ( self.picklefile ):
             llhdp = self.picklefile
-            self.picklefile = f"{self.rundir}/mp{pid1}{self.pid2}.pcl" 
+            self.picklefile = f"{self.rundir}/mp{self.namer.asciiName(pid1)}{self.namer.asciiName(self.pid2)}.pcl" 
         if not os.path.exists ( self.picklefile ):
             self.pprint(f"could not find pickle files {llhdp} and {self.picklefile}")
 
@@ -615,7 +617,7 @@ class LlhdPlot ( LoggerBase ):
         circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold}):\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
         handles.append ( circ1 )
         legend = plt.legend( handles=handles, loc="best", fontsize=12 )
-        figname = f"{self.rundir}/llhd{pid1}.png"
+        figname = f"{self.rundir}/llhd{self.namer.asciiName(pid1)}.png"
         self.pprint ( f"saving to {figname}" )
         plt.savefig ( figname )
         if self.interactive:

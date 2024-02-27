@@ -285,7 +285,7 @@ class LlhdScanner ( LoggerBase ):
         pid2 = self.pid2
         if pid2 != self.M.LSP:
             print ( f"[llhdScanner] we currently assume pid2 to be the LSP, but it is {pid2}" )
-        picklefile = f"{output}{pid1}{pid2}.pcl"
+        picklefile = f"{output}{namer.asciiName(pid1)}{namer.asciiName(pid2)}.pcl"
         if os.path.exists ( picklefile ) and self.skip_production:
             print ( f"[llhdScanner] we were asked to skip production: {picklefile} exists." )
             return
