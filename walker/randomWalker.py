@@ -441,12 +441,12 @@ class RandomWalker ( LoggerBase ):
                     except_type, except_class, tb = sys.exc_info()
                     extracted = traceback.extract_tb(tb)
                     for point in extracted:
-                        self.pprint ( "extracted: %s" % point )
+                        self.pprint ( f"extracted: {point}" )
                     with open( f"{self.rundir}/exceptions.log","a") as f:
-                        f.write ( "%s: taking a step resulted in exception: %s, %s\n" % \
-                                  (time.asctime(), type(e), e ) )
-                        f.write ( "   `- exception occured in walker #%s\n" % \
-                                  self.protomodel.walkerid )
+                        f.write ( f"{time.asctime()}: taking a step resulted in exception: {type(e)}, {e}\n" )
+                        f.write ( f"   `- exception occured in walker #{self.protomodel.walkerid}\n" )
+                        import traceback
+                        f.write ( f"traceback: {str(traceback.format_exc())}\n" )
                     sys.exit(-1)
 
             #If no combination was found, go back

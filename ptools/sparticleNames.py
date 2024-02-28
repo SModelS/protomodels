@@ -285,11 +285,17 @@ class SParticleNames:
         ret = ret.replace("#bar","~")
         return ret
 
-    def pid ( self, name : str, signed : bool = True ) -> Union[None,int]:
+    def pid ( self, name : Union[str,int], signed : bool = True ) -> Union[None,int]:
         """ get the pid for a particle name 
         :param name: get the pid for particle with that name
         :param signed: if true, return signed value
         """
+        if type ( name ) == int: # integers return as they are
+            return name
+        try: # if we can cast, we should cast!
+            return int(name)
+        except ValueError as e:
+            pass
         if not name in self.names:
             if not name in self.asciiNames:
                 return None

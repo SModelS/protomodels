@@ -42,7 +42,8 @@ class TeststatScanner ( LoggerBase ):
         for pair in partners:
             if pid in pair:
                 for p in pair:
-                    model.masses[p]=mass
+                    if p in model.masses:
+                        model.masses[p]=mass
 
     def createCriticResults ( self, predictor : Predictor ) -> Dict:
         """ create a list of the analysis ids of the critic

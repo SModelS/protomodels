@@ -15,7 +15,7 @@ from typing import Union
 def pprintValue ( value : Union[None,float,numpy.float64], 
         ndecimals : int = 2 ) -> str:
     """ pretty print a value, but allow for it to also be None """
-    if value in [ float, numpy.float64 ]:
+    if type(value) in [ float, numpy.float64 ]:
         return f"{value:.{ndecimals}f}"
     return str(value)
 

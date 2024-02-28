@@ -260,16 +260,12 @@ class LlhdScanner ( LoggerBase ):
         masspoints = []
         hasStored=set()
         for k,v in return_dict.items():
-            # print ( "collecting from thread %s" % str(k) )
             for mp in v:
                 key=(mp["mx"],mp["my"])
-                # print ( "key", key )
                 if key in hasStored:
                     continue
                 hasStored.add ( key )
                 masspoints.append ( mp )
-        # for m in masspoints:
-        #    print ( "mass point", m[0], ",", m[1], ": nres", len(m[2]) )
         return masspoints
 
     def scanLikelihoodFor ( self, range1 : Dict, range2 : Dict,
@@ -350,15 +346,15 @@ class LlhdScanner ( LoggerBase ):
         self.mpid2 = self.M.masses[self.pid2]
         nbinsx, nbinsy = 20, 20 # how many bins do we want per dimension
         if args.min1 == None:
-            args.min1 = self.mpid1*.7
+            args.min1 = self.mpid1*.6
         if args.max1 == None:
-            args.max1 = self.mpid1*1.5
+            args.max1 = self.mpid1*1.7
         if args.deltam1 == None:
             args.deltam1 = ( args.max1 - args.min1 ) / nbinsx
         if args.min2 == None:
-            args.min2 = max ( self.mpid2*.7 - 10., 1. )
+            args.min2 = max ( self.mpid2*.6 - 10., 1. )
         if args.max2 == None:
-            args.max2 = self.mpid2*1.8 + 10.
+            args.max2 = self.mpid2*1.9 + 10.
         if args.deltam2 == None:
             args.deltam2 = ( args.max2 - args.min2 ) / nbinsy
         return args
