@@ -13,7 +13,8 @@ from smodels.tools.physicsUnits import fb, TeV
 from smodels.theory.crossSection import LO
 from smodels.theory.theoryPrediction import TheoryPrediction
 import smodels
-import copy, numpy, os, sys, itertools, colorama, random
+import copy, os, sys, itertools, colorama, random
+import numpy as np
 from colorama import Fore as ansi
 from typing import Union, Dict, List, Tuple
 from builder.loggerbase import LoggerBase
@@ -380,7 +381,7 @@ class Manipulator ( LoggerBase ):
     def checkForNans ( self ):
         """ check protomodel for NaNs, for debugging only """
         for pid,m in self.M.masses.items():
-            if numpy.isnan ( m ):
+            if np.isnan ( m ):
                 self.pprint ( "checking for nans: mass of %d is nan" % pid )
 
     def get ( self ):
@@ -522,7 +523,7 @@ class Manipulator ( LoggerBase ):
         
         for dk in dkeys:
             decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
-            br = random.gauss ( 1. / nitems, numpy.sqrt ( .5 / nitems )  )
+            br = random.gauss ( 1. / nitems, np.sqrt ( .5 / nitems )  )
             br = max ( 0., br )
             
             for dpid in decay_chan:
@@ -851,7 +852,7 @@ class Manipulator ( LoggerBase ):
             # not enough channels open to tamper with branchings!
             return 0
 
-        dx = 0.1/numpy.sqrt(len(openChannels)) ## maximum change per channel??
+        dx = 0.1/np.sqrt(len(openChannels)) ## maximum change per channel??
 
         #Keep only one channel (with probability singleBRprob)
         uSingle = random.uniform( 0., 1. )
@@ -1003,7 +1004,7 @@ class Manipulator ( LoggerBase ):
                 self.changeSSM ( dpd, newssm )
                 ssms.append ( newssm )
         self.log ( " `- %s: ssms are now %.2f+/-%.2f" % \
-                 ( self.namer.asciiName(p), numpy.mean ( ssms ), numpy.std ( ssms) ) )
+                 ( self.namer.asciiName(p), np.mean ( ssms ), np.std ( ssms) ) )
         return 1
 
     def pidPairIsInSSMs ( self, pids : Tuple ) -> bool:
@@ -1321,7 +1322,7 @@ class Manipulator ( LoggerBase ):
             denom = self.M.Z + 1.
             if denom < 1. or denom == None:
                 denom = 1.
-            dx = 40. / numpy.sqrt ( len(self.M.unFrozenParticles() ) ) / denom
+            dx = 40. / np.sqrt ( len(self.M.unFrozenParticles() ) ) / denom
         if dx in [ float("nan"), float("inf"), None ] or dx > 200.:
             dx=40.
 

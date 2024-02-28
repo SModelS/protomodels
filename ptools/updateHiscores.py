@@ -137,35 +137,6 @@ def updateHiscores( rundir : Union[None,PathLike] = None,
     D["model"]=hi.hiscores[0]
     return D
 
-"""
-def updateStates( rundir : Union[None,PathLike] = None,
-                  dbpath : Union[None,PathLike] = None ):
-    args = types.SimpleNamespace()
-    args.print = True
-    args.rundir = rundir
-    args.detailed = False
-    args.interactive = False
-    args.fetch = False
-    args.check = False
-    if dbpath is None:
-        dbpath = f"{rundir}/default.pcl"
-    args.dbpath = dbpath
-    args.nmax = 20
-    args.outfile = "states.dict"
-    if rundir != None:
-        args.outfile = "%s/states.dict" % rundir
-        args.rundir = rundir
-    args.infile = None
-    # args.maxloss = .003
-    # args.nevents = 50000
-    from ptools import hiscoreTools
-    print ( )
-    print ( f"[updateHiscores] now update {args.outfile}" )
-    hiscoreTools.updateHiscoreHi ( args )
-    print ( f"[updateHiscores] done updating {args.outfile}" )
-    print ( )
-"""
-
 def plot( Z : float, K : float, rundir : os.PathLike, upload : str ="230",
           dbpath : str = "official", verbose : bool = False ):
     """ create all hiscore plots

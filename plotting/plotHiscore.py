@@ -20,7 +20,7 @@ from smodels.tools.smodelsLogging import logger
 logger.setLevel("ERROR")
 from os import PathLike
 from colorama import Fore
-from typing import Union, Dict
+from typing import Union, Dict, TextIO
 
 # runtime._experimental = True
 
@@ -164,13 +164,12 @@ class HiscorePlotter:
                 sobsN = str(obsN)
                 if type(obsN) == float:
                     sobsN = f"{obsN:.2f}" 
-                f.write ( '<td>%s</td><td>%s</td><td>%s</td><td>%s +/- %s</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
-                          ( did, topos, sobsN, eBG, bgErr, S, particles ) )
+                f.write ( f'<td>{did}</td><td>{topos}</td><td>{sobsN}</td><td>{eBG:.2f} +/- {bgErr:.2f}</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>' )
                 if hassigs:
                     sig = "-"
                     if hasattr ( dI, "sigN" ):
                         sig = f"{dI.sigN}" 
-                        if type(dI.sigN) in [ float ]:
+                        if type(dI.sigN) in [ float, np.float64 ]:
                             sig = f"{dI.sigN:.2f}"
                     f.write ( f'<td style="text-align:right">{sig}</td>' )
             if dtype == "upperLimit":
@@ -639,6 +638,33 @@ class HiscorePlotter:
             D[pids]=v
         return D
 
+    def addLikelihoodPlots ( self, handle : TextIO ):
+        """ add links to the likelihood plots """
+        files = glob.glob ( "llhd*.png" )
+        if len(files)==0:
+            return
+        handle.write ( "llhd plots:")
+        for aFile in files:
+            dt = int ( time.time() - 1709120000 )
+            fname = aFile.replace(".png","").replace("llhd","")
+            line = f" <a href={aFile}?{dt}>{fname}</a>"
+            handle.write ( line )
+        handle.write ( "\n" )
+            
+
+    def addSPlots ( self, handle : TextIO ):
+        """ add links to the teststatistic plots """
+        files = glob.glob ( "S*.png" )
+        if len(files)==0:
+            return
+        handle.write ( "S plots:")
+        for aFile in files:
+            dt = int ( time.time() - 1709120000 )
+            fname = aFile.replace(".png","").replace("M","")
+            line = f" <a href={aFile}?{dt}>{fname}</a>"
+            handle.write ( line )
+        handle.write ( "\n" )
+
     def writeIndexHtml ( self ):
         """ write the index.html file, see e.g.
             https://smodels.github.io/protomodels/
@@ -668,8 +694,7 @@ class HiscorePlotter:
         f.write ( f"produced with <a href={self.url}/docs/Validation{dotlessv}>database v{dbver}</a>" )
         f.write ( f", combination strategy <a href=./matrix.png>{strategy}</a> in walker {self.protomodel.walkerid} step {self.protomodel.step}.</b> " )
         if hasattr ( self.protomodel, "particleContributions" ):
-            f.write ( "<i>K</i> plots for: <a href=./M1000022.png?%d>%s</a>" % \
-                      ( dt, namer.htmlName(1000022) ) )
+            f.write ( f"<i>K</i> plots for: <a href=./M1000022.png?{dt}>{namer.htmlName(1000022)}</a>" )
             for k,v in self.protomodel.particleContributions.items():
                 f.write ( ", " )
                 f.write ( "<a href=./M%d.png?%d>%s</a>" % ( k, dt, namer.htmlName(k) ) )
@@ -681,13 +706,16 @@ class HiscorePlotter:
                 f.write ( "<a href=./llhd%d.png?%d>%s</a>" % ( k, dt, namer.htmlName(k) ) )
                 first = False
         # fixme replace with some autodetection mechanism
+        # take out all frozen ssm plots
+        self.addLikelihoodPlots ( f )
+        self.addSPlots ( f )
+        """
         ossms = { (-1000006,1000006), (1000021,1000021), (-2000006,2000006) }
         for fname in glob.glob("ssm_*_*.png" ):
             pids = fname.replace("ssm_","").replace(".png","")
             pids = tuple ( map ( str, pids.split("_") ) )
             ossms.add ( pids )
         frozen = self.protomodel.frozenParticles()
-        # take out all frozen ssm plots
         ssms = set()
         for pids in ossms:
             hasFrozenPid=False
@@ -699,6 +727,7 @@ class HiscorePlotter:
                 ssms.add ( pids )
 
 
+        if len(ssms)>0:
         f.write ( " SSM plots for: " )
         first = True
         for pids in ssms:
@@ -706,6 +735,7 @@ class HiscorePlotter:
                 f.write ( ", " )
             f.write ( f"<a href=./ssm_{pids[0]}_{pids[1]}.png?{dt}>({pids[0]},{pids[1]})</a>"  )
             first = False
+        """
         f.write ( "<br>\n" )
         f.write ( "<table width=80%>\n<tr><td>\n" )
         if hasattr ( self.protomodel, "tpList" ):

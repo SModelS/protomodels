@@ -138,13 +138,30 @@ class LlhdPlot ( LoggerBase ):
         countCritics = {} ## count occurrences of analyses in critic
         # to determine which analyses dominate the critic
         for m in masspoints:
-            self.massdict[ (m["mx"],m["my"]) ] = m["llhd"]
-            self.rdict[ (m["mx"],m["my"]) ] = m["critic"]
+            masstuple = (m["mx"],m["my"])
+            self.massdict[ masstuple ] = m["llhd"]
+            self.rdict[ masstuple ] = m["critic"]
             for ana,r in m["critic"].items():
                 if r>self.rthreshold:
                     if not ana in countCritics:
                         countCritics[ana]=0
                     countCritics[ana]+=1
+        significances = {} ## get the Z's at the winner
+        for name,eul in masspoints[0]["eul"].items():
+            if not "oul" in masspoints[0]:
+                continue
+            if not name in masspoints[0]["oul"]:
+                continue
+            oul = masspoints[0]["oul"][name]
+            if eul is None or oul is None:
+                continue
+            sigma_exp = eul / 1.96
+            Z = ( oul - eul ) / sigma_exp
+            if Z in significances:
+                Z+=1e-6
+            significances[name] = Z
+        self.significances = significances
+
         self.criticsOccurences = countCritics
         self.printCritic()
 
@@ -249,7 +266,7 @@ class LlhdPlot ( LoggerBase ):
             m2 = self.my
         return int(1e3*m1) + int(1e0*m2)
 
-    def getHighestLlhdFor ( self, ana, llhddict : Dict ) -> Dict:
+    def getHighestLlhdFor ( self, ana : str, llhddict : Dict ) -> Dict:
         """ return llhds for ana
 
         :param ana: the analysis id. optionally a data type can be specificed, e.g.
@@ -262,17 +279,19 @@ class LlhdPlot ( LoggerBase ):
         """
         max_llhd,sr = None, None
         dType = "any"
+        n_ana = ana
         if ":" in ana:
-            ana,dType = ana.split(":")
+            n_ana,dType = ana.split(":")
             if dType == "(combined)":
                 dType = "(comb)"
+        mname = "?"
         for name,llhd in llhddict.items():
             tokens = name.split(":")
             if dType == "ul" and tokens[1] != "None":
                 continue
             if dType == "em" and tokens[1] == "None":
                 continue
-            if ana != tokens[0]:
+            if n_ana != tokens[0]:
                 continue
             if tokens[1] != None and dType not in [ "any", "ul", "None" ]:
                 # if signal regions are given, they need to match
@@ -285,8 +304,11 @@ class LlhdPlot ( LoggerBase ):
             if max_llhd == None or llhd > max_llhd:
                 max_llhd = llhd
                 sr = tokens[1]
+                mname = name
         ret = { "llhd": max_llhd, "sr": sr }
-        # print ( f"@@3 getHighestLlhdFor {ana} ret: {ret} dType {dType} llhddict {llhddict}" )
+        ret["Z"] = -30.
+        if mname in self.significances:
+            ret["Z"] = self.significances[mname]
         return ret
 
     def loadPickleFile ( self, returnAll=False ):
@@ -432,20 +454,20 @@ class LlhdPlot ( LoggerBase ):
         plotter= HiscorePlotter()
         protomodel = plotter.obtain ( 0, self.hiscorefile, dbpath = dbpath )
         for tpred in protomodel.bestCombo:
-            resultsForPIDs = plotter.getPIDsOfTPred ( tpred, resultsForPIDs, integrateSRs=False )
+            resultsForPIDs = plotter.getPIDsOfTPred ( tpred, resultsForPIDs, 
+                                integrateSRs=False )
         stats = self.getAnaStats( integrateSRs=False )
         if stats == None:
             self.pprint ( "found no ana stats?" )
             return
         anas = list(stats.keys())
         if pid1 in resultsForPIDs:
-            self.debug ( "results for PIDs %s" % ", ".join ( resultsForPIDs[pid1] ) )
+            self.debug ( f"results for PIDs {', '.join(resultsForPIDs[pid1])}" )
             anas = list ( resultsForPIDs[pid1] )
         anas.sort()
-        self.pprint ( "summary plot: %s" % ", ".join ( anas ) )
-        # print ( stats.keys() )
-        colors = [ "red", "green", "blue", "orange", "cyan", "magenta", "grey", "brown",
-                   "pink", "indigo", "olive", "orchid", "darkseagreen", "teal" ]
+        self.pprint ( f"summary plot: {', '.join ( anas )}" )
+        colors = [ "red", "green", "blue", "orange", "cyan", "magenta", "grey", 
+            "brown", "pink", "indigo", "olive", "orchid", "darkseagreen", "teal" ]
         xmin,xmax,ymin,ymax=9000,0,9000,0
         for m in self.masspoints:
             if m["mx"] < xmin:
@@ -462,7 +484,18 @@ class LlhdPlot ( LoggerBase ):
         handles = []
         existingPoints = []
         combL = {}
-        for ctr,ana in enumerate ( anas ): ## loop over the analyses
+        print ( "@@5 we have", anas )
+        rankthem = {}
+        for ana in anas: ## loop over the analyses
+            ret = self.getHighestLlhdFor ( ana, self.masspoints[0]["llhd"] )
+            rankthem[ ret["Z"] ] = ana
+        Zs = list ( rankthem.keys())
+        Zs.sort( reverse = True )
+        newanas = []
+        for mZ in Zs:
+            if mZ > -20.:
+                newanas.append ( rankthem[mZ] )
+        for ctr,ana in enumerate ( newanas ): ## loop over the analyses
             if ctr >= self.max_anas:
                 self.pprint ( f"too many ({len(anas)} > {self.max_anas}) analyses." )
                 for ana in anas[ctr:]:
@@ -596,14 +629,8 @@ class LlhdPlot ( LoggerBase ):
             ax = cont50.axes
         else:
             ax = cont50.ax
-        # Xs,Ys=X,Y
         Xs,Ys = filterSmaller ( X, Y )
         h = self.getHash()
-        # print ( "hash is", h )
-        #s=" (??)"
-        #if h in L:
-        #    s=" (%.2f)" % L[h]
-        #s=" (%.2f)" % self.getLClosestTo ( L )
         s=""
         ax.scatter( [ self.mx ], [ self.my ], marker="*", s=200, color="white", zorder=20 )
         c = ax.scatter( [ self.mx ], [ self.my ], marker="*", s=160, color="black", 

@@ -61,12 +61,14 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
 
     shorts, description = { }, {}
     shorts["electroweakinos_offshell"]="TChiWZ,TChiWH,TChiWZoff,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiWWoff,TChiZH"
+    shorts["electroweakinos_offshell_only"]="TChiWZoff,TChiWWoff"
     shorts["electroweakinos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
     shorts["colored"]="T1,T2,TGQ,T3GQ,T5GQ,TGQqtt,TGQbtq,TGQbbq,T1bbbb,T1tttt,T1bbbboff,T1ttttoff,T1btbt,T6WW"
     description["electroweakinos"]="ewkinos with onshell gauge bosons"
     description["electroweakinos_offshell"]="ewkinos, on- and offshell decays"
+    description["electroweakinos_offshell_only"]="ewkinos, offshell decays only"
     description["stops"]="stops, on- and off-shell"
     description["sbottoms"]="sbottoms"
     description["colored"]="light squarks and gluinos"
