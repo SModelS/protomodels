@@ -8,6 +8,7 @@ __all__ = [ "Hiscores" ]
 import sys,os
 sys.path.insert(0, os.path.expanduser("~/"))
 import random, copy, pickle, os, fcntl, time, subprocess, colorama
+import numpy as np
 from scipy import stats
 from protomodels.csetup import setup
 setup()
@@ -65,6 +66,8 @@ class Hiscores ( LoggerBase ):
         mk = -10.
         if hasattr ( self.hiscores[-1], "K" ):
             mk = self.hiscores[-1].K
+            if mk == None:
+                mk = -10.
         if zeroIsMin:
             return max ( mk, 0. )
         return mk
@@ -197,18 +200,7 @@ class Hiscores ( LoggerBase ):
                         success=True
                 except SyntaxError as e:
                     time.sleep( .1+3*tryRead )
-        D=m.writeDictFile ( None, ndecimals = 6 )
-        """
-        D["K"]=m.M.K
-        D["Z"]=m.M.Z
-        if hasattr ( m, "seed" ) and m.seed != None:
-            D["seed"]=m.seed
-        D["step"]=m.M.step
-        D["timestamp"]=time.asctime()
-        D["walkerid"]=m.M.walkerid
-        D["description"]=m.M.description
-        """
-        # D=m.writeDictFile(outfile = None, ndecimals=6 )
+        D=m.writeDictFile ( None, cleanOut = False, ndecimals = 6 )
         newlist = self.insertHiscore ( oldhiscores, D )
         self.pprint ( f"write model to {hiscorefile}" )
         with open ( hiscorefile, "wt" ) as f:
@@ -446,7 +438,7 @@ class Hiscores ( LoggerBase ):
         f.close()
         for protomodel in self.hiscores:
             ma = Manipulator ( protomodel )
-            ma.writeDictFile ( outfile = dictFile, appendMode=True )
+            ma.writeDictFile ( outfile = dictFile, cleanOut=False,appendMode=True )
         f=open(dictFile,"at")
         f.write("]\n")
         f.close()
@@ -507,15 +499,23 @@ class Hiscores ( LoggerBase ):
         :param ma: the manipulator object
         :returns: true, if it entered the hiscore list
         """
-        self.pprint ( "New result with K=%.2f, Z=%.2f, needs to pass K>%.2f, saving: %s" % \
-                ( ma.M.K, ma.M.Z, self.currentMinK(),
-                  "yes" if self.save_hiscores else "no" ) )
+        def pprint ( value ):
+            if type(value) in [ float, np.float64 ]:
+                return f"{value:.2f}"
+            return str(value)
+        K = pprint ( ma.M.K )
+        Z = pprint ( ma.M.Z )
+        minK = pprint ( self.currentMinK() )
+        saving = "yes" if self.save_hiscores else "no"
+            
+        self.pprint ( f"New result with K={K}, Z={Z}, needs to pass K>{minK}, saving: {saving}" )
         if not self.save_hiscores:
             return False
+        if ma.M.K == None:
+            return False # clearly out
         if ma.M.K <= self.currentMinK():
             return False ## clearly out
         self.addResult ( ma )
-        # self.writeListToPickle() ## and write it to pickle
         return True
 
 if __name__ == "__main__":

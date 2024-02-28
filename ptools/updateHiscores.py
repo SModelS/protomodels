@@ -231,7 +231,14 @@ def loop( rundir : Union[None,os.PathLike] = None,
         if maxruns != None and i > maxruns:
             break
         D = updateHiscores( rundir, dbpath, do_srcombine )
-        Z,step,model,K = D["Z"],D["step"],D["model"],D["K"]
+        Z, step, K = float("nan"),0,float("nan")
+        model = D["model"]
+        if "Z" in D:
+            Z = D["Z"]
+        if "step" in D:
+            step = D["step"]
+        if "K" in D:
+            K = D["K"]
         if K > Kold + 1e-10: #  + .001:
             from builder.manipulator import Manipulator
             m = Manipulator ( model )

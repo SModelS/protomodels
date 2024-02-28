@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" A class that centralizes access to the hiscore list over multiple threads.
+""" A module that contains all the functions for meddling with hiscores
 """
 
 __all__ = [ "hiscoreHiNeedsUpdate", "fetchHiscoresObj" ]
@@ -28,23 +28,8 @@ def sortByK ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
     protomodels.sort ( reverse=True, key = lambda x: x.K )
     return protomodels[:n] ## only n
 
-"""
-def storeList ( protomodels, savefile ):
-    # store the best protomodels in another hiscore file 
-    h = Hiscores ( 0, True, savefile, backup=True, hiscores = protomodels )
-    h.hiscores = protomodels
-    print ( f"[hiscore] saving {count(protomodels)} protomodels to {savefile}" )
-    if savefile.endswith ( ".cache" ) or savefile.endswith( ".hi" ):
-        h.writeListToPickle ( check=False )
-        if "states" in savefile: ## do both for the states
-            h.writeListToDictFile()
-    else: ## assume a dict file
-        h.writeListToDictFile()
-"""
-
 def discuss ( protomodel, name ):
-    print ( "Currently %7s K=%.3f, Z=%.3f [%d/%d particles, %d predictions] (walker #%d)" % \
-            (name, protomodel.K, protomodel.Z, len(protomodel.unFrozenParticles()),len(protomodel.masses.keys()),len(protomodel.bestCombo), protomodel.walkerid ) )
+    print ( f"Currently {name:7s} K={protomodel.K:.3f}, Z={protomodel.Z:.3f} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{protomodel.walkerid})" )
 
 def discussBest ( protomodel, detailed ):
     """ a detailed discussion of number 1 """

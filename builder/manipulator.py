@@ -13,7 +13,7 @@ from smodels.tools.physicsUnits import fb, TeV
 from smodels.theory.crossSection import LO
 from smodels.theory.theoryPrediction import TheoryPrediction
 import smodels
-import copy, numpy, time, os, sys, itertools, colorama, random
+import copy, numpy, os, sys, itertools, colorama, random
 from colorama import Fore as ansi
 from typing import Union, Dict, List, Tuple
 from builder.loggerbase import LoggerBase
@@ -25,7 +25,7 @@ class Manipulator ( LoggerBase ):
     # walledpids are particle ids that have a minimum mass requirement,
     # given as the values in the dictionary
     walledpids = { 1000001 : 310, 1000002 : 310, 1000003 : 310, 1000004 : 310, 
-                   1000021 : 310, 1000023 : 20, 1000024 : 100, 1000037 : 100,
+                   1000021 : 310, 1000023 : 20, 1000024 :  100, 1000037 : 100,
                    1000025 : 20 }
     ## forbiddenparticles are particle ids that we do not touch in this run
     forbiddenparticles = []
@@ -160,7 +160,7 @@ class Manipulator ( LoggerBase ):
 
         :param outfile: output file, but replacing %t with int(time.time()). If None,
                         then dont write file, just create dictionary object
-        :param cleanOut: clean the dictionary from defaults
+        :param cleanOut: clean the dictionary from defaults, remove meta info
         :param comment: add a comment field
         :param ndecimals: number of digits after decimal when rounding
         :param appendMode: if true, append to file, and add comma after dictionary.
@@ -202,17 +202,18 @@ class Manipulator ( LoggerBase ):
                     D["ssmultipliers"].pop(k)
                 else:
                     D["ssmultipliers"][k]=round(v,ndecimals)
-        import time
         if hasattr ( self, "seed" ) and self.seed != None:
             D["seed"]=self.seed
-        D["timestamp"]=time.asctime()
         D["Z"]=round(self.M.Z,ndecimals)
         D["K"]=round(self.M.K,ndecimals)
-        D["walkerid"]=self.M.walkerid
-        D["step"]=self.M.step
-        D["codever"]=self.M.codeversion
-        D["smodelsver"]=smodels.installation.version()
-        D["dbver"]=self.M.dbversion
+        if not cleanOut:
+            import time
+            D["timestamp"]=time.asctime()
+            D["walkerid"]=self.M.walkerid
+            D["step"]=self.M.step
+            D["codever"]=self.M.codeversion
+            D["smodelsver"]=smodels.installation.version()
+            D["dbver"]=self.M.dbversion
         D["description"]=self.M.description
         if hasattr ( self.M, "critic_description" ):
             D["critic_description"]=self.M.critic_description
@@ -220,6 +221,7 @@ class Manipulator ( LoggerBase ):
             D["comment"]=comment
         if outfile == None:
             return D
+        import time
         fname = outfile.replace("%t", str(int(time.time())) )
         if not appendMode:
             self.pprint ( f"writing model to {fname}" )
@@ -765,7 +767,9 @@ class Manipulator ( LoggerBase ):
         nUnfrozen = len( self.M.unFrozenParticles() )
         if (not force) and nUnfrozen > 1:
             nTotal = len ( self.M.particles )
-            denom = self.M.Z+1.
+            denom = 1.
+            if type(self.M.Z) in [ float, np.float64 ]:
+                denom = self.M.Z+1.
             if denom < 1.:
                 denom = 1.
             mu = 1. - .7 / denom ## make it more unlikely when Z is high
@@ -1066,7 +1070,9 @@ class Manipulator ( LoggerBase ):
             return 0
 
         nTotal = len ( self.M.particles )
-        denom = self.M.Z+1.
+        denom = 1.
+        if type(self.M.Z) in [ float, np.float64 ]:
+            denom = self.M.Z+1.
         if denom < 1.:
             denom = 1.
         mu = .4 / denom ## make it more unlikely when Z is high

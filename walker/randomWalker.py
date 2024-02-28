@@ -26,6 +26,7 @@ from smodels.tools.smodelsLogging import logger
 from typing import Callable, Dict, Union
 from os import PathLike
 from builder.loggerbase import LoggerBase
+from ptools.helpers import pprintValue
 
 logger.setLevel("ERROR")
 
@@ -105,7 +106,7 @@ class RandomWalker ( LoggerBase ):
         jobid = "unknown"
         if "SLURM_JOBID" in os.environ:
             jobid = os.environ["SLURM_JOBID"]
-        self.pprint ( "Ramping up with slurm jobid %s" % jobid )
+        self.pprint ( f"Ramping up with slurm jobid {jobid}" )
 
         if cheatcode <= 0:
             self.takeStep() # the first step should be considered as "taken"
@@ -380,13 +381,19 @@ class RandomWalker ( LoggerBase ):
         import random
         ratio = 1.
         K = self.currentK
+        if K == None: # if the old is none, we do everything
+            self.takeStep()
+            return
         newK = self.protomodel.K
+        if newK == None:
+            # if the new is none, but the old isnt, we go back
+            self.manipulator.restoreModel( reportReversion=True )
+            return
         if K > -20. and newK < K:
             ratio = numpy.exp(.5*( newK - K))
 
         if ratio >= 1.:
-            self.highlight ( "info", "K: %.3f -> %.3f: r=%.4f, take the step" % \
-                             ( self.currentK, self.protomodel.K, ratio ) )
+            self.highlight ( "info", f"K: {self.currentK:.3f} -> {self.protomodel.K:.3f}: r={ratio:.4f}, take the step" )
             if self.protomodel.K > 0. and self.protomodel.K < 0.7 * self.currentK:
                 self.pprint ( " `- weirdly, though, K decreases. Please check." )
                 sys.exit(-2)
@@ -394,11 +401,10 @@ class RandomWalker ( LoggerBase ):
         else:
             u=random.uniform(0.,1.)
             if u > ratio:
-                self.pprint ( "u=%.2f > %.2f; K: %.2f -> %.2f: revert." % (u,ratio,self.currentK,
-                                self.protomodel.K) )
+                self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {pprintValue(self.currentK)} -> {pprintValue(self.protomodel.K)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.pprint ( "u=%.2f <= %.2f ; %.2f -> %.2f: take the step, even though old is better." % (u, ratio,self.currentK,self.protomodel.Z) )
+                self.pprint ( f"u={u:.2f} <= {ratio:.2f} ; {pprintValue(self.currentK)} -> {pprintValue(self.protomodel.Z)}: take the step, even though old is better." )
                 self.takeStep()
 
     def record ( self ):
@@ -434,7 +440,7 @@ class RandomWalker ( LoggerBase ):
                     extracted = traceback.extract_tb(tb)
                     for point in extracted:
                         self.pprint ( "extracted: %s" % point )
-                    with open("%s/exceptions.log" % self.rundir,"a") as f:
+                    with open( f"{self.rundir}/exceptions.log","a") as f:
                         f.write ( "%s: taking a step resulted in exception: %s, %s\n" % \
                                   (time.asctime(), type(e), e ) )
                         f.write ( "   `- exception occured in walker #%s\n" % \
