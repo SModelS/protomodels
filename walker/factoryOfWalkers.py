@@ -31,12 +31,14 @@ def _run ( walker, catch_exceptions, seed ):
     except Exception as e:
         import time
         with open("exceptions.log","a") as f:
-            f.write ( "time %s\n" % time.asctime() )
-            f.write ( "walker %d threw: %s\n" % ( walker.walkerid, e ) )
+            f.write ( f"time {time.asctime()}\n" )
+            f.write ( f"walker {walker.walkerid} threw: {e}\n" )
+            import traceback
+            f.write ( f"traceback: {str(traceback.format_exc())}\n" )
             if hasattr ( walker.model, "currentSLHA" ):
-                f.write ("slha file was %s\n" % walker.model.currentSLHA )
-        import colorama
-        print ( "%swalker %d threw: %s%s\n" % ( colorama.Fore.RED, walker.walkerid, e, colorama.Fore.RESET ) )
+                f.write ( f"slha file was {walker.model.currentSLHA}\n" )
+        from colorama import Fore as ansi
+        print ( f"{ansi.RED}walker {walker.walkerid} threw: {e}{ansi.RESET}\n" )
 
 def startWalkers ( walkers : List, catch_exceptions : bool = False,
                    seed : Union[None,int] = None ) -> int:

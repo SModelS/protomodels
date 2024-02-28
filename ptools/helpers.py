@@ -10,7 +10,14 @@ from smodels.experiment.infoObj import Info
 from smodels.base.physicsUnits import GeV
 import scipy.stats
 from os import PathLike
+from typing import Union
 
+def pprintValue ( value : Union[None,float,numpy.float64], 
+        ndecimals : int = 2 ) -> str:
+    """ pretty print a value, but allow for it to also be None """
+    if value in [ float, numpy.float64 ]:
+        return f"{value:.{ndecimals}f}"
+    return str(value)
 
 def simplifyUnixPath ( path : str ) -> str:
     """ simple code to simplify file paths in printouts """
