@@ -654,7 +654,7 @@ class HiscorePlotter:
 
     def addSPlots ( self, handle : TextIO ):
         """ add links to the teststatistic plots """
-        files = glob.glob ( "S*.png" )
+        files = glob.glob ( "M*.png" )
         if len(files)==0:
             return
         handle.write ( "S plots:")

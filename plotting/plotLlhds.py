@@ -108,6 +108,7 @@ class LlhdPlot ( LoggerBase ):
         """
         super ( LlhdPlot, self ).__init__ ( 0 )
         self.namer = SParticleNames ( susy = False )
+        pid1, pid2 = self.namer.pid ( pid1 ), self.namer.pid ( pid2 )
         self.dbpath = dbpath
         self.rundir = rundir
         self.upload = upload
@@ -484,7 +485,6 @@ class LlhdPlot ( LoggerBase ):
         handles = []
         existingPoints = []
         combL = {}
-        print ( "@@5 we have", anas )
         rankthem = {}
         for ana in anas: ## loop over the analyses
             ret = self.getHighestLlhdFor ( ana, self.masspoints[0]["llhd"] )
@@ -577,13 +577,13 @@ class LlhdPlot ( LoggerBase ):
                 self.X = X
                 self.Y = Y
             hldZ100 = self.computeHPD ( Z, None, 1., False )
-            cont100 = plt.contour ( X, Y, hldZ100, levels=[0.25], colors = [ color ], linestyles = [ "dotted" ], zorder=10 )
+            cont100 = plt.contour ( X, Y, hldZ100, levels=[0.25], colors = [ color ], linestyles = [ "dotted" ], zorder=-1 )
             #hldZ95 = self.computeHPD ( Z, .95, False )
             #cont95 = plt.contour ( X, Y, hldZ95, levels=[0.5], colors = [ color ], linestyles = [ "dashed" ] )
             #plt.clabel ( cont95, fmt="95%.0s" )
             hldZ50 = self.computeHPD ( Z, RMAX, .68, False )
-            cont50c = plt.contour ( X, Y, hldZ50, levels=[1.0], colors = [ color ], zorder=10 )
-            cont50 = plt.contourf ( X, Y, hldZ50, levels=[1.,10.], colors = [ color, color ], alpha=getAlpha( color ), zorder=10 )
+            cont50c = plt.contour ( X, Y, hldZ50, levels=[1.0], colors = [ color ], zorder=-1 )
+            cont50 = plt.contourf ( X, Y, hldZ50, levels=[1.,10.], colors = [ color, color ], alpha=getAlpha( color ), zorder=-1 )
             plt.clabel ( cont50c, fmt="68%.0s" )
             if hasattr ( cont50, "axes" ):
                 ax = cont50.axes
@@ -610,10 +610,10 @@ class LlhdPlot ( LoggerBase ):
                     if combL[h]==0.:
                         ZCOMB[irow,icol]=float("nan")
         self.ZCOMB = ZCOMB
-        contRMAX = plt.contour ( X, Y, RMAX, levels=[self.rthreshold], colors = [ "gray" ], zorder=10 )
-        contRMAXf = plt.contourf ( X, Y, RMAX, levels=[self.rthreshold,float("inf")], colors = [ "gray" ], hatches = ['////'], alpha=getAlpha( "gray" ), zorder=10 )
+        contRMAX = plt.contour ( X, Y, RMAX, levels=[self.rthreshold], colors = [ "gray" ], zorder=-1 )
+        contRMAXf = plt.contourf ( X, Y, RMAX, levels=[self.rthreshold,float("inf")], colors = [ "gray" ], hatches = ['////'], alpha=getAlpha( "gray" ), zorder=-1 )
         hldZcomb68 = self.computeHPD ( ZCOMB, RMAX, .68, False  )
-        contZCOMB = plt.contour ( X, Y, hldZcomb68, levels=[.25], colors = [ "black" ], zorder=10 )
+        contZCOMB = plt.contour ( X, Y, hldZcomb68, levels=[.25], colors = [ "black" ], zorder=-1 )
 
         # ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="s", s=110, color="gray", label="excluded", alpha=.3, zorder=20 )
         print()
@@ -638,12 +638,19 @@ class LlhdPlot ( LoggerBase ):
         handles.append ( c )
         if sr == None:
             sr = "UL"
+        if "electroweakinos_offshell" in self.topo:
+            self.error ( "FIXME fix the names of the topo sets! electroweakinos!!" )
+            self.topo = self.topo.replace("electroweakinos_offshell","electroweakinos" )
+            self.error ( "FIXME fix the names of the topo sets! electroweakinos!!" )
+            
         plt.title ( f"HPD regions, {self.namer.texName(pid1, addSign=False, addDollars=True)} [{self.topo}]", fontsize=14 )
         plt.xlabel ( f"m({self.namer.texName(pid1,addSign=False, addDollars=True)}) [GeV]", fontsize=14 )
         plt.ylabel ( f"m({self.namer.texName(self.pid2, addSign=False, addDollars=True)}) [GeV]" )
-        circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold}):\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
-        handles.append ( circ1 )
-        legend = plt.legend( handles=handles, loc="best", fontsize=12 )
+        hasCritic = np.any ( RMAX > self.rthreshold )
+        if hasCritic:
+            circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold}):\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
+            handles.append ( circ1 )
+        legend = ax.legend( handles=handles, loc="best", fontsize=12 )
         figname = f"{self.rundir}/llhd{self.namer.asciiName(pid1)}.png"
         self.pprint ( f"saving to {figname}" )
         plt.savefig ( figname )
