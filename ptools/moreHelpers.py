@@ -42,8 +42,8 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
     """ some abbreviations for sets of topologies,
     e.g. electroweakino -> TChiWZ, TChiWH, .... 
     :param name: abbreviation
-    :returns: string with comma separated list of topos, and description
-              if not an abbreviation, returns originalname, None
+    :returns: string with comma separated list of topos, and description.
+              if name is not an abbreviation, returns originalname, None
     """
     if name is None:
         return "all", None
@@ -60,12 +60,14 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
         return ( ",".join(topos), "+".join(descriptions) )
 
     shorts, description = { }, {}
+    shorts["T2*"]="T2cc,T2bb,T2Disp,T2ttC,T2bbffff,T2tt,T2bbWWoff,T2bbWW,T2,T2bt,T2ttoff"
     shorts["electroweakinos_offshell"]="TChiWZ,TChiWH,TChiWZoff,TChiZZ,TChiHH,TChiWW,TChiZ,TChiH,TChiWWoff,TChiZH"
     shorts["electroweakinos_offshell_only"]="TChiWZoff,TChiWWoff"
     shorts["electroweakinos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
     shorts["colored"]="T1,T2,TGQ,T3GQ,T5GQ,TGQqtt,TGQbtq,TGQbbq,T1bbbb,T1tttt,T1bbbboff,T1ttttoff,T1btbt,T6WW"
+    description["T2*"]="T2*"
     description["electroweakinos"]="ewkinos with onshell gauge bosons"
     description["electroweakinos_offshell"]="ewkinos, on- and offshell decays"
     description["electroweakinos_offshell_only"]="ewkinos, offshell decays only"
