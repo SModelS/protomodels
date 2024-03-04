@@ -12,6 +12,7 @@ setup()
 from smodels.tools.wrapperBase import WrapperBase
 WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 from builder.manipulator import Manipulator
+from builder.protomodel import ProtoModel
 from smodels.tools.runtime import nCPUs
 from tester.predictor import Predictor
 from ptools.sparticleNames import SParticleNames
@@ -35,37 +36,43 @@ class TeststatScanner ( LoggerBase ):
         self.hi = fetchHiscoresObj ( )
         self.show_plot = self.args["show_plot"] # dont take this one from pickle
 
+    def massesAreTied ( self, pid1, pid2 ):
+        """ are the masses of pid1 and pid2 tied originally? """
+        if not pid1 in self.origmasses:
+            return False
+        if not pid2 in self.origmasses:
+            return False
+        dm = self.origmasses[pid1] - self.origmasses[pid2]
+        if abs(dm)<1e-5:
+            return True
+        return False
+
     def setMass ( self, model, pid : int, mass : float ):
         """ set mass of <pid> to <mass> """
         partners = [ ( 1000023, 1000024 ) ]
         model.masses[pid]=mass
-        for pair in partners:
-            if pid in pair:
-                for p in pair:
-                    if p in model.masses:
-                        model.masses[p]=mass
 
-    def createCriticResults ( self, predictor : Predictor ) -> Dict:
+        for pair in partners:
+            if not pid in pair:
+                continue
+            for p in pair:
+                if p in model.masses and self.massesAreTied ( p, pid ):
+                    model.masses[p]=mass
+
+    def createCriticResults ( self, model : ProtoModel ) -> List:
         """ create a list of the analysis ids of the critic
+
+        :returns: list of dictionaries of robs, rexp, anaid
         """
         critics = []
-        if not hasattr ( predictor, "critic_preds" ):
+        if not hasattr ( model, "tpList" ):
             return critics
-        for p in predictor.critic_preds:
-            dId = p.dataId()
-            if p.dataType() in [ "upperLimit" ]:
-                dId = "ul"
-            c = p.analysisId() + ":" + dId
-            txnames = set()
-            try:
-                txnames = { x.txName for x in p.dataset.txnameList }
-            except AttributeError as e:
-                for d in p.dataset._datasets:
-                    for x in d.txnameList:
-                        txnames.add ( x.txName )
-            c += ":" + ",".join ( txnames )
-            critics.append ( c )
+        for p in model.tpList:
+            d = { "robs": p["robs"], "rexp": p["rexp"], 
+                  "anaid": p["tp"].dataset.globalInfo.id }
+            critics.append ( d )
         return critics
+
 
     def predProcess ( self, args ):
         """ one thread that computes predictions for masses given in mrange
@@ -96,13 +103,14 @@ class TeststatScanner ( LoggerBase ):
                 self.pprint ( f"#{i}: dry-run, not doing anything" )
                 ret[m]["K"] = 0.
                 ret[m]["Z"] = 0.
-                ret[m][ "r"] = [ 0, 0, 0 ]
+                ret[m]["r"] = [ 0, 0, 0 ]
+                ret[m]["critics"] = []
             else:
                 _ = predictor.predict ( model, keep_predictions = True )
                 ret[m]["K"] = model.K
                 ret[m]["Z"] = model.Z
                 ret[m]["r"] = model.rvalues
-                ret[m]["critics"] = self.createCriticResults ( predictor )
+                ret[m]["critics"] = self.createCriticResults ( model )
             print ()
             def prettyPrint(v):
                 if type(v) in [ float, numpy.float64 ]:
@@ -151,7 +159,7 @@ class TeststatScanner ( LoggerBase ):
             mssm = ma.M.muhat*ssm
             ret[ssm]={ "Z": ma.M.Z, "r": ma.M.rvalues, 
                 "K": ma.M.K,"muhat": ma.M.muhat }
-            ret[ssm]["critics"] = self.createCriticResults ( predictor )
+            ret[ssm]["critics"] = self.createCriticResults ( ma.M )
             #if False : # os.exists ( fname ):
             #    os.unlink ( fname )
 
@@ -168,6 +176,7 @@ class TeststatScanner ( LoggerBase ):
             return
         pid = abs(pid)
         model = self.hi.hiscores[0]
+        self.origmasses = copy.deepcopy ( model.masses )
         fac = self.args["factor"]
         if fac == None:
             fac = 1.008
@@ -461,17 +470,22 @@ class TeststatScanner ( LoggerBase ):
         # label = f"proto-model\n K({param})={Zmax:.2f}"
         label = f"proto-model\nK({cmass:.2f})={Zmax:.2f}"
         self.pprint ( f"Zmax=Z({cmass:.3f})={Zmax:.3f}" )
-        """
-        vvs = list ( values.keys() )
-        vvs.sort()
-        print ( "values", vvs )
-        """
         self.pprint ( f"r({cmass})={values[cmass]['r'][0]:.2f}:{values[cmass]['critics'][0]}" )
         ax1.scatter ( [ cmass ], [ Zmax ], label=label, marker="^", s=130, c="g", zorder=10 )
         plotCriticAtMax = True
         if plotCriticAtMax:
             #ratmax_text = f"r({cmass:.2f})=\n{values[cmass]['critics'][0]}"
-            ratmax_text = f"{values[cmass]['critics'][0]}"
+            # print ( "critics", values[cmass]["r"] )
+            # print ( "critics", values[cmass]["critics"] )
+            def findStrongestCritic ( critics : List ):
+                """ in the list of critics, find the one with highest robs """
+                rmax, cname = -1., ""
+                for critic in critics:
+                    if critic["robs"]>rmax:
+                        cname = critic["anaid"]
+                        rmax = critic["robs"]
+            #  import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+            ratmax_text = f"{values[cmass]['critics'][0]['anaid']}"
             ratmax_text = ratmax_text.replace("-agg","")
             p1 = ratmax_text.find(":")
             if p1 > 0:
