@@ -256,7 +256,7 @@ class Predictor ( LoggerBase ):
 
         #Recompute predictions with higher accuracy for high score models:
         ## FIXME not a good idea! should probably remove!
-        if protomodel.Z > 4.1 and protomodel.nevents < 55000:
+        if False and protomodel.Z > 4.1 and protomodel.nevents < 55000:
             self.log ( f"Z {protomodel.Z:.2f}>2.7, repeat with higher stats!" )
             protomodel.nevents = 100000
             protomodel.computeXSecs()

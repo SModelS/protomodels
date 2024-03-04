@@ -47,6 +47,7 @@ class LlhdThread ( LoggerBase ):
         self.rundir = setup( rundir )
         self.threadnr = threadnr
         self.M = copy.deepcopy ( protomodel )
+        self.origmasses = copy.deepcopy ( self.M.masses )
         self.M.createNewSLHAFileName ( prefix=f"lthrd{threadnr}_{pid1}" )
         self.pid1 = pid1
         self.pid2 = pid2
@@ -54,6 +55,17 @@ class LlhdThread ( LoggerBase ):
         self.mpid2 = mpid2
         self.nevents = nevents
         self.predictor = predictor
+
+    def massesAreTied ( self, pid1, pid2 ):
+        """ are the masses of pid1 and pid2 tied originally? """
+        if not pid1 in self.origmasses:
+            return False
+        if not pid2 in self.origmasses:
+            return False
+        dm = self.origmasses[pid1] - self.origmasses[pid2]
+        if abs(dm)<1e-5:
+            return True
+        return False
 
     def getPredictions ( self, recycle_xsecs : bool = True ) -> Dict:
         """ get predictions, return likelihoods 
@@ -135,10 +147,11 @@ class LlhdThread ( LoggerBase ):
         partners = [ ( 1000023, 1000024 ) ]
         self.M.masses[pid]=mass
         for pair in partners:
-            if pid in pair:
-                for p in pair: # set only if it was introduced
-                    if p in self.M.masses: #  and self.M.masses[p]<6000:
-                        self.M.masses[p]=mass
+            if not pid in pair:
+                continue
+            for p in pair:
+                if p in self.M.masses and self.massesAreTied ( p, pid ):
+                    self.M.masses[p]=mass
 
     def run ( self, rpid1, rpid2 ):
         """ run for the points given """
