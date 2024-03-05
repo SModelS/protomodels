@@ -30,7 +30,7 @@ def cli( infile : str = "hiscores.dict",
     print ( "[hiscoreCLI] starting interactive session." )
     import copy, numpy, scipy, scipy.stats
     print ( f"[hiscoreCLI]         python: {ansi.RED}copy, numpy, scipy, scipy.stats, math{ansi.RESET}" )
-    from smodels.tools.physicsUnits import pb, fb, GeV, TeV
+    from smodels.base.physicsUnits import pb, fb, GeV, TeV
     print ( f"[hiscoreCLI]      Constants: {ansi.RED}pb, fb, GeV, TeV{ansi.RESET}" )
     from ptools.hiscoreTools import fetchHiscoresObj
     from builder import manipulator

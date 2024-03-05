@@ -351,7 +351,7 @@ class Manipulator ( LoggerBase ):
         if "xsecs[fb]" in D:
             tmp = D["xsecs[fb]"]
             xsecs = []
-            from smodels.theory.crossSection import XSection
+            from smodels.base.crossSection import XSection
             for ss,value in tmp.items():
                 xsec = XSection()
                 xsec.value = value*fb
@@ -706,7 +706,7 @@ class Manipulator ( LoggerBase ):
                 else:
                     rexpnew = tp['rexp']
                 tpNew = tp['tp']
-                tpNew.xsection.value *= s #rescale theoryPrediction
+                tpNew.xsection *= s #rescale theoryPrediction
                 #Remove likelihood and chi2, since they are no longer valid
                 #if hasattr(tpNew,'likelihood'):
                 #    del tpNew.likelihood

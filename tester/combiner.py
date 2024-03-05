@@ -37,8 +37,9 @@ class Combiner ( LoggerBase ):
             pids = pids.union ( self.getAllPidsOfTheoryPred ( theoryPred ) )
         return pids
 
+    """
     def getAnaIdsWithPids ( self, combo, pids ):
-        """ from best combo, retrieve all ana ids that contain *all* pids """
+        # from best combo, retrieve all ana ids that contain *all* pids
         anaIds = set()
         for theoryPred in combo:
             tpids = self.getAllPidsOfTheoryPred ( theoryPred )
@@ -52,7 +53,7 @@ class Combiner ( LoggerBase ):
         return anaIds
 
     def getAllPidsOfTheoryPred ( self, pred ):
-        """ get all pids that make it into a theory prediction """
+        # get all pids that make it into a theory prediction
         pids = set()
         for prod in pred.PIDs:
             for branch in prod:
@@ -65,7 +66,8 @@ class Combiner ( LoggerBase ):
         return pids
 
     def getTheoryPredsWithPids ( self, combo, pids ):
-        """ from best combo, retrieve all theory preds that contain *all* pids """
+        # from best combo, retrieve all theory preds that contain *all* pids
+        # we dont have pids anymore!
         tpreds = set()
         for theoryPred in combo:
             tpids = self.getAllPidsOfTheoryPred ( theoryPred )
@@ -77,6 +79,7 @@ class Combiner ( LoggerBase ):
             if hasAllPids:
                 tpreds.add ( theoryPred )
         return tpreds
+    """
 
     def findCompatibles ( self, predA, predictions, strategy ):
         """ return list of all elements in predictions

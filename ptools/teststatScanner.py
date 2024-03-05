@@ -13,7 +13,7 @@ from smodels.tools.wrapperBase import WrapperBase
 WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 from builder.manipulator import Manipulator
 from builder.protomodel import ProtoModel
-from smodels.tools.runtime import nCPUs
+from smodels.base.runtime import nCPUs
 from tester.predictor import Predictor
 from ptools.sparticleNames import SParticleNames
 from ptools.hiscoreTools import fetchHiscoresObj

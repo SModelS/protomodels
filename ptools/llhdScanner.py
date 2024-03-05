@@ -10,8 +10,8 @@ setup()
 from smodels.tools.wrapperBase import WrapperBase
 WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 from smodels.base.physicsUnits import fb
-from smodels.tools.runtime import nCPUs
-from smodels.theory.theoryPrediction import TheoryPrediction
+from smodels.base.runtime import nCPUs
+from smodels.matching.theoryPrediction import TheoryPrediction
 from tester.combiner import Combiner
 from tester.predictor import Predictor
 from plotting import plotLlhds
@@ -300,7 +300,9 @@ class LlhdScanner ( LoggerBase ):
             return
         import numpy
         c = Combiner()
-        anaIds = c.getAnaIdsWithPids ( self.M.bestCombo, [ pid1, pid2 ] )
+        # anaIds = c.getAnaIdsWithPids ( self.M.bestCombo, [ pid1, pid2 ] )
+        print ( f"[llhdScanner] fixme getting all anaids, not just the one for my pids" )
+        anaIds = list(set( x.dataset.globalInfo.id for x in self.M.bestCombo ))
         ## mass range for pid1
         self.mpid1 = self.M.masses[pid1]
         self.mpid2 = self.M.masses[pid2]

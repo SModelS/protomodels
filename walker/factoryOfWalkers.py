@@ -207,6 +207,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
 if __name__ == "__main__":
     import sys
     sys.path.insert(0,"../")
+    sys.path.insert(0,f"{os.environ['HOME']}/git/smodels/")
     sys.path.insert(0,"../../")
     from walker.randomWalker import RandomWalker
     s = "txnames:TChiWZ,TChiWZoff,TChiWW,TChiWWoff,TChiWH,TChiH,TChiZZ,TSlepSlep"

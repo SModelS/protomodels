@@ -88,14 +88,17 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
         f.close()
     from walker.hiscores import Hiscores
     hi = Hiscores ( 0, False, picklefile )
-    def compare ( dentry, pentry ):
-        ## compare one dictentry with one pickleentry
+    def compare ( dentry, pentry ) -> bool:
+        ## compare one dictentry with one pickleentry,
+        ## true, if things are different
         newV = dentry["K"] + dentry["Z"] + sum(dentry["masses"].values()) + \
                sum(dentry["ssmultipliers"].values())
+        if pentry == None:
+            return True
 
         oldV = pentry.K + pentry.Z + sum(pentry.masses.values()) + \
                sum(pentry.ssmultipliers.values())
-        if 2. * abs( newV - oldV ) / ( newV + oldV ) > 1e-3:
+        if 2. * abs( newV - oldV ) / ( newV + oldV ) > 1e-4:
             # print ( f"[hiscoreTools] top V value changed {newV:.3f}..{oldV:.3f}" )
             return True
         return False

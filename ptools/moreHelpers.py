@@ -60,19 +60,18 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
         return ( ",".join(topos), "+".join(descriptions) )
 
     shorts, description = { }, {}
-<<<<<<< HEAD
     shorts["gauginos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
     shorts["gauginos_offshell"]=shorts["gauginos"]+",TChiWZoff,TChiWWoff"
-    shorts["electroweakinos"]='TChiH,TChiChipmSlepStau,TChipChimSlepSnu,TChiHH,TChiWW,TChiWZ,TChipChimSlepSlep,TChipChimStauSnu,TChiZH,TChiWH,TChipChimgg,TChiZZ,TChiChipmStauStau,TChiChipmSlepSlep,TChiChipmSlepL,TChiChipmStauL'
-    shorts["electroweakinos_offshell"]=shorts["electroweakinos"]+",TChiWZoff,TChiWWoff"
-    shorts["electroweakinos_offshell_only"]="TChiWZoff,TChiWWoff"
+    shorts["electroweakinos_onshell"]='TChiH,TChiChipmSlepStau,TChipChimSlepSnu,TChiHH,TChiWW,TChiWZ,TChipChimSlepSlep,TChipChimStauSnu,TChiZH,TChiWH,TChipChimgg,TChiZZ,TChiChipmStauStau,TChiChipmSlepSlep,TChiChipmSlepL,TChiChipmStauL'
+    shorts["electroweakinos_offshell"]="TChiWZoff,TChiWWoff"
+    shorts["electroweakinos"]=shorts["electroweakinos_onshell"]+","+shorts["electroweakinos_offshell"]
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
     shorts["colored"]="T1,T2,TGQ,T3GQ,T5GQ,TGQqtt,TGQbtq,TGQbbq,T1bbbb,T1tttt,T1bbbboff,T1ttttoff,T1btbt,T6WW"
     description["gauginos"]="ewkinos + onshell gauge bosons"
-    description["electroweakinos"]="TChi* (only on-shell)"
-    description["electroweakinos_offshell"]="TChi*"
-    description["electroweakinos_offshell_only"]="ewkinos, offshell decays only"
+    description["electroweakinos"]="ewkinos"
+    description["electroweakinos_offshell"]="ewkinos, off-shell decays only"
+    description["electroweakinos_onshell"]="ewkinos, on-shell gauge boson decays only"
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
     shorts["colored"]="T1,T2,TGQ,T3GQ,T5GQ,TGQqtt,TGQbtq,TGQbbq,T1bbbb,T1tttt,T1bbbboff,T1ttttoff,T1btbt,T6WW"

@@ -8,7 +8,9 @@ import pickle, sys, time, math, socket, os
 import subprocess
 import numpy, colorama
 
+sys.path.insert(0,f"{os.environ['HOME']}/git/protomodels/")
 try:
+    sys.path.insert(0,f"{os.environ['HOME']}/git/smodels/")
     import smodels
 except:
     from ptools import setPath
