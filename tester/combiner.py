@@ -426,7 +426,7 @@ class Combiner ( LoggerBase ):
                     observedN = d.dataInfo.observedN
                     expectedBG = d.dataInfo.expectedBG
                     bgError = d.dataInfo.bgError
-                    Nsig = tp.xsection.value*tp.expResult.globalInfo.lumi
+                    Nsig = tp.xsection*tp.expResult.globalInfo.lumi
                     Nsig = Nsig.asNumber()
                     nobs.append(observedN)
                     nbg.append(expectedBG)

@@ -9,6 +9,7 @@ __all__ = [ "Manipulator" ]
 
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
+from ptools.helpers import nround
 from smodels.base.physicsUnits import fb, TeV
 from smodels.base.crossSection import LO
 from smodels.matching.theoryPrediction import TheoryPrediction
@@ -30,6 +31,11 @@ class Manipulator ( LoggerBase ):
                    1000025 : 20 }
     ## forbiddenparticles are particle ids that we do not touch in this run
     forbiddenparticles = []
+    
+    mass_W = 80.377
+    mwidth_W = 0.012
+    mass_Z = 91.1876
+    mwidth_Z = 0.0021
 
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike],
             strategy: str = "aggressive", verbose : bool = False,
@@ -200,8 +206,8 @@ class Manipulator ( LoggerBase ):
                     D["ssmultipliers"][k]=round(v,ndecimals)
         if hasattr ( self, "seed" ) and self.seed != None:
             D["seed"]=self.seed
-        D["Z"]=round(self.M.Z,ndecimals)
-        D["K"]=round(self.M.K,ndecimals)
+        D["Z"]=nround(self.M.Z,ndecimals)
+        D["K"]=nround(self.M.K,ndecimals)
         if not cleanOut:
             import time
             D["timestamp"]=time.asctime()
@@ -487,23 +493,31 @@ class Manipulator ( LoggerBase ):
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs,
                                         protomodel=protomodel)
 
-    def setRandomBranchings ( self, pid, protomodel=None):
-        """ Assign random BRs to particle.
+    def initBranchings ( self, pid):
+        """ Intialize BRs to diffrent open decay channels for pid.
+            Either assign 'democratic' BRs or assign random BRs.
         """
 
-        if not protomodel:
-            protomodel = self.M
+        protomodel = self.M
 
         #Do not modify the LSP decays
         if pid == protomodel.LSP:
             return
 
-        #Erase BRs (if any has been stored)
+        #Erase BRs (if any has been stored) for offshell too?
         protomodel.decays[pid] = {}
-
+        
         #Get the allowed decay channels:
         openChannels = self.M.getOpenChannels(pid)
+        dkeys = set()
+        for dpid in openChannels:
+            dk = self.M.decay_keys[pid][dpid]
+            dkeys.add(dk)
+        dkeys = list(dkeys)
+         
+        
         nitems = len(openChannels)
+        
         offshell = False
         if pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
         if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
@@ -511,18 +525,41 @@ class Manipulator ( LoggerBase ):
         for dk in dkeys:
             decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
             br = random.gauss ( 1. / nitems, np.sqrt ( .5 / nitems )  )
-            protomodel.decays[pid][dpid] = br
+            br = max ( 0., br )
+            
+            for dpid in decay_chan:
+                if offshell:
+                    if pid == 1000023:
+                        if '11' in dk[-2:]: protomodel.decays[pid][dpid] = 1.0/18.0
+                        elif '2' in dk[-1]: protomodel.decays[pid][dpid] = 12.0/18.0
+                        elif '5' in dk[-1]: protomodel.decays[pid][dpid] = 3.0/18.0
+                        else: protomodel.decays[pid][dpid] = 0.0
+                    elif pid == 1000024:
+                        if '12' in dk[-2:]: protomodel.decays[pid][dpid] = 1.0/9.0
+                        elif '1' in dk[-1]: protomodel.decays[pid][dpid] = 6.0/9.0
+                        else: protomodel.decays[pid][dpid] = 0.0
+                else:
+                    if len(dpid) == 3: protomodel.decays[pid][dpid] = 0.0  #turn off offshell 3 body decays
+                    else: protomodel.decays[pid][dpid] = br
+        
+        if offshell: return
 
         #Make sure there is at least one open channel:
         BRtot = sum(self.M.decays[pid].values())
         if BRtot == 0.0 and len(openChannels)>0:
-            chan = random.choice(list(openChannels))
-            self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(chan,addDollars=True)} to 1.0" )
-            self.M.decays[pid][chan] = 1.0
+            dk = random.choice(dkeys)
+            decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
+            br = 1.0/len(decay_chan)
+            self.M.decays[pid] = {}
+            for dpid in decay_chan:
+                self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
+                self.log ( f"changed decay of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
+                self.M.decays[pid].update({dpid: br})
             BRtot = 1.0
 
         #Make sure to normalize the branchings:
         self.normalizeBranchings(pid, protomodel=protomodel)
+        protomodel.decays = self.simplifyDecays()
 
     def normalizeBranchings ( self, pid, rescaleSSMs=False, protomodel=None ):
         """ normalize branchings of a particle if the total BR is differs from 1.0.
@@ -620,11 +657,11 @@ class Manipulator ( LoggerBase ):
                 eUL = f"{tp.getUpperLimit ( expected=True ).asNumber(fb):1.2g}*fb"
             if dt in [ "em", "efficiencyMap" ]:
                 dI = tp.dataset.dataInfo
-                pred = f"{float ( (tp.xsection * tp.dataset.globalInfo.lumi).asNumber() ):1.2g}"
+                pred = f"{float ( (tp.xsection.value * tp.dataset.globalInfo.lumi).asNumber() ):1.2g}"
                 fullId = anaId+":"+tp.dataset.dataInfo.dataId
                 print(f'     - {fullId} [{txns}] obsN={dI.observedN} expBG={dI.expectedBG}+/-{dI.bgError} pred={pred}' )
             else:
-                pred=f"{tp.xsection.asNumber(fb):.2g}*fb"
+                pred=f"{tp.xsection.value.asNumber(fb):.2g}*fb"
                 UL = f"{tp.getUpperLimit().asNumber(fb):.2g}*fb"
                 print(f'     - {fullId} [{txns}] pred={pred} UL={UL} eUL={eUL}' )
 
@@ -645,7 +682,7 @@ class Manipulator ( LoggerBase ):
             if dt in [ "comb", "combined" ]:
                 eUL = f", UL_exp={tp[2].getUpperLimit ( expected=True ).asNumber(fb):1.2g}*fb"
             UL=f"{tp[2].upperLimit.asNumber(fb):1.2g}*fb"
-            print( f'     - r={tp[2].getRValue():1.2f} {anaId} [{txns}] pred={tp[2].xsection.asNumber(fb):1.2g}*fb, UL={UL}{eUL}' )
+            print( f'     - r={tp[2].getRValue():1.2f} {anaId} [{txns}] pred={tp[2].xsection.value.asNumber(fb):1.2g}*fb, UL={UL}{eUL}' )
 
     def rescaleSignalBy ( self, s : float ):
         """ multiply the signal strength multipliers with s """
@@ -669,9 +706,7 @@ class Manipulator ( LoggerBase ):
                 else:
                     rexpnew = tp['rexp']
                 tpNew = tp['tp']
-                tpNew.xsection *= s #rescale theoryPrediction
-                # tpNew.xsection.value *= s #rescale theoryPrediction
-
+                tpNew.xsection.value *= s #rescale theoryPrediction
                 #Remove likelihood and chi2, since they are no longer valid
                 #if hasattr(tpNew,'likelihood'):
                 #    del tpNew.likelihood
@@ -680,7 +715,7 @@ class Manipulator ( LoggerBase ):
                 self.M.tpList[i] = { "robs": rnew,"rexp": rexpnew, "tp": tpNew }
         if hasattr(self.M,'bestCombo'):
             for tp in self.M.bestCombo:
-                tp.xsection *= s #rescale theoryPrediction
+                tp.xsection.value *= s #rescale theoryPrediction
                 #Remove likelihood and chi2, since they are no longer valid
                 #if hasattr(tp,'likelihood'):
                 #    del tp.likelihood
@@ -770,6 +805,9 @@ class Manipulator ( LoggerBase ):
         """ randomly change the branchings of a single particle
 
         :param prob: Probability for changing a branching ratio
+        :param zeroBRprob: With zeroBRprob probability, close decay channel
+        :param singleBRprob: With probability singleBRprob, keep only one decay channel
+
         """
 
         uBranch = random.uniform(0,1)
@@ -803,60 +841,77 @@ class Manipulator ( LoggerBase ):
         """ randomly change the branching a particle pid """
 
         openChannels = self.M.getOpenChannels(pid)
+        dkeys = set()
+        for dpid in openChannels:
+            dk = self.M.decay_keys[pid][dpid]
+            dkeys.add(dk)
+        
+        dkeys = list(dkeys)
 
-        # print ( "the open channels are", openChannels )
         if len(openChannels) < 2:
             self.pprint ( f"number of open channels of {pid} is {len(openChannels)}: cannot change branchings." )
             # not enough channels open to tamper with branchings!
             return 0
 
-<<<<<<< HEAD
-        dx = 0.1/numpy.sqrt(len(openChannels)) ## maximum change per channel
-=======
         dx = 0.1/np.sqrt(len(openChannels)) ## maximum change per channel??
->>>>>>> 4ee083f0c (fixed a few issues with the scanners)
 
         #Keep only one channel (with probability singleBRprob)
         uSingle = random.uniform( 0., 1. )
         if uSingle < singleBRprob:
-            #Choose random channel:
-            chan = random.choice(list(openChannels))
-            self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(chan,addDollars=True)} to 1.0" )
-            self.log ( f"changed decay of {self.namer.asciiName(pid)} -> {self.namer.asciiName(chan)} to 1" )
-            self.M.decays[pid] = {chan: 1.0}
+            #Choose random decay key:
+            dk = random.choice(dkeys)
+            decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]  #get decay channel assocaiated with key, make sure all channels assocaited with same key get same branchings
+            self.M.decays[pid] = {}
+            br = 1.0/len(decay_chan)
+            for dpid in decay_chan:
+                self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
+                self.log ( f"changed decay of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
+                self.M.decays[pid].update({dpid: br})
+            
             return 1
 
-        #Otherwise randomly change each channel (based on the current BR)
-        for dpid in openChannels:
+        #Otherwise randomly change each channel(s) (based on the current BR)
+        for dk in dkeys:
             oldbr = 0.
-            #Check if decay already existed:
-            if dpid in self.M.decays[pid]:
-                oldbr = self.M.decays[pid][dpid]
+            
+            #Check if decay channel already existed:
+            decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
+            if decay_chan[0] in self.M.decays[pid]:
+                oldbr = self.M.decays[pid][decay_chan[0]]
 
-            #Close channel (with zeroBRprob probability)
+            #Close channel(s) (with zeroBRprob probability)
             if oldbr > 0:
+                
                 uZero = random.uniform( 0., 1. )
                 if uZero < zeroBRprob:
-                    self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to 0." )
-                    self.log ( f"changed branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} from {oldbr:.2f} to 0" )
-                    self.M.decays[pid][dpid] = 0.
+                    for dpid in decay_chan:
+                        self.record ( f"change branchings of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to 0." )
+                        self.log ( f"changed  branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} from {oldbr:.2f} to 0" )
+                        self.M.decays[pid][dpid] = 0.
                     continue
 
             #Randomly change BR around old value
             Min,Max = max(0.,oldbr-dx), min(oldbr+dx,1.)
-            br = random.uniform ( Min, Max )
-            self.record ( f"change branching of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
-            self.log ( f"changed branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
-            self.M.decays[pid][dpid] = br
-
+            br = random.uniform( Min, Max )/len(decay_chan)
+            for dpid in decay_chan:
+                self.record ( f"change branchings of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
+                self.log ( f"changed  branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
+                self.M.decays[pid][dpid] = br
+        
+        
         #Make sure there is at least one open channel:
         BRtot = sum(self.M.decays[pid].values())
         if BRtot == 0.0:
-            chan = random.choice(list(openChannels))
-            self.record ( f"change branching of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(chan,addDollars=True)} to 1.0" )
-            self.log ( f"changed branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(chan)} to 1" )
-            self.M.decays[pid][chan] = 1.0
-            BRtot = 1.0
+            dk = random.choice(dkeys)
+            decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
+            br = 1.0/len(decay_chan)
+            self.M.decays[pid] = {}
+            for dpid in decay_chan:
+                self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
+                self.log ( f"changed decay of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
+                self.M.decays[pid].update({dpid: br})
+           
+        
 
         #Make sure BRs add up to 1:
         self.normalizeBranchings(pid)
@@ -1168,15 +1223,9 @@ class Manipulator ( LoggerBase ):
         self.pprint ( f"Unfroze mass of {self.namer.asciiName(pid)} to "\
                       f"{protomodel.masses[pid]:.1f}" )
 
-        if offshell: # start with democratic flavors if offshell
-            openChannels = self.M.getOpenChannels(pid)
-            if not pid in protomodel.decays:
-                protomodel.decays[pid]={}
-            for dpid in openChannels:
-                protomodel.decays[pid][dpid] = 1. / (len(openChannels))
-        else:
-            # Set random branchings
-            self.setRandomBranchings(pid)
+      
+        # Set branchings
+        self.initBranchings(pid)
 
         #Add pid pair production and associated production to protomodel.ssmultipliers:
         self.initSSMFor(pid)
@@ -1239,7 +1288,7 @@ class Manipulator ( LoggerBase ):
                 # FIXME if the particle was frozen before, we need to
                 # unfreeze
                 if otherpid in were_frozen:
-                    self.setRandomBranchings(otherpid)
+                    self.initBranchings(otherpid)
                     self.initSSMFor(otherpid)
                 self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
@@ -1596,9 +1645,12 @@ class Manipulator ( LoggerBase ):
             for pids in pidss:
                 xsec = xsecs[sqrts][pids]
                 label = ""
+                comment = ""
+                if hasattr ( xsec, "comment" ):
+                    comment = xsec.comment
                 if "dict" in xsec.info.label:
                     label = " (from dict)"
-                print ( f" {str(pids):>22s}: {xsec.value.asNumber(fb):.2f} fb{label}" )
+                print ( f" {str(pids):>22s}: {xsec.value.asNumber(fb):.2f} fb{label} {comment}" )
 
     def simplifyDecays ( self ):
         """ return the decays only of the unfrozen particles,

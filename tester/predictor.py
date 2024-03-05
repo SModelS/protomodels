@@ -14,7 +14,7 @@ from smodels.share.models.mssm import BSMList
 from smodels.base.physicsUnits import fb, GeV, TeV
 from smodels.experiment.databaseObj import Database
 from smodels.base.model import Model
-from smodels.theory.exceptions import SModelSTheoryError as SModelSError
+from smodels.base.exceptions import SModelSBaseError as SModelSError
 from os import PathLike
 from typing import List, Union
 from protomodels.builder.loggerbase import LoggerBase
@@ -318,7 +318,7 @@ class Predictor ( LoggerBase ):
         combinedIds = set() # the analysis ids of the combined
         srpreds = [] # the SR specific predictions
         predictions = []
-        # print ( f"in runSModelS we have useBestDataset={bestDataSet}, combinedResults={combinedRes} allpreds={allpreds} do_combine={self.do_combine}" )
+        # print ( f"in runSModelS we have useBestDataset={bestDataSet}, combinedResults={combinedRes} allpreds={allpreds} do_srcombine={self.do_srcombine}" )
             # get the SR specific predictions
         srpred = theoryPredictionsFor ( self.database, topos,
                                        useBestDataset=bestDataSet,
@@ -330,7 +330,7 @@ class Predictor ( LoggerBase ):
             # get the SR-combined predictions
             cpreds = theoryPredictionsFor ( self.database, topos,
                                             useBestDataset=False,
-                                            combinedResults=self.do_combine )
+                                            combinedResults=self.do_srcombine )
             if cpreds != None:
                 for c in cpreds:
                     anaId = c.dataset.globalInfo.id

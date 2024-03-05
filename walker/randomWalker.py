@@ -43,7 +43,7 @@ class RandomWalker ( LoggerBase ):
             cheatcode : int = 0, dbpath : PathLike = "./database.pcl", 
             expected : bool = False, select : str = "all", 
             catch_exceptions : bool = True, rundir : Union[PathLike,None] = None, 
-            nevents : int = 100000, do_srcombine : bool = False, 
+            do_srcombine : bool = False, 
             record_history : bool = False, seed : Union[int,None] = None,
             stopTeleportationAfter : int = -1 ):
         """ initialise the walker
@@ -55,7 +55,6 @@ class RandomWalker ( LoggerBase ):
                 efficiency maps only, ul for upper limits only, alternatively
                 select for txnames via e.g. "txnames:T1,T2"
         :param catch_exceptions: should we catch exceptions
-        :param nevents: number of MC events when computing cross-sections
         :param do_srcombine: if true, then also perform combinations, either via
                            simplified likelihoods or via pyhf
         :param record_history: if true, attach a history recorder class
@@ -90,7 +89,7 @@ class RandomWalker ( LoggerBase ):
         self.hiscoreList.nkeep = 1
 
         #Initialize ProtoModel and Manipulator:
-        protomodel = ProtoModel( self.walkerid, keep_meta = True, nevents = nevents, 
+        protomodel = ProtoModel( self.walkerid, keep_meta = True, 
                 dbversion = self.predictor.database.databaseVersion )
 
         self.manipulator = Manipulator ( protomodel, strategy, 

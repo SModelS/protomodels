@@ -6,11 +6,11 @@ __all__ = [ "ProtoModel" ]
 
 import random, tempfile, os, time, colorama, copy, sys, pickle, random
 sys.path.insert(0,"../")
-from smodels.tools.wrapperBase import WrapperBase 
+from smodels.tools.wrapperBase import WrapperBase
 # the default tempdir of wrapper base is /tmp
 # WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 # WrapperBase.defaulttempdir="/dev/shm" ## keep the temps in shared memory
-from smodels.tools.xsecComputer import XSecComputer, NLL
+from ptools.refxsecComputer import RefXSecComputer
 from smodels.base.physicsUnits import TeV, fb
 from ptools import helpers
 from ptools.sparticleNames import SParticleNames
@@ -28,15 +28,14 @@ class ProtoModel ( LoggerBase ):
     # __slots__ = [ "walkerid", "keep_meta" ]
 
     LSP = 1000022 ## the LSP is hard coded
-    # SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
-    SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
+    SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
+    #SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
 
-    def __init__ ( self, walkerid : int = 0, keep_meta : bool = True, 
-                   nevents : int = 10000, dbversion : str = "????" ):
+    def __init__ ( self, walkerid : int = 0, keep_meta : bool = True, dbversion : str = "????" ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
                           this a heavyweight object)
-        :param nevents: minimum number of MC events when computing cross-sections
+        :param walkerid: id of current walker
         :param dbversion: the version of the database, to track provenance
         """
         super(ProtoModel,self).__init__ ( walkerid )
@@ -44,8 +43,6 @@ class ProtoModel ( LoggerBase ):
         self.keep_meta = keep_meta ## keep all meta info? big!
         self.version = 1 ## version of this class
         self.maxMass = 2400. ## maximum masses we consider
-        self.minevents = nevents #Minimum number of events for computing xsecs
-        self.nevents = nevents #Initial number of events for computing xsecs
         self.step = 0 ## count the steps
         self.dbversion = dbversion ## keep track of the database version
         self.particles = [ 1000001, 2000001, 1000002, 2000002, 1000003, 2000003,
@@ -77,7 +74,7 @@ class ProtoModel ( LoggerBase ):
                 self.templateSLHA = "templates/template2g.slha"
             # self.templateSLHA = "templates/template_many.slha"
         self.templateSLHA = os.path.join ( os.path.dirname ( __file__ ), self.templateSLHA )
-        self.computer = XSecComputer ( NLL, self.nevents, pythiaVersion=8, maycompile=False )
+        self.computer = RefXSecComputer()
         self.codeversion = "2.0"
         self.initializeModel()
 
@@ -98,6 +95,7 @@ class ProtoModel ( LoggerBase ):
         self.decays = {} ## the actual branchings
         self.masses = {}
         self.possibledecays = {} ## list all possible decay channels
+        self.decay_keys = {} #list the key associated with each decay of a pid
         self._stored_xsecs = () #Store cross-sections. It should only be accesses through getXsecs()!
         self._xsecMasses = {} #Store the masses used for computing the cross-sections
         self._xsecSSMs = {} #Store the signal strenght multiplier used for computing the cross-sections
@@ -110,35 +108,44 @@ class ProtoModel ( LoggerBase ):
             pids += [(self.LSP,-self.LSP),(-self.LSP,-self.LSP)]
         for pidpair in pids:
             self.ssmultipliers[tuple(sorted(pidpair))]= 1.0
-
+        
+        slha_decay_keys = []
+        
         with open ( self.templateSLHA ) as slhaf:
             tmp = slhaf.readlines()
-            slhalines = []
             for line in tmp:
                 p = line.find("#" )
                 if p > -1:
                     line = line[:p]
                 if "D" in line and not "DECAY" in line:
-                    slhaline = line.strip().split(" ")[0]
-                    # print ( "slhaline", slhaline )
-                    slhalines.append ( slhaline )
-
+                    slhaline = line.strip().split(" ")
+                    slhaline = [l for l in slhaline if l!='']
+                    #decay_key = [slhaline[0],slhaline[1:]]
+                    slha_decay_keys.append(slhaline)
+                            
+        
         for p in self.particles:
             decays = []
-            for line in slhalines:
-                if f"D{p}" in line:
-                    p1 = line.find("_")+1
-                    dpid = int ( line[p1:] )
-                    dpid2 = None
-                    if line.count("_")==2:
-                        p2 = line.rfind("_")
-                        dpid = int ( line[p1:p2] )
-                        dpid2 = int(line[p2+1:])
-                    dpd = dpid
-                    if dpid2 != None:
+            dkey = {}
+            for key in slha_decay_keys:
+                if f"D{p}" in key[0]:
+                    dpid,dpid2,dpid3,dpd = None,None,None,None
+
+                    if int(key[1]) == 2:                    #2body decay
+                        dpid = abs(int(key[2]))
+                        dpid2 = abs(int(key[-1]))
                         dpd = (dpid,dpid2)
+                    elif int(key[1]) == 3:                  #3body decay
+                        dpid = abs(int(key[2]))
+                        dpid2 = abs(int(key[3]))
+                        dpid3 = abs(int(key[4]))
+                        dpd = (dpid,dpid2,dpid3)
+
                     decays.append ( dpd )
+                    dkey.update({dpd: key[0]})
+            
             self.possibledecays[p]=decays
+            self.decay_keys[p] = dkey
 
     def __str__(self):
         """ return basic information on model
@@ -205,7 +212,7 @@ class ProtoModel ( LoggerBase ):
         #If something has changed, re-compute the cross-sections.
         #Xsecs are computed, self._xsecMasses and self._xsecSSM are updated.
         #The results are sored in the SLHA and self._stored_xsec.
-        self.computeXSecs(nevents = self.nevents)
+        self.computeXSecs()
 
         return self._stored_xsecs
 
@@ -247,7 +254,7 @@ class ProtoModel ( LoggerBase ):
             openChannels.add ( dpid )
 
         openChannels = list(openChannels)
-
+        
         return openChannels
 
     def frozenParticles ( self ):
@@ -292,8 +299,8 @@ class ProtoModel ( LoggerBase ):
                     continue
                 else:
                     return False
-                if abs ( ss - os ) / ss > 1e-6:
-                    return False
+            if abs ( ss - os ) / ss > 1e-6:
+                return False
         ## now check decays
         pids = set ( self.decays.keys() )
         pids = pids.union ( set ( other.decays.keys() ) )
@@ -342,18 +349,12 @@ class ProtoModel ( LoggerBase ):
             particles.append ( f"{namer.asciiName ( pid )}: {m}" )
         print ( ", ".join ( particles ) )
 
-    def computeXSecs ( self, nevents : int = None, keep_slha : bool = False ):
-        """ compute xsecs given the masses and signal strenght multipliers of the model.
+    def computeXSecs ( self, keep_slha : bool = False ):
+        """ compute xsecs given the masses and signal strength multipliers of the model.
          The results are stored in self._stored_xsecs and should be accessed through getXsecs.
-        :param nevents: If defined, cross-sections will be computed with this number of 
-                        MC events, if None, the value used is self.nevents.
         :param keep_slha: if true, then keep slha file at the end
 
         """
-
-        if not nevents:
-            nevents = self.nevents
-        self.computer.nevents = nevents
 
         hasComputed = False
         countAttempts = 0
@@ -366,15 +367,13 @@ class ProtoModel ( LoggerBase ):
                                            suffix=".slha",dir=self.SLHATEMPDIR )
                 tmpSLHA = self.createSLHAFile(tmpSLHA, addXsecs = False)
                 for sqrts in [8, 13]:
-                    self.computer.compute( sqrts*TeV, tmpSLHA, unlink=True,
-                                    loFromSlha=False, ssmultipliers = self.ssmultipliers )
-                    for x in self.computer.loXsecs:
-                        xsecs.append ( x )
+                    self.computer.compute( sqrts, tmpSLHA, ssmultipliers = self.ssmultipliers )
+                    # for x in self.computer.loXsecs:
+                    #     xsecs.append ( x )
+                    # self.computer.loXsecs = []
                     for x in self.computer.xsecs:
                         xsecs.append ( x )
-                    self.computer.loXsecs = []
                     self.computer.xsecs = []
-
                 comment = f"produced at step {self.step}"
                 pidsp = self.unFrozenParticles()
                 pidsp.sort()
@@ -396,6 +395,8 @@ class ProtoModel ( LoggerBase ):
                 if countAttempts > 1:
                     self.log( f"error computing cross-sections: {e}, attempt # {countAttempts}" )
                     self.pprint( f"error computing cross-sections: {e}, attempt # {countAttempts}" )
+                    import traceback
+                    trackback.print_stack()
                 # helpers.cpPythia8()
                 time.sleep ( random.uniform ( 5, 10 ) )
                 if countAttempts > 5:
@@ -427,7 +428,7 @@ class ProtoModel ( LoggerBase ):
             os.unlink ( self.currentSLHA )
 
     def createNewSLHAFileName ( self, prefix : str = "cur" ) -> str:
-        """ create a new SLHA file name. Needed when e.g. unpickling 
+        """ create a new SLHA file name. Needed when e.g. unpickling
         :returns: slha filename
         """
         self.delCurrentSLHA()
@@ -463,7 +464,7 @@ class ProtoModel ( LoggerBase ):
                         decays = self.decays[pid]
                     else:
                         mass = 1e6 #decoupled mass
-                        decays = {} #no decays to frozen particles
+                        decays = {} #no decays for frozen particles
 
                     #Replace mass tag:
                     if f"M{pid}" in l:
@@ -485,7 +486,7 @@ class ProtoModel ( LoggerBase ):
                     outF.write(l)
             outF.close()
 
-    def createSLHAFile ( self, outputSLHA : Union[str,None] = None, 
+    def createSLHAFile ( self, outputSLHA : Union[str,None] = None,
                          addXsecs : bool = True ):
         """ Creates the SLHA file with the masses, decays and cross-sections stored in the model.
 
@@ -591,8 +592,6 @@ class ProtoModel ( LoggerBase ):
         #Copy information
         newmodel.keep_meta = self.keep_meta
         newmodel.maxMass = self.maxMass
-        newmodel.minevents = self.minevents
-        newmodel.nevents = self.nevents
         newmodel.step = self.step
         newmodel.dbversion = self.dbversion
         newmodel.codeversion = self.codeversion
@@ -627,7 +626,7 @@ class ProtoModel ( LoggerBase ):
 
     def lightCopy(self,rmAttr=None):
         """Makes a light copy of the model using helpers.lightObjCopy.
-        If rmAttr is None, it will remove the default attributes defined in 
+        If rmAttr is None, it will remove the default attributes defined in
         helpers.lightObjCopy."""
 
         if rmAttr is not None:

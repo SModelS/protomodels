@@ -19,6 +19,11 @@ def pprintValue ( value : Union[None,float,numpy.float64],
         return f"{value:.{ndecimals}f}"
     return str(value)
 
+def nround ( value : Union[None,float], ndecimals : int ) -> Union[None,float]:
+    if type(value) == type(None):
+        return value
+    return round(value,ndecimals)
+
 def simplifyUnixPath ( path : str ) -> str:
     """ simple code to simplify file paths in printouts """
     path = path.replace( os.getcwd()+"/", "./" )

@@ -83,7 +83,7 @@ def writeMetaInfo ( rundir : str, meta : Dict ):
 def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
           dbpath : PathLike = "official", cheatcode : int = 0, 
           rundir : Union[None,str] = None, maxsteps : int = 10000,
-          nevents : int = 100000, seed : Union[None,int] = None, 
+          seed : Union[None,int] = None, 
           catch_exceptions : bool = True, select : str = "all",
           do_srcombine : bool = False, record_history : bool = False, 
           update_hiscores : bool = False, stopTeleportationAfter : int = -1,
@@ -96,7 +96,6 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
     :param cheatcode: in case we wish to start from a cheat model
     :param rundir: overrride default rundir, if None use default
     :param maxsteps: maximum number of steps to be taken
-    :param nevents: number of MC events when computing cross-sections
     :param seed: random seed number (optional)
     :param catch_exceptions: If True will catch the exceptions and exit.
     :param select: select only subset of results (all for all, em for efficiency 
@@ -176,7 +175,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
                     strategy = "aggressive", walkerid = i, dbpath = dbpath, 
                     expected = False, select = select, rundir = rundir, 
-                    nevents = nevents, do_srcombine = do_srcombine, 
+                    do_srcombine = do_srcombine, 
                     seed = seed, stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
     startWalkers ( walkers, catch_exceptions=catch_exceptions, seed=seed )
@@ -217,6 +216,6 @@ if __name__ == "__main__":
     # dbpath = "~/git/smodels-database"
     w = RandomWalker( walkerid=0, nsteps = 200, 
                       dbpath=dbpath, cheatcode=0, select=s,
-                      rundir="./", nevents=1000, seed = None )
+                      rundir="./", seed = None )
     w.walk()
 
