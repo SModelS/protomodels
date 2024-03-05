@@ -52,7 +52,7 @@ argparser.add_argument ( '-F', '--fetch',
 args = argparser.parse_args()
 
 if args.fetch:
-    cmd = "scp clip-login-1:/scratch-cbe/users/wolfgan.waltenberger/rundir.history/history.list ."
+    cmd = f"scp clip-login-1:{os.environ['HOME']}/rundir.history/history.list ."
     print ( cmd )
     subprocess.getoutput ( cmd )
 # prefix = args.outfile.replace(".mp4","").replace(".webm","")

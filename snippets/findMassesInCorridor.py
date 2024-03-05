@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-fname = "/scratch-cbe/users/wolfgan.waltenberger/rundir.fudged1/history34.list" 
+fname = "{os.environ['HOME']}/rundir.fudged1/history34.list" 
 with open ( fname, "rt" ) as h:
     txt = h.read()
     txt = txt.replace("nan",'"nan"')

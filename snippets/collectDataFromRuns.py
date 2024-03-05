@@ -67,7 +67,7 @@ def countSteps( Dir ):
 
 def count():
     """ count the total number of steps take in a run """
-    Dir = "/scratch-cbe/users/wolfgan.waltenberger/"
+    Dir = os.environ['HOME']
     Dirs = glob.glob ( f"{Dir}/rundir.*/hiscores.cache" )
     Dirs.sort()
     for d in Dirs:
@@ -80,7 +80,7 @@ def fetch( globber, useHiscores = False ):
     """ fetch states.dict files from the individual runs
     :param useHiscores: fetch hiscores.dict, else states.dict
     """
-    Dir = "/scratch-cbe/users/wolfgan.waltenberger/"
+    Dir = os.environ['HOME']
     dictfiles = "states.dict"
     if useHiscores:
         dictfiles = "hiscores.dict"

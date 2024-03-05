@@ -9,8 +9,7 @@ def main():
         description='count the number of finished jobs in protomodels production' )
     argparser.add_argument ( '-p', '--pattern', type=str, default="", 
         help="show only the ones that contain <pattern>" )
-    # "/scratch-cbe/users/wolfgan.waltenberger"
-    os.chdir ( "/scratch-cbe/users/wolfgan.waltenberger" )
+    os.chdir ( os.environ['CODEDIR'] )
     args = argparser.parse_args()
     Dirs = glob.glob ( f"rundir.{args.pattern}*/" )
     oldDict = {}
@@ -73,7 +72,7 @@ def main():
         if nold != None:
             line += " (was %5d)" % nold
         print ( line )
-        os.chdir ( "/scratch-cbe/users/wolfgan.waltenberger/" )
+        os.chdir ( os.environ['HOME'] )
     if len(Ks)==0:
         Ks=[0.]
     print ( "The current %d Ks are at [%.2f,%.2f+/-%.2f,%.2f], best found in %s" % \

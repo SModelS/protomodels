@@ -18,12 +18,12 @@ def setup( rundir = None, codedir = None ):
     """
     # codedir = "/mnt/hephy/pheno/ww/git/"
     if codedir == None:
-        codedir = "/scratch-cbe/users/wolfgan.waltenberger/git/"
+        codedir = f"{os.environ['HOME']}/git/"
     sys.path.insert(0, f"{codedir}/smodels/" )
     sys.path.insert(0, f"{codedir}/protomodels/" )
     if rundir != None:
         if not "/" in rundir[:-1]:
-            rundir = f"/scratch-cbe/users/wolfgan.waltenberger/{rundir}"
+            rundir = f"{os.environ['HOME']}/{rundir}"
         if not rundir.endswith("/"):
             rundir += "/"
         os.chdir ( rundir )

@@ -410,8 +410,6 @@ class LlhdPlot ( LoggerBase ):
         if not hasattr ( self, "database" ):
             from smodels.experiment.databaseObj import Database
             #dbname = "./original.pcl" 
-            #dbname = "/home/walten/git/smodels-database"
-            #dbname = "/scratch-cbe/users/wolfgan.waltenberger/rundir/db31.pcl"
             # dbname = "official"
             self.database = Database ( self.dbpath )
         from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName

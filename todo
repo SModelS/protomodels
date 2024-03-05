@@ -1,3 +1,6 @@
+*) is there a way to track the pids in smodels v3?
+	 would be nice for manipulator:freezePidsNotInBestCombo
+
 !) see if the teststatScanner works
 !) builder: if em results are available, do not use the UL results
 

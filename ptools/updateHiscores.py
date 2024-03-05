@@ -10,8 +10,7 @@ from os import PathLike
 from typing import Union, Dict
 
 def setup( rundir = None ):
-    # codedir = "/mnt/hephy/pheno/ww/git/"
-    codedir = "/scratch-cbe/users/wolfgan.waltenberger/git/"
+    codedir = os.environ['CODEDIR']
     sys.path.insert(0,f"{codedir}smodels/" )
     sys.path.insert(0,f"{codedir}smodels-utils/" )
     sys.path.insert(0,f"{codedir}/protomodels/" )
@@ -19,7 +18,7 @@ def setup( rundir = None ):
         rundir = rundir.replace ( "~", os.environ["HOME"] )
         os.chdir ( rundir )
         return rundir
-    rundir = "/scratch-cbe/users/wolfgan.waltenberger/rundir/"
+    rundir = os.environ['RUNDIR']
     # rundir = "/mnt/hephy/pheno/ww/rundir/"
     # rundir = "./"
     if os.path.exists ( "./rundir.conf" ):
@@ -73,7 +72,7 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
                 laststep = int ( laststep.strip() )
                 slurmfile = ""
                 if slurmid > 0:
-                    slurmfile = f"/scratch-cbe/users/wolfgan.waltenberger/outputs/walk-{slurmid}.out"
+                    slurmfile = f"{os.environ['HOME']}/outputs/walk-{slurmid}.out"
                 #print ( nr, laststep )
                 steps[nr]=laststep
                 if writeSubmitFile and laststep < 1000:
@@ -82,7 +81,7 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
                         rundir=rundir[:-1]
                     p = rundir.rfind("/")
                     rundir = rundir[p+1:]
-                    g.write ( f"rm -rf /scratch-cbe/users/wolfgan.waltenberger/{rundir}/H{nr}.hi\n" )
+                    g.write ( f"rm -rf {os.environ['HOME']}/{rundir}/H{nr}.hi\n" )
                     g.write ( "./slurm.py -R %s -n %d -N %d -M 1000\n" % \
                               ( rundir, nr, nr+1 ) )
                     if slurmfile != "":

@@ -4,8 +4,6 @@ import pickle, os, sys, subprocess, time, glob, colorama, math, numpy
 sys.path.insert(0,"../../")
 from protomodels.csetup import setup
 setup()
-#sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/protomodels/")
-#sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/smodels-utils/prototools/")
 from ptools import hiscoreTools
 from builder.manipulator import Manipulator
 from builder import protomodel
@@ -954,7 +952,7 @@ def runPlotting ( args ):
         print ( "Upload destinations: " )
         print ( "      none: no upload" )
         print ( "       gpu: upload to GPU server, afs space." )
-        print ( "            Result can be seen at http://www.hephy.at/user/wwaltenberger/protomodels/" )
+        print ( "            Result can be seen at http://smodels.github.io/protomodels/" )
         print ( "    github: upload to github git directory." )
         print ( f"            Result can be seen at {self.url}/protomodels" )
         print ( "interesting: upload to github git directory, 'interesting' folder." )

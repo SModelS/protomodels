@@ -25,7 +25,7 @@ class VariancePlotter ( LoggerBase ):
             cmd = f"rm -r {d}/history*list"
             subprocess.getoutput ( cmd )
             self.pprint ( f"fetching data from clip, {d}" )
-            cmd = f"scp clip-login-1:/scratch-cbe/users/wolfgan.waltenberger/rundir.{d}/history\*.list {d}/"
+            cmd = f"scp clip-login-1:{os.environ['RUNDIR']}.{d}/history\*.list {d}/"
             subprocess.getoutput ( cmd )
             number = d.replace("twice","")
             number=int(number)

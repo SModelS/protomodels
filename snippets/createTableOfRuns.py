@@ -2,11 +2,11 @@
 
 """ script to create table of runs, with test statistics and particle contents """
 
-import glob
+import glob, os
 from smodels_utils.helper.sparticleNames import SParticleNames
 
 def getDicts():
-    basedir = "/scratch-cbe/users/wolfgan.waltenberger/"
+    basedir = os.environ['CODEDIR']
     Tp = "rundir.real"
     files = glob.glob ( basedir + Tp + "*/states.dict" )
     Dicts = {}

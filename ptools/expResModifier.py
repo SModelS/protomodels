@@ -12,7 +12,6 @@ sys.path.insert( 0, "../" )
 sys.path.append('../smodels')
 from csetup import setup
 setup()
-#sys.path.insert(0,"/scratch-cbe/users/wolfgan.waltenberger/git/protomodels/")
 from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
@@ -1099,7 +1098,7 @@ Just filter the database:
             self.rundir = os.getcwd()
         if type(self.rundir)==str and not "/" in self.rundir and \
                 not self.rundir.startswith("."):
-            self.rundir = f"/scratch-cbe/users/wolfgan.waltenberger/{self.rundir}"
+            self.rundir = f"{os.environ['HOME']}/{self.rundir}"
         if self.outfile == "":
             self.outfile = self.suffix+".pcl"
         statsname = None
