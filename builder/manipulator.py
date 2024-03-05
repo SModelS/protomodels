@@ -1758,29 +1758,28 @@ class Manipulator ( LoggerBase ):
             self.M.ssmultipliers = ret
         return ret
 
-    """
     def getAllPidsOfBestCombo ( self ):
         # get all pids that appear in the best combo
         ret = set()
         if self.M.bestCombo is None:
             return ret
         for tp in self.M.bestCombo:
-            for prod in tp.PIDs:
-                for branch in prod:
-                    for pid in branch:
-                        if type(pid) == int:
-                            ret.add ( abs(pid) )
-                        if type(pid) in [ tuple, list ] and len(pid)>0:
-                            ret.add ( abs(pid[0]) )
-
+            avgSMS = tp.avgSMS
+            for dIndex in avgSMS.daughterIndices(avgSMS.rootIndex):
+                daughter = avgSMS.indexToNode(dIndex)
+                ret.add ( abs ( daughter.pdg ) )
+                for nodeIndex in avgSMS.dfsIndexIterator(dIndex):
+                    node = avgSMS.indexToNode(nodeIndex)
+                    if node.isSM:
+                        continue
+                    ret.add ( abs ( node.pdg ) )
         return ret
-    """
 
     def freezePidsNotInBestCombo ( self ):
         """ all pids that arent in best combo but have
             unfrozen masses -- freeze them """
-        self.pprint ( f"freezePidsNotInBestCombo FIXME do sth smart here!!" )
-        return 0 ## FIXME do sth smarter
+        #self.pprint ( f"freezePidsNotInBestCombo FIXME do sth smart here!!" )
+        # return 0 ## FIXME do sth smarter
         okPids = self.getAllPidsOfBestCombo()
         if len(okPids)==0: ## means we dont have a best combo
             return 0
@@ -1829,7 +1828,7 @@ if __name__ == "__main__":
     protomodels = pickle.load(f)
     f.close()
     ma = Manipulator ( protomodels[0], verbose=True )
-    # print ( ma.getAllPidsOfBestCombo() )
+    print ( ma.getAllPidsOfBestCombo() )
     #ma.merge ( ( 1000001, 1000003 ), force_merge = True )
     #import IPython
     #IPython.embed()

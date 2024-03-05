@@ -208,13 +208,13 @@ class RandomWalker ( LoggerBase ):
         namer = SParticleNames ( False )
 
         prtcles = ", ".join ( map ( namer.asciiName, pidsp ) )
-        #pidsbc = list ( self.manipulator.getAllPidsOfBestCombo() )
-        #pidsbc.sort()
-        # prtclesbc = ", ".join ( map ( namer.asciiName, pidsbc ) )
-        self.pprint ( f"Step {self.protomodel.step} has {nUnfrozen}/{nTotal} unfrozen particles: {prtcles}" ) # [in best combo: %s]" 
-        #if len(pidsbc)>0 and not set(pidsbc).issubset ( set(pidsp) ):
-        #    self.pprint ( "  `-- error! best combo pids arent subset of masses pids!!!" )
-        #    self.manipulator.M.bestCombo = None
+        pidsbc = list ( self.manipulator.getAllPidsOfBestCombo() )
+        pidsbc.sort()
+        prtclesbc = ", ".join ( map ( namer.asciiName, pidsbc ) )
+        self.pprint ( f"Step {self.protomodel.step} has {nUnfrozen}/{nTotal} unfrozen particles: {prtcles} [in best combo: {prtclesbc}]" )
+        if len(pidsbc)>0 and not set(pidsbc).issubset ( set(pidsp) ):
+            self.pprint ( f"  `-- error! best combo pids ({pidsbc}) arent subset of masses pids ({pidsp})!" )
+            self.manipulator.M.bestCombo = None
 
     def predict ( self, model : Union [ ProtoModel, None ] = None ):
         """ convenience function """

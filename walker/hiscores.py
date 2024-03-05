@@ -57,7 +57,7 @@ class Hiscores ( LoggerBase ):
         """ the current minimum K to make it into the list.
         :param zeroIsMin:  if false, min k can become negative
         """
-        if self.hiscores[-1] == None:
+        if self.hiscores[-1] == None or len(self.hiscores)<10:
             if zeroIsMin:
                 return 0.
             return -30.
