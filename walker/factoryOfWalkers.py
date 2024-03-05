@@ -176,7 +176,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
                     strategy = "aggressive", walkerid = i, dbpath = dbpath, 
                     expected = False, select = select, rundir = rundir, 
-                    nevents = nevents, do_srcombine = do_srcombine, 
+                     do_srcombine = do_srcombine, 
                     seed = seed, stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
     startWalkers ( walkers, catch_exceptions=catch_exceptions, seed=seed )
@@ -216,6 +216,6 @@ if __name__ == "__main__":
     # dbpath = "~/git/smodels-database"
     w = RandomWalker( walkerid=0, nsteps = 200, 
                       dbpath=dbpath, cheatcode=0, select=s,
-                      rundir="./", nevents=1000, seed = None )
+                      rundir="./",  seed = None ) 
     w.walk()
 

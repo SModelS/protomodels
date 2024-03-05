@@ -7,8 +7,9 @@ __all__ = [ "RandomWalker" ]
 import pickle, sys, time, math, socket, os
 import subprocess
 import numpy, colorama
-
+sys.path.insert(0,f"/{os.environ['HOME']}/git/protomodels/")
 try:
+    sys.path.insert(0,f"/{os.environ['HOME']}/git/smodels/")
     import smodels
 except:
     from ptools import setPath
@@ -60,7 +61,7 @@ class RandomWalker ( LoggerBase ):
         :param seed: random seed, int or None
         :param stopTeleportationAfter: int or None. we stop teleportation after
                 this step nr.  If negative or None, we dont teleport at all
-        """
+        """                                                                                                                                                       
         super ( RandomWalker, self ).__init__ ( walkerid )
         dbpath = os.path.expanduser ( dbpath )
         if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
