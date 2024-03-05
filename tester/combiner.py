@@ -13,6 +13,7 @@ from smodels.matching.theoryPrediction import TheoryPrediction
 import sys, os
 sys.path.insert(0,os.path.abspath ( os.path.dirname(__file__) ) )
 from protomodels.builder.loggerbase import LoggerBase
+from typing import Set
 
 try:
     from tester import analysisCombiner
@@ -22,7 +23,7 @@ import numpy, math, copy, sys, time
 from colorama import Fore
 from scipy import optimize, stats
 from scipy.special import erf
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Set
 # import IPython
 
 class Combiner ( LoggerBase ):
@@ -30,7 +31,7 @@ class Combiner ( LoggerBase ):
         super ( Combiner, self ).__init__ ( walkerid )
         self.walkerid = walkerid
 
-    def getAllPidsOfCombo ( self, combo ):
+    def getAllPidsOfCombo ( self, combo : List[TheoryPrediction] ) -> Set:
         """ get all PIDs that make it into one combo """
         pids = set()
         for theoryPred in combo:
@@ -51,10 +52,12 @@ class Combiner ( LoggerBase ):
                 anaIds.add ( theoryPred.analysisId() )
         return anaIds
 
-    def getAllPidsOfTheoryPred ( self, pred ):
+    def getAllPidsOfTheoryPred ( self, pred : TheoryPrediction ) -> Set:
         # get all pids that make it into a theory prediction
         pids = set()
         avgSMS = pred.avgSMS
+        if avgSMS == None:
+            return pids
         for dIndex in avgSMS.daughterIndices(avgSMS.rootIndex):
             daughter = avgSMS.indexToNode(dIndex)
             pids.add ( abs ( daughter.pdg ) )

@@ -17,7 +17,7 @@ import smodels
 import copy, os, sys, itertools, colorama, random
 import numpy as np
 from colorama import Fore as ansi
-from typing import Union, Dict, List, Tuple
+from typing import Union, Dict, List, Tuple, Set
 from builder.loggerbase import LoggerBase
 from os import PathLike
 
@@ -1758,22 +1758,12 @@ class Manipulator ( LoggerBase ):
             self.M.ssmultipliers = ret
         return ret
 
-    def getAllPidsOfBestCombo ( self ):
-        # get all pids that appear in the best combo
-        ret = set()
-        if self.M.bestCombo is None:
-            return ret
-        for tp in self.M.bestCombo:
-            avgSMS = tp.avgSMS
-            for dIndex in avgSMS.daughterIndices(avgSMS.rootIndex):
-                daughter = avgSMS.indexToNode(dIndex)
-                ret.add ( abs ( daughter.pdg ) )
-                for nodeIndex in avgSMS.dfsIndexIterator(dIndex):
-                    node = avgSMS.indexToNode(nodeIndex)
-                    if node.isSM:
-                        continue
-                    ret.add ( abs ( node.pdg ) )
-        return ret
+    def getAllPidsOfBestCombo ( self ) -> Set:
+        """ get all the particle ids of BSM particles in
+        the best combo. """
+        from tester.combiner import Combiner
+        c = Combiner ( self.walkerid )
+        return c.getAllPidsOfCombo ( self.M.bestCombo )
 
     def freezePidsNotInBestCombo ( self ):
         """ all pids that arent in best combo but have
