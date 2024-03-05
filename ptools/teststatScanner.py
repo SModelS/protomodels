@@ -112,13 +112,8 @@ class TeststatScanner ( LoggerBase ):
                 ret[m]["r"] = model.rvalues
                 ret[m]["critics"] = self.createCriticResults ( model )
             print ()
-            def prettyPrint(v):
-                if type(v) in [ float, numpy.float64 ]:
-                    return f"{v:.2f}"
-                if type(v) in [ list ]:
-                    return prettyPrint(v[0])
-                return v
-            self.pprint ( f"m({self.namer.asciiName(pid)})={m:.1f}: { ', '.join ( f'{k}={prettyPrint(v)}' for k,v in ret[m].items() ) }" )
+            from ptools.helpers import prettyPrint
+            self.pprint ( f"m({self.namer.asciiName(pid)})={m:.1f}: { ', '.join ( f'{k}={prettyPrint(v,maxrows=1)}' for k,v in ret[m].items() ) }" )
             self.pprint ()
             # model.delCurrentSLHA()
         return ret

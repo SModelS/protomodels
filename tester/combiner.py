@@ -58,14 +58,19 @@ class Combiner ( LoggerBase ):
         avgSMS = pred.avgSMS
         if avgSMS == None:
             return pids
+        def addPDGs ( pids, pid ):
+            if type(pid) == int:
+                pids.add ( abs(pid) )
+            if type(pid) in [ tuple, list ]:
+                pids.union ( map ( abs, pid ) )
         for dIndex in avgSMS.daughterIndices(avgSMS.rootIndex):
             daughter = avgSMS.indexToNode(dIndex)
-            pids.add ( abs ( daughter.pdg ) )
+            addPDGs ( pids, daughter.pdg )
             for nodeIndex in avgSMS.dfsIndexIterator(dIndex):
                 node = avgSMS.indexToNode(nodeIndex)
                 if node.isSM:
                     continue
-                pids.add ( abs ( node.pdg ) )
+                addPDGs ( pids, node.pdg )
         return pids
 
     def findCompatibles ( self, predA, predictions, strategy ):

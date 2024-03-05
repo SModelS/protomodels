@@ -12,11 +12,22 @@ import scipy.stats
 from os import PathLike
 from typing import Union
 
-def pprintValue ( value : Union[None,float,numpy.float64], 
-        ndecimals : int = 2 ) -> str:
-    """ pretty print a value, but allow for it to also be None """
+def prettyPrint ( value : Union[None,float,numpy.float64], 
+        ndecimals : int = 2, maxrows : int = 0 ) -> str:
+    """ pretty print a value, but allow for it to also be None 
+
+    :param maxrows: maximum number of rows for lists and tuples. zero is all.
+    """
     if type(value) in [ float, numpy.float64 ]:
         return f"{value:.{ndecimals}f}"
+    if type(value) in [ list, tuple ]:
+        if maxrows == 0:
+            maxrows = len(value)
+        ret = ', '.join ( map ( prettyPrint, value[:maxrows], [ndecimals]*len(value[:maxrows]) ) )
+        return ret
+    if type(value) == dict:
+        ret = ', '.join(f'{k}: {prettyPrint(v,ndecimals)}' for k,v in value.items())
+        return "{ "+ret+" }"
     return str(value)
 
 def nround ( value : Union[None,float], ndecimals : int ) -> Union[None,float]:

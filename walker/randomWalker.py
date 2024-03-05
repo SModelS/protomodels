@@ -28,7 +28,7 @@ from smodels.base.smodelsLogging import logger
 from typing import Callable, Dict, Union
 from os import PathLike
 from builder.loggerbase import LoggerBase
-from ptools.helpers import pprintValue
+from ptools.helpers import prettyPrint
 
 logger.setLevel("ERROR")
 
@@ -402,10 +402,10 @@ class RandomWalker ( LoggerBase ):
         else:
             u=random.uniform(0.,1.)
             if u > ratio:
-                self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {pprintValue(self.currentK)} -> {pprintValue(self.protomodel.K)}: revert." )
+                self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(self.currentK)} -> {prettyPrint(self.protomodel.K)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.pprint ( f"u={u:.2f} <= {ratio:.2f} ; {pprintValue(self.currentK)} -> {pprintValue(self.protomodel.Z)}: take the step, even though old is better." )
+                self.pprint ( f"u={u:.2f} <= {ratio:.2f} ; {prettyPrint(self.currentK)} -> {prettyPrint(self.protomodel.Z)}: take the step, even though old is better." )
                 self.takeStep()
 
     def record ( self ):
