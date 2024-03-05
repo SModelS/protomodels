@@ -64,8 +64,7 @@ class HiscorePlotter:
         print ( "How the K comes about. Best combo:" )
         combo = self.protomodel.bestCombo
         for pred in combo:
-            print ( "theory pred: %s:%s" % ( pred.expResult.globalInfo.id, ",".join ( set ( map ( str, pred.txnames ) ) ) ) )
-            # print ( "     `- ", pred.expResult.globalInfo.id, "ana", pred.analysis, "masses", pred.mass, "txnames", pred.txnames, "type", pred.dataType() )
+            print ( f"[plotHiscore] theory pred: {pred.expResult.globalInfo.id}:{','.join ( set ( map ( str, pred.txnames ) ) )}" )
 
     def getExtremeSSMs ( self, ssm : Dict, largest : bool , nm : int = 7 ):
         """ get latex code describing the most extreme signal strength multipliers.
@@ -146,14 +145,9 @@ class HiscorePlotter:
                 if toterr > 0.:
                     sigma = (dI.observedN - eBG ) / toterr
                     S = f"{sigma:.1f} &sigma;" 
-                pids = set()
-                for prod in tp.PIDs:
-                    for branch in prod:
-                        for pid in branch:
-                            if type(pid) == int and abs(pid)!=1000022:
-                                pids.add ( abs(pid) )
-                            if type(pid) in [ list, tuple ] and abs(pid[0])!=1000022:
-                                pids.add ( abs(pid[0]) )
+                from tester.combiner import Combiner
+                c = Combiner( self.protomodel.walkerid )
+                pids = c.getAllPidsOfTheoryPred ( tp )
                 obsN = dI.observedN
                 if ( obsN - int(obsN) ) < 1e-6:
                     obsN=int(obsN)
@@ -193,9 +187,7 @@ class HiscorePlotter:
                 #particles = helpers.toHtml ( pids, addSign = False,
                 #                              addBrackets = False )
                 particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
-                f.write ( '<td>-</td><td>%s</td><td> %.1g fb </td><td> %.1g fb</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
-                        ( topos, tp.getUpperLimit().asNumber(fb), tp.getUpperLimit ( expected = True ).asNumber(fb),
-                          S, particles ) )
+                f.write ( f'<td>-</td><td>{topos}</td><td> {tp.getUpperLimit().asNumber(fb):.1g} fb </td><td> {tp.getUpperLimit ( expected = True ).asNumber(fb):.1g} fb</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>'  )
                 if hassigs:
                     sig = "-"
                     for txn in tp.txnames:
@@ -215,25 +207,18 @@ class HiscorePlotter:
                 # S = "%.2g l" % llhd
                 # print ( "llhd,chi2,Z", llhd,chi2,Z )
                 # p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
-                pids = set()
-                for prod in tp.PIDs:
-                    for branch in prod:
-                        for pid in branch:
-                            if type(pid) == int and abs(pid)!=1000022:
-                                pids.add ( abs(pid) )
-                            if type(pid) in [ list, tuple ] and abs(pid[0])!=1000022:
-                                pids.add ( abs(pid[0]) )
+                from tester.combiner import Combiner
+                c = Combiner( self.protomodel.walkerid )
+                pids = c.getAllPidsOfTheoryPred ( tp )
                 particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
-                f.write ( '<td>-</td><td>%s</td><td> %.1g fb </td><td> %.1g fb</td><td style="text-align:right">%s</td><td style="text-align:right">%s</td>' % \
-                        ( topos, tp.getUpperLimit().asNumber(fb), tp.getUpperLimit ( expected = True ).asNumber(fb),
-                          S, particles ) )
+                f.write ( f'<td>-</td><td>{topos}</td><td> {tp.getUpperLimit().asNumber(fb):.1g} fb </td><td> {tp.getUpperLimit ( expected = True ).asNumber(fb):.1g} fb</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>')
                 if hassigs:
                     sig = "-"
                     for txn in tp.txnames:
                     # for txn in tp.dataset.txnameList:
                         if hasattr ( txn, "sigmaN" ):
-                            sig = "%.2f fb" % txn.sigmaN
-                    f.write ( '<td style="text-align:right">%s</td>' % sig )
+                            sig = f"{txn.sigmaN:.2f} fb"
+                    f.write ( f'<td style="text-align:right">{sig}</td>' )
             f.write ( '</tr>\n' )
         f.write("</table>\n" )
         f.close()
@@ -259,7 +244,6 @@ class HiscorePlotter:
             dtype = tp.dataType()
             print ( f"[plotHiscore] item {anaId} ({dtype})" )
             dt = { "upperLimit": "ul", "efficiencyMap": "em" }
-            # f.write ( "%s & %s & " % ( anaId, dt[dtype] ) )
             ref = bibtex.query ( anaId )
             f.write ( f"{ananame}~\\cite{{ref}} & " )
             if dtype == "efficiencyMap":
@@ -267,8 +251,7 @@ class HiscorePlotter:
                 obsN = dI.observedN
                 if ( obsN - int(obsN) ) < 1e-6:
                     obsN=int(obsN)
-                print ( "  `- %s: observedN %s, bg %s +/- %s" % \
-                        ( dI.dataId, obsN, dI.expectedBG, dI.bgError ) )
+                print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError}" )
                 did = dI.dataId.replace("_","\_")
                 if len(did)>9:
                     did=did[:6]+" ..."
@@ -282,16 +265,9 @@ class HiscorePlotter:
                 if toterr > 0.:
                     S = "%.1f $\sigma$" % ( (dI.observedN - eBG ) / toterr )
                 # pids = tp.PIDs
-                pids = set()
-                for prod in tp.PIDs:
-                    for branch in prod:
-                        for pid in branch:
-                            if type(pid) == int and abs(pid)!=1000022:
-                                pids.add ( abs(pid) )
-                            if type(pid) in [ list, tuple ]:
-                                p = abs(pid[0])
-                                if p!=1000022:
-                                    pids.add ( p )
+                from tester.combiner import Combiner
+                c = Combiner( self.protomodel.walkerid )
+                pids = c.getAllPidsOfTheoryPred ( tp )
                 particles = namer.texName ( pids, addDollars=True, addSign = False,
                                               addBrackets = False )
                 obs = dI.observedN
@@ -300,11 +276,9 @@ class HiscorePlotter:
                 else:
                     if abs ( obs - int(obs) ) / obs < 1e-6:
                         obs = int ( obs )
-                sigN = tp.xsection.value.asNumber(fb) * tp.dataset.globalInfo.lumi.asNumber(1/fb)
-                #sigmapred="%.2f fb" % ( tp.xsection.value.asNumber(fb) )
-                sigmapred="%.2f" % sigN
-                f.write ( "%s & %s & %s $\\pm$ %s & %s & %s & %s \\\\ \n" % \
-                          ( did, obs, eBG, bgErr, S, particles, sigmapred ) )
+                sigN = tp.xsection.asNumber(fb) * tp.dataset.globalInfo.lumi.asNumber(1/fb)
+                sigmapred=f"{sigN:.2f}"
+                f.write ( f"{did} & {obs} & {eBG} $\\pm$ {bgErr} & {S} & {particles} & {sigmapred} \\\\ \n" )
             if dtype in [ "upperLimit", "combined" ]:
                 S = "?"
                 llhd = tp.likelihood ( expected=False )
@@ -314,19 +288,12 @@ class HiscorePlotter:
                 Z = ( oUL - eUL ) / sigma_exp
                 # Z = math.sqrt ( chi2 )
                 S = f"{Z:.1f} $\sigma$"
-                pids = set()
-                for prod in tp.PIDs:
-                    for branch in prod:
-                        for pid in branch:
-                            if type(pid)==int and abs(pid)!=1000022:
-                                pids.add ( abs(pid) )
-                            if type(pid) in [ tuple, list ]:
-                                for p in pid:
-                                    if type(p)==int and abs(p)!=1000022:
-                                        pids.add ( abs(p) )
+                from tester.combiner import Combiner
+                c = Combiner( self.protomodel.walkerid )
+                pids = c.getAllPidsOfTheoryPred ( tp )
                 particles = namer.texName ( pids, addDollars=True, addSign = False,
                                             addBrackets = False )
-                sigmapred=f"{tp.xsection.value.asNumber(fb)} fb"
+                sigmapred=f"{tp.xsection.asNumber(fb)} fb"
                 print ( f"  `- observed {oUL:.2f}*fb, expected {eUL:.2f}*fb {Z:.1f} sigma" )
                 f.write ( f" & {oUL:.1f} fb & {eUL:.1f} fb & {S} & {particles} & {sigmapred} \\\\ \n" )
         f.write("\end{tabular}\n" )
@@ -344,7 +311,7 @@ class HiscorePlotter:
             if order > 0:
                 continue
             if pids == xsec.pid:
-                return xsec.value
+                return xsec
         return 0.*fb
 
     def writeTex ( self, keep_tex : bool ):
@@ -392,8 +359,7 @@ class HiscorePlotter:
                 perc = 100.
                 if totalcont != 0.:
                     perc = round(100.*(self.protomodel.K - v)/totalcont )
-                tok[v] = "%s: K_\mathrm{without}=%.2f (%d%s)" % ( namer.texName(k), v, perc, "\%" )
-                # tok[v] = "%s = (%.2f) %d%s" % ( namer.texName(k), v, perc, "\%" )
+                tok[v] = f"{namer.texName(k)}: K_\mathrm{{without}}={v:.2f} ({perc}%)"
             keys = list ( tok.keys() )
             keys.sort()
             for v in keys:
@@ -444,13 +410,11 @@ class HiscorePlotter:
                 if i.analysisId() == ana and hasattr ( i.dataset.globalInfo, "url" ):
                     url = i.dataset.globalInfo.url
                     break
-            return "<a href=%s>%s</a>" % \
-                   ( url, ana )
+            return f"<a href={url}>{ana}</a>"
         if type(ana)==TheoryPrediction:
             if not hasattr ( ana.dataset.globalInfo, "url" ):
                 return ( ana.analysisId() )
-            return "<a href=%s>%s</a>" % \
-                   ( ana.dataset.globalInfo.url, ana.analysisId() )
+            return f"<a href={ana.dataset.globalInfo.url}>{ana.analysisId()}</a>"
 
     def getPrettyName ( self, rv ):
         if hasattr ( rv.dataset.globalInfo, "prettyName" ):
@@ -507,13 +471,12 @@ class HiscorePlotter:
                 prod.append (tmp)
             prod = "; ".join(prod)
             sigmapred = "20.13"
-            sigmapred = rv['tp'].xsection.value.asNumber(fb)
+            sigmapred = rv['tp'].xsection.asNumber(fb)
             sigmaexp = "--"
             if type(rv['tp'].getUpperLimit ( expected = True )) != type(None):
                 sigmaexp = "%.2f" % rv['tp'].getUpperLimit ( expected=True ).asNumber(fb)
             sigmaobs = rv['tp'].getUpperLimit().asNumber(fb)
-            g.write ( "%s~\\cite{%s} & %s & %.2f & %.2f & %s & %.2f\\\\\n" % \
-                    ( prettyName, ref, prod, sigmapred, sigmaobs, sigmaexp, rv['robs'] ) )
+            g.write ( f"{prettyName}~\\cite{{{ref}}} & {prod} & {sigmapred:.2f} & {sigmaobs:.2f} & {sigmaexp} & {rv['obs']:.2f}\\\\\n" )
         g.write ( "\\end{tabular}\n" )
         g.close()
 
@@ -539,15 +502,13 @@ class HiscorePlotter:
         for k,v in self.protomodel.ssmultipliers.items():
             if abs(v-1.)<1e-3:
                 continue
-            ssm.append ( "%s: %.2f" % ( namer.texName(k,addSign=True),v) )
+            ssm.append ( f"{namer.texName(k,addSign=True)}: {v:.2f}" )
         f=open("index.tex","w")
-        f.write ( "Our current winner has a score of \\K=%.2f, " % \
-                  ( self.protomodel.K ) )
+        f.write ( f"Our current winner has a score of \\K={self.protomodel.K:.2f}, ")
         strategy = "aggressive"
         dbver = self.getDatabaseVersion ( )
         dotlessv = dbver.replace(".","")
-        f.write ( " it was produced with database {\\tt v%s}, combination strategy {\\tt %s} walker %d in step %d." % \
-                ( dotlessv, strategy, self.protomodel.walkerid, self.protomodel.step ) )
+        f.write ( f" it was produced with database {{\\tt v{dotlessv}}}, combination strategy {{\\tt {strategy}}} walker {self.protomodel.walkerid} in step {self.protomodel.step}." )
         f.write ( "\n" )
         if hasattr ( protomodel, "tpList" ):
             rvalues=protomodel.tpList
@@ -584,9 +545,7 @@ class HiscorePlotter:
             for v,k in conts:
                 Kwithout= contributions[k]
                 cont = ( Ktot - Kwithout ) / dKtot
-                f.write ( "%s & %.2f & %s%s \\\\ \n" % ( k, Kwithout, int(round(100.*cont)), "\\%" ) )
-                # f.write ( "\item %s: %s%s\n" % ( k, int(round(100.*v)), "\\%" ) )
-            # f.write ( "\end{itemize}\n" )
+                f.write (f"{k} & {Kwithout:.2f} & {int(round(100.*cont))}% \\\\ \n")
             f.write ( "\\end{tabular}\n" )
             f.write ( "\\end{center}\n" )
             f.write ( "\\caption{Contributions to the test statistic \\K. \\K(without) denotes the \\K value obtained in absence of the particular analysis.}\n" )
@@ -600,9 +559,6 @@ class HiscorePlotter:
             height = 32
         if hasattr ( protomodel, "particleContributions" ):
             height += 32
-        # f.write ( "<td><img width=600px src=./texdoc.png>\n" ) #  % height )
-        # f.write ( "\small{Last updated: %s}\n" % time.asctime() )
-        # f.write ( "% include decays.png\n" )
         contrs = texdoc.replace(":"," are " ).replace("S","The s").replace(";",", " )
         contrs = contrs.replace( "\\\\\\\\Contr", "; the contr" )
         f.write ( contrs + "\n" )
@@ -695,13 +651,13 @@ class HiscorePlotter:
             f.write ( f"<i>K</i> plots for: <a href=./M1000022.png?{dt}>{namer.htmlName(1000022)}</a>" )
             for k,v in self.protomodel.particleContributions.items():
                 f.write ( ", " )
-                f.write ( "<a href=./M%d.png?%d>%s</a>" % ( k, dt, namer.htmlName(k) ) )
+                f.write ( f"<a href=./M{k}.png?{dt}>{namer.htmlName(k)}</a>" )
             f.write ( ". HPD plots for: " )
             first = True
             for k,v in self.protomodel.particleContributions.items():
                 if not first:
                     f.write ( ", " )
-                f.write ( "<a href=./llhd%d.png?%d>%s</a>" % ( k, dt, namer.htmlName(k) ) )
+                f.write ( f"<a href=./llhd{k}.png?{dt}>{namer.htmlName(k)}</a>" )
                 first = False
         # fixme replace with some autodetection mechanism
         # take out all frozen ssm plots
@@ -743,7 +699,7 @@ class HiscorePlotter:
             for rv in rvalues[:5]:
                 srv="N/A"
                 if type(rv['rexp']) in [ float, numpy.float64, numpy.float32 ]:
-                    srv="%.2f" % rv['rexp']
+                    srv= f"{rv['rexp']:.2f}"
                 elif type(rv['rexp']) != type(None):
                     srv=str(rv['rexp'])
                 f.write ( f"<li>{self.anaNameAndUrl ( rv['tp'] )}:{rv['tp'].dataType(short=True)}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>\n" )
@@ -768,8 +724,8 @@ class HiscorePlotter:
                 nameAndUrl = self.anaNameAndUrl ( k )
                 kv = str(v)
                 if type(v) in [ float, numpy.float64 ]:
-                    kv = "%.2f (%d%s)" % ( v,int(round(100.*cont)), "%" )
-                f.write ( "<li> %s: %s\n" % ( nameAndUrl, kv ) )
+                    kv = f"{v:.2f} ({int(round(100.*cont))}%)"
+                f.write ( f"<li> {nameAndUrl}: {kv}\n" )
             # f.write ( "</table>\n" )
         else:
             print ( "[plotHiscore] analysis-contributions are not defined" )
@@ -780,17 +736,16 @@ class HiscorePlotter:
         if hasattr ( protomodel, "particleContributions" ):
             height += 32
         t0 = int(time.time())
-        f.write ( "<td><img width=600px src=./texdoc.png?%d>\n" % ( t0 ) )
-        f.write ( "<br><font size=-1>Last updated: %s</font>\n" % time.asctime() )
+        f.write ( f"<td><img width=600px src=./texdoc.png?{t0}>\n" )
+        f.write ( f"<br><font size=-1>Last updated: {time.asctime()}</font>\n" )
         f.write ( "</table>" )
         f.write ( '<table style="width:80%">\n' )
         f.write ( "<td width=45%>" )
-        f.write ( "<img height=580px src=./ruler.png?%d>" % ( t0 ) )
+        f.write ( f"<img height=580px src=./ruler.png?{t0}>" )
         f.write ( "<td width=55%>" )
-        f.write ( "<img height=340px src=./decays.png?%d>\n" % ( t0 ) )
-        f.write ( '<font size=-3><iframe type="text/html" height="270px" width="100%s" frameborder="0" src="./rawnumbers.html?%d"></iframe></font>\n' % ( "%s", t0 ) )
+        f.write ( f"<img height=340px src=./decays.png?{t0}>\n" )
+        f.write ( f'<font size=-3><iframe type="text/html" height="270px" width="100%" frameborder="0" src="./rawnumbers.html?{t0}"></iframe></font>\n' )
         f.write ( "</table>\n" )
-        # f.write ( "<br><font size=-1>Last updated: %s</font>\n" % time.asctime() )
         f.write ( "</body>\n" )
         f.write ( "</html>\n" )
         f.close()
@@ -826,22 +781,15 @@ class HiscorePlotter:
             if tpred.dataId() in [ "None", None ]:
                 dType = "ul"
             name = name + ":" + dType
-        for pids in tpred.PIDs:
-            for br in pids:
-                for pid in br:
-                    if type(pid) in [ list ]:
-                        for pp in pid:
-                            apid = abs(pp)
-                            if not apid in ret and not apid == LSP:
-                                ret[apid]=set()
-                            if not apid == LSP:
-                                ret[apid].add ( name )
-                    else:
-                        apid = abs(pid)
-                        if not apid in ret and not apid == LSP:
-                            ret[apid]=set()
-                        if not apid == LSP:
-                            ret[apid].add ( name )
+        from tester.combiner import Combiner
+        c = Combiner( self.protomodel.walkerid )
+        pids = c.getAllPidsOfTheoryPred ( tpred )
+        for pid in pids:
+            if pid == LSP:
+                continue
+            if not pid in ret:
+                ret[pid]=set()
+            ret[pid].add ( name )
         return ret
 
     def plotRuler( self, verbosity : str, horizontal : bool ):
@@ -864,8 +812,7 @@ class HiscorePlotter:
                 print ( "[plotHiscore] why is pid %s not in mass dict %s?" % ( pid, str(protomodel.masses) ) )
 
         if verbosity == "debug":
-            print ( '[plotHiscore] ../smodels-utils/smodels_utils/plotting/rulerPlotter.py -o ruler.png --hasResultsFor "%s" %s' % \
-                    ( str(resultsFor), self.protomodel.currentSLHA ) )
+            print ( f'[plotHiscore] ../smodels-utils/smodels_utils/plotting/rulerPlotter.py -o ruler.png --hasResultsFor "{str(resultsFor)}" {self.protomodel.currentSLHA}'  )
 
         plotter = rulerPlotter.RulerPlot ( self.protomodel.currentSLHA, fname,
                                            Range=(None, None), mergesquark = False,
@@ -896,7 +843,7 @@ class HiscorePlotter:
             soptions = ""
             for k,v in options.items():
                 if v==True:
-                    soptions += "--%s " % k
+                    soptions += f"--{k} "
             ma = Manipulator ( self.protomodel )
             ssms = ma.simplifySSMs()
             # soptions+=' --ssmultipliers "%s"' % ssms
