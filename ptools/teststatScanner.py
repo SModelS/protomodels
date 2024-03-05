@@ -180,6 +180,9 @@ class TeststatScanner ( LoggerBase ):
             return
         pid = abs(pid)
         model = self.hi.hiscores[0]
+        if not pid in model.masses:
+                self.pprint ( f"{self.namer.asciiName(pid)} does not appear in hiscore protomodel!") 
+                sys.exit()
         self.origmasses = copy.deepcopy ( model.masses )
         fac = self.args["factor"]
         if fac == None:
