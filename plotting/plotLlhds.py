@@ -110,6 +110,7 @@ class LlhdPlot ( LoggerBase ):
         self.namer = SParticleNames ( susy = False )
         pid1, pid2 = self.namer.pid ( pid1 ), self.namer.pid ( pid2 )
         self.dbpath = dbpath
+        self.usePrettyNames = False
         self.rundir = rundir
         self.upload = upload
         self.setup( pid1, pid2 )
@@ -405,7 +406,8 @@ class LlhdPlot ( LoggerBase ):
 
     def getPrettyName ( self, anaid ):
         """ get pretty name of ana id """
-        if False: ## set to true and we have the old analysis Ids
+        if not self.usePrettyNames: ## set to true and we have the old analysis Ids
+            anaid = anaid.replace("(combined)","(comb)" )
             return anaid
         if not hasattr ( self, "database" ):
             from smodels.experiment.databaseObj import Database
