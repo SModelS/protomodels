@@ -186,18 +186,20 @@ class Combiner ( LoggerBase ):
         return ret
 
     def getLetters( self, predictions ):
+        '''assign a letter to every prediction. for debugging'''
+
         letters={}
         if predictions is None:
             return letters
-        ## assign a letter to every prediction. for debugging
-        letter=65
+
+        letter=65                   #char = A
         # self.pprint ( "[combine] Letters assigned to results:" )
         for p in predictions:
             letters[p]=chr(letter)
             # self.pprint ( "[combine] Prediction %s: %s" % ( letters[p], p.expResult.globalInfo.id ) )
             letter+=1
-            if letter == 91: # skip the special characters
-                letter = 97
+            if letter == 91:        # skip the special characters
+                letter = 97         #char = a
         return letters
 
     def getComboDescription ( self, combination ):
@@ -601,47 +603,53 @@ class Combiner ( LoggerBase ):
         #                      "; ".join(map(str,prediction.PIDs) ) )
 
     def sortPredictions ( self, predictions : List ) -> List:
-        d = {}
-        for p in predictions:
-            l0 = p.likelihood ( 0. )
-            l1 = p.likelihood ( 1. )
-            r = -1.
+        """ sort the predictions according to decreasing L_BSM/L_SM and return the 
+            sorted list of predictions
+        :param predictions: list of theory predictions
+        :returns: sorted list of theory predictions
+        """
+        sorted_pred = {}
+
+        for pred in predictions:
+            l0 = pred.likelihood ( 0. )    #SM mu = 0
+            l1 = pred.likelihood ( 1. )    #BSM mu = 1
+            llhd_ratio = -1.
             if type(l0)!=type(None):
-                r = l1/l0
-            d[r] = p
-        ratios = list(d.keys())
-        ratios.sort(reverse=True)
-        newpreds = []
-        for r in ratios:
-            newpreds.append ( d[r] )
+                llhd_ratio = l1/l0
+            sorted_pred[llhd_ratio] = pred
+ 
+        sorted_pred = dict((sorted(sorted_pred.items(), reverse=True)))
+        newpreds = sorted_pred.values()
+
         return newpreds
+
 
     def selectMostSignificantSR ( self, predictions : List ) -> List:
         """ given, the predictions, for any analysis and topology,
             return the most significant SR only.
         :param predictions: all predictions of all SRs
-        :returns: filtered predictions
+        :returns: list of predictions of most significant SR of each analysis
         """
         sortByAnaId = {} ## first sort all by ana id + data Type
-        for i in predictions:
-            Id = i.analysisId()+":"+i.dataType(True)
+        for pred in predictions:
+            Id = pred.analysisId()+":"+pred.dataType(True)
             if not Id in sortByAnaId:
                 sortByAnaId[Id]=[]
-            sortByAnaId[Id].append ( i )
+            sortByAnaId[Id].append ( pred )
         ret = []
         keptThese = [] ## log the ana ids that we kept, for debugging only.
         for Id,preds in sortByAnaId.items():
-            maxR, bestpred = 0., None
+            maxRatio, bestpred = 0., None
             for pred in preds:
                 oul = pred.getUpperLimit(expected=False)
                 eul = pred.getUpperLimit(expected=True)
                 if oul is None or eul is None:
                     continue
-                r = oul / eul
-                if r > maxR:
-                    maxR = r
+                ratio = oul / eul
+                if ratio > maxRatio:
+                    maxRatio = ratio
                     bestpred = pred
-            if maxR > 0. and bestpred != None:
+            if maxRatio > 0. and bestpred != None:
                 ret.append ( bestpred )
                 keptThese.append ( self.getPredictionID ( bestpred ) )
         self.pprint ( f"selected predictions down via SRs from {len(predictions)}"\
@@ -733,9 +741,11 @@ class Combiner ( LoggerBase ):
     def findHighestSignificance ( self, predictions : List[TheoryPrediction], 
             strategy : str, expected : bool =False, 
             mumax : Union[None,float] = None ) -> Tuple:
-        """ for the given list of predictions and employing the given strategy,
-        find the combo with highest significance
+        """ for the given list of predictions and employing the given combination strategy,
+        find the combination with highest significance
 
+        :param predictions: list of theory predictions
+        :param strategy: the combination strategy to use
         :param expected: find the highest expected significance, not observed
         :param mumax: maximimal signal strength mu that is allowed before we run
         into an exclusion
