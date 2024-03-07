@@ -11,7 +11,7 @@ from scipy import stats
 from protomodels.csetup import setup
 setup()
 from builder.manipulator import Manipulator
-from tester.combiner import  Combiner
+from tester.combiner import Combiner
 from ptools import helpers
 from ptools import sparticleNames
 from typing import Union

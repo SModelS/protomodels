@@ -64,6 +64,8 @@ class RandomWalker ( LoggerBase ):
         :param stopTeleportationAfter: int or None. we stop teleportation after
                 this step nr.  If negative or None, we dont teleport at all
         """
+
+        #call the super class of the random walker i.e Loggerbase 
         super ( RandomWalker, self ).__init__ ( walkerid )
         dbpath = os.path.expanduser ( dbpath )
         if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
