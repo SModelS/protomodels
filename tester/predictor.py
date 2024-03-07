@@ -431,10 +431,11 @@ class Predictor ( LoggerBase ):
                 print ( f" - {p.analysisId()}:{dataId}: {txns}" )
 
     def updateModelPredictions(self, protomodel, predictions):
-        """ Extract information from list of theory predictions and store in the protomodel.
-        :param predictions: all theory predictions
-        :returns: list of tuples with observed r values, r expected and
-                  theory prediction info (sorted with highest r-value first)
+        """ Extract information from list of theory predictions and store list of dict with r_obs, 
+            r_exp and theory prediction(sorted according to decreasing r_obs values) in the protomodel.
+            Also store description about the crtic_tp in the protomodel.
+            
+            :param predictions: all theory predictions
         """
 
         rvalues = [] #If there are no predictions set rmax and r2 to 0
