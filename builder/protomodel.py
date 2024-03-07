@@ -6,6 +6,7 @@ __all__ = [ "ProtoModel" ]
 
 import random, tempfile, os, time, colorama, copy, sys, pickle, random
 sys.path.insert(0,"../")
+sys.path.insert(0,f"{os.environ['HOME']}/git/smodels/")
 from smodels.tools.wrapperBase import WrapperBase
 # the default tempdir of wrapper base is /tmp
 # WrapperBase.defaulttempdir="./" ## keep the temps in our folder
