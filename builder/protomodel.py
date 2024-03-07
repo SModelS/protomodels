@@ -488,7 +488,7 @@ class ProtoModel ( LoggerBase ):
             outF.close()
 
     def createSLHAFile ( self, outputSLHA : Union[str,None] = None,
-                         addXsecs : bool = True ):
+                         addXsecs : bool = True ) -> str:
         """ Creates the SLHA file with the masses, decays and cross-sections stored in the model.
 
         :param outputSLHA: Name of the SLHA file to be created. If None a tempfile will be created and

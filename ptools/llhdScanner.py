@@ -50,12 +50,13 @@ class LlhdThread ( LoggerBase ):
         """
         super ( LlhdThread, self ).__init__ ( threadnr )
         self.rundir = setup( rundir )
-        self.resultsdir = f"{self.rundir}/llhds_{namer.asciiName(xvariable)}_{namer.asciiName(yvariable)}/"
+        self.resultsdir = f"{self.rundir}/llhds_{namer.asciiName(xvariable)}_{namer.asciiName(yvariable).replace(' ','').replace(',','')}/"
         self.topo = topo
         self.threadnr = threadnr
         self.picklefile = picklefile
         self.M = copy.deepcopy ( protomodel )
         self.origmasses = copy.deepcopy ( self.M.masses )
+        self.origssmultipliers = copy.deepcopy ( self.M.ssmultipliers )
         self.M.createNewSLHAFileName ( prefix=f"lthrd{threadnr}_{xvariable}" )
         self.xvariable = xvariable
         self.yvariable = yvariable
@@ -191,7 +192,8 @@ class LlhdThread ( LoggerBase ):
         :returns: a diction with likelihoods ("llhd"), critics' responses ("critic"),
         observed ("oul") and expected ("eul") upper limits on mu.
         """
-        self.M.createSLHAFile( )
+        self.debug ( f"asking for predictions for xmy={self.mxvariable:.2f},{self.myvariable:.2g}") 
+        slhaf = self.M.createSLHAFile( )
         sigmacut=.02*fb
         if max(self.M.masses)>1600:
             sigmacut=.01*fb
@@ -266,6 +268,16 @@ class LlhdThread ( LoggerBase ):
             for p in pair:
                 if p in self.M.masses and self.massesAreTied ( p, pid ):
                     self.M.masses[p]=mass
+
+    def setSSMultiplier ( self, pids : tuple, ssm : float ):
+        """ set the ssm multipliers for pids to ssm.
+        for now, set also for all signs
+        """
+        if pids in self.M.ssmultipliers:
+            self.M.ssmultipliers[pids]=ssm
+        pids1 = ( -pids[0], pids[0] )
+        if pids1 in self.M.ssmultipliers:
+            self.M.ssmultipliers[pids1]=ssm
                     
     def hasResultsForPoint ( self, m1 : float, m2 : float ) -> bool:
         """ return true if we have already run point (m1,m2) """
@@ -285,7 +297,11 @@ class LlhdThread ( LoggerBase ):
         for i1,m1 in enumerate(rxvariable):
             self.pprint ( f"now starting with {i1}/{nxvariables}" )
             self.setMass ( self.xvariable, m1 )
-            self.M.masses[self.yvariable]=self.myvariable ## reset LSP mass
+            if type(self.myvariable)==int:
+                self.M.masses[self.yvariable]=self.myvariable ## reset LSP mass
+            if type(self.myvariable)==tuple:
+                ## reset LSP mass
+                self.setSSMultiplier ( self.yvariable, self.myvariable )
             for k,v in oldmasses.items():
                 self.pprint ( f"WARNING: setting mass of {k} back to {v}" )
                 self.M.masses[k]=v
@@ -303,7 +319,10 @@ class LlhdThread ( LoggerBase ):
                 if self.hasResultsForPoint ( m1, m2 ):
                     continue
                 self.pprint ( f"processing m({m1:.2f},{m2:.2f})" )
-                self.M.masses[self.yvariable]=m2
+                if type(self.yvariable)==int:
+                    self.M.masses[self.yvariable]=m2
+                if type(self.yvariable)==tuple:
+                    self.setSSMultiplier ( self.yvariable, m2 )
                 for pid_,m_ in self.M.masses.items():
                     if pid_ != self.yvariable and m_ < m2: ## make sure LSP remains the LSP
                         self.pprint ( f"WARNING: have to raise {pid_} from {m_} to {m2+1.}" )
@@ -431,8 +450,8 @@ class LlhdScanner ( LoggerBase ):
         xvariable = self.xvariable
         yvariable = self.yvariable
         if yvariable != self.M.LSP:
-            self.pprint ( f"we currently assume yvariable to be the LSP, but it is {yvariable}" )
-        picklefile = f"{output}{namer.asciiName(xvariable)}{namer.asciiName(yvariable)}.pcl"
+            self.pprint ( f"we currently assume yvariable to be the mass of the LSP, but it is {yvariable}" )
+        picklefile = f"{output}{namer.asciiName(xvariable)}{namer.asciiName(yvariable).replace(',','').replace(' ','')}.pcl"
         self.picklefile = picklefile
         if os.path.exists ( picklefile ) and self.skip_production:
             self.pprint ( f"we were asked to skip production: {picklefile} exists." )
@@ -441,8 +460,10 @@ class LlhdScanner ( LoggerBase ):
         c = Combiner()
         anaIds = c.getAnaIdsWithPids ( self.M.bestCombo, [ xvariable, yvariable ] )
         ## mass range for xvariable
-        self.mxvariable = self.M.masses[xvariable]
-        self.myvariable = self.M.masses[yvariable]
+        if type(yvariable) == int:
+            self.myvariable = self.M.masses[yvariable]
+        if type(yvariable) == tuple:
+            self.myvariable = self.M.ssmultipliers[yvariable]
         
         rxvariable = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
         ryvariable = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
@@ -474,9 +495,10 @@ class LlhdScanner ( LoggerBase ):
         else:
             masspoints = thread0.getAllMassPoints()
 
-        if True:
-            ## freeze out all other particles
+        if False:
+            ## freeze out all other particles? We shouldnt!
             for pid_,m_ in self.M.masses.items():
+                # print ( f"@@a freezing {pid_}? {pid_ not in [ self.xvariable, self.yvariable ]}" )
                 if pid_ not in [ self.xvariable, self.yvariable ]:
                     self.M.masses[pid_]=1e6
 
@@ -492,7 +514,10 @@ class LlhdScanner ( LoggerBase ):
         if args.topo == None:
             args.topo = topo[args.xvariable]
         self.mxvariable = self.M.masses[self.xvariable]
-        self.myvariable = self.M.masses[self.yvariable]
+        if type(self.yvariable) == int:
+            self.myvariable = self.M.masses[self.yvariable]
+        if type(self.yvariable) == tuple:
+            self.myvariable = self.M.ssmultipliers[self.yvariable]
         nbinsx, nbinsy = 20, 20 # how many bins do we want per dimension
         if args.min1 == None:
             args.min1 = self.mxvariable*.6
@@ -501,9 +526,15 @@ class LlhdScanner ( LoggerBase ):
         if args.deltam1 == None:
             args.deltam1 = ( args.max1 - args.min1 ) / nbinsx
         if args.min2 == None:
-            args.min2 = max ( self.myvariable*.6 - 10., 1. )
+            if type(self.yvariable) == int:
+                args.min2 = max ( self.myvariable*.6 - 10., 1. )
+            if type(self.yvariable) == tuple:
+                args.min2 = self.myvariable*.2
         if args.max2 == None:
-            args.max2 = self.myvariable*1.9 + 10.
+            if type(self.yvariable) == int:
+                args.max2 = self.myvariable*1.9 + 10.
+            if type(self.yvariable) == tuple:
+                args.max2 = self.myvariable*5.
         if args.deltam2 == None:
             args.deltam2 = ( args.max2 - args.min2 ) / nbinsy
         return args

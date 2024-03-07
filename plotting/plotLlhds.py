@@ -354,7 +354,6 @@ class LlhdPlot ( LoggerBase ):
                     my = dic["myvariable"]
                     nevents = dic["nevents"]
                     topo = dic["topo"]
-                    print ( "@@7 topo is", topo )
                     timestamp = dic["timestamp"]
                     success = True
                 except Exception as e:
@@ -403,7 +402,7 @@ class LlhdPlot ( LoggerBase ):
         self.yvariable = yvariable
         if type(self.xvariable) in [ tuple, list ]:
             xvariable = self.xvariable[0]
-        self.picklefile = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}{self.namer.asciiName(self.yvariable)}.pcl"
+        self.picklefile = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}{self.namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.pcl"
         if not os.path.exists ( self.picklefile ):
             llhdp = self.picklefile
             self.picklefile = f"{self.rundir}/mp{self.namer.asciiName(xvariable)}{self.namer.asciiName(self.yvariable)}.pcl" 
@@ -624,7 +623,10 @@ class LlhdPlot ( LoggerBase ):
             else:
                 ax = cont50.ax
             while isCloseToExisting ( minXY, existingPoints ):
-                minXY = ( minXY[0]+8., minXY[1]+8., minXY[2] )
+                if type( self.yvariable ) == tuple:
+                    minXY = ( minXY[0]*1.2, minXY[1]*1.2, minXY[2] )
+                else:
+                    minXY = ( minXY[0]+8., minXY[1]+8., minXY[2] )
             a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=180, color="black", zorder=20 )
             anan = ana.replace(":None",":UL") # + " (%.2f)" % (minXY[2])
             label = self.getPrettyName ( ana )
@@ -679,13 +681,16 @@ class LlhdPlot ( LoggerBase ):
             
         plt.title ( f"HPD regions, {self.namer.texName(xvariable, addSign=False, addDollars=True)} [{self.topo}]", fontsize=14 )
         plt.xlabel ( f"m({self.namer.texName(xvariable,addSign=False, addDollars=True)}) [GeV]", fontsize=14 )
-        plt.ylabel ( f"m({self.namer.texName(self.yvariable, addSign=False, addDollars=True)}) [GeV]" )
+        var, postfix = "m", " [GeV]"
+        if type ( self.yvariable ) == tuple:
+            var, postfix = "ssm", ""
+        plt.ylabel ( f"{var}({self.namer.texName(self.yvariable, addSign=False, addDollars=True)}){postfix}" )
         hasCritic = np.any ( RMAX > self.rthreshold )
         if hasCritic:
             circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold}):\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
             handles.append ( circ1 )
         legend = ax.legend( handles=handles, loc="best", fontsize=12 )
-        figname = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}.png"
+        figname = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}_{self.namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.png"
         self.pprint ( f"saving to {figname}" )
         plt.savefig ( figname )
         if self.interactive:
