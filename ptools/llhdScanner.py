@@ -5,6 +5,7 @@
 __all__ = [ "LlhdScanner" ]
 
 import os, sys, multiprocessing, time, numpy, subprocess, copy, glob
+import pickle, random, shutil
 from protomodels.csetup import setup
 setup()
 from smodels.tools.wrapperBase import WrapperBase
@@ -33,6 +34,7 @@ def findPids ( rundir ):
         s = f[p+4:]
         s = s.replace(".pcl","")
         s = s.replace("1000022","")
+        s = s.replace("X1Z","")
         ret.add ( int(s) )
     print ( f"[llhdScanner] pids are {ret}" )
     return ret
@@ -40,11 +42,18 @@ def findPids ( rundir ):
 class LlhdThread ( LoggerBase ):
     """ one thread of the sweep """
     def __init__ ( self, threadnr: int, rundir: str,
-                   protomodel, xvariable, yvariable, mxvariable, myvariable, nevents: int,
-                   predictor ):
+                   protomodel, xvariable, yvariable,
+                   mxvariable : float, myvariable : float, 
+                   nevents: int, predictor : Predictor, picklefile : str,
+                   topo : str ):
+        """ the constructor. 
+        """
         super ( LlhdThread, self ).__init__ ( threadnr )
         self.rundir = setup( rundir )
+        self.resultsdir = f"{self.rundir}/llhds_{namer.asciiName(xvariable)}_{namer.asciiName(yvariable)}/"
+        self.topo = topo
         self.threadnr = threadnr
+        self.picklefile = picklefile
         self.M = copy.deepcopy ( protomodel )
         self.origmasses = copy.deepcopy ( self.M.masses )
         self.M.createNewSLHAFileName ( prefix=f"lthrd{threadnr}_{xvariable}" )
@@ -54,6 +63,114 @@ class LlhdThread ( LoggerBase ):
         self.myvariable = myvariable
         self.nevents = nevents
         self.predictor = predictor
+        self.mkResultsDir()
+
+    def getDefaultDictionary ( self ):
+        """ initialise the dictionary for the pickle file """
+        d = { "masspoints": [], "mxvariable": self.mxvariable,
+              "myvariable": self.myvariable, "nevents": self.nevents,
+              "topo": self.topo, "timestamp": time.asctime(),
+              "xvariable": self.xvariable, "yvariable": self.yvariable,
+              "model": self.M.dict() }
+        return d
+
+    def writePickleFile ( self, d : Dict ):
+        """ write the dictionary into the picklefile """
+        #if os.path.exists ( self.picklefile ) and \
+        #        os.stat ( self.picklefile ).st_size > 1000:
+        #    try:
+        #        f = open ( self.picklefile, "rb" )
+        #        d = pickle.load(f) ## ok can read. copy, then!
+        #        subprocess.getoutput ( f"cp {self.picklefile} {self.picklefile}.old" )
+        #    except Exception as e:
+        #        pass
+        f = open ( self.picklefile, "wb" )
+        pickle.dump ( d, f )
+        f.close()
+
+    def lockPickleFile ( self ):
+        """ make sure we write sequentially """
+        lockfile = self.picklefile+".lock"
+        ctr = 0
+        while os.path.exists ( lockfile ):
+            ctr+=1
+            time.sleep ( .1*ctr )
+            if ctr > 16:
+                self.unlockPickleFile()
+                return
+        from pathlib import Path
+        Path ( lockfile ).touch()
+
+    def unlockPickleFile ( self ):
+        lockfile = self.picklefile+".lock"
+        if os.path.exists ( lockfile ):
+            try:                                                                      
+                os.unlink ( lockfile )
+            except FileNotFoundError as e:                                            
+                pass 
+
+    def isSameMassPoint ( self, point1 : Dict, point2 : Dict ) -> bool:
+        """ are the two points identical? """
+        dx = point1["mx"]-point2["mx"]
+        dy = point1["my"]-point2["my"]
+        if abs(dx)<1e-10 and abs(dy)<1e-10:
+            return True
+        return False
+
+    def mkResultsDir ( self ):
+        """ make a results dir if it doesnt exist """
+        if os.path.exists ( self.resultsdir ):
+            return
+        os.mkdir ( self.resultsdir )
+
+
+    def writeRunMeta ( self ):
+        with open ( f"{self.resultsdir}/run.meta", "wt" ) as f:
+            f.write ( f"{{ 'timestamp': '{time.asctime()}', 'ntotal': {self.ntotal} }}\n" )
+            f.close()
+
+    def getDictFileName ( self, mx : float, my : float ) -> str:
+        """ the dict file name of the point """
+        return f"{self.resultsdir}/{mx:.3f}_{my:.3f}.dict"
+
+    def addNewPoint ( self, point : Dict ):
+        """ add point to resultsdir. if already in, replace """
+        if not "mx" in point: #dont add anything!
+            return
+        dictfile = self.getDictFileName ( point["mx"], point["my"] )
+        with open ( dictfile, "wt" ) as f:
+            f.write ( f"{point}\n" )
+            f.close()
+        nfiles = len ( glob.glob ( f"{self.resultsdir}/*.dict" ) )
+        if nfiles % 100 == 0: # update with every 20th entry
+            self.updatePickleFile()
+
+    def getAllMassPoints ( self ):
+        """ retrieve all mass points from resultsdir """
+        files = glob.glob ( f"{self.resultsdir}/*.dict" )
+        masspoints = []
+        for fname in files:
+            with open ( fname, "rt" ) as h:
+                d = eval(h.read())
+                masspoints.append ( d )
+        return masspoints
+
+    def updatePickleFile ( self ):
+        """ collect all the entries in resultsdir, and compile them
+        into one big pickle file """
+        self.pprint ( f"update {self.picklefile}" )
+        self.lockPickleFile()
+        Dict = self.getDefaultDictionary()
+        files = glob.glob ( f"{self.resultsdir}/*.dict" )
+        masspoints = self.getAllMassPoints()
+        Dict["masspoints"] = masspoints
+        self.writePickleFile ( Dict )
+        self.unlockPickleFile()
+
+    def unlinkResultsDir ( self ):
+        """ clean up in the end """
+        if os.path.exists ( self.resultsdir ):
+            shutil.rmtree ( self.resultsdir )
 
     def massesAreTied ( self, xvariable, yvariable ):
         """ are the masses of xvariable and yvariable tied originally? """
@@ -87,8 +204,6 @@ class LlhdThread ( LoggerBase ):
             del self.predictor.predictions
         worked = self.predictor.predict ( self.M, keep_predictions = True )
         
-        # print ( "@@5 worked", worked, len(self.predictor.predictions) )
-
         ## now get the likelihoods
         llhds={}
         ## start with the SM likelihood
@@ -151,12 +266,22 @@ class LlhdThread ( LoggerBase ):
             for p in pair:
                 if p in self.M.masses and self.massesAreTied ( p, pid ):
                     self.M.masses[p]=mass
+                    
+    def hasResultsForPoint ( self, m1 : float, m2 : float ) -> bool:
+        """ return true if we have already run point (m1,m2) """
+        dictfile = self.getDictFileName ( m1, m2 )
+        hasResult = os.path.exists ( dictfile )
+        # self.pprint ( f"do we have a result for {m1:.2f},{m2:.2f}? {hasResult}" )
+        if hasResult:
+            return True
+        return False
 
     def run ( self, rxvariable, ryvariable ):
         """ run for the points given """
         oldmasses = {}
-        masspoints=[]
+        masspoints=self.getAllMassPoints()
         nxvariables = len(rxvariable)
+        ct = 0
         for i1,m1 in enumerate(rxvariable):
             self.pprint ( f"now starting with {i1}/{nxvariables}" )
             self.setMass ( self.xvariable, m1 )
@@ -175,6 +300,9 @@ class LlhdThread ( LoggerBase ):
             for i2,m2 in enumerate(ryvariable):
                 if m2 > m1: ## we assume yvariable to be the daughter
                     continue
+                if self.hasResultsForPoint ( m1, m2 ):
+                    continue
+                self.pprint ( f"processing m({m1:.2f},{m2:.2f})" )
                 self.M.masses[self.yvariable]=m2
                 for pid_,m_ in self.M.masses.items():
                     if pid_ != self.yvariable and m_ < m2: ## make sure LSP remains the LSP
@@ -191,17 +319,20 @@ class LlhdThread ( LoggerBase ):
                 point["mx"] = m1 
                 point["my"] = m2
                 masspoints.append ( point )
+                self.addNewPoint ( point ) ## add the point
         return masspoints
 
 def runThread ( threadid: int, rundir: str, M, xvariable, yvariable, mxvariable,
-                myvariable, nevents: int, rxvariable, ryvariable, predictor, return_dict ):
+                myvariable, nevents: int, rxvariable, ryvariable, predictor, 
+                return_dict, picklefile, topo ):
     """ the method needed for parallelization to work """
-    thread = LlhdThread ( threadid, rundir, M, xvariable, yvariable, mxvariable, myvariable, nevents,
-                          predictor )
+    thread = LlhdThread ( threadid, rundir, M, xvariable, yvariable, mxvariable, 
+                          myvariable, nevents, predictor, picklefile, topo )
     newpoints = thread.run ( rxvariable, ryvariable )
     if return_dict != None:
         return_dict[threadid]=newpoints
     thread.clean()
+    # thread.updatePickleFile()
     return newpoints
 
 class LlhdScanner ( LoggerBase ):
@@ -239,7 +370,7 @@ class LlhdScanner ( LoggerBase ):
             return f"{r[0]:.2f},{r[1]:.2f}"
         return f"{r[0]:.2f},{r[1]:.2f} ... {r[-1]:.2f} -> {len(r)} points"
 
-    def getMassPoints ( self, rxvariable, ryvariable ):
+    def runForMassPoints ( self, rxvariable, ryvariable ):
         """ run for the given mass points
         :param rxvariable: list of masses for xvariable
         :param ryvariable: list of masses for yvariable
@@ -251,33 +382,41 @@ class LlhdScanner ( LoggerBase ):
             self.pprint ( f"dry_run. would run for xvariable={rxvariable}" )
             self.pprint ( f"yvariable={ryvariable}" )
             sys.exit()
+        random.shuffle ( rxvariable )
+        mask = []
+        thread = LlhdThread ( 0, self.rundir, self.M, self.xvariable, 
+                self.yvariable, self.mxvariable, self.myvariable, self.nevents,
+                self.predictor, self.picklefile, self.topo )
+        for rxv in rxvariable:
+            hasMissing = False
+            for rxy in ryvariable:
+                hasFile = thread.hasResultsForPoint ( rxv, rxy )
+                if not hasFile:
+                    hasMissing = True
+            mask.append ( hasMissing )
+        rxvariable = rxvariable[mask]
+        if len(rxvariable)==0:
+            thread.updatePickleFile()
+            return
+                
         if self.nproc == 1:
-            return runThread ( 0, self.rundir, self.M, self.xvariable, self.yvariable, \
-                               self.mxvariable, self.myvariable, self.nevents, rxvariable, ryvariable,
-                               self.predictor, None )
+            return runThread ( 0, self.rundir, self.M, self.xvariable, \
+                    self.yvariable, self.mxvariable, self.myvariable, \
+                    self.nevents, rxvariable, ryvariable, self.predictor, None, \
+                    self.picklefile, self.topo )
         chunkedRxvariable = [ list(rxvariable[i::self.nproc]) for i in range(self.nproc) ]
         processes = []
         manager = multiprocessing.Manager()
         return_dict=manager.dict()
-        # print ( "chunked", chunkedRxvariable )
         for ctr,chunk in enumerate(chunkedRxvariable):
             self.M.walkerid = 2000+ctr
-            p = multiprocessing.Process ( target = runThread, args = ( ctr, self.rundir, self.M, self.xvariable, self.yvariable, self.mxvariable, self.myvariable, self.nevents, chunk, ryvariable, self.predictor, return_dict ) )
+            p = multiprocessing.Process ( target = runThread, args = ( ctr, self.rundir, self.M, self.xvariable, self.yvariable, self.mxvariable, self.myvariable, self.nevents, chunk, ryvariable, self.predictor, return_dict, self.picklefile, self.topo ) )
             p.start()
             processes.append ( p )
 
         for p in processes:
             p.join()
-        masspoints = []
-        hasStored=set()
-        for k,v in return_dict.items():
-            for mp in v:
-                key=(mp["mx"],mp["my"])
-                if key in hasStored:
-                    continue
-                hasStored.add ( key )
-                masspoints.append ( mp )
-        return masspoints
+        thread.updatePickleFile()
 
     def scanLikelihoodFor ( self, range1 : Dict, range2 : Dict,
                             nevents : int, topo : str, output : str ):
@@ -288,13 +427,15 @@ class LlhdScanner ( LoggerBase ):
         :param output: prefix for output file [mp]
         """
         self.nevents = nevents
+        self.topo = topo
         xvariable = self.xvariable
         yvariable = self.yvariable
         if yvariable != self.M.LSP:
-            print ( f"[llhdScanner] we currently assume yvariable to be the LSP, but it is {yvariable}" )
+            self.pprint ( f"we currently assume yvariable to be the LSP, but it is {yvariable}" )
         picklefile = f"{output}{namer.asciiName(xvariable)}{namer.asciiName(yvariable)}.pcl"
+        self.picklefile = picklefile
         if os.path.exists ( picklefile ) and self.skip_production:
-            print ( f"[llhdScanner] we were asked to skip production: {picklefile} exists." )
+            self.pprint ( f"we were asked to skip production: {picklefile} exists." )
             return
         import numpy
         c = Combiner()
@@ -313,16 +454,25 @@ class LlhdScanner ( LoggerBase ):
         self.predictor.filterForTopos ( topo )
         self.M.walkerid = 2000
 
-        thread0 = LlhdThread ( 0, self.rundir, self.M, self.xvariable, self.yvariable, \
-                               self.mxvariable, self.myvariable, self.nevents, self.predictor )
-        point = thread0.getPredictions ( False )
-        llhds = point["llhd"]
-        critics = point["critic"]
-        thread0.clean()
-        self.pprint ( f"protomodel point: m1({namer.asciiName(self.xvariable)})={self.mxvariable:.2f}, m2({namer.asciiName(self.yvariable)})={self.myvariable:.2f}, {len(llhds)} llhds" )
-        point [ "mx" ] = self.mxvariable
-        point [ "my" ] = self.myvariable
-        masspoints = [ point ]
+        thread0 = LlhdThread ( 0, self.rundir, self.M, self.xvariable, 
+                self.yvariable, self.mxvariable, self.myvariable, self.nevents, 
+                self.predictor, self.picklefile, self.topo )
+        thread0.ntotal = len(rxvariable)*len(ryvariable)
+        thread0.writeRunMeta()
+        if not thread0.hasResultsForPoint ( self.mxvariable, self.myvariable ):
+            point = thread0.getPredictions ( False )
+            point["mx"] = self.mxvariable
+            point["my"] = self.myvariable
+            thread0.addNewPoint ( point )
+            llhds = point["llhd"]
+            critics = point["critic"]
+            thread0.clean()
+            self.pprint ( f"protomodel point: m1({namer.asciiName(self.xvariable)})={self.mxvariable:.2f}, m2({namer.asciiName(self.yvariable)})={self.myvariable:.2f}, {len(llhds)} llhds" )
+            point [ "mx" ] = self.mxvariable
+            point [ "my" ] = self.myvariable
+            masspoints = [ point ]
+        else:
+            masspoints = thread0.getAllMassPoints()
 
         if True:
             ## freeze out all other particles
@@ -330,25 +480,13 @@ class LlhdScanner ( LoggerBase ):
                 if pid_ not in [ self.xvariable, self.yvariable ]:
                     self.M.masses[pid_]=1e6
 
-        newpoints = self.getMassPoints ( rxvariable, ryvariable )
-        masspoints += newpoints
-        import pickle
-        if os.path.exists ( picklefile ):
-            subprocess.getoutput ( f"cp {picklefile} {picklefile}.old" )
-        self.pprint ( f"now saving to {picklefile}" )
-        f=open( picklefile ,"wb" )
-        mydict = { "masspoints": masspoints, "mxvariable": self.mxvariable,
-                   "myvariable": self.myvariable, "nevents": nevents, "topo": topo,
-                   "timestamp": time.asctime(), "xvariable": xvariable, "yvariable": yvariable,
-                   "model": self.M.dict() }
-        pickle.dump ( mydict, f )
-        f.close()
+        self.runForMassPoints ( rxvariable, ryvariable )
         self.M.delCurrentSLHA()
 
     def overrideWithDefaults ( self, args ):
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
-                 1000023: "electroweakinos_offshell", 
-                 1000024: "electroweakinos_offshell,T1",
+                 1000023: "electroweakinos,stops", 
+                 1000024: "electroweakinos,stops",
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
         if args.topo == None:
@@ -419,6 +557,9 @@ def main ():
     argparser.add_argument ( '-D', '--draw',
             help='also perform the plotting, ie call plotLlhds',
             action='store_true' )
+    argparser.add_argument ( '-K', '--dontkeep',
+            help='remove resultsdir after finished',
+            action='store_true' )
     argparser.add_argument ( '--dry_run',
             help='just tell us what you would be doing, dont actually do it',
             action='store_true' )
@@ -469,6 +610,8 @@ def main ():
         range2 = { "min": args.min2, "max": args.max2, "dm": args.deltam2 }
         scanner.scanLikelihoodFor ( range1, range2, args.nevents, args.topo, 
                 args.output )
+        if args.dontkeep:
+            scanner.unlinkResultsDir()
         if args.draw:
             verbose = args.verbosity
             copy = True
@@ -479,27 +622,7 @@ def main ():
             upload = args.uploadTo
             plot = plotLlhds.LlhdPlot ( xvariable, yvariable, verbose, copy, max_anas,
                   interactive, drawtimestamp, compress, rundir, upload, args.dbpath )
-            syv = "_"+namer.asciiName(yvariable)
-            if syv == "_X1Z":
-                syv = ""
-            scriptfilename = f"llhdPlot_{namer.asciiName(xvariable)}{syv}.py"
-            with open ( scriptfilename, "wt" ) as f:
-                print ( f"[llhdScanner] created llhdPlotScript.py" )
-                f.write ( "#!/usr/bin/env python3\n\n" )
-                f.write ( "import sys\n" )
-                f.write ( "interactive=False\n" )
-                f.write ( "if '-i' in sys.argv:\n" )
-                f.write ( "    interactive=True\n" )
-                f.write ( "from plotting import plotLlhds\n" )
-                f.write ( f"plot = plotLlhds.LlhdPlot ( xvariable={xvariable}, yvariable={args.yvariable}, verbose='{verbose}', copy={copy},\n" )
-                f.write ( f"    max_anas={max_anas}, interactive=interactive, drawtimestamp={drawtimestamp}, compress={compress},\n" )
-                f.write ( f"    rundir='{rundir}',\n" )
-                f.write ( f"    upload='{upload}', dbpath='{args.dbpath}' )\n" )
-                f.write ( f"plot.plot()\n" )
-                f.write ( f"if '-s' in sys.argv:\n" )
-                f.write ( f"    plot.show()\n" )
-                f.close()
-                os.chmod ( scriptfilename, 0o755 )
+            plot.writeScriptFile ( )
             plot.plot()
 
 if __name__ == "__main__":

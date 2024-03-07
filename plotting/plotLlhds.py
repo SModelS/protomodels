@@ -64,10 +64,10 @@ def getAlpha ( color ):
         return rets[color]
     return .3
 
-def getPidList( pid1, rundir ):
+def getPidList( xvariable, rundir ):
     """ obtain the list of pids to produce plots for """
-    if pid1 > 0:
-        return [ pid1 ]
+    if xvariable > 0:
+        return [ xvariable ]
     pids = set()
     ## obtain pids from mp files
     # files = glob.glob ( "%s/mp*pcl" % rundir )
@@ -91,12 +91,12 @@ def getPidList( pid1, rundir ):
 
 class LlhdPlot ( LoggerBase ):
     """ A simple class to make debugging the plots easier """
-    def __init__ ( self, pid1, pid2, verbose, copy, max_anas, 
+    def __init__ ( self, xvariable, yvariable, verbose, copy, max_anas, 
                    interactive, drawtimestamp, compress, rundir,
                    upload, dbpath ):
         """
-        :param pid1: pid for x axis, possibly a range of pids
-        :param pid2: pid for y axis
+        :param xvariable: pid for x axis, possibly a range of pids
+        :param yvariable: pid for y axis
         :param verbose: verbosity (debug, info, warn, or error)
         :param copy: copy plot to ../../smodels.github.io/protomodels/latest
         :param max_anas: maximum number of analyses on summary plot
@@ -108,12 +108,12 @@ class LlhdPlot ( LoggerBase ):
         """
         super ( LlhdPlot, self ).__init__ ( 0 )
         self.namer = SParticleNames ( susy = False )
-        pid1, pid2 = self.namer.pid ( pid1 ), self.namer.pid ( pid2 )
+        xvariable, yvariable = self.namer.pid ( xvariable ), self.namer.pid ( yvariable )
         self.dbpath = dbpath
         self.usePrettyNames = False
         self.rundir = rundir
         self.upload = upload
-        self.setup( pid1, pid2 )
+        self.setup( xvariable, yvariable )
         self.DEBUG, self.INFO = 40, 30
         self.drawtimestamp = drawtimestamp
         self.max_anas = max_anas ## maximum number of analyses
@@ -124,6 +124,7 @@ class LlhdPlot ( LoggerBase ):
         if rundir != None:
             self.hiscorefile = f"{rundir}/hiscores.dict"
         self.setVerbosity ( verbose )
+        self.compress = compress
         masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
         self.masspoints = masspoints
         self.mx = mx
@@ -302,7 +303,7 @@ class LlhdPlot ( LoggerBase ):
                 self.debug ( f"found a match for {tokens[0]}, {tokens[1]}, l={llhd}" )
             if not self.topoMatches ( tokens[2] ):
                 self.pprint ( f"topology {tokens[2]} does not match {self.topo}, will skip" )
-                continue
+                # continue
             if max_llhd == None or llhd > max_llhd:
                 max_llhd = llhd
                 sr = tokens[1]
@@ -313,29 +314,60 @@ class LlhdPlot ( LoggerBase ):
             ret["Z"] = self.significances[mname]
         return ret
 
+    def writeScriptFile ( self ):
+            syv = "_"+self.namer.asciiName(self.yvariable)
+            if syv == "_X1Z":
+                syv = ""
+            scriptfilename = f"llhdPlot_{self.namer.asciiName(self.xvariable)}{syv}.py"
+            with open ( scriptfilename, "wt" ) as f:
+                print ( f"[llhdScanner] created llhdPlotScript.py" )
+                f.write ( "#!/usr/bin/env python3\n\n" )
+                f.write ( "import sys\n" )
+                f.write ( "interactive=False\n" )
+                f.write ( "if '-i' in sys.argv:\n" )
+                f.write ( "    interactive=True\n" )
+                f.write ( "from plotting import plotLlhds\n" )
+                f.write ( f"plot = plotLlhds.LlhdPlot ( xvariable={self.xvariable}, yvariable={self.yvariable}, verbose='{self.verbose}', copy={self.copy},\n" )
+                f.write ( f"    max_anas={self.max_anas}, interactive=interactive, drawtimestamp={self.drawtimestamp}, compress={self.compress},\n" )
+                f.write ( f"    rundir='{self.rundir}',\n" )
+                f.write ( f"    upload='{self.upload}', dbpath='{self.dbpath}' )\n" )
+                f.write ( f"plot.plot()\n" )
+                f.write ( f"if '-s' in sys.argv:\n" )
+                f.write ( f"    plot.show()\n" )
+                f.close()
+                os.chmod ( scriptfilename, 0o755 )
+
     def loadPickleFile ( self, returnAll=False ):
         """ load dictionary from picklefile 
         :param returnAll: return all likelihoods info
         """
         topo, timestamp = "?", "?"
-        allhds = None
-        with open ( self.picklefile, "rb" ) as f:
-            try:
-                dic = pickle.load ( f )
-                allhds = dic["masspoints"]
-                mx = dic["mpid1"]
-                my = dic["mpid2"]
-                nevents = dic["nevents"]
-                topo = dic["topo"]
-                timestamp = dic["timestamp"]
-            except EOFError as e:
-                self.pprint ( f"EOF error {e}, when reading {self.picklefile}")
-            f.close()
-        if allhds == None:
+        masspoints = None
+        ctr = 0
+        success = False
+        while ctr < 15 and not success:
+            with open ( self.picklefile, "rb" ) as f:
+                try:
+                    dic = pickle.load ( f )
+                    masspoints = dic["masspoints"]
+                    mx = dic["mxvariable"]
+                    my = dic["myvariable"]
+                    nevents = dic["nevents"]
+                    topo = dic["topo"]
+                    print ( "@@7 topo is", topo )
+                    timestamp = dic["timestamp"]
+                    success = True
+                except Exception as e:
+                    self.pprint ( f"Exception {e}, when reading {self.picklefile}")
+                    ctr += 1
+                    time.sleep (.1 * ctr )
+                f.close()
+        self.pprint ( f"loaded {len(masspoints)} masspoints." )
+        if masspoints == None:
             self.pprint ( f"couldnt read llhds in {self.picklefile}" )
             return None,None,None,None,None,None
         if returnAll:
-            return allhds,mx,my,nevents,topo,timestamp
+            return masspoints,mx,my,nevents,topo,timestamp
         llhds=[]
         mu = 1.
         def getMu1 ( L ):
@@ -344,35 +376,37 @@ class LlhdPlot ( LoggerBase ):
                     return v
             print ( "couldnt find anything" )
             return None
-        for llhd in allhds:
-            if self.pid1 in [ 1000001, 1000002, 1000003, 1000004 ]:
-                if llhd['mx']<310.:
+        for point in masspoints:
+            if not "llhd" in point:
+                print ( f"point has no llhds? {point.keys()}" )
+            if self.xvariable in [ 1000001, 1000002, 1000003, 1000004 ]:
+                if point['mx']<310.:
                     print ( f"light squark mass wall, skipping mx {llhd['mx']} < 310 GeV" )
                     continue
-            app = copy.deepcopy ( llhd )
+            app = copy.deepcopy ( point )
             if type(app)==tuple:
                 print ( f"FIXME why is this a tuple? {app[:2]}" )
-                app= { "mx": llhd[0], "my": llhd[1], "llhd": getMu1(llhd[2]),
-                       "critic": llhd[3] }
+                app= { "mx": point[0], "my": point[1], "llhd": getMu1(point[2]),
+                       "critic": point[3] }
             else:
-                app["llhd"] = getMu1(llhd["llhd"])
+                app["llhd"] = getMu1(point["llhd"])
             llhds.append ( app )
         return llhds,mx,my,nevents,topo,timestamp
 
-    def setup ( self, pid1, pid2 ):
+    def setup ( self, xvariable, yvariable ):
         """ setup rundir, picklefile path and hiscore file path """
         self.hiscorefile = self.rundir + "/hiscores.dict"
         if not os.path.exists ( self.hiscorefile ):
             self.pprint ( f"could not find hiscore file {self.hiscorefile}" )
  
-        self.pid1 = pid1
-        self.pid2 = pid2
-        if type(self.pid1) in [ tuple, list ]:
-            pid1 = self.pid1[0]
-        self.picklefile = f"{self.rundir}/llhd{self.namer.asciiName(pid1)}{self.namer.asciiName(self.pid2)}.pcl"
+        self.xvariable = xvariable
+        self.yvariable = yvariable
+        if type(self.xvariable) in [ tuple, list ]:
+            xvariable = self.xvariable[0]
+        self.picklefile = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}{self.namer.asciiName(self.yvariable)}.pcl"
         if not os.path.exists ( self.picklefile ):
             llhdp = self.picklefile
-            self.picklefile = f"{self.rundir}/mp{self.namer.asciiName(pid1)}{self.namer.asciiName(self.pid2)}.pcl" 
+            self.picklefile = f"{self.rundir}/mp{self.namer.asciiName(xvariable)}{self.namer.asciiName(self.yvariable)}.pcl" 
         if not os.path.exists ( self.picklefile ):
             self.pprint(f"could not find pickle files {llhdp} and {self.picklefile}")
 
@@ -380,7 +414,7 @@ class LlhdPlot ( LoggerBase ):
         """ describe the situation """
         print ( f"{len ( self.masspoints)} masspoints obtained from {self.picklefile}, hiscore stored in {self.hiscorefile}" )
         print ( "Data members: plot.masspoints, plot.massdict, plot.timestamp, plot.mx, plot.my" )
-        print ( "              plot.pid1, plot.pid2, plot.topo" )
+        print ( "              plot.xvariable, plot.yvariable, plot.topo" )
         print ( "Function members: plot.findClosestPoint()" )
 
 
@@ -432,23 +466,23 @@ class LlhdPlot ( LoggerBase ):
         # print ( "found no pretty name", ers[0].globalInfo )
         return anaid
 
-    def plot ( self, ulSeparately : bool = True, pid1 : Union[None,int] = None, 
+    def plot ( self, ulSeparately : bool = True, xvariable : Union[None,int] = None, 
                dbpath : str = "official" ):
         """ a summary plot, overlaying all contributing analyses 
 
         :param ulSeparately: if true, then plot UL results on their own
         """
-        if pid1 == None and type(self.pid1) in [ list, tuple ]:
-            for p in self.pid1:
+        if xvariable == None and type(self.xvariable) in [ list, tuple ]:
+            for p in self.xvariable:
                 self.plot ( ulSeparately, p )
             return
-        if type(pid1) in [ tuple, list ]:
-            for p in pid1:
+        if type(xvariable) in [ tuple, list ]:
+            for p in xvariable:
                 self.plot ( ulSeparately, p )
             return
-        if pid1 == None:
-            pid1 = self.pid1
-        self.pprint ( f"plotting likelihoods for {self.namer.asciiName(pid1)}: {self.topo}" )
+        if xvariable == None:
+            xvariable = self.xvariable
+        self.pprint ( f"plotting likelihoods for {self.namer.asciiName(xvariable)}: {self.topo}" )
         resultsForPIDs = {}
         ## this is just to obtain the hiscore
         from plotting.plotHiscore  import HiscorePlotter
@@ -462,9 +496,9 @@ class LlhdPlot ( LoggerBase ):
             self.pprint ( "found no ana stats?" )
             return
         anas = list(stats.keys())
-        if pid1 in resultsForPIDs:
-            self.debug ( f"results for PIDs {', '.join(resultsForPIDs[pid1])}" )
-            anas = list ( resultsForPIDs[pid1] )
+        if xvariable in resultsForPIDs:
+            self.debug ( f"results for PIDs {', '.join(resultsForPIDs[xvariable])}" )
+            anas = list ( resultsForPIDs[xvariable] )
         anas.sort()
         self.pprint ( f"summary plot: {', '.join ( anas )}" )
         colors = [ "red", "green", "blue", "orange", "cyan", "magenta", "grey", 
@@ -643,15 +677,15 @@ class LlhdPlot ( LoggerBase ):
             self.topo = self.topo.replace("electroweakinos_offshell","electroweakinos" )
             self.error ( "FIXME fix the names of the topo sets! electroweakinos!!" )
             
-        plt.title ( f"HPD regions, {self.namer.texName(pid1, addSign=False, addDollars=True)} [{self.topo}]", fontsize=14 )
-        plt.xlabel ( f"m({self.namer.texName(pid1,addSign=False, addDollars=True)}) [GeV]", fontsize=14 )
-        plt.ylabel ( f"m({self.namer.texName(self.pid2, addSign=False, addDollars=True)}) [GeV]" )
+        plt.title ( f"HPD regions, {self.namer.texName(xvariable, addSign=False, addDollars=True)} [{self.topo}]", fontsize=14 )
+        plt.xlabel ( f"m({self.namer.texName(xvariable,addSign=False, addDollars=True)}) [GeV]", fontsize=14 )
+        plt.ylabel ( f"m({self.namer.texName(self.yvariable, addSign=False, addDollars=True)}) [GeV]" )
         hasCritic = np.any ( RMAX > self.rthreshold )
         if hasCritic:
             circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold}):\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
             handles.append ( circ1 )
         legend = ax.legend( handles=handles, loc="best", fontsize=12 )
-        figname = f"{self.rundir}/llhd{self.namer.asciiName(pid1)}.png"
+        figname = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}.png"
         self.pprint ( f"saving to {figname}" )
         plt.savefig ( figname )
         if self.interactive:
@@ -788,8 +822,8 @@ if __name__ == "__main__":
     argparser.add_argument ( '-v', '--verbose',
             help='verbosity: debug, info, warn, or error [warn]',
             type=str, default="warn" )
-    argparser.add_argument ( '-1', '--pid1',
-            help='pid1, if 0 then search for llhd*pcl files [0]',
+    argparser.add_argument ( '-1', '--xvariable',
+            help='xvariable, if 0 then search for llhd*pcl files [0]',
             type=int, default=0 )
     argparser.add_argument ( '-M', '--max_anas',
             help='maximum number of analyses [4]',
@@ -797,8 +831,8 @@ if __name__ == "__main__":
     argparser.add_argument ( '-N', '--notimestamp',
             help='dont put a timestamp on it',
             action="store_true" )
-    argparser.add_argument ( '-2', '--pid2',
-            help='pid2 [1000022]',
+    argparser.add_argument ( '-2', '--yvariable',
+            help='yvariable [1000022]',
             type=int, default=1000022 )
     argparser.add_argument ( '-a', '--analyses',
             help="analyses, comma separated. '*' means all analyses [*]",
@@ -828,14 +862,14 @@ if __name__ == "__main__":
     drawtimestamp = not args.notimestamp
 
     rundir = gsetup( args.rundir )
-    pids = getPidList ( args.pid1, rundir )
+    pids = getPidList ( args.xvariable, rundir )
 
     if args.interactive and len(pids)>1:
         print ( "[plotLlhds] interactive mode plus several plots. interactive is only for one plot." )
         args.interactive = False
 
-    for pid1 in pids:
-        plot = LlhdPlot ( pid1, args.pid2, args.verbose, args.copy, args.max_anas,
+    for xvariable in pids:
+        plot = LlhdPlot ( xvariable, args.yvariable, args.verbose, args.copy, args.max_anas,
                           args.interactive, drawtimestamp, args.compress, rundir,
                           args.upload )
 
