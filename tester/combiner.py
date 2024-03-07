@@ -619,7 +619,7 @@ class Combiner ( LoggerBase ):
             sorted_pred[llhd_ratio] = pred
  
         sorted_pred = dict((sorted(sorted_pred.items(), reverse=True)))
-        newpreds = sorted_pred.values()
+        newpreds = list ( sorted_pred.values() )
 
         return newpreds
 
