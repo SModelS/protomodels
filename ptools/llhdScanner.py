@@ -19,7 +19,6 @@ from typing import Dict, Tuple, Union, List
 from ptools.sparticleNames import SParticleNames
 from builder.loggerbase import LoggerBase
 
-
 namer = SParticleNames ( False )
 
 def findPids ( rundir ):
@@ -41,28 +40,28 @@ def findPids ( rundir ):
 class LlhdThread ( LoggerBase ):
     """ one thread of the sweep """
     def __init__ ( self, threadnr: int, rundir: str,
-                   protomodel, pid1, pid2, mpid1, mpid2, nevents: int,
+                   protomodel, xvariable, yvariable, mxvariable, myvariable, nevents: int,
                    predictor ):
         super ( LlhdThread, self ).__init__ ( threadnr )
         self.rundir = setup( rundir )
         self.threadnr = threadnr
         self.M = copy.deepcopy ( protomodel )
         self.origmasses = copy.deepcopy ( self.M.masses )
-        self.M.createNewSLHAFileName ( prefix=f"lthrd{threadnr}_{pid1}" )
-        self.pid1 = pid1
-        self.pid2 = pid2
-        self.mpid1 = mpid1
-        self.mpid2 = mpid2
+        self.M.createNewSLHAFileName ( prefix=f"lthrd{threadnr}_{xvariable}" )
+        self.xvariable = xvariable
+        self.yvariable = yvariable
+        self.mxvariable = mxvariable
+        self.myvariable = myvariable
         self.nevents = nevents
         self.predictor = predictor
 
-    def massesAreTied ( self, pid1, pid2 ):
-        """ are the masses of pid1 and pid2 tied originally? """
-        if not pid1 in self.origmasses:
+    def massesAreTied ( self, xvariable, yvariable ):
+        """ are the masses of xvariable and yvariable tied originally? """
+        if not xvariable in self.origmasses:
             return False
-        if not pid2 in self.origmasses:
+        if not yvariable in self.origmasses:
             return False
-        dm = self.origmasses[pid1] - self.origmasses[pid2]
+        dm = self.origmasses[xvariable] - self.origmasses[yvariable]
         if abs(dm)<1e-5:
             return True
         return False
@@ -153,15 +152,15 @@ class LlhdThread ( LoggerBase ):
                 if p in self.M.masses and self.massesAreTied ( p, pid ):
                     self.M.masses[p]=mass
 
-    def run ( self, rpid1, rpid2 ):
+    def run ( self, rxvariable, ryvariable ):
         """ run for the points given """
         oldmasses = {}
         masspoints=[]
-        npid1s = len(rpid1)
-        for i1,m1 in enumerate(rpid1):
-            self.pprint ( f"now starting with {i1}/{npid1s}" )
-            self.setMass ( self.pid1, m1 )
-            self.M.masses[self.pid2]=self.mpid2 ## reset LSP mass
+        nxvariables = len(rxvariable)
+        for i1,m1 in enumerate(rxvariable):
+            self.pprint ( f"now starting with {i1}/{nxvariables}" )
+            self.setMass ( self.xvariable, m1 )
+            self.M.masses[self.yvariable]=self.myvariable ## reset LSP mass
             for k,v in oldmasses.items():
                 self.pprint ( f"WARNING: setting mass of {k} back to {v}" )
                 self.M.masses[k]=v
@@ -173,12 +172,12 @@ class LlhdThread ( LoggerBase ):
                 xsectot += xsec.value
             if xsectot.asNumber ( fb ) < 1e-10:
                 self.pprint ( "WARNING no xsec??" )
-            for i2,m2 in enumerate(rpid2):
-                if m2 > m1: ## we assume pid2 to be the daughter
+            for i2,m2 in enumerate(ryvariable):
+                if m2 > m1: ## we assume yvariable to be the daughter
                     continue
-                self.M.masses[self.pid2]=m2
+                self.M.masses[self.yvariable]=m2
                 for pid_,m_ in self.M.masses.items():
-                    if pid_ != self.pid2 and m_ < m2: ## make sure LSP remains the LSP
+                    if pid_ != self.yvariable and m_ < m2: ## make sure LSP remains the LSP
                         self.pprint ( f"WARNING: have to raise {pid_} from {m_} to {m2+1.}" )
                         oldmasses[pid_]=m_
                         self.M.masses[pid_]=m2 + 1.
@@ -188,18 +187,18 @@ class LlhdThread ( LoggerBase ):
                 for mu,llhd in llhds.items():
                     nllhds+=len(llhd)
 
-                self.pprint ( f"{i1}/{npid1s}: m({namer.asciiName(self.pid1)})={m1:.1f}, m2({namer.asciiName(self.pid2)})={m2:.1f}, {len(llhds)} mu's, {nllhds} llhds." )
+                self.pprint ( f"{i1}/{nxvariables}: m({namer.asciiName(self.xvariable)})={m1:.1f}, m2({namer.asciiName(self.yvariable)})={m2:.1f}, {len(llhds)} mu's, {nllhds} llhds." )
                 point["mx"] = m1 
                 point["my"] = m2
                 masspoints.append ( point )
         return masspoints
 
-def runThread ( threadid: int, rundir: str, M, pid1, pid2, mpid1,
-                mpid2, nevents: int, rpid1, rpid2, predictor, return_dict ):
+def runThread ( threadid: int, rundir: str, M, xvariable, yvariable, mxvariable,
+                myvariable, nevents: int, rxvariable, ryvariable, predictor, return_dict ):
     """ the method needed for parallelization to work """
-    thread = LlhdThread ( threadid, rundir, M, pid1, pid2, mpid1, mpid2, nevents,
+    thread = LlhdThread ( threadid, rundir, M, xvariable, yvariable, mxvariable, myvariable, nevents,
                           predictor )
-    newpoints = thread.run ( rpid1, rpid2 )
+    newpoints = thread.run ( rxvariable, ryvariable )
     if return_dict != None:
         return_dict[threadid]=newpoints
     thread.clean()
@@ -207,7 +206,7 @@ def runThread ( threadid: int, rundir: str, M, pid1, pid2, mpid1,
 
 class LlhdScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
-    def __init__ ( self, protomodel, pid1, pid2, nproc, rundir : str,
+    def __init__ ( self, protomodel, xvariable, yvariable, nproc, rundir : str,
                    dbpath : str = "official", select : str = "all",
                    do_srcombine : bool = True, skip_production : bool = False, 
                    dry_run : bool = False ):
@@ -222,14 +221,13 @@ class LlhdScanner ( LoggerBase ):
         self.rundirarg = rundir
         self.rundir = setup( rundir )
         self.M = protomodel
-        self.pid1 = pid1
-        self.pid2 = pid2
+        self.xvariable = xvariable
+        self.yvariable = yvariable
         self.nproc = nproc
         self.skip_production = skip_production
-        # expected = False
         self.predictor = Predictor ( 0, dbpath=dbpath, 
                 select=select, do_srcombine = do_srcombine )
-        print ( f"self.predictor = Predictor ( 0, dbpath='{dbpath}', select='{select}', do_srcombine = {do_srcombine} )" )
+        self.pprint ( f"self.predictor = Predictor ( 0, dbpath='{dbpath}', select='{select}', do_srcombine = {do_srcombine} )" )
 
     def describeRange ( self, r ):
         """ describe range r in a string """
@@ -241,30 +239,30 @@ class LlhdScanner ( LoggerBase ):
             return f"{r[0]:.2f},{r[1]:.2f}"
         return f"{r[0]:.2f},{r[1]:.2f} ... {r[-1]:.2f} -> {len(r)} points"
 
-    def getMassPoints ( self, rpid1, rpid2 ):
+    def getMassPoints ( self, rxvariable, ryvariable ):
         """ run for the given mass points
-        :param rpid1: list of masses for pid1
-        :param rpid2: list of masses for pid2
+        :param rxvariable: list of masses for xvariable
+        :param ryvariable: list of masses for yvariable
         :returns: masspoints
         """
         if self.dry_run:
             self.pprint ( f"dry_run. stopping here" )
             sys.exit()
-            self.pprint ( f"dry_run. would run for pid1={rpid1}" )
-            self.pprint ( f"pid2={rpid2}" )
+            self.pprint ( f"dry_run. would run for xvariable={rxvariable}" )
+            self.pprint ( f"yvariable={ryvariable}" )
             sys.exit()
         if self.nproc == 1:
-            return runThread ( 0, self.rundir, self.M, self.pid1, self.pid2, \
-                               self.mpid1, self.mpid2, self.nevents, rpid1, rpid2,
+            return runThread ( 0, self.rundir, self.M, self.xvariable, self.yvariable, \
+                               self.mxvariable, self.myvariable, self.nevents, rxvariable, ryvariable,
                                self.predictor, None )
-        chunkedRPid1 = [ list(rpid1[i::self.nproc]) for i in range(self.nproc) ]
+        chunkedRxvariable = [ list(rxvariable[i::self.nproc]) for i in range(self.nproc) ]
         processes = []
         manager = multiprocessing.Manager()
         return_dict=manager.dict()
-        # print ( "chunked", chunkedRPid1 )
-        for ctr,chunk in enumerate(chunkedRPid1):
+        # print ( "chunked", chunkedRxvariable )
+        for ctr,chunk in enumerate(chunkedRxvariable):
             self.M.walkerid = 2000+ctr
-            p = multiprocessing.Process ( target = runThread, args = ( ctr, self.rundir, self.M, self.pid1, self.pid2, self.mpid1, self.mpid2, self.nevents, chunk, rpid2, self.predictor, return_dict ) )
+            p = multiprocessing.Process ( target = runThread, args = ( ctr, self.rundir, self.M, self.xvariable, self.yvariable, self.mxvariable, self.myvariable, self.nevents, chunk, ryvariable, self.predictor, return_dict ) )
             p.start()
             processes.append ( p )
 
@@ -283,67 +281,65 @@ class LlhdScanner ( LoggerBase ):
 
     def scanLikelihoodFor ( self, range1 : Dict, range2 : Dict,
                             nevents : int, topo : str, output : str ):
-        """ plot the likelihoods as a function of pid1 and pid2
+        """ plot the likelihoods as a function of xvariable and yvariable
 
         :param range1: dictionary for range1 with min, max, dm
         :param range2: dictionary for range1 with min, max, dm
         :param output: prefix for output file [mp]
         """
         self.nevents = nevents
-        pid1 = self.pid1
-        pid2 = self.pid2
-        if pid2 != self.M.LSP:
-            print ( f"[llhdScanner] we currently assume pid2 to be the LSP, but it is {pid2}" )
-        picklefile = f"{output}{namer.asciiName(pid1)}{namer.asciiName(pid2)}.pcl"
+        xvariable = self.xvariable
+        yvariable = self.yvariable
+        if yvariable != self.M.LSP:
+            print ( f"[llhdScanner] we currently assume yvariable to be the LSP, but it is {yvariable}" )
+        picklefile = f"{output}{namer.asciiName(xvariable)}{namer.asciiName(yvariable)}.pcl"
         if os.path.exists ( picklefile ) and self.skip_production:
             print ( f"[llhdScanner] we were asked to skip production: {picklefile} exists." )
             return
         import numpy
         c = Combiner()
-        anaIds = c.getAnaIdsWithPids ( self.M.bestCombo, [ pid1, pid2 ] )
-        # print ( f"[llhdScanner] fixme getting all anaids, not just the one for my pids" )
-        # anaIds = list(set( x.dataset.globalInfo.id for x in self.M.bestCombo ))
-        ## mass range for pid1
-        self.mpid1 = self.M.masses[pid1]
-        self.mpid2 = self.M.masses[pid2]
+        anaIds = c.getAnaIdsWithPids ( self.M.bestCombo, [ xvariable, yvariable ] )
+        ## mass range for xvariable
+        self.mxvariable = self.M.masses[xvariable]
+        self.myvariable = self.M.masses[yvariable]
         
-        rpid1 = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
-        rpid2 = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
-        print ( f"[llhdScanner] range for {namer.asciiName(pid1)}: {self.describeRange( rpid1 )}" )
-        print ( f"[llhdScanner] range for {namer.asciiName(pid2)}: {self.describeRange( rpid2 )}" )
-        print ( f"[llhdScanner] total {len(rpid1)*len(rpid2)} points, {nevents} events for {topo}" )
-        self.M.createNewSLHAFileName ( prefix=f"llhd{pid1}" )
+        rxvariable = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
+        ryvariable = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
+        print ( f"[llhdScanner] range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
+        print ( f"[llhdScanner] range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
+        print ( f"[llhdScanner] total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}" )
+        self.M.createNewSLHAFileName ( prefix=f"llhd{xvariable}" )
         #self.M.initializePredictor()
         self.predictor.filterForTopos ( topo )
         self.M.walkerid = 2000
 
-        thread0 = LlhdThread ( 0, self.rundir, self.M, self.pid1, self.pid2, \
-                               self.mpid1, self.mpid2, self.nevents, self.predictor )
+        thread0 = LlhdThread ( 0, self.rundir, self.M, self.xvariable, self.yvariable, \
+                               self.mxvariable, self.myvariable, self.nevents, self.predictor )
         point = thread0.getPredictions ( False )
         llhds = point["llhd"]
         critics = point["critic"]
         thread0.clean()
-        self.pprint ( f"protomodel point: m1({namer.asciiName(self.pid1)})={self.mpid1:.2f}, m2({namer.asciiName(self.pid2)})={self.mpid2:.2f}, {len(llhds)} llhds" )
-        point [ "mx" ] = self.mpid1
-        point [ "my" ] = self.mpid2
+        self.pprint ( f"protomodel point: m1({namer.asciiName(self.xvariable)})={self.mxvariable:.2f}, m2({namer.asciiName(self.yvariable)})={self.myvariable:.2f}, {len(llhds)} llhds" )
+        point [ "mx" ] = self.mxvariable
+        point [ "my" ] = self.myvariable
         masspoints = [ point ]
 
         if True:
             ## freeze out all other particles
             for pid_,m_ in self.M.masses.items():
-                if pid_ not in [ self.pid1, self.pid2 ]:
+                if pid_ not in [ self.xvariable, self.yvariable ]:
                     self.M.masses[pid_]=1e6
 
-        newpoints = self.getMassPoints ( rpid1, rpid2 )
+        newpoints = self.getMassPoints ( rxvariable, ryvariable )
         masspoints += newpoints
         import pickle
         if os.path.exists ( picklefile ):
             subprocess.getoutput ( f"cp {picklefile} {picklefile}.old" )
         self.pprint ( f"now saving to {picklefile}" )
         f=open( picklefile ,"wb" )
-        mydict = { "masspoints": masspoints, "mpid1": self.mpid1,
-                   "mpid2": self.mpid2, "nevents": nevents, "topo": topo,
-                   "timestamp": time.asctime(), "pid1": pid1, "pid2": pid2,
+        mydict = { "masspoints": masspoints, "mxvariable": self.mxvariable,
+                   "myvariable": self.myvariable, "nevents": nevents, "topo": topo,
+                   "timestamp": time.asctime(), "xvariable": xvariable, "yvariable": yvariable,
                    "model": self.M.dict() }
         pickle.dump ( mydict, f )
         f.close()
@@ -356,20 +352,20 @@ class LlhdScanner ( LoggerBase ):
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
         if args.topo == None:
-            args.topo = topo[args.pid1]
-        self.mpid1 = self.M.masses[self.pid1]
-        self.mpid2 = self.M.masses[self.pid2]
+            args.topo = topo[args.xvariable]
+        self.mxvariable = self.M.masses[self.xvariable]
+        self.myvariable = self.M.masses[self.yvariable]
         nbinsx, nbinsy = 20, 20 # how many bins do we want per dimension
         if args.min1 == None:
-            args.min1 = self.mpid1*.6
+            args.min1 = self.mxvariable*.6
         if args.max1 == None:
-            args.max1 = self.mpid1*1.7
+            args.max1 = self.mxvariable*1.7
         if args.deltam1 == None:
             args.deltam1 = ( args.max1 - args.min1 ) / nbinsx
         if args.min2 == None:
-            args.min2 = max ( self.mpid2*.6 - 10., 1. )
+            args.min2 = max ( self.myvariable*.6 - 10., 1. )
         if args.max2 == None:
-            args.max2 = self.mpid2*1.9 + 10.
+            args.max2 = self.myvariable*1.9 + 10.
         if args.deltam2 == None:
             args.deltam2 = ( args.max2 - args.min2 ) / nbinsy
         return args
@@ -381,32 +377,32 @@ def main ():
     argparser.add_argument ( '-n', '--number',
             help='which hiscore to plot [0]',
             type=int, default=0 )
-    argparser.add_argument ( '-1', '--pid1',
-            help='pid1 [1000006]',
-            type=int, default=1000006 )
-    argparser.add_argument ( '-2', '--pid2',
-            help='pid2 [1000022]',
-            type=int, default=1000022 )
+    argparser.add_argument ( '-x', '--xvariable',
+            help='variable for x axis, e.g. 1000006 or "Xt" [Xt]',
+            type=str, default='Xt' )
+    argparser.add_argument ( '-y', '--yvariable',
+            help='variable for y axis, e.g. 1000022 or "(Xt,Xt)", [X1Z]',
+            type=str, default="X1Z" )
     argparser.add_argument ( '-P', '--nproc',
             help='number of process to run in parallel. zero is autodetect. Negative numbers are added to autodetect [0]',
             type=int, default=0 )
     argparser.add_argument ( '-m1', '--min1',
-            help='minimum mass of pid1 [None]',
+            help='minimum mass of xvariable [None]',
             type=float, default=None )
     argparser.add_argument ( '-M1', '--max1',
-            help='maximum mass of pid1 [None]',
+            help='maximum mass of xvariable [None]',
             type=float, default=None )
     argparser.add_argument ( '-d1', '--deltam1',
-            help='delta m of pid1 [None]',
+            help='delta m of xvariable [None]',
             type=float, default=None )
     argparser.add_argument ( '-m2', '--min2',
-            help='minimum mass of pid2 [None]',
+            help='minimum mass of yvariable [None]',
             type=float, default=None )
     argparser.add_argument ( '-M2', '--max2',
-            help='maximum mass of pid2 [None]',
+            help='maximum mass of yvariable [None]',
             type=float, default=None )
     argparser.add_argument ( '-d2', '--deltam2',
-            help='delta m of pid2 [None]',
+            help='delta m of yvariable [None]',
             type=float, default=None )
     argparser.add_argument ( '-t', '--topo',
             help='topology [None]',
@@ -455,18 +451,19 @@ def main ():
     from ptools.hiscoreTools import fetchHiscoresObj
     hi = fetchHiscoresObj ( args.hiscores, None, args.dbpath )
     protomodel = hi.hiscores[0]
-    #print ( f"[llhdScanner] fetched {protomodel} from {args.hiscores}" )
+    #self.pprint ( f"fetched {protomodel} from {args.hiscores}" )
 
-    pid1s = [ args.pid1 ]
-    if args.pid1 == 0:
-        pid1s = findPids( rundir )
-    for pid1 in pid1s:
-        scanner = LlhdScanner( protomodel, pid1, args.pid2, nproc, rundir, 
+    xvariables = [ namer.pid ( args.xvariable ) ]
+    if args.xvariable == 0:
+        xvariables = findPids( rundir )
+    for xvariable in xvariables:
+        yvariable = namer.pid ( args.yvariable )
+        scanner = LlhdScanner( protomodel, xvariable, yvariable, nproc, rundir, 
                 dbpath = args.dbpath, select = args.select, 
                 do_srcombine = args.do_srcombine, 
                 skip_production = args.skip_production,
                 dry_run = args.dry_run )
-        args.pid1 = pid1
+        args.xvariable = xvariable
         args = scanner.overrideWithDefaults ( args )
         range1 = { "min": args.min1, "max": args.max1, "dm": args.deltam1 }
         range2 = { "min": args.min2, "max": args.max2, "dm": args.deltam2 }
@@ -480,9 +477,12 @@ def main ():
             drawtimestamp = True
             compress = False
             upload = args.uploadTo
-            plot = plotLlhds.LlhdPlot ( pid1, args.pid2, verbose, copy, max_anas,
+            plot = plotLlhds.LlhdPlot ( xvariable, yvariable, verbose, copy, max_anas,
                   interactive, drawtimestamp, compress, rundir, upload, args.dbpath )
-            scriptfilename = "llhdPlotScript.py"
+            syv = "_"+namer.asciiName(yvariable)
+            if syv == "_X1Z":
+                syv = ""
+            scriptfilename = f"llhdPlot_{namer.asciiName(xvariable)}{syv}.py"
             with open ( scriptfilename, "wt" ) as f:
                 print ( f"[llhdScanner] created llhdPlotScript.py" )
                 f.write ( "#!/usr/bin/env python3\n\n" )
@@ -491,7 +491,7 @@ def main ():
                 f.write ( "if '-i' in sys.argv:\n" )
                 f.write ( "    interactive=True\n" )
                 f.write ( "from plotting import plotLlhds\n" )
-                f.write ( f"plot = plotLlhds.LlhdPlot ( pid1={pid1}, pid2={args.pid2}, verbose='{verbose}', copy={copy},\n" )
+                f.write ( f"plot = plotLlhds.LlhdPlot ( xvariable={xvariable}, yvariable={args.yvariable}, verbose='{verbose}', copy={copy},\n" )
                 f.write ( f"    max_anas={max_anas}, interactive=interactive, drawtimestamp={drawtimestamp}, compress={compress},\n" )
                 f.write ( f"    rundir='{rundir}',\n" )
                 f.write ( f"    upload='{upload}', dbpath='{args.dbpath}' )\n" )
