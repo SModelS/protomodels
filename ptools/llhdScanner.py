@@ -50,7 +50,9 @@ class LlhdThread ( LoggerBase ):
         """
         super ( LlhdThread, self ).__init__ ( threadnr )
         self.rundir = setup( rundir )
-        self.resultsdir = f"{self.rundir}/llhds_{namer.asciiName(xvariable)}_{namer.asciiName(yvariable).replace(' ','').replace(',','')}/"
+        yname = namer.asciiName(yvariable).replace(' ','').replace(',','').\
+                replace('~','m')
+        self.resultsdir = f"{self.rundir}/llhds_{namer.asciiName(xvariable)}_{yname}/"
         self.topo = topo
         self.threadnr = threadnr
         self.picklefile = picklefile
@@ -334,7 +336,7 @@ class LlhdThread ( LoggerBase ):
                 for mu,llhd in llhds.items():
                     nllhds+=len(llhd)
 
-                self.pprint ( f"{i1}/{nxvariables}: m({namer.asciiName(self.xvariable)})={m1:.1f}, m2({namer.asciiName(self.yvariable)})={m2:.1f}, {len(llhds)} mu's, {nllhds} llhds." )
+                self.pprint ( f"{i1}/{nxvariables}: m({namer.asciiName(self.xvariable)})={m1:.1f}, m2({namer.asciiName(self.yvariable)})={m2:.1g}, {len(llhds)} mu's, {nllhds} llhds." )
                 point["mx"] = m1 
                 point["my"] = m2
                 masspoints.append ( point )
@@ -478,7 +480,7 @@ class LlhdScanner ( LoggerBase ):
         thread0 = LlhdThread ( 0, self.rundir, self.M, self.xvariable, 
                 self.yvariable, self.mxvariable, self.myvariable, self.nevents, 
                 self.predictor, self.picklefile, self.topo )
-        thread0.ntotal = len(rxvariable)*len(ryvariable)
+        thread0.ntotal = len(rxvariable)*len(ryvariable)+1
         thread0.writeRunMeta()
         if not thread0.hasResultsForPoint ( self.mxvariable, self.myvariable ):
             point = thread0.getPredictions ( False )
@@ -529,7 +531,8 @@ class LlhdScanner ( LoggerBase ):
             if type(self.yvariable) == int:
                 args.min2 = max ( self.myvariable*.6 - 10., 1. )
             if type(self.yvariable) == tuple:
-                args.min2 = self.myvariable*.2
+                # args.min2 = self.myvariable*.2
+                args.min2 = 0.
         if args.max2 == None:
             if type(self.yvariable) == int:
                 args.max2 = self.myvariable*1.9 + 10.

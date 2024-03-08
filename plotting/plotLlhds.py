@@ -316,6 +316,7 @@ class LlhdPlot ( LoggerBase ):
 
     def writeScriptFile ( self ):
             syv = "_"+self.namer.asciiName(self.yvariable)
+            syv = syv.replace(",","").replace(" ","").replace("~","m")
             if syv == "_X1Z":
                 syv = ""
             scriptfilename = f"llhdPlot_{self.namer.asciiName(self.xvariable)}{syv}.py"
@@ -780,31 +781,82 @@ class LlhdPlot ( LoggerBase ):
             pickle.dump ( self.timestamp, f )
             f.close()
 
-    def findClosestPoint ( self, m1=None, m2=None, nll=False ):
+    def pprintPointNr ( self, idx : int ):
+        """ print some relevant info about mass point # idx """
+        if idx >= len(self.masspoints):
+            self.pprint ( f"asked to print nonexistant point {idx}, we only have {len(self.masspoints)}" )
+            return
+        point = self.masspoints[idx]
+        print ( f"point #{idx}: m({point['mx']:.2f},{point['my']:.3f})" )
+        print ( f"critic:" )
+        print ( f"=======" )
+        for ctr,(k,v) in enumerate(point["critic"].items()):
+            print ( f"    {k:14s}: {v:.2f}" )
+            if ctr > 3:
+                break
+        print ( f"llhds:" )
+        print ( f"======" )
+        for ctr,(k,v) in enumerate(point["llhd"].items()):
+            print ( f"    {k:14s}: {v:.2g}" )
+            if ctr > 1:
+                break
+
+    def listExcludedPoints ( self, revert : bool = False ):
+        """ print to stdout the list of excluded points.
+        :param revert: if true, list non-excluded points
+        """
+        se = "non-excluded" if revert else "excluded"
+        filteredpoints = []
+        for idx,point in enumerate ( self.masspoints ):
+            rmax = max(point["critic"].values())
+            point["idx"] = idx
+            point["rmax"] = rmax
+            if rmax >= self.rthreshold and not revert:
+                filteredpoints.append ( point )
+            if rmax <= self.rthreshold and revert:
+                filteredpoints.append ( point )
+        filteredpoints.sort ( key = lambda x : 1e6*x["mx"]+x["my"] )
+        print ( f"List of {len(filteredpoints)} {se} points (r>{self.rthreshold}):" )
+        for point in filteredpoints:
+            print ( f"    #{point['idx']}: m=({point['mx']:.2f},{point['my']:.2f}) r={point['rmax']:.2f}" )
+
+
+    def findClosestPoint ( self, m1 : Union[None,float]=None, 
+            m2 : Union[None,float]=None, nll : bool = False ) -> Dict:
         """ find the mass point closest to m1, m2. If not specified, 
             return the hiscore point.
+        :param m1: if None, use best fit point coord
+        :param m2: if None, use best fit point coord
         :param nll: if True, report nlls, else report likelihoods.
+
+        :returns: dictionary with coordinates and llhd
         """
         if m1 == None:
             m1 = self.mx
         if m2 == None:
             m2 = self.my
-        dm,point = float("inf"),None
-        def distance ( m ):
-            return (m[0]-m1)**2 + (m[1]-m2)**2
+        dm,point, idx = float("inf"),None, 0
 
-        for m in self.masspoints:
+        def distance ( m ):
+            return (m["mx"]-m1)**2 + (m["my"]-m2)**2
+
+        for idx_,m in enumerate ( self.masspoints ):
             tmp = distance(m)
             if tmp < dm:
                 dm = tmp
                 point = m
+                idx = idx_
+        ret = { "mx": point["mx"], "my": point["my"], "dm": np.sqrt(dm), "idx": idx }
+        llhdname = "llhd"
         if not nll:
-            return point
+            return ret
+        llhdname = "nll"
         # asked for NLLs
         D = {}
         for k,v in point[2].items():
             D[k]=-np.log(v)
-        return ( point[0], point[1], D )
+        ret[llhdname] = D
+        return ret
 
     def interact ( self ):
         import IPython

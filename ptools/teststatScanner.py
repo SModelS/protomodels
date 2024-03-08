@@ -7,6 +7,7 @@ i.e. scan the various test statistics
 """
 
 import numpy, sys, os, copy, time, subprocess, glob, pickle
+import random, shutil
 from protomodels.csetup import setup
 setup()
 from smodels.tools.wrapperBase import WrapperBase
@@ -20,16 +21,19 @@ from ptools.hiscoreTools import fetchHiscoresObj
 from walker.hiscores import Hiscores
 from typing import Union, List, Dict
 from builder.loggerbase import LoggerBase
+        
+namer = SParticleNames ( susy = False )
 
 class TeststatScanner ( LoggerBase ):
     def __init__ ( self, args ):
         super ( TeststatScanner, self ).__init__ ( 0 )
-        self.namer = SParticleNames ( susy = False )
         self.args = vars(args)
         # get the standard rthreshold
         pred = Predictor( 0, do_srcombine = True, dbpath = self.args['dbpath'] )
         self.rthreshold = pred.rthreshold
         self.rundir = setup ( self.args["rundir"] )
+        self.resultsdir = f"{self.rundir}/M{namer.asciiName(args.pid)}"
+        self.mkResultDir()
         self.nproc = args.nproc
         if self.nproc < 1:
             self.nproc = nCPUs() + self.nproc
@@ -73,7 +77,6 @@ class TeststatScanner ( LoggerBase ):
             critics.append ( d )
         return critics
 
-
     def predProcess ( self, args ):
         """ one thread that computes predictions for masses given in mrange
         """
@@ -89,6 +92,10 @@ class TeststatScanner ( LoggerBase ):
         ret = {}
         right_xsecs = copy.deepcopy ( model._stored_xsecs )
         for ctr,m in enumerate(mrange):
+            if self.modelPointExists ( m ):
+                self.pprint ( f"skipping {m:.2f}: exists already" )
+                continue
+            self.pprint ( f"running model point {m:.2f}" )
             fname = model.createNewSLHAFileName ( prefix = f"s{i}p{pid}{m:.2f}" )
             self.setMass ( model, pid, m )
             if self.args['preserve_xsecs']:
@@ -97,7 +104,7 @@ class TeststatScanner ( LoggerBase ):
                 #model._stored_xsecs = copy.deepcopy ( right_xsecs )
                 #model._xsecMasses = dict([[pid,m] for pid,m in model.masses.items()])
             self.pprint ( f"#{i}: start with {ctr}/{len(mrange)}, "\
-                    f"m({self.namer.asciiName(pid)})={m:.1f}" )
+                    f"m({namer.asciiName(pid)})={m:.1f}" )
             ret[m]={}
             if self.args['dry_run']:
                 self.pprint ( f"#{i}: dry-run, not doing anything" )
@@ -113,10 +120,24 @@ class TeststatScanner ( LoggerBase ):
                 ret[m]["critics"] = self.createCriticResults ( model )
             print ()
             from ptools.helpers import prettyPrint
-            self.pprint ( f"m({self.namer.asciiName(pid)})={m:.1f}: { ', '.join ( f'{k}={prettyPrint(v,maxrows=1)}' for k,v in ret[m].items() ) }" )
+            self.pprint ( f"m({namer.asciiName(pid)})={m:.1f}: { ', '.join ( f'{k}={prettyPrint(v,maxrows=1)}' for k,v in ret[m].items() ) }" )
             self.pprint ()
-            # model.delCurrentSLHA()
+            modelpointfile = self.getModelPointFile ( m )
+            with open ( modelpointfile, "wt" ) as f:
+                f.write ( f"{{ 'm': {m}, 'K': {model.K}, 'Z': {model.Z}, 'r': {model.rvalues}, 'timestamp': '{time.asctime()}', 'critics': {ret[m]['critics']} }}\n" )
+            if ctr % 10 == 0:
+                self.writePickleFile() # fixme wont do that so often
         return ret
+
+    def getModelPointFile ( self, m : float ):
+        """ get the file name of the model point dict file """
+        modelpointfile = f"{self.resultsdir}/{m:.2f}.dict"
+        return modelpointfile
+
+    def modelPointExists ( self, m : float ):
+        """ does a model point for mass m exist already? """
+        filename = self.getModelPointFile ( m )
+        return os.path.exists ( filename )
 
     def ssmProcess ( self, args ):
         """ one thread that computes predictions for ssms given in ssmrange
@@ -160,6 +181,14 @@ class TeststatScanner ( LoggerBase ):
 
         return ret
 
+    def writeMetaFile ( self, mranges ):
+        """ write the run.meta file """
+        with open ( f"{self.resultsdir}/run.meta", "wt" ) as f:
+            ntot = len(mranges[0]) ## FIXME might be wrong, maybe add all
+            ntot = sum( [ len(x) for x in mranges ])
+            f.write ( f"{{ 'ntotal': {ntot}, 'timestamp': '{time.asctime()}' }}\n" )
+            f.close()
+
     def produce( self, pid : int = 1000022 ):
         """ produce pickle files of mass scans for pid
         """
@@ -172,7 +201,7 @@ class TeststatScanner ( LoggerBase ):
         pid = abs(pid)
         model = self.hi.hiscores[0]
         if not pid in model.masses:
-                self.pprint ( f"{self.namer.asciiName(pid)} does not appear in hiscore protomodel!") 
+                self.pprint ( f"{namer.asciiName(pid)} does not appear in hiscore protomodel!") 
                 sys.exit()
         self.origmasses = copy.deepcopy ( model.masses )
         fac = self.args["factor"]
@@ -208,9 +237,10 @@ class TeststatScanner ( LoggerBase ):
             if pid in [ 1000006, 2000006 ] and m2 > 1550.:
                 continue ## there is nothing to see beyond
             mrangetot.append( m2 )
-        mrangetot.sort()
+        # mrangetot.sort()
+        random.shuffle ( mrangetot )
         mranges = [ mrangetot[i::self.nproc] for i in range(self.nproc) ]
-        self.pprint ( f"start scanning with m({self.namer.asciiName(pid)})={mass:.1f} with {self.nproc} procs, {len(mrangetot)} mass points, select={self.args['select']}, do_srcombine={self.args['do_srcombine']}" )
+        self.pprint ( f"start scanning with m({namer.asciiName(pid)})={mass:.1f} with {self.nproc} procs, {len(mrangetot)} mass points, select={self.args['select']}, do_srcombine={self.args['do_srcombine']}" )
         expected = False
         predictor =  Predictor( 0, dbpath=self.args['dbpath'], 
                 do_srcombine=self.args['do_srcombine'],
@@ -218,19 +248,46 @@ class TeststatScanner ( LoggerBase ):
         import multiprocessing
         pool = multiprocessing.Pool ( processes = len(mranges) )
         args = [ { "model": model, "rundir": self.args["rundir"], "pid": pid, "predictor": predictor, "dry_run": self.args['dry_run'], "i": i, "mrange": x } for i,x in enumerate(mranges) ]
-        values={}
+        self.writeMetaFile( mranges )
+        # values={}
         tmp = pool.map ( self.predProcess, args )
         # model.delCurrentSLHA()
-        for r in tmp:
-            values.update(r)
+        self.writePickleFile() # create pickle file at the end
+        #for r in tmp:
+        #    values.update(r)
         if self.args['dry_run']:
             return
-        with open ( f"scanM{self.namer.asciiName(pid)}.pcl", "wb" ) as f:
+        """
+        with open ( f"scanM{namer.asciiName(pid)}.pcl", "wb" ) as f:
             pickle.dump ( values, f )
             pickle.dump ( mass, f )
             pickle.dump ( time.asctime(), f )
             pickle.dump ( self.args, f )
             f.close()
+        """
+
+    def writePickleFile ( self ):
+        """ collect the dict files in resultsdir, summarize them in pickle file """
+        model = self.hi.hiscores[0]
+        files = glob.glob ( f"{self.resultsdir}/*.dict" )
+        mdict = { "timestamp": time.asctime(), "args": self.args }
+        mass = model.masses[self.pid1]
+        mdict["mass"] = mass
+        values = {}
+        for f in files:
+            with open ( f, "rt" ) as h:
+                r = eval ( h.read() )
+                values[ r["m"] ] = r
+                h.close()
+        mdict["values"] = values
+        with open ( f"scanM{namer.asciiName(self.pid1)}.pcl", "wb" ) as f:
+            pickle.dump ( mdict, f )
+            f.close()
+
+    def mkResultDir ( self ):
+        """ create results dir if it doesnt exist """
+        if not os.path.exists ( self.resultsdir ):
+            os.mkdir ( self.resultsdir )
 
     def produceSSMs( self, pid1, pid2 ):
         """ produce pickle files for ssm scan, for (pid1,pid2)
@@ -273,7 +330,7 @@ class TeststatScanner ( LoggerBase ):
             nproc = len(ssmrangetot)
         ssmranges = [ ssmrangetot[i::nproc] for i in range(nproc) ]
         # ssmranges[0].insert(0,ssm) # compute it early!
-        self.pprint ( f"start scanning with ssm({self.namer.asciiName(pid1)},{self.namer.asciiName(pid2)})={ssm:.2f} with {nproc} procs, {len(ssmrangetot)} ssm points" )
+        self.pprint ( f"start scanning with ssm({namer.asciiName(pid1)},{namer.asciiName(pid2)})={ssm:.2f} with {nproc} procs, {len(ssmrangetot)} ssm points" )
             
         expected = False
         predictor =  Predictor( 0, dbpath=self.args["dbpath"], 
@@ -294,7 +351,7 @@ class TeststatScanner ( LoggerBase ):
                 values.update(r)
         if self.args['dry_run']:
             return
-        filename = f"ssm{self.namer.asciiName(origpids[0])}{self.namer.asciiName(origpids[1])}.pcl"
+        filename = f"ssm{namer.asciiName(origpids[0])}{namer.asciiName(origpids[1])}.pcl"
         if os.path.exists ( filename ):
             subprocess.getoutput ( f"cp {filename} {filename}old" )
         with open ( filename, "wb" ) as f:
@@ -385,14 +442,15 @@ class TeststatScanner ( LoggerBase ):
         import matplotlib
         matplotlib.use("Agg")
         from matplotlib import pyplot as plt
-        picklefile = f"{self.rundir}/scanM{self.namer.asciiName(pid)}.pcl"
+        picklefile = f"{self.rundir}/scanM{namer.asciiName(pid)}.pcl"
         if isSSMPlot():
-            picklefile = f"{self.rundir}/ssm{self.namer.asciiName(pid)}{self.namer.asciiName(pid2)}.pcl"
+            picklefile = f"{self.rundir}/ssm{namer.asciiName(pid)}{namer.asciiName(pid2)}.pcl"
         with open ( picklefile, "rb" ) as f:
-            values = pickle.load( f )
-            cmass = pickle.load ( f ) ## cmass is pids
-            timestamp = pickle.load ( f )
-            self.args = pickle.load ( f )
+            Dict = pickle.load( f )
+            values = Dict["values"]
+            cmass = Dict["mass"] ## cmass is pids
+            timestamp = Dict["timestamp"]
+            self.args = Dict["args"]
         x = list(values.keys()) ## the x's correspond to e.g. the particle masses
         x.sort()
         Kvalues, Kdashed = [], []
@@ -414,10 +472,10 @@ class TeststatScanner ( LoggerBase ):
                 K = float("nan")
             Kdashed.append ( K )
             Kvalues.append ( y0 )
-        pname = self.namer.texName ( pid, addDollars=False )
+        pname = namer.texName ( pid, addDollars=False )
         if isSSMPlot():
-            pname = self.namer.texName ( pid2, addDollars=False, addSign=True )+\
-                    self.namer.texName ( pid, addDollars=False, addSign=True )
+            pname = namer.texName ( pid2, addDollars=False, addSign=True )+\
+                    namer.texName ( pid, addDollars=False, addSign=True )
         fig,ax1 = plt.subplots()
         plt.plot ( x, Kdashed, linewidth=.3, c="tab:blue", zorder=0 )
         plt.plot ( x, Kvalues, linewidth=2., c="tab:blue", zorder=0, label=f"$K({pname})$" )
@@ -504,9 +562,9 @@ class TeststatScanner ( LoggerBase ):
             ax1.legend( fontsize = 12 )
             plt.xlabel ( f"$m({pname})$ [GeV]", fontsize=16 )
 
-        figname = f"M{self.namer.asciiName(pid)}.png"
+        figname = f"M{namer.asciiName(pid)}.png"
         if isSSMPlot():
-            figname = f"ssm_{self.namer.asciiName(pid)}_{self.namer.asciiName(pid2)}.png"
+            figname = f"ssm_{namer.asciiName(pid)}_{namer.asciiName(pid2)}.png"
         stdvar =  numpy.std ( Kvalues )
 
         if interactive:
@@ -532,13 +590,18 @@ class TeststatScanner ( LoggerBase ):
             self.pprint ( f"{cmd}: {o}" ) 
         return figname
 
+    def unlinkResultsDir ( self ):
+        """ clean up in the end """
+        if os.path.exists ( self.resultsdir ):
+            shutil.rmtree ( self.resultsdir )
+
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(
             description='script that scans/plots various test statistics such as K,Z,r' )
     argparser.add_argument ( '-p', '--pid', '--pid1',
             help='pid to consider. If zero, then consider a predefined list [0]',
-            type=int, default=0 )
+            type=str, default=0 )
     argparser.add_argument ( '-q', '--pid2',
             help='pid 2. if -1, then scan masses, If not, then scan signal strength multipliers. If zero, then scan all ssms [-1]',
             type=int, default=-1 )
@@ -578,6 +641,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-F', '--force_copy',
             help='force copying the hiscores.cache file',
             action="store_true" )
+    argparser.add_argument ( '-K', '--dontkeep',
+            help='dont keep the results folder',
+            action="store_true" )
     argparser.add_argument ( '-u', '--uploadTo',
             help='choose upload directory [latest]',
             type=str, default="latest" )
@@ -591,6 +657,8 @@ if __name__ == "__main__":
             help='do srombine',
             action="store_true" )
     args = argparser.parse_args()
+    args.pid = namer.pid ( args.pid )
+    ## allow also eg Xt as pid name
     scanner = TeststatScanner( args )
     pids = args.pid
     if pids == 0:
@@ -611,3 +679,5 @@ if __name__ == "__main__":
                     scanner.draw( pid, args.interactive, args.pid2  )
                 except Exception as e:
                     self.pprint ( f"skipping {pid}: {e}" )
+    if args.dontkeep:
+        scanner.unlinkResultsDir()
