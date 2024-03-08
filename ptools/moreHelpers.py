@@ -5,6 +5,17 @@
 
 from typing import Union, Text, List, Tuple
 
+def shortYVarName ( yvariable ):
+    """ return a moniker of the name of the y variable,
+    drop entirely for X1Z """
+    from ptools.sparticleNames import SParticleNames
+    namer = SParticleNames ( False )
+    syv = "_"+namer.asciiName(yvariable)
+    syv = syv.replace(",","").replace(" ","").replace("~","m")
+    if syv == "_X1Z":
+        syv = ""
+    return syv
+
 def namesForSetsOfPids ( names: List[str|int] ) -> Tuple[int]:
     """ short names for various sets of pids. used as abbreviations
     for forbiddenparticles

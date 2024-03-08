@@ -315,10 +315,8 @@ class LlhdPlot ( LoggerBase ):
         return ret
 
     def writeScriptFile ( self ):
-            syv = "_"+self.namer.asciiName(self.yvariable)
-            syv = syv.replace(",","").replace(" ","").replace("~","m")
-            if syv == "_X1Z":
-                syv = ""
+            from ptools import moreHelpers
+            syv = moreHelpers.shortYVarName( self.yvariable )
             scriptfilename = f"llhdPlot_{self.namer.asciiName(self.xvariable)}{syv}.py"
             with open ( scriptfilename, "wt" ) as f:
                 print ( f"[llhdScanner] created llhdPlotScript.py" )
@@ -691,7 +689,8 @@ class LlhdPlot ( LoggerBase ):
             circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold}):\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
             handles.append ( circ1 )
         legend = ax.legend( handles=handles, loc="best", fontsize=12 )
-        figname = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}_{self.namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.png"
+        syv = self.shortYVarName()
+        figname = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}{syv}.png"
         self.pprint ( f"saving to {figname}" )
         plt.savefig ( figname )
         if self.interactive:

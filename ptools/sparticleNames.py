@@ -244,12 +244,17 @@ class SParticleNames:
             n = "(" + n + ")"
         return n
 
-    def name ( self, pid, addSign=False, addOnes=False, addBrackets = False ):
+    def name ( self, pid, addSign=False, addOnes=False, 
+            addBrackets = False ) -> str:
         """ get the name for a particle id 
         :param addSign: if true, denote also charge
         :param addOnes: if true, add ^{1} to Xt and Xb
         :param addBrackets: if true, add brackets
         """
+        if type(pid) == type(None):
+            return "?"
+        if type(pid) in [ str ]:
+            return pid
         if type(pid) in [ tuple, set, list ]:
             ret=[]
             for p in pid:

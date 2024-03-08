@@ -1,8 +1,8 @@
-*) is there a way to track the pids in smodels v3?
-	 would be nice for manipulator:freezePidsNotInBestCombo
+*) wrap up with this iteration of the scanners
+*) introduce smart initialisation
+*) add an option to range the ssms, for "SUSY runs"
 
-!) see if the teststatScanner works
-!) builder: if em results are available, do not use the UL results
+?) builder: if em results are available, do not use the UL results
 
 *) add also steps that shift N1,C1,N2 simultaneously
 *) add also steps that shift the whole spectrum simultaneously
@@ -13,7 +13,9 @@
    intermediate: we have combiner.penalizeForMissingResults
 +) drop the "states"? maybe not yet!
 
-
+.) see if the teststatScanner works
+.) is there a way to track the pids in smodels v3?
+	 would be nice for manipulator:freezePidsNotInBestCombo
 .) adapt ruler
 .) fix the movie maker (if it is broken)
 .) do_combine needs to propagate
