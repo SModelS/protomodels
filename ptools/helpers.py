@@ -68,11 +68,25 @@ def readDictionaryFile ( filename : PathLike ) -> dict:
     ret["data"] = data
     return ret
 
-def computeP ( obs, bg, bgerr, lognormal = False ):
-    """ compute P value, gaussian nuisance model only
+def computeZFromP ( pvalue : float ) -> float:
+    """ compute significance Z from p-value, i.e. compute Phi^-1 ( p )
+
+    :param pvalue: the p-value
+    :returns: the corresponding significance Z 
+    """
+    return - scipy.stats.norm.ppf ( pvalue )
+
+def computeP ( obs : float, bg : float, bgerr : float, 
+        lognormal : bool = False ) -> float:
+    """ compute P value, gaussian or log-normal nuisance model, w.r.t 
+    SM hypothesis
+
     :param obs: observed number of events
     :param bg: number of expected background events
     :param bgerr: error on number of expected bg events
+    :param lognormal: if true, model the enveloping nuisance parameter 
+    as a lognormal instead of a normal
+
     :returns: p-value
     """
     n = 50000

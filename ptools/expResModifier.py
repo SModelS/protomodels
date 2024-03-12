@@ -15,7 +15,7 @@ setup()
 from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
-from helpers import computeP
+from helpers import computeP, computeZFromP
 from smodels.base import runtime
 if False:
     runtime._experimental = True
@@ -391,7 +391,7 @@ Just filter the database:
             p = computeP ( orig, exp, err )
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
             D["orig_p"]=p
-            origZ = - scipy.stats.norm.ppf ( p )
+            origZ = computeZFromP ( p )
             D["orig_Z"]=origZ
             self.comments["orig_Z"]="the significance Z of the original observation"
         Z = float("inf")

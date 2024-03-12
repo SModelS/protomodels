@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import pickle, os, sys, subprocess, time, glob, colorama, math, numpy
+import pickle, os, sys, subprocess, time, glob, colorama, math, numpy, scipy
 sys.path.insert(0,"../../")
 from protomodels.csetup import setup
 setup()
@@ -19,6 +19,7 @@ logger.setLevel("ERROR")
 from os import PathLike
 from colorama import Fore
 from typing import Union, Dict, TextIO
+from ptools.helpers import computeP, computeZFromP
 
 # runtime._experimental = True
 
@@ -143,8 +144,10 @@ class HiscorePlotter:
                     bgErr=int(bgErr)
                 toterr = math.sqrt ( bgErr**2 + eBG )
                 if toterr > 0.:
-                    sigma = (dI.observedN - eBG ) / toterr
-                    S = f"{sigma:.1f} &sigma;" 
+                    p = computeP ( dI.observedN, eBG, bgErr )
+                    Z = computeZFromP ( p )
+                    # sigma = (dI.observedN - eBG ) / toterr
+                    S = f"{Z:.1f} &sigma;" 
                 from tester.combiner import Combiner
                 c = Combiner( self.protomodel.walkerid )
                 pids = c.getAllPidsOfTheoryPred ( tp )
@@ -197,11 +200,17 @@ class HiscorePlotter:
                     f.write ( f'<td style="text-align:right">{sig}</td>' )
             if dtype == "combined":
                 S = "?"
-                llhd = tp.likelihood( expected=False )
+                llhd = tp.likelihood( expected=False, return_nll=True )
                 eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
                 oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
                 sigma_exp = eUL / 1.96 # the expected scale, sigma
-                Z = ( oUL - eUL ) / sigma_exp
+                # Z = ( oUL - eUL ) / sigma_exp ## this was a bit too crude!
+                l0 = tp.lsm ( return_nll = True )
+                chi2 = 2 * ( l0 - llhd )
+                p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
+                Z = computeZFromP ( p )
+                #print ( f"@@1 combined Z={Z} Znew={Znew} chi2={chi2}" )
+                #sys.exit()
                 # Z = math.sqrt ( chi2 )
                 S = f"{Z:.1f} &sigma;"
                 # S = "%.2g l" % llhd
@@ -263,7 +272,11 @@ class HiscorePlotter:
                     bgErr=int(bgErr)
                 toterr = math.sqrt ( bgErr**2 + eBG )
                 if toterr > 0.:
-                    S = "%.1f $\sigma$" % ( (dI.observedN - eBG ) / toterr )
+                    # Z = (dI.observedN - eBG ) / toterr
+                    #S = "%.1f $\sigma$" % ( (dI.observedN - eBG ) / toterr )
+                    p = computeP ( dI.observedN, eBG, bgErr )
+                    Z = computeZFromP ( p )
+                    S = f"{Z:.1f} $\sigma$"
                 # pids = tp.PIDs
                 from tester.combiner import Combiner
                 c = Combiner( self.protomodel.walkerid )
@@ -281,11 +294,18 @@ class HiscorePlotter:
                 f.write ( f"{did} & {obs} & {eBG} $\\pm$ {bgErr} & {S} & {particles} & {sigmapred} \\\\ \n" )
             if dtype in [ "upperLimit", "combined" ]:
                 S = "?"
-                llhd = tp.likelihood ( expected=False )
+                llhd = tp.likelihood ( expected=False, return_nll = True )
                 eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
                 oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
                 sigma_exp = eUL / 1.96 # the expected scale, sigma
-                Z = ( oUL - eUL ) / sigma_exp
+                if dtype in [ "combined" ]:
+                    l0 = tp.lsm ( return_nll = True )
+                    chi2 = 2 * ( l0 - llhd )
+                    p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
+                    Z = computeZFromP ( p )
+                    # Zold = ( oUL - eUL ) / sigma_exp
+                else:
+                    Z = ( oUL - eUL ) / sigma_exp
                 # Z = math.sqrt ( chi2 )
                 S = f"{Z:.1f} $\sigma$"
                 from tester.combiner import Combiner
