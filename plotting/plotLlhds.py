@@ -689,7 +689,8 @@ class LlhdPlot ( LoggerBase ):
             circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold}):\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
             handles.append ( circ1 )
         legend = ax.legend( handles=handles, loc="best", fontsize=12 )
-        syv = self.shortYVarName()
+        from ptools import moreHelpers
+        syv = moreHelpers.shortYVarName( self.yvariable )
         figname = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}{syv}.png"
         self.pprint ( f"saving to {figname}" )
         plt.savefig ( figname )

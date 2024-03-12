@@ -468,10 +468,22 @@ class LlhdScanner ( LoggerBase ):
         if type(yvariable) == tuple:
             self.myvariable = self.M.ssmultipliers[yvariable]
         
-        rxvariable = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
-        rxvariable = numpy.insert ( rxvariable, 8, self.mxvariable )
-        ryvariable = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
-        ryvariable = numpy.insert ( ryvariable, 8, self.myvariable )
+        # choose the axis boundaries and step sizes such that the hiscore values
+        # are nicely central
+        from numpy import ceil
+        ndxmin = int ( ceil (( self.mxvariable - range1["min"] ) / range1["dm"]) )
+        ndxmax = int ( ceil (( range1["max"] - self.mxvariable ) / range1["dm"]) )
+        rxvariable = numpy.arange ( self.mxvariable - ndxmin*range1["dm"], 
+                       self.mxvariable + ndxmax * range1["dm"] + 1e-5, range1["dm"] )
+        # rxvariable = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )   
+        # rxvariable = numpy.insert ( rxvariable, 8, self.mxvariable )
+        ndymin = int ( ceil (( self.myvariable - range2["min"] ) / range2["dm"]) )
+        ndymay = int ( ceil (( range2["max"] - self.myvariable ) / range2["dm"]) )
+        ryvariable = numpy.arange ( self.myvariable - ndymin*range2["dm"], 
+                       self.myvariable + ndymay * range2["dm"] + 1e-5, range2["dm"] )
+
+        #ryvariable = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
+        #ryvariable = numpy.insert ( ryvariable, 8, self.myvariable )
         print ( f"[llhdScanner] range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
         print ( f"[llhdScanner] range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
         print ( f"[llhdScanner] total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}" )
