@@ -2,17 +2,18 @@
 *) add an option to range the ssms, for "SUSY runs"
 *) implement random changes in the pairs of masses and ssms that leave the total
    xsec largely the same
+*) extend protomodels to non-Z2
+*) move to using jamies pathfinder, drop maximization of mu
 
 ?) builder: if em results are available, do not use the UL results
 *) add also steps that shift N1,C1,N2 simultaneously
 *) add also steps that shift the whole spectrum simultaneously
-*) add also steps that increase/decrease mass and xsecs simultaneously
-?) clean up likelihood scanner code
 *) see if transitions between offshell region and onshell region work
 +) penalize if we are out-of-grid of one experiment:
    intermediate: we have combiner.penalizeForMissingResults
 +) drop the "states"? maybe not yet!
 
+.) clean up likelihood scanner code
 .) improve the computation of the individual significances
 .) wrap up with this iteration of the scanners
 .) see if the teststatScanner works
