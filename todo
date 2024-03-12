@@ -1,6 +1,8 @@
 *) wrap up with this iteration of the scanners
 *) introduce smart initialisation
 *) add an option to range the ssms, for "SUSY runs"
+*) implement random changes in the pairs of masses and ssms that leave the total
+   xsec largely the same
 
 ?) builder: if em results are available, do not use the UL results
 
