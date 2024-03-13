@@ -7,6 +7,7 @@
 *) study the ulobs/ulexp distribution in great detail, so we can make
    an informed choice in the critic
 *) think of smarter choices for mcmc-type (sampling) algorithms
+*) llhds plots, use xsecs not ssms on y axis
 
 ?) builder: if em results are available, do not use the UL results
 *) add also steps that shift N1,C1,N2 simultaneously
