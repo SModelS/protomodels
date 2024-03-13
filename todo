@@ -1,11 +1,12 @@
 *) introduce smart initialisation
 *) add an option to range the ssms, for "SUSY runs"
-*) implement random changes in the pairs of masses and ssms that leave the total
-   xsec largely the same
+*) implement random changes in the pairs of masses and ssms that leave the
+   total xsec largely the same
 *) extend protomodels to non-Z2
 *) move to using jamies pathfinder, drop maximization of mu
 *) study the ulobs/ulexp distribution in great detail, so we can make
    an informed choice in the critic
+*) think of smarter choices for mcmc-type (sampling) algorithms
 
 ?) builder: if em results are available, do not use the UL results
 *) add also steps that shift N1,C1,N2 simultaneously

@@ -6,6 +6,7 @@
 __all__ = [ "Initialiser" ]
 
 import os, glob, time
+import numpy as np
 from builder.loggerbase import LoggerBase
 from smodels.experiment.expResultObj import ExpResult
 from typing import List, Set
@@ -13,7 +14,8 @@ from typing import List, Set
 class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
-    __slots__ = [ "dbpath", "db", "listOfExpRes", "llhdRatios", "txnames" ]
+    __slots__ = [ "dbpath", "db", "listOfExpRes", "llhdRatios", "txnames",
+                  "picklefilename" ]
 
     def __init__ ( self, dbpath : str ):
         """ constructor.
@@ -22,19 +24,24 @@ class Initialiser ( LoggerBase ):
         """
         super ( Initialiser, self ).__init__ ( 0 )
         dbpath = os.path.expanduser ( dbpath )
-        self.pprint ( f"initialising with {dbpath}" )
-        self.dbpath = dbpath
-        self.db = Database( dbpath )
-        self.listOfExpRes = self.db.getExpResults()
-        self.getDictOfTxNames()
-        self.llhdRatios = {}
-        self.getLlhdRatios()
-        self.saveToPickleFile()
+        self.picklefilename = "initialiser.pcl"
+        if os.path.exists ( self.picklefilename ):
+            self.loadFromPickleFile()
+        else:
+            self.pprint ( f"initialising with {dbpath}" )
+            self.dbpath = dbpath
+            self.db = Database( dbpath )
+            self.listOfExpRes = self.db.getExpResults()
+            self.getDictOfTxNames()
+            self.llhdRatios = {}
+            self.getLlhdRatios()
+            self.saveToPickleFile()
         self.interact()
 
     def getLlhdRatios ( self ):
         """ for all topo/analyses pairs, get the llhd ratios for all available
         mass points, and store in a huge dictionary """
+        self.pprint ( f"computing llhd ratios" )
         for txname,analyses in self.txnames.items():
             # go to the respective validation folder, parse the validation dict 
             # files.
@@ -48,10 +55,11 @@ class Initialiser ( LoggerBase ):
 
     def saveToPickleFile ( self ):
         """ save all the information to a big pickle file """
-        d = { "llhdratios": self.llhdratios, "dbpath": self.dbpath,
+        self.pprint ( f"saving to {self.picklefilename}" )
+        d = { "llhdratios": self.llhdRatios, "dbpath": self.dbpath,
               "time": time.asctime(), "dbver": self.db.databaseVersion, }
         import pickle
-        with open ( "initialiser.pcl", "wb" ) as f:
+        with open ( self.picklefilename, "wb" ) as f:
             pickle.dump ( d, f )
             f.close()
 
@@ -60,7 +68,7 @@ class Initialiser ( LoggerBase ):
         import pickle
         with open ( "initialiser.pcl", "rb" ) as f:
             d = pickle.load ( f )
-            self.llhdratios = d["llhdratios"]
+            self.llhdRatios = d["llhdratios"]
             self.dbpath = d["dbpath"]
             f.close()
 
@@ -80,7 +88,10 @@ class Initialiser ( LoggerBase ):
                 for point in validationData:
                     if not "axes" in point:
                         continue
+                    if not "llhd" in point or point["llhd"] == 0.:
+                        continue
                     if not "l_SM" in point:
+                        # FIXME this we can compute post-mortem?
                         continue
                     ratio = point["l_SM"] / point["llhd"]
                     ## FIXME for more complicated cases this needs to change.
