@@ -4,6 +4,8 @@
    xsec largely the same
 *) extend protomodels to non-Z2
 *) move to using jamies pathfinder, drop maximization of mu
+*) study the ulobs/ulexp distribution in great detail, so we can make
+   an informed choice in the critic
 
 ?) builder: if em results are available, do not use the UL results
 *) add also steps that shift N1,C1,N2 simultaneously
@@ -24,7 +26,7 @@
 .) do_combine needs to propagate
 .) make sure model always gets same K,Z scores when rerunning
 .) if C1 or N2 changes, have a small chance for the other to jump to same mass
-.) when C1 or N2 unfreeze, have a certain chance for them to unfreeze to 
+.) when C1 or N2 unfreeze, have a certain chance for them to unfreeze to
    offshell regime
 .) introduce more detailed hiscores dictionaries
 .) csetup should be in toplevel dir
