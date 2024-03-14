@@ -178,17 +178,22 @@ class Initialiser ( LoggerBase ):
         x.sort(); y.sort()
         X,Y = np.meshgrid(x,y) # we have a mesh grid, now fill Z
         Z =[]
+        ## store also the position of the maximum
+        maxx,maxy,maxvalue = float("nan"),float("nan"),-1e9
         for yi in range(len(y)): # index for y
             row = []
             for xi in range(len(x)): # index for x
                 masses = (x[xi],y[yi])
                 value = float("nan")
                 if masses in smap:
-                    if len(smap[masses])==len(anas):
+                    if True: # len(smap[masses])==len(anas):
                         value = sum ( smap[masses].values() )
                         value = self.significanceFromT ( value  )
                 if np.isinf ( value ):
                     value = float("nan")
+                if value > maxvalue:
+                    maxvalue = value
+                    maxx, maxy = masses
                 row.append ( value )
             Z.append ( row )
         Z = np.array ( Z )
@@ -196,6 +201,7 @@ class Initialiser ( LoggerBase ):
         vmin, vmax = np.nanmin(Z), np.nanmax(Z)
         self.pprint ( f"plotting values between {vmin:.2g} and {vmax:.2g}" )
         plt.pcolormesh(X,Y,Z,shading="nearest", vmin=vmin, vmax=vmax)
+        plt.scatter ( [ maxx ], [ maxy ], s=60, c="black", marker="*" )
         plt.colorbar()
         plt.title ( f"T, {txname}" )
         plt.xlabel ( f"m(x)" )
