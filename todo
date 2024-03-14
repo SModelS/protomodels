@@ -1,22 +1,29 @@
-*) introduce smart initialisation
-*) add an option to range the ssms, for "SUSY runs"
+todo:
+=====
+*) introduce smart initialisation of walker (WW)
+*) add an option to range the ssms, for "SUSY runs" (SN)
 *) implement random changes in the pairs of masses and ssms that leave the
-   total xsec largely the same
-*) extend protomodels to non-Z2
-*) move to using jamies pathfinder, drop maximization of mu
+   total xsec largely the same (SN)
+*) move to using jamies pathfinder, drop maximization of mu (SN)
 *) study the ulobs/ulexp distribution in great detail, so we can make
-   an informed choice in the critic
+   an informed choice in the critic (SN)
+*) extend protomodels to non-Z2
 *) think of smarter choices for mcmc-type (sampling) algorithms
 *) llhds plots, use xsecs not ssms on y axis
+*) improve the critic, split into two critics
 
+unsure:
+=======
 ?) builder: if em results are available, do not use the UL results
-*) add also steps that shift N1,C1,N2 simultaneously
-*) add also steps that shift the whole spectrum simultaneously
-*) see if transitions between offshell region and onshell region work
+?) add also steps that shift N1,C1,N2 simultaneously
+?) add also steps that shift the whole spectrum simultaneously
+?) see if transitions between offshell region and onshell region work
 +) penalize if we are out-of-grid of one experiment:
    intermediate: we have combiner.penalizeForMissingResults
 +) drop the "states"? maybe not yet!
 
+done:
+=====
 .) clean up likelihood scanner code
 .) improve the computation of the individual significances
 .) wrap up with this iteration of the scanners

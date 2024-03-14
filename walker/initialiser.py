@@ -5,17 +5,18 @@
 
 __all__ = [ "Initialiser" ]
 
-import os, glob, time
+import os, glob, time, scipy
 import numpy as np
 from builder.loggerbase import LoggerBase
+from ptools.helpers import computeZFromP
 from smodels.experiment.expResultObj import ExpResult
-from typing import List, Set
+from typing import List, Set, Dict
+from colorama import Fore as ansi
+import matplotlib.pyplot as plt
 
 class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
-    __slots__ = [ "dbpath", "db", "listOfExpRes", "llhdRatios", "txnames",
-                  "picklefilename" ]
 
     def __init__ ( self, dbpath : str ):
         """ constructor.
@@ -25,6 +26,10 @@ class Initialiser ( LoggerBase ):
         super ( Initialiser, self ).__init__ ( 0 )
         dbpath = os.path.expanduser ( dbpath )
         self.picklefilename = "initialiser.pcl"
+        self.plotfname = "initialiser.png"
+        self.significanceMap = {}
+        self.analysesForTxName = {} # keep track of which analyses made it into 
+        # which txname
         if os.path.exists ( self.picklefilename ):
             self.loadFromPickleFile()
         else:
@@ -36,7 +41,32 @@ class Initialiser ( LoggerBase ):
             self.llhdRatios = {}
             self.getLlhdRatios()
             self.saveToPickleFile()
+        self.produceSignificanceMaps()
         self.interact()
+
+    def produceSignificanceMaps ( self ):
+        """ produce the significance maps for all txnames,
+        so we can later find maxima within these maps. """
+        for txname,anaresults in self.llhdRatios.items():
+            self.produceSignificanceMapForTxName ( txname, anaresults )
+
+    def produceSignificanceMapForTxName ( self, txname : str, anaresults : Dict ):
+        """ produce a significance map for a single txname
+
+        :param txname: the txname, e.g. T1
+        :param anaresults: dictionary with analsis name as key, and
+        a dictionary with the point-wise results as values
+        """
+        smap = {}
+        self.analysesForTxName[txname] = set()
+        for ananame, points in anaresults.items():
+            for point, Z in points.items():
+                if not point in smap:
+                    smap[point]={}
+                smap[point][ananame]=Z
+                self.analysesForTxName[txname].add ( ananame )
+        self.significanceMap[txname] = smap
+
 
     def getLlhdRatios ( self ):
         """ for all topo/analyses pairs, get the llhd ratios for all available
@@ -50,7 +80,12 @@ class Initialiser ( LoggerBase ):
 
     def interact ( self ):
         """ open an interactive shell """
+        import sys, os
+        from importlib import reload
         import IPython
+        import matplotlib.pyplot as plt
+        print ( f"starting interfactive shell:" )
+        print ( f"data members self.: llhdRatios, significanceMap, analysesForTxName" )
         IPython.embed( colors = "neutral" )
 
     def saveToPickleFile ( self ):
@@ -122,6 +157,65 @@ class Initialiser ( LoggerBase ):
                         ret[txn.txName]=set()
                     ret[txn.txName].add ( er.globalInfo.id )
         self.txnames = ret
+
+    def significanceFromT ( self, T : float ) -> float:
+        """ compute the significance from T """
+        p = scipy.stats.chi2.cdf ( T, df = 1 )
+        Z = computeZFromP ( p )
+        return Z
+
+    def plot ( self, txname : str ):
+        """ plot for txname """
+        plt.clf()
+        anas = self.analysesForTxName[txname]
+        smap = self.significanceMap[txname]
+        ## first determine the grid
+        x, y = set(), set()
+        for point, anaresults in smap.items():
+            x.add ( point[0] )
+            y.add ( point[1] )
+        x, y = list ( x ), list (y )
+        x.sort(); y.sort()
+        X,Y = np.meshgrid(x,y) # we have a mesh grid, now fill Z
+        Z =[]
+        for yi in range(len(y)): # index for y
+            row = []
+            for xi in range(len(x)): # index for x
+                masses = (x[xi],y[yi])
+                value = float("nan")
+                if masses in smap:
+                    if len(smap[masses])==len(anas):
+                        value = sum ( smap[masses].values() )
+                        value = self.significanceFromT ( value  )
+                if np.isinf ( value ):
+                    value = float("nan")
+                row.append ( value )
+            Z.append ( row )
+        Z = np.array ( Z )
+        # vmin, vmax = -200, 200
+        vmin, vmax = np.nanmin(Z), np.nanmax(Z)
+        self.pprint ( f"plotting values between {vmin:.2g} and {vmax:.2g}" )
+        plt.pcolormesh(X,Y,Z,shading="nearest", vmin=vmin, vmax=vmax)
+        plt.colorbar()
+        plt.title ( f"T, {txname}" )
+        plt.xlabel ( f"m(x)" )
+        plt.ylabel ( f"m(y)" )
+        plt.savefig ( self.plotfname )
+        self.show()
+
+    def show ( self ) -> bool:
+        """ show plot.
+
+        :returns: true, if successful
+        """
+        import shutil
+        if shutil.which ( "timg" ) is None:
+            return False
+        cmd = f"timg {self.plotfname}"
+        import subprocess
+        o = subprocess.getoutput ( cmd )
+        print ( o )
+        return True
 
 
 if __name__ == "__main__":
