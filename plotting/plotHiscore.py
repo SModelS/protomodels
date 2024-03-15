@@ -7,6 +7,7 @@ setup()
 from ptools import hiscoreTools
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
+from tester.combiner import Combiner
 from builder import protomodel
 from builder.protomodel import ProtoModel
 from smodels.base.physicsUnits import fb, TeV
@@ -96,8 +97,45 @@ class HiscorePlotter:
                         return "did", True
         return "did not", False
 
-    def oneEntryHtmlRawNumbers ( self, tp : TheoryPrediction, f : TextIO ) -> str:
+    def significanceOfTP ( self, tp : TheoryPrediction ) -> Union[None,float]:
+        """ compute the significance of one theory prediction 
+
+        :param tp: the theory prediction to compute the significance for
+        :returns: significance of theory prediction, None if unsuccessful
+        """
+        dtype = tp.dataType()
+        if dtype == "efficiencyMap":
+            dI = tp.dataset.dataInfo
+            eBG = dI.expectedBG
+            bgErr = dI.bgError
+            p = computeP ( dI.observedN, eBG, bgErr )
+            Z = computeZFromP ( p )
+            return Z
+        if dtype == "upperLimit":
+            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
+            eUL = tp.getUpperLimit ( expected = True )
+            if type(eUL)==type(None):
+                return None ## cannot compute a significance
+            eUL = eUL.asNumber(fb)
+            sigma_exp = eUL / 1.96 # the expected scale, sigma
+            Z = ( oUL - eUL ) / sigma_exp
+            return Z
+        if dtype == "combined":
+            llhd = tp.likelihood( expected=False, return_nll=True )
+            l0 = tp.lsm ( return_nll = True )
+            chi2 = 2 * ( l0 - llhd )
+            p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
+            Z = computeZFromP ( p )
+            return Z
+        return None
+
+    def oneEntryHtmlRawNumbers ( self, tp : TheoryPrediction, f : TextIO,
+           isInBestCombo : bool ) -> str:
         """ write one entry in rawnumbers.html into <f>
+        :param tp: the theory prediction to be written the entry for.
+        :param f: the file handle for rawnumbers.html
+        :param isInBestCombo: indicate whether the theory prediction
+        is part of the best combination. we will hilight these.
 
         :returns: 'analysisid:datatype' as a string
         """
@@ -111,6 +149,7 @@ class HiscorePlotter:
         S = "?"
         dt = { "upperLimit": "ul", "efficiencyMap": "em", "combined": "comb" }
         f.write ( f"<tr><td>{idAndUrl}</td><td>{dt[dtype]}</td> " )
+        Z = self.significanceOfTP ( tp )
         if dtype == "efficiencyMap":
             dI = tp.dataset.dataInfo
             did = dI.dataId # .replace("_","\_")
@@ -124,14 +163,10 @@ class HiscorePlotter:
             bgErr = dI.bgError
             if bgErr == int(bgErr):
                 bgErr=int(bgErr)
-            toterr = math.sqrt ( bgErr**2 + eBG )
-            if toterr > 0.:
-                p = computeP ( dI.observedN, eBG, bgErr )
-                Z = computeZFromP ( p )
+            S = "N/A"
+            if Z != None:
                 S = f"{Z:.1f} &sigma;" 
-            from tester.combiner import Combiner
-            c = Combiner( self.protomodel.walkerid )
-            pids = c.getAllPidsOfTheoryPred ( tp )
+            pids = self.combiner.getAllPidsOfTheoryPred ( tp )
             obsN = dI.observedN
             if ( obsN - int(obsN) ) < 1e-6:
                 obsN=int(obsN)
@@ -151,27 +186,22 @@ class HiscorePlotter:
         if dtype == "upperLimit":
             S = "?"
             llhd = tp.likelihood( expected=False )
-            eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
             oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
-            sigma_exp = eUL / 1.96 # the expected scale, sigma
-            Z = ( oUL - eUL ) / sigma_exp
-            # Z = math.sqrt ( chi2 )
-            S = f"{Z:.1g} &sigma;"
-            # S = "%.2g l" % llhd
-            # print ( "llhd,chi2,Z", llhd,chi2,Z )
-            # p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
-            pids = set()
-            for prod in tp.PIDs:
-                for branch in prod:
-                    for pid in branch:
-                        if type(pid) == int and abs(pid)!=1000022:
-                            pids.add ( abs(pid) )
-                        if type(pid) in [ list, tuple ] and abs(pid[0])!=1000022:
-                            pids.add ( abs(pid[0]) )
-            #particles = helpers.toHtml ( pids, addSign = False,
-            #                              addBrackets = False )
+            eUL = tp.getUpperLimit ( expected = True )
+            seUL = str(eUL)
+            S = "N/A"
+            if Z != None:
+                S = f"{Z:.1g} &sigma;"
+            if type(eUL)!=type(None):
+                eUL = eUL.asNumber(fb)
+                seUL = f"{eUL:.1g}"
+            pids = self.combiner.getAllPidsOfTheoryPred ( tp )
             particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
-            f.write ( f'<td>-</td><td>{topos}</td><td> {tp.getUpperLimit().asNumber(fb):.1g} fb </td><td> {tp.getUpperLimit ( expected = True ).asNumber(fb):.1g} fb</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>'  )
+            f.write ( f'<td>-</td><td>{topos}</td>' ) 
+            f.write ( f'<td> {tp.getUpperLimit().asNumber(fb):.1g} fb </td>' )
+            f.write ( f'<td> {seUL} fb</td>' ) 
+            f.write ( f'<td style="text-align:right">{S}</td>' )
+            f.write ( f'<td style="text-align:right">{particles}</td>'  )
             if hassigs:
                 sig = "-"
                 for txn in tp.txnames:
@@ -184,24 +214,14 @@ class HiscorePlotter:
             llhd = tp.likelihood( expected=False, return_nll=True )
             eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
             oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
-            sigma_exp = eUL / 1.96 # the expected scale, sigma
-            # Z = ( oUL - eUL ) / sigma_exp ## this was a bit too crude!
-            l0 = tp.lsm ( return_nll = True )
-            chi2 = 2 * ( l0 - llhd )
-            p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
-            Z = computeZFromP ( p )
-            #print ( f"@@1 combined Z={Z} Znew={Znew} chi2={chi2}" )
-            #sys.exit()
-            # Z = math.sqrt ( chi2 )
-            S = f"{Z:.1f} &sigma;"
-            # S = "%.2g l" % llhd
-            # print ( "llhd,chi2,Z", llhd,chi2,Z )
-            # p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
-            from tester.combiner import Combiner
-            c = Combiner( self.protomodel.walkerid )
-            pids = c.getAllPidsOfTheoryPred ( tp )
+            if Z != None:
+                S = f"{Z:.1f} &sigma;"
+            pids = self.combiner.getAllPidsOfTheoryPred ( tp )
             particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
-            f.write ( f'<td>-</td><td>{topos}</td><td> {tp.getUpperLimit().asNumber(fb):.1g} fb </td><td> {tp.getUpperLimit ( expected = True ).asNumber(fb):.1g} fb</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>')
+            f.write ( f'<td>-</td><td>{topos}</td>' ) 
+            f.write ( f'<td> {oUL:.1g} fb </td><td> {eUL:.1g} fb</td>' )
+            f.write ( f'<td style="text-align:right">{S}</td>' ) 
+            f.write ( f'<td style="text-align:right">{particles}</td>')
             if hassigs:
                 sig = "-"
                 for txn in tp.txnames:
@@ -224,9 +244,17 @@ class HiscorePlotter:
         f.write("\n</tr>\n" )
         hasListed = []
         for tp in self.protomodel.bestCombo:
-            anaType = self.oneEntryHtmlRawNumbers ( tp, f )
-            hasListed.append ( anaType )
-        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+            idfer = self.oneEntryHtmlRawNumbers ( tp, f, True )
+            hasListed.append ( idfer )
+        f.write("</table>\n" )
+        f.write("<table style='color:grey'>\n" )
+        f.write("<tr><th>Analysis Name</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx &sigma;</th><th>Particles</th>" )
+        for tp in self.predictor.predictions:
+            anaId = tp.analysisId()
+            dtype = tp.dataType()
+            idfer = f"{anaId}:{dtype}"
+            if not idfer in hasListed:
+                anaType = self.oneEntryHtmlRawNumbers ( tp, f, False )
         f.write("</table>\n" )
         f.close()
 
@@ -266,6 +294,7 @@ class HiscorePlotter:
         dt = { "upperLimit": "ul", "efficiencyMap": "em" }
         ref = bibtex.query ( anaId )
         f.write ( f"{ananame}~\\cite{{ref}} & " )
+        Z = self.significanceOfTP ( tp )
         if dtype == "efficiencyMap":
             dI = tp.dataset.dataInfo
             obsN = dI.observedN
@@ -281,17 +310,11 @@ class HiscorePlotter:
             bgErr = dI.bgError
             if bgErr == int(bgErr):
                 bgErr=int(bgErr)
-            toterr = math.sqrt ( bgErr**2 + eBG )
-            if toterr > 0.:
-                # Z = (dI.observedN - eBG ) / toterr
-                #S = "%.1f $\sigma$" % ( (dI.observedN - eBG ) / toterr )
-                p = computeP ( dI.observedN, eBG, bgErr )
-                Z = computeZFromP ( p )
+            S = "N/A"
+            if Z != None:
                 S = f"{Z:.1f} $\sigma$"
             # pids = tp.PIDs
-            from tester.combiner import Combiner
-            c = Combiner( self.protomodel.walkerid )
-            pids = c.getAllPidsOfTheoryPred ( tp )
+            pids = self.combiner.getAllPidsOfTheoryPred ( tp )
             particles = namer.texName ( pids, addDollars=True, addSign = False,
                                           addBrackets = False )
             obs = dI.observedN
@@ -309,19 +332,9 @@ class HiscorePlotter:
             eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
             oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
             sigma_exp = eUL / 1.96 # the expected scale, sigma
-            if dtype in [ "combined" ]:
-                l0 = tp.lsm ( return_nll = True )
-                chi2 = 2 * ( l0 - llhd )
-                p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
-                Z = computeZFromP ( p )
-                # Zold = ( oUL - eUL ) / sigma_exp
-            else:
-                Z = ( oUL - eUL ) / sigma_exp
-            # Z = math.sqrt ( chi2 )
-            S = f"{Z:.1f} $\sigma$"
-            from tester.combiner import Combiner
-            c = Combiner( self.protomodel.walkerid )
-            pids = c.getAllPidsOfTheoryPred ( tp )
+            if Z is not None:
+                S = f"{Z:.1f} $\sigma$"
+            pids = self.combiner.getAllPidsOfTheoryPred ( tp )
             particles = namer.texName ( pids, addDollars=True, addSign = False,
                                         addBrackets = False )
             sigmapred=f"{tp.xsection.asNumber(fb)} fb"
@@ -806,9 +819,7 @@ class HiscorePlotter:
             if tpred.dataId() in [ "None", None ]:
                 dType = "ul"
             name = name + ":" + dType
-        from tester.combiner import Combiner
-        c = Combiner( self.protomodel.walkerid )
-        pids = c.getAllPidsOfTheoryPred ( tpred )
+        pids = self.combiner.getAllPidsOfTheoryPred ( tpred )
         for pid in pids:
             if pid == LSP:
                 continue
@@ -881,7 +892,8 @@ class HiscorePlotter:
         ## plot hiscore number "number"
         pm = hiscoreTools.obtainHiscore ( number, hiscorefile )
         self.protomodel = pm
-        self.predictor = Predictor ( 0, dbpath )
+        self.combiner = Combiner ( self.protomodel.walkerid )
+        self.predictor = Predictor ( 0, dbpath, do_srcombine = True )
 
         protoslha = self.protomodel.createSLHAFile ()
         subprocess.getoutput ( f"cp {protoslha} hiscore.slha" )
@@ -911,6 +923,7 @@ class HiscorePlotter:
                 self.writeIndexHtml ( )
             if options["tex"]:
                 self.writeIndexTex( texdoc )
+        self.predictor.predict ( self.protomodel, keep_predictions = True )
         self.writeRawNumbersLatex ( )
         self.writeRawNumbersHtml ( )
         if options["keep"]:
