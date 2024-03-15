@@ -1,6 +1,7 @@
 todo:
 =====
 *) introduce smart initialisation of walker (WW)
+*) list also stats of results that didnt make it into the best combo (WW)
 *) add an option to range the ssms, for "SUSY runs" (SN)
 *) implement random changes in the pairs of masses and ssms that leave the
    total xsec largely the same (SN)
