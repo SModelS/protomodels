@@ -21,6 +21,7 @@ from os import PathLike
 from colorama import Fore
 from typing import Union, Dict, TextIO
 from ptools.helpers import computeP, computeZFromP
+from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
         
 namer = SParticleNames ( susy = False )
 
@@ -95,7 +96,7 @@ class HiscorePlotter:
                         return "did", True
         return "did not", False
 
-    def oneEntryRawNumbers ( self, tp : TheoryPrediction, f : TextIO ) -> str:
+    def oneEntryHtmlRawNumbers ( self, tp : TheoryPrediction, f : TextIO ) -> str:
         """ write one entry in rawnumbers.html into <f>
 
         :returns: 'analysisid:datatype' as a string
@@ -223,14 +224,16 @@ class HiscorePlotter:
         f.write("\n</tr>\n" )
         hasListed = []
         for tp in self.protomodel.bestCombo:
-            anaType = self.oneEntryRawNumbers ( tp, f )
+            anaType = self.oneEntryHtmlRawNumbers ( tp, f )
             hasListed.append ( anaType )
         # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         f.write("</table>\n" )
         f.close()
 
-    def writeRawNumbersLatex ( self, usePrettyNames = True ):
-        """ write out the raw numbers of the excess, in latex
+    def writeRawNumbersLatex ( self, usePrettyNames : bool = True ):
+        """ write out the raw numbers of the excess, in latex,
+        to rawnumbers.tex
+
         :param usePrettyNames: use the pretty names, not analysis ids
         """
         print ( "raw numbers of excess" )
@@ -239,81 +242,92 @@ class HiscorePlotter:
         f.write("\\begin{tabular}{l|c|r|r|c|r|r}\n" )
         f.write("\\bf{Analysis Name} & \\bf{Dataset} & \\bf{Obs} & \\bf{Expected} & \\bf{Z} & \\bf{Particle} & \\bf{Signal} \\\\\n" )
         f.write("\\hline\n" )
-        bibtex = BibtexWriter()
-        from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
         for tp in self.protomodel.bestCombo:
-            anaId = tp.analysisId()
-            ananame = anaId
-            if usePrettyNames:
-                ananame = prettyTexAnalysisName ( None, anaid = anaId )
-            dtype = tp.dataType()
-            print ( f"[plotHiscore] item {anaId} ({dtype})" )
-            dt = { "upperLimit": "ul", "efficiencyMap": "em" }
-            ref = bibtex.query ( anaId )
-            f.write ( f"{ananame}~\\cite{{ref}} & " )
-            if dtype == "efficiencyMap":
-                dI = tp.dataset.dataInfo
-                obsN = dI.observedN
-                if ( obsN - int(obsN) ) < 1e-6:
-                    obsN=int(obsN)
-                print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError}" )
-                did = dI.dataId.replace("_","\_")
-                if len(did)>9:
-                    did=did[:6]+" ..."
-                eBG = dI.expectedBG
-                if eBG == int(eBG):
-                    eBG=int(eBG)
-                bgErr = dI.bgError
-                if bgErr == int(bgErr):
-                    bgErr=int(bgErr)
-                toterr = math.sqrt ( bgErr**2 + eBG )
-                if toterr > 0.:
-                    # Z = (dI.observedN - eBG ) / toterr
-                    #S = "%.1f $\sigma$" % ( (dI.observedN - eBG ) / toterr )
-                    p = computeP ( dI.observedN, eBG, bgErr )
-                    Z = computeZFromP ( p )
-                    S = f"{Z:.1f} $\sigma$"
-                # pids = tp.PIDs
-                from tester.combiner import Combiner
-                c = Combiner( self.protomodel.walkerid )
-                pids = c.getAllPidsOfTheoryPred ( tp )
-                particles = namer.texName ( pids, addDollars=True, addSign = False,
-                                              addBrackets = False )
-                obs = dI.observedN
-                if obs == 0.:
-                    obs = 0
-                else:
-                    if abs ( obs - int(obs) ) / obs < 1e-6:
-                        obs = int ( obs )
-                sigN = tp.xsection.asNumber(fb) * tp.dataset.globalInfo.lumi.asNumber(1/fb)
-                sigmapred=f"{sigN:.2f}"
-                f.write ( f"{did} & {obs} & {eBG} $\\pm$ {bgErr} & {S} & {particles} & {sigmapred} \\\\ \n" )
-            if dtype in [ "upperLimit", "combined" ]:
-                S = "?"
-                llhd = tp.likelihood ( expected=False, return_nll = True )
-                eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
-                oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
-                sigma_exp = eUL / 1.96 # the expected scale, sigma
-                if dtype in [ "combined" ]:
-                    l0 = tp.lsm ( return_nll = True )
-                    chi2 = 2 * ( l0 - llhd )
-                    p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
-                    Z = computeZFromP ( p )
-                    # Zold = ( oUL - eUL ) / sigma_exp
-                else:
-                    Z = ( oUL - eUL ) / sigma_exp
-                # Z = math.sqrt ( chi2 )
-                S = f"{Z:.1f} $\sigma$"
-                from tester.combiner import Combiner
-                c = Combiner( self.protomodel.walkerid )
-                pids = c.getAllPidsOfTheoryPred ( tp )
-                particles = namer.texName ( pids, addDollars=True, addSign = False,
-                                            addBrackets = False )
-                sigmapred=f"{tp.xsection.asNumber(fb)} fb"
-                print ( f"  `- observed {oUL:.2f}*fb, expected {eUL:.2f}*fb {Z:.1f} sigma" )
-                f.write ( f" & {oUL:.1f} fb & {eUL:.1f} fb & {S} & {particles} & {sigmapred} \\\\ \n" )
+            self.oneEntryTexRawNumbers ( tp, f, usePrettyNames )
         f.write("\end{tabular}\n" )
         f.close()
+
+    def oneEntryTexRawNumbers ( self, tp : TheoryPrediction, f : TextIO,
+           usePrettyNames : bool ) -> str:
+        """ write one tex entry for the given theory prediction
+        :param tp: write the entry for that theory prediction
+        :param usePrettyNames: use the pretty names, not analysis ids
+
+        :returns: anaid:datatype
+        """
+        bibtex = BibtexWriter()
+
+        anaId = tp.analysisId()
+        ananame = anaId
+        if usePrettyNames:
+            ananame = prettyTexAnalysisName ( None, anaid = anaId )
+        dtype = tp.dataType()
+        print ( f"[plotHiscore] item {anaId} ({dtype})" )
+        dt = { "upperLimit": "ul", "efficiencyMap": "em" }
+        ref = bibtex.query ( anaId )
+        f.write ( f"{ananame}~\\cite{{ref}} & " )
+        if dtype == "efficiencyMap":
+            dI = tp.dataset.dataInfo
+            obsN = dI.observedN
+            if ( obsN - int(obsN) ) < 1e-6:
+                obsN=int(obsN)
+            print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError}" )
+            did = dI.dataId.replace("_","\_")
+            if len(did)>9:
+                did=did[:6]+" ..."
+            eBG = dI.expectedBG
+            if eBG == int(eBG):
+                eBG=int(eBG)
+            bgErr = dI.bgError
+            if bgErr == int(bgErr):
+                bgErr=int(bgErr)
+            toterr = math.sqrt ( bgErr**2 + eBG )
+            if toterr > 0.:
+                # Z = (dI.observedN - eBG ) / toterr
+                #S = "%.1f $\sigma$" % ( (dI.observedN - eBG ) / toterr )
+                p = computeP ( dI.observedN, eBG, bgErr )
+                Z = computeZFromP ( p )
+                S = f"{Z:.1f} $\sigma$"
+            # pids = tp.PIDs
+            from tester.combiner import Combiner
+            c = Combiner( self.protomodel.walkerid )
+            pids = c.getAllPidsOfTheoryPred ( tp )
+            particles = namer.texName ( pids, addDollars=True, addSign = False,
+                                          addBrackets = False )
+            obs = dI.observedN
+            if obs == 0.:
+                obs = 0
+            else:
+                if abs ( obs - int(obs) ) / obs < 1e-6:
+                    obs = int ( obs )
+            sigN = tp.xsection.asNumber(fb) * tp.dataset.globalInfo.lumi.asNumber(1/fb)
+            sigmapred=f"{sigN:.2f}"
+            f.write ( f"{did} & {obs} & {eBG} $\\pm$ {bgErr} & {S} & {particles} & {sigmapred} \\\\ \n" )
+        if dtype in [ "upperLimit", "combined" ]:
+            S = "?"
+            llhd = tp.likelihood ( expected=False, return_nll = True )
+            eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
+            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
+            sigma_exp = eUL / 1.96 # the expected scale, sigma
+            if dtype in [ "combined" ]:
+                l0 = tp.lsm ( return_nll = True )
+                chi2 = 2 * ( l0 - llhd )
+                p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
+                Z = computeZFromP ( p )
+                # Zold = ( oUL - eUL ) / sigma_exp
+            else:
+                Z = ( oUL - eUL ) / sigma_exp
+            # Z = math.sqrt ( chi2 )
+            S = f"{Z:.1f} $\sigma$"
+            from tester.combiner import Combiner
+            c = Combiner( self.protomodel.walkerid )
+            pids = c.getAllPidsOfTheoryPred ( tp )
+            particles = namer.texName ( pids, addDollars=True, addSign = False,
+                                        addBrackets = False )
+            sigmapred=f"{tp.xsection.asNumber(fb)} fb"
+            print ( f"  `- observed {oUL:.2f}*fb, expected {eUL:.2f}*fb {Z:.1f} sigma" )
+            f.write ( f" & {oUL:.1f} fb & {eUL:.1f} fb & {S} & {particles} & {sigmapred} \\\\ \n" )
+        return f"{anaId}:{dtype}"
 
     def findXSecOfPids ( self, xsecs, pids ):
         """ find the cross sections for pids
@@ -456,7 +470,6 @@ class HiscorePlotter:
         #g.write ( "\\bf{Analysis Name} & \\bf{Topo} & $r_{\mathrm{obs}}$ & $r_{\mathrm{exp}}$ \\\\\n" )
         g.write ( "\\hline\n" )
         bibtex = BibtexWriter()
-        from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
         for rv in rvalues[:5]:
             srv="N/A"
             if type(rv['rexp']) in [ float, numpy.float64, numpy.float32 ]:
