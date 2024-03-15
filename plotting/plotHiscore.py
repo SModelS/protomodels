@@ -20,6 +20,8 @@ from os import PathLike
 from colorama import Fore
 from typing import Union, Dict, TextIO
 from ptools.helpers import computeP, computeZFromP
+        
+namer = SParticleNames ( susy = False )
 
 # runtime._experimental = True
 
@@ -107,6 +109,119 @@ class HiscorePlotter:
                         return "did", True
         return "did not", False
 
+    def oneEntryRawNumbers ( self, tp : TheoryPrediction, f : TextIO ):
+        """ write one entry in rawnumbers.html into <f>
+        """
+        didordidnot,hassigs = self.hasSignals ( )
+        anaId = tp.analysisId()
+        idAndUrl = self.anaNameAndUrl ( tp )
+        dtype = tp.dataType()
+        ltopos = list(set(map(str,tp.txnames ) ))
+        ltopos.sort()
+        topos = ", ".join ( ltopos )
+        S = "?"
+        dt = { "upperLimit": "ul", "efficiencyMap": "em", "combined": "comb" }
+        f.write ( f"<tr><td>{idAndUrl}</td><td>{dt[dtype]}</td> " )
+        if dtype == "efficiencyMap":
+            dI = tp.dataset.dataInfo
+            did = dI.dataId # .replace("_","\_")
+            maxLen=9
+            maxLen=18
+            if len(did)>maxLen:
+                did=did[:maxLen-3]+" ..."
+            eBG = dI.expectedBG
+            if eBG == int(eBG):
+                eBG=int(eBG)
+            bgErr = dI.bgError
+            if bgErr == int(bgErr):
+                bgErr=int(bgErr)
+            toterr = math.sqrt ( bgErr**2 + eBG )
+            if toterr > 0.:
+                p = computeP ( dI.observedN, eBG, bgErr )
+                Z = computeZFromP ( p )
+                S = f"{Z:.1f} &sigma;" 
+            from tester.combiner import Combiner
+            c = Combiner( self.protomodel.walkerid )
+            pids = c.getAllPidsOfTheoryPred ( tp )
+            obsN = dI.observedN
+            if ( obsN - int(obsN) ) < 1e-6:
+                obsN=int(obsN)
+            particles = namer.htmlName ( pids, addSign = False,
+                                          addBrackets = False )
+            sobsN = str(obsN)
+            if type(obsN) == float:
+                sobsN = f"{obsN:.2f}" 
+            f.write ( f'<td>{did}</td><td>{topos}</td><td>{sobsN}</td><td>{eBG:.2f} +/- {bgErr:.2f}</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>' )
+            if hassigs:
+                sig = "-"
+                if hasattr ( dI, "sigN" ):
+                    sig = f"{dI.sigN}" 
+                    if type(dI.sigN) in [ float, np.float64 ]:
+                        sig = f"{dI.sigN:.2f}"
+                f.write ( f'<td style="text-align:right">{sig}</td>' )
+        if dtype == "upperLimit":
+            S = "?"
+            llhd = tp.likelihood( expected=False )
+            eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
+            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
+            sigma_exp = eUL / 1.96 # the expected scale, sigma
+            Z = ( oUL - eUL ) / sigma_exp
+            # Z = math.sqrt ( chi2 )
+            S = f"{Z:.1g} &sigma;"
+            # S = "%.2g l" % llhd
+            # print ( "llhd,chi2,Z", llhd,chi2,Z )
+            # p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
+            pids = set()
+            for prod in tp.PIDs:
+                for branch in prod:
+                    for pid in branch:
+                        if type(pid) == int and abs(pid)!=1000022:
+                            pids.add ( abs(pid) )
+                        if type(pid) in [ list, tuple ] and abs(pid[0])!=1000022:
+                            pids.add ( abs(pid[0]) )
+            #particles = helpers.toHtml ( pids, addSign = False,
+            #                              addBrackets = False )
+            particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
+            f.write ( f'<td>-</td><td>{topos}</td><td> {tp.getUpperLimit().asNumber(fb):.1g} fb </td><td> {tp.getUpperLimit ( expected = True ).asNumber(fb):.1g} fb</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>'  )
+            if hassigs:
+                sig = "-"
+                for txn in tp.txnames:
+                # for txn in tp.dataset.txnameList:
+                    if hasattr ( txn, "sigmaN" ):
+                        sig = f"{txn.sigmaN:.2f} fb"
+                f.write ( f'<td style="text-align:right">{sig}</td>' )
+        if dtype == "combined":
+            S = "?"
+            llhd = tp.likelihood( expected=False, return_nll=True )
+            eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
+            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
+            sigma_exp = eUL / 1.96 # the expected scale, sigma
+            # Z = ( oUL - eUL ) / sigma_exp ## this was a bit too crude!
+            l0 = tp.lsm ( return_nll = True )
+            chi2 = 2 * ( l0 - llhd )
+            p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
+            Z = computeZFromP ( p )
+            #print ( f"@@1 combined Z={Z} Znew={Znew} chi2={chi2}" )
+            #sys.exit()
+            # Z = math.sqrt ( chi2 )
+            S = f"{Z:.1f} &sigma;"
+            # S = "%.2g l" % llhd
+            # print ( "llhd,chi2,Z", llhd,chi2,Z )
+            # p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
+            from tester.combiner import Combiner
+            c = Combiner( self.protomodel.walkerid )
+            pids = c.getAllPidsOfTheoryPred ( tp )
+            particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
+            f.write ( f'<td>-</td><td>{topos}</td><td> {tp.getUpperLimit().asNumber(fb):.1g} fb </td><td> {tp.getUpperLimit ( expected = True ).asNumber(fb):.1g} fb</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>')
+            if hassigs:
+                sig = "-"
+                for txn in tp.txnames:
+                # for txn in tp.dataset.txnameList:
+                    if hasattr ( txn, "sigmaN" ):
+                        sig = f"{txn.sigmaN:.2f} fb"
+                f.write ( f'<td style="text-align:right">{sig}</td>' )
+        f.write ( '</tr>\n' )
+
     def writeRawNumbersHtml ( self ):
         """ write out the raw numbers of the excess, as html """
         f=open("rawnumbers.html","wt")
@@ -117,118 +232,8 @@ class HiscorePlotter:
         if hassigs:
             f.write("<th>Signal</th>" )
         f.write("\n</tr>\n" )
-        namer = SParticleNames ( susy = False )
         for tp in self.protomodel.bestCombo:
-            anaId = tp.analysisId()
-            idAndUrl = self.anaNameAndUrl ( tp )
-            dtype = tp.dataType()
-            ltopos = list(set(map(str,tp.txnames ) ))
-            ltopos.sort()
-            topos = ", ".join ( ltopos )
-            S = "?"
-            dt = { "upperLimit": "ul", "efficiencyMap": "em", "combined": "comb" }
-            f.write ( f"<tr><td>{idAndUrl}</td><td>{dt[dtype]}</td> " )
-            #f.write ( "<tr><td>%s</td><td>%s</td> " % ( anaId, dt[dtype] ) )
-            if dtype == "efficiencyMap":
-                dI = tp.dataset.dataInfo
-                did = dI.dataId # .replace("_","\_")
-                maxLen=9
-                maxLen=18
-                if len(did)>maxLen:
-                    did=did[:maxLen-3]+" ..."
-                eBG = dI.expectedBG
-                if eBG == int(eBG):
-                    eBG=int(eBG)
-                bgErr = dI.bgError
-                if bgErr == int(bgErr):
-                    bgErr=int(bgErr)
-                toterr = math.sqrt ( bgErr**2 + eBG )
-                if toterr > 0.:
-                    p = computeP ( dI.observedN, eBG, bgErr )
-                    Z = computeZFromP ( p )
-                    # sigma = (dI.observedN - eBG ) / toterr
-                    S = f"{Z:.1f} &sigma;" 
-                from tester.combiner import Combiner
-                c = Combiner( self.protomodel.walkerid )
-                pids = c.getAllPidsOfTheoryPred ( tp )
-                obsN = dI.observedN
-                if ( obsN - int(obsN) ) < 1e-6:
-                    obsN=int(obsN)
-                particles = namer.htmlName ( pids, addSign = False,
-                                              addBrackets = False )
-                sobsN = str(obsN)
-                if type(obsN) == float:
-                    sobsN = f"{obsN:.2f}" 
-                f.write ( f'<td>{did}</td><td>{topos}</td><td>{sobsN}</td><td>{eBG:.2f} +/- {bgErr:.2f}</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>' )
-                if hassigs:
-                    sig = "-"
-                    if hasattr ( dI, "sigN" ):
-                        sig = f"{dI.sigN}" 
-                        if type(dI.sigN) in [ float, np.float64 ]:
-                            sig = f"{dI.sigN:.2f}"
-                    f.write ( f'<td style="text-align:right">{sig}</td>' )
-            if dtype == "upperLimit":
-                S = "?"
-                llhd = tp.likelihood( expected=False )
-                eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
-                oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
-                sigma_exp = eUL / 1.96 # the expected scale, sigma
-                Z = ( oUL - eUL ) / sigma_exp
-                # Z = math.sqrt ( chi2 )
-                S = f"{Z:.1g} &sigma;"
-                # S = "%.2g l" % llhd
-                # print ( "llhd,chi2,Z", llhd,chi2,Z )
-                # p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
-                pids = set()
-                for prod in tp.PIDs:
-                    for branch in prod:
-                        for pid in branch:
-                            if type(pid) == int and abs(pid)!=1000022:
-                                pids.add ( abs(pid) )
-                            if type(pid) in [ list, tuple ] and abs(pid[0])!=1000022:
-                                pids.add ( abs(pid[0]) )
-                #particles = helpers.toHtml ( pids, addSign = False,
-                #                              addBrackets = False )
-                particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
-                f.write ( f'<td>-</td><td>{topos}</td><td> {tp.getUpperLimit().asNumber(fb):.1g} fb </td><td> {tp.getUpperLimit ( expected = True ).asNumber(fb):.1g} fb</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>'  )
-                if hassigs:
-                    sig = "-"
-                    for txn in tp.txnames:
-                    # for txn in tp.dataset.txnameList:
-                        if hasattr ( txn, "sigmaN" ):
-                            sig = f"{txn.sigmaN:.2f} fb"
-                    f.write ( f'<td style="text-align:right">{sig}</td>' )
-            if dtype == "combined":
-                S = "?"
-                llhd = tp.likelihood( expected=False, return_nll=True )
-                eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
-                oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
-                sigma_exp = eUL / 1.96 # the expected scale, sigma
-                # Z = ( oUL - eUL ) / sigma_exp ## this was a bit too crude!
-                l0 = tp.lsm ( return_nll = True )
-                chi2 = 2 * ( l0 - llhd )
-                p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
-                Z = computeZFromP ( p )
-                #print ( f"@@1 combined Z={Z} Znew={Znew} chi2={chi2}" )
-                #sys.exit()
-                # Z = math.sqrt ( chi2 )
-                S = f"{Z:.1f} &sigma;"
-                # S = "%.2g l" % llhd
-                # print ( "llhd,chi2,Z", llhd,chi2,Z )
-                # p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
-                from tester.combiner import Combiner
-                c = Combiner( self.protomodel.walkerid )
-                pids = c.getAllPidsOfTheoryPred ( tp )
-                particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
-                f.write ( f'<td>-</td><td>{topos}</td><td> {tp.getUpperLimit().asNumber(fb):.1g} fb </td><td> {tp.getUpperLimit ( expected = True ).asNumber(fb):.1g} fb</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>')
-                if hassigs:
-                    sig = "-"
-                    for txn in tp.txnames:
-                    # for txn in tp.dataset.txnameList:
-                        if hasattr ( txn, "sigmaN" ):
-                            sig = f"{txn.sigmaN:.2f} fb"
-                    f.write ( f'<td style="text-align:right">{sig}</td>' )
-            f.write ( '</tr>\n' )
+            self.oneEntryRawNumbers ( tp, f )
         f.write("</table>\n" )
         f.close()
 
@@ -242,7 +247,6 @@ class HiscorePlotter:
         f.write("\\begin{tabular}{l|c|r|r|c|r|r}\n" )
         f.write("\\bf{Analysis Name} & \\bf{Dataset} & \\bf{Obs} & \\bf{Expected} & \\bf{Z} & \\bf{Particle} & \\bf{Signal} \\\\\n" )
         f.write("\\hline\n" )
-        namer = SParticleNames ( susy = False )
         bibtex = BibtexWriter()
         from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
         for tp in self.protomodel.bestCombo:
@@ -343,7 +347,6 @@ class HiscorePlotter:
         frozen = self.protomodel.frozenParticles()
         xsecs = self.protomodel.getXsecs()[0]
         ssms = self.getUnfrozenSSMs ( frozen, includeOnes=True )
-        namer = SParticleNames ( susy = False )
         for pids,v in ssms.items():
             xsec = self.findXSecOfPids ( xsecs, pids )
             if xsec < 0.001 * fb: ## only for xsecs we care about
@@ -454,7 +457,6 @@ class HiscorePlotter:
         """ write out the leading rvalues of the critic, in latex
         :param usePrettyNames: use the pretty names, not analysis ids
         """
-        namer = SParticleNames ( False )
         g=open("rvalues.tex","wt")
         g.write ( "\\begin{tabular}{l|c|c|c|c|c}\n" )
         g.write ( "\\bf{Analysis Name} & \\bf{Production} & $\sigma_{XX}$ (fb) & $\sigma^\mathrm{UL}_\mathrm{obs}$ (fb) & $\sigma^\mathrm{UL}_\mathrm{exp}$ (fb) & $r$ \\\\\n" )
@@ -518,7 +520,6 @@ class HiscorePlotter:
         :param texdoc: the source that goes into texdoc.png
         """
         ssm = []
-        namer = SParticleNames ( False )
         for k,v in self.protomodel.ssmultipliers.items():
             if abs(v-1.)<1e-3:
                 continue
@@ -644,7 +645,6 @@ class HiscorePlotter:
             https://smodels.github.io/protomodels/
         """
         ssm = []
-        namer = SParticleNames ( susy = False )
         frozen = self.protomodel.frozenParticles()
         ssms = self.getUnfrozenSSMs ( frozen, includeOnes=True )
         for k,v in ssms.items():
@@ -716,7 +716,7 @@ class HiscorePlotter:
             rvalues=self.protomodel.tpList
             rvalues.sort(key=lambda x: x['robs'],reverse=True )
             f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
-            for rv in rvalues[:5]:
+            for rv in rvalues[:4]:
                 srv="N/A"
                 if type(rv['rexp']) in [ float, numpy.float64, numpy.float32 ]:
                     srv= f"{rv['rexp']:.2f}"
@@ -763,8 +763,8 @@ class HiscorePlotter:
         f.write ( "<td width=45%>" )
         f.write ( f"<img height=580px src=./ruler.png?{t0}>" )
         f.write ( "<td width=55%>" )
-        f.write ( f"<img height=340px src=./decays.png?{t0}>\n" )
-        f.write ( f'<font size=-3><iframe type="text/html" height="270px" width="100%" frameborder="0" src="./rawnumbers.html?{t0}"></iframe></font>\n' )
+        f.write ( f"<img height=220px src=./decays.png?{t0}>\n" )
+        f.write ( f'<font size=-3><iframe type="text/html" height="300px" width="100%" frameborder="0" src="./rawnumbers.html?{t0}"></iframe></font>\n' )
         f.write ( "</table>\n" )
         f.write ( "</body>\n" )
         f.write ( "</html>\n" )
