@@ -16,6 +16,7 @@ from builder.protomodel import ProtoModel
 from walker.hiscores import Hiscores
 from typing import Union, Dict, List
 from argparse import Namespace
+from os import PathLike
 
 def count ( protomodels : List[ProtoModel] ) -> int:
     return len(protomodels)-protomodels.count(None)
@@ -61,6 +62,19 @@ def pprintEvs ( protomodel ):
     if protomodel.nevents > 1000:
         return f"{protomodel.nevents/1000}K evts"
     return str(protomodel.nevents)+ " evts"
+
+def obtainHiscore ( number : int, 
+        hiscorefile : PathLike = "hiscores.dict" ) -> ProtoModel:
+    """ obtain hiscore number <number> from >hiscorefile>
+
+    :returns: protomodel object
+    """
+    hi = fetchHiscoresObj ( hiscorefile )
+    Z = hi.hiscores[number].Z
+    K = hi.hiscores[number].K
+    print ( f"[hiscoreTools] obtaining #{number}: K={K:.3f}" )
+    ret = hi.hiscores[ number ]
+    return ret
 
 def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict", 
                            picklefile : str = "hiscores.cache",

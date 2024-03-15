@@ -6,6 +6,7 @@ from protomodels.csetup import setup
 setup()
 from ptools import hiscoreTools
 from builder.manipulator import Manipulator
+from tester.predictor import Predictor
 from builder import protomodel
 from builder.protomodel import ProtoModel
 from smodels.base.physicsUnits import fb, TeV
@@ -28,21 +29,6 @@ namer = SParticleNames ( susy = False )
 class HiscorePlotter:
     def __init__ ( self ):
         self.url = "https://smodels.github.io/"
-
-    def obtain ( self, number : int, hiscorefile : PathLike = "hiscores.dict", 
-                 dbpath : PathLike = "official" ) -> ProtoModel:
-        """ obtain hiscore number <number>
-
-        :returns: protomodel object
-        """
-        from ptools import hiscoreTools
-        hi = hiscoreTools.fetchHiscoresObj ( hiscorefile )
-        Z = hi.hiscores[number].Z
-        K = hi.hiscores[number].K
-        print ( f"[plotHiscore] obtaining #{number}: K={K:.3f}" )
-        ret = hi.hiscores[ number ]
-        self.protomodel = ret
-        return ret
 
     def gitCommit ( self, dest, upload, wanted : bool ):
         """ if wanted, then git commit and git push to smodels.githuib.io
@@ -109,8 +95,10 @@ class HiscorePlotter:
                         return "did", True
         return "did not", False
 
-    def oneEntryRawNumbers ( self, tp : TheoryPrediction, f : TextIO ):
+    def oneEntryRawNumbers ( self, tp : TheoryPrediction, f : TextIO ) -> str:
         """ write one entry in rawnumbers.html into <f>
+
+        :returns: 'analysisid:datatype' as a string
         """
         didordidnot,hassigs = self.hasSignals ( )
         anaId = tp.analysisId()
@@ -221,6 +209,7 @@ class HiscorePlotter:
                         sig = f"{txn.sigmaN:.2f} fb"
                 f.write ( f'<td style="text-align:right">{sig}</td>' )
         f.write ( '</tr>\n' )
+        return f"{anaId}:{dtype}"
 
     def writeRawNumbersHtml ( self ):
         """ write out the raw numbers of the excess, as html """
@@ -232,8 +221,11 @@ class HiscorePlotter:
         if hassigs:
             f.write("<th>Signal</th>" )
         f.write("\n</tr>\n" )
+        hasListed = []
         for tp in self.protomodel.bestCombo:
-            self.oneEntryRawNumbers ( tp, f )
+            anaType = self.oneEntryRawNumbers ( tp, f )
+            hasListed.append ( anaType )
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         f.write("</table>\n" )
         f.close()
 
@@ -874,7 +866,9 @@ class HiscorePlotter:
 
     def plot ( self, number, verbosity, hiscorefile, options, dbpath ):
         ## plot hiscore number "number"
-        self.obtain ( number, hiscorefile, dbpath )
+        pm = hiscoreTools.obtainHiscore ( number, hiscorefile )
+        self.protomodel = pm
+        self.predictor = Predictor ( 0, dbpath )
 
         protoslha = self.protomodel.createSLHAFile ()
         subprocess.getoutput ( f"cp {protoslha} hiscore.slha" )

@@ -483,9 +483,8 @@ class LlhdPlot ( LoggerBase ):
         self.pprint ( f"plotting likelihoods for {self.namer.asciiName(xvariable)}: {self.topo}" )
         resultsForPIDs = {}
         ## this is just to obtain the hiscore
-        from plotting.plotHiscore  import HiscorePlotter
-        plotter= HiscorePlotter()
-        protomodel = plotter.obtain ( 0, self.hiscorefile, dbpath = dbpath )
+        from ptools import hiscoreTools
+        protomodel = hiscoreTools.obtain ( 0, self.hiscorefile )
         for tpred in protomodel.bestCombo:
             resultsForPIDs = plotter.getPIDsOfTPred ( tpred, resultsForPIDs, 
                                 integrateSRs=False )
