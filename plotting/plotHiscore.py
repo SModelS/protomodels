@@ -131,9 +131,11 @@ class HiscorePlotter ( LoggerBase ):
             l0 = tp.lsm ( return_nll = True )
             chi2 = 2 * ( l0 - llhd )
             if chi2 < 0.:
-                ## wait, what? fix this!
+                ## wait, what? check this!
                 chi2 = - chi2
-            p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
+                p = scipy.stats.chi2.cdf ( chi2, df=1 )
+            else:
+                p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
             Z = computeZFromP ( p )
             # self.pprint ( f"@@1 combined {tp.dataset.globalInfo.id}, l={llhd} l0={l0} chi2 = {chi2} p={p} Z={Z}" )
             return Z
@@ -286,8 +288,8 @@ class HiscorePlotter ( LoggerBase ):
         # Zvalues.sort( key = lambda x: -x if type(x) in [ float, int ] else 100 )
         Zvalues.sort( reverse = True )
         for Zvalue in Zvalues:
-            #if Zvalue < -10:
-            #    continue
+            if Zvalue < -30:
+                continue
             tp = tpAndZ[Zvalue]
             anaId = tp.analysisId()
             dtype = tp.dataType()
