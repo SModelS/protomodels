@@ -130,8 +130,12 @@ class HiscorePlotter ( LoggerBase ):
             llhd = tp.likelihood( expected=False, return_nll=True )
             l0 = tp.lsm ( return_nll = True )
             chi2 = 2 * ( l0 - llhd )
+            if chi2 < 0.:
+                ## wait, what? fix this!
+                chi2 = - chi2
             p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
             Z = computeZFromP ( p )
+            # self.pprint ( f"@@1 combined {tp.dataset.globalInfo.id}, l={llhd} l0={l0} chi2 = {chi2} p={p} Z={Z}" )
             return Z
         return None
 
@@ -195,8 +199,8 @@ class HiscorePlotter ( LoggerBase ):
             llhd = tp.likelihood( expected=False )
             oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
             eUL = tp.getUpperLimit ( expected = True )
-            seUL = "N/A"
-            S = "N/A"
+            seUL = "n/a"
+            S = "n/a"
             if Z != None:
                 S = f"{Z:.1g} &sigma;"
             if type(eUL)!=type(None):
@@ -205,8 +209,8 @@ class HiscorePlotter ( LoggerBase ):
             pids = self.combiner.getAllPidsOfTheoryPred ( tp )
             particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
             f.write ( f'<td>-</td><td>{topos}</td>' ) 
-            f.write ( f'<td> {oUL:.1g} </td>' )
-            f.write ( f'<td> {seUL} fb</td>' ) 
+            f.write ( f'<td> {oUL:.1g} fb</td>' )
+            f.write ( f'<td> {seUL}</td>' ) 
             f.write ( f'<td style="text-align:right">{S}</td>' )
             f.write ( f'<td style="text-align:right">{particles}</td>'  )
             if hassigs:
@@ -276,7 +280,7 @@ class HiscorePlotter ( LoggerBase ):
             hasListed.append ( idfer )
         f.write("</table>\n" )
         f.write("<table style='color:grey'>\n" )
-        f.write("<tr><th>Analysis Name</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx &sigma;</th><th>Particles</th>" )
+        f.write("<tr><th>Not in Best Combo</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx &sigma;</th><th>Particles</th>" )
         tpAndZ = self.createTpDictionaryWithZs ( self.predictor.predictions )
         Zvalues = list ( tpAndZ.keys() )
         # Zvalues.sort( key = lambda x: -x if type(x) in [ float, int ] else 100 )
@@ -814,7 +818,7 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( f"<img height=580px src=./ruler.png?{t0}>" )
         f.write ( "<td width=55%>" )
         f.write ( f"<img height=220px src=./decays.png?{t0}>\n" )
-        f.write ( f'<font size=-3><iframe type="text/html" height="300px" width="100%" frameborder="0" src="./rawnumbers.html?{t0}"></iframe></font>\n' )
+        f.write ( f'<font size=-3><iframe type="text/html" height="350px" width="100%" frameborder="0" src="./rawnumbers.html?{t0}"></iframe></font>\n' )
         f.write ( "</table>\n" )
         f.write ( "</body>\n" )
         f.write ( "</html>\n" )
