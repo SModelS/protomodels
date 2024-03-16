@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import pickle, os, sys, subprocess, time, glob, colorama, math, numpy, scipy
+import pickle, os, sys, subprocess, time, glob, colorama, math, scipy
+import numpy as np
 sys.path.insert(0,"../../")
 from protomodels.csetup import setup
 setup()
@@ -20,16 +21,19 @@ from smodels.base.smodelsLogging import logger
 logger.setLevel("ERROR")
 from os import PathLike
 from colorama import Fore
-from typing import Union, Dict, TextIO
+from typing import Union, Dict, TextIO, List
 from ptools.helpers import computeP, computeZFromP
 from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
+from builder.loggerbase import LoggerBase
         
 namer = SParticleNames ( susy = False )
+bibtex = BibtexWriter()
 
 # runtime._experimental = True
 
-class HiscorePlotter:
+class HiscorePlotter ( LoggerBase ):
     def __init__ ( self ):
+        super ( HiscorePlotter, self ).__init__ ( 0 )
         self.url = "https://smodels.github.io/"
 
     def gitCommit ( self, dest, upload, wanted : bool ):
@@ -45,17 +49,19 @@ class HiscorePlotter:
         destdir = destdir.replace(upload,"")
         destdir = destdir.replace("//","")
         cmd = f"cd {destdir}; git pull; git add '{upload}'; git commit -m '{comment}'; git push"
-        print ( f"[plotHiscore] exec: {cmd}" )
+        self.pprint ( f"exec: {cmd}" )
         out = subprocess.getoutput ( cmd )
         if out != "":
-            print ( f"[plotHiscore] {out}" )
+            self.pprint ( f"{out}" )
         return True
 
     def discussPredictions ( self ):
         print ( "How the K comes about. Best combo:" )
         combo = self.protomodel.bestCombo
+        self.pprint ( "best combination:" )
+        self.pprint ( "=================" )
         for pred in combo:
-            print ( f"[plotHiscore] theory pred: {pred.expResult.globalInfo.id}:{','.join ( set ( map ( str, pred.txnames ) ) )}" )
+            self.pprint ( f" - {pred.expResult.globalInfo.id}:{','.join ( set ( map ( str, pred.txnames ) ) )}" )
 
     def getExtremeSSMs ( self, ssm : Dict, largest : bool , nm : int = 7 ):
         """ get latex code describing the most extreme signal strength multipliers.
@@ -130,7 +136,7 @@ class HiscorePlotter:
         return None
 
     def oneEntryHtmlRawNumbers ( self, tp : TheoryPrediction, f : TextIO,
-           isInBestCombo : bool ) -> str:
+           isInBestCombo : bool, Zvalue : Union[None,float] ) -> str:
         """ write one entry in rawnumbers.html into <f>
         :param tp: the theory prediction to be written the entry for.
         :param f: the file handle for rawnumbers.html
@@ -139,6 +145,7 @@ class HiscorePlotter:
 
         :returns: 'analysisid:datatype' as a string
         """
+        self.debug ( f"adding {tp.dataset.globalInfo.id} Z={Zvalue:.2f} to rawnumbers.html" )
         didordidnot,hassigs = self.hasSignals ( )
         anaId = tp.analysisId()
         idAndUrl = self.anaNameAndUrl ( tp )
@@ -188,17 +195,17 @@ class HiscorePlotter:
             llhd = tp.likelihood( expected=False )
             oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
             eUL = tp.getUpperLimit ( expected = True )
-            seUL = str(eUL)
+            seUL = "N/A"
             S = "N/A"
             if Z != None:
                 S = f"{Z:.1g} &sigma;"
             if type(eUL)!=type(None):
                 eUL = eUL.asNumber(fb)
-                seUL = f"{eUL:.1g}"
+                seUL = f"{eUL:.1g} fb"
             pids = self.combiner.getAllPidsOfTheoryPred ( tp )
             particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
             f.write ( f'<td>-</td><td>{topos}</td>' ) 
-            f.write ( f'<td> {tp.getUpperLimit().asNumber(fb):.1g} fb </td>' )
+            f.write ( f'<td> {oUL:.1g} </td>' )
             f.write ( f'<td> {seUL} fb</td>' ) 
             f.write ( f'<td style="text-align:right">{S}</td>' )
             f.write ( f'<td style="text-align:right">{particles}</td>'  )
@@ -232,29 +239,57 @@ class HiscorePlotter:
         f.write ( '</tr>\n' )
         return f"{anaId}:{dtype}"
 
+    def createTpDictionaryWithZs ( self, 
+            predictions : List[TheoryPrediction] ) -> Dict:
+        """ create a dictionary with significances as keys,
+        and predictions as values """
+        tpAndZ = {} # dict of theory predictions with significances as keys
+        for tp in predictions:
+            Z = self.significanceOfTP ( tp )
+            if Z in [ None ] or np.isnan ( Z ) or np.isinf(Z):
+                Z = -100
+            if np.isneginf(Z):
+                Z = -100
+            while Z in tpAndZ:
+                Z+=1e-10
+            tpAndZ[Z]=tp
+        return tpAndZ
+
     def writeRawNumbersHtml ( self ):
         """ write out the raw numbers of the excess, as html """
         f=open("rawnumbers.html","wt")
         f.write("<table>\n" )
         f.write("<tr><th>Analysis Name</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx &sigma;</th><th>Particles</th>" )
         didordidnot,hassigs = self.hasSignals ( )
-        print ( f"[plotHiscore] protomodel's database {didordidnot} have fake signals." )
+        self.pprint ( f"protomodel's database {didordidnot} have fake signals." )
         if hassigs:
             f.write("<th>Signal</th>" )
         f.write("\n</tr>\n" )
         hasListed = []
-        for tp in self.protomodel.bestCombo:
-            idfer = self.oneEntryHtmlRawNumbers ( tp, f, True )
+        tpAndZ = self.createTpDictionaryWithZs ( self.protomodel.bestCombo )
+        Zvalues = list ( tpAndZ.keys() )
+        # Zvalues.sort( key = lambda x: -x if type(x) in [ float, int ] else 100 )
+        Zvalues.sort( reverse = True )
+        for Zvalue in Zvalues:
+            tp = tpAndZ[Zvalue]
+            idfer = self.oneEntryHtmlRawNumbers ( tp, f, True, Zvalue )
             hasListed.append ( idfer )
         f.write("</table>\n" )
         f.write("<table style='color:grey'>\n" )
         f.write("<tr><th>Analysis Name</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx &sigma;</th><th>Particles</th>" )
-        for tp in self.predictor.predictions:
+        tpAndZ = self.createTpDictionaryWithZs ( self.predictor.predictions )
+        Zvalues = list ( tpAndZ.keys() )
+        # Zvalues.sort( key = lambda x: -x if type(x) in [ float, int ] else 100 )
+        Zvalues.sort( reverse = True )
+        for Zvalue in Zvalues:
+            #if Zvalue < -10:
+            #    continue
+            tp = tpAndZ[Zvalue]
             anaId = tp.analysisId()
             dtype = tp.dataType()
             idfer = f"{anaId}:{dtype}"
             if not idfer in hasListed:
-                anaType = self.oneEntryHtmlRawNumbers ( tp, f, False )
+                anaType = self.oneEntryHtmlRawNumbers ( tp, f, False, Zvalue )
         f.write("</table>\n" )
         f.close()
 
@@ -283,8 +318,6 @@ class HiscorePlotter:
 
         :returns: anaid:datatype
         """
-        bibtex = BibtexWriter()
-
         anaId = tp.analysisId()
         ananame = anaId
         if usePrettyNames:
@@ -482,10 +515,9 @@ class HiscorePlotter:
         #g.write ( "\\begin{tabular}{l|c|r|r}\n" )
         #g.write ( "\\bf{Analysis Name} & \\bf{Topo} & $r_{\mathrm{obs}}$ & $r_{\mathrm{exp}}$ \\\\\n" )
         g.write ( "\\hline\n" )
-        bibtex = BibtexWriter()
         for rv in rvalues[:5]:
             srv="N/A"
-            if type(rv['rexp']) in [ float, numpy.float64, numpy.float32 ]:
+            if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
                 srv="%.2f" % rv['rexp']
             else:
                 srv=str(rv['rexp'])
@@ -736,7 +768,7 @@ class HiscorePlotter:
             f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
             for rv in rvalues[:4]:
                 srv="N/A"
-                if type(rv['rexp']) in [ float, numpy.float64, numpy.float32 ]:
+                if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
                     srv= f"{rv['rexp']:.2f}"
                 elif type(rv['rexp']) != type(None):
                     srv=str(rv['rexp'])
@@ -761,7 +793,7 @@ class HiscorePlotter:
                 cont = ( Ktot - Kwithout ) / dKtot
                 nameAndUrl = self.anaNameAndUrl ( k )
                 kv = str(v)
-                if type(v) in [ float, numpy.float64 ]:
+                if type(v) in [ float, np.float64 ]:
                     kv = f"{v:.2f} ({int(round(100.*cont))}%)"
                 f.write ( f"<li> {nameAndUrl}: {kv}\n" )
             # f.write ( "</table>\n" )
