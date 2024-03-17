@@ -2,7 +2,7 @@
 
 """ the plotting script for the llhd scans """
 
-from smodels.base.physicsUnits import TeV
+from smodels.base.physicsUnits import TeV, fb
 import pickle, sys, copy, subprocess, os, time, glob, math
 from colorama import Fore as ansi
 import IPython
@@ -126,6 +126,8 @@ class LlhdPlot ( LoggerBase ):
         self.hiscorefile = "./hiscores.dict"
         if rundir != None:
             self.hiscorefile = f"{rundir}/hiscores.dict"
+        from ptools import hiscoreTools
+        self.protomodel = hiscoreTools.obtainHiscore ( 0, self.hiscorefile )
         self.setVerbosity ( verbose )
         self.compress = compress
         masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
@@ -503,7 +505,25 @@ class LlhdPlot ( LoggerBase ):
 
         :returns: xsec(ssm) if useXSecsNotSSMs == True, else ssm
         """
-        return ssm # * 1e-3
+        if not self.useXSecsNotSSMs:
+            return ssm
+        xsecs = self.protomodel.getXsecs()[0]
+        for xsec in xsecs:
+            if xsec.info.sqrts.asNumber(TeV)<12:
+                continue
+            value = xsec.value.asNumber(fb) * ssm # FIXME there shouldnt be *ssm
+            if xsec.pid == self.yvariable:
+                return value
+            if xsec.pid == ( -self.yvariable[0], self.yvariable[1] ):
+                return value
+            if xsec.pid == ( self.yvariable[0], -self.yvariable[1] ):
+                self.pprint ( f"@@1 returning {value}" )
+                return value
+            if xsec.pid == ( -self.yvariable[0], -self.yvariable[1] ):
+                self.pprint ( f"@@1 returning {value}" )
+                return value
+        self.error ( "shouldnt be here 301" )
+        return None
 
     def plot ( self, ulSeparately : bool = True, xvariable : Union[None,int] = None, 
                dbpath : str = "official" ):
@@ -524,9 +544,7 @@ class LlhdPlot ( LoggerBase ):
         self.pprint ( f"plotting likelihoods for {self.namer.asciiName(xvariable)}: {self.topo}" )
         resultsForPIDs = {}
         ## this is just to obtain the hiscore
-        from ptools import hiscoreTools
-        protomodel = hiscoreTools.obtainHiscore ( 0, self.hiscorefile )
-        for tpred in protomodel.bestCombo:
+        for tpred in self.protomodel.bestCombo:
             resultsForPIDs = self.getPIDsOfTPred ( tpred, resultsForPIDs, 
                                 integrateSRs=False )
         stats = self.getAnaStats( integrateSRs=False )
@@ -726,6 +744,8 @@ class LlhdPlot ( LoggerBase ):
         var, postfix = "m", " [GeV]"
         if type ( self.yvariable ) == tuple:
             var, postfix = "ssm", ""
+            if self.useXSecsNotSSMs:
+                var = "$\\sigma$"
         plt.ylabel ( f"{var}({self.namer.texName(self.yvariable, addSign=False, addDollars=True)}){postfix}" )
         hasCritic = np.any ( RMAX > self.rthreshold )
         if hasCritic:
