@@ -131,7 +131,7 @@ class LlhdPlot ( LoggerBase ):
         masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
         self.masspoints = masspoints
         self.mx = mx
-        self.my = self.convertSSMToXSec ( my )
+        self.my = self.convertSSMToXSec ( my, mx )
         self.nevents = nevents
         self.topo = topo
         from ptools.moreHelpers import namesForSetsOfTopologies
@@ -495,10 +495,11 @@ class LlhdPlot ( LoggerBase ):
             ret[pid].add ( name )
         return ret
 
-    def convertSSMToXSec ( self, ssm : float ) -> float:
+    def convertSSMToXSec ( self, ssm : float, mx : float ) -> float:
         """ if self.useXSecsNotSSMs is True, then translate ssms
         to xsecs. else return the ssms. 
         :param ssm: the signal strength multiplier value to convert
+        :param mx: the mass for which we need to convert ssm -> xsec
 
         :returns: xsec(ssm) if useXSecsNotSSMs == True, else ssm
         """
@@ -550,8 +551,8 @@ class LlhdPlot ( LoggerBase ):
                 ymin = m["my"]
             if m["my"] > ymax:
                 ymax = m["my"]
-        ymin = self.convertSSMToXSec ( ymin )
-        ymax = self.convertSSMToXSec ( ymax )
+        ymin = self.convertSSMToXSec ( ymin, xmin )
+        ymax = self.convertSSMToXSec ( ymax, xmax )
         if abs(xmin-310.)<1e-5:
             xmin=330. ## cut off the left margin
         self.pprint ( f"plot ranges: x=[{xmin:.1f},{xmax:.1f}] y=[{ymin:.1f},{ymax:.1f}]" )
@@ -592,7 +593,7 @@ class LlhdPlot ( LoggerBase ):
                 if cm % 100 == 0:
                     print ( ".", end="", flush=True )
                 m1,m2,llhds,critic=masspoint["mx"],masspoint["my"],masspoint["llhd"],masspoint["critic"]
-                m2 = self.convertSSMToXSec ( m2 )
+                m2 = self.convertSSMToXSec ( m2, m1 )
                 rmax=float("nan")
                 if len(critic)>0:
                     rmax=max(critic.values())
