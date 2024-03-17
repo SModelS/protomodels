@@ -1,7 +1,6 @@
 todo:
 =====
 *) introduce smart initialisation of walker (WW)
-*) list also stats of results that didnt make it into the best combo (WW)
 *) add an option to range the ssms, for "SUSY runs" (SN)
 *) implement random changes in the pairs of masses and ssms that leave the
    total xsec largely the same (SN)
@@ -10,8 +9,9 @@ todo:
    an informed choice in the critic (SN)
 *) extend protomodels to non-Z2
 *) think of smarter choices for mcmc-type (sampling) algorithms
-*) llhds plots, use xsecs not ssms on y axis
+*) llhds plots, use xsecs not ssms on y axis (WW)
 *) improve the critic, split into two critics
+*) use YIC information criterion (JY et al)
 
 unsure:
 =======
@@ -25,6 +25,7 @@ unsure:
 
 done:
 =====
+.) list also stats of results that didnt make it into the best combo (WW)
 .) clean up likelihood scanner code
 .) improve the computation of the individual significances
 .) wrap up with this iteration of the scanners
