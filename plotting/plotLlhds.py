@@ -112,6 +112,7 @@ class LlhdPlot ( LoggerBase ):
         self.combiner = Combiner ( 0 )
         xvariable, yvariable = self.namer.pid ( xvariable ), self.namer.pid ( yvariable )
         self.dbpath = dbpath
+        self.useXSecsNotSSMs = True # use xsecs for y-variable instead of ssm
         self.usePrettyNames = False
         self.rundir = rundir
         self.upload = upload
@@ -130,7 +131,7 @@ class LlhdPlot ( LoggerBase ):
         masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
         self.masspoints = masspoints
         self.mx = mx
-        self.my = my
+        self.my = self.convertSSMToXSec ( my )
         self.nevents = nevents
         self.topo = topo
         from ptools.moreHelpers import namesForSetsOfTopologies
@@ -494,6 +495,14 @@ class LlhdPlot ( LoggerBase ):
             ret[pid].add ( name )
         return ret
 
+    def convertSSMToXSec ( self, ssm : float ) -> float:
+        """ if self.useXSecsNotSSMs is True, then translate ssms
+        to xsecs. else return the ssms. 
+        :param ssm: the signal strength multiplier value to convert
+
+        :returns: xsec(ssm) if useXSecsNotSSMs == True, else ssm
+        """
+        return ssm # * 1e-3
 
     def plot ( self, ulSeparately : bool = True, xvariable : Union[None,int] = None, 
                dbpath : str = "official" ):
@@ -541,6 +550,8 @@ class LlhdPlot ( LoggerBase ):
                 ymin = m["my"]
             if m["my"] > ymax:
                 ymax = m["my"]
+        ymin = self.convertSSMToXSec ( ymin )
+        ymax = self.convertSSMToXSec ( ymax )
         if abs(xmin-310.)<1e-5:
             xmin=330. ## cut off the left margin
         self.pprint ( f"plot ranges: x=[{xmin:.1f},{xmax:.1f}] y=[{ymin:.1f},{ymax:.1f}]" )
@@ -581,6 +592,7 @@ class LlhdPlot ( LoggerBase ):
                 if cm % 100 == 0:
                     print ( ".", end="", flush=True )
                 m1,m2,llhds,critic=masspoint["mx"],masspoint["my"],masspoint["llhd"],masspoint["critic"]
+                m2 = self.convertSSMToXSec ( m2 )
                 rmax=float("nan")
                 if len(critic)>0:
                     rmax=max(critic.values())
