@@ -18,6 +18,7 @@ if "plotting" in os.getcwd():
 from ptools.sparticleNames import SParticleNames
 matplotlib.rcParams['hatch.linewidth'] = .5  # previous svg hatch linewidth
 from protomodels.builder.loggerbase import LoggerBase
+from protomodels.tester.combiner import Combiner
 from typing import Dict, Tuple, Union
 
 def findMin ( oldZ ):
@@ -108,6 +109,7 @@ class LlhdPlot ( LoggerBase ):
         """
         super ( LlhdPlot, self ).__init__ ( 0 )
         self.namer = SParticleNames ( susy = False )
+        self.combiner = Combiner ( 0 )
         xvariable, yvariable = self.namer.pid ( xvariable ), self.namer.pid ( yvariable )
         self.dbpath = dbpath
         self.usePrettyNames = False
@@ -464,6 +466,35 @@ class LlhdPlot ( LoggerBase ):
         # print ( "found no pretty name", ers[0].globalInfo )
         return anaid
 
+    def getPIDsOfTPred ( self, tpred, ret, integrateDataType=True, integrateSRs=True ):
+        """ get the list of PIDs that the theory prediction should be assigned to
+        :param tpred: theory prediction
+        :param ret: results of a previous run of this function, so we can add iteratively
+        :param integrateDataType: if False, then use anaid:dtype (eg CMS-SUS-19-006:ul) as values
+        :param integrateSRs: if False, then use anaid:SR (eg CMS-SUS-19-006:SRC) as values.
+                             takes precedence over integrateDataType
+        :returns: dictionary with pid as key and sets of ana ids as value
+        """
+        LSP = 1000022
+        name = tpred.analysisId()
+        if not integrateSRs:
+            SR = tpred.dataId()
+            name = name + ":" + str(SR)
+        elif not integrateDataType:
+            dType = "em"
+            if tpred.dataId() in [ "None", None ]:
+                dType = "ul"
+            name = name + ":" + dType
+        pids = self.combiner.getAllPidsOfTheoryPred ( tpred )
+        for pid in pids:
+            if pid == LSP:
+                continue
+            if not pid in ret:
+                ret[pid]=set()
+            ret[pid].add ( name )
+        return ret
+
+
     def plot ( self, ulSeparately : bool = True, xvariable : Union[None,int] = None, 
                dbpath : str = "official" ):
         """ a summary plot, overlaying all contributing analyses 
@@ -484,9 +515,9 @@ class LlhdPlot ( LoggerBase ):
         resultsForPIDs = {}
         ## this is just to obtain the hiscore
         from ptools import hiscoreTools
-        protomodel = hiscoreTools.obtain ( 0, self.hiscorefile )
+        protomodel = hiscoreTools.obtainHiscore ( 0, self.hiscorefile )
         for tpred in protomodel.bestCombo:
-            resultsForPIDs = plotter.getPIDsOfTPred ( tpred, resultsForPIDs, 
+            resultsForPIDs = self.getPIDsOfTPred ( tpred, resultsForPIDs, 
                                 integrateSRs=False )
         stats = self.getAnaStats( integrateSRs=False )
         if stats == None:
