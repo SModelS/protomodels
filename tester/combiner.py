@@ -54,23 +54,23 @@ class Combiner ( LoggerBase ):
 
     def getAllPidsOfTheoryPred ( self, pred : TheoryPrediction ) -> Set:
         # get all pids that make it into a theory prediction
-        pids = set()
-        avgSMS = pred.avgSMS
-        if avgSMS == None:
-            return pids
         def addPDGs ( pids, pid ):
             if type(pid) == int:
                 pids.add ( abs(pid) )
             if type(pid) in [ tuple, list ]:
-                pids.union ( map ( abs, pid ) )
-        for dIndex in avgSMS.daughterIndices(avgSMS.rootIndex):
-            daughter = avgSMS.indexToNode(dIndex)
-            addPDGs ( pids, daughter.pdg )
-            for nodeIndex in avgSMS.dfsIndexIterator(dIndex):
-                node = avgSMS.indexToNode(nodeIndex)
-                if node.isSM:
-                    continue
-                addPDGs ( pids, node.pdg )
+                for p in pid:
+                    pids.add ( abs(p) )
+        pids = set()
+        smses = pred.smsList
+        for sms in smses:
+            for dIndex in sms.daughterIndices(sms.rootIndex):
+                daughter = sms.indexToNode(dIndex)
+                addPDGs ( pids, daughter.pdg )
+                for nodeIndex in sms.dfsIndexIterator(dIndex):
+                    node = sms.indexToNode(nodeIndex)
+                    if node.isSM:
+                        continue
+                    addPDGs ( pids, node.pdg )
         return pids
 
     def findCompatibles ( self, predA, predictions, strategy ):

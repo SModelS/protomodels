@@ -745,7 +745,7 @@ class LlhdPlot ( LoggerBase ):
         if type ( self.yvariable ) == tuple:
             var, postfix = "ssm", ""
             if self.useXSecsNotSSMs:
-                var = "$\\sigma$"
+                var, postfix = "$\\sigma$", " [fb]"
         plt.ylabel ( f"{var}({self.namer.texName(self.yvariable, addSign=False, addDollars=True)}){postfix}" )
         hasCritic = np.any ( RMAX > self.rthreshold )
         if hasCritic:

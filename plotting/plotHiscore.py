@@ -137,7 +137,6 @@ class HiscorePlotter ( LoggerBase ):
             else:
                 p = 1. - scipy.stats.chi2.cdf ( chi2, df=1 )
             Z = computeZFromP ( p )
-            # self.pprint ( f"@@1 combined {tp.dataset.globalInfo.id}, l={llhd} l0={l0} chi2 = {chi2} p={p} Z={Z}" )
             return Z
         return None
 
@@ -163,6 +162,8 @@ class HiscorePlotter ( LoggerBase ):
         dt = { "upperLimit": "ul", "efficiencyMap": "em", "combined": "comb" }
         f.write ( f"<tr><td>{idAndUrl}</td><td>{dt[dtype]}</td> " )
         Z = self.significanceOfTP ( tp )
+        pids = self.combiner.getAllPidsOfTheoryPred ( tp )
+        particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
         if dtype == "efficiencyMap":
             dI = tp.dataset.dataInfo
             did = dI.dataId # .replace("_","\_")
@@ -179,12 +180,9 @@ class HiscorePlotter ( LoggerBase ):
             S = "N/A"
             if Z != None:
                 S = f"{Z:.1f} &sigma;" 
-            pids = self.combiner.getAllPidsOfTheoryPred ( tp )
             obsN = dI.observedN
             if ( obsN - int(obsN) ) < 1e-6:
                 obsN=int(obsN)
-            particles = namer.htmlName ( pids, addSign = False,
-                                          addBrackets = False )
             sobsN = str(obsN)
             if type(obsN) == float:
                 sobsN = f"{obsN:.2f}" 
@@ -208,8 +206,6 @@ class HiscorePlotter ( LoggerBase ):
             if type(eUL)!=type(None):
                 eUL = eUL.asNumber(fb)
                 seUL = f"{eUL:.1g} fb"
-            pids = self.combiner.getAllPidsOfTheoryPred ( tp )
-            particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
             f.write ( f'<td>-</td><td>{topos}</td>' ) 
             f.write ( f'<td> {oUL:.1g} fb</td>' )
             f.write ( f'<td> {seUL}</td>' ) 
@@ -229,8 +225,6 @@ class HiscorePlotter ( LoggerBase ):
             oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
             if Z != None:
                 S = f"{Z:.1f} &sigma;"
-            pids = self.combiner.getAllPidsOfTheoryPred ( tp )
-            particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
             f.write ( f'<td>-</td><td>{topos}</td>' ) 
             f.write ( f'<td> {oUL:.1g} fb </td><td> {eUL:.1g} fb</td>' )
             f.write ( f'<td style="text-align:right">{S}</td>' ) 
