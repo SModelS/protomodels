@@ -12,7 +12,7 @@ from smodels.base.model import Model
 from smodels.matching.theoryPrediction import TheoryPrediction
 import sys, os
 sys.path.insert(0,os.path.abspath ( os.path.dirname(__file__) ) )
-from protomodels.builder.loggerbase import LoggerBase
+from builder.loggerbase import LoggerBase
 from typing import Set
 
 try:
@@ -118,7 +118,7 @@ class Combiner ( LoggerBase ):
         for iA,predA in enumerate(predictions):
             nexti = iA + 1
             compatibles = self.findCompatibles ( predA, predictions[nexti:], strategy )
-            combinables += compatibles
+            combinables += compatibles       
         self.log ( f"found {len(combinables)} combos!" )
         return combinables
 
@@ -877,24 +877,19 @@ if __name__ == "__main__":
     #print ( "[combiner] decomposed into %d topos" % len(smses) )
     from smodels.matching.theoryPrediction import theoryPredictionsFor
     combiner = Combiner()
-    allps = []
-    for expRes in listOfExpRes:
-        preds = theoryPredictionsFor ( expRes, smses )
-        if preds == None:
-            continue
-        for pred in preds:
-            allps.append ( pred )
-    combo,globalZ,llhd,muhat = combiner.findHighestSignificance ( allps, "aggressive", expected=args.expected )
+    
+    
+    preds = theoryPredictionsFor ( db, smses )
+    combo,globalZ,llhd,muhat = combiner.findHighestSignificance ( preds, "aggressive", expected=args.expected )
     print ( "[combiner] global Z is %.2f: %s (muhat=%.2f)" % (globalZ, combiner.getComboDescription(combo),muhat ) )
-    for expRes in listOfExpRes:
-        preds = theoryPredictionsFor ( expRes, smses )
-        if preds == None:
-            continue
-        Z, muhat_ = combiner.getSignificance ( preds, expected=args.expected, mumax = None )
-        print ( "%s has %d predictions, local Z is %.2f" % ( expRes.globalInfo.id, len(preds), Z ) )
-        for pred in preds:
-            pred.computeStatistics()
-            tpe = pred.dataType(True)
-            tpe += ":" + ",".join ( map ( str, pred.txnames ) )
-            print ( "  `- llhd [%s] SM=%.3g BSM=%.3g" % ( tpe, pred.getLikelihood(0.,expected=args.expected), pred.getLikelihood(1.,expected=args.expected) ) )
+    
+
+    preds = theoryPredictionsFor ( db, smses )
+    Z, muhat_ = combiner.getSignificance ( preds, expected=args.expected, mumax = None )
+    #print ( "%s has %d predictions, local Z is %.2f" % ( expRes.globalInfo.id, len(preds), Z ) )
+    for pred in preds:
+        pred.computeStatistics()
+        tpe = pred.dataType(True)
+        tpe += ":" + ",".join ( map ( str, pred.txnames ) )
+        print ( "  `- llhd [%s] SM=%.3g BSM=%.3g" % ( tpe, pred.likelihood(0.,expected=args.expected), pred.likelihood(1.,expected=args.expected) ) )
     comb = Combiner()
