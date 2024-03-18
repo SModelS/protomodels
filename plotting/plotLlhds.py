@@ -3,6 +3,7 @@
 """ the plotting script for the llhd scans """
 
 from smodels.base.physicsUnits import TeV, fb
+from unum import Unum
 import pickle, sys, copy, subprocess, os, time, glob, math
 from colorama import Fore as ansi
 import IPython
@@ -112,7 +113,12 @@ class LlhdPlot ( LoggerBase ):
         self.combiner = Combiner ( 0 )
         xvariable, yvariable = self.namer.pid ( xvariable ), self.namer.pid ( yvariable )
         self.dbpath = dbpath
-        self.useXSecsNotSSMs = True # use xsecs for y-variable instead of ssm
+        self.useXSecsNotSSMs = False # use xsecs for y-variable instead of ssm
+        self.yunit = "GeV"
+        if type(yvariable) == tuple:
+            self.yunit = "ssm"
+            if self.useXSecsNotSSMs:
+                self.yunit = "fb"
         self.usePrettyNames = False
         self.rundir = rundir
         self.upload = upload
@@ -146,7 +152,7 @@ class LlhdPlot ( LoggerBase ):
         countCritics = {} ## count occurrences of analyses in critic
         # to determine which analyses dominate the critic
         for m in masspoints:
-            masstuple = (m["mx"],m["my"])
+            masstuple = (m["mx"],self.convertSSMToXSec(m["my"],m["mx"]))
             self.massdict[ masstuple ] = m["llhd"]
             self.rdict[ masstuple ] = m["critic"]
             for ana,r in m["critic"].items():
@@ -272,7 +278,7 @@ class LlhdPlot ( LoggerBase ):
             m1 = self.mx
         if m2 == None:
             m2 = self.my
-        return int(1e3*m1) + int(1e0*m2)
+        return int(1e6*m1) + int(1e3*m2)
 
     def getHighestLlhdFor ( self, ana : str, llhddict : Dict ) -> Dict:
         """ return llhds for ana
@@ -497,6 +503,37 @@ class LlhdPlot ( LoggerBase ):
             ret[pid].add ( name )
         return ret
 
+    def getXSecsFor ( self, sqrts : TeV, process : Tuple,
+            mx : float, ignoreSignsOfPids : bool = True ) -> Union[None,Unum]:
+        """ given self.protomodel, get the cross sections for
+        mass of xvariable == mx 
+        :param sqrts: center of mass energy e.g. 13*TeV
+        :param process: e.g. (-1000006,1000006)
+        :param mx: mass of e.g. 1000006
+        :param ignoreSignsOfPids: if false, process must be exactly as above.
+        if true, signs may be different
+        :returns: None if no xsec available, else unum object (fb)
+        """
+        oldm = self.protomodel.masses[self.xvariable] # save old mass
+        self.protomodel.masses[self.xvariable] = mx
+        xsecs = self.protomodel.getXsecs()[0]
+        self.protomodel.masses[self.xvariable]=oldm # restore old mass
+        value = None
+        for xsec in xsecs:
+            if abs ( (xsec.info.sqrts - sqrts ).asNumber(TeV)) > 1e-5:
+                continue
+            value = xsec.value.asNumber(fb)
+            if xsec.pid == self.yvariable:
+                return value
+            if ignoreSignsOfPids:
+                if xsec.pid == ( -process[0], process[1] ):
+                    return value
+                if xsec.pid == ( process[0], -process[1] ):
+                    return value
+                if xsec.pid == ( -process[0], -process[1] ):
+                    return value
+        return None
+
     def convertSSMToXSec ( self, ssm : float, mx : float ) -> float:
         """ if self.useXSecsNotSSMs is True, then translate ssms
         to xsecs. else return the ssms. 
@@ -507,23 +544,8 @@ class LlhdPlot ( LoggerBase ):
         """
         if not self.useXSecsNotSSMs:
             return ssm
-        xsecs = self.protomodel.getXsecs()[0]
-        for xsec in xsecs:
-            if xsec.info.sqrts.asNumber(TeV)<12:
-                continue
-            value = xsec.value.asNumber(fb) * ssm # FIXME there shouldnt be *ssm
-            if xsec.pid == self.yvariable:
-                return value
-            if xsec.pid == ( -self.yvariable[0], self.yvariable[1] ):
-                return value
-            if xsec.pid == ( self.yvariable[0], -self.yvariable[1] ):
-                self.pprint ( f"@@1 returning {value}" )
-                return value
-            if xsec.pid == ( -self.yvariable[0], -self.yvariable[1] ):
-                self.pprint ( f"@@1 returning {value}" )
-                return value
-        self.error ( "shouldnt be here 301" )
-        return None
+        xsec = self.getXSecsFor ( 13*TeV, self.yvariable, mx )
+        return xsec
 
     def plot ( self, ulSeparately : bool = True, xvariable : Union[None,int] = None, 
                dbpath : str = "official" ):
@@ -571,9 +593,11 @@ class LlhdPlot ( LoggerBase ):
                 ymax = m["my"]
         ymin = self.convertSSMToXSec ( ymin, xmin )
         ymax = self.convertSSMToXSec ( ymax, xmax )
+        if ymax < ymin:
+            ymin, ymax = ymax, ymin
         if abs(xmin-310.)<1e-5:
             xmin=330. ## cut off the left margin
-        self.pprint ( f"plot ranges: x=[{xmin:.1f},{xmax:.1f}] y=[{ymin:.1f},{ymax:.1f}]" )
+        self.pprint ( f"plot ranges: x=[{xmin:.1f},{xmax:.1f}] (GeV) y=[{ymin:.1f},{ymax:.1f}] ({self.yunit})" )
         handles = []
         existingPoints = []
         combL = {}
@@ -604,7 +628,9 @@ class LlhdPlot ( LoggerBase ):
             llhd = ret["llhd"]
             if llhd:
                 s=f"{-np.log(llhd):.2f}"
-            self.pprint ( f"{ana} @ hiscore m=({self.masspoints[0]['mx']:.1f},{self.masspoints[0]['my']:.1f}): nll_max={s}" )
+            mx, my = self.masspoints[0]['mx'], self.masspoints[0]['my']
+            my = self.convertSSMToXSec ( my, mx )
+            self.pprint(f"{ana} @ hiscore m=({mx:.1f} GeV,{my:.1f} {self.yunit}): nll_max={s}")
             cresults = 0
             ## then, run on all other points
             for cm,masspoint in enumerate(self.masspoints[1:]):
@@ -615,7 +641,7 @@ class LlhdPlot ( LoggerBase ):
                 rmax=float("nan")
                 if len(critic)>0:
                     rmax=max(critic.values())
-                if m2 > m1:
+                if m2 > m1 and not type(self.yvariable) in [ tuple ]:
                     print ( f"m2,m1 mass inversion? {m1,m2}" )
                 x.add ( m1 )
                 y.add ( m2 )
