@@ -8,9 +8,9 @@ todo:
 *) study the ulobs/ulexp distribution in great detail, so we can make
    an informed choice in the critic (SN)
 *) extend protomodels to non-Z2
-*) think of smarter choices for mcmc-type (sampling) algorithms
+*) think of smarter choices for mcmc-type (sampling) algorithms (HARG)
 *) llhds plots, use xsecs not ssms on y axis (WW)
-*) improve the critic, split into two critics
+*) improve the critic, split into two critics (TP)
 *) use YIC information criterion (JY et al)
 
 unsure:
