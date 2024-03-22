@@ -64,7 +64,7 @@ def readDictionaryFile ( filename : PathLike ) -> dict:
     ret = { "meta": {}, "data": {}, "basename": basename }
     ret["meta"].update (  eval(lines[0]) )
     nan=float("nan")
-    data = eval("\n".join(lines[1:]))
+    data = eval("\n".join(lines[1:]),{'inf':float('inf'), 'nan':float('nan')})
     ret["data"] = data
     return ret
 

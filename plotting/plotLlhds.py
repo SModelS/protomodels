@@ -278,7 +278,7 @@ class LlhdPlot ( LoggerBase ):
             m1 = self.mx
         if m2 == None:
             m2 = self.my
-        return int(1e6*m1) + int(1e3*m2)
+        return int(1e8*m1) + int(1e4*m2)
 
     def getHighestLlhdFor ( self, ana : str, llhddict : Dict ) -> Dict:
         """ return llhds for ana

@@ -6,7 +6,8 @@ __all__ = [ "TeststatScanner" ]
 i.e. scan the various test statistics 
 """
 
-import numpy, sys, os, copy, time, subprocess, glob, pickle
+import sys, os, copy, time, subprocess, glob, pickle
+import numpy as np
 import random, shutil
 from protomodels.csetup import setup
 setup()
@@ -225,7 +226,7 @@ class TeststatScanner ( LoggerBase ):
         # model.createNewSLHAFileName ( prefix = f"scan{str(pid)}" )
         values = {}
         fm = .6 ## lower bound (relative) on mass
-        # mrange = numpy.arange ( mass * fm, mass / fm, .008*mass )
+        # mrange = np.arange ( mass * fm, mass / fm, .008*mass )
         mrangetot = [ mass ]
         m1,m2 = mass, mass
         dm = fac
@@ -314,7 +315,7 @@ class TeststatScanner ( LoggerBase ):
         values = {}
         ## meaning we our range goes from ssm_hat * fm to ssm_hat / fm
         fm = .4 ## relative lower bound on ssm
-        # mrange = numpy.arange ( ssm * fm, ssm / fm, .01*ssm )
+        # mrange = np.arange ( ssm * fm, ssm / fm, .01*ssm )
         ssmrangetot = [ ssm ]
         ssm1,ssm2 = ssm, ssm
         dssm = fac
@@ -485,7 +486,8 @@ class TeststatScanner ( LoggerBase ):
         ax1.set_ylabel ( "K", c="tab:blue", fontsize=15 )
         # ax1.set_xlabel ( "m [GeV]", fontsize=13 )
         ax1.set_xlabel ( f"$m({pname})$ [GeV]", fontsize=16 )
-        maxyr = numpy.nanmax(Kvalues)
+        Kvalues = list ( np.array( Kvalues, dtype=np.float64 ) ) # converts None into nan
+        maxyr = np.nanmax(Kvalues)
         # ax1.set_ylim ( bottom = 0., top=8.4 )
         #ax1.set_ylim ( bottom = 2., top=maxyr*1.03 )
         rsarea[0]=0.
@@ -499,7 +501,7 @@ class TeststatScanner ( LoggerBase ):
             bottom = 0.
             top = min ( 2.1, max(rs)+.2 )
             ax2.set_ylim ( bottom=bottom, top = top )
-            nbins = int ( numpy.ceil ( ( top - bottom ) / 0.5 ) )
+            nbins = int ( np.ceil ( ( top - bottom ) / 0.5 ) )
             # tick only every 0.5
             ax2.locator_params(nbins = nbins )
             ax2.set_ylabel ( "$r_\mathrm{max}$", c="tab:red", fontsize=16 )
@@ -507,7 +509,7 @@ class TeststatScanner ( LoggerBase ):
             # ax3 = ax1.twinx()
             ax2.fill ( x, rsarea, lw=0, edgecolor="white", alpha=.2, 
                        facecolor="tab:red", zorder=-1 )
-        ymax = numpy.nanmax(Kvalues)
+        ymax = np.nanmax(Kvalues)
         imax = Kvalues.index ( ymax )
         xmax = x[imax]
         param=f"{xmax} GeV"
@@ -524,9 +526,12 @@ class TeststatScanner ( LoggerBase ):
         Zmax = self.getClosest( cmass, values )
         if type(Zmax)==dict:
             Zmax=Zmax["K"]
+        sZmax = str(Zmax)
+        if type(Zmax) in [ float, np.float64 ]:
+            sZmax = f"{Zmax:.2f}"
         # label = f"proto-model\n K({param})={Zmax:.2f}"
-        label = f"proto-model\nK({cmass:.2f})={Zmax:.2f}"
-        self.pprint ( f"Zmax=Z({cmass:.3f})={Zmax:.3f}" )
+        label = f"proto-model\nK({cmass:.2f})={sZmax}"
+        self.pprint ( f"Zmax=Z({cmass:.3f})={sZmax}" )
         self.pprint ( f"r({cmass})={values[cmass]['r'][0]:.2f}:{values[cmass]['critics'][0]}" )
         ax1.scatter ( [ cmass ], [ Zmax ], label=label, marker="^", s=130, c="g", zorder=10 )
         plotCriticAtMax = True
@@ -565,7 +570,7 @@ class TeststatScanner ( LoggerBase ):
         figname = f"M{namer.asciiName(pid)}.png"
         if isSSMPlot():
             figname = f"ssm_{namer.asciiName(pid)}_{namer.asciiName(pid2)}.png"
-        stdvar =  numpy.std ( Kvalues )
+        stdvar =  np.std ( Kvalues )
 
         if interactive:
             import IPython
