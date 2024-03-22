@@ -141,6 +141,8 @@ class LlhdThread ( LoggerBase ):
         """ add point to resultsdir. if already in, replace """
         if not "mx" in point: #dont add anything!
             return
+        point["mx"]=round( point["mx"], 7 )
+        point["my"]=round( point["my"], 7 )
         dictfile = self.getDictFileName ( point["mx"], point["my"] )
         with open ( dictfile, "wt" ) as f:
             f.write ( f"{point}\n" )
