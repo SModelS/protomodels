@@ -271,7 +271,7 @@ class Plotter ( LoggerBase ):
         Zmax = 0.
         for dictfile,filecontent in self.data.items():
             for anaid,values in filecontent.items():
-                if values["orig_Z"] > Zmax:
+                if values["orig_Z"] > Zmax and np.isfinite ( values["orig_Z"] ):
                     Zmax = values["orig_Z"]
         self.Zmax = np.ceil ( Zmax * 4. ) / 4.
         # self.pprint ( f"Zmax is {Zmax:.2f}" )
@@ -797,7 +797,8 @@ class Plotter ( LoggerBase ):
             else:
                 nLegendEntries+=1
         # colors = [ "tab:green", "tab:blue", "cyan" ]
-        colors = [ "tab:green", "tab:blue", "lightblue" ]
+        # colors = [ "tab:green", "tab:blue", "lightblue" ]
+        colors = [ "tab:green", "lightblue", "tab:blue" ]
         H1 = plt.hist ( x, weights = wlist, bins=bins, histtype="bar",
                    label= labels, color= colors, stacked=True )
         if "yrange" in self.options and self.options["yrange"]!=None:
