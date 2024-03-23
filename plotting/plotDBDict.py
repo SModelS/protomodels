@@ -122,6 +122,7 @@ class Plotter ( LoggerBase ):
         self.nbins = None # 10 for p-values, 13 for significances
         self.Zmax = None
         self.before = None
+        self.nosuperseded = False # yes superseded
         self.show = False
         self.pvalues = False # if False, then p-values if true then significances
         self.skippedAgg = set() # log all aggregated analyses that have been skipped
@@ -312,6 +313,8 @@ class Plotter ( LoggerBase ):
             self.meta.update (  ret["meta"] )
             newdata = {}
             for i,v in ret["data"].items():
+                if self.nosuperseded and 'superseded' in v and v['superseded']:
+                    continue
                 if not self.selectedCollaboration ( i ):
                     continue
                 if "expectedBG" in v and v["expectedBG"]>=self.filter and \
@@ -905,6 +908,9 @@ def getArgs( cmdline = None ):
             type=str, default=None )
     argparser.add_argument ( '-u', '--unscale',
             help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
+    argparser.add_argument ( '--nosuperseded',
+            help='ignore entries in the .dict file that are marked as superseded', 
+            action='store_true' )
     argparser.add_argument ( '-w', '--weighted',
             help='weighted plot, i.e. each analysis (not each SR) counts equally', action='store_true' )
     argparser.add_argument ( '-F', '--fakes',
