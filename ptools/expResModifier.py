@@ -76,6 +76,7 @@ Just filter the database:
         :param compute_ps: compute p-values for all SRs
         """
         super ( ExpResModifier, self ).__init__ ( 0 )
+        self.superseded = set() ## take note of everything superseded
         self.defaults()
         if "max" in args and args["max"] == None:
             args["max"] = 100
@@ -172,7 +173,7 @@ Just filter the database:
                         D[i] = getattr ( info, i )
                 if self.timestamps:
                     D["timestamp"]=dataset.globalInfo.lastUpdate
-                self.addToStats ( label, D )
+                self.addToStats ( label, D, dataset.globalInfo )
 
     def drawNuisance ( self, mu = 0., sigma = 1. ):
         """ draw from the nuisance model.
@@ -251,7 +252,7 @@ Just filter the database:
         D["fudge"]=self.fudge
         if self.timestamps:
             D["timestamp"]=globalInfo.lastUpdate
-        self.addToStats ( label, D )
+        self.addToStats ( label, D, globalInfo )
         self.log ( f"computed new UL result {globalInfo.id}:{txname.txName}, x={x:.2f}" )
         if x > 3.5:
             self.log ( f"WARNING high UL x={x:.2f}!!!" )
@@ -446,7 +447,7 @@ Just filter the database:
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         if self.timestamps:
             D["timestamp"]=dataset.globalInfo.lastUpdate
-        self.addToStats ( label, D )
+        self.addToStats ( label, D, dataset.globalInfo )
         return dataset
 
     def addSignalForEfficiencyMap ( self, dataset, tpred, lumi ):
@@ -484,7 +485,7 @@ Just filter the database:
                 dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
                 dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
                 D["newObs"]=orig
-                self.addToStats ( label, D )
+                self.addToStats ( label, D, dataset.globalInfo )
                 return dataset
         ## the signal is less than permille of bg?
         if orig > 0. and sigN / orig < 1e-3:
@@ -492,7 +493,7 @@ Just filter the database:
                 dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
                 dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
                 D["newObs"]=orig
-                self.addToStats ( label, D )
+                self.addToStats ( label, D, dataset.globalInfo )
                 return dataset
         self.log ( f" `- effmap adding sigN={sigN} to obsN={orig} -> newObs={orig+sigN}" )
         dataset.dataInfo.trueBG = orig ## keep track of true bg
@@ -519,7 +520,7 @@ Just filter the database:
         dataset.dataInfo.upperLimit = maxSignalXsec
         maxSignalXsec = computer.ulSigma(m, marginalize=True, expected=True ) / lumi
         dataset.dataInfo.expectedUpperLimit = maxSignalXsec
-        self.addToStats ( label, D )
+        self.addToStats ( label, D, dataset.globalInfo )
         return dataset
 
     def txNameIsIn ( self, txname, tpred ):
@@ -532,9 +533,13 @@ Just filter the database:
                 return True
         return False
 
-    def addToStats ( self, label, Dict ):
+    def addToStats ( self, label, Dict, globalInfo ):
         """ add the content of dictionary Dict to the stats,
             under the label "label" """
+        if hasattr ( globalInfo, "supersedes" ):
+            self.superseded.add ( globalInfo.supersedes )
+        if hasattr ( globalInfo, "supersededBy" ):
+            self.superseded.add ( globalInfo.id )
         if not label in self.stats:
             # we dont yet have an entry, so lets start
             self.stats[label]=Dict
@@ -542,6 +547,14 @@ Just filter the database:
         # we have an entry, so we add
         for k,v in Dict.items():
             self.stats[label][k]=v
+
+    def addSupersededFlags ( self ):
+        """ at the end, add superseded flag to everything superseded. """
+        for k,v in self.stats.items():
+            p1 = k.find(":")
+            name = k[:p1]
+            if name in self.superseded:
+                self.stats[k]["superseded"]=True
 
     def distance ( self, v1, v2 ):
         """ compute distance between v1 and v2 """
@@ -617,7 +630,7 @@ Just filter the database:
             D[f"totalpoints{txname.txName}"]=len(txnd.y_values)
             self.comments["signalpointsTx"]="number of grid points that got the signal injected"
             self.comments["totalpointsTx"]="total number of grid points in that map"
-            self.addToStats ( label, D )
+            self.addToStats ( label, D, dataset.globalInfo )
         return txnd
 
     def addSignalForULMap ( self, dataset, tpred, lumi ):
@@ -683,7 +696,7 @@ Just filter the database:
             D[f"totalpoints{txname.txName}"]=len(txnd.y_values)
             self.comments["signalpointsTx"]="number of grid points that got the signal injected"
             self.comments["totalpointsTx"]="total number of grid points in that map"
-            self.addToStats ( label, D )
+            self.addToStats ( label, D, dataset.globalInfo )
             dataset.txnameList[i].txnameData = txnd
             dataset.txnameList[i].sigmaN = sigmaN
         return dataset
@@ -706,6 +719,7 @@ Just filter the database:
         if hasattr ( runtime, "_experimental" ):
             meta["_experimental"]=runtime._experimental
         self.pprint ( f"saving stats to {filename}" )
+        self.addSupersededFlags()
         with open ( filename,"wt" ) as f:
             f.write ( str(meta)+"\n" )
             if len(self.comments)>0:
