@@ -880,7 +880,7 @@ class Plotter ( LoggerBase ):
         if "plotStats" in self.options:
             plotStats = self.options["plotStats"]
         if plotStats:
-            plt.text ( .67, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="black", fontsize=7 )
+            plt.text ( .67, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="grey", fontsize=7 )
         # plt.ylabel ( "# Signal Regions" )
         self.pprint ( f"plotting {self.outfile}" )
         if self.comment != None:
