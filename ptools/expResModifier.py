@@ -77,6 +77,7 @@ Just filter the database:
         """
         super ( ExpResModifier, self ).__init__ ( 0 )
         self.superseded = set() ## take note of everything superseded
+        self.fastlim = set() # take note of everything fastlim
         self.defaults()
         if "max" in args and args["max"] == None:
             args["max"] = 100
@@ -540,6 +541,10 @@ Just filter the database:
             self.superseded.add ( globalInfo.supersedes )
         if hasattr ( globalInfo, "supersededBy" ):
             self.superseded.add ( globalInfo.id )
+        if hasattr ( globalInfo, "contact" ) and "fastlim" in globalInfo.contact:
+            self.fastlim.add ( globalInfo.id )
+        if hasattr ( globalInfo, "comment" ) and "fastlim" in globalInfo.comment:
+            self.fastlim.add ( globalInfo.id )
         if not label in self.stats:
             # we dont yet have an entry, so lets start
             self.stats[label]=Dict
@@ -555,6 +560,8 @@ Just filter the database:
             name = k[:p1]
             if name in self.superseded:
                 self.stats[k]["superseded"]=True
+            if name in self.fastlim:
+                self.stats[k]["fastlim"]=True
 
     def distance ( self, v1, v2 ):
         """ compute distance between v1 and v2 """

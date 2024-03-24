@@ -123,6 +123,7 @@ class Plotter ( LoggerBase ):
         self.Zmax = None
         self.before = None
         self.nosuperseded = False # yes superseded
+        self.nofastlim = False # yes fastlim
         self.show = False
         self.pvalues = False # if False, then p-values if true then significances
         self.skippedAgg = set() # log all aggregated analyses that have been skipped
@@ -314,6 +315,8 @@ class Plotter ( LoggerBase ):
             newdata = {}
             for i,v in ret["data"].items():
                 if self.nosuperseded and 'superseded' in v and v['superseded']:
+                    continue
+                if self.nofastlim and 'fastlim' in v and v['fastlim']:
                     continue
                 if not self.selectedCollaboration ( i ):
                     continue
@@ -910,6 +913,9 @@ def getArgs( cmdline = None ):
             help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
     argparser.add_argument ( '--nosuperseded',
             help='ignore entries in the .dict file that are marked as superseded', 
+            action='store_true' )
+    argparser.add_argument ( '--nofastlim',
+            help='ignore entries in the .dict file that are marked as fastlim', 
             action='store_true' )
     argparser.add_argument ( '-w', '--weighted',
             help='weighted plot, i.e. each analysis (not each SR) counts equally', action='store_true' )
