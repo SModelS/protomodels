@@ -18,9 +18,11 @@ class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
 
-    def __init__ ( self, dbpath : str ):
+    def __init__ ( self, dbpath : str, ignore_pickle : bool = False ):
         """ constructor.
 
+        :param ignore_pickle: if true, then ignore possible pickle files,
+        recompute from scratch
         :param dbpath: path to database.
         """
         super ( Initialiser, self ).__init__ ( 0 )
@@ -28,9 +30,9 @@ class Initialiser ( LoggerBase ):
         self.picklefilename = "initialiser.pcl"
         self.plotfname = "initialiser.png"
         self.significanceMap = {}
-        self.analysesForTxName = {} # keep track of which analyses made it into 
+        self.analysesForTxName = {} # keep track of which analyses made it into
         # which txname
-        if os.path.exists ( self.picklefilename ):
+        if os.path.exists ( self.picklefilename ) and not ignore_pickle:
             self.loadFromPickleFile()
         else:
             self.pprint ( f"initialising with {dbpath}" )
@@ -73,7 +75,7 @@ class Initialiser ( LoggerBase ):
         mass points, and store in a huge dictionary """
         self.pprint ( f"computing llhd ratios" )
         for txname,analyses in self.txnames.items():
-            # go to the respective validation folder, parse the validation dict 
+            # go to the respective validation folder, parse the validation dict
             # files.
             for analysis in analyses:
                 self.getLlhdRatiosFor ( txname, analysis )
@@ -107,6 +109,42 @@ class Initialiser ( LoggerBase ):
             self.dbpath = d["dbpath"]
             f.close()
 
+    def computeLSMFor ( self, analysis : str, txname : str, valfile : str,
+                        point : Dict ) -> float:
+        """ compute the SM likelihood for this point. it wasnt in the dict file.
+        """
+        print ( f"@@A computing for {analysis},{txname},{valfile},{point}" )
+        from smodels_utils.helper.slhaManipulator import extractSLHAFileFromTarball
+        from smodels.matching.theoryPrediction import theoryPredictionsFor
+        from smodels.share.models.SMparticles import SMList
+        from smodels.particlesLoader import load
+        from smodels.base.model import Model
+        from smodels.base.physicsUnits import fb, GeV
+        from smodels.decomposition import decomposer
+        slhafilename = point["slhafile"]
+        slhafile = extractSLHAFileFromTarball ( slhafilename )
+        BSMList = load()
+        model = Model(BSMparticles=BSMList, SMparticles=SMList)
+        model.updateParticles(inputFile=slhafile,
+                              ignorePromptQNumbers = ['eCharge','colordim','spin'])
+        sigmacut = 0.001*fb
+        mingap = 5.*GeV
+        topDict = decomposer.decompose(model, sigmacut,
+                  massCompress=True, invisibleCompress=True, minmassgap=mingap)
+        # self.db.selectExpResults ( )
+        self.db.selectExpResults ( analysisIDs = [ analysis ],
+                                   dataTypes = [ "efficiencyMap" ] )
+        # print ( f"we got {len(self.db.expResultList)} results" )
+        cpreds = theoryPredictionsFor( self.db, topDict, useBestDataset = False,
+                                      combinedResults=True ) 
+        preds = theoryPredictionsFor( self.db, topDict, useBestDataset = True,
+                                      combinedResults=False ) 
+        #if analysis != "CMS-SUS-16-050":
+        #    import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+
+        os.unlink ( slhafile )
+        return 0.
+
     def getLlhdRatiosFor ( self, txname : str, analysis : str ):
         """ get the llhd ratios for the given txname/analysis pair """
         from smodels_utils.helper.various import getSqrts, getCollaboration
@@ -126,7 +164,9 @@ class Initialiser ( LoggerBase ):
                     if not "llhd" in point or point["llhd"] == 0.:
                         continue
                     if not "l_SM" in point:
+                        lSM = self.computeLSMFor ( analysis, txname, valfile, point )
                         # FIXME this we can compute post-mortem?
+                        point["l_SM"] = lSM
                         continue
                     ratio = point["l_SM"] / point["llhd"]
                     ## FIXME for more complicated cases this needs to change.
@@ -145,7 +185,7 @@ class Initialiser ( LoggerBase ):
         self.llhdRatios[txname][analysis]=points
 
     def getDictOfTxNames( self ):
-        """ determine a dictionary of the database content with the txnames as keys, 
+        """ determine a dictionary of the database content with the txnames as keys,
         and analyses names as values
         """
         self.debug ( f"create dictionary of txnames """ )
@@ -227,4 +267,4 @@ class Initialiser ( LoggerBase ):
 if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     dbpath = "~/git/smodels-database/"
-    ini = Initialiser( dbpath )
+    ini = Initialiser( dbpath, ignore_pickle = True )
