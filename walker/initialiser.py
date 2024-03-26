@@ -89,8 +89,6 @@ class Initialiser ( LoggerBase ):
         """ compute the llhd ratios for a specific txname """
         analyses = self.txnames[txname]
         for analysis in analyses:
-            #if analysis in [ "CMS-SUS-16-050", "ATLAS-SUSY-2018-22" ]:
-            #    continue
             self.getLlhdRatiosFor ( txname, analysis, 
                     compute_missing = compute_missing )
 
@@ -130,7 +128,11 @@ class Initialiser ( LoggerBase ):
         slhafilename = point["slhafile"]
         # print ( f"@@A computing for {analysis},{txname},{valfile},{slhafilename}" )
         # print ( f"@@A point: {point}" )
-        slhafile = extractSLHAFileFromTarball ( slhafilename, extractToDir="/dev/shm/" )
+        try:
+            slhafile = extractSLHAFileFromTarball ( slhafilename, extractToDir="/dev/shm/" )
+        except KeyError as e:
+            print ( f"[initialiser] could not extract {slhafilename}" )
+            return float("nan")
         BSMList = load()
         model = Model(BSMparticles=BSMList, SMparticles=SMList)
         # ignorePQN = ['eCharge','colordim','spin']
@@ -162,7 +164,7 @@ class Initialiser ( LoggerBase ):
         if len(preds)==1:
             os.unlink ( slhafile )
             ret = preds[0].lsm()
-            print ( f"[initialiser] returning {ret:.2g} for {analysis}:{txname}:{dataset}:{slhafilename}" )
+            print ( f"[initialiser] returning {ret} for {analysis}:{txname}:{dataset}:{slhafilename}" )
             return ret
         #preds = theoryPredictionsFor( self.db, topDict, useBestDataset = True,
         #                              combinedResults=False )
@@ -228,17 +230,24 @@ class Initialiser ( LoggerBase ):
         sqrts = getSqrts ( analysis )
         collab = getCollaboration ( analysis )
         base = f"{self.dbpath}/{sqrts}TeV/{collab}/"
+        ext = "-eff"
         # first we try the combined val files
-        path = f"{base}/{analysis}-eff/validation/{txname}*_combined.py"
+        if os.path.exists ( f"{base}/{analysis}-ma5" ):
+            ext = "-ma5"
+        if os.path.exists ( f"{base}/{analysis}-agg" ):
+            ext = "-agg"
+        path = f"{base}/{analysis}{ext}/validation/{txname}*_combined.py"
         valfiles = glob.glob ( path )
+        #print ( f"@@B valfiles {valfiles}" )
         if len(valfiles)==0: ## seems like there are no combined ones
             # go for the individual ones
-            path = f"{base}/{analysis}-eff/validation/{txname}*.py"
+            path = f"{base}/{analysis}{ext}/validation/{txname}*.py"
             valfiles = glob.glob ( path )
             # return # FIXME for now
-        else: ## continue with combined
-            pass
+        #else: ## continue with combined
+        #    pass
             # return ## FIXME
+        #print ( f"@@A valfiles {valfiles}" )
         for valfile in valfiles:
             self.getLlhdRatiosForValFile ( valfile, analysis, txname, 
                                            compute_missing )
