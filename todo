@@ -9,7 +9,6 @@ todo:
    an informed choice in the critic (SN)
 *) extend protomodels to non-Z2
 *) think of smarter choices for mcmc-type (sampling) algorithms (HARG)
-*) llhds plots, use xsecs not ssms on y axis (WW)
 *) improve the critic, split into two critics (TP)
 *) use YIC information criterion (JY et al)
 
@@ -19,6 +18,7 @@ unsure:
 ?) add also steps that shift N1,C1,N2 simultaneously
 ?) add also steps that shift the whole spectrum simultaneously
 ?) see if transitions between offshell region and onshell region work
+?) llhds plots, use xsecs not ssms on y axis (WW)
 +) penalize if we are out-of-grid of one experiment:
    intermediate: we have combiner.penalizeForMissingResults
 +) drop the "states"? maybe not yet!

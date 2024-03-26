@@ -125,9 +125,9 @@ class Initialiser ( LoggerBase ):
         """ compute the SM likelihood for this point. it wasnt in the dict file.
         """
         slhafilename = point["slhafile"]
-        print ( f"@@A computing for {analysis},{txname},{valfile},{slhafile}" )
+        print ( f"@@A computing for {analysis},{txname},{valfile},{slhafilename}" )
         # print ( f"@@A point: {point}" )
-        slhafile = extractSLHAFileFromTarball ( slhafilename )
+        slhafile = extractSLHAFileFromTarball ( slhafilename, extractToDir="/dev/shm/" )
         BSMList = load()
         model = Model(BSMparticles=BSMList, SMparticles=SMList)
         # ignorePQN = ['eCharge','colordim','spin']
@@ -182,7 +182,9 @@ class Initialiser ( LoggerBase ):
             # go for the individual ones
             path = f"{base}/{analysis}-eff/validation/{txname}*.py"
             valfiles = glob.glob ( path )
-            return # FIXME for now
+            # return # FIXME for now
+        else:
+            return ## FIXME
         points = {}
         for valfile in valfiles:
             with open(valfile) as f:
@@ -297,4 +299,4 @@ class Initialiser ( LoggerBase ):
 if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     dbpath = "~/git/smodels-database/"
-    ini = Initialiser( dbpath, ignore_pickle = False )
+    ini = Initialiser( dbpath, ignore_pickle = True )
