@@ -168,8 +168,8 @@ class Initialiser ( LoggerBase ):
             return ret
         #preds = theoryPredictionsFor( self.db, topDict, useBestDataset = True,
         #                              combinedResults=False )
-        print ( f"[initialiser] something is off, got {len(preds)} results:" )
-        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        print ( f"[initialiser] something is off, got {len(preds)} results for {analysis}:{txname}:{dataset}:{slhafilename}" )
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
         os.unlink ( slhafile )
         return float("nan")
@@ -190,6 +190,7 @@ class Initialiser ( LoggerBase ):
         """ get the llhd ratios for a specific validation file """
         with open(valfile) as f:
             exec(f.read(), globals())
+            myLSM = float("nan")
             ## now we have validationData!!
             for point in validationData:
                 if not "axes" in point:
@@ -203,7 +204,11 @@ class Initialiser ( LoggerBase ):
                         continue
                 ratio = float("nan")
                 if not "l_SM" in point and compute_missing:
-                    lSM = self.computeLSMFor ( analysis, txname, valfile, point )
+                    if not np.isnan ( myLSM ):
+                        lSM = myLSM
+                    else:
+                        lSM = self.computeLSMFor ( analysis, txname, valfile, point )
+                    myLSM = lSM
                     # FIXME this we can compute post-mortem?
                     point["l_SM"] = lSM
                     # continue
@@ -244,8 +249,8 @@ class Initialiser ( LoggerBase ):
             path = f"{base}/{analysis}{ext}/validation/{txname}*.py"
             valfiles = glob.glob ( path )
             # return # FIXME for now
-        #else: ## continue with combined
-        #    pass
+        else: ## continue with combined
+            pass
             # return ## FIXME
         #print ( f"@@A valfiles {valfiles}" )
         for valfile in valfiles:
