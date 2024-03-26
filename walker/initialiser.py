@@ -14,6 +14,15 @@ from typing import List, Set, Dict
 from colorama import Fore as ansi
 import matplotlib.pyplot as plt
 
+# this block is simply to compute lSM!
+from smodels_utils.helper.slhaManipulator import extractSLHAFileFromTarball
+from smodels.matching.theoryPrediction import theoryPredictionsFor
+from smodels.share.models.SMparticles import SMList
+from smodels.particlesLoader import load
+from smodels.base.model import Model
+from smodels.base.physicsUnits import fb, GeV
+from smodels.decomposition import decomposer
+
 class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
@@ -78,6 +87,8 @@ class Initialiser ( LoggerBase ):
             # go to the respective validation folder, parse the validation dict
             # files.
             for analysis in analyses:
+                if analysis in [ "CMS-SUS-16-050", "ATLAS-SUSY-2018-22" ]:
+                    continue
                 self.getLlhdRatiosFor ( txname, analysis )
 
     def interact ( self ):
@@ -113,37 +124,50 @@ class Initialiser ( LoggerBase ):
                         point : Dict ) -> float:
         """ compute the SM likelihood for this point. it wasnt in the dict file.
         """
-        print ( f"@@A computing for {analysis},{txname},{valfile},{point}" )
-        from smodels_utils.helper.slhaManipulator import extractSLHAFileFromTarball
-        from smodels.matching.theoryPrediction import theoryPredictionsFor
-        from smodels.share.models.SMparticles import SMList
-        from smodels.particlesLoader import load
-        from smodels.base.model import Model
-        from smodels.base.physicsUnits import fb, GeV
-        from smodels.decomposition import decomposer
         slhafilename = point["slhafile"]
+        print ( f"@@A computing for {analysis},{txname},{valfile},{slhafile}" )
+        # print ( f"@@A point: {point}" )
         slhafile = extractSLHAFileFromTarball ( slhafilename )
         BSMList = load()
         model = Model(BSMparticles=BSMList, SMparticles=SMList)
+        # ignorePQN = ['eCharge','colordim','spin']
+        ignorePQN = [ ]
         model.updateParticles(inputFile=slhafile,
-                              ignorePromptQNumbers = ['eCharge','colordim','spin'])
+                              ignorePromptQNumbers = ignorePQN )
         sigmacut = 0.001*fb
         mingap = 5.*GeV
         topDict = decomposer.decompose(model, sigmacut,
                   massCompress=True, invisibleCompress=True, minmassgap=mingap)
         # self.db.selectExpResults ( )
-        self.db.selectExpResults ( analysisIDs = [ analysis ],
-                                   dataTypes = [ "efficiencyMap" ] )
-        # print ( f"we got {len(self.db.expResultList)} results" )
-        cpreds = theoryPredictionsFor( self.db, topDict, useBestDataset = False,
-                                      combinedResults=True ) 
-        preds = theoryPredictionsFor( self.db, topDict, useBestDataset = True,
-                                      combinedResults=False ) 
-        #if analysis != "CMS-SUS-16-050":
-        #    import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        # analyses = [ analysis, analysis+"-agg" ]
+        analyses = [ analysis ]
+        # datasets = [ "all" ]
+        dataset = point["dataset"]
+        if dataset == "(combined)": ## combined results
+            dataset = "all"
+            self.db.selectExpResults ( analysisIDs = analyses,
+                                       datasetIDs = [ dataset ],
+                                       dataTypes = [ "efficiencyMap" ] )
+            preds = theoryPredictionsFor( self.db, topDict, useBestDataset = True,
+                                          combinedResults=True )
+        else: ## sets of SRs
+            self.db.selectExpResults ( analysisIDs = analyses,
+                                       datasetIDs = [ dataset ],
+                                       dataTypes = [ "efficiencyMap" ] )
+            preds = theoryPredictionsFor( self.db, topDict, useBestDataset = True,
+                                          combinedResults=False )
+        if len(preds)==1:
+            os.unlink ( slhafile )
+            ret = preds[0].lsm()
+            print ( f"@@C returning {ret:.2g} for {analysis}:{txname}:{dataset}" )
+            return ret
+        #preds = theoryPredictionsFor( self.db, topDict, useBestDataset = True,
+        #                              combinedResults=False )
+        print ( f"@@A something is off, got {len(preds)} results:" )
+        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
         os.unlink ( slhafile )
-        return 0.
+        return float("nan")
 
     def getLlhdRatiosFor ( self, txname : str, analysis : str ):
         """ get the llhd ratios for the given txname/analysis pair """
@@ -151,8 +175,14 @@ class Initialiser ( LoggerBase ):
         sqrts = getSqrts ( analysis )
         collab = getCollaboration ( analysis )
         base = f"{self.dbpath}/{sqrts}TeV/{collab}/"
-        path = f"{base}/{analysis}-eff/validation/{txname}*.py"
+        # first we try the combined val files
+        path = f"{base}/{analysis}-eff/validation/{txname}*_combined.py"
         valfiles = glob.glob ( path )
+        if len(valfiles)==0: ## seems like there are no combined ones
+            # go for the individual ones
+            path = f"{base}/{analysis}-eff/validation/{txname}*.py"
+            valfiles = glob.glob ( path )
+            return # FIXME for now
         points = {}
         for valfile in valfiles:
             with open(valfile) as f:
@@ -267,4 +297,4 @@ class Initialiser ( LoggerBase ):
 if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     dbpath = "~/git/smodels-database/"
-    ini = Initialiser( dbpath, ignore_pickle = True )
+    ini = Initialiser( dbpath, ignore_pickle = False )
