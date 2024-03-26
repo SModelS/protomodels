@@ -10,7 +10,7 @@ import numpy as np
 from builder.loggerbase import LoggerBase
 from ptools.helpers import computeZFromP
 from smodels.experiment.expResultObj import ExpResult
-from typing import List, Set, Dict
+from typing import List, Set, Dict, Tuple
 from colorama import Fore as ansi
 import matplotlib.pyplot as plt
 
@@ -40,15 +40,15 @@ class Initialiser ( LoggerBase ):
         self.plotfname = "initialiser.png"
         self.significanceMap = {}
         self.analysesForTxName = {} # keep track of which analyses made it into
+        self.dbpath = dbpath
+        self.db = Database( dbpath )
+        self.listOfExpRes = self.db.getExpResults()
+        self.getDictOfTxNames()
         # which txname
         if os.path.exists ( self.picklefilename ) and not ignore_pickle:
             self.loadFromPickleFile()
         else:
             self.pprint ( f"initialising with {dbpath}" )
-            self.dbpath = dbpath
-            self.db = Database( dbpath )
-            self.listOfExpRes = self.db.getExpResults()
-            self.getDictOfTxNames()
             self.llhdRatios = {}
             self.getLlhdRatios()
             self.saveToPickleFile()
@@ -78,18 +78,21 @@ class Initialiser ( LoggerBase ):
                 self.analysesForTxName[txname].add ( ananame )
         self.significanceMap[txname] = smap
 
-
-    def getLlhdRatios ( self ):
+    def getLlhdRatios ( self, compute_missing : bool = False ):
         """ for all topo/analyses pairs, get the llhd ratios for all available
         mass points, and store in a huge dictionary """
         self.pprint ( f"computing llhd ratios" )
         for txname,analyses in self.txnames.items():
-            # go to the respective validation folder, parse the validation dict
-            # files.
-            for analysis in analyses:
-                if analysis in [ "CMS-SUS-16-050", "ATLAS-SUSY-2018-22" ]:
-                    continue
-                self.getLlhdRatiosFor ( txname, analysis )
+            self.computeLlhdRatiosForTxname ( txname, compute_missing )
+
+    def computeLlhdRatiosForTxname ( self, txname, compute_missing : bool ):
+        """ compute the llhd ratios for a specific txname """
+        analyses = self.txnames[txname]
+        for analysis in analyses:
+            #if analysis in [ "CMS-SUS-16-050", "ATLAS-SUSY-2018-22" ]:
+            #    continue
+            self.getLlhdRatiosFor ( txname, analysis, 
+                    compute_missing = compute_missing )
 
     def interact ( self ):
         """ open an interactive shell """
@@ -125,7 +128,7 @@ class Initialiser ( LoggerBase ):
         """ compute the SM likelihood for this point. it wasnt in the dict file.
         """
         slhafilename = point["slhafile"]
-        print ( f"@@A computing for {analysis},{txname},{valfile},{slhafilename}" )
+        # print ( f"@@A computing for {analysis},{txname},{valfile},{slhafilename}" )
         # print ( f"@@A point: {point}" )
         slhafile = extractSLHAFileFromTarball ( slhafilename, extractToDir="/dev/shm/" )
         BSMList = load()
@@ -159,18 +162,68 @@ class Initialiser ( LoggerBase ):
         if len(preds)==1:
             os.unlink ( slhafile )
             ret = preds[0].lsm()
-            print ( f"@@C returning {ret:.2g} for {analysis}:{txname}:{dataset}" )
+            print ( f"[initialiser] returning {ret:.2g} for {analysis}:{txname}:{dataset}:{slhafilename}" )
             return ret
         #preds = theoryPredictionsFor( self.db, topDict, useBestDataset = True,
         #                              combinedResults=False )
-        print ( f"@@A something is off, got {len(preds)} results:" )
+        print ( f"[initialiser] something is off, got {len(preds)} results:" )
         import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
         os.unlink ( slhafile )
         return float("nan")
 
-    def getLlhdRatiosFor ( self, txname : str, analysis : str ):
-        """ get the llhd ratios for the given txname/analysis pair """
+    def createAxisTuple ( self, pa : Dict ) -> Tuple:
+        """ turn axes dictionary into a tuple. simple. """
+        if not "x" in pa:
+            return tuple()
+        axistuple = (pa["x"],)
+        if "y" in pa:
+            axistuple = (pa["x"], pa["y"] )
+        if "z" in pa:
+            axistuple = ( pa["x"], pa["y"], pa["z"] )
+        return axistuple
+
+    def getLlhdRatiosForValFile ( self, valfile, analysis, txname,
+           compute_missing ):
+        """ get the llhd ratios for a specific validation file """
+        with open(valfile) as f:
+            exec(f.read(), globals())
+            ## now we have validationData!!
+            for point in validationData:
+                if not "axes" in point:
+                    continue
+                if not "llhd" in point or point["llhd"] == 0.:
+                    continue
+                axistuple = self.createAxisTuple ( point["axes"] )
+                if axistuple in self.llhdRatios[txname][analysis] and \
+                    not np.isnan ( self.llhdRatios[txname][analysis][axistuple] ):
+                        # we already computed this
+                        continue
+                ratio = float("nan")
+                if not "l_SM" in point and compute_missing:
+                    lSM = self.computeLSMFor ( analysis, txname, valfile, point )
+                    # FIXME this we can compute post-mortem?
+                    point["l_SM"] = lSM
+                    # continue
+                if "l_SM" in point:
+                    ratio = point["l_SM"] / point["llhd"]
+                ## FIXME for more complicated cases this needs to change.
+                self.llhdRatios[txname][analysis][axistuple] = -2 * np.log ( ratio )
+
+    def prepareLlhdRatioDictFor ( self, txname : str, analysis : str ):
+        """ make sure empty subdicts exist """
+        if not txname in self.llhdRatios:
+            self.llhdRatios[txname]={}
+        if not analysis in self.llhdRatios[txname]:
+            self.llhdRatios[txname][analysis]={}
+
+    def getLlhdRatiosFor ( self, txname : str, analysis : str,
+           compute_missing : bool = False ):
+        """ get the llhd ratios for the given txname/analysis pair 
+
+        :param compute_missing: if true, then compute missing l_SM values
+        """
+        self.prepareLlhdRatioDictFor ( txname, analysis )
         from smodels_utils.helper.various import getSqrts, getCollaboration
         sqrts = getSqrts ( analysis )
         collab = getCollaboration ( analysis )
@@ -183,38 +236,12 @@ class Initialiser ( LoggerBase ):
             path = f"{base}/{analysis}-eff/validation/{txname}*.py"
             valfiles = glob.glob ( path )
             # return # FIXME for now
-        else:
-            return ## FIXME
-        points = {}
+        else: ## continue with combined
+            pass
+            # return ## FIXME
         for valfile in valfiles:
-            with open(valfile) as f:
-                exec(f.read(), globals())
-                ## now we have validationData!!
-                for point in validationData:
-                    if not "axes" in point:
-                        continue
-                    if not "llhd" in point or point["llhd"] == 0.:
-                        continue
-                    if not "l_SM" in point:
-                        lSM = self.computeLSMFor ( analysis, txname, valfile, point )
-                        # FIXME this we can compute post-mortem?
-                        point["l_SM"] = lSM
-                        continue
-                    ratio = point["l_SM"] / point["llhd"]
-                    ## FIXME for more complicated cases this needs to change.
-                    pa = point["axes"]
-                    if "z" in pa:
-                        axistuple = ( pa["x"], pa["y"], pa["z"] )
-                    if "y" in pa:
-                        axistuple = (pa["x"], pa["y"] )
-                    else:
-                        axistuple = (pa["x"],)
-                    points[ axistuple ] =  -2 * np.log ( ratio )
-        if len ( points ) == 0:
-            return
-        if not txname in self.llhdRatios:
-            self.llhdRatios[txname]={}
-        self.llhdRatios[txname][analysis]=points
+            self.getLlhdRatiosForValFile ( valfile, analysis, txname, 
+                                           compute_missing )
 
     def getDictOfTxNames( self ):
         """ determine a dictionary of the database content with the txnames as keys,
@@ -299,4 +326,4 @@ class Initialiser ( LoggerBase ):
 if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     dbpath = "~/git/smodels-database/"
-    ini = Initialiser( dbpath, ignore_pickle = True )
+    ini = Initialiser( dbpath, ignore_pickle = False )
