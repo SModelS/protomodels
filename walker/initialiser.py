@@ -114,8 +114,9 @@ class Initialiser ( LoggerBase ):
 
     def loadFromPickleFile ( self ):
         """ fetch all the info from a pickle file """
+        self.pprint ( f"loading {self.picklefilename}" )
         import pickle
-        with open ( "initialiser.pcl", "rb" ) as f:
+        with open ( self.picklefilename, "rb" ) as f:
             d = pickle.load ( f )
             self.llhdRatios = d["llhdratios"]
             self.dbpath = d["dbpath"]
@@ -155,6 +156,9 @@ class Initialiser ( LoggerBase ):
                                        dataTypes = [ "efficiencyMap" ] )
             preds = theoryPredictionsFor( self.db, topDict, useBestDataset = True,
                                           combinedResults=True )
+            # print ( f"combined result {analyses}:{dataset}:{preds}" )
+            # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+            # print ( f"lsm {preds[0].lsm()}" )
         else: ## sets of SRs
             self.db.selectExpResults ( analysisIDs = analyses,
                                        datasetIDs = [ dataset ],
