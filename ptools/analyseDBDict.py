@@ -68,33 +68,9 @@ class Analyzer ( LoggerBase ):
             self.analyzeFile ( filename, nlargest, nsmallest, enum )
 
     def read ( self, fname ):
-        """ read in content of filename """
-        with open( fname,"rt") as f:
-            tmp=f.readlines()
-        lines = []
-        for line in tmp:
-            if line.startswith("#"):
-                continue
-            lines.append ( line )
-        basename = os.path.basename ( fname ).replace(".dict","")
-        meta = eval(lines[0])
-        nan=float("nan")
-        data = eval("\n".join(lines[1:]))
-        newdata = {}
-        for i,v in data.items():
-            if "expectedBG" in v and v["expectedBG"]>=0.:
-                newdata[i]=v
-            else:
-                if i.endswith ( ":ul" ):
-                    pass
-                    #print ( f"[plotDBDict] removing {basename}:{i} (is an UL)" )
-                else:
-                    eBG=None
-                    if "expectedBG" in v:
-                        eBG = v["expectedBG"]
-                    #print ( f"[plotDBDict] removing {basename}:{i} (eBG is {eBG})" )
-        # print ( f"[plotDBDict] keeping {len(newdata)}/{len(data)} for {basename}" )
-        return meta,newdata
+        from ptools.expResModifier import readDictFile 
+        d = readDictFile ( fname )
+        return ( d["meta"], d["data"] )
 
     def getTopos ( self, values, ana ):
         # we filter with self.topos

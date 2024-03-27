@@ -4,6 +4,8 @@
 Used to ``take out potential signals'' i.e. put all observations to values
 expected from background, by sampling the background model. """
 
+__all__ = [ "readDictFile", "ExpResModifier" ]
+
 # https://link.springer.com/content/pdf/10.1007/JHEP02(2015)004.pdf
 
 import copy, os, sys, time, subprocess, math, numpy, shutil
@@ -15,7 +17,7 @@ setup()
 from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
-from helpers import computeP, computeZFromP
+from ptools.helpers import computeP, computeZFromP
 from smodels.base import runtime
 if False:
     runtime._experimental = True
@@ -28,9 +30,42 @@ from smodels.base.physicsUnits import fb
 from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
-from protomodels.builder.loggerbase import LoggerBase
+from builder.loggerbase import LoggerBase
+from typing import Dict
 
 logger.setLevel("ERROR")
+
+def readDictFile ( filename : str = "default.dict" ) -> Dict:
+    """ read in content of filename 
+    :param filename: the filename of the database dictionary.
+    often it is <dbversion>.dict
+
+    :returns: a dictionary with 'meta' and 'data' as keys
+    """
+
+    with open( filename,"rt") as f:
+        tmp=f.readlines()
+    lines = []
+    for line in tmp:
+        if line.startswith("#"):
+            continue
+        lines.append ( line )
+    basename = os.path.basename ( filename ).replace(".dict","")
+    meta = eval(lines[0])
+    nan=float("nan")
+    data = eval("\n".join(lines[1:]))
+    newdata = {}
+    for i,v in data.items():
+        if "expectedBG" in v and v["expectedBG"]>=0.:
+            newdata[i]=v
+        else:
+            if i.endswith ( ":ul" ):
+                pass
+            else:
+                eBG=None
+                if "expectedBG" in v:
+                    eBG = v["expectedBG"]
+    return { "meta": meta, "data": newdata }
 
 class ExpResModifier ( LoggerBase ):
     epilog="""
