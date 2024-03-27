@@ -5,12 +5,13 @@
 
 __all__ = [ "Initialiser" ]
 
-import os
+import os, glob
 import numpy as np
+import random
 from builder.loggerbase import LoggerBase
 # from ptools.helpers import computeZFromP
 from typing import List, Set, Dict, Tuple
-from colorama import Fore as ansi
+# from colorama import Fore as ansi
 
 class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
@@ -30,6 +31,36 @@ class Initialiser ( LoggerBase ):
         self.data = d["data"]
         self.Zmax = 1. # disregard all results below this
         self.computePDict()
+        self.getParticleIdsFromTemplates()
+
+    def getParticleIdsForTxname ( self, filename : str ):
+        txname = filename.replace(".template","")
+        pr = txname.rfind("/")
+        txname = txname[pr+1:]
+        f = open ( filename, "rt" )
+        lines = f.readlines()
+        f.close()
+        ret = {}
+        if not txname in self.pidsForTxnames:
+            self.pidsForTxnames[txname]={}
+        for line in lines:
+            for x in [ 0, 1, 2 ]:
+                if f"M{x}" in line:
+                    tokens = line.split()
+                    self.pidsForTxnames[txname][x]=int(tokens[0])
+        if True:
+            with open ( "pids.cache", "wt" ) as f:
+                f.write ( self.pidsForTxnames+"\n" )
+                f.close()
+
+    def getParticleIdsFromTemplates ( self ):
+        """ get particle ids from template files in 
+        smodels-utils/slha/templates/ """
+        pathname = "../../smodels-utils/slha/templates/"
+        self.pidsForTxnames = {}
+        files = glob.glob ( f"{pathname}/T*.template" )
+        for f in files:
+            self.getParticleIdsForTxname ( f )
 
     def computePDict ( self ):
         """ compute the probabilities with which we choose a result """
@@ -57,9 +88,24 @@ class Initialiser ( LoggerBase ):
 
     def randomlyChooseOneResult ( self ):
         """ randomly choose one result from self.probs """
-        choice = np.random.choice(list(self.probs.values()), 
-                1, p=list(self.probs.keys()) )
-        return choice[0]
+        txn = "TRV1"
+        while txn in [ "TRV1", "TRS1" ]: 
+            # dont yet know how to handle these
+            choice = np.random.choice(list(self.probs.values()), 
+                    1, p=list(self.probs.keys()) )
+            result = choice[0]
+            txns = result["txns"].split(",")
+            ## choose a random txname
+            txn  = random.choice ( txns )
+        return txn
+
+    def getRandomSubmodelForTxname ( self, txname : str ):
+        """ given a txname, create a random submodel. """
+        if not txname in self.pidsForTxnames:
+            self.pprint ( "we dont seem to have pids for {txname}" )
+            return None
+        pids = self.pidsForTxnames[txname]
+        self.pprint ( f"we need to find random masses and decays for {txname}:{pids}" )
 
     def propose ( self ):
         """ propose a random initial model. """
