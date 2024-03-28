@@ -178,7 +178,28 @@ class Initialiser ( LoggerBase ):
                     mass = random.uniform ( *self.massRanges[pid] )
                 self.pprint ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f}" )
                 masses[pid]=mass
+                if pid in [ 1000023, 1000024 ] and random.uniform(0,1)<.5:
+                    masses[1000023]=mass
+                    masses[1000024]=mass
         return masses
+
+    def getDecaysForTxname ( self, txname : str ) -> Dict:
+        """ get some random decays starting points """
+        if not txname in self.decaysForTxnames:
+            self.error ( f"we dont have any decays??" )
+            sys.exit()
+        decays = { ProtoModel.LSP: {} }
+        tmp = self.decaysForTxnames[txname]
+        for mother,daughters in tmp.items():
+            if not mother in decays:
+                decays[mother]={}
+            for daughterpids in daughters:
+                keys = []
+                for daughterpid in daughterpids:
+                    if daughterpid > 0:
+                        keys.append ( daughterpid )
+                decays[mother][tuple(keys)]=1.0
+        return decays
 
     def getRandomSubmodelForTxname ( self, txname : str ) -> Dict:
         """ given a txname, create a random submodel. """
@@ -186,7 +207,9 @@ class Initialiser ( LoggerBase ):
             self.pprint ( "we dont seem to have pids for {txname}" )
             return None
         masses = self.getRandomMassesForTxname ( txname )
-        model = { "masses": masses, "decays": {}, "ssms": {} }
+        decays = self.getDecaysForTxname ( txname )
+        ssms = {}
+        model = { "masses": masses, "decays": decays, "ssms": ssms }
         return model
 
     def createRandomSubmodel ( self ) -> Dict:
