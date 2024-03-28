@@ -43,11 +43,16 @@ class Initialiser ( LoggerBase ):
         ret = {}
         if not txname in self.pidsForTxnames:
             self.pidsForTxnames[txname]={}
+        pids = set()
         for line in lines:
+            p1 = line.find("#")
+            if p1 > 0:
+                line = line[:p1]
             for x in [ 0, 1, 2 ]:
-                if f"M{x}" in line:
+                if f"M{x}" in line or f"m{x}" in line:
                     tokens = line.split()
-                    self.pidsForTxnames[txname][x]=int(tokens[0])
+                    pids.add ( int(tokens[0]) )
+        self.pidsForTxnames[txname][x]=pids
         if True:
             with open ( "pids.cache", "wt" ) as f:
                 f.write ( self.pidsForTxnames+"\n" )
