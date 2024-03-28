@@ -5,7 +5,7 @@
 
 __all__ = [ "Initialiser" ]
 
-import os, glob
+import os, glob, sys
 import numpy as np
 import random
 from builder.loggerbase import LoggerBase
@@ -31,9 +31,20 @@ class Initialiser ( LoggerBase ):
         self.data = d["data"]
         self.Zmax = 1. # disregard all results below this
         self.computePDict()
-        self.getParticleIdsFromTemplates()
+        self.setMassRanges()
+        self.getTxParamsFromTemplates()
 
-    def getParticleIdsForTxname ( self, filename : str ):
+    def setMassRanges ( self ):
+        """ set the mass ranges to draw from. for now set by hand. 
+        """
+        self.massRanges = { 1000022: [ 0, 500 ] } # N1
+        self.massRanges[1000023] = [50, 800 ] # N2
+        self.massRanges[1000024] = [50, 800 ] # C1
+
+    def getTxParamsFor ( self, filename : str ):
+        """ get pids, decays for slha template <filename>
+        :param filename: e.g. ..../T1.template
+        """
         txname = filename.replace(".template","")
         pr = txname.rfind("/")
         txname = txname[pr+1:]
@@ -43,6 +54,10 @@ class Initialiser ( LoggerBase ):
         ret = {}
         if not txname in self.pidsForTxnames:
             self.pidsForTxnames[txname]={}
+        if not txname in self.decaysForTxnames:
+            self.decaysForTxnames[txname]={}
+        tempf = "/dev/shm/temp.slha"
+        tmpfile = open ( tempf, "wt" )
         pids = set()
         for line in lines:
             p1 = line.find("#")
@@ -52,20 +67,37 @@ class Initialiser ( LoggerBase ):
                 if f"M{x}" in line or f"m{x}" in line:
                     tokens = line.split()
                     pids.add ( int(tokens[0]) )
+                    line = line.replace ( f"M{x}", "100" )
+            tmpfile.write ( line )
+        tmpfile.close()
         self.pidsForTxnames[txname][x]=pids
+        import pyslha
+        r = pyslha.readSLHAFile(tempf)
+        for pid in pids:
+            if pid == 1000022:
+                continue
+            decays = r.decays[pid].decays
+            if not pid in self.decaysForTxnames[txname] and len(decays)>0:
+                self.decaysForTxnames[txname][pid]=set()
+            for decay in decays:
+                ids = tuple ( decay.ids )
+                self.decaysForTxnames[txname][pid].add(ids)
+        os.unlink ( tempf )
         if True:
             with open ( "pids.cache", "wt" ) as f:
-                f.write ( self.pidsForTxnames+"\n" )
+                f.write ( f"{self.pidsForTxnames}\n" )
+                f.write ( f"{self.decaysForTxnames}\n" )
                 f.close()
 
-    def getParticleIdsFromTemplates ( self ):
+    def getTxParamsFromTemplates ( self ):
         """ get particle ids from template files in 
         smodels-utils/slha/templates/ """
         pathname = "../../smodels-utils/slha/templates/"
         self.pidsForTxnames = {}
+        self.decaysForTxnames = {}
         files = glob.glob ( f"{pathname}/T*.template" )
         for f in files:
-            self.getParticleIdsForTxname ( f )
+            self.getTxParamsFor ( f )
 
     def computePDict ( self ):
         """ compute the probabilities with which we choose a result """
@@ -110,11 +142,27 @@ class Initialiser ( LoggerBase ):
             self.pprint ( "we dont seem to have pids for {txname}" )
             return None
         pids = self.pidsForTxnames[txname]
-        self.pprint ( f"we need to find random masses and decays for {txname}:{pids}" )
+        masses = {}
+        for pid in pids:
+            if not pid in self.massRanges:
+                self.error ( f"we dont have mass ranges for {pid}" )
+                sys.exit()
+            mass = random.uniform ( *self.massRanges[pid] )
+            self.pprint ( f"setting mass of {pid} to {mass}" )
+            masses[pid]=mass
+
+    def createRandomSubmodel ( self ) -> Dict:
+        """ create a random submodel for one txname.
+        we will merge later.
+        """
+        ## choose a random txname
+        txn = self.randomlyChooseOneResult()
+        self.getRandomSubmodelForTxname ( txn )
 
     def propose ( self ):
         """ propose a random initial model. """
-        pass
+        # choose a random txn
+        self.createRandomSubmodel()
 
     def interact ( self ):
         """ interactive shell, for debugging and development """
