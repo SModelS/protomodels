@@ -12,6 +12,10 @@ from builder.loggerbase import LoggerBase
 # from ptools.helpers import computeZFromP
 from typing import List, Set, Dict, Tuple
 # from colorama import Fore as ansi
+from ptools.sparticleNames import SParticleNames
+from builder.protomodel import ProtoModel
+
+namer = SParticleNames ( susy = False )
 
 class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
@@ -40,6 +44,12 @@ class Initialiser ( LoggerBase ):
         self.massRanges = { 1000022: [ 0, 500 ] } # N1
         self.massRanges[1000023] = [50, 800 ] # N2
         self.massRanges[1000024] = [50, 800 ] # C1
+        self.massRanges[1000005] = [50, 1200 ] # ~b
+        self.massRanges[1000006] = [100, 1400 ] # ~t
+        self.massRanges[1000021] = [1000, 3000 ] # ~t
+        squarkrange = [ 200, 1800 ]
+        for i in [ 1000001, 2000001 ]:
+            self.massRanges[i] = squarkrange # ~b
 
     def getTxParamsFor ( self, filename : str ):
         """ get pids, decays for slha template <filename>
@@ -58,23 +68,33 @@ class Initialiser ( LoggerBase ):
             self.decaysForTxnames[txname]={}
         tempf = "/dev/shm/temp.slha"
         tmpfile = open ( tempf, "wt" )
-        pids = set()
+        pids = {}
         for line in lines:
             p1 = line.find("#")
-            if p1 > 0:
+            if p1 > -1:
                 line = line[:p1]
+            if line.endswith("\n"):
+                line = line[:-1]
             for x in [ 0, 1, 2 ]:
                 if f"M{x}" in line or f"m{x}" in line:
                     tokens = line.split()
-                    pids.add ( int(tokens[0]) )
+                    if not x in pids:
+                        pids[x]=set()
+                    pids[x].add ( int(tokens[0]) )
                     line = line.replace ( f"M{x}", "100" )
-            tmpfile.write ( line )
+                    line = line.replace ( f"m{x}", "100" )
+            tmpfile.write ( line+ "\n" )
         tmpfile.close()
-        self.pidsForTxnames[txname][x]=pids
+        flatpids = set()
+        for k,v in pids.items():
+            for i in v:
+                flatpids.add ( i )
+        for k,v in pids.items():
+            self.pidsForTxnames[txname][k]=v
         import pyslha
         r = pyslha.readSLHAFile(tempf)
-        for pid in pids:
-            if pid == 1000022:
+        for pid in flatpids:
+            if pid == ProtoModel.LSP:
                 continue
             decays = r.decays[pid].decays
             if not pid in self.decaysForTxnames[txname] and len(decays)>0:
@@ -134,22 +154,40 @@ class Initialiser ( LoggerBase ):
             txns = result["txns"].split(",")
             ## choose a random txname
             txn  = random.choice ( txns )
+            self.pprint ( f"choosing random txn from {result['id']}: {txn}" )
         return txn
 
-    def getRandomSubmodelForTxname ( self, txname : str ):
+    def getRandomMassesForTxname ( self, txname : str ) -> Dict:
+        """ sample random mass values for the given txname """
+        pidsdict = self.pidsForTxnames[txname]
+        masses = {}
+        pid = ProtoModel.LSP
+        lspmass = random.uniform ( *self.massRanges[pid] )
+        self.pprint ( f"setting mass of {namer.asciiName(pid)} to {lspmass:.1f}" )
+        masses[pid]=lspmass
+
+        for position,pids in pidsdict.items():
+            for pid in pids:
+                if pid == ProtoModel.LSP:
+                    continue
+                if not pid in self.massRanges:
+                    self.error ( f"we dont have mass ranges for pid={pid}({namer.asciiName(pid)})" )
+                    sys.exit()
+                mass = -1.
+                while mass < lspmass:
+                    mass = random.uniform ( *self.massRanges[pid] )
+                self.pprint ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f}" )
+                masses[pid]=mass
+        return masses
+
+    def getRandomSubmodelForTxname ( self, txname : str ) -> Dict:
         """ given a txname, create a random submodel. """
         if not txname in self.pidsForTxnames:
             self.pprint ( "we dont seem to have pids for {txname}" )
             return None
-        pids = self.pidsForTxnames[txname]
-        masses = {}
-        for pid in pids:
-            if not pid in self.massRanges:
-                self.error ( f"we dont have mass ranges for {pid}" )
-                sys.exit()
-            mass = random.uniform ( *self.massRanges[pid] )
-            self.pprint ( f"setting mass of {pid} to {mass}" )
-            masses[pid]=mass
+        masses = self.getRandomMassesForTxname ( txname )
+        model = { "masses": masses, "decays": {}, "ssms": {} }
+        return model
 
     def createRandomSubmodel ( self ) -> Dict:
         """ create a random submodel for one txname.
@@ -157,13 +195,22 @@ class Initialiser ( LoggerBase ):
         """
         ## choose a random txname
         txn = self.randomlyChooseOneResult()
-        self.getRandomSubmodelForTxname ( txn )
+        self.pprint ( f"creating random submodel for {txn}" )
+        submodel = self.getRandomSubmodelForTxname ( txn )
+        return submodel
 
     def propose ( self ):
         """ propose a random initial model. """
         # choose a random txn
-        self.createRandomSubmodel()
+        submodel = self.createRandomSubmodel()
+        return submodel
 
+    def mergeSubmodels ( self, submodels : List ) -> Dict:
+        """ merge several submodels to a model.
+        """
+        from ptools.hiscoreTools import mergeTwoModels
+        return mergeTwoModels ( *submodels )
+        
     def interact ( self ):
         """ interactive shell, for debugging and development """
         import IPython
