@@ -8,6 +8,7 @@ __all__ = [ "Initialiser" ]
 import os, glob, sys
 import numpy as np
 import random
+import pyslha
 from builder.loggerbase import LoggerBase
 # from ptools.helpers import computeZFromP
 from typing import List, Set, Dict, Tuple
@@ -31,12 +32,16 @@ class Initialiser ( LoggerBase ):
         self.dictfile = dictfile
         from ptools.expResModifier import readDictFile
         d = readDictFile ( dictfile )
+        self.tempslha = "/dev/shm/temp.slha"
+        self.cachefile = "pids.cache"
         self.meta = d["meta"]
         self.data = d["data"]
         self.Zmax = 1. # disregard all results below this
         self.computePDict()
         self.setMassRanges()
-        self.getTxParamsFromTemplates()
+        re = self.readInitialData()
+        if not re:
+            self.getTxParamsFromTemplates()
 
     def setMassRanges ( self ):
         """ set the mass ranges to draw from. for now set by hand. 
@@ -66,8 +71,9 @@ class Initialiser ( LoggerBase ):
             self.pidsForTxnames[txname]={}
         if not txname in self.decaysForTxnames:
             self.decaysForTxnames[txname]={}
-        tempf = "/dev/shm/temp.slha"
-        tmpfile = open ( tempf, "wt" )
+        if not txname in self.ssmsForTxnames:
+            self.ssmsForTxnames[txname]={}
+        tmpfile = open ( self.tempslha, "wt" )
         pids = {}
         for line in lines:
             p1 = line.find("#")
@@ -91,8 +97,7 @@ class Initialiser ( LoggerBase ):
                 flatpids.add ( i )
         for k,v in pids.items():
             self.pidsForTxnames[txname][k]=v
-        import pyslha
-        r = pyslha.readSLHAFile(tempf)
+        r = pyslha.readSLHAFile(self.tempslha)
         for pid in flatpids:
             if pid == ProtoModel.LSP:
                 continue
@@ -102,12 +107,60 @@ class Initialiser ( LoggerBase ):
             for decay in decays:
                 ids = tuple ( decay.ids )
                 self.decaysForTxnames[txname][pid].add(ids)
-        os.unlink ( tempf )
+        os.unlink ( self.tempslha )
+        self.getDefaultSSMs ( filename )
+
         if True:
-            with open ( "pids.cache", "wt" ) as f:
+            with open ( self.cachefile, "wt" ) as f:
                 f.write ( f"{self.pidsForTxnames}\n" )
                 f.write ( f"{self.decaysForTxnames}\n" )
+                f.write ( f"{self.ssmsForTxnames}\n" )
                 f.close()
+
+    def readInitialData ( self ) -> bool:
+        """ read in all the data (pids,decays,ssms) from the slha files. 
+        :returns: False, if no cache file found.
+        """
+        if not os.path.exists ( self.cachefile ):
+            self.error ( f"did not find {self.cachefile}" )
+            return False
+        self.pprint ( f"reading in all initial data from {self.cachefile}" )
+        with open ( self.cachefile, "rt" ) as f:
+            lines = f.readlines()
+            f.close()
+            self.pidsForTxnames = eval(lines[0])
+            self.decaysForTxnames = eval(lines[1])
+            self.ssmsForTxnames = eval(lines[2])
+        return True
+
+    def getDefaultSSMs ( self, templatename : str ):
+        """ get default ssms for templatename
+        :param templatename: e.g. ../../smodels-utils/slha/templa
+        """
+        txname = templatename.replace(".template","")
+        pr = txname.rfind("/")
+        txname = txname[pr+1:]
+        tarball = templatename.replace(".template",".tar.gz").replace("templates/","")
+        if not os.path.exists ( tarball ):
+            self.debug ( f"cannot find {tarball}, cannot get default productions." )
+            return
+        self.pprint ( f"get first file in {tarball}" )
+        import tarfile
+        tar = tarfile.open ( tarball, "r:gz" )
+        files = tar.members
+        fobj = tar.extractfile ( files[0].name )
+        txt = fobj.read() 
+        with open ( self.tempslha, "wt" ) as f:
+            f.write ( txt.decode("ascii") )
+            f.close()
+        tar.close()
+        r = pyslha.readSLHAFile(self.tempslha)
+        xsecs = r.xsections
+        ssmpids = set()
+        for k,v in xsecs.items():
+            pids = tuple ( filter(lambda x: x not in [ 2212 ], k) )
+            ssmpids.add ( pids )
+        self.ssmsForTxnames[txname]=ssmpids
 
     def getTxParamsFromTemplates ( self ):
         """ get particle ids from template files in 
@@ -115,6 +168,7 @@ class Initialiser ( LoggerBase ):
         pathname = "../../smodels-utils/slha/templates/"
         self.pidsForTxnames = {}
         self.decaysForTxnames = {}
+        self.ssmsForTxnames = {}
         files = glob.glob ( f"{pathname}/T*.template" )
         for f in files:
             self.getTxParamsFor ( f )
@@ -195,6 +249,7 @@ class Initialiser ( LoggerBase ):
         decays = { ProtoModel.LSP: {} }
         tmp = self.decaysForTxnames[txname]
         for mother,daughters in tmp.items():
+            ndaughters = len(daughters)
             if not mother in decays:
                 decays[mother]={}
             for daughterpids in daughters:
@@ -202,8 +257,18 @@ class Initialiser ( LoggerBase ):
                 for daughterpid in daughterpids:
                     if daughterpid > 0:
                         keys.append ( daughterpid )
-                decays[mother][tuple(keys)]=1.0
+                decays[mother][tuple(keys)]=1./ndaughters
         return decays
+
+    def getSSMsForTxname ( self, txname : str ) -> Dict:
+        """ get typical ssms for the given txname. """
+        ssms = {}
+        self.debug ( f"getSSMsForTxname for {txname}" )
+        if not txname in self.ssmsForTxnames:
+            return ssms
+        for pids in self.ssmsForTxnames[txname]:
+            ssms[pids]=1.
+        return ssms
 
     def getRandomSubmodelForTxname ( self, txname : str ) -> Dict:
         """ given a txname, create a random submodel. """
@@ -212,7 +277,7 @@ class Initialiser ( LoggerBase ):
             return None
         masses = self.getRandomMassesForTxname ( txname )
         decays = self.getDecaysForTxname ( txname )
-        ssms = {}
+        ssms = self.getSSMsForTxname ( txname )
         model = { "masses": masses, "decays": decays, "ssms": ssms }
         return model
 
