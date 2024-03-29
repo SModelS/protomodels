@@ -176,11 +176,15 @@ class Initialiser ( LoggerBase ):
                 mass = -1.
                 while mass < lspmass:
                     mass = random.uniform ( *self.massRanges[pid] )
-                self.pprint ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f}" )
-                masses[pid]=mass
+                ## for C1 and N2: with a certain change we set them to the same 
+                ## value
                 if pid in [ 1000023, 1000024 ] and random.uniform(0,1)<.5:
+                    self.pprint ( f"setting mass of {namer.asciiName(1000023)} and {namer.asciiName(1000024)} to {mass:.1f}" )
                     masses[1000023]=mass
                     masses[1000024]=mass
+                else:
+                    self.pprint ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f}" )
+                    masses[pid]=mass
         return masses
 
     def getDecaysForTxname ( self, txname : str ) -> Dict:
