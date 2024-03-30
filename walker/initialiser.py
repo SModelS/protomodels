@@ -7,6 +7,7 @@ __all__ = [ "Initialiser" ]
 
 import os, glob, sys
 import numpy as np
+import scipy
 import random
 import pyslha
 from builder.loggerbase import LoggerBase
@@ -53,7 +54,8 @@ class Initialiser ( LoggerBase ):
         self.massRanges[1000006] = [100, 1400 ] # ~t
         self.massRanges[1000021] = [1000, 3000 ] # ~t
         squarkrange = [ 200, 1800 ]
-        for i in [ 1000001, 2000001 ]:
+        for i in [ 1000001, 2000001, 1000002, 2000002,
+                   1000003, 2000003, 1000004, 2000004 ]:
             self.massRanges[i] = squarkrange # ~b
 
     def getTxParamsFor ( self, filename : str ):
@@ -185,7 +187,8 @@ class Initialiser ( LoggerBase ):
                 continue
             ## FIXME for now we shoose by exp(Z), maybe
             ## we do sth better motivated
-            prel = np.exp ( Z )
+            # prel = np.exp ( Z )
+            prel = 1. / ( 1. - scipy.stats.norm.cdf ( Z ) )
             while prel in prels:
                 prel+=1e-10
             value = stats
@@ -208,7 +211,7 @@ class Initialiser ( LoggerBase ):
             txns = result["txns"].split(",")
             ## choose a random txname
             txn  = random.choice ( txns )
-            self.pprint ( f"choosing random txn from {result['id']}: {txn}" )
+        self.pprint ( f"choosing random txn from {result['id']}: {txn}" )
         return txn
 
     def getRandomMassesForTxname ( self, txname : str ) -> Dict:
