@@ -441,7 +441,7 @@ class Plotter ( LoggerBase ):
                 if not passesTx:
                     self.printMsgs["pass"]+=1
                     if self.printMsgs["pass"]<4:
-                        self.pprint ( f"skipping {k}: does not pass Tx filter" )
+                        self.pprint ( f"skipping {k}: does not pass txname filter" )
                     if self.printMsgs["pass"]==4:
                         self.pprint ( f"(quenching 'does not pass filter' msgs)" )
                     continue
@@ -705,13 +705,12 @@ class Plotter ( LoggerBase ):
         if self.description != None:
             self.pprint ( f"we selected {','.join(self.topologies)}" )
             title += f", {self.description}"
-            # title += f",selecting {self.origtopos}"
         if len (self.topologies )>0 and self.description == None:
             stopos = ""
             for i,t in enumerate(self.topologies):
                 if "+" in t and not "+off" in t:
                     print ( f"[plotDBDict] WARNING: topology {t} has a + sign, did you mean to instead have a comma ','?" )
-                stopos += prettyDescriptions.prettyTxname( t, "latex", False )
+                stopos += prettyDescriptions.prettyTxname( t, False, "latex" )
                 if i < len(self.topologies)-1:
                     stopos += ";"
             title += f", {selecting}{stopos}"
@@ -719,7 +718,7 @@ class Plotter ( LoggerBase ):
         if len (self.negativetopos )>0:
             stopos = ""
             for i,t in enumerate(self.negativetopos):
-                stopos += "^"+prettyDescriptions.prettyTxname( t, "latex", False )
+                stopos += "^"+prettyDescriptions.prettyTxname( t, False, "latex" )
                 if i < len(self.topologies)-1:
                     stopos += ";"
             title += f", {selecting}{stopos}"
