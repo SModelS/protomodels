@@ -733,7 +733,8 @@ class Plotter ( LoggerBase ):
         if len ( self.analyses ) > 0:
             title += f", {selecting}"
             for a in self.analyses:
-                title += f", {a}"
+                title += f" {a}"
+            title = title.replace("  ", " " )
         if len ( self.negativeanalyses ) > 0:
             for a in self.negativeanalyses:
                 title += f", {selecting}^{a}"
