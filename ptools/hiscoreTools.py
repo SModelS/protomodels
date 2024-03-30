@@ -6,6 +6,7 @@
 __all__ = [ "hiscoreHiNeedsUpdate", "fetchHiscoresObj" ]
 
 import pickle, subprocess, sys, os, time
+import numpy as np
 from colorama import Fore as ansi
 from scipy import stats
 sys.path.insert(0,"../../")
@@ -14,7 +15,7 @@ setup()
 from builder.manipulator import Manipulator
 from builder.protomodel import ProtoModel
 from walker.hiscores import Hiscores
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Set
 from argparse import Namespace
 from os import PathLike
 
@@ -63,7 +64,7 @@ def pprintEvs ( protomodel ):
         return f"{protomodel.nevents/1000}K evts"
     return str(protomodel.nevents)+ " evts"
 
-def obtainHiscore ( number : int, 
+def obtainHiscore ( number : int,
         hiscorefile : PathLike = "hiscores.dict" ) -> ProtoModel:
     """ obtain hiscore number <number> from >hiscorefile>
 
@@ -76,11 +77,11 @@ def obtainHiscore ( number : int,
     ret = hi.hiscores[ number ]
     return ret
 
-def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict", 
+def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
                            picklefile : str = "hiscores.cache",
                            entrynr : Union[None,int] = 0 ) -> bool:
     """ is hiscores.cache behind hiscores.dict, so it needs an update?
-    :param entrynr: check for for this entry, 0 is first. 
+    :param entrynr: check for for this entry, 0 is first.
     If None, check all
 
     :returns: true if update is needed
@@ -132,10 +133,10 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
             return True
     return False
 
-def fetchHiscoresObj ( dictfile : str = "hiscores.dict", 
+def fetchHiscoresObj ( dictfile : str = "hiscores.dict",
                        picklefile : Union[None,str] = None,
                        dbpath : str = "official" ) -> Hiscores:
-    """ create Hiscores object from hiscores.cache file. 
+    """ create Hiscores object from hiscores.cache file.
     update hiscores.cache file before, if needed.
 
     :param dictfile: dictionary to update hiscores.cache from, if needed.
@@ -155,10 +156,10 @@ def fetchHiscoresObj ( dictfile : str = "hiscores.dict",
     hi = Hiscores.fromDictionaryFile ( dictfile, dbpath=dbpath )
     hi.writeListToPickle ( picklefile )
     return hi
-        
-def mergeTwoModels ( model1 : Dict, model2: Dict ) -> Union[None,Dict]:
+
+def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
     """ merge two models, add all particles from both models.
-    If a particle appears in both models, its mass will be the average 
+    If a particle appears in both models, its mass will be the average
     of the two, etc.
 
     :returns: merged model
@@ -194,3 +195,71 @@ def mergeTwoModels ( model1 : Dict, model2: Dict ) -> Union[None,Dict]:
             ret.pop( drop )
     ret["timestamp"] = time.asctime()
     return ret
+
+def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
+    """ merge two models, add all particles from both models.
+    If a particle appears in both models, its mass will be the average
+    of the two, etc.
+
+    :returns: merged model
+    """
+    if len(models)== 0:
+        print ( f"[hiscoreTools] provided empty list of models" )
+        return None
+    if len(models)==1: # trivial merge
+        return models[0]
+    ret = { "masses": {}, "decays": {}, "ssms": {} }
+
+    def collectPids ( models : List[Dict] ) -> Set:
+        """ collect all pids in all models """
+        pids = set()
+        for m in models:
+            for k in m["masses"].keys():
+                pids.add ( k )
+        return pids
+    def computeAverageMassesForPid ( pid : int, models : List[Dict] ) -> Dict:
+        masses=[]
+        for model in models:
+            if pid in model["masses"]:
+                masses.append ( model["masses"][pid] )
+        return np.mean ( masses )
+
+    def computeAverageDecaysForPid ( pid : int, models : List[Dict] ) -> Dict:
+        decays = {}
+        Stot = 0.
+        for model in models:
+            if pid in model["decays"]:
+                mdecays = model["decays"][pid]
+                for daughterpids, br in mdecays.items():
+                    if not daughterpids in decays:
+                        decays[daughterpids] = 0.
+                    decays[daughterpids] += br
+                    Stot += br
+        for daughterpids, br in decays.items():
+            decays[daughterpids]/=Stot
+        return decays
+
+    def computeAverageSSMs ( models : List[Dict] ) -> Dict:
+        ssms = {}
+        for model in models:
+            mssms = model["ssms"]
+            for k,v in mssms.items():
+                ssms[k]=v # just bluntly take them over.
+        return ssms
+
+    # first, we collect all pids
+    pids = collectPids ( models )
+    # next we compute average masses
+    masses, decays, ssms = {}, {}, {}
+    for pid in pids:
+        mass = computeAverageMassesForPid ( pid, models )
+        masses[pid]=mass
+        piddecays = computeAverageDecaysForPid ( pid, models )
+        decays[pid] = piddecays
+    ssms = computeAverageSSMs ( models )
+    ret["masses"]=masses
+    ret["decays"]=decays
+    ret["ssms"]=ssms
+    ret["timestamp"] = time.asctime()
+    return ret
+
