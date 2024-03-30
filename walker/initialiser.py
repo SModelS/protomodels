@@ -11,9 +11,7 @@ import scipy
 import random
 import pyslha
 from builder.loggerbase import LoggerBase
-# from ptools.helpers import computeZFromP
-from typing import List, Set, Dict, Tuple
-# from colorama import Fore as ansi
+from typing import List, Set, Dict, Tuple, Union
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 
@@ -214,6 +212,28 @@ class Initialiser ( LoggerBase ):
         self.pprint ( f"choosing random txn from {result['id']}: {txn}" )
         return txn
 
+    def tiePids ( self, pid : int, pids : List[int] ) -> Union[None,int]:
+        """ determine if we tie this pid to another pid, meaning
+        we set the mass of another pid to the value of this pid.
+        :param pid: check for this pid
+        :param pids: these are all the pids that are there. if the 
+        alternative pid is not in pids, dont tie
+
+        :returns: None if we dont tie pids, pid of other particle if yes
+        """
+        ties = [ ( 1000023, 1000024 ) ]
+        for tie in ties:
+            if pid in ties:
+                pos = ties.index ( pid )# pos is our guy
+                apos = 1 - pos # thats the alternative pid
+                if not ties[apos] in pids:
+                    return None
+                if random.uniform ( 0, 1 ) < .5:
+                    # tie them only in half the cases
+                    return ties[apos]
+                return None
+        return None
+
     def getRandomMassesForTxname ( self, txname : str ) -> Dict:
         """ sample random mass values for the given txname """
         pidsdict = self.pidsForTxnames[txname]
@@ -235,13 +255,12 @@ class Initialiser ( LoggerBase ):
                     mass = random.uniform ( *self.massRanges[pid] )
                 ## for C1 and N2: with a certain change we set them to the same 
                 ## value
-                if pid in [ 1000023, 1000024 ] and random.uniform(0,1)<.5:
-                    self.pprint ( f"setting mass of {namer.asciiName(1000023)} and {namer.asciiName(1000024)} to {mass:.1f}" )
-                    masses[1000023]=mass
-                    masses[1000024]=mass
-                else:
-                    self.pprint ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f}" )
-                    masses[pid]=mass
+                masses[pid]=mass
+                self.pprint ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f}" )
+                apid = self.tiePids ( pid, pids )
+                if apid != None:
+                    self.pprint ( f"setting mass of {namer.asciiName(apid)} to {mass:.1f}" )
+                    masses[apid]=mass
         return masses
 
     def getDecaysForTxname ( self, txname : str ) -> Dict:
@@ -261,6 +280,7 @@ class Initialiser ( LoggerBase ):
                     if daughterpid > 0:
                         keys.append ( daughterpid )
                 decays[mother][tuple(keys)]=1./ndaughters
+        self.pprint ( f"decays for {txname}: {decays}" )
         return decays
 
     def getSSMsForTxname ( self, txname : str ) -> Dict:
@@ -297,15 +317,16 @@ class Initialiser ( LoggerBase ):
     def propose ( self ):
         """ propose a random initial model. """
         # choose a random txn
-        submodel = self.createRandomSubmodel()
-        return submodel
+        submodels = []
+        nmodels = random.choice ( [1,2,3] )
+        self.pprint ( f"proposed model will consist of {nmodels} submodels." )
+        for i in range(nmodels):
+            submodels.append ( self.createRandomSubmodel() )
+        self.submodels = submodels
+        from ptools.hiscoreTools import mergeNModels
+        model = mergeNModels ( submodels )
+        return model
 
-    def mergeSubmodels ( self, submodels : List ) -> Dict:
-        """ merge several submodels to a model.
-        """
-        from ptools.hiscoreTools import mergeTwoModels
-        return mergeTwoModels ( *submodels )
-        
     def interact ( self ):
         """ interactive shell, for debugging and development """
         import IPython
