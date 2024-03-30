@@ -207,6 +207,7 @@ def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
         print ( f"[hiscoreTools] provided empty list of models" )
         return None
     if len(models)==1: # trivial merge
+        models[0]["timestamp"] = time.asctime()
         return models[0]
     ret = { "masses": {}, "decays": {}, "ssms": {} }
 
