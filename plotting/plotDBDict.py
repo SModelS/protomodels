@@ -387,6 +387,7 @@ class Plotter ( LoggerBase ):
         P,Pfake,weights, weightsfake = cp ( empty ), cp ( empty ), cp ( empty ), cp ( empty )
         self.countSRs()
         hasComplained = False
+        nSkipped = 0
         for filename in self.filenames:
             selfbase = os.path.basename ( filename )
             dname = selfbase.replace(".dict","")
@@ -418,7 +419,11 @@ class Plotter ( LoggerBase ):
                             break
                 if not passesAnas:
                     if not anaid in skipped:
-                        self.pprint ( f"skipping {anaid} per request" )
+                        if nSkipped < 4:
+                            self.pprint ( f"skipping {anaid} per request" )
+                        if nSkipped == 4:
+                            self.pprint ( f"(quenching more msgs re skipping)" )
+                        nSkipped += 1
                     skipped.append ( anaid )
                     continue
                 w = 1. / len(self.srCounts[anaid]) / len(self.filenames)
@@ -700,7 +705,7 @@ class Plotter ( LoggerBase ):
         if "fudge" in self.meta:
             fudge = self.meta["fudge"]
         if abs ( fudge - 1. ) > 1e-3:
-            title += ", fudge=%.2f" % fudge
+            title += f", fudge={fudge:.2f}"
         selecting = "selecting "
         if self.description != None:
             self.pprint ( f"we selected {','.join(self.topologies)}" )
