@@ -5,7 +5,7 @@
 
 __all__ = [ "Initialiser" ]
 
-import os, glob, sys
+import os, glob, sys, copy
 import numpy as np
 import scipy
 import random
@@ -14,6 +14,7 @@ from builder.loggerbase import LoggerBase
 from typing import List, Set, Dict, Tuple, Union
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
+from builder.manipulator import Manipulator
 
 namer = SParticleNames ( susy = False )
 
@@ -236,13 +237,28 @@ class Initialiser ( LoggerBase ):
 
     def getRandomMassesForTxname ( self, txname : str ) -> Dict:
         """ sample random mass values for the given txname """
-        pidsdict = self.pidsForTxnames[txname]
+        pidsdict = copy.deepcopy ( self.pidsForTxnames[txname] )            
         masses = {}
         pid = ProtoModel.LSP
         lspmass = random.uniform ( *self.massRanges[pid] )
         self.pprint ( f"setting mass of {namer.asciiName(pid)} to {lspmass:.1f}" )
         masses[pid]=lspmass
+        leftsquarks = [ 1000001, 1000002, 1000003, 1000004 ]
+        rightsquarks = [ 2000001, 2000002, 2000003, 2000004 ]
+        squarks = leftsquarks + rightsquarks
+        mylightsquark = random.choice ( leftsquarks )
 
+        for position,pids in pidsdict.items():
+            if mylightsquark in pids:
+                hasWarned = False
+                for rm in squarks:
+                    if rm == mylightsquark:
+                        continue
+                    if not hasWarned:
+                        self.pprint ( f"there are many light quark-partners, will keep only {namer.asciiName(mylightsquark)}" )
+                        hasWarned =True
+                    if rm in pids:
+                        pids.remove(rm)
         for position,pids in pidsdict.items():
             for pid in pids:
                 if pid == ProtoModel.LSP:
@@ -301,7 +317,7 @@ class Initialiser ( LoggerBase ):
         masses = self.getRandomMassesForTxname ( txname )
         decays = self.getDecaysForTxname ( txname )
         ssms = self.getSSMsForTxname ( txname )
-        model = { "masses": masses, "decays": decays, "ssms": ssms }
+        model = { "masses": masses, "decays": decays, "ssmultipliers": ssms }
         return model
 
     def createRandomSubmodel ( self ) -> Dict:
@@ -327,8 +343,16 @@ class Initialiser ( LoggerBase ):
         model = mergeNModels ( submodels )
         return model
 
+    def create ( self ) -> Manipulator:
+        """ create the protomodel """
+        dct = self.propose()
+        ma = Manipulator ( dct )
+        return ma
+
     def interact ( self ):
         """ interactive shell, for debugging and development """
+        from tester.predictor import Predictor
+        pr = Predictor(0)
         import IPython
         IPython.embed( colors = "neutral" )
 

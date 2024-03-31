@@ -243,7 +243,7 @@ def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
     def computeAverageSSMs ( models : List[Dict] ) -> Dict:
         ssms = {}
         for model in models:
-            mssms = model["ssms"]
+            mssms = model["ssmultipliers"]
             for k,v in mssms.items():
                 ssms[k]=v # just bluntly take them over.
         return ssms
@@ -260,7 +260,7 @@ def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
     ssms = computeAverageSSMs ( models )
     ret["masses"]=masses
     ret["decays"]=decays
-    ret["ssms"]=ssms
+    ret["ssmultipliers"]=ssms
     ret["timestamp"] = time.asctime()
     return ret
 

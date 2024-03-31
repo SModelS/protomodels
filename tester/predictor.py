@@ -8,7 +8,7 @@ import pickle, time, os, sys
 from smodels.decomposition import decomposer
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
 sys.path.insert(0,"../")
-from protomodels.builder.protomodel import ProtoModel
+from builder.protomodel import ProtoModel
 from smodels.share.models.SMparticles import SMList
 from smodels.share.models.mssm import BSMList
 from smodels.base.physicsUnits import fb, GeV, TeV
@@ -17,7 +17,7 @@ from smodels.base.model import Model
 from smodels.base.exceptions import SModelSBaseError as SModelSError
 from os import PathLike
 from typing import List, Union
-from protomodels.builder.loggerbase import LoggerBase
+from builder.loggerbase import LoggerBase
 
 try:
     from tester.combiner import Combiner
