@@ -1,6 +1,8 @@
 todo:
 =====
 *) introduce smart initialisation of walker (WW)
+*) the code that introduces offshell branching ratios, put it into a
+separate method
 *) add an option to range the ssms, for "SUSY runs" (SN)
 *) implement random changes in the pairs of masses and ssms that leave the
    total xsec largely the same (SN)
