@@ -410,7 +410,7 @@ class Manipulator ( LoggerBase ):
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
             dId = i.dataId() if i.dataId() != None else "UL"
             print ( f" `- {ansi.GREEN}{i.analysisId()}:{dId}: {txns}{ansi.RESET}" )
-            line = "               "
+            line = "        "
             if detailed:
                 import math
                 dtype = i.dataType()
