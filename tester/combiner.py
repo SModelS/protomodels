@@ -24,6 +24,7 @@ from colorama import Fore
 from scipy import optimize, stats
 from scipy.special import erf
 from typing import List, Union, Tuple, Set
+from ptools.helpers import getAllPidsOfTheoryPred
 # import IPython
 
 class Combiner ( LoggerBase ):
@@ -35,14 +36,14 @@ class Combiner ( LoggerBase ):
         """ get all PIDs that make it into one combo """
         pids = set()
         for theoryPred in combo:
-            pids = pids.union ( self.getAllPidsOfTheoryPred ( theoryPred ) )
+            pids = pids.union ( getAllPidsOfTheoryPred ( theoryPred ) )
         return pids
 
     def getAnaIdsWithPids ( self, combo, pids ):
         # from best combo, retrieve all ana ids that contain *all* pids
         anaIds = set()
         for theoryPred in combo:
-            tpids = self.getAllPidsOfTheoryPred ( theoryPred )
+            tpids = getAllPidsOfTheoryPred ( theoryPred )
             hasAllPids=True
             for pid in pids:
                 if not pid in tpids:
@@ -51,27 +52,6 @@ class Combiner ( LoggerBase ):
             if hasAllPids:
                 anaIds.add ( theoryPred.analysisId() )
         return anaIds
-
-    def getAllPidsOfTheoryPred ( self, pred : TheoryPrediction ) -> Set:
-        # get all pids that make it into a theory prediction
-        def addPDGs ( pids, pid ):
-            if type(pid) == int:
-                pids.add ( abs(pid) )
-            if type(pid) in [ tuple, list ]:
-                for p in pid:
-                    pids.add ( abs(p) )
-        pids = set()
-        smses = pred.smsList
-        for sms in smses:
-            for dIndex in sms.daughterIndices(sms.rootIndex):
-                daughter = sms.indexToNode(dIndex)
-                addPDGs ( pids, daughter.pdg )
-                for nodeIndex in sms.dfsIndexIterator(dIndex):
-                    node = sms.indexToNode(nodeIndex)
-                    if node.isSM:
-                        continue
-                    addPDGs ( pids, node.pdg )
-        return pids
 
     def findCompatibles ( self, predA, predictions, strategy ):
         """ return list of all elements in predictions

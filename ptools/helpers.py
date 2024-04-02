@@ -1,20 +1,46 @@
 #!/usr/bin/env python3
 
 """ various helper functions that do not fit in any of the more
-    specific modules """
+specific modules. This module is meant to contain the helper functions
+that do not depend on protomodels functionality.
+The "moreHelpers" module is meant to contain those that do depend on protomodels
+code.
+"""
 
 import copy, math, time, random, subprocess, os, unum, numpy
 from smodels.experiment.datasetObj import DataSet
 from smodels.experiment.expResultObj import ExpResult
 from smodels.experiment.infoObj import Info
 from smodels.base.physicsUnits import GeV
+from smodels.matching.theoryPrediction import TheoryPrediction
 import scipy.stats
 from os import PathLike
-from typing import Union
+from typing import Union, Set
 
-def prettyPrint ( value : Union[None,float,numpy.float64], 
+def getAllPidsOfTheoryPred ( pred : TheoryPrediction ) -> Set:
+    """ get all pids that make it into a theory prediction """
+    def addPDGs ( pids, pid ):
+        if type(pid) == int:
+            pids.add ( abs(pid) )
+        if type(pid) in [ tuple, list ]:
+            for p in pid:
+                pids.add ( abs(p) )
+    pids = set()
+    smses = pred.smsList
+    for sms in smses:
+        for dIndex in sms.daughterIndices(sms.rootIndex):
+            daughter = sms.indexToNode(dIndex)
+            addPDGs ( pids, daughter.pdg )
+            for nodeIndex in sms.dfsIndexIterator(dIndex):
+                node = sms.indexToNode(nodeIndex)
+                if node.isSM:
+                    continue
+                addPDGs ( pids, node.pdg )
+    return pids
+
+def prettyPrint ( value : Union[None,float,numpy.float64],
         ndecimals : int = 2, maxrows : int = 0 ) -> str:
-    """ pretty print a value, but allow for it to also be None 
+    """ pretty print a value, but allow for it to also be None
 
     :param maxrows: maximum number of rows for lists and tuples. zero is all.
     """
@@ -48,7 +74,7 @@ def readDictionaryFile ( filename : PathLike ) -> dict:
     """ read the database dictionary files, as produced by expResModifier.py -C
     :param filename: path to the dictionary file
     :returns: a dictionary with "meta" and "data" as keys
-    
+
     .. code-block:: python3
 
     >>> content = readDictionaryFile ( "230.dict" )
@@ -72,19 +98,19 @@ def computeZFromP ( pvalue : float ) -> float:
     """ compute significance Z from p-value, i.e. compute Phi^-1 ( p )
 
     :param pvalue: the p-value
-    :returns: the corresponding significance Z 
+    :returns: the corresponding significance Z
     """
     return - scipy.stats.norm.ppf ( pvalue )
 
-def computeP ( obs : float, bg : float, bgerr : float, 
+def computeP ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False ) -> float:
-    """ compute P value, gaussian or log-normal nuisance model, w.r.t 
+    """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
 
     :param obs: observed number of events
     :param bg: number of expected background events
     :param bgerr: error on number of expected bg events
-    :param lognormal: if true, model the enveloping nuisance parameter 
+    :param lognormal: if true, model the enveloping nuisance parameter
     as a lognormal instead of a normal
 
     :returns: p-value
@@ -228,7 +254,6 @@ def lrEquiv ( l, r ):
 
 def simplifyList ( modes ):
     """ simplify a given list of production modes """
-    # print ( "reducing", modes )
     import itertools
     ret = copy.deepcopy ( modes )
     for combo in itertools.combinations ( modes, 2 ):

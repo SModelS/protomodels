@@ -9,7 +9,7 @@ __all__ = [ "Manipulator" ]
 
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
-from ptools.helpers import nround
+from ptools.helpers import nround, getAllPidsOfTheoryPred
 from smodels.base.physicsUnits import fb, TeV
 from smodels.base.crossSection import LO
 from smodels.matching.theoryPrediction import TheoryPrediction
@@ -435,13 +435,15 @@ class Manipulator ( LoggerBase ):
                     line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={ansi.RED}{Z:.1f}*sigma{ansi.RESET}"
                     print ( line )
 
-            for pids in i.PIDs[:2]:
-                s = str(pids)
-                if len(s) > 80:
-                    s=s[:76]+" ..."
-                print ( f"              {s}" )
-            if len(i.PIDs)>3:
-                print ( "               ..." )
+            allpids = list( getAllPidsOfTheoryPred ( i ) )
+            pidline = f"        pids:"
+            for pid in allpids[:2]:
+                pidline += f" {self.namer.asciiName(pid)}"
+            if len(pidline) > 80:
+                pidline=pidline[:76]+" ..."
+            if len(allpids)>3:
+                          pidline += f" ..."
+            print ( pidline )
 
     def printAllTheoryPredictions ( self, detailed : bool = False ):
         """ pretty print all theory predictions for the model 
@@ -461,13 +463,15 @@ class Manipulator ( LoggerBase ):
                 if c['rexp'] is not None:
                     rexp = f"{c['rexp']:.1f}"
                 print ( f"   - robs={robs} rexp={rexp}" )
-            for pids in i.PIDs[:2]:
-                s = f"{self.namer.asciiName(pids)}"
-                if len(s) > 80:
-                    s=s[:76]+" ..."
-                print ( f"              {s}" )
-            if len(i.PIDs)>3:
-                print ( "               ..." )
+            allpids = list ( getAllPidsOfTheoryPred ( i ) )
+            pidline  = f"        pids:"
+            for pid in allpids[:2]:
+                pidline += f" {self.namer.asciiName(pid)}"
+                if len(pidline) > 80:
+                    pidline=pidline[:76]+" ..."
+            if len(allpids)>3:
+                pidline += ( " ..." )
+            print ( pidline )
 
     def removeAllOffshell ( self, rescaleSSMs=False, protomodel = None ):
         """ remove all offshell decays and decays of frozen particles. Renormalize all branchings """
