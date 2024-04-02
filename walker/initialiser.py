@@ -352,7 +352,7 @@ class Initialiser ( LoggerBase ):
     def interact ( self ):
         """ interactive shell, for debugging and development """
         from tester.predictor import Predictor
-        pr = Predictor(0)
+        pr = Predictor(0, do_srcombine = True )
         import IPython
         IPython.embed( colors = "neutral" )
 
