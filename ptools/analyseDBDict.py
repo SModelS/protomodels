@@ -12,7 +12,7 @@ import scipy.stats
 import matplotlib.mlab as mlab
 from smodels_utils.helper.various import getSqrts, findCollaboration
 from ptools.moreHelpers import namesForSetsOfTopologies
-from typing import Union, Text, List
+from typing import Union, Text, List, Dict
 from protomodels.builder.loggerbase import LoggerBase
 
 class Analyzer ( LoggerBase ):
@@ -72,18 +72,40 @@ class Analyzer ( LoggerBase ):
         d = readDictFile ( fname )
         return ( d["meta"], d["data"] )
 
-    def getTopos ( self, values, ana ):
+    def topoIsIn ( self, topo : str ) -> Union[None,bool]:
+        """ check if the given topo is compatible with self.topos.
+
+        :param topo: e.g. TRV1
+        :returns: true if topo is in selection
+        """
+        if len(self.topos)==0:
+            return True
+        hasOnlyNegativeTopos = True
+        ntopo = f"^{topo}"
+        for t in self.topos:
+            if not t.startswith ( "^" ):
+                hasOnlyNegativeTopos = False
+            if topo == t:
+                return True
+            if ntopo == t: # we explictly veto these
+                return False 
+        if hasOnlyNegativeTopos:
+            return True
+        return None
+
+    def getTopos ( self, values : Dict, ana : str ) -> str:
+        """ get the topologies. """
         # we filter with self.topos
         if "txns" in values:
             ret = values["txns"]
             tret = ret.split(",")
             isIn = False
-            if len(self.topos)==0:
-                isIn = True
-            else:
-                for t in tret:
-                    if t in self.topos:
-                        isIn = True
+            for t in tret:
+                if self.topoIsIn ( t ) == True:
+                    isIn = True
+                if self.topoIsIn ( t ) == False: # there was a veto!
+                    isIn = False
+                    break
             if not isIn:
                 return None
             if len(ret)>15:
@@ -185,7 +207,7 @@ def main():
             help='input dictionary file(s) [../data/database/]',
             type=str, default='.,/data/database/' )
     argparser.add_argument ( '-t', '--topos', nargs='*',
-            help='filter for topologies, comma separated list or multiple arguments [None]',
+            help='filter for topologies, comma separated list or multiple arguments. prefix with ^ is negation. [None]',
             type=str, default=None )
     argparser.add_argument ( '-n', '--nlargest',
             help='number of result to list with largest Z values [10]',
