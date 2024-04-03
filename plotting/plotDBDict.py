@@ -861,7 +861,10 @@ class Plotter ( LoggerBase ):
         scale = 1. / 0.39894 * .75
         stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
         if not self.pvalues:
-            plt.plot ( stdnmx, stdnmy, c="red", linestyle="dotted", label="standard normal" )
+            nmcolor = "red"
+            nmcolor = "black"
+            plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted", 
+                       label="standard normal" )
         if nLegendEntries > 1 or self.options["alwayslegend"]:
             legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.1) )
         if self.likelihood == "lognormal+poisson":
