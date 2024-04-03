@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-""" store the theory predictions in pickle """
+""" 
+the predictor class, i.e. the class that computes the predictions,
+finds the best combinations, and computes the final test statistics
+"""
 
 __all__ = [ "Predictor" ]
 
