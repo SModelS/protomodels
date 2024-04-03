@@ -181,10 +181,15 @@ class Plotter ( LoggerBase ):
             if a not in [ "topologies", "analyses" ]:
                 setattr ( self, a, value )
         if self.nbins == None:
-            if not self.pvalues:
-                self.nbins = 13
+            if "nbins" in self.options:
+                self.nbins = self.options["nbins"]
             else:
-                self.nbins = 10
+                if not self.pvalues:
+                    self.nbins = 29
+                    # self.nbins = 13
+                else:
+                    self.nbins = 30
+                    # self.nbins = 10
         self.origtopos = args["topologies"]
         self.printMsgs = { "pass": 0 }
         if self.origtopos == None:
@@ -959,7 +964,7 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-D', '--disclaimer',
             help='add a disclaimer', action='store_true' )
     argparser.add_argument ( '-O', '--options',
-            help='dictionary of options, given as string {try xlabel, ylabel, plotStats, plot_averages, weighted, yrange} [None]',
+            help='dictionary of options, given as string {try nbins, xlabel, ylabel, plotStats, plot_averages, weighted, yrange} [None]',
             type=str, default=None )
     argparser.add_argument ( '-U', '--ulalso',
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
