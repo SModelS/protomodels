@@ -489,7 +489,7 @@ class Plotter ( LoggerBase ):
                             print ( "computing the p-values -- this might take a while, so consider doing this at expResModifier.py" )
                             hasComplained = True
                         lognormal = False
-                        if self.likelihood == "lognormal+poissohn":
+                        if self.likelihood == "lognormal+poisson":
                             lognormal = True
                         p = computeP ( obs, vexp, bgErr )
                     if "-agg" in anaid:
@@ -498,7 +498,7 @@ class Plotter ( LoggerBase ):
                         if checkIfNonAgg:
                             if not nonaggid in self.skippedAgg:
                                 self.skippedAgg.add ( nonaggid )
-                                self.pprint ( f"skipping {anaid}: we also have non-aggregated results for this analysis" )
+                                self.pprint ( f"skipping {len(self.srCounts[anaid])} SRs in {anaid}: we also have non-aggregated results for this analysis" )
                             continue
                     P[sqrts].append( p )
                     weights[sqrts].append ( w )
