@@ -10,14 +10,14 @@ __all__ = [ "Manipulator" ]
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 from ptools.helpers import nround, getAllPidsOfTheoryPred
-from smodels.base.physicsUnits import fb, TeV
+from smodels.base.physicsUnits import fb, TeV, GeV
 from smodels.base.crossSection import LO
 from smodels.matching.theoryPrediction import TheoryPrediction
 import smodels
 import copy, os, sys, itertools, colorama, random
 import numpy as np
 from colorama import Fore as ansi
-from typing import Union, Dict, List, Tuple, Set
+from typing import Union, Dict, List, Tuple, Set, Unum, int, float
 from builder.loggerbase import LoggerBase
 from os import PathLike
 
@@ -155,6 +155,87 @@ class Manipulator ( LoggerBase ):
         for pid,m in self.M.masses.items():
             self.M.masses[pid]=m+dm
 
+    def changeMassAccToSSM(self, pid_pair: Tuple, new_ssm: Union[int, float], sqrts:Union[int,float,Unum] = 13):
+        """
+        Change mass of a protomodel pid_pair according to an input signal strength multiplier keeping protomodel xsec
+        at input sqrts the same. Update the protomodel pid_pair's mass and ssm
+        :param pid_pair: Tuple of pids whose mass and ssm needs to be changed. Ex:(-1000006,1000006)
+        :param new_ssm: The input signal strength multipier
+        :param sqrts: The sqrts at which the protomodel xsec needs to remain the same. Default is 13(TeV)
+        """
+        
+        model = self.M
+        model_xsecs = model.getXsecs()[0]   #get all the protomodel xsec
+        model_xs = 0.
+        model_mass = 0.
+        
+        if type(sqrts) == Unum: sqrts = sqrts.asNumber(TeV)
+        
+        for xsec in model_xsecs:
+            if (xsec.pid == pid_pair) and (xsec.info.sqrts.asNumber(TeV) - sqrts) <= 1e-07:  #get the protomodel xsec at pid_pair and sqrts
+                model_xs = xsec.value.asNumber(fb)
+            else: return
+            
+        
+        print("Model Xsec: ", model_xs)
+        new_susy_xs = (model_xs/new_ssm)*fb         #the new susy xsec according to the new_ssm
+        print("Susy Xsec: ", new_susy_xs)
+                
+        from ptools.xsecFit import xsecFitter
+        func = xsecFitter(pid_pair, sqrts)
+        
+        model_mass = func.getValueFromFit(new_susy_xs, inverse=True)        #get the mass according to the new_susy_xsec from the xsecFitter
+        if model_mass is None:
+            print(f"No ref xsec available for {pid_pair}")
+            return
+        print("new mass: ", model_mass)
+        
+        #update the protomodel's ssm and mass for the pid_pair
+        model.ssmultipliers[pid_pair] = new_ssm
+        if pid_pair[0] in model.masses: model.masses[pid_pair[0]] = model_mass.asNumber(GeV)
+        else: model.masses[pid_pair[1]] = model_mass.asNumber(GeV)
+        
+    def changeSSMAccToMass(self, pid_pair: Tuple, new_mass: Union[int, float, Unum], sqrts:Union[int,float,Unum] = 13):
+        """
+        Change signal strength multiplier of a protomodel pid_pair according to an input mass keeping the protomodel xsec
+        at input sqrts the same. Update the protomodel pid_pair's mass and ssm
+        :param pid_pair: Tuple of pids whose mass and ssm needs to be changed. Ex:(-1000006,1000006)
+        :param new_mass: The input mass
+        :param sqrts: The sqrts at which the protomodel xsec needs to remain the same
+        """
+        
+        model = self.M
+        model_mass = new_mass
+        
+        if type(new_mass) is not Unum: model_mass = new_mass*GeV
+        if type(sqrts) is Unum: sqrts = sqrts.asNumber(TeV)
+        
+        from ptools.xsecFit import xsecFitter
+        func = xsecFitter(pid_pair, sqrts)
+        
+        susy_xs = func.getValueFromFit(model_mass, inverse=False)         #get the susy_xsec according to the new_mass from the xsecFitter
+        if susy_xs is None:
+            print(f"No ref xsec for {pid_pair} at mass {model_mass}")
+            return
+        
+        print("new susy xsec: ", susy_xs)
+        
+        susy_xs = susy_xs.asNumber(fb)
+        model_xsecs = model.getXsecs()[0]                                 #get all the protomodel xsec
+        for xsec in model_xsecs:
+            if (xsec.pid == pid_pair) and (xsec.info.sqrts.asNumber(TeV) - sqrts) <= 1e-07:  #get the protomodel xsec at pid_pair and sqrts
+                model_xs = xsec.value.asNumber(fb)
+            else: return
+        
+        new_ssm = (model_xs/susy_xs)        #the new_ssm according to the new_susy_xsec
+        print("New SSM: ", new_ssm)
+        
+        #update the protomodel's ssm and mass for the pid_pair
+        model.ssmultipliers[pid_pair] = new_ssm
+        if pid_pair[0] in model.masses: model.masses[pid_pair[0]] = model_mass.asNumber(GeV)
+        else: model.masses[pid_pair[1]] = model_mass.asNumber(GeV)
+
+    
     def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict",
             cleanOut : bool = True, comment : str = "", appendMode : bool = False,
             ndecimals : int = 6 ) -> Dict:

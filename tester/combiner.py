@@ -39,6 +39,10 @@ class Combiner ( LoggerBase ):
             pids = pids.union ( getAllPidsOfTheoryPred ( theoryPred ) )
         return pids
 
+    def getAllPidsOfTheoryPred ( self, theorypred ):
+        print ( "FIXME this method is obsolete, call ptools.helpers.getAllPidsOfTheoryPred directly!!" )
+        return getAllPidsOfTheoryPred (theorypred )
+
     def getAnaIdsWithPids ( self, combo, pids ):
         # from best combo, retrieve all ana ids that contain *all* pids
         anaIds = set()
@@ -95,10 +99,18 @@ class Combiner ( LoggerBase ):
         """
         self.log ( f"now find all combos of {len(predictions)} preds!" )
         combinables=[]
+        """
         for iA,predA in enumerate(predictions):
             nexti = iA + 1
             compatibles = self.findCompatibles ( predA, predictions[nexti:], strategy )
-            combinables += compatibles       
+            combinables += compatibles
+        """
+        from tester.combinationFinder import CombinationFinder
+        comb_ob = CombinationFinder()
+        combinables = comb_ob.getPossibleCombinations(predictions)
+        #aids = [[a.analysisId() for a in comb] for comb in combinables]
+        #print("possible combinations = ", aids)
+
         self.log ( f"found {len(combinables)} combos!" )
         return combinables
 
@@ -486,7 +498,7 @@ class Combiner ( LoggerBase ):
                 return False
         return True
 
-    def computePrior ( self, protomodel, nll : bool =False, 
+    def computePrior ( self, protomodel, nll : bool =False,
         verbose : bool =False, name : str ="expo1" ) -> float:
         """ compute the prior for protomodel, used to introduce regularization,
             i.e. penalizing for non-zero parameters, imposing sparsity.
@@ -583,7 +595,7 @@ class Combiner ( LoggerBase ):
         #                      "; ".join(map(str,prediction.PIDs) ) )
 
     def sortPredictions ( self, predictions : List ) -> List:
-        """ sort the predictions according to decreasing L_BSM/L_SM and return the 
+        """ sort the predictions according to decreasing L_BSM/L_SM and return the
             sorted list of predictions
         :param predictions: list of theory predictions
         :returns: sorted list of theory predictions
@@ -597,7 +609,7 @@ class Combiner ( LoggerBase ):
             if type(l0)!=type(None):
                 llhd_ratio = l1/l0
             sorted_pred[llhd_ratio] = pred
- 
+
         sorted_pred = dict((sorted(sorted_pred.items(), reverse=True)))
         newpreds = list ( sorted_pred.values() )
 
@@ -648,10 +660,10 @@ class Combiner ( LoggerBase ):
                 print(f" `- {didwhat}: #{ctr} {pId}: r={r:.2f}{Fore.RESET}")
         return ret
 
-    def penaltyForMissingResults ( self, 
+    def penaltyForMissingResults ( self,
             predictions : List[TheoryPrediction] ) -> float:
         """ very simple hack for now, penalize if predictions are all
-        from the same experiment 
+        from the same experiment
 
         :returns: penalty -- 1e-3 if experiment is missing
         """
@@ -718,8 +730,8 @@ class Combiner ( LoggerBase ):
             ret *= l
         return ret
 
-    def findHighestSignificance ( self, predictions : List[TheoryPrediction], 
-            strategy : str, expected : bool =False, 
+    def findHighestSignificance ( self, predictions : List[TheoryPrediction],
+            strategy : str, expected : bool =False,
             mumax : Union[None,float] = None ) -> Tuple:
         """ for the given list of predictions and employing the given combination strategy,
         find the combination with highest significance
@@ -857,12 +869,11 @@ if __name__ == "__main__":
     #print ( "[combiner] decomposed into %d topos" % len(smses) )
     from smodels.matching.theoryPrediction import theoryPredictionsFor
     combiner = Combiner()
-    
-    
+
     preds = theoryPredictionsFor ( db, smses )
     combo,globalZ,llhd,muhat = combiner.findHighestSignificance ( preds, "aggressive", expected=args.expected )
     print ( "[combiner] global Z is %.2f: %s (muhat=%.2f)" % (globalZ, combiner.getComboDescription(combo),muhat ) )
-    
+
 
     preds = theoryPredictionsFor ( db, smses )
     Z, muhat_ = combiner.getSignificance ( preds, expected=args.expected, mumax = None )
