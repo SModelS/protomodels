@@ -17,7 +17,6 @@ class CombinationFinder(object):
         
         self.cM = getMatrix()
         if combination_matrix != None:
-            print("yes", combination_matrix)
             self.cM = combination_matrix
 
         self._createDefaultCombinationMatrix()
@@ -180,7 +179,6 @@ class CombinationFinder(object):
         combinables = sorted(list(combinables), key = lambda x: len(x), reverse=True) #sort according to decreasing length of combinable theory predictions
         combinables = [list(comb) for comb in combinables]                            #convert tuples of combinations to list
         aids = [[c.analysisId() for c in comb] for comb in combinables]
-        print("\n Final Combination: ", aids)
         return combinables
                 
         
