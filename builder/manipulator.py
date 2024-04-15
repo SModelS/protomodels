@@ -17,7 +17,8 @@ import smodels
 import copy, os, sys, itertools, colorama, random
 import numpy as np
 from colorama import Fore as ansi
-from typing import Union, Dict, List, Tuple, Set, Unum, int, float
+from typing import Union, Dict, List, Tuple, Set 
+from unum import Unum
 from builder.loggerbase import LoggerBase
 from os import PathLike
 
