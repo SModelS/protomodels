@@ -2,21 +2,23 @@ import numpy as np
 import pathfinder as pf
 from multiprocessing import Process, Queue
 from scipy.stats import norm
-
+from typing import Tuple
+from numpy.typing import NDArray
 from iminuit import Minuit
 from iminuit.cost import UnbinnedNLL
 
-def norm_max_pdf(data:np.ndarray, mu:float, sig:float, num:int)->np.ndarray:
+
+def norm_max_pdf(data: NDArray, mu: float, sig: float, num: int) -> NDArray:
     """
-    Asymptotic distribution function of the given RV: 
+    Asymptotic distribution function of the given RV:
     {Y_0, Y_1, ... Y_N} where Y = MAX{X_0, X_1, ... X_i}_0
 
     Where X_i is a normaly distributed random variable with
 
     Parameters
     ----------
-    mu  :   location parameter, 
-    sig :   scale parameter, 
+    mu  :   location parameter,
+    sig :   scale parameter,
     num :   sample size (N)
 
     Returns
@@ -28,128 +30,106 @@ def norm_max_pdf(data:np.ndarray, mu:float, sig:float, num:int)->np.ndarray:
 
     return num*norm.pdf(data, loc=mu, scale=sig) * (norm.cdf(data, loc=mu, scale=sig)**(num - 1))
 
-def norm_max_cdf(data:np.ndarray, mu:float, sig:float, num:int):
-    
-    """
-    Cumulative distribution function of the given RV: 
-    {Y_0, Y_1, ... Y_N} where Y = MAX{X_0, X_1, ... X_i}_0
 
+def norm_max_cdf(data: NDArray, mu: float, sig: float, num: int) -> NDArray:
+    """Cumulative distribution function of the given RV:
+    {Y_0, Y_1, ... Y_N} where Y = MAX{X_0, X_1, ... X_i}_0
     Where X_i is a normaly distributed random variable with
 
-    Parameters
-    ----------
-    mu  :   location parameter, 
-    sig :   scale parameter, 
-    num :   sample size (N)
+    Args:
+        data (NDArray): array_like quantiles
+        mu (float): Location parameter,
+        sig (float): Scale parameter
+        num (int): Sample size (N)
 
-    Returns
-    -------
-    cdf : ndarray
-     Cumulative distribution function evaluated at `y`
-
+    Returns:
+        NDArray: Cumulative distribution function evaluated at `y`
     """
+
     return norm.cdf(data, loc=mu, scale=sig)**num
 
-def data_fit(res:np.ndarray, num:int, mu:float=0, sig:float=0.5, fixnum:bool=True) -> Minuit:
+
+def data_fit(res: NDArray, num: int, mu: float = 0, sig: float = 0.5, fixnum: bool = True) -> Minuit:
+    """ Fit results to Asymptotic distribution (norm_max_pdf)
+
+    Args:
+        res (NDArray): array of results sum of weights from best
+        num (int): sample size (N)_
+        mu (float, optional): location parameter. Defaults to 0.
+        sig (float, optional): scale parameter. Defaults to 0.5.
+        fixnum (bool, optional): Fix the N parameter in fitting. Defaults to True.
+
+    Returns:
+        Minuit: Fit results
     """
-    Fit results to Asymptotic distribution (norm_max_pdf)
 
-    Parameters
-    ----------
-    res     :   array of results sum of weights from best 
-    num     :   sample size (N)
-    mu      :   location parameter, 
-    sig     :   scale parameter, 
-    fixnum  : Fix the N parameter in fitting Default: True
+    nll = UnbinnedNLL(res, norm_max_pdf)
+    im_fit = Minuit(nll, mu, sig, num)
 
-    Returns
-    -------
-    im_fit : Minuit Fit results
-
-    """
-    cost = UnbinnedNLL(res, norm_max_pdf)
-    im_fit = Minuit(cost, mu, sig, num)
-    
     im_fit.fixed['mu'] = False
     im_fit.fixed['sig'] = False
     im_fit.fixed['num'] = fixnum
-    im_fit.migrad()
-    #im_fit.scan()
-    #im_fit.simplex()
+    im_fit.scan()
     im_fit.hesse()
     return im_fit
 
-def fit_from_minuit(coefs:Minuit, xmin:float=-5, xmax:float=5):
+
+def fit_from_minuit(coefs: Minuit, xmin: float = -5, xmax: float = 5) -> Tuple[NDArray, NDArray]:
     """
-    converts the IMinuit fit into x and y values for plot
+    Use Minuit fit to get X, Y plot points.
+    Args:
+        coefs (Minuit): Function minimizer used to fit data
+        xmin (float, optional): x value minimum. Defaults to -5.
+        xmax (float, optional): x value maximum. Defaults to 5.
+
+    Returns:
+        Tuple[NDArray, NDArray] : X and y values of the fit
     """
     xval = np.linspace(xmin, xmax, 10000)
     yval = norm_max_pdf(xval, mu=coefs.values['mu'], sig=coefs.values['sig'], num=coefs.values['num'])
     return xval, yval
 
-def get_best_set(binacc:np.ndarray, nllr:np.ndarray, )-> dict:
-    """
-    Finds best combination form binary acceptence matrix and list of weights
-    Parameters
-    ----------
-    binacc  :   binary acceptance matrix, 2D Array[bool, bool] (N, N) 
-    nllr :   NLLR values (weights), 1D array 
 
-    Returns
-    -------
-    dict: path associated and accosoated weight
-    """
+def get_best_set(binacc: NDArray, nllr: NDArray) -> dict:
+    """_summary_
 
+    Args:
+        binacc (NDArray): _description_
+        nllr (NDArray): _description_
+
+    Returns:
+        dict: _description_
+    """
     bam = pf.BinaryAcceptance(np.copy(binacc), weights=nllr)
-    index_map = bam.sort_bam_by_weight()
+    bam.sort_bam_by_weight()
     whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
     whdfs.find_paths(verbose=False, runs=50)
-    result = max(whdfs.remap_path(index_map))
-    return {'path': result.path, 'weight': result.weight}
+    return {'path': whdfs.best.path, 'weight': whdfs.best.weight}
 
-def get_milti_bset_set(binacc:np.ndarray, nllr:np.ndarray)-> np.ndarray:
-    
-    """
-    Itterate through 2D array of NLLR values finding the best combination for 
-    each row using the corresponding binary acceptance matrix
 
-    Parameters
-    ----------
-    binacc  :   binary acceptance matrix, 2D Array[bool, bool] (N, N) 
-    nllr :   NLLR values (weights), 2D Array (N, M)  
-
-    Returns
-    -------
-    results : ndarray
-        list of Mx2 results, length and weighted sum of best combination from each NLLR set.
-
-    """
+def get_milti_bset_set(binacc: NDArray, nllr: NDArray) -> NDArray:
     result = np.zeros((len(nllr), 2))
     for i, row in enumerate(nllr):
         res = get_best_set(binacc, row)
         result[i, 0] = res['weight']
         result[i, 1] = len(res['path'])
-
     return result
-        
 
-def best_set_worker(binacc:np.ndarray, nllr:np.ndarray, queue:Queue): #-> Connection:
 
-    """
-    Helper function to build queue 
-    """
+def best_set_worker(binacc: NDArray, nllr: NDArray, queue: Queue) -> None:
     queue.put(get_milti_bset_set(binacc, nllr))
 
-def find_best_sets(bin_acc:np.ndarray, nllr_dat:np.ndarray, num_cor:int=1)-> np.ndarray:
+
+def find_best_sets(bin_acc: NDArray, nllr_dat: NDArray, num_cor: int = 1) -> NDArray:
 
     """
-    Itterate through 2D array of NLLR values finding the best combination for 
+    Itterate through 2D array of NLLR values finding the best combination for
     each row using the corresponding binary acceptance matrix
 
     Parameters
     ----------
-    bin_acc  :   binary acceptance matrix, 2D Array[bool, bool] (N, N) 
-    nllr_dat :   NLLR values (weights), 2D Array (N, M)  
+    bin_acc  :   binary acceptance matrix, 2D Array[bool, bool] (N, N)
+    nllr_dat :   NLLR values (weights), 2D Array (N, M)
     num_cor  :   Number of cores Default 1
 
     Returns
