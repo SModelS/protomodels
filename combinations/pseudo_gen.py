@@ -5,7 +5,7 @@ from pathlib import Path
 from ptools.expResModifier import ExpResModifier
 from smodels.theory.theoryPrediction import theoryPredictionsFor
 from smodels.tools.physicsUnits import GeV, fb
-from smodels.particlesLoader import BSMList
+from smodels.share.models.mssm import BSMList
 from smodels.share.models.SMparticles import SMList
 from smodels.theory.model import Model
 from smodels.theory.decomposer import decompose

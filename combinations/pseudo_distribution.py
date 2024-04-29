@@ -27,7 +27,6 @@ def norm_max_pdf(data: NDArray, mu: float, sig: float, num: int) -> NDArray:
      Distribution function evaluated at `y`
 
     """
-
     return num*norm.pdf(data, loc=mu, scale=sig) * (norm.cdf(data, loc=mu, scale=sig)**(num - 1))
 
 
@@ -123,7 +122,7 @@ def best_set_worker(binacc: NDArray, nllr: NDArray, queue: Queue) -> None:
 def find_best_sets(bin_acc: NDArray, nllr_dat: NDArray, num_cor: int = 1) -> NDArray:
 
     """
-    Itterate through 2D array of NLLR values finding the best combination for
+    Iterate through 2D array of NLLR values finding the best combination for
     each row using the corresponding binary acceptance matrix
 
     Parameters
