@@ -33,7 +33,7 @@ done:
 .) wrap up with this iteration of the scanners
 .) see if the teststatScanner works
 .) is there a way to track the pids in smodels v3?
-	 would be nice for manipulator:freezePidsNotInBestCombo
+   would be nice for manipulator:freezePidsNotInBestCombo
 .) adapt ruler
 .) fix the movie maker (if it is broken)
 .) do_combine needs to propagate
