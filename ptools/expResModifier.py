@@ -170,7 +170,7 @@ Just filter the database:
             return
         from ptools import helpers
         helpers.seedRandomNumbers( seed )
-        self.pprint ( f"setting random seed to {args.seed}" )
+        self.pprint ( f"setting random seed to {seed}" )
 
     def interact ( self, listOfExpRes ):
         import IPython
