@@ -1207,7 +1207,7 @@ if __name__ == "__main__":
             help='file to write out database pickle. If left empty, then outfile is <suffix>.pcl [""]',
             type=str, default="" )
     argparser.add_argument ( '-s', '--suffix',
-            help='suffix for database version ["fake1"]',
+            help='suffix for database version, if None or '' then do not write out ["fake1"]',
             type=str, default="fake1" )
     argparser.add_argument ( '-R', '--rundir',
             help='override rundir [None]',
