@@ -410,7 +410,7 @@ Just filter the database:
         self.db.txt_meta.databaseVersion = newver
         self.db.pcl_meta.databaseVersion = newver
         self.pprint ( f"Constructed fake database with {len(updatedListOfExpRes)} (of {len(listOfExpRes)}) results" )
-        if self.outfile not in [ None, "None", "none", "" ]:
+        if self.outfile != "" and self.suffix not in [ None, "None", "none", "" ]:
             self.db.createBinaryFile( self.outfile )
         return self.db
 
