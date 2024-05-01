@@ -746,6 +746,8 @@ Just filter the database:
     def saveStats ( self, statsname = None ):
         """ write out the collected stats, so we can discuss experimentalists'
             conservativeness """
+        if self.suffix in [ None, "None", "", "none" ]:
+            return
         filename = f"{self.rundir}/{self.suffix}.dict".replace("//","/")
         if statsname != None:
             filename = statsname
@@ -762,23 +764,22 @@ Just filter the database:
             meta["_experimental"]=runtime._experimental
         self.pprint ( f"saving stats to {filename}" )
         self.addSupersededFlags()
-        if filename not in [ None, "None", "none", "" ]:
-            with open ( filename,"wt" ) as f:
-                f.write ( str(meta)+"\n" )
-                if len(self.comments)>0:
-                    f.write ( "# explanations on the used variables:\n" )
-                    f.write ( "# =====================================\n" )
-                else:
-                    f.write ( "# no explanations for variables have been given\n" )
-                for k,v in self.comments.items():
-                    f.write ( f"# {k}: {v}\n" )
-                f.write ( '{' )
-                for ctr,(k,v) in enumerate(self.stats.items()):
-                    f.write ( f"'{k}': {v}" )
-                    if ctr != len(self.stats)-1:
-                        f.write ( ",\n" )
-                f.write ( '}\n' )
-                f.close()
+        with open ( filename,"wt" ) as f:
+            f.write ( str(meta)+"\n" )
+            if len(self.comments)>0:
+                f.write ( "# explanations on the used variables:\n" )
+                f.write ( "# =====================================\n" )
+            else:
+                f.write ( "# no explanations for variables have been given\n" )
+            for k,v in self.comments.items():
+                f.write ( f"# {k}: {v}\n" )
+            f.write ( '{' )
+            for ctr,(k,v) in enumerate(self.stats.items()):
+                f.write ( f"'{k}': {v}" )
+                if ctr != len(self.stats)-1:
+                    f.write ( ",\n" )
+            f.write ( '}\n' )
+            f.close()
 
     def produceTopoList ( self ):
         """ create smstopolist """
@@ -1008,7 +1009,7 @@ Just filter the database:
                 continue
             newList.append ( er )
         self.db.subs[0].expResultList = newList
-        if self.outfile != "":
+        if self.outfile != "" and self.suffix not in [ "None", "none", "", None ]:
             self.db.createBinaryFile( self.outfile )
 
     def playback ( self, playbackdict ):
@@ -1046,8 +1047,9 @@ Just filter the database:
         self.dbversion = self.dbversion + ".playedback"
         self.db.txt_meta.databaseVersion = self.db.databaseVersion + ".playedback"
         self.db.pcl_meta.databaseVersion = self.db.databaseVersion + ".playedback"
-        self.pprint ( f"writing to {self.outfile}" )
-        self.db.createBinaryFile ( self.outfile )
+        if self.outfile != "" and self.suffix not in [ "None", "none", "", None ]:
+            self.pprint ( f"writing to {self.outfile}" )
+            self.db.createBinaryFile ( self.outfile )
 
     def playbackOneItem ( self, anaids : str, values : dict ):
         """ play back a single item
