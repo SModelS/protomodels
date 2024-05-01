@@ -410,7 +410,7 @@ Just filter the database:
         self.db.txt_meta.databaseVersion = newver
         self.db.pcl_meta.databaseVersion = newver
         self.pprint ( f"Constructed fake database with {len(updatedListOfExpRes)} (of {len(listOfExpRes)}) results" )
-        if self.outfile != "":
+        if self.outfile not in [ None, "None", "none", "" ]:
             self.db.createBinaryFile( self.outfile )
         return self.db
 
@@ -762,22 +762,23 @@ Just filter the database:
             meta["_experimental"]=runtime._experimental
         self.pprint ( f"saving stats to {filename}" )
         self.addSupersededFlags()
-        with open ( filename,"wt" ) as f:
-            f.write ( str(meta)+"\n" )
-            if len(self.comments)>0:
-                f.write ( "# explanations on the used variables:\n" )
-                f.write ( "# =====================================\n" )
-            else:
-                f.write ( "# no explanations for variables have been given\n" )
-            for k,v in self.comments.items():
-                f.write ( f"# {k}: {v}\n" )
-            f.write ( '{' )
-            for ctr,(k,v) in enumerate(self.stats.items()):
-                f.write ( f"'{k}': {v}" )
-                if ctr != len(self.stats)-1:
-                    f.write ( ",\n" )
-            f.write ( '}\n' )
-            f.close()
+        if filename not in [ None, "None", "none", "" ]:
+            with open ( filename,"wt" ) as f:
+                f.write ( str(meta)+"\n" )
+                if len(self.comments)>0:
+                    f.write ( "# explanations on the used variables:\n" )
+                    f.write ( "# =====================================\n" )
+                else:
+                    f.write ( "# no explanations for variables have been given\n" )
+                for k,v in self.comments.items():
+                    f.write ( f"# {k}: {v}\n" )
+                f.write ( '{' )
+                for ctr,(k,v) in enumerate(self.stats.items()):
+                    f.write ( f"'{k}': {v}" )
+                    if ctr != len(self.stats)-1:
+                        f.write ( ",\n" )
+                f.write ( '}\n' )
+                f.close()
 
     def produceTopoList ( self ):
         """ create smstopolist """
