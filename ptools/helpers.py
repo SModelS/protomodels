@@ -212,8 +212,7 @@ def seedRandomNumbers ( seed ):
     numpy.random.seed ( seed )
     import scipy.stats as s
     r = s.norm.rvs()
-    print ( "[helpers] seeding the random number generators with %d. r=%.3f" % \
-            ( seed, r ) )
+    print(f"[helpers] seeding the random number generators with {seed}. Here is a first realization of a standard normal: {r:.3f}")
 
 def cpPythia8 ( ):
     """ as a very ugly workaround for now, if something goes wrong with
