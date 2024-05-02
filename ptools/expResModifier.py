@@ -1158,15 +1158,18 @@ Just filter the database:
         if type(self.rundir)==str and not "/" in self.rundir and \
                 not self.rundir.startswith("."):
             self.rundir = f"{os.environ['HOME']}/{self.rundir}"
-        if self.outfile == "":
-            self.outfile = self.suffix+".pcl"
-        statsname = None
-        if self.playback not in [ None, "" ]:
-            self.playback ( self.playback, self.outfile )
-            statsname = "playback.dict"
+        if self.outfile is not None:
+            if self.outfile == "":
+                self.outfile = self.suffix+".pcl"
+            statsname = None
+            if self.playback not in [ None, "" ]:
+                self.playback ( self.playback, self.outfile )
+                statsname = "playback.dict"
 
-        if not self.outfile.endswith(".pcl"):
-            print ( f"[expResModifier] warning, shouldnt the name of your outputfile ``{self.outfile}'' end with .pcl?" )
+            if not self.outfile.endswith(".pcl"):
+                print ( f"[expResModifier] warning, shouldnt the name of your outputfile ``{self.outfile}'' end with .pcl?" )
+        else:
+            statsname = None
         self.filter ( )
         if self.dontsample:
             print ( "[expResModifier] we were asked to not sample, so we exit now." )
@@ -1177,8 +1180,8 @@ Just filter the database:
         else:
             if not self.playback:
                 er = self.modifyDatabase ( ) 
-
-        self.saveStats( statsname )
+        if statsname is not None:
+            self.saveStats( statsname )
 
         if self.check:
             self.check ( )
