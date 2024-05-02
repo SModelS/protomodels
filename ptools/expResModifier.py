@@ -35,6 +35,8 @@ from typing import Dict
 
 logger.setLevel("ERROR")
 
+hasWarned = { "noupperlimits": 0 }
+
 def readDictFile ( filename : str = "default.dict" ) -> Dict:
     """ read in content of filename 
     :param filename: the filename of the database dictionary.
@@ -479,7 +481,7 @@ Just filter the database:
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
         if len ( txnames ) == 0:
-            print ( f"[expResModifier] warning, no txnames for {label}." )
+            self.warning ( f"no txnames for {label}." )
         D["txns"]=",".join(txnames )
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         if self.timestamps:
@@ -793,7 +795,6 @@ Just filter the database:
 
     def addSignalsSingleProc ( self, listOfExpRes ):
         """ thats the method that adds a typical signal """
-        # print ( "adding signals", os.path.exists ( self.protomodel.currentSLHA ) )
         if self.protomodel == None:
             return listOfExpRes
         ret = []
@@ -806,7 +807,7 @@ Just filter the database:
         els=els[:-2]
         self.log ( f"now add the signals from {self.getPModelName()}, {ctr} topologies: {els}" )
         addedUL, addedEM = 0, 0
-        print ( f"{len(listOfExpRes)} results: ", end="" )
+        self.pprint ( f"{len(listOfExpRes)} results: ", end="" )
         for l,expRes in enumerate(listOfExpRes):
             print ( ".", flush=True, end="" )
             tpreds = theoryPredictionsFor ( expRes, self.topos, useBestDataset=False,
@@ -948,21 +949,25 @@ Just filter the database:
             addThisOne = True
             if self.nofastlim:
                 if hasattr ( er.globalInfo, "contact" ) and "fastlim" in er.globalInfo.contact:
-                    print ( f" `- skipping fastlim {anaId}" )
+                    self.pprint ( f" `- skipping fastlim {anaId}" )
                     addThisOne = False
                     self.hasFiltered = True
             if self.nosuperseded:
                 if hasattr ( er.globalInfo, "supersededBy" ):
-                    print ( f" `- skipping superseded {anaId}" )
+                    self.pprint ( f" `- skipping superseded {anaId}" )
                     addThisOne = False
                     self.hasFiltered = True
             if self.noupperlimits:
                 if er.datasets[0].getID() == None:
-                    print ( f" `- skipping UL-type {anaId}" )
+                    hasWarned["noupperlimits"]+=1
+                    if hasWarned["noupperlimits"]<4:
+                        self.pprint ( f" `- skipping UL-type {anaId}" )
+                    if hasWarned["noupperlimits"]==4:
+                        self.pprint ( f" (quenching more of the msgs given above)" )
                     addThisOne = False
                     self.hasFiltered = True
             if hasattr ( er.globalInfo, "private" ) and er.globalInfo.private in [ "True", True ]:
-                    print ( f" `- skipping private {anaId}" )
+                    self.pprint ( f" `- skipping private {anaId}" )
                     addThisOne = False
                     self.hasFiltered = True
             if not addThisOne:
@@ -976,9 +981,9 @@ Just filter the database:
                     for txn in ds.txnameList:
                         if txn.validated == False:
                             if hasIssued == 0:
-                                print ( f" `- skipping non-validated {txn.txName}/{ds.dataInfo.dataId}/{anaId}" )
+                                self.pprint ( f" `- skipping non-validated {txn.txName}/{ds.dataInfo.dataId}/{anaId}" )
                             if hasIssued == 1:
-                                print ( " `- (suppressed more, similar messages)" )
+                                self.pprint ( " `- (suppressed more, similar messages)" )
                             hasIssued += 1
                             self.hasFiltered = True
                         else:
