@@ -23,7 +23,9 @@ def bamAndWeights ( theorypredictions : List[TheoryPrediction] ) -> Dict:
     def getTPName ( tpred : TheoryPrediction ) -> str:
         """ get the canonical name of a theory prediction: anaid:datasetid  """
         anaId = tpred.dataset.globalInfo.id
-        dsId = tpred.dataset.dataInfo.dataId
+        dsId = "combined"
+        if hasattr ( tpred.dataset, "dataInfo" ):
+            dsId = tpred.dataset.dataInfo.dataId
         tpId = f"{anaId}:{dsId}"
         return tpId
 
@@ -53,7 +55,7 @@ if __name__ == "__main__":
     from smodels.base.physicsUnits import fb, GeV, TeV
     from smodels.matching.theoryPrediction import theoryPredictionsFor
     from smodels.share.models.SMparticles import SMList
-    database = Database("unittest")
+    database = Database("official")
     database.getExpResults ( dataTypes = [ "efficiencyMap" ] )
     BSMList = load()
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
@@ -61,6 +63,7 @@ if __name__ == "__main__":
     model.updateParticles(inputFile=slhafile)
     topDict = decomposer.decompose(model, minmassgap=5*GeV, sigmacut=.1*fb)
     allPredictions = theoryPredictionsFor(database, topDict, combinedResults=True )
-    print ( allPredictions )
+    for pred in allPredictions:
+        print ( f"prediction {pred} {pred.dataset}" )
     ret = bamAndWeights ( allPredictions )
     print ( ret )
