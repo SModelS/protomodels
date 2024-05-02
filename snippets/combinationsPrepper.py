@@ -23,10 +23,10 @@ def bamAndWeights ( theorypredictions : List[TheoryPrediction] ) -> Dict:
     def getTPName ( tpred : TheoryPrediction ) -> str:
         """ get the canonical name of a theory prediction: anaid:datasetid  """
         anaId = tpred.dataset.globalInfo.id
-        dsId = "combined"
+        dsId = ""
         if hasattr ( tpred.dataset, "dataInfo" ):
-            dsId = tpred.dataset.dataInfo.dataId
-        tpId = f"{anaId}:{dsId}"
+            dsId = f":{tpred.dataset.dataInfo.dataId}"
+        tpId = f"{anaId}{dsId}"
         return tpId
 
     bam, weights = {}, {}
@@ -39,12 +39,12 @@ def bamAndWeights ( theorypredictions : List[TheoryPrediction] ) -> Dict:
         tpId = getTPName ( tpred )
         weights[tpId]=w
         if not tpId in bam:
-            bam[tpId]={}
+            bam[tpId]=set()
         for tpred2 in theorypredictions[i+1:]:
             tpId2 = getTPName ( tpred )
             combinable = tpred.dataset.isCombinableWith ( tpred2.dataset )
-            bam[tpId][tpId2] = combinable
-            bam[tpId2][tpId] = combinable
+            bam[tpId].add ( tpId2 )
+            # bam[tpId2][tpId] = combinable
     return { "weights": weights, "bam": bam }
 
 if __name__ == "__main__":
@@ -55,7 +55,8 @@ if __name__ == "__main__":
     from smodels.base.physicsUnits import fb, GeV, TeV
     from smodels.matching.theoryPrediction import theoryPredictionsFor
     from smodels.share.models.SMparticles import SMList
-    database = Database("official")
+    database = Database("unittest")
+    # database = Database("official")
     database.getExpResults ( dataTypes = [ "efficiencyMap" ] )
     BSMList = load()
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
