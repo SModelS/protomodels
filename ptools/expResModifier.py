@@ -143,6 +143,7 @@ Just filter the database:
         self.nofastlim = False
         self.onlyvalidated = False
         self.nosuperseded = False
+        self.noupperlimits = False
         self.remove_orig = False
         self.remove_nonagg = False
         self.dontsample = False
@@ -928,7 +929,7 @@ Just filter the database:
         :param remove_orig: remove original values
         :param remove_nonagg: remove non-aggregated results
         """
-        if not ( self.nofastlim or self.onlyvalidated or self.nosuperseded or self.remove_orig or self.remove_nonagg ):
+        if not ( self.nofastlim or self.onlyvalidated or self.nosuperseded or self.remove_orig or self.remove_nonagg or self.noupperlimits ):
             return
         self.log ( f"starting to filter {self.outfile}. suffix is {self.suffix}." )
         if self.db == None:
@@ -943,19 +944,25 @@ Just filter the database:
                 self.hasFiltered = True
         newList = []
         for er in listOfExpRes:
+            anaId = er.globalInfo.id
             addThisOne = True
             if self.nofastlim:
                 if hasattr ( er.globalInfo, "contact" ) and "fastlim" in er.globalInfo.contact:
-                    print ( f" `- skipping fastlim {er.globalInfo.id}" )
+                    print ( f" `- skipping fastlim {anaId}" )
                     addThisOne = False
                     self.hasFiltered = True
             if self.nosuperseded:
                 if hasattr ( er.globalInfo, "supersededBy" ):
-                    print ( f" `- skipping superseded {er.globalInfo.id}" )
+                    print ( f" `- skipping superseded {anaId}" )
+                    addThisOne = False
+                    self.hasFiltered = True
+            if self.noupperlimits:
+                if er.datasets[0].getID() == None:
+                    print ( f" `- skipping UL-type {anaId}" )
                     addThisOne = False
                     self.hasFiltered = True
             if hasattr ( er.globalInfo, "private" ) and er.globalInfo.private in [ "True", True ]:
-                    print ( f" `- skipping private {er.globalInfo.id}" )
+                    print ( f" `- skipping private {anaId}" )
                     addThisOne = False
                     self.hasFiltered = True
             if not addThisOne:
@@ -969,7 +976,7 @@ Just filter the database:
                     for txn in ds.txnameList:
                         if txn.validated == False:
                             if hasIssued == 0:
-                                print ( f" `- skipping non-validated {txn.txName}/{ds.dataInfo.dataId}/{er.globalInfo.id}" )
+                                print ( f" `- skipping non-validated {txn.txName}/{ds.dataInfo.dataId}/{anaId}" )
                             if hasIssued == 1:
                                 print ( " `- (suppressed more, similar messages)" )
                             hasIssued += 1
@@ -1226,6 +1233,9 @@ if __name__ == "__main__":
             action='store_true' )
     argparser.add_argument ( '--nosuperseded',
             help='remove superseded results',
+            action='store_true' )
+    argparser.add_argument ( '--noupperlimits',
+            help='remove upper limit results',
             action='store_true' )
     argparser.add_argument ( '--remove_orig',
             help='remove original values',
