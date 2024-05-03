@@ -1,6 +1,6 @@
 import numpy as np
 import pathfinder as pf
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Manager
 from scipy.stats import norm
 from typing import Tuple, Iterable
 from numpy.typing import NDArray
@@ -108,39 +108,18 @@ def get_best_set(binacc: NDArray, nllr: NDArray, sort_bam=False) -> dict[str, ND
     return results
 
 
-def get_bam_weight(over: dict, weight: dict) -> dict[str, NDArray, list]:
-    sorted_overlap_dict = {key: over[key] for key in weight}
-    columns_labels = list(sorted_overlap_dict.keys())
-    # create a blank square matrix
+def get_bam_weight(over: dict, weight: dict) -> dict:
+    columns_labels = list(weight.keys())
     bam = np.zeros((len(columns_labels), len(columns_labels)), dtype=bool)
-    # itarate over dictionary
-    for i, (_, allowed) in enumerate(sorted_overlap_dict.items()):
-        bam[i, :i:] = [True if sr in allowed else False for sr in columns_labels[:i:]]
-    bam += np.tril(bam).T
+    for i, key in enumerate(columns_labels):
+        bam[i, :] = [True if sr in over[key] else False for sr in columns_labels]
+    bam |= np.triu(bam).T
     assert np.allclose(bam, bam.T)
     weight_array = np.array([item for _, item in weight.items()])
     order = np.argsort(weight_array)[::-1]
     return {'bam': bam[order, :][:, order],
             'weights': weight_array[order],
             'labels': [columns_labels[i] for i in order]}
-
-
-def get_milti_bset_set(pseudo_gen_dicts: list[dict]) -> dict[str, float, int]:
-    restut = {}
-    for i, item in enumerate(pseudo_gen_dicts):
-        bam_wgths = get_bam_weight(item['bam'], item['weights'])
-        restut[i] = get_best_set(bam_wgths['bam'], bam_wgths['weights'])
-    return restut
-
-
-# def best_set_worker(pseudo_gen_dicts: list[dict], queue: Queue) -> None:
-#     queue.put(get_milti_bset_set(pseudo_gen_dicts))
-
-
-def best_set_worker(pseudo_gen_dicts: list[dict], run_num: int, return_dict: dict,) -> None:
-    for i, item in enumerate(get_milti_bset_set(pseudo_gen_dicts)):
-        idx = (run_num * i) + i
-        return_dict[idx] = item
 
 
 def split_list(list_in: list, nunber_of_chuncks: int) -> Iterable[list]:
@@ -161,7 +140,21 @@ def split_list(list_in: list, nunber_of_chuncks: int) -> Iterable[list]:
         yield list_in[i::nunber_of_chuncks]
 
 
-def find_best_sets(pseudo_gen_dicts: list[dict[str, NDArray, list]], num_cor: int = 1) -> NDArray:
+def get_milti_bset_set(pseudo_gen_dicts: list[dict]) -> dict[str, float, int]:
+    restut = {}
+    for i, item in enumerate(pseudo_gen_dicts):
+        bam_wgths = get_bam_weight(item['bam'], item['weights'])
+        restut[i] = get_best_set(bam_wgths['bam'], bam_wgths['weights'])
+    return restut
+
+
+def best_set_worker(pseudo_gen_dicts: list[dict], run_num: int, return_dict: dict,) -> None:
+    for key, item in get_milti_bset_set(pseudo_gen_dicts).items():
+        idx = (run_num * len(pseudo_gen_dicts)) + key
+        return_dict.update({idx: item})
+
+
+def find_best_sets(pseudo_gen_dicts: list[dict[str, NDArray, list]], num_cor: int = 1) -> dict[dict]:
 
     """
     Iterate through 2D array of NLLR values finding the best combination for
@@ -181,23 +174,17 @@ def find_best_sets(pseudo_gen_dicts: list[dict[str, NDArray, list]], num_cor: in
     """
     if num_cor < 2:
         print(F"Starting job 1. Calculating {len(pseudo_gen_dicts)} best combinations")
-        result = get_milti_bset_set(pseudo_gen_dicts)
+        outputdict = get_milti_bset_set(pseudo_gen_dicts)
     else:
         jobs = []
-        # TODO is manager a better option
-        input_queue = Queue()
+        manager = Manager()
+        outputdict = manager.dict()
         bam_weights = split_list(pseudo_gen_dicts, num_cor)
         for i, bam_wgts in enumerate(bam_weights):
-            p = Process(target=best_set_worker, args=(bam_wgts, input_queue))
+            p = Process(target=best_set_worker, args=(bam_wgts, i, outputdict))
             jobs.append(p)
             p.start()
             print(F"Starting job {i+1}. Calculating {len(bam_wgts)} best combinations")
-        result_list = [input_queue.get() for _ in range(num_cor)]
         for p in jobs:
             p.join()
-        # return [item for sublist in result_list for item in sublist]
-        result = {}
-        for i, dct in enumerate(result_list):
-            for j, (_, item) in enumerate(dct.items()):
-                result[(i * len(result_list)) + j] = item
-    return result
+    return dict(sorted(outputdict.items()))

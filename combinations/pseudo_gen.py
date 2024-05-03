@@ -10,7 +10,7 @@ from smodels.share.models.mssm import BSMList
 from smodels.share.models.SMparticles import SMList
 from smodels.base.model import Model
 from smodels.decomposition.decomposer import decompose
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Manager
 
 pmodel_path = Path(__file__).parent / 'pmodels/'
 
@@ -141,9 +141,7 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction]) -> dict:
         if tpId not in bam:
             bam[tpId] = set()
         for tpred2 in theorypredictions[i+1:]:
-            # TODO dont combine with self?
-            tpId2 = getTPName(tpred)
-            print(tpId, tpId2, tpred.dataset.isCombinableWith(tpred2.dataset))
+            tpId2 = getTPName(tpred2)
             if tpred.dataset.isCombinableWith(tpred2.dataset):
                 bam[tpId].add(tpId2)
     return {"weights": weights, "bam": bam}
@@ -169,13 +167,21 @@ def split_chunks(num: int, proc: int) -> list[int]:
     return run_chunks
 
 
-def _llr_worker(args: dict, queue: Queue) -> None:
+# def _llr_worker(args: dict, queue: Queue) -> None:
+#     """ Helper function to create queue
+#     Args:
+#         args (dict): Dictionary of arguments passed to gen_llr
+#         queue (Queue): Input Queue
+#     """
+#     queue.put(gen_llr(**args))
+
+def _llr_worker(args: dict, outputlist: list) -> None:
     """ Helper function to create queue
     Args:
         args (dict): Dictionary of arguments passed to gen_llr
         queue (Queue): Input Queue
     """
-    queue.put(gen_llr(**args))
+    outputlist.extend(gen_llr(**args))
 
 
 def get_pseudo_llr(slha_loc: str, data_base: str, bootstrap_num: int = 1, proc: int = 1) -> list[dict]:
@@ -197,17 +203,17 @@ def get_pseudo_llr(slha_loc: str, data_base: str, bootstrap_num: int = 1, proc: 
     args = dict(database=data_base, slhafile=slha_loc)
     if proc < 2 or bootstrap_num == 1:
         args['seed'] = np.random.randint(0, 1e6)
-        return gen_llr(**args)
+        outputlist = [gen_llr(**args)]
     else:
         jobs = []
-        input_queue = Queue()
+        manager = Manager()
+        outputlist = manager.list()
         for item in split_chunks(bootstrap_num, proc):
             args['bootstrap_num'] = item
             args['seed'] = np.random.randint(0, 1e6)
-            p = Process(target=_llr_worker, args=(args, input_queue))
+            p = Process(target=_llr_worker, args=(args, outputlist))
             jobs.append(p)
             p.start()
-        result_list = [input_queue.get() for _ in range(proc)]
         for p in jobs:
             p.join()
-        return [item for sublist in result_list for item in sublist]
+    return list(outputlist)
