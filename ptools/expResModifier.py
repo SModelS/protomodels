@@ -409,7 +409,9 @@ Just filter the database:
             self.db.subs = [ self.db.subs[0] ]
         else:
             self.db.expResultList = updatedListOfExpRes
-        newver = self.db.databaseVersion + self.suffix
+        newver = self.db.databaseVersion
+        if self.suffix is not None:
+            newver = self.db.databaseVersion + self.suffix
         self.db.txt_meta.databaseVersion = newver
         self.db.pcl_meta.databaseVersion = newver
         self.pprint ( f"Constructed fake database with {len(updatedListOfExpRes)} (of {len(listOfExpRes)}) results" )
