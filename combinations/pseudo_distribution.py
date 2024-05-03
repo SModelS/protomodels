@@ -2,7 +2,7 @@ import numpy as np
 import pathfinder as pf
 from multiprocessing import Process, Queue
 from scipy.stats import norm
-from typing import Tuple
+from typing import Tuple, Iterable
 from numpy.typing import NDArray
 from iminuit import Minuit
 from iminuit.cost import UnbinnedNLL
@@ -61,10 +61,8 @@ def data_fit(res: NDArray, num: int, mu: float = 0, sig: float = 0.5, fixnum: bo
     Returns:
         Minuit: Fit results
     """
-
     nll = UnbinnedNLL(res, norm_max_pdf)
     im_fit = Minuit(nll, mu, sig, num)
-
     im_fit.fixed['mu'] = False
     im_fit.fixed['sig'] = False
     im_fit.fixed['num'] = fixnum
@@ -89,7 +87,7 @@ def fit_from_minuit(coefs: Minuit, xmin: float = -5, xmax: float = 5) -> Tuple[N
     return xval, yval
 
 
-def get_best_set(binacc: NDArray, nllr: NDArray) -> dict:
+def get_best_set(binacc: NDArray, nllr: NDArray, sort_bam=False) -> dict[str, NDArray]:
     """_summary_
 
     Args:
@@ -100,26 +98,70 @@ def get_best_set(binacc: NDArray, nllr: NDArray) -> dict:
         dict: _description_
     """
     bam = pf.BinaryAcceptance(np.copy(binacc), weights=nllr)
-    bam.sort_bam_by_weight()
+    results = {}
+    if sort_bam:
+        results['order'] = bam.sort_bam_by_weight()
     whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
     whdfs.find_paths(verbose=False, runs=50)
-    return {'path': whdfs.best.path, 'weight': whdfs.best.weight}
+    results['path'] = whdfs.best.path
+    results['weight'] = whdfs.best.weight
+    return results
 
 
-def get_milti_bset_set(binacc: NDArray, nllr: NDArray) -> NDArray:
-    result = np.zeros((len(nllr), 2))
-    for i, row in enumerate(nllr):
-        res = get_best_set(binacc, row)
-        result[i, 0] = res['weight']
-        result[i, 1] = len(res['path'])
-    return result
+def get_bam_weight(over: dict, weight: dict) -> dict[str, NDArray, list]:
+    sorted_overlap_dict = {key: over[key] for key in weight}
+    columns_labels = list(sorted_overlap_dict.keys())
+    # create a blank square matrix
+    bam = np.zeros((len(columns_labels), len(columns_labels)), dtype=bool)
+    # itarate over dictionary
+    for i, (_, allowed) in enumerate(sorted_overlap_dict.items()):
+        bam[i, :i:] = [True if sr in allowed else False for sr in columns_labels[:i:]]
+    bam += np.tril(bam).T
+    assert np.allclose(bam, bam.T)
+    weight_array = np.array([item for _, item in weight.items()])
+    order = np.argsort(weight_array)[::-1]
+    return {'bam': bam[order, :][:, order],
+            'weights': weight_array[order],
+            'labels': [columns_labels[i] for i in order]}
 
 
-def best_set_worker(binacc: NDArray, nllr: NDArray, queue: Queue) -> None:
-    queue.put(get_milti_bset_set(binacc, nllr))
+def get_milti_bset_set(pseudo_gen_dicts: list[dict]) -> dict[str, float, int]:
+    restut = {}
+    for i, item in enumerate(pseudo_gen_dicts):
+        bam_wgths = get_bam_weight(item['bam'], item['weights'])
+        restut[i] = get_best_set(bam_wgths['bam'], bam_wgths['weights'])
+    return restut
 
 
-def find_best_sets(bin_acc: NDArray, nllr_dat: NDArray, num_cor: int = 1) -> NDArray:
+# def best_set_worker(pseudo_gen_dicts: list[dict], queue: Queue) -> None:
+#     queue.put(get_milti_bset_set(pseudo_gen_dicts))
+
+
+def best_set_worker(pseudo_gen_dicts: list[dict], run_num: int, return_dict: dict,) -> None:
+    for i, item in enumerate(get_milti_bset_set(pseudo_gen_dicts)):
+        idx = (run_num * i) + i
+        return_dict[idx] = item
+
+
+def split_list(list_in: list, nunber_of_chuncks: int) -> Iterable[list]:
+    """
+    Yield n number of striped chunks from l
+
+    Args:
+        list_in (list): _description_
+        nunber_of_chuncks (int): _description_
+
+    Returns:
+        Iterable: _description_
+
+    Yields:
+        Iterator[Iterable]: _description_
+    """
+    for i in range(0, nunber_of_chuncks):
+        yield list_in[i::nunber_of_chuncks]
+
+
+def find_best_sets(pseudo_gen_dicts: list[dict[str, NDArray, list]], num_cor: int = 1) -> NDArray:
 
     """
     Iterate through 2D array of NLLR values finding the best combination for
@@ -127,7 +169,7 @@ def find_best_sets(bin_acc: NDArray, nllr_dat: NDArray, num_cor: int = 1) -> NDA
 
     Parameters
     ----------
-    bin_acc  :   binary acceptance matrix, 2D Array[bool, bool] (N, N)
+    overlaps:
     nllr_dat :   NLLR values (weights), 2D Array (N, M)
     num_cor  :   Number of cores Default 1
 
@@ -137,20 +179,25 @@ def find_best_sets(bin_acc: NDArray, nllr_dat: NDArray, num_cor: int = 1) -> NDA
         list of M results, sum of best combination weights from each NLLR set.
 
     """
-    if nllr_dat.ndim == 1:
-        nllr_dat = nllr_dat[np.newaxis, ...]
     if num_cor < 2:
-        print(F"Starting job 1. Calculating {len(nllr_dat)} best combinations")
-        return get_milti_bset_set(bin_acc, nllr_dat)
+        print(F"Starting job 1. Calculating {len(pseudo_gen_dicts)} best combinations")
+        result = get_milti_bset_set(pseudo_gen_dicts)
     else:
         jobs = []
-        input_queue = Queue(maxsize=num_cor)
-        for i, chunk in enumerate(np.array_split(nllr_dat, num_cor, axis=0)):
-            p = Process(target=best_set_worker, args=(bin_acc, chunk, input_queue))
+        # TODO is manager a better option
+        input_queue = Queue()
+        bam_weights = split_list(pseudo_gen_dicts, num_cor)
+        for i, bam_wgts in enumerate(bam_weights):
+            p = Process(target=best_set_worker, args=(bam_wgts, input_queue))
             jobs.append(p)
             p.start()
-            print(F"Starting job {i+1}. Calculating {len(chunk)} best combinations")
+            print(F"Starting job {i+1}. Calculating {len(bam_wgts)} best combinations")
         result_list = [input_queue.get() for _ in range(num_cor)]
         for p in jobs:
             p.join()
-        return np.array([item for sublist in result_list for item in sublist])
+        # return [item for sublist in result_list for item in sublist]
+        result = {}
+        for i, dct in enumerate(result_list):
+            for j, (_, item) in enumerate(dct.items()):
+                result[(i * len(result_list)) + j] = item
+    return result

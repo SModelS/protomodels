@@ -25,20 +25,21 @@ def get_pseudodata_args(database: str, tag: str, seed: float = None):
             'max': 100,
             'rundir': os.getcwd(),
             'keep': False,
-            'suffix': tag,
+            'suffix': None,
             'lognormal': False,
             'fixedsignals': False,
             'fixedbackgrounds': False,
+            'noupperlimits': True,
             'seed': seed,
             'maxmassdist': 400.,
-            'compute_ps': False
+            'compute_ps': False,
+            'outfile': None,
             }
     return args
 
 
-def gen_llr(database: str, slhafile: str, labels: list, analysisIDs: list[str],
-            model: Optional[list[str]] = None, seed: Optional[float] = None, bootstrap_num: int = 1,
-            expected: bool = False, anomaly_mode: bool = True) -> list[dict[str, float]]:
+def gen_llr(database: str, slhafile: str, model: Optional[list[str]] = None, seed: Optional[float] = None,
+            bootstrap_num: int = 1) -> list[dict[str, float]]:
     """
     Generate pseudo NLLR using "ExpResModifier"
 
@@ -69,8 +70,7 @@ def gen_llr(database: str, slhafile: str, labels: list, analysisIDs: list[str],
     for _ in range(bootstrap_num):
         listOfExpRes = modifier.removeEmpty(modifier.db.expResultList)
         pseudo_databse = {'database': modifier.db, 'expResults': modifier.fakeBackgrounds(listOfExpRes)}
-        llr_dict.append(get_llr_at_point(slhafile, analysisIDs, expected,
-                                         anomaly_mode, pseudo_databse=pseudo_databse))
+        llr_dict.append(get_llr_at_point(slhafile, pseudo_databse=pseudo_databse))
     return llr_dict
 
 
@@ -97,41 +97,56 @@ def get_prediction(pred: Union[TheoryPredictionList, TheoryPrediction], anomaly_
     return ratio
 
 
-def get_llr_at_point(slhafile: Union[str, Path], analysisIDs: list[str], expected: bool = False,
-                     anomaly_mode: bool = False, pseudo_databse: Optional[dict[str, Database, list]] = None) -> dict:
+def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official',
+                     pseudo_databse: Optional[dict[str, Database, list]] = None) -> dict:
 
-    srs_in_ids = any([":" in item for item in analysisIDs])
-    if srs_in_ids:
-        print("Signal regions found in analysis ID's.")
-        print("Searching data ID's for possible matches.")
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
     model.updateParticles(inputFile=slhafile)
     top_dict = decompose(model, sigmacut=0.005*fb, massCompress=True, invisibleCompress=True, minmassgap=5*GeV)
     if pseudo_databse is None:
-        dbase = Database("official")
-        expResults = dbase.getExpResults(analysisIDs=['all'], datasetIDs=['all'], dataTypes=['efficiencyMap'])
+        dbase = Database(data_base)
+        _ = dbase.getExpResults(analysisIDs=['all'], datasetIDs=['all'], dataTypes=['efficiencyMap'])
     else:
         dbase = pseudo_databse['database']
-        expResults = pseudo_databse['expResults']
+        _ = pseudo_databse['expResults']
     allThPredictions = theoryPredictionsFor(dbase, top_dict)
-    llr_dict = {}
-    for expRes, thPreds in zip(expResults, allThPredictions):
-        if not thPreds:
-            continue
-        aid_label = expRes.globalInfo.id
-        if aid_label in analysisIDs:
-            llr = get_prediction(thPreds, anomaly_mode=anomaly_mode, expected=expected)
-            if not np.isnan(llr):
-                llr_dict[aid_label] = llr
-        elif srs_in_ids:
-            for dataset in expRes.datasets:
-                if hasattr(dataset.dataInfo, 'dataId'):
-                    sms_label = f"{expRes.globalInfo.id}:{dataset.dataInfo.dataId}"
-                    if sms_label in analysisIDs:
-                        llr = get_prediction(thPreds, anomaly_mode=anomaly_mode, expected=expected)
-                        if not np.isnan(llr):
-                            llr_dict[sms_label] = llr
-    return llr_dict
+    return bamAndWeights(allThPredictions)
+
+
+def bamAndWeights(theorypredictions: list[TheoryPrediction]) -> dict:
+    """ a simple function that takes a list of theory predictions,
+    and from this compute a small binary acceptance matrix (bam) in the guise
+    of a dictionary, returns the bam alongside with the dictionary of weights
+
+    :returns: dictionary of bam and weights
+    """
+    def getTPName(tpred: TheoryPrediction) -> str:
+        """ get the canonical name of a theory prediction: anaid:datasetid  """
+        anaId = tpred.dataset.globalInfo.id
+        dsId = ""
+        if hasattr(tpred.dataset, "dataInfo"):
+            dsId = f":{tpred.dataset.dataInfo.dataId}"
+        tpId = f"{anaId}{dsId}"
+        return tpId
+
+    bam, weights = {}, {}
+    for i, tpred in enumerate(theorypredictions):
+        nll0 = tpred.lsm(return_nll=True)
+        nll1 = tpred.likelihood(return_nll=True)
+        w = np.NaN
+        if nll0 is not None and nll1 is not None:
+            w = 2 * (nll1 - nll0)
+        tpId = getTPName(tpred)
+        weights[tpId] = w
+        if tpId not in bam:
+            bam[tpId] = set()
+        for tpred2 in theorypredictions[i+1:]:
+            # TODO dont combine with self?
+            tpId2 = getTPName(tpred)
+            print(tpId, tpId2, tpred.dataset.isCombinableWith(tpred2.dataset))
+            if tpred.dataset.isCombinableWith(tpred2.dataset):
+                bam[tpId].add(tpId2)
+    return {"weights": weights, "bam": bam}
 
 
 def split_chunks(num: int, proc: int) -> list[int]:
@@ -154,25 +169,6 @@ def split_chunks(num: int, proc: int) -> list[int]:
     return run_chunks
 
 
-def strip_dict_list(list_of_dict: list, labels: list) -> np.ndarray:
-    """_summary_
-
-    Args:
-        list_of_dict (list): _description_
-        labels (list): _description_
-
-    Returns:
-        NDArray: _description_
-    """
-    ret = np.zeros((len(list_of_dict), len(labels)))
-    for i, element in enumerate(list_of_dict):
-        for key, item in element.items():
-            if key in labels:
-                j = labels.index(key)
-                ret[i, j] = item
-    return ret
-
-
 def _llr_worker(args: dict, queue: Queue) -> None:
     """ Helper function to create queue
     Args:
@@ -182,8 +178,7 @@ def _llr_worker(args: dict, queue: Queue) -> None:
     queue.put(gen_llr(**args))
 
 
-def get_pseudo_llr(slha_loc: str, data_base: str, labels: list, analysisIDs: list[str],
-                   num: int = 1, proc: int = 1) -> list:
+def get_pseudo_llr(slha_loc: str, data_base: str, bootstrap_num: int = 1, proc: int = 1) -> list[dict]:
     """_summary_
 
     Args:
@@ -199,16 +194,15 @@ def get_pseudo_llr(slha_loc: str, data_base: str, labels: list, analysisIDs: lis
         list: _description_
     """
 
-    args = dict(database=data_base, labels=labels, slhafile=slha_loc,
-                analysisIDs=analysisIDs)
-    if proc < 2 or num == 1:
+    args = dict(database=data_base, slhafile=slha_loc)
+    if proc < 2 or bootstrap_num == 1:
         args['seed'] = np.random.randint(0, 1e6)
         return gen_llr(**args)
     else:
         jobs = []
         input_queue = Queue()
-        for item in split_chunks(num, proc):
-            # args['num'] = item
+        for item in split_chunks(bootstrap_num, proc):
+            args['bootstrap_num'] = item
             args['seed'] = np.random.randint(0, 1e6)
             p = Process(target=_llr_worker, args=(args, input_queue))
             jobs.append(p)
