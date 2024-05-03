@@ -413,8 +413,7 @@ Just filter the database:
         self.db.txt_meta.databaseVersion = newver
         self.db.pcl_meta.databaseVersion = newver
         self.pprint ( f"Constructed fake database with {len(updatedListOfExpRes)} (of {len(listOfExpRes)}) results" )
-        if self.outfile != "" and self.suffix not in [ None, "None", "none", "" ]:
-            self.db.createBinaryFile( self.outfile )
+        self.createBinaryFile()
         return self.db
 
     def sampleEfficiencyMap ( self, dataset ):
@@ -1021,8 +1020,16 @@ Just filter the database:
                 continue
             newList.append ( er )
         self.db.subs[0].expResultList = newList
-        if self.outfile != "" and self.suffix not in [ "None", "none", "", None ]:
-            self.db.createBinaryFile( self.outfile )
+        self.createBinaryFile()
+
+    def createBinaryFile ( self ):
+        """ write binary pickle database to self.outfile """
+        if self.outfile == "":
+            return
+        if self.suffix in [ "None", "none", "", None ]:
+            return
+        self.pprint ( f"writing to {self.outfile}" )
+        self.db.createBinaryFile( self.outfile )
 
     def playback ( self, playbackdict ):
         """ playback the mods described in playbackdict """
@@ -1059,9 +1066,7 @@ Just filter the database:
         self.dbversion = self.dbversion + ".playedback"
         self.db.txt_meta.databaseVersion = self.db.databaseVersion + ".playedback"
         self.db.pcl_meta.databaseVersion = self.db.databaseVersion + ".playedback"
-        if self.outfile != "" and self.suffix not in [ "None", "none", "", None ]:
-            self.pprint ( f"writing to {self.outfile}" )
-            self.db.createBinaryFile ( self.outfile )
+        self.createBinaryFile()
 
     def playbackOneItem ( self, anaids : str, values : dict ):
         """ play back a single item
