@@ -167,14 +167,6 @@ def split_chunks(num: int, proc: int) -> list[int]:
     return run_chunks
 
 
-# def _llr_worker(args: dict, queue: Queue) -> None:
-#     """ Helper function to create queue
-#     Args:
-#         args (dict): Dictionary of arguments passed to gen_llr
-#         queue (Queue): Input Queue
-#     """
-#     queue.put(gen_llr(**args))
-
 def _llr_worker(args: dict, outputlist: list) -> None:
     """ Helper function to create queue
     Args:
