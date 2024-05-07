@@ -75,13 +75,15 @@ def get_milti_bset_set(pseudo_gen_dicts: List[Dict]) -> Dict[str, float]:
     return result
 
 
-def best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Dict,) -> None:
-    """_summary_
+def _best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Dict,) -> None:
+    """
+    Multi-processing worker for find_best_sets
 
     Args:
-        pseudo_gen_dicts (List[Dict]): _description_
-        run_num (int): _description_
-        return_dict (Dict): _description_
+        pseudo_gen_dicts (List[Dict]): List of dictionaries containing a binary acceptance matrix
+                                       and set of corresponding weights.
+        run_num (int): Unique integer identifier for labeling return dictionary
+        return_dict (Dict): DictProxy for Manager
     """
     for key, item in get_milti_bset_set(pseudo_gen_dicts).items():
         idx = (run_num * len(pseudo_gen_dicts)) + key
@@ -91,15 +93,15 @@ def best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Dic
 def find_best_sets(pseudo_gen_dicts: List[Dict], num_cor: int = 1) -> Dict[int, Dict]:
 
     """
-    Propergate the get_milti_bset_set function over multiple CPU's
+    Propagate the get_milti_bset_set function over multiple CPU's
 
     Args:
-        pseudo_gen_dicts (List[Dict[str, NDArray, List]]): 
-        num_cor (int): _description_
+        pseudo_gen_dicts (List[Dict]): List of dictionaries containing a binary acceptance matrix
+                                       and set of corresponding weights.
+        num_cor (int): Number of CPU cores to use
 
     Returns:
-        Dict[Dict]: _description_
-
+        Dict[Dict]: Enumerated result dictionaries containing the best sets with the corresponding weights
     """
 
     def split_list(list_in: List, nunber_of_chuncks: int) -> Iterable[List]:
@@ -115,10 +117,10 @@ def find_best_sets(pseudo_gen_dicts: List[Dict], num_cor: int = 1) -> Dict[int, 
         outputdict = manager.dict()
         bam_weights = split_list(pseudo_gen_dicts, num_cor)
         for i, bam_wgts in enumerate(bam_weights):
-            p = Process(target=best_set_worker, args=(bam_wgts, i, outputdict))
+            p = Process(target=_best_set_worker, args=(bam_wgts, i, outputdict))
             jobs.append(p)
             p.start()
             print(F"Starting job {i+1}. Calculating {len(bam_wgts)} best combinations")
         for p in jobs:
             p.join()
-    return Dict(sorted(outputdict.items()))
+    return dict(sorted(outputdict.items()))
