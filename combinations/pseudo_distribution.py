@@ -5,6 +5,33 @@ from typing import Iterable, Dict, List
 from numpy.typing import NDArray
 
 
+def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray, List]:
+    """
+    Construct the binary_acceptance_matrix and weights from the the Dictionary type provided by SModelS.
+
+    Args:
+        over (Dict): SModelS correlation type dictionary in the form: {'label': [list of combinable labels]}
+        weight (Dict): list of weights to chose combination in the form: {'label': weight (float)}
+
+    Returns:
+        Dict[str, NDArray, List]:
+            bam (NDArray) -> Binary Acceptance Matrix: an N x N Symmetric matrix that defines the allowable combinations
+            weights (NDArray) -> 1 x N Weights that correspond to the binary acceptance matrix indices
+            labels (List) -> 1 x N list of labels that match the binary acceptance and weight indices
+    """
+    columns_labels = list(weight.keys())
+    bam = np.zeros((len(columns_labels), len(columns_labels)), dtype=bool)
+    for i, key in enumerate(columns_labels):
+        bam[i, :] = [True if sr in over[key] else False for sr in columns_labels]
+    bam |= np.triu(bam).T
+    assert np.allclose(bam, bam.T)
+    weight_array = np.array([item for _, item in weight.items()])
+    order = np.argsort(weight_array)[::-1]
+    return {'bam': bam[order, :][:, order],
+            'weights': weight_array[order],
+            'labels': [columns_labels[i] for i in order]}
+
+
 def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=False) -> Dict[str, NDArray]:
     """
     Get the highest sum weights that can be combined according to the binary acceptance matrix.
@@ -28,34 +55,17 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     return results
 
 
-def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray, List]:
+def get_milti_bset_set(pseudo_gen_dicts: List[Dict]) -> Dict[str, float, int]:
     """
-    Construct the binary_acceptance_matrix and weights from the the Dictionary type provided by SModelS.
+    Iterate through a list of dictionaries containing the dictionaries of corelation and weight information
+    gathered from the SModelS API
 
     Args:
-        over (Dict): SModelS correlation type dictionary in the form: {'label': [list of combinable labels]}
-        weight (Dict): list of weights to chose combination in the form: {'label': weight (float)}
+        pseudo_gen_dicts (List[Dict]): Corelation/overlap and weight information gathered from the SModelS API
 
     Returns:
-        Dict:
-            bam (NDArray) -> Binary Acceptance Matrix: an N x N Symmetric matrix that defines the allowable combinations
-            weights (NDArray) -> 1 x N Weights that correspond to the binary acceptance matrix indices
-            labels (List) -> 1 x N list of labels that match the binary acceptance and weight indices
+        Dict[str, float, int]: Dictionary containing
     """
-    columns_labels = list(weight.keys())
-    bam = np.zeros((len(columns_labels), len(columns_labels)), dtype=bool)
-    for i, key in enumerate(columns_labels):
-        bam[i, :] = [True if sr in over[key] else False for sr in columns_labels]
-    bam |= np.triu(bam).T
-    assert np.allclose(bam, bam.T)
-    weight_array = np.array([item for _, item in weight.items()])
-    order = np.argsort(weight_array)[::-1]
-    return {'bam': bam[order, :][:, order],
-            'weights': weight_array[order],
-            'labels': [columns_labels[i] for i in order]}
-
-
-def get_milti_bset_set(pseudo_gen_dicts: List[Dict]) -> Dict[str, float, int]:
     result = {}
     for i, item in enumerate(pseudo_gen_dicts):
         bam_wgths = get_bam_weight(item['bam'], item['weights'])
@@ -66,6 +76,13 @@ def get_milti_bset_set(pseudo_gen_dicts: List[Dict]) -> Dict[str, float, int]:
 
 
 def best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Dict,) -> None:
+    """_summary_
+
+    Args:
+        pseudo_gen_dicts (List[Dict]): _description_
+        run_num (int): _description_
+        return_dict (Dict): _description_
+    """
     for key, item in get_milti_bset_set(pseudo_gen_dicts).items():
         idx = (run_num * len(pseudo_gen_dicts)) + key
         return_dict.update({idx: item})
@@ -74,19 +91,14 @@ def best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Dic
 def find_best_sets(pseudo_gen_dicts: List[Dict[str, NDArray, List]], num_cor: int = 1) -> Dict[Dict]:
 
     """
-    Iterate through 2D array of NLLR values finding the best combination for
-    each row using the corresponding binary acceptance matrix
+    Propergate the get_milti_bset_set function over multiple CPU's
 
-    Parameters
-    ----------
-    overlaps:
-    nllr_dat :   NLLR values (weights), 2D Array (N, M)
-    num_cor  :   Number of cores Default 1
+    Args:
+        pseudo_gen_dicts (List[Dict[str, NDArray, List]]): 
+        num_cor (int): _description_
 
-    Returns
-    -------
-    results : ndarray
-        list of M results, sum of best combination weights from each NLLR set.
+    Returns:
+        Dict[Dict]: _description_
 
     """
 
