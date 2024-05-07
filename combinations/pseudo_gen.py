@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from typing import Optional, Union
+from typing import Optional, Union, List, Dict
 from pathlib import Path
 from ptools.expResModifier import ExpResModifier
 from smodels.experiment.databaseObj import Database
@@ -20,7 +20,7 @@ def get_seeds(num: int, seed_seed: int = 65536):
     return np.random.randint(0, int(1e9), size=num)
 
 
-def get_pseudodata_args(database: str, tag: str, seed: float = None):
+def get_pseudodata_args(database: str, seed: float = None) -> Dict:
     args = {'dbpath': database,
             'max': 100,
             'rundir': os.getcwd(),
@@ -38,8 +38,8 @@ def get_pseudodata_args(database: str, tag: str, seed: float = None):
     return args
 
 
-def gen_llr(database: str, slhafile: str, model: Optional[list[str]] = None, seed: Optional[float] = None,
-            bootstrap_num: int = 1) -> list[dict[str, float]]:
+def gen_llr(database: str, slhafile: str, model: Optional[List[str]] = None, seed: Optional[float] = None,
+            bootstrap_num: int = 1) -> List[Dict[str, float]]:
     """
     Generate pseudo NLLR using "ExpResModifier"
 
@@ -62,8 +62,7 @@ def gen_llr(database: str, slhafile: str, model: Optional[list[str]] = None, see
     if model is None:
         model = ['all']
 
-    # expResArgs = dict(analysisIDs=analysisIDs, datasetIDs=['all'], txnames=model)
-    args = get_pseudodata_args(database, tag='fake', seed=seed)
+    args = get_pseudodata_args(database, seed=seed)
     modifier = ExpResModifier(args)
     modifier.filter()
     llr_dict = []
@@ -98,7 +97,7 @@ def get_prediction(pred: Union[TheoryPredictionList, TheoryPrediction], anomaly_
 
 
 def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official',
-                     pseudo_databse: Optional[dict[str, Database, list]] = None) -> dict:
+                     pseudo_databse: Optional[Dict[str, Database]] = None) -> Dict:
 
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
     model.updateParticles(inputFile=slhafile)
@@ -113,7 +112,7 @@ def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official',
     return bamAndWeights(allThPredictions)
 
 
-def bamAndWeights(theorypredictions: list[TheoryPrediction]) -> dict:
+def bamAndWeights(theorypredictions: list[TheoryPrediction]) -> Dict:
     """ a simple function that takes a list of theory predictions,
     and from this compute a small binary acceptance matrix (bam) in the guise
     of a dictionary, returns the bam alongside with the dictionary of weights
@@ -148,7 +147,7 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction]) -> dict:
     return {"weights": weights, "bam": bam}
 
 
-def split_chunks(num: int, proc: int) -> list[int]:
+def split_chunks(num: int, proc: int) -> List[int]:
     """
     Split N tasks (num) between P CPU's (proc) Parameters
     Args:
@@ -168,7 +167,7 @@ def split_chunks(num: int, proc: int) -> list[int]:
     return run_chunks
 
 
-def _llr_worker(args: dict, outputlist: list) -> None:
+def _llr_worker(args: Dict, outputlist: List) -> None:
     """ Helper function to create queue
     Args:
         args (dict): Dictionary of arguments passed to gen_llr
@@ -177,7 +176,7 @@ def _llr_worker(args: dict, outputlist: list) -> None:
     outputlist.extend(gen_llr(**args))
 
 
-def get_pseudo_llr(slha_loc: str, data_base: str, bootstrap_num: int = 1, proc: int = 1) -> list[dict]:
+def get_pseudo_llr(slha_loc: str, data_base: str, bootstrap_num: int = 1, proc: int = 1) -> List[Dict]:
     """_summary_
 
     Args:

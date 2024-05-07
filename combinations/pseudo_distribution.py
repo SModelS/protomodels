@@ -5,7 +5,7 @@ from typing import Iterable, Dict, List
 from numpy.typing import NDArray
 
 
-def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray, List]:
+def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
     """
     Construct the binary_acceptance_matrix and weights from the the Dictionary type provided by SModelS.
 
@@ -55,7 +55,7 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     return results
 
 
-def get_milti_bset_set(pseudo_gen_dicts: List[Dict]) -> Dict[str, float, int]:
+def get_milti_bset_set(pseudo_gen_dicts: List[Dict]) -> Dict[str, float]:
     """
     Iterate through a list of dictionaries containing the dictionaries of corelation and weight information
     gathered from the SModelS API
@@ -88,7 +88,7 @@ def best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Dic
         return_dict.update({idx: item})
 
 
-def find_best_sets(pseudo_gen_dicts: List[Dict[str, NDArray, List]], num_cor: int = 1) -> Dict[Dict]:
+def find_best_sets(pseudo_gen_dicts: List[Dict], num_cor: int = 1) -> Dict[int, Dict]:
 
     """
     Propergate the get_milti_bset_set function over multiple CPU's
