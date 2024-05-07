@@ -135,7 +135,8 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction]) -> dict:
         nll1 = tpred.likelihood(return_nll=True)
         w = np.NaN
         if nll0 is not None and nll1 is not None:
-            w = 2 * (nll1 - nll0)
+            # w = -2 * (ll0 - ll1) = 2 * (ll1 - ll0) = 2 * (-ll0 - (-ll1)) = 2 * (nll0 - nll1)
+            w = 2 * (nll0 - nll1)
         tpId = getTPName(tpred)
         weights[tpId] = w
         if tpId not in bam:

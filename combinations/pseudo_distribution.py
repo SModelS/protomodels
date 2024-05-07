@@ -5,17 +5,19 @@ from typing import Iterable
 from numpy.typing import NDArray
 
 
-def get_best_set(binacc: NDArray, nllr: NDArray, sort_bam=False) -> dict[str, NDArray]:
-    """_summary_
+def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=False) -> dict[str, NDArray]:
+    """
+    Get the highest sum weights that can be combined according to the binary acceptance matrix.
 
     Args:
-        binacc (NDArray): _description_
-        nllr (NDArray): _description_
+        binary_acceptance_matrix (NDArray): N x N Symmetric matrix that defines the allowable combinations
+        weights (NDArray): 1 x N Weights that correspond to the binary acceptance matrix indices
+        sort_bam (bool, optional): Sort the binary acceptance matrix by weight (descending). Defaults to False.
 
     Returns:
-        dict: _description_
+        dict[str, NDArray]: Containing the combination path indices and sum of weight sum.
     """
-    bam = pf.BinaryAcceptance(np.copy(binacc), weights=nllr)
+    bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights)
     results = {}
     if sort_bam:
         results['order'] = bam.sort_bam_by_weight()
@@ -27,6 +29,15 @@ def get_best_set(binacc: NDArray, nllr: NDArray, sort_bam=False) -> dict[str, ND
 
 
 def get_bam_weight(over: dict, weight: dict) -> dict:
+    """_summary_
+
+    Args:
+        over (dict): _description_
+        weight (dict): _description_
+
+    Returns:
+        dict: _description_
+    """
     columns_labels = list(weight.keys())
     bam = np.zeros((len(columns_labels), len(columns_labels)), dtype=bool)
     for i, key in enumerate(columns_labels):
