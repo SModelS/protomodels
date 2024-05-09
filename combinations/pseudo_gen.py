@@ -35,7 +35,7 @@ def _get_pseudodata_args(database: str, seed: float = None) -> Dict:
             'rundir': os.getcwd(),
             'keep': False,
             'suffix': None,
-            'lognormal': False,
+            'lognormal': True,
             'fixedsignals': False,
             'fixedbackgrounds': False,
             'noupperlimits': True,

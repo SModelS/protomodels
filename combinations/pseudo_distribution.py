@@ -47,7 +47,7 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     weights -= 1
     offset = 0.0
     if min(weights) < 0.0:
-        offset = abs(min(weights))
+        offset = abs(min(weights)) + 1
     bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights + offset)
     results = {}
     if sort_bam:
