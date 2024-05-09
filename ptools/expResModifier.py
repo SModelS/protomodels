@@ -446,6 +446,8 @@ Just filter the database:
             dataset.dataInfo.lmbda = lmbda
             if lmbda < 0.:
                 lmbda = 0.
+                # lmbda = [self.drawNuisance ( exp, err ) for _ in range(1000)]
+                # lmbda = numpy.mean([v if v > 0 else 0 for v in lmbda])
             obs = lmbda
             toterr = 0.
             if not self.fixedbackgrounds:
