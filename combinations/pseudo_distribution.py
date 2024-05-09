@@ -44,14 +44,19 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     Returns:
         Dict[str, NDArray]: Containing the combination path indices and sum of weight sum.
     """
-    bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights)
+    weights -= 1
+    offset = 0.0
+    if min(weights) < 0.0:
+        offset = abs(min(weights))
+    bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights + offset)
     results = {}
     if sort_bam:
         results['order'] = bam.sort_bam_by_weight()
     whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
     whdfs.find_paths(verbose=False, runs=50)
     results['path'] = whdfs.best.path
-    results['weight'] = whdfs.best.weight
+    results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset) + 1.0
+    results['offset'] = offset
     return results
 
 
@@ -71,7 +76,7 @@ def get_milti_bset_set(pseudo_gen_dicts: List[Dict]) -> Dict[str, float]:
         bam_wgths = get_bam_weight(item['bam'], item['weights'])
         temp_res = get_best_set(bam_wgths['bam'], bam_wgths['weights'])
         best_labels = [bam_wgths['labels'][p] for p in temp_res['path']]
-        result[i] = {'best': best_labels, 'weight': temp_res['weight']}
+        result[i] = {'best': best_labels, 'weight': temp_res['weight'], 'offset': temp_res['offset']}
     return result
 
 
