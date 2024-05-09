@@ -4,7 +4,7 @@ from typing import Optional, Union, List, Dict
 from pathlib import Path
 from ptools.expResModifier import ExpResModifier
 from smodels.experiment.databaseObj import Database
-from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPredictionList, TheoryPrediction
+from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
 from smodels.base.physicsUnits import GeV, fb
 from smodels.share.models.mssm import BSMList
 from smodels.share.models.SMparticles import SMList
@@ -20,7 +20,16 @@ def get_seeds(num: int, seed_seed: int = 65536):
     return np.random.randint(0, int(1e9), size=num)
 
 
-def get_pseudodata_args(database: str, seed: float = None) -> Dict:
+def _get_pseudodata_args(database: str, seed: float = None) -> Dict:
+    """_summary_
+
+    Args:
+        database (str): _description_
+        seed (float, optional): _description_. Defaults to None.
+
+    Returns:
+        Dict: _description_
+    """
     args = {'dbpath': database,
             'max': 100,
             'rundir': os.getcwd(),
@@ -62,7 +71,7 @@ def gen_llr(database: str, slhafile: str, model: Optional[List[str]] = None, see
     if model is None:
         model = ['all']
 
-    args = get_pseudodata_args(database, seed=seed)
+    args = _get_pseudodata_args(database, seed=seed)
     modifier = ExpResModifier(args)
     modifier.filter()
     llr_dict = []
@@ -73,30 +82,7 @@ def gen_llr(database: str, slhafile: str, model: Optional[List[str]] = None, see
     return llr_dict
 
 
-def get_prediction(pred: Union[TheoryPredictionList, TheoryPrediction], anomaly_mode: bool,
-                   expected: bool, min_val: float = np.finfo(float).tiny) -> float:
-    ratio = np.NaN
-    if anomaly_mode:
-        pred.computeStatistics(expected=False)
-        likelihood = pred.lsm(expected=False)
-        lmax = pred.likelihood(expected=False)
-    else:
-        pred.computeStatistics(expected=expected)
-        likelihood = pred.likelihood(expected=expected)
-        lmax = pred.lmax(expected=expected)
-
-    if likelihood is not None and lmax is not None:
-
-        if likelihood > min_val and lmax > min_val:
-            ratio = -2 * np.log(likelihood / lmax)
-
-        elif likelihood <= min_val and lmax <= min_val:
-            ratio = 0.0
-
-    return ratio
-
-
-def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official',
+def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official', expected: bool = False,
                      pseudo_databse: Optional[Dict[str, Database]] = None) -> Dict:
 
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
@@ -109,10 +95,10 @@ def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official',
         dbase = pseudo_databse['database']
         _ = pseudo_databse['expResults']
     allThPredictions = theoryPredictionsFor(dbase, top_dict)
-    return bamAndWeights(allThPredictions)
+    return bamAndWeights(allThPredictions, expected=expected)
 
 
-def bamAndWeights(theorypredictions: list[TheoryPrediction]) -> Dict:
+def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = False) -> Dict:
     """ a simple function that takes a list of theory predictions,
     and from this compute a small binary acceptance matrix (bam) in the guise
     of a dictionary, returns the bam alongside with the dictionary of weights
@@ -130,8 +116,8 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction]) -> Dict:
 
     bam, weights = {}, {}
     for i, tpred in enumerate(theorypredictions):
-        nll0 = tpred.lsm(return_nll=True)
-        nll1 = tpred.likelihood(return_nll=True)
+        nll0 = tpred.lsm(expected=expected, return_nll=True)
+        nll1 = tpred.likelihood(expected=expected, return_nll=True)
         w = np.NaN
         if nll0 is not None and nll1 is not None:
             # w = -2 * (ll0 - ll1) = 2 * (ll1 - ll0) = 2 * (-ll0 - (-ll1)) = 2 * (nll0 - nll1)
