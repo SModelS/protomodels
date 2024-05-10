@@ -603,14 +603,15 @@ class Combiner ( LoggerBase ):
         sorted_pred = {}
 
         for pred in predictions:
+                                            #TP: return_nll = True ??
             l0 = pred.likelihood ( 0. )    #SM mu = 0
             l1 = pred.likelihood ( 1. )    #BSM mu = 1
-            llhd_ratio = -1.
+            llhd_ratio = -1.                #TP: = float("inf") if return_nll = True
             if type(l0)!=type(None):
                 llhd_ratio = l1/l0
             sorted_pred[llhd_ratio] = pred
 
-        sorted_pred = dict((sorted(sorted_pred.items(), reverse=True)))
+        sorted_pred = dict(sorted(sorted_pred.items(), reverse=True)) #TP: reverse = False if return_nll = True
         newpreds = list ( sorted_pred.values() )
 
         return newpreds
@@ -631,13 +632,17 @@ class Combiner ( LoggerBase ):
         ret = []
         keptThese = [] ## log the ana ids that we kept, for debugging only.
         for Id,preds in sortByAnaId.items():
+            if len(preds) == 1: # If only 1 prediction, use it
+                ret.append( pred )
+                keptThese.append ( self.getPredictionID ( pred ) )
+                continue
             maxRatio, bestpred = 0., None
             for pred in preds:
-                oul = pred.getUpperLimit(expected=False)
-                eul = pred.getUpperLimit(expected=True)
+                l0 = pred.likelihood(mu=0,expected=False)
+                l1 = pred.likelihood(mu=1,expected=False)
                 if oul is None or eul is None:
                     continue
-                ratio = oul / eul
+                ratio = - math.log(l0/l1)
                 if ratio > maxRatio:
                     maxRatio = ratio
                     bestpred = pred

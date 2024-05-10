@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" 
+"""
 the predictor class, i.e. the class that computes the predictions,
 finds the best combinations, and computes the final test statistics
 """
@@ -44,7 +44,7 @@ class Predictor ( LoggerBase ):
         self.modifier = None
         self.select = select
         self.expected = expected
-        self.rthreshold = 1.3 ## threshold for rmax
+        self.rthreshold = 1.38 ## threshold for rmax
         if expected:
             from expResModifier import ExpResModifier
             self.modifier = ExpResModifier()
@@ -98,7 +98,7 @@ class Predictor ( LoggerBase ):
         return False
 
     def filterForTopos ( self, topos : Union[List,str] ):
-        """ filter the list of expRes, keep only the ones for topo 
+        """ filter the list of expRes, keep only the ones for topo
         :param topos: the topologies, either as list or as string with commas
         """
         keepExpRes = []
@@ -181,21 +181,21 @@ class Predictor ( LoggerBase ):
                 f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
             f.close()
 
-    def removeRedundantULResults ( self, 
-            predictions : List[TheoryPrediction] ) -> List[TheoryPrediction]:
-        """ from the given predictions, return UL results, if there is 
-        also a combined result """
-        ret = []
-        hasCombined = set()
-        for p in predictions:
-            if str(p.dataId()) == "(combined)":
-                hasCombined.add ( p.analysisId() )
-        for p in predictions:
-            if p.dataType() == "upperLimit":
-                if p.analysisId() in hasCombined:
-                    continue
-            ret.append ( p )
-        return ret
+    # def removeRedundantULResults ( self,
+    #         predictions : List[TheoryPrediction] ) -> List[TheoryPrediction]:
+    #     """ from the given predictions, return UL results, if there is
+    #     also a combined result """
+    #     ret = []
+    #     hasCombined = set()
+    #     for p in predictions:
+    #         if str(p.dataId()) == "(combined)":
+    #             hasCombined.add ( p.analysisId() )
+    #     for p in predictions:
+    #         if p.dataType() == "upperLimit":
+    #             if p.analysisId() in hasCombined:
+    #                 continue
+    #         ret.append ( p )
+    #     return ret
 
     def predict ( self, protomodel : ProtoModel, sigmacut = 0.02*fb,
                   strategy : str = "aggressive",
@@ -225,14 +225,15 @@ class Predictor ( LoggerBase ):
 
         # First run SModelS using all results and considering only the best signal region.
         # thats the run for the critic
-        critic_preds = self.runSModelS( slhafile, sigmacut,  allpreds=False,
-                                           llhdonly=False )
-        critic_preds = self.removeRedundantULResults ( critic_preds )
+        ul_critic_preds, llhd_critic_preds = self.runSModelS( slhafile, sigmacut,
+                                                            allpreds=False, ULpreds=True )
 
         if keep_predictions:
-            self.critic_preds = critic_preds
+            self.ul_critic_preds = ul_critic_preds
+            self.llhd_critic_preds = llhd_critic_preds
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictions(protomodel,critic_preds)
+        self.updateModelPredictionsWithULPreds(protomodel,ul_critic_preds)
+        self.updateModelPredictionsWithCombinedPreds(protomodel,llhd_critic_preds)
         # self.log ( "model is excluded? %s" % str(protomodel.excluded) )
 
         # Compute the maximum allowed (global) mu value given the r-values
@@ -240,8 +241,8 @@ class Predictor ( LoggerBase ):
         protomodel.mumax = self.getMaxAllowedMu(protomodel)
 
         # now use all prediction with likelihood values to compute the Z of the model
-        predictions = self.runSModelS( slhafile, sigmacut, allpreds=True,
-                                               llhdonly=True )
+        predictions = self.runSModelS( slhafile, sigmacut,
+                                    allpreds=True, ULpreds=False )
 
         if keep_predictions:
             self.predictions = predictions
@@ -274,7 +275,7 @@ class Predictor ( LoggerBase ):
         return True
 
     def runSModelS(self, inputFile : PathLike, sigmacut,
-            allpreds : bool, llhdonly : bool ) -> List[TheoryPrediction]:
+            allpreds : bool, ULpreds : bool ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
         :param sigmacut: the cut on the topology weights, typically 0.02*fb
@@ -309,103 +310,49 @@ class Predictor ( LoggerBase ):
 
         if allpreds:
             bestDataSet=False
-            combinedRes=False
         else:
             bestDataSet=True
-            combinedRes=self.do_srcombine
 
         # self.log ( "start getting preds" )
         if False:
             from smodels.base import runtime
             runtime._experimental = True
         combinedIds = set() # the analysis ids of the combined
-        srpreds = [] # the SR specific predictions
+        datasetPreds = [] # the SR specific predictions
         predictions = []
-        # print ( f"in runSModelS we have useBestDataset={bestDataSet}, combinedResults={combinedRes} allpreds={allpreds} do_srcombine={self.do_srcombine}" )
-            # get the SR specific predictions
-        srpred = theoryPredictionsFor ( self.database, topos,
+        ulpreds = []
+
+        preds = theoryPredictionsFor ( self.database, topos,
                                        useBestDataset=bestDataSet,
-                                       combinedResults=combinedRes )
-        if srpred != None:
-            for p in srpred:
-                srpreds.append ( p )
-        if allpreds:
-            # get the SR-combined predictions
-            cpreds = theoryPredictionsFor ( self.database, topos,
-                                            useBestDataset=False,
-                                            combinedResults=self.do_srcombine )
-            if cpreds != None:
-                for c in cpreds:
-                    anaId = c.dataset.globalInfo.id
-                    if c.dataType()!="combined":
-                        continue
-                    combinedIds.add ( anaId ) # add with and without -agg
-                    anaId = anaId.replace("-agg","")
-                    combinedIds.add ( anaId )
-                for c in cpreds:
-                    anaId = c.dataset.globalInfo.id
-                    if c.dataType()!="combined":
-                        continue
-                    # if the aggregated version is in, then take this out
-                    if anaId+"-agg" in combinedIds:
-                        continue
-                    # definitely add the combined predictions
-                    c.computeStatistics()
-                    predictions.append ( c )
-        """ smodels v2 version
-        for expRes in self.listOfExpRes:
-            # get the SR specific predictions
-            srpred = theoryPredictionsFor ( expRes, topos,
-                                           useBestDataset=bestDataSet,
-                                           combinedResults=combinedRes )
-            if srpred != None:
-                for p in srpred:
-                    srpreds.append ( p )
-            if allpreds:
-                # get the SR-combined predictions
-                cpreds = theoryPredictionsFor ( expRes, topos,
-                                                useBestDataset=False,
-                                                combinedResults=self.do_srcombine )
-                if cpreds != None:
-                    for c in cpreds:
-                        anaId = c.dataset.globalInfo.id
-                        if c.dataType()!="combined":
-                            continue
-                        combinedIds.add ( anaId ) # add with and without -agg
-                        anaId = anaId.replace("-agg","")
-                        combinedIds.add ( anaId )
-                    for c in cpreds:
-                        anaId = c.dataset.globalInfo.id
-                        if c.dataType()!="combined":
-                            continue
-                        # if the aggregated version is in, then take this out
-                        if anaId+"-agg" in combinedIds:
-                            continue
-                        # definitely add the combined predictions
-                        c.computeStatistics()
-                        predictions.append ( c )
-        """
-        for srpred in srpreds:
-            srId = srpred.dataset.globalInfo.id
-            srId = srId.replace("-agg","")
-            # add the others if not a combined result exists, and if we have llhds
-            # (or we are just not asking specifically for llhds)
-            dId = srId + ":combined"
-            if hasattr ( srpred.dataset, "dataInfo" ):
-                dId = srId + ":" + str(srpred.dataset.dataInfo.dataId)
-            if srId in combinedIds: # we continue only with the combination
+                                       combinedResults=self.do_srcombine )
+        if preds != None:
+            for pred in preds:
+                if pred.dataType() == 'upperLimit':
+                    ulpreds.append ( pred )
+                    continue
+                datasetPreds.append ( pred )
+
+        for pred in datasetPreds:
+            if pred.dataType() == "combined":
+                predictions.append ( pred )
+                combinedIds.add ( pred.dataset.globalInfo.id )
+        for pred in datasetPreds:
+            if pred.dataset.globalInfo.id in combinedIds:
                 continue
-            if (not llhdonly) or (srpred.likelihood != None):
-                srpred.computeStatistics()
-                predictions.append ( srpred )
+            predictions.append ( pred )
+
         sap = "best preds"
         if allpreds:
             sap = "all preds"
         sllhd = ""
-        if llhdonly:
-            sllhd = ", llhds only"
+        if ULpreds:
+            sllhd = ", with UL preds"
         self.log( f"returning {len(predictions)} predictions, {sap}{sllhd}" )
-        return predictions
+
+        if ULpreds:
+            return ulpreds, predictions
+        else:
+            return predictions
 
     def printPredictions ( self ):
         """ if self.predictions exists, pretty print them """
@@ -433,21 +380,21 @@ class Predictor ( LoggerBase ):
                 txns = ",".join ( set ( map ( str, p.txnames ) ) )
                 print ( f" - {p.analysisId()}:{dataId}: {txns}" )
 
-    def updateModelPredictions(self, protomodel, predictions):
-        """ Extract information from list of theory predictions and store list of dict with r_obs, 
+    def updateModelPredictionsWithULPreds(self, protomodel, ul_critic_preds):
+        """ Extract information from list of theory predictions and store list of dict with r_obs,
             r_exp and theory prediction(sorted according to decreasing r_obs values) in the protomodel.
-            Also store description about the crtic_tp in the protomodel.
-            
-            :param predictions: all theory predictions
+            Also store description about the critic_tp in the protomodel.
+
+            :param ul_critic_preds: theory predictions for UL-type results
         """
 
         rvalues = [] #If there are no predictions set rmax and r2 to 0
         tpList = []
-        for theorypred in predictions:
+        for theorypred in ul_critic_preds:
             r = theorypred.getRValue(expected=False)
             if r == None:
                 self.pprint ( "I received %s as r. What do I do with this?" % r )
-                r = 23.
+                r = 23. #TP: Why high r and not 0?
             rexp = theorypred.getRValue(expected=True)
             tpList.append( { "robs": r, "rexp": rexp, "tp": theorypred } )
             rvalues.append(r)
@@ -457,9 +404,9 @@ class Predictor ( LoggerBase ):
         tpList.sort ( key = lambda x: x['robs'], reverse = True )
         srs = ", ".join ( [ f"{x:.2f}" for x in rvalues[:3] ] )
         self.log ( f"top r values before rescaling are: {srs}" )
-        protomodel.rvalues = rvalues #Do not include initial zero values
+        protomodel.ul_type_rvalues = rvalues #Do not include initial zero values
         # protomodel.excluded = protomodel.rvalues[0] > self.rthreshold #The 0.99 deals with the case rmax = threshold
-        protomodel.tpList = tpList[:]
+        protomodel.ul_type_tpList = tpList[:]
         critic_description = []
         for tp in tpList[:3]:
             rtype = tp['tp'].dataType(short=True)
@@ -469,15 +416,27 @@ class Predictor ( LoggerBase ):
             critic_description.append ( "...")
         protomodel.critic_description = ",".join ( critic_description )
 
+    def updateModelPredictionsWithCombinedPreds(self, protomodel, llhd_critic_preds):
+        """ Extract information from list of theory predictions and store robs from
+            the most sensitive combination of analyses in the protomodel.
+
+            :param llhd_critic_preds: theory predictions for EM-type results
+        """
+
+        protomodel.llhd_type_rvalue = 10.
+
+
     def getMaxAllowedMu(self, protomodel):
         """ Compute the maximum (global) signal strength normalization
             given the predictions.
         """
 
         mumax = float("inf")
-        if protomodel.rvalues[0] > 0.:
+        if protomodel.ul_type_rvalues[0] > 0.:
             #Set mumax slightly below threshold, so the model is never excluded
-            mumax = 0.999*self.rthreshold / protomodel.rvalues[0]
+            mumax = 0.999*self.rthreshold / protomodel.ul_type_rvalues[0]
+        if 0 < protomodel.llhd_type_rvalue < mumax:
+            mumax = protomodel.llhd_type_rvalue
 
         return mumax
 
@@ -555,4 +514,3 @@ if __name__ == "__main__":
     if args.interactive:
         import IPython
         IPython.embed ( using = False )
-
