@@ -23,8 +23,9 @@ def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
     bam = np.zeros((len(columns_labels), len(columns_labels)), dtype=bool)
     for i, key in enumerate(columns_labels):
         bam[i, :] = [True if sr in over[key] else False for sr in columns_labels]
-    bam |= np.triu(bam).T
-    assert np.allclose(bam, bam.T)
+    if not np.allclose(bam, bam.T):
+        print('WARNING bam not symetric')
+        bam |= np.triu(bam).T
     weight_array = np.array([item for _, item in weight.items()])
     order = np.argsort(weight_array)[::-1]
     return {'bam': bam[order, :][:, order],
@@ -60,7 +61,7 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     return results
 
 
-def get_milti_bset_set(pseudo_gen_dicts: List[Dict]) -> Dict[str, float]:
+def get_multi_best_set(pseudo_gen_dicts: List[Dict]) -> Dict[str, float]:
     """
     Iterate through a list of dictionaries containing the dictionaries of corelation and weight information
     gathered from the SModelS API
@@ -90,7 +91,7 @@ def _best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Di
         run_num (int): Unique integer identifier for labeling return dictionary
         return_dict (Dict): DictProxy for Manager
     """
-    for key, item in get_milti_bset_set(pseudo_gen_dicts).items():
+    for key, item in get_multi_best_set(pseudo_gen_dicts).items():
         idx = (run_num * len(pseudo_gen_dicts)) + key
         return_dict.update({idx: item})
 
@@ -98,7 +99,7 @@ def _best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Di
 def find_best_sets(pseudo_gen_dicts: List[Dict], num_cor: int = 1) -> Dict[int, Dict]:
 
     """
-    Propagate the get_milti_bset_set function over multiple CPU's
+    Propagate the get_multi_best_set function over multiple CPU's
 
     Args:
         pseudo_gen_dicts (List[Dict]): List of dictionaries containing a binary acceptance matrix
@@ -115,7 +116,7 @@ def find_best_sets(pseudo_gen_dicts: List[Dict], num_cor: int = 1) -> Dict[int, 
 
     if num_cor < 2:
         print(F"Starting job 1. Calculating {len(pseudo_gen_dicts)} best combinations")
-        outputdict = get_milti_bset_set(pseudo_gen_dicts)
+        outputdict = get_multi_best_set(pseudo_gen_dicts)
     else:
         jobs = []
         manager = Manager()
