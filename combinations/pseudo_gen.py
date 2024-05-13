@@ -11,6 +11,7 @@ from smodels.share.models.SMparticles import SMList
 from smodels.base.model import Model
 from smodels.decomposition.decomposer import decompose
 from multiprocessing import Process, Manager
+from tester import combinationsmatrix
 
 pmodel_path = Path(__file__).parent / 'pmodels/'
 
@@ -89,7 +90,7 @@ def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official', ex
     model.updateParticles(inputFile=slhafile)
     top_dict = decompose(model, sigmacut=0.005*fb, massCompress=True, invisibleCompress=True, minmassgap=5*GeV)
     if pseudo_databse is None:
-        dbase = Database(data_base)
+        dbase = Database(data_base, combinationsmatrix=combinationsmatrix.getMatrix())
         _ = dbase.getExpResults(analysisIDs=['all'], datasetIDs=['all'], dataTypes=['efficiencyMap'])
     else:
         dbase = pseudo_databse['database']
