@@ -20,9 +20,12 @@ def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
             labels (List) -> 1 x N list of labels that match the binary acceptance and weight indices
     """
     columns_labels = list(weight.keys())
+    columns_indices = {item: i for i, item in enumerate(columns_labels)}
     bam = np.zeros((len(columns_labels), len(columns_labels)), dtype=bool)
     for i, key in enumerate(columns_labels):
-        bam[i, :] = [True if sr in over[key] else False for sr in columns_labels]
+        for allowed in over[key]:
+            bam[i, columns_indices[allowed]] = True
+            bam[columns_indices[allowed], i] = True
     if not np.allclose(bam, bam.T):
         print('WARNING bam not symetric')
         bam |= np.triu(bam).T
@@ -45,7 +48,8 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     Returns:
         Dict[str, NDArray]: Containing the combination path indices and sum of weight sum.
     """
-    weights -= 1
+    # n condition
+    # weights -= 1
     offset = 0.0
     if min(weights) < 0.0:
         offset = abs(min(weights)) + 1
@@ -54,9 +58,10 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     if sort_bam:
         results['order'] = bam.sort_bam_by_weight()
     whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
+    # whdfs = pf.HDFS(bam, top=1, ignore_subset=True)
     whdfs.find_paths(verbose=False, runs=50)
     results['path'] = whdfs.best.path
-    results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset) + 1.0
+    results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset)  # + 1.0
     results['offset'] = offset
     return results
 
