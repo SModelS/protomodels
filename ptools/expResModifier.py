@@ -31,6 +31,7 @@ from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
 from builder.loggerbase import LoggerBase
+from tester.combinationsmatrix import getMatrix
 from typing import Dict
 
 logger.setLevel("ERROR")
@@ -393,7 +394,7 @@ Just filter the database:
             spmodel = "no protomodel given"
         self.info ( f"starting to create {self.outfile} from {self.dbpath}. suffix is '{self.suffix}', {spmodel}." )
         if self.db == None:
-            self.db = Database ( self.dbpath )
+            self.db = Database ( self.dbpath, combinationsmatrix=getMatrix())
         self.dbversion = self.db.databaseVersion
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
         self.produceProtoModel ( self.pmodel, self.db.databaseVersion )
@@ -937,7 +938,7 @@ Just filter the database:
             return
         self.log ( f"starting to filter {self.outfile}. suffix is {self.suffix}." )
         if self.db == None:
-            self.db = Database ( self.dbpath )
+            self.db =Database ( self.dbpath, combinationsmatrix=getMatrix())
         listOfExpRes = self.db.expResultList ## seems to be the safest bet?
         if self.remove_nonagg:
             from smodels_utils.helper.databaseManipulations import filterNonAggregatedFromList
@@ -1045,7 +1046,7 @@ Just filter the database:
         line = lines.pop(0)
         D = eval ( line )
         if self.db == None:
-            self.db = Database ( self.dbpath )
+            self.db =Database ( self.dbpath, combinationsmatrix=getMatrix())
         for k,v in D.items():
             if k in [ "dbpath", "database" ]:
                 continue
