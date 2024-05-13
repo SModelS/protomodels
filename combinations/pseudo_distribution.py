@@ -58,7 +58,6 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     if sort_bam:
         results['order'] = bam.sort_bam_by_weight()
     whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
-    # whdfs = pf.HDFS(bam, top=1, ignore_subset=True)
     whdfs.find_paths(verbose=False, runs=50)
     results['path'] = whdfs.best.path
     results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset)  # + 1.0
