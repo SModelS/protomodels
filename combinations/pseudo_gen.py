@@ -81,7 +81,7 @@ def gen_llr(database: str, slhafile: str, model: Optional[List[str]] = None, see
         listOfExpRes = modifier.removeEmpty(modifier.db.expResultList)
         pseudo_databse = {'database': modifier.db, 'expResults': modifier.fakeBackgrounds(listOfExpRes)}
         llr_at_point = get_llr_at_point(slhafile, pseudo_databse=pseudo_databse)
-        llr_dict.append({key: item for key, item in llr_at_point if key != 'theoryPred'})
+        llr_dict.append({key: item for key, item in llr_at_point.items() if key != 'theoryPred'})
     return llr_dict
 
 
