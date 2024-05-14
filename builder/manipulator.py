@@ -784,7 +784,7 @@ class Manipulator ( LoggerBase ):
         self.M.mumax *= 1./s
         self.M.rescaleXSecsBy(s)
 
-        if hasattr(self.M,'tpList'):
+        if hasattr(self.M,'tpList') and self.M.tpList is not None:
             for i,tp in enumerate(self.M.tpList[:]):
                 rnew = tp['robs']*s
                 if tp['rexp']:
@@ -799,7 +799,7 @@ class Manipulator ( LoggerBase ):
                 #if hasattr(tpNew,'chi2'):
                 #    del tpNew.chi2
                 self.M.tpList[i] = { "robs": rnew,"rexp": rexpnew, "tp": tpNew }
-        if hasattr(self.M,'bestCombo'):
+        if hasattr(self.M,'bestCombo') and self.M.bestCombo is not None:
             for tp in self.M.bestCombo:
                 tp.xsection *= s #rescale theoryPrediction
                 #Remove likelihood and chi2, since they are no longer valid

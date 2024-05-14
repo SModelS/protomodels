@@ -2,6 +2,7 @@ import os
 import numpy as np
 from typing import Optional, Union, List, Dict
 from pathlib import Path
+from builder.manipulator import Manipulator
 from ptools.expResModifier import ExpResModifier
 from smodels.experiment.databaseObj import Database
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionsCombiner
@@ -167,21 +168,23 @@ def _llr_worker(args: Dict, outputlist: List) -> None:
     """
     outputlist.extend(gen_llr(**args))
 
-def createSLHAFileFromDict ( dictionary : Dict ) -> os.PathLike:
+
+def createSLHAFileFromDict(dictionary: Dict, muhat: float, slhafilename: str = "temp.slha") -> dict:
     """ sample code, for jamie to be savoured,
     takes a protomodels dictionary as input, creates
     an slha file as output, returns the slha file name.
 
     :returns: slha file name
     """
-    from protomodels.builder.manipulator import Manipulator
-    ma = Manipulator ( dictionary )
-    ## ma.M is now our protomodel!
-    slhafilename = "4jamie.slha"
-    s = 1.
-    ma.rescaleSignalBy ( s )
-    ma.M.writeSLHAFile ( slhafilename )
-    return slhafilename
+    ma = Manipulator(dictionary)
+    # ma.M is now our protomodel!
+    ma.M.mumax = muhat
+    ma.rescaleSignalBy(muhat)
+    ma.M.currentSLHA = slhafilename
+    ma.M.computeXSecs(keep_slha=True)
+    # ma.M.writeSLHAFile(slhafilename)
+    return ma.M.dict()
+
 
 def get_pseudo_llr(slha_loc: str, data_base: str, bootstrap_num: int = 1, proc: int = 1) -> List[Dict]:
     """_summary_
