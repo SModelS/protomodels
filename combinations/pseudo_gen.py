@@ -167,6 +167,19 @@ def _llr_worker(args: Dict, outputlist: List) -> None:
     """
     outputlist.extend(gen_llr(**args))
 
+def createSLHAFileFromDict ( dictionary : Dict ) -> os.PathLike:
+    """ sample code, for jamie to be savoured,
+    takes a protomodels dictionary as input, creates
+    an slha file as output, returns the slha file name.
+
+    :returns: slha file name
+    """
+    from protomodels.builder.manipulator import Manipulator
+    ma = Manipulator ( dictionary )
+    ## ma.M is now our protomodel!
+    slhafilename = "4jamie.slha"
+    ma.M.writeSLHAFile ( slhafilename )
+    return slhafilename
 
 def get_pseudo_llr(slha_loc: str, data_base: str, bootstrap_num: int = 1, proc: int = 1) -> List[Dict]:
     """_summary_
