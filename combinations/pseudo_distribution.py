@@ -48,8 +48,7 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     Returns:
         Dict[str, NDArray]: Containing the combination path indices and sum of weight sum.
     """
-    # n condition
-    # weights -= 1
+    weights -= 1
     offset = 0.0
     if min(weights) < 0.0:
         offset = abs(min(weights)) + 1
@@ -60,7 +59,7 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
     whdfs.find_paths(verbose=False, runs=50)
     results['path'] = whdfs.best.path
-    results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset)  # + 1.0
+    results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset) + 1
     results['offset'] = offset
     return results
 

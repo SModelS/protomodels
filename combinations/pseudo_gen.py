@@ -4,14 +4,14 @@ from typing import Optional, Union, List, Dict
 from pathlib import Path
 from ptools.expResModifier import ExpResModifier
 from smodels.experiment.databaseObj import Database
-from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
+from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionsCombiner
 from smodels.base.physicsUnits import GeV, fb
 from smodels.share.models.mssm import BSMList
 from smodels.share.models.SMparticles import SMList
 from smodels.base.model import Model
 from smodels.decomposition.decomposer import decompose
 from multiprocessing import Process, Manager
-from tester import combinationsmatrix
+from tester.combinationsmatrix import getMatrix
 
 pmodel_path = Path(__file__).parent / 'pmodels/'
 
@@ -79,23 +79,22 @@ def gen_llr(database: str, slhafile: str, model: Optional[List[str]] = None, see
     for _ in range(bootstrap_num):
         listOfExpRes = modifier.removeEmpty(modifier.db.expResultList)
         pseudo_databse = {'database': modifier.db, 'expResults': modifier.fakeBackgrounds(listOfExpRes)}
-        llr_dict.append(get_llr_at_point(slhafile, pseudo_databse=pseudo_databse))
+        llr_at_point = get_llr_at_point(slhafile, pseudo_databse=pseudo_databse)
+        llr_dict.append({key: item for key, item in llr_at_point if key != 'theoryPred'})
     return llr_dict
 
 
 def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official', expected: bool = False,
                      pseudo_databse: Optional[Dict[str, Database]] = None) -> Dict:
-
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
     model.updateParticles(inputFile=slhafile)
     top_dict = decompose(model, sigmacut=0.005*fb, massCompress=True, invisibleCompress=True, minmassgap=5*GeV)
     if pseudo_databse is None:
-        dbase = Database(data_base, combinationsmatrix=combinationsmatrix.getMatrix())
+        dbase = Database(data_base, combinationsmatrix=getMatrix())
         _ = dbase.getExpResults(analysisIDs=['all'], datasetIDs=['all'], dataTypes=['efficiencyMap'])
     else:
         dbase = pseudo_databse['database']
-        _ = pseudo_databse['expResults']
-    allThPredictions = theoryPredictionsFor(dbase, top_dict)
+    allThPredictions = theoryPredictionsFor(dbase, top_dict, useBestDataset=False)
     return bamAndWeights(allThPredictions, expected=expected)
 
 
@@ -115,7 +114,7 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
         tpId = f"{anaId}{dsId}"
         return tpId
 
-    bam, weights = {}, {}
+    bam, weights, theoryPred = {}, {}, {}
     for i, tpred in enumerate(theorypredictions):
         nll0 = tpred.lsm(expected=expected, return_nll=True)
         nll1 = tpred.likelihood(expected=expected, return_nll=True)
@@ -125,13 +124,19 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
             w = 2 * (nll0 - nll1)
         tpId = getTPName(tpred)
         weights[tpId] = w
+        theoryPred[tpId] = tpred
         if tpId not in bam:
             bam[tpId] = set()
         for tpred2 in theorypredictions[i+1:]:
             tpId2 = getTPName(tpred2)
             if tpred.dataset.isCombinableWith(tpred2.dataset):
                 bam[tpId].add(tpId2)
-    return {"weights": weights, "bam": bam}
+    return {"weights": weights, "bam": bam, 'theoryPred': theoryPred}
+
+
+def get_muhat(tpred_list: list[TheoryPrediction]) -> float:
+    tpred_combiner = TheoryPredictionsCombiner(theoryPredictions=tpred_list)
+    return tpred_combiner.muhat()
 
 
 def split_chunks(num: int, proc: int) -> List[int]:
