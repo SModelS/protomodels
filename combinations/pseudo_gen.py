@@ -178,6 +178,8 @@ def createSLHAFileFromDict ( dictionary : Dict ) -> os.PathLike:
     ma = Manipulator ( dictionary )
     ## ma.M is now our protomodel!
     slhafilename = "4jamie.slha"
+    s = 1.
+    ma.rescaleSignalBy ( s )
     ma.M.writeSLHAFile ( slhafilename )
     return slhafilename
 
