@@ -11,13 +11,14 @@ from typing import Iterable, Dict, List, Optional, Union
 from numpy.typing import NDArray
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
 
-__all__ = [ "bamAndWeights", "find_best_comb" ]
+__all__ = [ "selectMostSignificantSRs", "bamAndWeights", "find_best_comb"  ]
 
-def selectMostSignificantSRs ( predictions: list[TheoryPrediction] ) -> List:
-    """ given, the predictions, for any analysis and topology,
-        return the "x" most significant SR only. FILTER PREDS
+def selectMostSignificantSRs ( predictions: list[TheoryPrediction], bound: float = 5 ) -> List:
+    """ given the predictions, return the "x" most significant SRs per analysis
+        .
     :param predictions: all predictions of all SRs
-    :returns: list of predictions of "x" most significant SR of each analysis
+    :param bound: an upper bound on the percentage of ratios of weights of SRs per analysis
+    :returns: list of predictions of "x" most significant SRs of each analysis
     """
     sortByAnaId = {}                             # first sort all by ana id + data Type
     for pred in predictions:
@@ -44,7 +45,7 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction] ) -> List:
                 maxRatio = ratio
         
         ratioList = {k:v for k,v in sorted(ratioList.items(), key=lambda item:item[1], reverse=True)}
-        signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= 0.05 ]
+        signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= (bound/100.) ]
         
         if len(signPreds) == 1:
             secondPred = list(ratioList.keys())[1]
@@ -52,9 +53,8 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction] ) -> List:
         
         ret = ret + signPreds
         #keptThese = keptThese + [pred.experimentalId() for pred in signPreds]
-        #self.pprint ( f"selected predictions down via SRs from {len(predictions)}"\
-                  f" to {len(ret)}." )
-        
+        #self.pprint ( f"selected predictions down via SRs from {len(predictions)}"\f" to {len(ret)}." )
+      
     return ret
 
 def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = False, excl_mode: bool = False) -> Dict:
@@ -64,17 +64,10 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
 
     :returns: dictionary of bam and weights
     """
-    def getTPName(tpred: TheoryPrediction) -> str:
-        """ get the canonical name of a theory prediction: anaid:datasetid  """
-        anaId = tpred.dataset.globalInfo.id
-        dsId = ""
-        if hasattr(tpred.dataset, "dataInfo"):
-            dsId = f":{tpred.dataset.dataInfo.dataId}"
-        tpId = f"{anaId}{dsId}"
-        return tpId
-
-    bam, weights = {}, {}
-    theorypredictions = selectMostSignificantSRs(theorypredictions)
+    from ptools.helpers import experimentalId
+    
+    bam, weights, theoryPred = {}, {}, {}
+    
     for i, tpred in enumerate(theorypredictions):
         nll0 = tpred.lsm(expected=expected, return_nll=True)
         nll1 = tpred.likelihood(expected=expected, return_nll=True)
@@ -83,14 +76,17 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
             # w = -2 * (ll0 - ll1) = 2 * (ll1 - ll0) = 2 * (-ll0 - (-ll1)) = 2 * (nll0 - nll1) for anamoly mode
             w = 2 * (nll0 - nll1)
             if excl_mode: w = -2 * (nll0 - nll1)
-        tpId = getTPName(tpred)
+        
+        tpId = experimentalId(tpred)
         weights[tpId] = w
+        theoryPred[tpId] = tpred
         if tpId not in bam:
             bam[tpId] = set()
         for tpred2 in theorypredictions[i+1:]:
-            tpId2 = getTPName(tpred2)
+            tpId2 = experimentalId(tpred2)
             if tpred.dataset.isCombinableWith(tpred2.dataset):
                 bam[tpId].add(tpId2)
+
     return {"weights": weights, "bam": bam, "theoryPred": theoryPred}
     
 def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
