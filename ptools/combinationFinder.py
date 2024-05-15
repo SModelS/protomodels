@@ -55,7 +55,7 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction] ) -> List:
         #self.pprint ( f"selected predictions down via SRs from {len(predictions)}"\
                   f" to {len(ret)}." )
         
-        return ret
+    return ret
 
 def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = False, excl_mode: bool = False) -> Dict:
     """ a simple function that takes a list of theory predictions,
