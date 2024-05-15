@@ -96,7 +96,49 @@ def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official', ex
     else:
         dbase = pseudo_databse['database']
     allThPredictions = theoryPredictionsFor(dbase, top_dict, useBestDataset=False)
+    allThPredictions = selectMostSignificantSRs(allThPredictions, percent_bound=5)
     return bamAndWeights(allThPredictions, expected=expected)
+
+
+def selectMostSignificantSRs(predictions: list[TheoryPrediction], percent_bound: float = 5) -> List:
+    """ given, the predictions, for any analysis and topology,
+        return the "x" most significant SR only. FILTER PREDS
+    :param predictions: all predictions of all SRs
+    :returns: list of predictions of "x" most significant SR of each analysis
+    """
+    sortByAnaId = {}
+    for pred in predictions:
+        Id = pred.analysisId() + ":" + pred.dataType(short=True)
+        if Id not in sortByAnaId:
+            sortByAnaId[Id] = []
+        sortByAnaId[Id].append(pred)
+
+    ret = []
+    for Id, preds in sortByAnaId.items():
+        # If only 1 prediction, use it (could be combined result, or only one em result)
+        if len(preds) == 1:
+            ret.append(preds[0])
+            # keptThese.append ( preds[0].experimentalId() )   #self.getPredictionID ( pred )
+            continue
+
+        maxRatio, ratioList = 0.0, {}
+        for pred in preds:
+            nll0 = pred.likelihood(mu=0, expected=False, return_nll=True)
+            nll1 = pred.likelihood(mu=1, expected=False, return_nll=True)
+            ratio = 2 * (nll0 - nll1)
+            ratioList[pred] = ratio
+            if ratio > maxRatio:
+                maxRatio = ratio
+
+        ratioList = {k: v for k, v in sorted(ratioList.items(), key=lambda item: item[1], reverse=True)}
+        signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= (percent_bound / 100)]
+
+        if len(signPreds) == 1:
+            secondPred = list(ratioList.keys())[1]
+            signPreds.append(secondPred)
+        ret = ret + signPreds
+
+    return ret
 
 
 def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = False) -> Dict:
