@@ -17,6 +17,48 @@ import scipy.stats
 from os import PathLike
 from typing import Union, Set
 
+def getJsonFileName(dset: DataSet) -> str:
+    "get file name of json used by the combined dataset dset"
+
+    jsonFileDict = dset.globalInfo.jsonFiles
+    dsId = [ds.getID() for ds in dset._datasets]            #get the dataset ids in the combined dataset dset
+
+    for file, dslist in jsonFileDict.items():
+        if dslist[0] in dsId:                               #check which json file has the corresponding datasets
+            file = file.split(".")[0]                       #get only name of json file, not the .json part
+            return file
+        
+    # if no file got matched with dataset
+    print(f"JSON file present for {dset.globalinfo.id} but combined dataset does not match to any JSON file")
+    
+    return "NoJsonFound"
+
+def experimentalId(pred : TheoryPrediction) -> str:
+    """
+    Return Id of tpred's expresult
+        - anaId:upperLimit      if dataType = upperLimit
+        - anaId:dataId          if dataType = efficiencyMap
+        - anaId:combined        if dataType = combined,SLv1,v2
+        - anaId:jsonFileName    if dataType = combined,pyhf
+    """
+    
+    anaId = pred.analysisId()
+    dtype = pred.dataType()
+    
+    if dtype == "upperLimit":
+        return f"{anaId}:{dtype}"
+    
+    elif dtype == "combined":
+        if hasattr(pred.dataset.globalInfo, "jsonFiles"):   #pyhf
+            jfile = getJsonFileName(pred.dataset)
+            return f"{anaId}:{jfile}"
+        else:
+            return f"{anaId}:{dtype}"                       #SLv1,v2
+    else:
+        dsId = pred.dataId()                                #for em-type results
+        return f"{anaId}:{dsId}"
+
+
 def getAllPidsOfTheoryPred ( pred : TheoryPrediction ) -> Set:
     """ get all pids that make it into a theory prediction """
     def addPDGs ( pids, pid ):
