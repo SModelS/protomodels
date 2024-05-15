@@ -115,10 +115,8 @@ def selectMostSignificantSRs(predictions: list[TheoryPrediction], percent_bound:
 
     ret = []
     for Id, preds in sortByAnaId.items():
-        # If only 1 prediction, use it (could be combined result, or only one em result)
         if len(preds) == 1:
             ret.append(preds[0])
-            # keptThese.append ( preds[0].experimentalId() )   #self.getPredictionID ( pred )
             continue
 
         maxRatio, ratioList = 0.0, {}
@@ -165,6 +163,8 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
         if nll0 is not None and nll1 is not None:
             # w = -2 * (ll0 - ll1) = 2 * (ll1 - ll0) = 2 * (-ll0 - (-ll1)) = 2 * (nll0 - nll1)
             w = 2 * (nll0 - nll1)
+        if np.isnan(w):
+            continue
         tpId = getTPName(tpred)
         weights[tpId] = w
         theoryPred[tpId] = tpred
