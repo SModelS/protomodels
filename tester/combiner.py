@@ -380,7 +380,7 @@ class Combiner ( LoggerBase ):
         nobs = mumax + nbg
 
         return (nobs,nbg)
-    
+
     #!remove function later as already in SModelS
     def findMuHatApprox ( self, combination ):
         """ find the maximum likelihood estimate for the signal strength mu in the gaussian limit"""
@@ -597,9 +597,9 @@ class Combiner ( LoggerBase ):
         #                      "; ".join(map(str,prediction.PIDs) ) )
 
     def sortPredictions ( self, predictions : List ) -> List:
-        """ filter the predections and sort according to decreasing L_BSM/L_SM. Return the
+        """ filter the predictions and sort according to decreasing L_BSM/L_SM. Return the
             sorted list of filtered predictions
-        
+
         :param predictions: list of theory predictions
         :returns: sorted list of filtered theory predictions
         """
@@ -608,13 +608,14 @@ class Combiner ( LoggerBase ):
         for pred in predictions:
             l0 = pred.likelihood ( 0. )    #SM mu = 0
             l1 = pred.likelihood ( 1. )    #BSM mu = 1
-            llhd_ratio = -1.
+            # llhd_ratio = -1.
             if type(l0)!=type(None) and type(l1)!=type(None):
                 llhd_ratio = l1/l0
                 diff = abs(llhd_ratio - 1.0)
                 if diff < 1e-05: continue
+            else: continue   #TP: If computation of l0 or l1 gave None, do not consider the SR
             sorted_pred[pred] = llhd_ratio
-        
+
         #sort acc to decreasing llhd ratio
         sorted_pred = dict(sorted(sorted_pred.items(), key = lambda item:item[1], reverse=True))
         newpreds = list ( sorted_pred.keys() )
@@ -634,7 +635,7 @@ class Combiner ( LoggerBase ):
             if not Id in sortByAnaId:
                 sortByAnaId[Id]=[]
             sortByAnaId[Id].append ( pred )         #keep all em-type ds of one analysis ubder one kwy
-        
+
         ret = []
         keptThese = [] ## log the ana ids that we kept, for debugging only.
         for Id,preds in sortByAnaId.items():
@@ -642,7 +643,7 @@ class Combiner ( LoggerBase ):
                 ret.append( preds[0] )
                 keptThese.append ( preds[0].experimentalId() )   #self.getPredictionID ( pred )
                 continue
-            
+
             maxRatio, ratioList, signPreds = 0., {}, []
             for pred in preds:
                 l0 = pred.likelihood(mu=0,expected=False)
@@ -651,17 +652,17 @@ class Combiner ( LoggerBase ):
                 ratioList[pred] = ratio
                 if ratio > maxRatio:
                     maxRatio = ratio
-            
+
             ratioList = {k:v for k,v in sorted(ratioList.items(), key=lambda item:item[1], reverse=True)}
             # remove the bottom half, or comapre it to the maxRatio?
             if maxRatio > 0.:
                 signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio > 0. ]
             else:
                 signPreds = [pred for pred, ratio in ratioList.items() if (ratio/maxRatio - 0.) > 1e-05 ]   #???
-            
+
             ret = ret + signPreds
             keptThese = keptThese + [pred.experimentalId() for pred in signPreds]
-            
+
         self.pprint ( f"selected predictions down via SRs from {len(predictions)}"\
                       f" to {len(ret)}." )
         return ret
@@ -736,33 +737,55 @@ class Combiner ( LoggerBase ):
                 l = 1e-10
             ret *= l
         return ret
-    
+
     def getMostSignificantCombination(self, predictions : List[TheoryPrediction], expected : bool =False) -> Tuple:
         """
-            Gets the most significant combination and it corresponding weight (-2 ln L0/L1 for the whole combination)
-            given the list of theory predictions
+            Gets the most significant combination and its corresponding weight (-2 ln L0/L1 for the whole combination)
+            given the list of theory predictions.
         """
         comb_dict = bamAndWeights(predictions, expected)        #get the true/false comb matrix, along with weights
         pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
-        
+
         most_significant_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
         comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
 
         #from ptools.helpers import experimentalId
         #tpred_lbl = {experimentalId(tpred):tpred for tpred in predictions}
-        
+
         #convert best labels to theorypreds
         tp_comb = []
         for lbl in comb_lbl:
             tp = pred_dict[lbl]
             tp_comb.append(tp)
-        
+
         return tp_comb, weight
-    
+
+    def getMostSensitiveCombination(self, predictions : List[TheoryPrediction], expected : bool =True) -> Tuple:
+        """
+            Gets the most sensitive combination and its corresponding weight (-2 ln L1/L0 for the whole combination)
+            given the list of theory predictions.
+        """
+        comb_dict = bamAndWeights(predictions, expected, excl_mode=True)        #get the true/false comb matrix, along with weights
+        pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
+
+        most_significant_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
+        comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
+
+        #from ptools.helpers import experimentalId
+        #tpred_lbl = {experimentalId(tpred):tpred for tpred in predictions}
+
+        #convert best labels to theorypreds
+        tp_comb = []
+        for lbl in comb_lbl:
+            tp = pred_dict[lbl]
+            tp_comb.append(tp)
+
+        return tp_comb, weight
+
     def getMuhat(self, predictions : List[TheoryPrediction])->float:
         tpredcomb = TheoryPredictionsCombiner(predictions)
         return tpredcomb.muhat()
-        
+
     def findHighestSignificance ( self, predictions : List[TheoryPrediction], expected : bool =False ) -> Tuple:
         """ for the given list of predictions and employing the given combination strategy,
         find the combination with highest significance, SORT PREDICTIONS!
@@ -774,21 +797,21 @@ class Combiner ( LoggerBase ):
         into an exclusion
         :returns: best combination, significance (Z), likelihood equivalent
         """
-        
+
         #for now, keep all SRs, let Pathfinder find best combination of all SRs
         #predictions = self.selectMostSignificantSR ( predictions )         !old method
         #predictions = self.sortPredictions ( predictions )                 !old method
-        
+
         filtered_preds = selectMostSignificantSRs(predictions)
         self.letters = self.getLetters ( filtered_preds )
-          
+
         self.pprint(f"Filtered predictions from {len(predictions)} to {len(filtered_preds)}")
-        
+
         most_significant_comb, weight = self.getMostSignificantCombination(filtered_preds)
-        
+
         muhat = self.getMuhat(most_significant_comb)
         TL = weight
-        
+
         #!old code
         #combinables = self.findCombinations ( predictions, strategy )      !old method
         # singlepreds = [ [x] for x in predictions ]
@@ -803,7 +826,7 @@ class Combiner ( LoggerBase ):
         #else:
         #    llhd = None
         # self.pprint ( "bestCombo %s, %s, %s " % ( Z, llhd, muhat ) )
-        
+
         return most_significant_comb,TL,muhat
 
     def removeDataFromBestCombo ( self, bestCombo ):

@@ -9,7 +9,7 @@ __all__ = [ "Predictor" ]
 
 import pickle, time, os, sys
 from smodels.decomposition import decomposer
-from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
+from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionList, TheoryPredictionsCombiner
 sys.path.insert(0,"../")
 from builder.protomodel import ProtoModel
 from smodels.share.models.SMparticles import SMList
@@ -232,8 +232,9 @@ class Predictor ( LoggerBase ):
             self.ul_critic_preds = ul_critic_preds
             self.llhd_critic_preds = llhd_critic_preds
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictionsWithULPreds(protomodel,ul_critic_preds)
-        self.updateModelPredictionsWithCombinedPreds(protomodel,llhd_critic_preds)
+        self.updateModelPredictionsWithULPreds(protomodel, ul_critic_preds)
+        self.updateModelPredictionsWithCombinedPreds(protomodel, llhd_critic_preds,
+                                                        cut=0.1, keep_predictions=keep_predictions)
         # self.log ( "model is excluded? %s" % str(protomodel.excluded) )
 
         # Compute the maximum allowed (global) mu value given the r-values
@@ -275,7 +276,7 @@ class Predictor ( LoggerBase ):
         return True
 
     def runSModelS(self, inputFile : PathLike, sigmacut,
-            allpreds : bool, ULpreds : bool ) -> List[TheoryPrediction]:
+            allpreds : bool, ULpreds : bool, maxcond : float = 0.2 ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
         :param sigmacut: the cut on the topology weights, typically 0.02*fb
@@ -318,25 +319,27 @@ class Predictor ( LoggerBase ):
             from smodels.base import runtime
             runtime._experimental = True
         combinedIds = set() # the analysis ids of the combined
-        datasetPreds = [] # the SR specific predictions
+        EMpreds = [] # the SR specific predictions
         predictions = []
         ulpreds = []
 
-        preds = theoryPredictionsFor ( self.database, topos,
+        theoryPredictions = theoryPredictionsFor ( self.database, topos,
                                        useBestDataset=bestDataSet,
                                        combinedResults=self.do_srcombine )
+        preds = TheoryPredictionList(theoryPredictions, maxcond)
+
         if preds != None:
             for pred in preds:
                 if pred.dataType() == 'upperLimit':
                     ulpreds.append ( pred )
                     continue
-                datasetPreds.append ( pred )
+                EMpreds.append ( pred )
 
-        for pred in datasetPreds:
+        for pred in EMpreds:
             if pred.dataType() == "combined":
                 predictions.append ( pred )
                 combinedIds.add ( pred.dataset.globalInfo.id )
-        for pred in datasetPreds:
+        for pred in EMpreds:
             if pred.dataset.globalInfo.id in combinedIds:
                 continue
             predictions.append ( pred )
@@ -414,16 +417,43 @@ class Predictor ( LoggerBase ):
             critic_description.append ( tmp )
         if len(tpList)>3:
             critic_description.append ( "...")
-        protomodel.critic_description = ",".join ( critic_description )
+        protomodel.critic_description = "Fast critic datasets:" + ",".join ( critic_description )
 
-    def updateModelPredictionsWithCombinedPreds(self, protomodel, llhd_critic_preds):
+    def updateModelPredictionsWithCombinedPreds(self, protomodel, llhd_critic_preds, cut, keep_predictions = False):
         """ Extract information from list of theory predictions and store robs from
             the most sensitive combination of analyses in the protomodel.
 
             :param llhd_critic_preds: theory predictions for EM-type results
+            :param cut: theory predictions giving an r_exp below this cut will not enter the combination
         """
+        from ptools.helpers import experimentalId
 
-        protomodel.llhd_type_rvalue = 10.
+        EMpreds = []
+
+        if cut > 0:
+            for tpred in llhd_critic_preds:
+                r_exp = tpred.getRValue(expected = True)
+                if r_exp >= cut:
+                    EMpreds.append(tpred)
+            if keep_predictions:
+                self.llhd_critic_preds = EMpreds
+        else:
+            EMpreds = llhd_critic_preds
+
+        best_comb, weight = self.combiner.getMostSensitiveCombination(llhd_critic_preds)
+
+        if best_comb:
+            tpCombiner = TheoryPredictionsCombiner(best_comb)
+            r = tpCombiner.getRValue(expected=False)
+
+        if r is None:
+            logger.warning ("The computation of the observed r-value of the most sensitive combination gave None.")
+
+        protomodel.llhd_type_rvalue = r
+
+        protomodel.critic_description += "; llhd-based critic combined datasets:" + ",".join( [experimentalId(comb) for comb in best_comb] ) + f"with r={r}"
+
+        return
 
 
     def getMaxAllowedMu(self, protomodel):
@@ -447,8 +477,9 @@ class Predictor ( LoggerBase ):
         ## find highest observed significance
         #(set mumax just slightly below its value, so muhat is always below)
         mumax = protomodel.mumax
-        bestCombo,Z,llhd,muhat = self.combiner.findHighestSignificance ( predictions,
-                strategy, expected=False, mumax = mumax )
+        bestCombo,Z,llhd,muhat = self.combiner.findHighestSignificance ( predictions, #strategy, (old version)
+                                            expected=False, #mumax = mumax (old version)
+                                            )
         prior = self.combiner.computePrior ( protomodel )
         ## temporary hack: penalize for missing experiment
         missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )

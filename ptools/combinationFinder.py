@@ -14,8 +14,9 @@ from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPredic
 __all__ = [ "selectMostSignificantSRs", "bamAndWeights", "find_best_comb"  ]
 
 def selectMostSignificantSRs ( predictions: list[TheoryPrediction], bound: float = 5 ) -> List:
-    """ given the predictions, return the "x" most significant SRs per analysis
-        .
+    """
+    Given the predictions, return the "x" most significant SRs per analysis.
+
     :param predictions: all predictions of all SRs
     :param bound: an upper bound on the percentage of ratios of weights of SRs per analysis
     :returns: list of predictions of "x" most significant SRs of each analysis
@@ -25,8 +26,8 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction], bound: float
         Id = pred.analysisId()+":"+pred.dataType(True)
         if not Id in sortByAnaId:
             sortByAnaId[Id]=[]
-        sortByAnaId[Id].append ( pred )         #keep all em-type ds of one analysis ubder one key
-    
+        sortByAnaId[Id].append ( pred )         #keep all em-type ds of one analysis under one key
+
     ret = []
     #keptThese = [] ## log the ana ids that we kept, for debugging only.
     for Id,preds in sortByAnaId.items():
@@ -34,49 +35,52 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction], bound: float
             ret.append( preds[0] )
             #keptThese.append ( preds[0].experimentalId() )   #self.getPredictionID ( pred )
             continue
-        
+
         maxRatio, ratioList = 0., {}
         for pred in preds:
-            nll0 = pred.likelihood(mu=0,expected=False, return_nll=True)
-            nll1 = pred.likelihood(mu=1,expected=False, return_nll=True)
+            nll0 = pred.likelihood(mu=0, expected=False, return_nll=True)
+            nll1 = pred.likelihood(mu=1, expected=False, return_nll=True)
+            if nll0 is None or nll1 is None: continue
             ratio = 2 * (nll0 - nll1)
             ratioList[pred] = ratio
             if ratio > maxRatio:
                 maxRatio = ratio
-        
+
         ratioList = {k:v for k,v in sorted(ratioList.items(), key=lambda item:item[1], reverse=True)}
         signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= (bound/100.) ]
-        
+
         if len(signPreds) == 1:
             secondPred = list(ratioList.keys())[1]
             signPreds.append(secondPred)
-        
+
         ret = ret + signPreds
         #keptThese = keptThese + [pred.experimentalId() for pred in signPreds]
         #self.pprint ( f"selected predictions down via SRs from {len(predictions)}"\f" to {len(ret)}." )
-      
+
     return ret
 
 def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = False, excl_mode: bool = False) -> Dict:
-    """ a simple function that takes a list of theory predictions,
+    """
+    A simple function that takes a list of theory predictions,
     and from this compute a small binary acceptance matrix (bam) in the guise
     of a dictionary, returns the bam alongside with the dictionary of weights
 
     :returns: dictionary of bam and weights
     """
     from ptools.helpers import experimentalId
-    
+
     bam, weights, theoryPred = {}, {}, {}
-    
+
     for i, tpred in enumerate(theorypredictions):
-        nll0 = tpred.lsm(expected=expected, return_nll=True)
-        nll1 = tpred.likelihood(expected=expected, return_nll=True)
+        # nll0 = tpred.lsm(expected=expected, return_nll=True)
+        nll0 = tpred.likelihood(mu=0, expected=expected, return_nll=True)
+        nll1 = tpred.likelihood(mu=1, expected=expected, return_nll=True)
         w = np.NaN
         if nll0 is not None and nll1 is not None:
             # w = -2 * (ll0 - ll1) = 2 * (ll1 - ll0) = 2 * (-ll0 - (-ll1)) = 2 * (nll0 - nll1) for anamoly mode
             w = 2 * (nll0 - nll1)
             if excl_mode: w = -2 * (nll0 - nll1)
-        
+
         tpId = experimentalId(tpred)
         weights[tpId] = w
         theoryPred[tpId] = tpred
@@ -88,7 +92,7 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
                 bam[tpId].add(tpId2)
 
     return {"weights": weights, "bam": bam, "theoryPred": theoryPred}
-    
+
 def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
     """
     Construct the binary_acceptance_matrix and weights from the the Dictionary type provided by SModelS.
@@ -107,12 +111,12 @@ def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
     bam = np.zeros((len(columns_labels), len(columns_labels)), dtype=bool)
     for i, key in enumerate(columns_labels):
         bam[i, :] = [True if sr in over[key] else False for sr in columns_labels]
-    
+
     if not np.allclose(bam, bam.T):
         print("ERROR: Bam not symmetric!")      #move to loggerbase comment later on when loggerbase.py is moved
-    
+
     bam |= np.triu(bam).T                       #ensure matrix is symmetric
-    
+
     weight_array = np.array([item for _, item in weight.items()])
     order = np.argsort(weight_array)[::-1]
     return {'bam': bam[order, :][:, order],
@@ -158,13 +162,10 @@ def find_best_comb(bam_weight_dict: Dict) -> Dict[str, float]:
     Returns:
         Dict[str, float, int]: Dictionary of list of best srs and corresponding weight for the given bam_weight_dict
     """
-    
+
     bam_wgths = get_bam_weight(bam_weight_dict['bam'], bam_weight_dict['weights'])                #get bam and corresponfding weights
     temp_res = get_best_set(bam_wgths['bam'], bam_wgths['weights'])         #get best path for bam and weight
     best_labels = [bam_wgths['labels'][p] for p in temp_res['path']]        #get corresponding srs in best path
-    
+
     result = {'best': best_labels, 'weight': temp_res['weight'], 'offset': temp_res['offset']}   #store labels and weight in dict
     return result
-
-
-
