@@ -47,11 +47,11 @@ class Hiscores ( LoggerBase ):
             self.hiscores = hiscores
             self.mtime = time.time()
 
-    def currentMinZ ( self ):
-        """ the current minimum Z to make it into the list. """
+    def currentMinTL ( self ):
+        """ the current minimum TL to make it into the list. """
         if self.hiscores[-1] == None:
             return 0.
-        return self.hiscores[-1].Z
+        return self.hiscores[-1].TL
 
     def currentMinK ( self, zeroIsMin=False ):
         """ the current minimum K to make it into the list.
@@ -70,15 +70,15 @@ class Hiscores ( LoggerBase ):
             return max ( mk, 0. )
         return mk
 
-    def globalMaxZ ( self ):
-        """ globally (across all walkers), the highest Z """
+    def globalMaxTL ( self ):
+        """ globally (across all walkers), the highest TL """
         ret = 0.
         if self.hiscores[0] != None:
-            if self.hiscores[0].Z > ret:
-                ret = self.hiscores[0].Z
-        Zoldfile = "Zold.conf"
-        if os.path.exists ( Zoldfile ):
-            with open ( Zoldfile, "rt" ) as f:
+            if self.hiscores[0].TL > ret:
+                ret = self.hiscores[0].TL
+        TLoldfile = "TLold.conf"
+        if os.path.exists ( TLoldfile ):
+            with open ( TLoldfile, "rt" ) as f:
                 lines = f.readlines()
                 if len(lines)>0:
                     ret = float(lines[0])
@@ -118,8 +118,8 @@ class Hiscores ( LoggerBase ):
         dK = abs ( a["K"] - b["K"] )
         if dK > 1e-5:
             return False
-        dZ = abs ( a["Z"] - b["Z"] )
-        if dZ > 1e-5:
+        dTL = abs ( a["TL"] - b["TL"] )
+        if dTL > 1e-5:
             return False
         if a["masses"].keys() != b["masses"].keys():
             return False
@@ -271,10 +271,10 @@ class Hiscores ( LoggerBase ):
         manipulator.backupModel()
 
         unfrozen = manipulator.M.unFrozenParticles( withLSP=False )
-        oldZ = manipulator.M.Z
+        oldTL = manipulator.M.TL
         oldK = manipulator.M.K
         particleContributions = {} ## save the scores for the non-discarded particles.
-        #particleContributionsZ = {} ## save the scores for the non-discarded particles, Zs
+        #particleContributionsTL = {} ## save the scores for the non-discarded particles, TLs
 
         #Make sure predictor is accesible
         if not self.predictor:
@@ -293,32 +293,32 @@ class Hiscores ( LoggerBase ):
             #Recompute cross-secions:
             manipulator.M.getXsecs()
             manipulator.M.K = 0.0
-            manipulator.M.Z = 0.0
+            manipulator.M.TL = 0.0
             self.predictor.predict( manipulator.M )
             if manipulator.M.K is None:
                 self.pprint ( "when removing %s, K could not longer be computed. Setting to zero"% ( self.namer.asciiName(pid)))
                 manipulator.M.K = 0.0
-                manipulator.M.Z = 0.0
+                manipulator.M.TL = 0.0
             if oldK <= 0:
                 percK = 0.
             else:
                 percK = ( manipulator.M.K - oldK ) / oldK
-                self.pprint ( "when removing %s, K changed: %.3f -> %.3f (%.1f%s), Z: %.3f -> %.3f (%d evts)" % \
-                    ( self.namer.asciiName(pid), oldK, manipulator.M.K, 100.*percK, "%", oldZ,manipulator.M.Z, manipulator.M.nevents ) )
+                self.pprint ( "when removing %s, K changed: %.3f -> %.3f (%.1f%s), TL: %.3f -> %.3f (%d evts)" % \
+                    ( self.namer.asciiName(pid), oldK, manipulator.M.K, 100.*percK, "%", oldTL,manipulator.M.TL, manipulator.M.nevents ) )
 
-            #Store the new Z and K values in the original model:
+            #Store the new TL and K values in the original model:
             particleContributions[pid]=manipulator.M.K
-            #particleContributionsZ[pid]=manipulator.M.Z
+            #particleContributionsTL[pid]=manipulator.M.TL
             #Make sure to restore the model to its initial (full particle content) state
             manipulator.restoreModel()
             #Store contributions in the protomodel:
             manipulator.M.particleContributions = particleContributions
-            #manipulator.M.particleContributionsZ = particleContributionsZ
+            #manipulator.M.particleContributionsTL = particleContributionsTL
 
         self.pprint ( "stored %d particle contributions" % len(manipulator.M.particleContributions) )
 
     def computeAnalysisContributions( self, manipulator ):
-        """ compute the contributions to Z of the individual analyses
+        """ compute the contributions to TL of the individual analyses
         :returns: the model with the analysic constributions attached as
                   .analysisContributions
         """
@@ -326,11 +326,11 @@ class Hiscores ( LoggerBase ):
         try:
             self.pprint ( "Now computing analysis contributions" )
             self.pprint ( f"Recompute the score. Old one at K={manipulator.M.K:.3f}"
-                          f", Z={manipulator.M.Z:.2f}" )
-            contributionsZ = {}
+                          f", TL={manipulator.M.TL:.2f}" )
+            contributionsTL = {}
             contributionsK = {}
             combiner = Combiner()
-            dZtot, dKtot = 0., 0.
+            dTLtot, dKtot = 0., 0.
             bestCombo = copy.deepcopy ( manipulator.M.bestCombo )
             #self.pprint ( "we have %d entries in best combo" % len(bestCombo) )
             prior = combiner.computePrior ( manipulator.M )
@@ -340,9 +340,9 @@ class Hiscores ( LoggerBase ):
                 combo = bestCombo[:ctr]+bestCombo[ctr+1:]
                 # combo = copy.deepcopy ( bestCombo )[:ctr]+copy.deepcopy ( bestCombo)[ctr+1:]
                 #self.pprint ( "deep copy still worked: %d" % (len(combo)) )
-                Z, muhat_ = combiner.getSignificance ( combo )
-                #self.pprint ( "Z for %d is %s" % ( ctr, Z ) )
-                K = combiner.computeK ( Z, prior )
+                TL, muhat_ = combiner.getSignificance ( combo )
+                #self.pprint ( "TL for %d is %s" % ( ctr, TL ) )
+                K = combiner.computeK ( TL, prior )
                 #self.pprint ( "K for %d is %s" % ( ctr, K ) )
                 contributionsK [ ctr ] = K
             self.pprint ( "finished computing contributions" )
@@ -502,11 +502,11 @@ class Hiscores ( LoggerBase ):
                 return f"{value:.2f}"
             return str(value)
         K = pprint ( ma.M.K )
-        Z = pprint ( ma.M.Z )
+        TL = pprint ( ma.M.TL )
         minK = pprint ( self.currentMinK() )
         saving = "yes" if self.save_hiscores else "no"
             
-        self.pprint ( f"New result with K={K}, Z={Z}, needs to pass K>{minK}, saving: {saving}" )
+        self.pprint ( f"New result with K={K}, TL={TL}, needs to pass K>{minK}, saving: {saving}" )
         if not self.save_hiscores:
             return False
         if ma.M.K == None:

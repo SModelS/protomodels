@@ -36,7 +36,7 @@ class Initialiser ( LoggerBase ):
         self.cachefile = "pids.cache"
         self.meta = d["meta"]
         self.data = d["data"]
-        self.Zmax = 1. # disregard all results below this
+        self.TLmax = 1. # disregard all results below this
         self.computePDict()
         self.setMassRanges()
         re = self.readInitialData()
@@ -179,15 +179,15 @@ class Initialiser ( LoggerBase ):
         prels = {}
         ptot = 0.
         for anaAndSRName,stats in self.data.items():
-            if not "Z" in stats:
+            if not "TL" in stats:
                 continue
-            Z = stats["Z"] # make sure we have unique Zs
-            if Z < self.Zmax: # we dont look at underfluctuations, or small Zs
+            TL = stats["TL"] # make sure we have unique TLs
+            if TL < self.TLmax: # we dont look at underfluctuations, or small TLs
                 continue
             ## FIXME for now we shoose by exp(Z), maybe
             ## we do sth better motivated
             # prel = np.exp ( Z )
-            prel = 1. / ( 1. - scipy.stats.norm.cdf ( Z ) )
+            prel = 1. / ( 1. - scipy.stats.norm.cdf ( np.sqrt(TL) ) )
             while prel in prels:
                 prel+=1e-10
             value = stats
