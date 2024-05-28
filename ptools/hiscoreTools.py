@@ -22,8 +22,8 @@ from os import PathLike
 def count ( protomodels : List[ProtoModel] ) -> int:
     return len(protomodels)-protomodels.count(None)
 
-def sortByZ ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
-    protomodels.sort ( reverse=True, key = lambda x: x.Z )
+def sortByTL ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
+    protomodels.sort ( reverse=True, key = lambda x: x.TL )
     return protomodels[:n] ## only n
 
 def sortByK ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
@@ -31,13 +31,13 @@ def sortByK ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
     return protomodels[:n] ## only n
 
 def discuss ( protomodel, name ):
-    print ( f"Currently {name:7s} K={protomodel.K:.3f}, Z={protomodel.Z:.3f} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{protomodel.walkerid})" )
+    print ( f"Currently {name:7s} K={protomodel.K:.3f}, TL={protomodel.TL:.3f} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{protomodel.walkerid})" )
 
 def discussBest ( protomodel, detailed ):
     """ a detailed discussion of number 1 """
-    p = 2. * ( 1. - stats.norm.cdf ( protomodel.Z ) ) ## two times because one-sided
-    print ( "Current      best K=%.3f, Z=%.3f, p=%.2g [%d/%d particles, %d predictions] (walker #%d)" % \
-            ( protomodel.K, protomodel.Z, p, len(protomodel.unFrozenParticles()),len(protomodel.masses.keys()),len(protomodel.bestCombo), protomodel.walkerid ) )
+    p = 2. * ( 1. - stats.norm.cdf ( protomodel.TL ) ) ## two times because one-sided
+    print ( "Current      best K=%.3f, TL=%.3f, p=%.2g [%d/%d particles, %d predictions] (walker #%d)" % \
+            ( protomodel.K, protomodel.TL, p, len(protomodel.unFrozenParticles()),len(protomodel.masses.keys()),len(protomodel.bestCombo), protomodel.walkerid ) )
     if detailed:
         print ( f"Solution was found in step #{protomodel.step}" )
         for i in protomodel.bestCombo:
@@ -71,7 +71,7 @@ def obtainHiscore ( number : int,
     :returns: protomodel object
     """
     hi = fetchHiscoresObj ( hiscorefile )
-    Z = hi.hiscores[number].Z
+    TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K
     print ( f"[hiscoreTools] obtaining #{number}: K={K:.3f}" )
     ret = hi.hiscores[ number ]
@@ -106,12 +106,12 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
     def compare ( dentry, pentry ) -> bool:
         ## compare one dictentry with one pickleentry,
         ## true, if things are different
-        newV = dentry["K"] + dentry["Z"] + sum(dentry["masses"].values()) + \
+        newV = dentry["K"] + dentry["TL"] + sum(dentry["masses"].values()) + \
                sum(dentry["ssmultipliers"].values())
         if pentry == None:
             return True
 
-        oldV = pentry.K + pentry.Z + sum(pentry.masses.values()) + \
+        oldV = pentry.K + pentry.TL + sum(pentry.masses.values()) + \
                sum(pentry.ssmultipliers.values())
         if 2. * abs( newV - oldV ) / ( newV + oldV ) > 1e-4:
             # print ( f"[hiscoreTools] top V value changed {newV:.3f}..{oldV:.3f}" )
@@ -190,7 +190,7 @@ def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
                     ret["ssmultipliers"][pidpair]=ssms
         else:
             ret["masses"][pid]=.5*m + .5*ret["masses"][pid]
-    for drop in [ "K", "Z", "xsecs[fb]", "walkerid", "step" ]:
+    for drop in [ "K", "TL", "xsecs[fb]", "walkerid", "step" ]:
         if drop in ret:
             ret.pop( drop )
     ret["timestamp"] = time.asctime()

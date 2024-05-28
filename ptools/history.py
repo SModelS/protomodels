@@ -25,7 +25,7 @@ class History ( LoggerBase ):
         protomodel = ma.M
         D = protomodel.dict()
         D["K"]=protomodel.K
-        D["Z"]=protomodel.Z
+        D["TL"]=protomodel.TL
         D["step"]=protomodel.step
         bc=[]
         if protomodel.bestCombo != None:
