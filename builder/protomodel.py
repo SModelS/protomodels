@@ -88,7 +88,7 @@ class ProtoModel ( LoggerBase ):
         self.llhd=0.
         self.muhat = 1.
         self.mumax = None # the maximum mu allowed by the critic
-        self.Z = 0.0
+        self.TL = 0.0
         self.K = None
         self.letters = ""
         self.description = ""
@@ -160,10 +160,10 @@ class ProtoModel ( LoggerBase ):
             pStr += f' K = {self.K:1.2f}'
         else:
             pStr += f' K = {self.K}'
-        if self.Z:
-            pStr += f', Z = {self.Z:1.2f}'
+        if self.TL:
+            pStr += f', TL = {self.TL:1.2f}'
         else:
-            pStr += f', Z = {self.Z}'
+            pStr += f', TL = {self.TL}'
 
         return pStr
 
@@ -173,10 +173,10 @@ class ProtoModel ( LoggerBase ):
         import numpy as np
         if type(self.K) in [ float, np.float64 ]:
             sK=f"{self.K:1.2f}"
-        sZ = str(self.Z)
-        if type(self.Z) in [ float, np.float64 ]:
-            sZ=f"{self.Z:1.2f}"
-        pStr = f'ProtoModel ({sK}, {sZ})'
+        sTL = str(self.TL)
+        if type(self.TL) in [ float, np.float64 ]:
+            sTL=f"{self.TL:1.2f}"
+        pStr = f'ProtoModel ({sK}, {sTL})'
         return pStr
 
     def hasAntiParticle ( self, pid ):
@@ -612,7 +612,7 @@ class ProtoModel ( LoggerBase ):
         newmodel.llhd = self.llhd
         newmodel.muhat = self.muhat
         newmodel.mumax = self.mumax
-        newmodel.Z = self.Z
+        newmodel.TL = self.TL
         newmodel.K = self.K
         newmodel.letters = self.letters[:]
         newmodel.description = self.description[:]

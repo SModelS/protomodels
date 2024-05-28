@@ -288,7 +288,7 @@ class Manipulator ( LoggerBase ):
                     D["ssmultipliers"][k]=round(v,ndecimals)
         if hasattr ( self, "seed" ) and self.seed != None:
             D["seed"]=self.seed
-        D["Z"]=nround(self.M.Z,ndecimals)
+        D["TL"]=nround(self.M.TL,ndecimals)
         D["K"]=nround(self.M.K,ndecimals)
         if not cleanOut:
             import time
@@ -328,7 +328,7 @@ class Manipulator ( LoggerBase ):
         """ setup the protomodel from dictionary in file <filename>.
             If it is a list of dictionaries, take the 1st entry.
         :param filename: name of file
-        :param initTestStats: if True, set also test statistics K and Z
+        :param initTestStats: if True, set also test statistics K and TL
         :param nth: if we find a list of models, pick the nth. 0 = 1st. If nth
                     does not exist, return False
         :returns: true, if successful
@@ -396,7 +396,7 @@ class Manipulator ( LoggerBase ):
         """ setup the protomodel from dictionary D.
         :param D: dictionary, as defined in pmodel*.dict files.
         :param filename: name of origin. not necessary, only for logging.
-        :param initTestStats: if True, set also test statistics K and Z
+        :param initTestStats: if True, set also test statistics K and TL
         """
         scom = ""
         if "comment" in D:
@@ -426,8 +426,8 @@ class Manipulator ( LoggerBase ):
         if "walkerid" in D:
             self.M.walkerid = D["walkerid"]
         if initTestStats:
-            if "Z" in D:
-                self.M.Z = D["Z"]
+            if "TL" in D:
+                self.M.TL = D["TL"]
             if "K" in D:
                 self.M.K = D["K"]
         if "xsecs[fb]" in D:
@@ -720,16 +720,16 @@ class Manipulator ( LoggerBase ):
         """ lengthy description of protomodel
         :param allTheoryPredictions: if true, list all theory preds
         """
-        sK, sZ = str(self.M.K), str(self.M.Z)
+        sK, sTL = str(self.M.K), str(self.M.TL)
         try:
             sK="%1.2f" % self.M.K
         except:
             pass
         try:
-            sZ="%1.2f" % self.M.Z
+            sTL="%1.2f" % self.M.TL
         except:
             pass
-        print( f'\nK = {sK}, Z = {sZ}, muhat = {self.M.muhat:1.2f}, mumax={self.M.mumax:1.3g}' )
+        print( f'\nK = {sK}, TL = {sTL}, muhat = {self.M.muhat:1.2f}, mumax={self.M.mumax:1.3g}' )
         print('  * Best Combo:')
         for tp in self.M.bestCombo:
             txns = ",".join ( set ( map ( str, tp.txnames ) ) )
@@ -781,7 +781,7 @@ class Manipulator ( LoggerBase ):
         self.log ( "rescaling signal by muhat of %.2f" % s )
         self.M.rvalues = [r*s for r in self.M.rvalues[:]]
         self.M.muhat *= 1./s
-        self.M.mumax *= 1./s
+        if self.M.mumax: self.M.mumax*= 1./s
         self.M.rescaleXSecsBy(s)
 
         if hasattr(self.M,'tpList') and self.M.tpList is not None:
@@ -856,11 +856,11 @@ class Manipulator ( LoggerBase ):
         if (not force) and nUnfrozen > 1:
             nTotal = len ( self.M.particles )
             denom = 1.
-            if type(self.M.Z) in [ float, np.float64 ]:
-                denom = self.M.Z+1.
+            if type(self.M.TL) in [ float, np.float64 ]:
+                denom = self.M.TL+1.
             if denom < 1.:
                 denom = 1.
-            mu = 1. - .7 / denom ## make it more unlikely when Z is high
+            mu = 1. - .7 / denom ## make it more unlikely when TL is high
             uUnfreeze = random.gauss( mu ,sigma)
             if uUnfreeze < nUnfrozen/float(nTotal):
                 return 0
@@ -1159,8 +1159,8 @@ class Manipulator ( LoggerBase ):
 
         nTotal = len ( self.M.particles )
         denom = 1.
-        if type(self.M.Z) in [ float, np.float64 ]:
-            denom = self.M.Z+1.
+        if type(self.M.TL) in [ float, np.float64 ]:
+            denom = self.M.TL+1.
         if denom < 1.:
             denom = 1.
         mu = .4 / denom ## make it more unlikely when Z is high
@@ -1406,7 +1406,7 @@ class Manipulator ( LoggerBase ):
         :returns: 1 for success
         """
         if dx == None:
-            denom = self.M.Z + 1.
+            denom = self.M.TL + 1.
             if denom < 1. or denom == None:
                 denom = 1.
             dx = 40. / np.sqrt ( len(self.M.unFrozenParticles() ) ) / denom
@@ -1847,6 +1847,8 @@ class Manipulator ( LoggerBase ):
     def getAllPidsOfBestCombo ( self ) -> Set:
         """ get all the particle ids of BSM particles in
         the best combo. """
+        if not self.M.bestCombo: #no combination
+            return None
         from tester.combiner import Combiner
         c = Combiner ( self.walkerid )
         return c.getAllPidsOfCombo ( self.M.bestCombo )
@@ -1869,7 +1871,7 @@ class Manipulator ( LoggerBase ):
     def backupModel ( self ):
         """ backup the current state """
 
-        self._backup = { "llhd": self.M.llhd, "letters": self.M.letters, "Z": self.M.Z,
+        self._backup = { "llhd": self.M.llhd, "letters": self.M.letters, "TL": self.M.TL,
                          "K": self.M.K, "muhat": self.M.muhat,
                          "description": self.M.description,
                          "tpList": copy.deepcopy(self.M.tpList),
