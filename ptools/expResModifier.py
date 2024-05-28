@@ -1183,7 +1183,7 @@ Just filter the database:
         if self.outfile is not None:
             if self.outfile == "":
                 self.outfile = self.suffix+".pcl"
-            statsname = None
+            statsname = self.suffix + ".dict"
             if self.playback not in [ None, "" ]:
                 self.playback ( self.playback, self.outfile )
                 statsname = "playback.dict"
