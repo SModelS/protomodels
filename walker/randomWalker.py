@@ -22,6 +22,7 @@ from walker.hiscores import Hiscores
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
+from tester.critic import Critic
 from ptools.sparticleNames import SParticleNames
 from pympler.asizeof import asizeof
 from smodels.base.smodelsLogging import logger
@@ -84,6 +85,8 @@ class RandomWalker ( LoggerBase ):
         #Initialize Predictor
         self.predictor =  Predictor( self.walkerid, dbpath=dbpath,
                               expected=expected, select=select, do_srcombine=do_srcombine )
+        self.critic =  Critic( self.walkerid, dbpath=dbpath,
+                              expected=expected, select=select, do_srcombine=do_srcombine )
 
         #Initialize Hiscore (with access to the predictor)
         picklefile = f"{self.rundir}/H{walkerid}.cache"
@@ -115,21 +118,22 @@ class RandomWalker ( LoggerBase ):
 
         if cheatcode <= 0:
             self.takeStep() # the first step should be considered as "taken"
-            #Set current Z and K values to threshold values
-            self.currentZ = -0.1
+            #Set current TL and K values to threshold values
+            self.currentTL = -0.1
             self.currentK = -20.0
         else:
             self.manipulator.cheat ( cheatcode )
-            self.predictor.predict(self.protomodel)
-            if type(self.manipulator.M.Z) != type(None):
-                self.pprint ( f"Cheat model gets Z={self.manipulator.M.Z:.2f}, "\
+            #self.predictor.predict(self.protomodel)
+            self.predict(self.manipulator)
+            if type(self.manipulator.M.TL) != type(None):
+                self.pprint ( f"Cheat model gets TL={self.manipulator.M.TL:.2f}, "\
                               f"K={self.manipulator.M.K:.2f}" )
             # self.printStats ( substep=4 )
             self.manipulator.backupModel()
             self.hiscoreList.newResult ( self.manipulator )
             self.printStats ( substep=5 )
             self.currentK = self.manipulator.M.K
-            self.currentZ = self.manipulator.M.Z
+            self.currentTL = self.manipulator.M.TL
 
     def setWalkerId ( self, Id ):
         self.walkerid = Id
@@ -203,28 +207,43 @@ class RandomWalker ( LoggerBase ):
     def printStats ( self, substep=None ):
         """ print the stats, i.e. number of unfrozen particles.
             for debugging. """
+        print(f"best Combo {self.manipulator.M.bestCombo}, step {self.manipulator.M.step}")
         nUnfrozen = len( self.protomodel.unFrozenParticles() )
         nTotal = len ( self.protomodel.particles )
         pidsp = self.protomodel.unFrozenParticles()
         pidsp.sort()
         namer = SParticleNames ( False )
-
+        
         prtcles = ", ".join ( map ( namer.asciiName, pidsp ) )
-        pidsbc = list ( self.manipulator.getAllPidsOfBestCombo() )
-        pidsbc.sort()
-        prtclesbc = ", ".join ( map ( namer.asciiName, pidsbc ) )
-        self.pprint ( f"Step {self.protomodel.step} has {nUnfrozen}/{nTotal} unfrozen particles: {prtcles} [in best combo: {prtclesbc}]" )
-        if len(pidsbc)>0 and not set(pidsbc).issubset ( set(pidsp) ):
-            self.pprint ( f"  `-- error! best combo pids ({pidsbc}) arent subset of masses pids ({pidsp})!" )
-            self.manipulator.M.bestCombo = None
+        if self.manipulator.M.bestCombo:
+            pidsbc = list ( self.manipulator.getAllPidsOfBestCombo() )
+            pidsbc.sort()
+            prtclesbc = ", ".join ( map ( namer.asciiName, pidsbc ) )
+            self.pprint ( f"Step {self.protomodel.step} has {nUnfrozen}/{nTotal} unfrozen particles: {prtcles} [in best combo: {prtclesbc}]" )
+            if len(pidsbc)>0 and not set(pidsbc).issubset ( set(pidsp) ):
+                self.pprint ( f"  `-- error! best combo pids ({pidsbc}) arent subset of masses pids ({pidsp})!" )
+                self.manipulator.M.bestCombo = None
 
-    def predict ( self, model : Union [ ProtoModel, None ] = None ):
-        """ convenience function """
-        if model == None:
-            self.predictor.predict(self.manipulator.M)
-        else:
+    def predict ( self, manipulator : Manipulator ):
+        """ Calls predictor.predict to get the theory predictions for model. Loops for 5 times till model.muhat is close to 1.0 """
+        #print(f"Adress of manip : {id(manipulator)}")
+        model = manipulator.M
+        muhat_converge = False
+        for i in range(5):
             self.predictor.predict(model)
-
+            #print(f"i {i}, muhat {model.muhat}, convergence {abs(model.muhat - 1.0)}")
+            if abs(model.muhat - 1.0) < 1e-03:
+                #print(f"i {i}, muhat {model.muhat}, Converged!")
+                muhat_converge = True
+                break
+            manipulator.rescaleSignalBy(model.muhat) #?
+        
+        if not muhat_converge:  #reverting step
+            self.pprint ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {model.muhat}. Going back to previous step." )
+            return False
+        
+        return True
+            
     def onestep ( self ):
         #Add one step
         self.protomodel.step+=1
@@ -239,9 +258,10 @@ class RandomWalker ( LoggerBase ):
 
         #Trim the model, so we start only with the relevant particles for the
         #best combination in the previous step:
-        self.log ( "freeze pids that arent in best combo, we dont need them:" )
-        nfrozen = self.manipulator.freezePidsNotInBestCombo()
-        self.log ( " `- froze %d particles not in best combo" % nfrozen )
+        if self.protomodel.bestCombo:
+            self.log ( "freeze pids that arent in best combo, we dont need them:" )
+            nfrozen = self.manipulator.freezePidsNotInBestCombo()
+            self.log ( " `- froze %d particles not in best combo" % nfrozen )
         # self.printStats( substep=12 )
 
         #Take a step in the model space:
@@ -250,17 +270,24 @@ class RandomWalker ( LoggerBase ):
 
         nUnfrozen = len( self.protomodel.unFrozenParticles() )
         ## number of pids in best combo, as a check
+        
         #Try to create a simpler model
         #(merge pre-defined particles of their mass difference is below dm)
         protomodelSimp = self.manipulator.simplifyModel(dm=200.0)
-
+        manipulatorSimp = None
+        if protomodelSimp: manipulatorSimp = Manipulator ( protomodelSimp, strategy="aggressive",do_record = False, seed = 0 )
+        boolProtoSimp = False
+            
         # self.printStats( substep=14 )
 
         if self.catch_exceptions:
             try:
-                self.predict()
+                if not self.predict(self.manipulator):
+                    self.manipulator.restoreModel()
+                    return #??
                 if protomodelSimp:
-                    self.predict(protomodelSimp)
+                    #print(f"Address of manip before call {id(manipulatorSimp)}")
+                    boolProtoSimp = self.predict(manipulatorSimp) #!rewrite
             except Exception as e:
                 self.pprint ( f"@@@ caught exception @@@" )
                 self.pprint ( f"{type(e)} ``{str(e)}'' encountered when trying to predict. lets revert and not count it as a step." )
@@ -280,33 +307,36 @@ class RandomWalker ( LoggerBase ):
                 traceback.print_exc()
                 return
         else:
-            self.predict()
+            if not self.predict(self.manipulator):
+                self.manipulator.restoreModel()
+                return      #??
             if protomodelSimp:
-                self.predict(protomodelSimp)
+                boolProtoSimp = self.predict(manipulatorSimp)
 
         #Now keep the model with highest score:
-        if protomodelSimp:
+        if protomodelSimp and boolProtoSimp:
             if self.manipulator.M.K is None or (protomodelSimp.K is not None
                         and (protomodelSimp.K > self.manipulator.M.K)):
                 self.manipulator.M = protomodelSimp
 
 
         #If no combination could be found, return
-        if self.manipulator.M.Z is None:
+        if self.manipulator.M.TL is None:
             return
 
         #the muhat multiplier gets multiplied into the signal strengths
         self.manipulator.rescaleSignalBy(self.protomodel.muhat)
+        
+        if len(self.manipulator.M.rvalues) > 1:
+            self.log ( "Top r values after rescaling are: %.2f, %.2f" % \
+                       ( self.manipulator.M.rvalues[0], self.manipulator.M.rvalues[1] ) )
 
-        self.log ( "Top r values after rescaling are: %.2f, %.2f" % \
-                   ( self.manipulator.M.rvalues[0], self.manipulator.M.rvalues[1] ) )
-
-        self.log ( "Step %d: found highest Z: %.2f" % \
-                   ( self.protomodel.step, self.protomodel.Z ) )
+        self.log ( "Step %d: found highest TL: %.2f" % \
+                   ( self.protomodel.step, self.protomodel.TL ) )
 
         nUnfrozen = len ( self.protomodel.unFrozenParticles() )
-        self.pprint ( "best combo for strategy ``%s'' is %s: %s: [K=%.2f, Z=%.2f, %d unfrozen]" % \
-            ( self.manipulator.strategy, self.protomodel.letters, self.protomodel.description, self.protomodel.K, self.protomodel.Z, nUnfrozen ) )
+        self.pprint ( "best combo for strategy ``%s'' is %s: %s: [K=%.2f, TL=%.2f, %d unfrozen]" % \
+            ( self.manipulator.strategy, self.protomodel.letters, self.protomodel.description, self.protomodel.K, self.protomodel.TL, nUnfrozen ) )
         smaxstp = "%s" % self.maxsteps
         if self.maxsteps < 0:
             smaxstp = "inf"
@@ -373,9 +403,9 @@ class RandomWalker ( LoggerBase ):
         """ take the step, save it as last step """
         ## Backup model
         self.manipulator.backupModel()
-        # Update current K and Z values
+        # Update current K and TL values
         self.currentK = self.protomodel.K
-        self.currentZ = self.protomodel.Z
+        self.currentTL = self.protomodel.TL
         self.manipulator.record( "take step" )
 
     def decideOnTakingStep ( self ):
@@ -396,19 +426,29 @@ class RandomWalker ( LoggerBase ):
             ratio = numpy.exp(.5*( newK - K))
 
         if ratio >= 1.:
-            self.highlight ( "info", f"K: {self.currentK:.3f} -> {self.protomodel.K:.3f}: r={ratio:.4f}, take the step" )
+            self.highlight ( "info", f"K: {self.currentK:.3f} -> {self.protomodel.K:.3f}: r={ratio:.4f}, check critic" )
             if self.protomodel.K > 0. and self.protomodel.K < 0.7 * self.currentK:
                 self.pprint ( " `- weirdly, though, K decreases. Please check." )
                 sys.exit(-2)
-            self.takeStep()
+            self.critic.predict_critic(self.protomodel, keep_predictions=True)
+            if self.protomodel.muhat > self.protomodel.mumax:
+                self.pprint ( f"mumax - {self.protomodel.mumax} smaller than muhat - {self.protomodel.muhat}. Revert." )
+                self.manipulator.restoreModel( reportReversion=True )
+            else: self.takeStep()
         else:
             u=random.uniform(0.,1.)
             if u > ratio:
                 self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(self.currentK)} -> {prettyPrint(self.protomodel.K)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.pprint ( f"u={u:.2f} <= {ratio:.2f} ; {prettyPrint(self.currentK)} -> {prettyPrint(self.protomodel.Z)}: take the step, even though old is better." )
-                self.takeStep()
+                self.pprint ( f"u={u:.2f} <= {ratio:.2f} ; {prettyPrint(self.currentK)} -> {prettyPrint(self.protomodel.TL)}: check critic, even though old is better." )
+                self.critic.predict_critic(self.protomodel, keep_predictions=True)
+                if self.protomodel.muhat > self.protomodel.mumax:
+                    self.pprint ( f"mumax - {self.protomodel.mumax} smaller than muhat - {self.protomodel.muhat}. Revert" )
+                    self.manipulator.restoreModel( reportReversion=True )
+                else:
+                    self.pprint ( f"mumax - {self.protomodel.mumax} greater than muhat - {self.protomodel.muhat}. Take step." )
+                    self.takeStep()
 
     def record ( self ):
         """ if recorder is defined, then record. """
