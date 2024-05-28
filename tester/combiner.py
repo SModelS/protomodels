@@ -582,9 +582,9 @@ class Combiner ( LoggerBase ):
             return - math.log ( ret )
         return ret
 
-    def computeK ( self, Z : float, prior : float ) -> float:
-        """ compute K from Z and prior (simple) """
-        return Z**2 + 2* numpy.log ( prior )
+    def computeK ( self, TL : float, prior : float ) -> float:
+        """ compute K from TL and prior (simple) """
+        return TL + 2* numpy.log ( prior )
 
     def getPredictionID ( self, prediction : TheoryPrediction ):
         """ construct a unique id of a prediction from the analysis ID,
@@ -634,7 +634,7 @@ class Combiner ( LoggerBase ):
             Id = pred.analysisId()+":"+pred.dataType(True)
             if not Id in sortByAnaId:
                 sortByAnaId[Id]=[]
-            sortByAnaId[Id].append ( pred )         #keep all em-type ds of one analysis ubder one kwy
+            sortByAnaId[Id].append ( pred )         #keep all em-type ds of one analysis under one key
 
         ret = []
         keptThese = [] ## log the ana ids that we kept, for debugging only.
@@ -795,7 +795,7 @@ class Combiner ( LoggerBase ):
         :param expected: find the highest expected significance, not observed
         :param mumax: maximimal signal strength mu that is allowed before we run
         into an exclusion
-        :returns: best combination, significance (Z), likelihood equivalent
+        :returns: most significant combination (msc), TL of msc (-2log(L0/L1)), muhat of msc
         """
 
         #for now, keep all SRs, let Pathfinder find best combination of all SRs
@@ -938,8 +938,8 @@ if __name__ == "__main__":
     combiner = Combiner()
 
     preds = theoryPredictionsFor ( db, smses )
-    combo,globalZ,llhd,muhat = combiner.findHighestSignificance ( preds, "aggressive", expected=args.expected )
-    print ( "[combiner] global Z is %.2f: %s (muhat=%.2f)" % (globalZ, combiner.getComboDescription(combo),muhat ) )
+    combo,globalTL, muhat = combiner.findHighestSignificance ( preds, "aggressive", expected=args.expected )
+    print ( "[combiner] global TL is %.2f: %s (muhat=%.2f)" % (globalTL, combiner.getComboDescription(combo),muhat ) )
 
 
     preds = theoryPredictionsFor ( db, smses )
