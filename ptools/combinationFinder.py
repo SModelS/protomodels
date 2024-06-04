@@ -115,7 +115,8 @@ def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
     if not np.allclose(bam, bam.T):
         print("ERROR: Bam not symmetric!")      #move to loggerbase comment later on when loggerbase.py is moved
 
-    bam |= np.triu(bam).T                       #ensure matrix is symmetric
+    # bam |= np.triu(bam).T            # Not symmetric
+    bam |= bam.T                       #ensure matrix is symmetric
 
     weight_array = np.array([item for _, item in weight.items()])
     order = np.argsort(weight_array)[::-1]
