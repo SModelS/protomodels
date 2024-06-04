@@ -28,7 +28,7 @@ def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
             bam[columns_indices[allowed], i] = True
     if not np.allclose(bam, bam.T):
         print('WARNING bam not symetric')
-        bam |= np.triu(bam).T
+        bam |= bam
     weight_array = np.array([item for _, item in weight.items()])
     order = np.argsort(weight_array)[::-1]
     return {'bam': bam[order, :][:, order],
