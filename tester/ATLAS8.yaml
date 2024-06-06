@@ -1,110 +1,57 @@
 ---
-ATLAS-CONF-2013-024:
-- ATLAS-CONF-2013-037
-- ATLAS-CONF-2013-048
-- ATLAS-CONF-2013-062
-- ATLAS-CONF-2013-093
-- ATLAS-SUSY-2013-09
-- ATLAS-SUSY-2013-11
-- ATLAS-SUSY-2013-12
-- ATLAS-SUSY-2013-15
-# - ATLAS-SUSY-2013-19 # no EMs
-# - ATLAS-SUSY-2013-23 # no EMs
-ATLAS-CONF-2013-035:
-ATLAS-CONF-2013-037:
-- ATLAS-CONF-2013-024
-- ATLAS-CONF-2013-047
-- ATLAS-CONF-2013-048
-- ATLAS-CONF-2013-053
+ATLAS-CONF-2013-048: # Superseded by ATLAS-SUSY-2013-19 (EMs not implemented) => Will use use same cuts | stop search with 2 OS leptons (e or µ) and jets
+# - ATLAS-CONF-2013-062 # was marked as combinable, really?
 - ATLAS-CONF-2013-054
-- ATLAS-SUSY-2013-02
-- ATLAS-SUSY-2013-04
-- ATLAS-SUSY-2013-05
-- ATLAS-SUSY-2013-09
-- ATLAS-SUSY-2013-11
-- ATLAS-SUSY-2013-12
-- ATLAS-SUSY-2013-16
-# - ATLAS-SUSY-2013-19 # no EMs
-ATLAS-CONF-2013-047:
-- ATLAS-CONF-2013-037
-- ATLAS-CONF-2013-048
-- ATLAS-CONF-2013-062
-- ATLAS-CONF-2013-093
-- ATLAS-SUSY-2013-09
-- ATLAS-SUSY-2013-11
-- ATLAS-SUSY-2013-12
-- ATLAS-SUSY-2013-15
-# - ATLAS-SUSY-2013-19 # no EMs
-# - ATLAS-SUSY-2013-23 # no EMs
-ATLAS-CONF-2013-048:
-- ATLAS-CONF-2013-024
-- ATLAS-CONF-2013-037
-- ATLAS-CONF-2013-047
-- ATLAS-CONF-2013-053
-- ATLAS-CONF-2013-054
-- ATLAS-CONF-2013-062
 - ATLAS-CONF-2013-093
 - ATLAS-SUSY-2013-02
 - ATLAS-SUSY-2013-04
 - ATLAS-SUSY-2013-05
+- ATLAS-SUSY-2013-09 # Was not marked as combinable
 - ATLAS-SUSY-2013-12
 - ATLAS-SUSY-2013-15
 - ATLAS-SUSY-2013-16
-- ATLAS-SUSY-2013-18
-# - ATLAS-SUSY-2013-23 # no EMs
+# - ATLAS-SUSY-2013-18 # Was marked as combined, really? | The selection criteria for electrons are different, i.e. an event containing 2 electrons for ATLAS-CONF-2013-048 can contain only 1 for ATLAS-SUSY-2013-18
 - ATLAS-SUSY-2013-21
 - ATLAS-SUSY-2014-03
-ATLAS-CONF-2013-049:
-ATLAS-CONF-2013-053:
-# - ATLAS-CONF-2013-007 # no EMs
-- ATLAS-CONF-2013-037
+ATLAS-CONF-2013-054: # Superseded by ATLAS-SUSY-2013-04 (but has additional topologies) | The cuts are identical | large number of jets (>= 7), no e, no µ | Was not part of the list
 - ATLAS-CONF-2013-048
 - ATLAS-CONF-2013-062
-# - ATLAS-CONF-2013-089 # no EMs
 - ATLAS-CONF-2013-093
+- ATLAS-SUSY-2013-02
 - ATLAS-SUSY-2013-09
 - ATLAS-SUSY-2013-11
 - ATLAS-SUSY-2013-12
 - ATLAS-SUSY-2013-15
-# - ATLAS-SUSY-2013-19 # no EMs
-# - ATLAS-SUSY-2013-23 # no EMs
-ATLAS-CONF-2013-054:
-# - ATLAS-CONF-2013-007 # no EMs
-- ATLAS-CONF-2013-024
-- ATLAS-CONF-2013-037
-- ATLAS-CONF-2013-047
-- ATLAS-CONF-2013-048
-- ATLAS-CONF-2013-062
-# - ATLAS-CONF-2013-089 # no EMs
-- ATLAS-CONF-2013-093
+ATLAS-CONF-2013-062: # Superseded by ATLAS-SUSY-2013-20 (EMs not implemented) => Will use use same cuts | at least 1 lepton (e or µ) and jets | Was not part of the list
+- ATLAS-CONF-2013-054
 - ATLAS-SUSY-2013-02
+- ATLAS-SUSY-2013-04
+- ATLAS-SUSY-2013-05
+- ATLAS-SUSY-2013-16
+- ATLAS-SUSY-2014-03
+ATLAS-CONF-2013-093: # Superseded by ATLAS-SUSY-2013-23 (EMs not implemented) => Will use use same cuts only for the 1 lepton (e or µ) + 2 jets search
+- ATLAS-CONF-2013-048
+- ATLAS-CONF-2013-054
+- ATLAS-SUSY-2013-02
+- ATLAS-SUSY-2013-04
 - ATLAS-SUSY-2013-05
 - ATLAS-SUSY-2013-09
 - ATLAS-SUSY-2013-11
 - ATLAS-SUSY-2013-12
-- ATLAS-SUSY-2013-15
-- ATLAS-SUSY-2013-16
-# - ATLAS-SUSY-2013-19 # no EMs
-- ATLAS-SUSY-2013-21
-# - ATLAS-SUSY-2013-23 # no EMs
-ATLAS-CONF-2013-061:
-- ATLAS-SUSY-2013-21
-ATLAS-CONF-2013-062:
-ATLAS-CONF-2013-093:
-ATLAS-SUSY-2013-02:
-# - ATLAS-CONF-2013-007 # no EMs
-- ATLAS-CONF-2013-037
+- ATLAS-SUSY-2013-16 # Was not marked as combinable
+- ATLAS-SUSY-2013-18 # Was not marked as combinable
+- ATLAS-SUSY-2013-21 # Was not marked as combinable
+- ATLAS-SUSY-2014-03 # Was not marked as combinable
+ATLAS-SUSY-2013-02: # no e or µ, 2-6 jets
 - ATLAS-CONF-2013-048
+- ATLAS-CONF-2013-054
 - ATLAS-CONF-2013-062
-# - ATLAS-CONF-2013-089 # no EMs
 - ATLAS-CONF-2013-093
 - ATLAS-SUSY-2013-04
 - ATLAS-SUSY-2013-09
 - ATLAS-SUSY-2013-11
 - ATLAS-SUSY-2013-12
 - ATLAS-SUSY-2013-15
-# - ATLAS-SUSY-2013-19 # no EMs
-# - ATLAS-SUSY-2013-23 # no EMs
 ATLAS-SUSY-2013-02:SR2jl:
 - ATLAS-SUSY-2013-04:GtGrid_SR_8ej50_0bjet
 - ATLAS-SUSY-2013-04:GtGrid_SR_9ej50_0bjet
@@ -153,19 +100,15 @@ ATLAS-SUSY-2013-02:SR6jtp:
 - ATLAS-SUSY-2013-04:GtGrid_SR_7ej80_0bjet
 - ATLAS-SUSY-2013-04:GtGrid_SR_8ij80_0bjet
 - ATLAS-SUSY-2013-11:mT2-150-DF
-ATLAS-SUSY-2013-04:
-# - ATLAS-CONF-2013-007 # no EMs
-- ATLAS-CONF-2013-037
+ATLAS-SUSY-2013-04: # large number of jets (>= 7), no e, no µ
 - ATLAS-CONF-2013-048
 - ATLAS-CONF-2013-062
-# - ATLAS-CONF-2013-089 # no EMs
 - ATLAS-CONF-2013-093
+- ATLAS-SUSY-2013-02
 - ATLAS-SUSY-2013-09
 - ATLAS-SUSY-2013-11
 - ATLAS-SUSY-2013-12
 - ATLAS-SUSY-2013-15
-# - ATLAS-SUSY-2013-19 # no EMs
-# - ATLAS-SUSY-2013-23 # no EMs
 ATLAS-SUSY-2013-04:GtGrid_SR_10ij50_bjetblind:
 - ATLAS-SUSY-2013-11:mT2-120-DF
 - ATLAS-SUSY-2013-11:mT2-150-DF
@@ -195,47 +138,44 @@ ATLAS-SUSY-2013-04:GtGrid_SR_9ej50_0bjet:
 - ATLAS-SUSY-2013-02:SR5j
 - ATLAS-SUSY-2013-02:SR6jl
 - ATLAS-SUSY-2013-11:mT2-90-DF
-ATLAS-SUSY-2013-05:
-# - ATLAS-CONF-2013-007 # no EMs
-- ATLAS-CONF-2013-037
+ATLAS-SUSY-2013-05: # 2 b-jets and no e or µ
 - ATLAS-CONF-2013-048
 - ATLAS-CONF-2013-062
-# - ATLAS-CONF-2013-089 # no EMs
 - ATLAS-CONF-2013-093
 - ATLAS-SUSY-2013-09
 - ATLAS-SUSY-2013-11
 - ATLAS-SUSY-2013-12
 - ATLAS-SUSY-2013-15
-# - ATLAS-SUSY-2013-19 # no EMs
-- ATLAS-SUSY-2013-21
-# - ATLAS-SUSY-2013-23 # no EMs
-ATLAS-SUSY-2013-09:
+- ATLAS-SUSY-2013-18 # Was not marked as combinable
+# - ATLAS-SUSY-2013-21 # Was marked as combinable, really?
+- ATLAS-SUSY-2014-03 # Was not marked as combinable | ATLAS-SUSY-2013-05 requires the two or the second and third leading jets to be b-tagged, while ATLAS-SUSY-2014-03 requires its two leading jets to be c-tagged (incompatible with b-tagging)
+ATLAS-SUSY-2013-09: # multiple jets and 2 SS leptons or 3 leptons (e or µ)
+- ATLAS-CONF-2013-048 # Was not marked as combinable before
+- ATLAS-CONF-2013-054
+- ATLAS-CONF-2013-093 # Was not marked as combinable before
 - ATLAS-SUSY-2013-02
 - ATLAS-SUSY-2013-04
 - ATLAS-SUSY-2013-05
-- ATLAS-SUSY-2013-12
+- ATLAS-SUSY-2013-11 # Was not marked as combinable
+# - ATLAS-SUSY-2013-12 # Was marked as combinable, really?
 - ATLAS-SUSY-2013-15
 - ATLAS-SUSY-2013-16
-- ATLAS-SUSY-2013-18
-# - ATLAS-SUSY-2013-19 # no EMs
-# - ATLAS-SUSY-2013-23 # no EMs
-ATLAS-SUSY-2013-11:
-- ATLAS-CONF-2013-024
-- ATLAS-CONF-2013-037
-- ATLAS-CONF-2013-047
-- ATLAS-CONF-2013-053
+# - ATLAS-SUSY-2013-18 # Was marked as combinable, really?
+- ATLAS-SUSY-2013-21 # Was not flaged as combinable | ATLAS-SUSY-2013-21 vetoes electrons with pT > 20 GeV, ATLAS-SUSY-2013-09 selects events with 1 lepton with pT > 20 GeV
+- ATLAS-SUSY-2014-03 # Was not marked as combinable
+ATLAS-SUSY-2013-11: # 2 OS leptons (e or µ); no (b-)jet except in 1 SR requiring at least 2 jets (0 b-jet) and 2 SF leptons with 81 < m_ll < 101 GeV
+# - ATLAS-CONF-2013-062 # Was marked as combinable, really ?
 - ATLAS-CONF-2013-054
-- ATLAS-CONF-2013-062
 - ATLAS-CONF-2013-093
 - ATLAS-SUSY-2013-02
 - ATLAS-SUSY-2013-04
 - ATLAS-SUSY-2013-05
+- ATLAS-SUSY-2013-09 # Was not marked as combinable
 - ATLAS-SUSY-2013-12
 - ATLAS-SUSY-2013-15
 - ATLAS-SUSY-2013-16
 - ATLAS-SUSY-2013-18
 - ATLAS-SUSY-2013-21
-# - ATLAS-SUSY-2013-23 # no EMs
 - ATLAS-SUSY-2014-03
 ATLAS-SUSY-2013-11:WWb-DF:
 - ATLAS-SUSY-2013-04:GtGrid_SR_8ij80_0bjet
@@ -270,70 +210,67 @@ ATLAS-SUSY-2013-11:mT2-90-DF:
 - ATLAS-SUSY-2013-02:SR5j
 - ATLAS-SUSY-2013-02:SR6jl
 - ATLAS-SUSY-2013-02:SR6jm
-ATLAS-SUSY-2013-12:
-# - ATLAS-CONF-2013-007 # no EMs
-# - ATLAS-CONF-2013-089 # no EMs
+ATLAS-SUSY-2013-12: # 3 leptons (e, µ or tau), at least 1 e or µ, jets, no b-jet
+- ATLAS-CONF-2013-048 # Was not marked as combinable | ATLAS-CONF-2013-048 requires 2 OS leptons, while when ATLAS-SUSY-2013-12 requires 2 non-tau leptons, they must be of SS
+- ATLAS-CONF-2013-054
+- ATLAS-CONF-2013-093 # Was not marked as combinable | ATLAS-CONF-2013-093 requires at least 1 b-jet, while ATLAS-SUSY-2013-12 vetoes them
 - ATLAS-SUSY-2013-02
 - ATLAS-SUSY-2013-04
 - ATLAS-SUSY-2013-05
-# - ATLAS-SUSY-2013-08 # no EMs
-- ATLAS-SUSY-2013-09
-- ATLAS-SUSY-2013-11
-- ATLAS-SUSY-2013-15
+# - ATLAS-SUSY-2013-09 # Was marked as combinable, really?
+- ATLAS-SUSY-2013-11 # ATLAS-SUSY-2013-11 requires 2 OS leptons, while when ATLAS-SUSY-2013-12 requires 2 non-tau leptons, they must be of SS
+# - ATLAS-SUSY-2013-15 # Was marked as combinable, really? | "bCc diag" SR of ATLAS-SUSY-2013-15 does not veto taus and vetoes b-jets
 - ATLAS-SUSY-2013-16
 - ATLAS-SUSY-2013-18
-# - ATLAS-SUSY-2013-19 # no EMs
-# - ATLAS-SUSY-2013-23 # no EMs
-ATLAS-SUSY-2013-15:
-# - ATLAS-CONF-2013-007 # no EMs
-- ATLAS-CONF-2013-024
-- ATLAS-CONF-2013-047
+- ATLAS-SUSY-2014-03 # Was not marked as combinable
+ATLAS-SUSY-2013-15: # 1 isolated e or µ and at least 2 jets
 - ATLAS-CONF-2013-048
-- ATLAS-CONF-2013-053
 - ATLAS-CONF-2013-054
-# - ATLAS-CONF-2013-089 # no EMs
 - ATLAS-SUSY-2013-02
 - ATLAS-SUSY-2013-04
 - ATLAS-SUSY-2013-05
 - ATLAS-SUSY-2013-09
 - ATLAS-SUSY-2013-11
-- ATLAS-SUSY-2013-12
+# - ATLAS-SUSY-2013-12 # Was marked as combinable, really? | "bCc_diag" SR of ATLAS-SUSY-2013-15 does not veto taus and vetoes b-jets
 - ATLAS-SUSY-2013-16
-# - ATLAS-SUSY-2013-19 # no EMs
-- ATLAS-SUSY-2013-21
+# - ATLAS-SUSY-2013-21 # Was marked as combinable, really? | ATLAS-SUSY-2013-15 accepts leptons with 7 < pT < 25 GeV but ATLAS-SUSY-2013-21 reject only electrons with pT > 20 GeV
 - ATLAS-SUSY-2014-03
-ATLAS-SUSY-2013-16:
-- ATLAS-CONF-2013-037
+ATLAS-SUSY-2013-16: # Fully hadronic stop search
 - ATLAS-CONF-2013-048
 - ATLAS-CONF-2013-062
 - ATLAS-CONF-2013-093
-- ATLAS-SUSY-2013-02
+# - ATLAS-SUSY-2013-02 # Was marked as combinable, really?
 - ATLAS-SUSY-2013-09
 - ATLAS-SUSY-2013-11
 - ATLAS-SUSY-2013-12
 - ATLAS-SUSY-2013-15
-# - ATLAS-SUSY-2013-19 # no EMs
-# - ATLAS-SUSY-2013-23 # no EMs
-ATLAS-SUSY-2013-18:
-- ATLAS-CONF-2013-048
-- ATLAS-SUSY-2013-09
+- ATLAS-SUSY-2013-21 # Was not marked as combinable | ATLAS-SUSY-2013-16 requires at least 4 jets, of which at least 2 must be b-tagged, while the ATLAS-SUSY-2013-21 SR allowing for 4 jets or more vetoes b-jets
+ATLAS-SUSY-2013-18: # Strong production of SUSY particles with 3 b-jets and 0 or 1 lepton (e or µ)
+# - ATLAS-CONF-2013-048 # Was marked as combined, really? | The selection criteria for electrons are different, i.e. an event containing 2 electrons for ATLAS-CONF-2013-048 can contain only 1 for ATLAS-SUSY-2013-18
+- ATLAS-CONF-2013-093 # Was not marked as combinable
+- ATLAS-SUSY-2013-05 # Was not marked as combinable
+# - ATLAS-SUSY-2013-09 # Was marked as combined, really? | The selection criteria for electrons are different, i.e. an event containing 2 electrons for ATLAS-SUSY-2013-09 can contain only 1 for ATLAS-SUSY-2013-18
 - ATLAS-SUSY-2013-11
 - ATLAS-SUSY-2013-12
-# - ATLAS-SUSY-2013-19 # no EMs
-# - ATLAS-SUSY-2013-23 # no EMs
-ATLAS-SUSY-2013-21:
-- ATLAS-CONF-2013-037
+- ATLAS-SUSY-2013-21 # Was not marked as combinable | ATLAS-SUSY-2013-18 requires at least 4 jets, of which at least 3 must be b-tagged, while the ATLAS-SUSY-2013-21 SR allowing for 4 jets or more vetoes b-jets
+ATLAS-SUSY-2013-21: # Third generation of squarks into c quakrs or in compressed SUSY scenarios
+- ATLAS-CONF-2013-048 # ATLAS-SUSY-2013-21 vetoes electrons with pT > 20 GeV, ATLAS-CONF-2013-048 selects events with 1 lepton with pT > 25 GeV
+# - ATLAS-CONF-2013-062 # Was marked as combinable, really? | ATLAS-SUSY-2013-21 and ATLAS-CONF-2013-062 both allow for 1 soft electron and jets in monojet-like SR and soft single-lepton SRs, respectively
+- ATLAS-CONF-2013-093 # ATLAS-SUSY-2013-21 vetoes electrons with pT > 20 GeV, ATLAS-CONF-2013-093 selects events with 1 lepton with pT > 25 GeV
+- ATLAS-SUSY-2013-09 # ATLAS-SUSY-2013-21 vetoes electrons with pT > 20 GeV, ATLAS-SUSY-2013-09 selects events with 1 lepton with pT > 20 GeV
+- ATLAS-SUSY-2013-11 # ATLAS-SUSY-2013-21 vetoes electrons with pT > 20 GeV, ATLAS-SUSY-2013-11 selects events with 1 lepton with pT > 35 GeV
+# - ATLAS-SUSY-2013-12 # Was NOT marked as combinable. Just here for the comment | ATLAS-SUSY-2013-12 accepts leptons with pT < 20 GeV but ATLAS-SUSY-2013-21 does not consider them as leptons and does not veto taus
+# - ATLAS-SUSY-2013-15 # Was marked as combinable, really? | ATLAS-SUSY-2013-15 accepts leptons with 7 < pT < 25 GeV but ATLAS-SUSY-2013-21 reject only electrons with pT > 20 GeV
+- ATLAS-SUSY-2013-16 # Was not marked as combinable | ATLAS-SUSY-2013-16 requires at least 4 jets, of which at least 2 must be b-tagged, while the ATLAS-SUSY-2013-21 SR allowing for 4 jets or more vetoes b-jets
+- ATLAS-SUSY-2013-18 # Was not marked as combinable | ATLAS-SUSY-2013-18 requires at least 4 jets, of which at least 3 must be b-tagged, while the ATLAS-SUSY-2013-21 SR allowing for 4 jets or more vetoes b-jets
+ATLAS-SUSY-2014-03: # Search for pair produced scalar charm quark, no e or µ
 - ATLAS-CONF-2013-048
 - ATLAS-CONF-2013-062
 - ATLAS-CONF-2013-093
+- ATLAS-SUSY-2013-05 # Was not marked as combinable | ATLAS-SUSY-2013-05 requires the two or the second and third leading jets to be b-tagged, while ATLAS-SUSY-2014-03 requires its two leading jets to be c-tagged (incompatible with b-tagging)
+- ATLAS-SUSY-2013-09 # Was not marked as combinable
 - ATLAS-SUSY-2013-11
+- ATLAS-SUSY-2013-12 # Was not marked as combinable
 - ATLAS-SUSY-2013-15
-ATLAS-SUSY-2014-03:
-- ATLAS-CONF-2013-037
-- ATLAS-CONF-2013-048
-- ATLAS-CONF-2013-062
-- ATLAS-CONF-2013-093
-- ATLAS-SUSY-2013-11
-- ATLAS-SUSY-2013-15
-- ATLAS-SUSY-2013-21
+# - ATLAS-SUSY-2013-21 # Was marked as combinable, really? | Both veto leptons and have a SR targeting charm quarks
 ...

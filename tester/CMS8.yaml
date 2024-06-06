@@ -1,83 +1,64 @@
 ---
-# CMS-EXO-12-026: # no EMs
+CMS-EXO-13-006: # Search for long-lived particles | Assume combinability with all other (prompt) searches
 # - CMS-PAS-SUS-*
 # - CMS-SUS-*
-CMS-EXO-13-006:
-- CMS-PAS-SUS-*
-- CMS-SUS-*
 - CMS-PAS-SUS-13-015
 - CMS-PAS-SUS-13-016
-# - CMS-PAS-SUS-13-018 # no EMs
-# - CMS-PAS-SUS-13-023 # no EMs
 - CMS-SUS-12-024
-# - CMS-SUS-12-028 # no EMs
-# - CMS-SUS-13-002 # no EMs
-# - CMS-SUS-13-004 # no EMs
 - CMS-SUS-13-006
 - CMS-SUS-13-007
 - CMS-SUS-13-011
 - CMS-SUS-13-012
 - CMS-SUS-13-013
-# - CMS-SUS-13-019 # no EMs
-# - CMS-SUS-14-010 # no EMs
 - CMS-SUS-14-021
-CMS-PAS-SUS-13-015:
-# - CMS-EXO-12-026 # no EMs
+CMS-PAS-SUS-13-015: # Search for top squarks in multijet events, no leptons
 - CMS-EXO-13-006
 - CMS-PAS-SUS-13-016
 - CMS-SUS-13-006
 - CMS-SUS-13-007
 - CMS-SUS-13-011
-CMS-PAS-SUS-13-016:
-# - CMS-EXO-12-026 # no EMs
-# - CMS-PAS-SUS-13-018 # no EMs
-# - CMS-PAS-SUS-13-023 # no EMs
+- CMS-SUS-13-013 # Was not marked as combinable
+- CMS-SUS-14-021 # Was not marked as combinable
+CMS-PAS-SUS-13-016: # Search for suspersymmetry with events containing 2 OS leptons (e or µ) and multiple (b-)jets
+- CMS-EXO-13-006
+- CMS-PAS-SUS-13-015 # Was not marked as combinable
 - CMS-SUS-12-024
-# - CMS-SUS-12-028 # no EMs
-# - CMS-SUS-13-002 # no EMs
 - CMS-SUS-13-007
 - CMS-SUS-13-011
 - CMS-SUS-13-012
-- CMS-SUS-13-013
-# - CMS-SUS-13-019 # no EMs
+# - CMS-SUS-13-013 # Was marked as combinable, really? | CMS-PAS-SUS-13-016 and CMS-SUS-13-013 do not strictly reject 3 lepton events. An event containing 3 leptons, of which 2 are OSSF and 2 are SSSF can enter both analyses
 - CMS-SUS-14-021
-CMS-SUS-12-024:
-# - CMS-EXO-12-026 # no EMs
+CMS-SUS-12-024: # Identical to CMS-PAS-SUS-13-015
+- CMS-EXO-13-006
 - CMS-PAS-SUS-13-016
-# - CMS-SUS-13-002 # no EMs
+- CMS-SUS-13-006 # Was not marked as combinable
 - CMS-SUS-13-007
 - CMS-SUS-13-011
 - CMS-SUS-13-013
-# CMS-SUS-12-028: # no EMs
-# # - CMS-EXO-12-026 # no EMs
-# - CMS-PAS-SUS-13-016
-# # - CMS-SUS-13-002 # no EMs
-# - CMS-SUS-13-007
-# - CMS-SUS-13-011
-# - CMS-SUS-13-013
-# CMS-SUS-13-002: # no EMs
-# # - CMS-EXO-12-026 # no EMs
-# - CMS-PAS-SUS-13-016
-# # - CMS-PAS-SUS-13-018 # no EMs
-# # - CMS-PAS-SUS-13-023 # no EMs
-# - CMS-SUS-12-024
-# # - CMS-SUS-12-028 # no EMs
-# - CMS-SUS-13-007
-# - CMS-SUS-13-011
-# - CMS-SUS-13-012
-# - CMS-SUS-13-013
-# # - CMS-SUS-13-019 # no EMs
-# - CMS-SUS-14-021
-CMS-SUS-13-006:
-CMS-SUS-13-007:
-# - CMS-EXO-12-026 # no EMs
-- CMS-PAS-SUS-13-016
-# - CMS-PAS-SUS-13-018 # no EMs
-# - CMS-PAS-SUS-13-023 # no EMs
+- CMS-SUS-14-021 # Was not marked as combinable
+CMS-SUS-13-006: # Search for EW-inos and sleptons in W, Z and h
+- CMS-EXO-13-006
+- CMS-PAS-SUS-13-015 # Was not marked as combinable
+- CMS-SUS-12-024 # Was not marked as combinable
+- CMS-SUS-13-007 # Was not marked as combinable
+- CMS-SUS-13-011 # Was not marked as combinable
+- CMS-SUS-13-012 # Was not marked as combinable
+CMS-SUS-13-007: # Search for supersymmetry with events containing 1 e or µ, large jet multiplicity and b-jets
+- CMS-EXO-13-006
+- CMS-PAS-SUS-13-015 # Was not marked as combinable
+- CMS-PAS-SUS-13-016 # In the 1 lepton SR, CMS-PAS-SUS-13-016 requires only 2 b-jets and no other jets
 - CMS-SUS-12-024
+- CMS-SUS-13-006 # Was not marked as combinable
 - CMS-SUS-13-012
 - CMS-SUS-13-013
-CMS-SUS-13-011: # At the analysis level?
+CMS-SUS-13-011: # Was not part of the list | Stop pair production in the single lepton final state
+- CMS-EXO-13-006
+- CMS-PAS-SUS-13-015
+- CMS-PAS-SUS-13-016
+- CMS-SUS-12-024
+- CMS-SUS-13-006 # Was not marked as combinable
+- CMS-SUS-13-012
+- CMS-SUS-13-013
 CMS-SUS-13-011:HM150:
 - CMS-SUS-13-012:3NJet6_500HT800_450MHT600
 - CMS-SUS-13-012:3NJet6_1000HT1250_200MHT300
@@ -158,13 +139,14 @@ CMS-SUS-13-011:LM300:
 - CMS-SUS-13-012:6NJet8_1000HT1250_450MHTinf
 - CMS-SUS-13-012:6NJet8_1500HTinf_300MHTinf
 - CMS-SUS-13-012:8NJetinf_1000HT1250_200MHTinf
-CMS-SUS-13-012:
-# - CMS-EXO-12-026 # no EMs
+CMS-SUS-13-012: # Search for new physics in multijet events
+- CMS-EXO-13-006
 - CMS-PAS-SUS-13-016
-# - CMS-SUS-13-002 # no EMs
+- CMS-SUS-13-006 # Was not marked as combinable
 - CMS-SUS-13-007
 - CMS-SUS-13-011
 - CMS-SUS-13-013
+- CMS-SUS-14-21 # Was not marked as combinable
 CMS-SUS-13-012:3NJet6_1000HT1250_200MHT300:
 - CMS-SUS-13-011:HM150
 - CMS-SUS-13-011:HM250
@@ -256,34 +238,23 @@ CMS-SUS-13-012:8NJetinf_1000HT1250_200MHTinf:
 - CMS-SUS-13-011:HM150
 - CMS-SUS-13-011:HM250
 - CMS-SUS-13-011:HM300
-CMS-SUS-13-013:
-# - CMS-EXO-12-026 # no EMs
-- CMS-PAS-SUS-13-016
-# - CMS-PAS-SUS-13-018 # no EMs
-# - CMS-PAS-SUS-13-023 # no EMs
+CMS-SUS-13-013: # New physics search in same-sign dilepton and jets final states
+- CMS-EXO-13-006
+- CMS-PAS-SUS-13-015 # Was not marked as combinable
+# - CMS-PAS-SUS-13-016 # Was marked as combinable, really? | CMS-PAS-SUS-13-016 and CMS-SUS-13-013 do not strictly reject 3 lepton events. An event containing 3 leptons, of which 2 are OSSF and 2 are SSSF can enter both analyses
 - CMS-SUS-12-024
-# - CMS-SUS-12-028 # no EMs
-# - CMS-SUS-13-002 # no EMs
 - CMS-SUS-13-007
 - CMS-SUS-13-011
 - CMS-SUS-13-012
-# - CMS-SUS-13-019 # no EMs
-- CMS-SUS-14-021
-# CMS-SUS-13-015: # Is it even in the database?
-# # - CMS-EXO-12-026 # no EMs
-# - CMS-PAS-SUS-13-016
-# # - CMS-SUS-13-002 # no EMs
-# - CMS-SUS-13-007
-# - CMS-SUS-13-011
-# - CMS-SUS-13-013
-# CMS-SUS-14-010: # no EMs
-# # - CMS-EXO-12-026 # no EMs
-# - CMS-EXO-13-006
-CMS-SUS-14-021:
-# - CMS-EXO-12-026 # no EMs
-- CMS-PAS-SUS-13-016
-# - CMS-SUS-13-002 # no EMs
-- CMS-SUS-13-007
-- CMS-SUS-13-011
-- CMS-SUS-13-013
+# - CMS-SUS-14-021 # Was marked as combinable, really? | An event with 2 SS µ's with pT = 20 and 10 GeV, and 2 hard jets can enter both analyses
+CMS-SUS-14-021: # Search for SUSY in events with soft leptons and low jet multiplicity
+- CMS-EXO-13-006
+- CMS-PAS-SUS-13-015 # Was not marked as combinable
+- CMS-PAS-SUS-13-016 # CMS-PAS-SUS-13-016 requires at least 2 OS e or µ with pT > 20 GeV and b-jets, while CMS-SUS-14-021 rejects a second lepton with pT > 20 GeV or veto b-jets
+# - CMS-SUS-13-006 # Was not marked as combinable, just put it for the comment | CMS-SUS-13-006 and CMS-SUS-14-021 are orthogonal on the 2l and 1l SRs, but an event with 1 hard jet and 3 µ's with pT = 25, 15 and 15 GeV can enter both analyses
+- CMS-SUS-12-024 # Was not marked as combinable
+# - CMS-SUS-13-007 # Was marked as combinable, really? | An event with 1 µ with pT = 25 GeV, 2 hard jets and 4 soft b-jets can enter both analyses
+# - CMS-SUS-13-011 # Was marked as combinable, really? | An event with 1 µ with pT = 25 GeV, 2 hard jets and 2 soft b-jets can enter both analyses
+- CMS-SUS-13-012 # Was not marked as combinable
+# - CMS-SUS-13-013 # Was marked as combinable, really? | An event with 2 SS µ's with pT = 20 and 10 GeV, and 2 hard jets can enter both analyses
 ...
