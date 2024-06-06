@@ -230,13 +230,13 @@ class RandomWalker ( LoggerBase ):
         model = manipulator.M
         muhat_converge = False
         for i in range(5):
-            self.predictor.predict(model)
-            #print(f"i {i}, muhat {model.muhat}, convergence {abs(model.muhat - 1.0)}")
-            if abs(model.muhat - 1.0) < 1e-03:
-                #print(f"i {i}, muhat {model.muhat}, Converged!")
-                muhat_converge = True
-                break
-            manipulator.rescaleSignalBy(model.muhat) #?
+            if self.predictor.predict(model): #returns False if no preds are found or TL is None (i.e no comb found)
+                #print(f"i {i}, muhat {model.muhat}, convergence {abs(model.muhat - 1.0)}")
+                if abs(model.muhat - 1.0) < 1e-03:
+                    self.pprint(f"Step {model.step} converged at loop {i} with muhat {model.muhat}!")
+                    muhat_converge = True
+                    break
+                manipulator.rescaleSignalBy(model.muhat) #?
         
         if not muhat_converge:  #reverting step
             self.pprint ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {model.muhat}. Going back to previous step." )
@@ -283,7 +283,8 @@ class RandomWalker ( LoggerBase ):
         if self.catch_exceptions:
             try:
                 if not self.predict(self.manipulator):
-                    self.manipulator.restoreModel()
+                    #print("return")
+                    self.protomodel.K = None
                     return #??
                 if protomodelSimp:
                     #print(f"Address of manip before call {id(manipulatorSimp)}")
@@ -308,7 +309,7 @@ class RandomWalker ( LoggerBase ):
                 return
         else:
             if not self.predict(self.manipulator):
-                self.manipulator.restoreModel()
+                self.protomodel.K = None
                 return      #??
             if protomodelSimp:
                 boolProtoSimp = self.predict(manipulatorSimp)
@@ -434,14 +435,16 @@ class RandomWalker ( LoggerBase ):
             if self.protomodel.muhat > self.protomodel.mumax:
                 self.pprint ( f"mumax - {self.protomodel.mumax} smaller than muhat - {self.protomodel.muhat}. Revert." )
                 self.manipulator.restoreModel( reportReversion=True )
-            else: self.takeStep()
+            else:
+                self.pprint ( f"mumax - {self.protomodel.mumax} greater than muhat - {self.protomodel.muhat}. Take step." )
+                self.takeStep()
         else:
             u=random.uniform(0.,1.)
             if u > ratio:
                 self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(self.currentK)} -> {prettyPrint(self.protomodel.K)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.pprint ( f"u={u:.2f} <= {ratio:.2f} ; {prettyPrint(self.currentK)} -> {prettyPrint(self.protomodel.TL)}: check critic, even though old is better." )
+                self.pprint ( f"u={u:.2f} <= {ratio:.2f} ; {prettyPrint(self.currentK)} -> {prettyPrint(self.protomodel.K)}: check critic, even though old is better." )
                 self.critic.predict_critic(self.protomodel, keep_predictions=True)
                 if self.protomodel.muhat > self.protomodel.mumax:
                     self.pprint ( f"mumax - {self.protomodel.mumax} smaller than muhat - {self.protomodel.muhat}. Revert" )
@@ -492,7 +495,8 @@ class RandomWalker ( LoggerBase ):
 
             #If no combination was found, go back
             if self.protomodel.K is None:
-                self.manipulator.restoreModel()
+                print("returned")
+                self.manipulator.restoreModel(reportReversion=True)
                 continue
 
             # obtain the ratio of posteriors

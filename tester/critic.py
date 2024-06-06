@@ -44,11 +44,12 @@ class Critic ( LoggerBase ):
         mumax = float("inf")
         if protomodel.ul_type_rvalues[0] > 0.:
             #Set mumax slightly below threshold, so the model is never excluded
-            #print(f"r value from UL: {protomodel.ul_type_rvalues[0]}")
-            mumax = 0.999*self.rthreshold / protomodel.ul_type_rvalues[0]
-        if 0 < protomodel.llhd_type_rvalue < mumax:
-            #print(f"r value from llhd: {protomodel.llhd_type_rvalue}")
-            mumax = protomodel.llhd_type_rvalue
+            print(f"r value from UL: {protomodel.ul_type_rvalues[0]}")
+            mumax_ul = 0.999*self.rthreshold / protomodel.ul_type_rvalues[0]
+            #if 0 < protomodel.llhd_type_rvalue < mumax:
+            print(f"r value from llhd: {protomodel.llhd_type_rvalue}")
+            mumax_llhd = 0.999*self.rthreshold /protomodel.llhd_type_rvalue
+            mumax = min(mumax_ul, mumax_llhd)
 
         return mumax
     
@@ -64,9 +65,9 @@ class Critic ( LoggerBase ):
         tpList = []
         for theorypred in ul_critic_preds:
             r = theorypred.getRValue(expected=False)
-            if r == None:
+            if r == None:   #SN: !Fixme Error Message if r is None
                 self.pprint ( "I received %s as r. What do I do with this?" % r )
-                r = 23. #TP: Why high r and not 0? SN: Will ask Wg!
+                r = 23. #TP: Why high r and not 0? SN: if r is None, we have done sth wrong, so we dont want to condsider this protomodel
             rexp = theorypred.getRValue(expected=True)
             tpList.append( { "robs": r, "rexp": rexp, "tp": theorypred } )
             rvalues.append(r)

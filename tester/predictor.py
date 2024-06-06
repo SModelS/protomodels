@@ -224,6 +224,7 @@ class Predictor ( LoggerBase ):
         
         # now use all prediction with likelihood values to compute the TL of the model
         predictions = self.runSModelS( slhafile, sigmacut,allpreds=True, ULpreds=False )
+        if not predictions: return False
 
         if keep_predictions:
             self.predictions = predictions
