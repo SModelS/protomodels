@@ -207,7 +207,7 @@ class RandomWalker ( LoggerBase ):
     def printStats ( self, substep=None ):
         """ print the stats, i.e. number of unfrozen particles.
             for debugging. """
-        print(f"best Combo {self.manipulator.M.bestCombo}, step {self.manipulator.M.step}")
+        #print(f"best Combo {self.manipulator.M.bestCombo}, step {self.manipulator.M.step}")
         nUnfrozen = len( self.protomodel.unFrozenParticles() )
         nTotal = len ( self.protomodel.particles )
         pidsp = self.protomodel.unFrozenParticles()
