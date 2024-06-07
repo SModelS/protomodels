@@ -56,6 +56,7 @@ def readDictFile ( filename : str = "default.dict" ) -> Dict:
     basename = os.path.basename ( filename ).replace(".dict","")
     meta = eval(lines[0])
     nan=float("nan")
+    inf=float("inf")
     data = eval("\n".join(lines[1:]))
     newdata = {}
     for i,v in data.items():
