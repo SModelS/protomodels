@@ -322,7 +322,7 @@ class RandomWalker ( LoggerBase ):
 
 
         #If no combination could be found, return
-        if self.manipulator.M.TL is None:
+        if self.manipulator.M.TL is None or self.manipulator.M.K:
             return
 
         #the muhat multiplier gets multiplied into the signal strengths
