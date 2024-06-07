@@ -24,7 +24,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
         if extended and i > 2:
             break
         wid = 0
-        K, Z = entry['K'], entry['Z']
+        K, TL = entry['K'], entry['TL']
         if "walkerid" in entry:
             wid = entry['walkerid']
         particles = entry["masses"].keys()
@@ -42,12 +42,12 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             r2 = timestamp.rfind(" ")
             timestamp = timestamp[r1:r2]
         if extended:
-            print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET} Z={Z:.3f}; {sparticles}" )
+            print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET} TL={TL:.3f}; {sparticles}" )
             print ( f"       `---: {entry['description']}" )
             print ( f"       `---: {timestamp}" )
             print ( )
         else:
-            print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET}; Z={Z:.3f}; {sparticles} {timestamp}" )
+            print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET}; TL={TL:.3f}; {sparticles} {timestamp}" )
 
 
 if __name__ == "__main__":
