@@ -50,7 +50,7 @@ def _get_pseudodata_args(database: str, seed: float = None) -> Dict:
 
 
 def gen_llr(database: str, slhafile: str, model: Optional[List[str]] = None, seed: Optional[float] = None,
-            bootstrap_num: int = 1) -> List[Dict[str, float]]:
+            bootstrap_num: int = 1, select_significant: bool = True) -> List[Dict[str, float]]:
     """
     Generate pseudo NLLR using "ExpResModifier"
 
@@ -80,13 +80,13 @@ def gen_llr(database: str, slhafile: str, model: Optional[List[str]] = None, see
     for _ in range(bootstrap_num):
         listOfExpRes = modifier.removeEmpty(modifier.db.expResultList)
         pseudo_databse = {'database': modifier.db, 'expResults': modifier.fakeBackgrounds(listOfExpRes)}
-        llr_at_point = get_llr_at_point(slhafile, pseudo_databse=pseudo_databse)
+        llr_at_point = get_llr_at_point(slhafile, pseudo_databse=pseudo_databse, select_significant=select_significant)
         llr_dict.append({key: item for key, item in llr_at_point.items() if key != 'theoryPred'})
     return llr_dict
 
 
 def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official', expected: bool = False,
-                     pseudo_databse: Optional[Dict[str, Database]] = None) -> Dict:
+                     pseudo_databse: Optional[Dict[str, Database]] = None, select_significant: bool = True) -> Dict:
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
     model.updateParticles(inputFile=slhafile)
     top_dict = decompose(model, sigmacut=0.005*fb, massCompress=True, invisibleCompress=True, minmassgap=5*GeV)
@@ -96,7 +96,8 @@ def get_llr_at_point(slhafile: Union[str, Path], data_base: str = 'official', ex
     else:
         dbase = pseudo_databse['database']
     allThPredictions = theoryPredictionsFor(dbase, top_dict, useBestDataset=False)
-    allThPredictions = selectMostSignificantSRs(allThPredictions, percent_bound=5)
+    if select_significant:
+        allThPredictions = selectMostSignificantSRs(allThPredictions, percent_bound=5)
     return bamAndWeights(allThPredictions, expected=expected)
 
 
@@ -129,7 +130,7 @@ def selectMostSignificantSRs(predictions: list[TheoryPrediction], percent_bound:
                 maxRatio = ratio
 
         ratioList = {k: v for k, v in sorted(ratioList.items(), key=lambda item: item[1], reverse=True)}
-        signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= (percent_bound / 100)]
+        signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= (percent_bound / 100.0)]
 
         if len(signPreds) == 1:
             secondPred = list(ratioList.keys())[1]
@@ -202,15 +203,6 @@ def split_chunks(num: int, proc: int) -> List[int]:
     return run_chunks
 
 
-def _llr_worker(args: Dict, outputlist: List) -> None:
-    """ Helper function to create queue
-    Args:
-        args (dict): Dictionary of arguments passed to gen_llr
-        queue (Queue): Input Queue
-    """
-    outputlist.extend(gen_llr(**args))
-
-
 def createSLHAFileFromDict(dictionary: Dict, muhat: float, slhafilename: str = "temp.slha") -> dict:
     """ sample code, for jamie to be savoured,
     takes a protomodels dictionary as input, creates
@@ -226,6 +218,15 @@ def createSLHAFileFromDict(dictionary: Dict, muhat: float, slhafilename: str = "
     ma.M.computeXSecs(keep_slha=True)
     # ma.M.writeSLHAFile(slhafilename)
     return ma.M.dict()
+
+
+def _llr_worker(args: Dict, outputlist: List) -> None:
+    """ Helper function to create queue
+    Args:
+        args (dict): Dictionary of arguments passed to gen_llr
+        queue (Queue): Input Queue
+    """
+    outputlist.extend(gen_llr(**args))
 
 
 def get_pseudo_llr(slha_loc: str, data_base: str, bootstrap_num: int = 1, proc: int = 1) -> List[Dict]:
@@ -244,7 +245,7 @@ def get_pseudo_llr(slha_loc: str, data_base: str, bootstrap_num: int = 1, proc: 
         list: _description_
     """
 
-    args = dict(database=data_base, slhafile=slha_loc)
+    args = dict(database=data_base, slhafile=slha_loc, select_significant=False)
     if proc < 2 or bootstrap_num == 1:
         args['seed'] = np.random.randint(0, 1e6)
         outputlist = [gen_llr(**args)]
