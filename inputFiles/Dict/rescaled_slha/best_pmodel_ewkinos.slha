@@ -325,7 +325,7 @@ XSECTION  8.00E+03  2212 2212 2 1000022 1000023 # reference xsecs v1.0 [pb] (win
   0  2  0  0  0  0    0.00000000E+00 SModelSv3.0.0-beta
 
 XSECTION  8.00E+03  2212 2212 2 1000023 1000023 # reference xsecs v1.0 [pb]
-  0  2  0  0  0  0    2.78720349E-03 SModelSv3.0.0-beta
+  0  2  0  0  0  0    2.78720378E-03 SModelSv3.0.0-beta
 
 XSECTION  8.00E+03  2212 2212 2 1000023 1000024 # reference xsecs v1.0 [pb]
   0  2  0  0  0  0    0.00000000E+00 SModelSv3.0.0-beta
@@ -334,13 +334,13 @@ XSECTION  8.00E+03  2212 2212 2 -1000024 1000023 # reference xsecs v1.0 [pb]
   0  2  0  0  0  0    0.00000000E+00 SModelSv3.0.0-beta
 
 XSECTION  8.00E+03  2212 2212 2 1000023 1000037 # reference xsecs v1.0 [pb]
-  0  2  0  0  0  0    2.96031557E-02 SModelSv3.0.0-beta
+  0  2  0  0  0  0    2.96031588E-02 SModelSv3.0.0-beta
 
 XSECTION  8.00E+03  2212 2212 2 -1000037 1000023 # reference xsecs v1.0 [pb]
-  0  2  0  0  0  0    1.04585088E-02 SModelSv3.0.0-beta
+  0  2  0  0  0  0    1.04585098E-02 SModelSv3.0.0-beta
 
 XSECTION  8.00E+03  2212 2212 2 -1000024 1000024 # reference xsecs v1.0 [pb]
-  0  2  0  0  0  0    5.17296125E+00 SModelSv3.0.0-beta
+  0  2  0  0  0  0    5.17296178E+00 SModelSv3.0.0-beta
 
 XSECTION  8.00E+03  2212 2212 2 -1000024 1000037 # reference xsecs v1.0 [pb]
   0  2  0  0  0  0    0.00000000E+00 SModelSv3.0.0-beta
@@ -349,13 +349,13 @@ XSECTION  8.00E+03  2212 2212 2 -1000037 1000024 # reference xsecs v1.0 [pb]
   0  2  0  0  0  0    0.00000000E+00 SModelSv3.0.0-beta
 
 XSECTION  8.00E+03  2212 2212 2 -1000037 1000037 # reference xsecs v1.0 [pb]
-  0  2  0  0  0  0    5.33132190E-03 SModelSv3.0.0-beta
+  0  2  0  0  0  0    5.33132245E-03 SModelSv3.0.0-beta
 
 XSECTION  1.30E+04  2212 2212 2 1000022 1000023 # reference xsecs v1.0 [pb] (wino)
   0  2  0  0  0  0    0.00000000E+00 SModelSv3.0.0-beta
 
 XSECTION  1.30E+04  2212 2212 2 1000023 1000023 # reference xsecs v1.0 [pb]
-  0  2  0  0  0  0    1.01876435E-02 SModelSv3.0.0-beta
+  0  2  0  0  0  0    1.01876445E-02 SModelSv3.0.0-beta
 
 XSECTION  1.30E+04  2212 2212 2 1000023 1000024 # reference xsecs v1.0 [pb]
   0  2  0  0  0  0    0.00000000E+00 SModelSv3.0.0-beta
@@ -364,13 +364,13 @@ XSECTION  1.30E+04  2212 2212 2 -1000024 1000023 # reference xsecs v1.0 [pb]
   0  2  0  0  0  0    0.00000000E+00 SModelSv3.0.0-beta
 
 XSECTION  1.30E+04  2212 2212 2 1000023 1000037 # reference xsecs v1.0 [pb]
-  0  2  0  0  0  0    8.86077543E-02 SModelSv3.0.0-beta
+  0  2  0  0  0  0    8.86077634E-02 SModelSv3.0.0-beta
 
 XSECTION  1.30E+04  2212 2212 2 -1000037 1000023 # reference xsecs v1.0 [pb]
-  0  2  0  0  0  0    3.84054331E-02 SModelSv3.0.0-beta
+  0  2  0  0  0  0    3.84054371E-02 SModelSv3.0.0-beta
 
 XSECTION  1.30E+04  2212 2212 2 -1000024 1000024 # reference xsecs v1.0 [pb]
-  0  2  0  0  0  0    1.13645812E+01 SModelSv3.0.0-beta
+  0  2  0  0  0  0    1.13645824E+01 SModelSv3.0.0-beta
 
 XSECTION  1.30E+04  2212 2212 2 -1000024 1000037 # reference xsecs v1.0 [pb]
   0  2  0  0  0  0    0.00000000E+00 SModelSv3.0.0-beta
@@ -379,7 +379,7 @@ XSECTION  1.30E+04  2212 2212 2 -1000037 1000024 # reference xsecs v1.0 [pb]
   0  2  0  0  0  0    0.00000000E+00 SModelSv3.0.0-beta
 
 XSECTION  1.30E+04  2212 2212 2 -1000037 1000037 # reference xsecs v1.0 [pb]
-  0  2  0  0  0  0    1.78321149E-02 SModelSv3.0.0-beta
+  0  2  0  0  0  0    1.78321167E-02 SModelSv3.0.0-beta
 
 # Signal strength multipliers: (1000022, 1000022):0.2686, (1000023, 1000023):0.2878, (1000022, 1000023):0, (1000024, 1000024):2.573, (-1000024, 1000024):2.573, (-1000024, -1000024):2.573, (1000022, 1000024):1.869, (-1000024, 1000022):1.869, (1000023, 1000024):0, (-1000024, 1000023):0, (1000037, 1000037):0.2961, (-1000037, 1000037):0.2961, (-1000037, -1000037):0.2961, (1000022, 1000037):0.4708, (-1000037, 1000022):0.4708, (1000023, 1000037):1.336, (-1000037, 1000023):1.336, (1000024, 1000037):0, (-1000037, 1000024):0, (-1000024, 1000037):0, (-1000037, -1000024):0
 
