@@ -57,7 +57,7 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray,
 
     def weight_function(path: list):
         k = (len(path) - 1)
-        penalty = (2 / 3) * np.sqrt(2 * k) if k > 0 else 0
+        penalty = 0.6 * np.sqrt(2 * k) if k > 0 else 0
         return np.sum(bam.weights[path]) + penalty
 
     results = {}
