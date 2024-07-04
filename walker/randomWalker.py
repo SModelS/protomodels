@@ -415,7 +415,7 @@ class RandomWalker ( LoggerBase ):
         if K == None: # if the old is none, we do everything
             self.takeStep()
             return
-        newK = newK
+        newK = self.protomodel.K
         if newK == None:
             # if the new is none, but the old isnt, we go back
             self.manipulator.restoreModel( reportReversion=True )
