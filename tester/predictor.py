@@ -212,7 +212,7 @@ class Predictor ( LoggerBase ):
         print out its name
         :returns: False, if no combinations could be found, else True
         """
-        
+
 
         if hasattr ( self, "predictions" ):
             del self.predictions ## make sure we dont accidentally use old preds
@@ -221,7 +221,7 @@ class Predictor ( LoggerBase ):
 
         # Create SLHA file (for running SModelS)
         slhafile = protomodel.createSLHAFile()
-        
+
         # now use all prediction with likelihood values to compute the TL of the model
         predictions = self.runSModelS( slhafile, sigmacut,allpreds=True, ULpreds=False )
         if not predictions: return False
@@ -231,7 +231,7 @@ class Predictor ( LoggerBase ):
 
         # Compute significance and store in the model:
         self.computeSignificance( protomodel, predictions, strategy )
-                
+
         if protomodel.TL is None:
             self.log ( f"done with prediction. Could not find combinations (TL={protomodel.TL})" )
             protomodel.delCurrentSLHA()
@@ -308,7 +308,7 @@ class Predictor ( LoggerBase ):
 
         theoryPredictions = theoryPredictionsFor ( self.database, topos, useBestDataset=bestDataSet, combinedResults=self.do_srcombine )
         preds = TheoryPredictionList(theoryPredictions, maxcond)
-        
+
         if preds != None:
             for pred in preds:
                 if pred.dataType() == 'upperLimit':
@@ -371,33 +371,39 @@ class Predictor ( LoggerBase ):
         self.log ( f"now find combo with highest TL given {len(predictions)} predictions" )
         ## find highest observed significance
         #(set mumax just slightly below its value, so muhat is always below)
-        mumax = protomodel.mumax
+        # mumax = protomodel.mumax
         bestCombo,TL,muhat = self.combiner.findHighestSignificance ( predictions,expected=False )   #, mumax = mumax
-        prior = self.combiner.computePrior ( protomodel )
-        ## temporary hack: penalize for missing experiment
-        missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )
-        extremeSSMs = self.combiner.penaltyForExtremeSSMs ( protomodel )
-        undemocraticFlavors = self.combiner.penaltyForUndemocraticFlavors ( protomodel )
-        oldprior = prior
-        prior *= missingExpPenalty * extremeSSMs * undemocraticFlavors
-        self.log ( f"prior={prior:.2f} before_penalties={oldprior:.2f} "\
-                   f"missingExp={missingExpPenalty:.2f} "\
-                   f"extremeSSMs={extremeSSMs:.2f} "\
-                   f"undemocraticFlavors={undemocraticFlavors:.2f}" )
+
         if hasattr ( protomodel, "keep_meta" ) and protomodel.keep_meta:
             protomodel.bestCombo = bestCombo
         else:
             protomodel.bestCombo = self.combiner.removeDataFromBestCombo ( bestCombo )
-        protomodel.TL = TL
-
-        if TL is None: # TL is None when no combination was found
-            protomodel.K = None
-        else:
-            protomodel.K = self.combiner.computeK ( TL, prior )
-        #protomodel.llhd = llhd
-        protomodel.muhat = muhat
         protomodel.letters = self.combiner.getLetterCode(protomodel.bestCombo)
         protomodel.description = self.combiner.getComboDescription(protomodel.bestCombo)
+
+        protomodel.muhat = muhat
+
+        protomodel.TL = TL
+        
+        if abs(model.muhat - 1.0) < 1e-02:
+            prior = self.combiner.computePrior ( protomodel )
+            ## temporary hack: penalize for missing experiment
+            missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )
+            extremeSSMs = self.combiner.penaltyForExtremeSSMs ( protomodel )
+            undemocraticFlavors = self.combiner.penaltyForUndemocraticFlavors ( protomodel )
+            oldprior = prior
+            prior *= missingExpPenalty * extremeSSMs * undemocraticFlavors
+            self.log ( f"prior={prior:.2f} before_penalties={oldprior:.2f} "\
+                       f"missingExp={missingExpPenalty:.2f} "\
+                       f"extremeSSMs={extremeSSMs:.2f} "\
+                       f"undemocraticFlavors={undemocraticFlavors:.2f}" )
+
+            if TL is None: # TL is None when no combination was found
+                protomodel.K = None
+            else:
+                protomodel.K = self.combiner.computeK ( TL, prior )
+            #protomodel.llhd = llhd
+
 
 if __name__ == "__main__":
     import argparse
