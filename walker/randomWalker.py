@@ -41,12 +41,12 @@ def __cleanDirectory ():
     subprocess.getoutput ( "mv exceptions.log tmp/" )
 
 class RandomWalker ( LoggerBase ):
-    def __init__ ( self, walkerid : int = 0, nsteps : int = 10000, 
-            strategy : str = "aggressive", 
-            cheatcode : int = 0, dbpath : PathLike = "./database.pcl", 
-            expected : bool = False, select : str = "all", 
-            catch_exceptions : bool = True, rundir : Union[PathLike,None] = None, 
-            do_srcombine : bool = False, 
+    def __init__ ( self, walkerid : int = 0, nsteps : int = 10000,
+            strategy : str = "aggressive",
+            cheatcode : int = 0, dbpath : PathLike = "./database.pcl",
+            expected : bool = False, select : str = "all",
+            catch_exceptions : bool = True, rundir : Union[PathLike,None] = None,
+            do_srcombine : bool = False,
             record_history : bool = False, seed : Union[int,None] = None,
             stopTeleportationAfter : int = -1 ):
         """ initialise the walker
@@ -66,7 +66,7 @@ class RandomWalker ( LoggerBase ):
                 this step nr.  If negative or None, we dont teleport at all
         """
 
-        #call the super class of the random walker i.e Loggerbase 
+        #call the super class of the random walker i.e Loggerbase
         super ( RandomWalker, self ).__init__ ( walkerid )
         dbpath = os.path.expanduser ( dbpath )
         if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
@@ -91,15 +91,15 @@ class RandomWalker ( LoggerBase ):
         #Initialize Hiscore (with access to the predictor)
         picklefile = f"{self.rundir}/H{walkerid}.cache"
         save_hiscores = True
-        self.hiscoreList = Hiscores ( walkerid, save_hiscores=save_hiscores, 
+        self.hiscoreList = Hiscores ( walkerid, save_hiscores=save_hiscores,
                 picklefile=picklefile, backup=False, predictor=self.predictor )
         self.hiscoreList.nkeep = 1
 
         #Initialize ProtoModel and Manipulator:
-        protomodel = ProtoModel( self.walkerid, keep_meta = True, 
+        protomodel = ProtoModel( self.walkerid, keep_meta = True,
                 dbversion = self.predictor.database.databaseVersion )
 
-        self.manipulator = Manipulator ( protomodel, strategy, 
+        self.manipulator = Manipulator ( protomodel, strategy,
                         do_record = record_history, seed = seed )
         self.catch_exceptions = catch_exceptions
         self.maxsteps = nsteps
@@ -163,8 +163,8 @@ class RandomWalker ( LoggerBase ):
     @classmethod
     def fromDictionary( cls, dictionary : Union[PathLike,Dict], **args : Dict ):
         """ create a RandomWalker from a hiscore dictionary. Continue walking
-            from the model in that dictionary 
-        :param dictionary: either a dictionary, or a string containing a dictionary, 
+            from the model in that dictionary
+        :param dictionary: either a dictionary, or a string containing a dictionary,
         or the path to a dictionary
         """
         if type(dictionary) == str and dictionary.endswith ( ".dict" ):
@@ -183,7 +183,7 @@ class RandomWalker ( LoggerBase ):
                     logger.info ( f" ... seemed to work!" )
             except Exception as e:
                 logger.error  ( f"could not interpret the content of {dictionary}: {e}" )
-                
+
         ret = cls( **args ) ## simply pass on all the arguments
 
         pm = RandomWalker.extractArguments ( ProtoModel.__init__, **args )
@@ -213,7 +213,7 @@ class RandomWalker ( LoggerBase ):
         pidsp = self.protomodel.unFrozenParticles()
         pidsp.sort()
         namer = SParticleNames ( False )
-        
+
         prtcles = ", ".join ( map ( namer.asciiName, pidsp ) )
         if self.manipulator.M.bestCombo:
             pidsbc = list ( self.manipulator.getAllPidsOfBestCombo() )
@@ -237,13 +237,13 @@ class RandomWalker ( LoggerBase ):
                     muhat_converge = True
                     break
                 manipulator.rescaleSignalBy(model.muhat) #?
-        
+
         if not muhat_converge:  #reverting step
             self.pprint ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {model.muhat}. Going back to previous step." )
             return False
-        
+
         return True
-            
+
     def onestep ( self ):
         #Add one step
         self.protomodel.step+=1
@@ -270,14 +270,14 @@ class RandomWalker ( LoggerBase ):
 
         nUnfrozen = len( self.protomodel.unFrozenParticles() )
         ## number of pids in best combo, as a check
-        
+
         #Try to create a simpler model
-        #(merge pre-defined particles of their mass difference is below dm)
+        #(merge pre-defined particles if their mass difference is below dm)
         protomodelSimp = self.manipulator.simplifyModel(dm=200.0)
         manipulatorSimp = None
         if protomodelSimp: manipulatorSimp = Manipulator ( protomodelSimp, strategy="aggressive",do_record = False, seed = 0 )
         boolProtoSimp = False
-            
+
         # self.printStats( substep=14 )
 
         if self.catch_exceptions:
@@ -324,7 +324,7 @@ class RandomWalker ( LoggerBase ):
         #If no combination could be found, return
         if self.manipulator.M.TL is None or self.manipulator.M.K is None:
             return
-        
+
         if len(self.manipulator.M.rvalues) > 1:
             self.log ( "Top r values are: %.2f, %.2f" % \
                        ( self.manipulator.M.rvalues[0], self.manipulator.M.rvalues[1] ) )
@@ -415,7 +415,7 @@ class RandomWalker ( LoggerBase ):
         if K == None: # if the old is none, we do everything
             self.takeStep()
             return
-        newK = self.protomodel.K
+        newK = newK
         if newK == None:
             # if the new is none, but the old isnt, we go back
             self.manipulator.restoreModel( reportReversion=True )
@@ -424,8 +424,8 @@ class RandomWalker ( LoggerBase ):
             ratio = numpy.exp(.5*( newK - K))
 
         if ratio >= 1.:
-            self.highlight ( "info", f"K: {self.currentK:.3f} -> {self.protomodel.K:.3f}: r={ratio:.4f}, check critic" )
-            if self.protomodel.K > 0. and self.protomodel.K < 0.7 * self.currentK:
+            self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}: r={ratio:.4f}, check critic" )
+            if newK > 0. and newK < 0.7 * K:
                 self.pprint ( " `- weirdly, though, K decreases. Please check." )
                 sys.exit(-2)
             self.critic.predict_critic(self.protomodel, keep_predictions=True)
@@ -438,10 +438,10 @@ class RandomWalker ( LoggerBase ):
         else:
             u=random.uniform(0.,1.)
             if u > ratio:
-                self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(self.currentK)} -> {prettyPrint(self.protomodel.K)}: revert." )
+                self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.pprint ( f"u={u:.2f} <= {ratio:.2f} ; {prettyPrint(self.currentK)} -> {prettyPrint(self.protomodel.K)}: check critic, even though old is better." )
+                self.pprint ( f"u={u:.2f} <= {ratio:.2f} ; {prettyPrint(K)} -> {prettyPrint(newK)}: check critic, even though old is better." )
                 self.critic.predict_critic(self.protomodel, keep_predictions=True)
                 if self.protomodel.muhat > self.protomodel.mumax:
                     self.pprint ( f"mumax - {self.protomodel.mumax} smaller than muhat - {self.protomodel.muhat}. Revert" )
