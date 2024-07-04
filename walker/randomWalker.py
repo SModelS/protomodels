@@ -324,12 +324,9 @@ class RandomWalker ( LoggerBase ):
         #If no combination could be found, return
         if self.manipulator.M.TL is None or self.manipulator.M.K is None:
             return
-
-        #the muhat multiplier gets multiplied into the signal strengths
-        self.manipulator.rescaleSignalBy(self.protomodel.muhat)
         
         if len(self.manipulator.M.rvalues) > 1:
-            self.log ( "Top r values after rescaling are: %.2f, %.2f" % \
+            self.log ( "Top r values are: %.2f, %.2f" % \
                        ( self.manipulator.M.rvalues[0], self.manipulator.M.rvalues[1] ) )
 
         self.log ( "Step %d: found highest TL: %.2f" % \
@@ -512,7 +509,7 @@ if __name__ == "__main__":
     decays = {1000022: {}, 1000023: {(1000022, 25): 1.0}, 1000024: {(1000022, 24): 1.0}, 1000037: {(1000022, 24): 0.353533, (1000024, 23): 0.646467}, 1000006: {(1000022, 6): 1.0}}
     D = {'masses': masses, 'ssmultipliers': ssms, 'decays': decays }
     dbpath = "official"
-    select = "txnames:electroweakinos,stops" 
+    select = "txnames:electroweakinos,stops"
     select = "all"
     walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
             do_srcombine = True, select = select )
