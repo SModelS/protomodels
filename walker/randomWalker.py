@@ -409,46 +409,44 @@ class RandomWalker ( LoggerBase ):
     def decideOnTakingStep ( self ):
         """ depending on the ratio of K values, decide on whether to take the step or not.
             If ratio > 1., take the step, if < 1, let chance decide. """
-        import random
-        ratio = 1.
         K = self.currentK
         if K == None: # if the old is none, we do everything
             self.takeStep()
             return
+
         newK = self.protomodel.K
         if newK == None:
             # if the new is none, but the old isnt, we go back
             self.manipulator.restoreModel( reportReversion=True )
             return
-        if K > -20. and newK < K:
-            ratio = numpy.exp(.5*( newK - K))
 
-        if ratio >= 1.:
-            self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}: r={ratio:.4f}, check critic" )
-            if newK > 0. and newK < 0.7 * K:
-                self.pprint ( " `- weirdly, though, K decreases. Please check." )
-                sys.exit(-2)
-            self.critic.predict_critic(self.protomodel, keep_predictions=True)
-            if self.protomodel.muhat > self.protomodel.mumax:
-                self.pprint ( f"mumax - {self.protomodel.mumax} smaller than muhat - {self.protomodel.muhat}. Revert." )
-                self.manipulator.restoreModel( reportReversion=True )
-            else:
-                self.pprint ( f"mumax - {self.protomodel.mumax} greater than muhat - {self.protomodel.muhat}. Take step." )
+        if newK > K:
+            self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}: check critics." )
+
+            if self.critic.predict_critic(self.protomodel, keep_predictions=True):
+                self.pprint ( "passed both critics, take the step." )
                 self.takeStep()
+            else:
+                self.pprint ( "failed at least one critic, the step is reverted." )
+                self.manipulator.restoreModel( reportReversion=True )
+
         else:
-            u=random.uniform(0.,1.)
+            import random
+
+            u = random.uniform(0.,1.)
+            ratio = numpy.exp(.5*( newK - K))
             if u > ratio:
                 self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.pprint ( f"u={u:.2f} <= {ratio:.2f} ; {prettyPrint(K)} -> {prettyPrint(newK)}: check critic, even though old is better." )
-                self.critic.predict_critic(self.protomodel, keep_predictions=True)
-                if self.protomodel.muhat > self.protomodel.mumax:
-                    self.pprint ( f"mumax - {self.protomodel.mumax} smaller than muhat - {self.protomodel.muhat}. Revert" )
-                    self.manipulator.restoreModel( reportReversion=True )
-                else:
-                    self.pprint ( f"mumax - {self.protomodel.mumax} greater than muhat - {self.protomodel.muhat}. Take step." )
+                self.highlight ( "info", f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: check critics." )
+
+                if self.critic.predict_critic(self.protomodel, keep_predictions=True):
+                    self.pprint ( "passed both critics, take the step." )
                     self.takeStep()
+                else:
+                    self.pprint ( "failed at least one critic, the step is reverted." )
+                    self.manipulator.restoreModel( reportReversion=True )
 
     def record ( self ):
         """ if recorder is defined, then record. """
