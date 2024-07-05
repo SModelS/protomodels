@@ -258,14 +258,15 @@ class Predictor ( LoggerBase ):
         protomodel.dbversion = self.database.databaseVersion
         return True
 
-    def runSModelS(self, inputFile : PathLike, sigmacut,
+    def runSModelS(self, inputFile : PathLike, sigmacut : float,
             allpreds : bool, ULpreds : bool, maxcond : float = 0.2 ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
         :param sigmacut: the cut on the topology weights, typically 0.02*fb
         :param allpreds: if true, return all predictions of analyses, else
                          only best signal region
-        :param llhdonly: if true, return only results with likelihoods
+        :param ULpreds: if true, also returns the list of theory predictions for UL-type results
+        :param maxcond: maximum relative violation of conditions for valid results
 
         :returns: list of all theory predictions
         """
@@ -384,7 +385,7 @@ class Predictor ( LoggerBase ):
         protomodel.muhat = muhat
 
         protomodel.TL = TL
-        
+
         if abs(model.muhat - 1.0) < 1e-02:
             prior = self.combiner.computePrior ( protomodel )
             ## temporary hack: penalize for missing experiment

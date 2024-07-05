@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 """
-the predictor class, i.e. the class that computes the predictions,
-finds the best combinations, and computes the final test statistics
+the critic class, i.e. the class that tells if the
+current model survives LHC constraints or not.
 """
 
-__all__ = [ "Predictor" ]
+__all__ = [ "Critic" ]
 
 import pickle, time, os, sys
 from smodels.decomposition import decomposer
@@ -28,14 +28,14 @@ class Critic ( LoggerBase ):
         self.walkerid = walkerid
         self.do_srcombine = do_srcombine
         self.rthreshold = 1.38
-        
+
         force_load = None
         if dbpath.endswith ( ".pcl" ):
             force_load = "pcl"
-            
+
         self.database=Database( dbpath, force_load = force_load )
         self.combiner = Combiner(self.walkerid)
-    
+
     def getMaxAllowedMu(self, protomodel):
         """ Compute the maximum (global) signal strength normalization
             given the predictions.
@@ -52,7 +52,7 @@ class Critic ( LoggerBase ):
             mumax = min(mumax_ul, mumax_llhd)
 
         return mumax
-    
+
     def updateModelPredictionsWithULPreds(self, protomodel, ul_critic_preds):
         """ Extract information from list of theory predictions and store list of dict with r_obs,
             r_exp and theory prediction(sorted according to decreasing r_obs values) in the protomodel.
@@ -123,13 +123,15 @@ class Critic ( LoggerBase ):
         protomodel.critic_description += "; llhd-based critic combined datasets:" + ",".join( [experimentalId(comb) for comb in best_comb] ) + f"with r={r}"
 
         return
-            
-    def runSModelS(self, inputFile : PathLike, sigmacut, allpreds : bool, ULpreds : bool ) -> List[TheoryPrediction]:
+
+    def runSModelS(self, inputFile : PathLike, sigmacut : float, allpreds : bool, ULpreds : bool ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
         :param sigmacut: the cut on the topology weights, typically 0.02*fb
-        :param allpreds: if true, return all predictions of analyses, else only best signal region
-        :param llhdonly: if true, return only results with likelihoods
+        :param allpreds: if true, return all predictions of analyses, else
+                         only best signal region
+        :param ULpreds: if true, also returns the list of theory predictions for UL-type results
+        :param maxcond: maximum relative violation of conditions for valid results
 
         :returns: list of all theory predictions
         """
@@ -199,7 +201,7 @@ class Critic ( LoggerBase ):
             return ulpreds, predictions
         else:
             return predictions
-    
+
     def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, keep_predictions : bool = False, keep_slhafile : bool = False ):
         """ Compute the crtic predictions and statistical variables, for a protomodel.
 
