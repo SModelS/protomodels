@@ -44,7 +44,7 @@ class Predictor ( LoggerBase ):
         self.modifier = None
         self.select = select
         self.expected = expected
-        self.rthreshold = 1.38 ## threshold for rmax #!TAKE IT Out of here, in critic
+        
         if expected:
             from expResModifier import ExpResModifier
             self.modifier = ExpResModifier()

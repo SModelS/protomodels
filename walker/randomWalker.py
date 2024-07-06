@@ -424,10 +424,10 @@ class RandomWalker ( LoggerBase ):
             self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}: check critics." )
 
             if self.critic.predict_critic(self.protomodel, keep_predictions=True):
-                self.pprint ( "passed both critics, take the step." )
+                self.pprint ( "Passed both critics, taking the step." )
                 self.takeStep()
             else:
-                self.pprint ( "failed at least one critic, the step is reverted." )
+                self.pprint ( "Failed at least one critic, the step is reverted." )
                 self.manipulator.restoreModel( reportReversion=True )
 
         else:
@@ -442,10 +442,10 @@ class RandomWalker ( LoggerBase ):
                 self.highlight ( "info", f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: check critics." )
 
                 if self.critic.predict_critic(self.protomodel, keep_predictions=True):
-                    self.pprint ( "passed both critics, take the step." )
+                    self.pprint ( "Passed both critics, taking the step." )
                     self.takeStep()
                 else:
-                    self.pprint ( "failed at least one critic, the step is reverted." )
+                    self.pprint ( "Failed at least one critic, the step is reverted." )
                     self.manipulator.restoreModel( reportReversion=True )
 
     def record ( self ):
