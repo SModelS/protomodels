@@ -762,14 +762,14 @@ class Combiner ( LoggerBase ):
 
     def getMostSensitiveCombination(self, predictions : List[TheoryPrediction], expected : bool =True) -> Tuple:
         """
-            Gets the most sensitive combination and its corresponding weight (-2 ln L1/L0 for the whole combination)
+            Gets the most sensitive combination and its corresponding weight (-2 ln L1/L0 (expected likelihoods) for the whole combination)
             given the list of theory predictions.
         """
         comb_dict = bamAndWeights(predictions, expected, excl_mode=True)        #get the true/false comb matrix, along with weights
         pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
 
-        most_significant_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
-        comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
+        most_sensitive_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
+        comb_lbl, weight = most_sensitive_comb_dict['best'], most_sensitive_comb_dict['weight']
 
         #from ptools.helpers import experimentalId
         #tpred_lbl = {experimentalId(tpred):tpred for tpred in predictions}

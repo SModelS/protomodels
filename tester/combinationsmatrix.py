@@ -2,7 +2,7 @@
 
 from typing import Dict
 
-__all__ = [ "getMatrix" ]
+__all__ = [ "getMatrix", "getYamlMatrix" ]
 
 def update ( dest : Dict, add : Dict ) -> Dict:
     """ an update routine that appends to containers if they exist
@@ -605,6 +605,18 @@ def getMatrix():
     return allowed
 
 
+def getYamlMatrix(experiment,sqrts):
+    import os, yaml
+
+    abs_path = os.path.dirname( os.path.abspath( __file__ ) )
+    file_path = os.path.join( abs_path, f'{experiment}{sqrts}.yaml' )
+
+    with open(file_path,'r') as file:
+        CombinabilityMatrix = yaml.safe_load(file)
+
+    return CombinabilityMatrix
+
+
 if __name__ == "__main__":
-    matrix = getMatrix()
+    matrix = getYamlMatrix("ATLAS",13)
     print ( matrix )

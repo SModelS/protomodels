@@ -62,12 +62,13 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction], bound: float
 def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = False, excl_mode: bool = False) -> Dict:
     """
     A simple function that takes a list of theory predictions,
-    and from this compute a small binary acceptance matrix (bam) in the guise
+    and from this computes a small binary acceptance matrix (bam) in the guise
     of a dictionary, returns the bam alongside with the dictionary of weights
 
     :returns: dictionary of bam and weights
     """
     from ptools.helpers import experimentalId
+    from tester import analysisCombiner
 
     bam, weights, theoryPred = {}, {}, {}
 
@@ -88,7 +89,8 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
             bam[tpId] = set()
         for tpred2 in theorypredictions[i+1:]:
             tpId2 = experimentalId(tpred2)
-            if tpred.dataset.isCombinableWith(tpred2.dataset):
+            # if tpred.dataset.isCombinableWith(tpred2.dataset):
+            if analysisCombiner.canCombineUsingMatrix(tpred, tpred2):
                 bam[tpId].add(tpId2)
 
     return {"weights": weights, "bam": bam, "theoryPred": theoryPred}

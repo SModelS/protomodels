@@ -4,7 +4,7 @@
 
 from smodels.matching.theoryPrediction import TheoryPrediction
 from smodels.experiment.infoObj import Info
-import fnmatch
+import fnmatch, yaml
 from typing import Union
 
 moreComments = { ## collect a few more comments on analyses
@@ -99,9 +99,9 @@ def hasOverlap ( elA, elB, globA = None, globB = None ):
                 return True
     return False
 
-def canCombineUsingMatrix ( globA : Union[TheoryPrediction,Info], 
+def canCombineUsingMatrix ( globA : Union[TheoryPrediction,Info],
                             globB : Union[TheoryPrediction,Info] ):
-    """ method that defines what we allow to combine, using combinationsmatrix.py
+    """ method that defines what we allow to combine, using the yaml files.
     """
     if type(globA)==TheoryPrediction:
         ## elA = globA.elements ## v2
@@ -111,31 +111,50 @@ def canCombineUsingMatrix ( globA : Union[TheoryPrediction,Info],
         ## elB = globB.elements ## v2
         elB = globB.smsList
         globB = globB.expResult.globalInfo
-    if globA.sqrts != globB.sqrts:
+
+    sqrtsA = int(globA.sqrts.asNumber())
+    sqrtsB = int(globB.sqrts.asNumber())
+    if sqrtsA != sqrtsB:
         return True
-    if getExperimentName(globA) != getExperimentName(globB):
+
+    expA = getExperimentName (globA)
+    expB = getExperimentName (globB)
+    if expA != expB:
         return True
+
     if False and hasOverlap ( elA, elB, globA, globB ):
         ## overlap in the constraints? then for sure a no!
         return False
+
+    from tester.combinationsmatrix import getYamlMatrix
+    combinabilityMatrix = getYamlMatrix(expA,sqrtsA)
+
+    if not combinabilityMatrix:
+        print(f"Something is wrong with the combinability matrix. Got {combinabilityMatrix}.")
+        return False
+
     anaidA = globA.id
     anaidB = globB.id
-    for ext in [ "agg", "ma5", "eff", "adl" ]:
+
+    for ext in [ "agg", "ma5", "eff", "adl", "multibin", "exclusive", "incl" ]:
         # these extensions must not make a difference
         anaidA = anaidA.replace(f"-{ext}","")
         anaidB = anaidB.replace(f"-{ext}","")
-    from tester.combinationsmatrix import getMatrix
-    allowCombination = getMatrix()
-    if anaidA in allowCombination.keys():
-        for i in allowCombination[anaidA]:
+
+    if anaidA in combinabilityMatrix.keys():
+        if anaidB in combinabilityMatrix[anaidA]:
+            return True
+        # If matrix entries use wildcards
+        for i in combinabilityMatrix[anaidA]:
             if len ( fnmatch.filter ( [anaidB ], i ) ) == 1:
                 return True
-    if anaidB in allowCombination.keys():
-        for i in allowCombination[anaidB]:
+    if anaidB in combinabilityMatrix.keys():
+        if anaidA in combinabilityMatrix[anaidB]:
+            return True
+        # If matrix entries use wildcards
+        for i in combinabilityMatrix[anaidB]:
             if len ( fnmatch.filter ( [anaidA ], i ) ) == 1:
                 return True
-        if anaidA in allowCombination[anaidB]:
-            return True
     return False
 
 def getSummary( dbpath : str = "official" ):

@@ -34,7 +34,7 @@ class Critic ( LoggerBase ):
         if dbpath.endswith ( ".pcl" ):
             force_load = "pcl"
 
-        self.database=Database( dbpath, force_load = force_load )
+        self.database = Database( dbpath, force_load = force_load )
         self.combiner = Combiner(self.walkerid)
 
     # def getMaxAllowedMu(self, protomodel):
@@ -80,8 +80,9 @@ class Critic ( LoggerBase ):
                 logger.warning ("The computation of the observed r-value of the most sensitive combination gave None.")
                 r = 20 # Something is wrong, we exclude
 
+            robs.append(r)
             rexp = theorypred.getRValue(expected=True)
-            tpList.append( { "robs": robs, "rexp": rexp, "tp": theorypred } )
+            tpList.append( { "robs": r, "rexp": rexp, "tp": theorypred } )
 
 
         # while len(robs)<2:
@@ -102,7 +103,7 @@ class Critic ( LoggerBase ):
             critic_description.append ( tmp )
         if len(tpList)>3:
             critic_description.append ( "..." )
-        protomodel.critic_description = "Datasets: " + ",".join ( critic_description )
+        protomodel.critic_description += "Datasets: " + ",".join ( critic_description )
 
         return
 
@@ -116,8 +117,12 @@ class Critic ( LoggerBase ):
         """
         from ptools.helpers import experimentalId
 
-        protomodel.llhd_critic_robs = r
-        protomodel.critic_description += "; llhd-based critic combined datasets:" + ",".join( [experimentalId(comb) for comb in best_comb] ) + f"with r={r}"
+        protomodel.llhd_critic_robs = robsComb
+
+        if mostSensiComb is None:
+            protomodel.description += "; llhd-based critic has no theory prediction."
+        else:
+            protomodel.critic_description += "; llhd-based critic combined datasets:" + ",".join( [experimentalId(comb) for comb in best_comb] ) + f"with r={robsComb}"
 
         return
 
@@ -135,7 +140,7 @@ class Critic ( LoggerBase ):
         """
 
         if not os.path.exists ( inputFile ):
-            self.pprint ( f"error, cannot find inputFile {inputFile}" )
+            logger.warning ( f"error, cannot find inputFile {inputFile}" )
             return []
         model = Model ( BSMList, SMList )
         try:
@@ -224,19 +229,19 @@ class Critic ( LoggerBase ):
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
 
-        allowed_by_UL_critic = self.UL_critic(predictions)
+        allowed_by_UL_critic = self.UL_critic(protomodel, predictions)
 
         # Extract the relevant prediction information and store in the protomodel:
         self.updateModelPredictionsWithULPreds(protomodel, predictions, keep_predictions)
 
         if not allowed_by_UL_critic:
             if keep_slhafile:
-                self.pprint ( f"keeping {protomodel.currentSLHA}, as requested" )
+                logger.info ( f"keeping {protomodel.currentSLHA}, as requested" )
             else:
                 protomodel.delCurrentSLHA()
             return False
 
-        self.pprint("Model allowed by UL-based critic. Starting llhd-based critic.")
+        logger.info ("Model allowed by UL-based critic. Starting llhd-based critic.")
 
         # --- llhd-based critic ---
 
@@ -248,7 +253,7 @@ class Critic ( LoggerBase ):
         self.updateModelPredictionsWithCombinedPreds(protomodel, mostSensiComb, robsComb)
 
         if keep_slhafile:
-            self.pprint ( f"keeping {protomodel.currentSLHA}, as requested" )
+            logger.info ( f"keeping {protomodel.currentSLHA}, as requested" )
         else:
             protomodel.delCurrentSLHA()
 
@@ -259,7 +264,7 @@ class Critic ( LoggerBase ):
         if allowed_by_llhd_critic:
             return True
         else:
-            self.pprint("Model failed llhd-based critic.")
+            logger.info ("Model failed llhd-based critic.")
             return False
 
 
@@ -275,8 +280,8 @@ class Critic ( LoggerBase ):
                 set_ids.add ( pred.dataset.globalInfo.id )
         for pred in pred_list_2:
             id = pred.dataset.globalInfo.id
-            for ext in ['-agg','-ma5','-ewk','-strong','-hino','-multibin','-exclusive','-incl']:
-                id.replace(ext,'')
+            for ext in ['agg','ma5','ewk','strong','hino','multibin','exclusive','incl','adl','eff']:
+                id = id.replace(f'-{ext}','')
             if id in set_ids:
                 continue
             predictions.append ( pred )
@@ -284,7 +289,7 @@ class Critic ( LoggerBase ):
         return predictions
 
 
-    def UL_critic(self, predictions):
+    def UL_critic(self, protomodel, predictions):
         """ UL-based critic (can also use best SR results if no UL-type result available for a given analysis).
 
         :param predictions: list of theory predictions (UL-type and EM-type)
@@ -316,7 +321,7 @@ class Critic ( LoggerBase ):
         while binom.cdf(max_allowed,n_sensitive,0.05) <= 0.66:
             max_allowed += 1
 
-        protomodel.critic_description += f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}. "
+        protomodel.critic_description = f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}. "
 
         return max_allowed >= n_excluding
 
@@ -346,14 +351,14 @@ class Critic ( LoggerBase ):
         if keep_predictions:
             self.llhd_critic_preds = EMpreds
 
+        r = None
         best_comb, weight = self.combiner.getMostSensitiveCombination(predictions)
         if best_comb:
-                    tpCombiner = TheoryPredictionsCombiner(best_comb)
-                    r = tpCombiner.getRValue(expected=False)
+            tpCombiner = TheoryPredictionsCombiner(best_comb)
+            r = tpCombiner.getRValue(expected=False)
 
         if r is None:
             logger.warning ("The computation of the observed r-value of the most sensitive combination gave None.")
-
-        protomodel.critic_description += f"; llhd-based critic: . "
+            return False, best_comb, None
 
         return r < 1, best_comb, r
