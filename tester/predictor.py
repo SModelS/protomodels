@@ -44,7 +44,7 @@ class Predictor ( LoggerBase ):
         self.modifier = None
         self.select = select
         self.expected = expected
-        
+
         if expected:
             from expResModifier import ExpResModifier
             self.modifier = ExpResModifier()
@@ -386,7 +386,7 @@ class Predictor ( LoggerBase ):
 
         protomodel.TL = TL
 
-        if abs(model.muhat - 1.0) < 1e-02:
+        if abs(muhat - 1.0) < 1e-02:
             prior = self.combiner.computePrior ( protomodel )
             ## temporary hack: penalize for missing experiment
             missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )
