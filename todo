@@ -1,7 +1,7 @@
 todo:
 =====
 *) expResModifier, for creating fake observations we need to add 
-   the higher dimensional cases (?)
+   the higher dimensional cases, and also SLv2
 *) extend the BAM, add most recent analyses (SN,WW)
 *) fit simplified likelihoods for full pyhf likelihoods for speedup (MMA)
 *) introduce smart initialisation of walker (WW)

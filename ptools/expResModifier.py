@@ -39,7 +39,7 @@ logger.setLevel("ERROR")
 hasWarned = { "noupperlimits": 0 }
 
 def readDictFile ( filename : str = "default.dict" ) -> Dict:
-    """ read in content of filename 
+    """ read in content of filename
     :param filename: the filename of the database dictionary.
     often it is <dbversion>.dict
 
@@ -446,6 +446,9 @@ Just filter the database:
             if not self.fixedbackgrounds:
                 lmbda = self.drawNuisance ( exp, err )
             dataset.dataInfo.lmbda = lmbda
+            if hasattr ( dataset.dataInfo, "thirdMoment" ):
+                thirdMoment = float ( dataset.dataInfo.thirdMoment )
+                lmbda += thirdMoment * (lmbda-exp)**2 / err**4
             if lmbda < 0.:
                 lmbda = 0.
                 # lmbda = [self.drawNuisance ( exp, err ) for _ in range(1000)]
@@ -493,6 +496,33 @@ Just filter the database:
             D["timestamp"]=dataset.globalInfo.lastUpdate
         self.addToStats ( label, D, dataset.globalInfo )
         return dataset
+
+    def createEMStatsDict ( self, dataset ) -> Dict:
+        """ given the dataset, create a stats dictionary, for SL and pyhf
+        datasets """
+        orig = dataset.dataInfo.observedN
+        exp = dataset.dataInfo.expectedBG
+        err = 0.
+        if not self.fixedbackgrounds:
+            err = dataset.dataInfo.bgError * self.fudge
+        D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge,
+              "lumi": float(dataset.globalInfo.lumi * fb) }
+        if self.compute_ps:
+            p = computeP ( orig, exp, err )
+            self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
+            D["orig_p"]=p
+            origZ = computeZFromP ( p )
+            D["orig_Z"]=origZ
+            self.comments["orig_Z"]="the significance Z of the original observation"
+        txnames = [ tx.txName for tx in dataset.txnameList ]
+        txnames.sort()
+        if len ( txnames ) == 0:
+            self.warning ( f"no txnames for {label}." )
+        D["txns"]=",".join(txnames )
+        self.comments["txns"]="list of txnames that populate this signal region / analysis"
+        if self.timestamps:
+            D["timestamp"]=dataset.globalInfo.lastUpdate
+        return D
 
     def addSignalForEfficiencyMap ( self, dataset, tpred, lumi ):
         """ add a signal to this efficiency map. background sampling is
@@ -901,19 +931,76 @@ Just filter the database:
         ## print ( "ret=", ret )
         return ret
 
+    def fakeBackgroundsForSL ( self, expRes ):
+        """ synthesize fake observations by sampling a simplified likelihood
+        model
+        :param expRes: the experimental result to do this for
+        """
+        self.error ( f"FIXME fake SL backgrounds for {expRes.globalInfo.id}" )
+        import numpy as np
+        import scipy.stats
+        covm = np.array ( expRes.globalInfo.covariance )
+        if abs ( self.fudge - 1 ) > 1e-8:
+            covm = self.fudge**2 * covm
+        diag = np.array ([expRes.globalInfo.covariance[i][i] for i in range(len(covm))])
+        centers = np.array ( [ x.dataInfo.expectedBG for x in expRes.datasets ] )
+        zeroes = np.array ( [0.]*len(covm) )
+        rvs = scipy.stats.multivariate_normal.rvs ( zeroes, covm )
+        ## FIXME SLv2 needed also!
+        thirdMoments = None
+        tpe = "SLv1"
+        if hasattr ( expRes.datasets[0].dataInfo, "thirdMoment" ):
+            tpe = "SLv2"
+            thirdMoments = [ x.dataInfo.thirdMoment for x in expRes.datasets ]
+        # print ( f"@@3 for {expRes.globalInfo.id} rvs {rvs[:3]} cnt {centers[:3]} diag {diag[:3]}" )
+        for i,dataset in enumerate(expRes.datasets):
+            lmbda = centers[i] + rvs[i]
+            if thirdMoments != None:
+                lmbda += thirdMoments[i] / diag[i]**2 * rvs[i]**2
+            lmbda = max ( 0., lmbda )
+            k = scipy.stats.poisson.rvs ( lmbda )
+            D = self.createEMStatsDict ( dataset )
+            D["newObs"]=k
+            D["lmbda"]=lmbda
+            D["type"]=tpe
+            expRes.datasets[i].dataInfo.observedN = k
+            label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
+            self.addToStats ( label, D, dataset.globalInfo )
+            
+
+    def fakeBackgroundsForPyhf ( self, expRes ):
+        """ synthesize fake observations by sampling a pyhf model
+        :param expRes: the experimental result to do this for
+        """
+        self.error ( f"FIXME fake pyhf backgrounds for {expRes.globalInfo.id}" )
+        for i,dataset in enumerate(expRes.datasets):
+            D = self.createEMStatsDict ( dataset )
+            k = 666
+            expRes.datasets[i].dataInfo.observedN = k
+            D["newObs"]=k
+            D["type"]="pyhf"
+            label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
+            self.addToStats ( label, D, dataset.globalInfo )
+
+
     def fakeBackgrounds ( self, listOfExpRes ):
         """ thats the method that samples the backgrounds """
         ret = []
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
-            for i,dataset in enumerate(expRes.datasets):
-                dt = dataset.dataInfo.dataType
-                if dt == "upperLimit":
-                    expRes.datasets[i] = self.bgUpperLimit ( dataset )
-                elif dt == "efficiencyMap":
-                    expRes.datasets[i] = self.sampleEfficiencyMap ( dataset )
-                else:
-                    print ( f"[expResModifier] dataset type {dt} unknown" )
+            if hasattr ( expRes.globalInfo, "covariance" ):
+                self.fakeBackgroundsForSL ( expRes )
+            elif hasattr ( expRes.globalInfo, "jsonFiles" ):
+                self.fakeBackgroundsForPyhf ( expRes )
+            else:
+                for i,dataset in enumerate(expRes.datasets):
+                    dt = dataset.dataInfo.dataType
+                    if dt == "upperLimit":
+                        expRes.datasets[i] = self.bgUpperLimit ( dataset )
+                    elif dt == "efficiencyMap":
+                        expRes.datasets[i] = self.sampleEfficiencyMap ( dataset )
+                    else:
+                        print ( f"[expResModifier] dataset type {dt} unknown" )
             ret.append ( expRes )
         self.log ( "done faking the backgrounds" )
         return ret
@@ -1202,7 +1289,7 @@ Just filter the database:
             er = self.extractStats()
         else:
             if not self.playback:
-                er = self.modifyDatabase ( ) 
+                er = self.modifyDatabase ( )
         if statsname is not None:
             self.saveStats( statsname )
 
