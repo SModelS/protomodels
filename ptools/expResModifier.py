@@ -938,7 +938,7 @@ Just filter the database:
         model
         :param expRes: the experimental result to do this for
         """
-        self.error ( f"FIXME fake SL backgrounds for {expRes.globalInfo.id}" )
+        # self.error ( f"FIXME fake SL backgrounds for {expRes.globalInfo.id}" )
         import numpy as np
         import scipy.stats
         covm = np.array ( expRes.globalInfo.covariance )
@@ -960,18 +960,27 @@ Just filter the database:
             if thirdMoments != None:
                 lmbda += thirdMoments[i] / diag[i]**2 * rvs[i]**2
             lmbda = max ( 0., lmbda )
-            k = scipy.stats.poisson.rvs ( lmbda )
+            obs = scipy.stats.poisson.rvs ( lmbda )
             D = self.createEMStatsDict ( dataset )
             if self.fixedbackgrounds:
                 D["newObs"]=dataset.dataInfo.expectedBG
             else:
-                D["newObs"]=k
+                D["newObs"]=obs
                 D["lmbda"]=lmbda
+            if self.compute_ps:
+                exp = dataset.dataInfo.expectedBG
+                err = dataset.dataInfo.bgError
+                p = computeP ( obs, exp, err )
+                self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
+                D["new_p"]=p
+                newZ = computeZFromP ( p )
+                D["new_Z"]=newZ
             D["type"]=tpe
-            expRes.datasets[i].dataInfo.observedN = k
+            self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
+            expRes.datasets[i].dataInfo.observedN = obs
             label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
             self.addToStats ( label, D, dataset.globalInfo )
-            
+
 
     def fakeBackgroundsForPyhf ( self, expRes ):
         """ synthesize fake observations by sampling a pyhf model
@@ -988,11 +997,11 @@ Just filter the database:
         from smodels.experiment.datasetObj import CombinedDataSet
         import pyhf
         cdataset = CombinedDataSet ( expRes )
-        computer = StatsComputer.forPyhf( cdataset, srNsigs, 
+        computer = StatsComputer.forPyhf( cdataset, srNsigs,
                 _deltas_rel_default )
         srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
         #if False and "2018-14" in expRes.globalInfo.id:
-        #    import IPython; IPython.embed ( colors = "neutral" ); sys.exit() 
+        #    import IPython; IPython.embed ( colors = "neutral" ); sys.exit()
         for ws, srs in zip(computer.likelihoodComputer.workspaces,\
                 srs_in_workspaces):
             ## srs are the names of the signal regions
@@ -1011,6 +1020,15 @@ Just filter the database:
                     D["newObs"]=D["origN"]
                 D["origN"]=origN[dataset.dataInfo.dataId]
                 D["type"]="pyhf"
+                if self.compute_ps:
+                    obs = dataset.dataInfo.observedN
+                    exp = dataset.dataInfo.expectedBG
+                    err = dataset.dataInfo.bgError
+                    p = computeP ( obs, exp, err )
+                    self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
+                    D["new_p"]=p
+                    newZ = computeZFromP ( p )
+                    D["new_Z"]=newZ
                 label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
                 self.addToStats ( label, D, dataset.globalInfo )
 
