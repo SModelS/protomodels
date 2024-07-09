@@ -973,15 +973,37 @@ Just filter the database:
         :param expRes: the experimental result to do this for
         """
         self.error ( f"FIXME fake pyhf backgrounds for {expRes.globalInfo.id}" )
-        for i,dataset in enumerate(expRes.datasets):
-            D = self.createEMStatsDict ( dataset )
-            k = 666
-            expRes.datasets[i].dataInfo.observedN = k
-            D["newObs"]=k
-            D["type"]="pyhf"
-            label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
-            self.addToStats ( label, D, dataset.globalInfo )
-
+        datasetDict= { ds.getID(): ds for ds in expRes.origdatasets }
+        ## store original values
+        origN = { k : v.dataInfo.observedN for k,v in datasetDict.items() }
+        srNsigs = [0.] * len(expRes.origdatasets)
+        from smodels.base.runtime import _deltas_rel_default
+        from smodels.statistics.statsTools import StatsComputer
+        from smodels.experiment.datasetObj import CombinedDataSet
+        import pyhf
+        cdataset = CombinedDataSet ( expRes )
+        computer = StatsComputer.forPyhf( cdataset, srNsigs, 
+                _deltas_rel_default )
+        srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
+        #if False and "2018-14" in expRes.globalInfo.id:
+        #    import IPython; IPython.embed ( colors = "neutral" ); sys.exit() 
+        for ws, srs in zip(computer.likelihoodComputer.workspaces,\
+                srs_in_workspaces):
+            ## srs are the names of the signal regions
+            model = ws.model()
+            pars_bkg = model.config.suggested_init()
+            pars_bkg[model.config.poi_index] = 0.0 ## background
+            pdf_bkg = model.make_pdf(pyhf.tensorlib.astensor(pars_bkg))
+            sample = pdf_bkg.sample()
+            for obsN,sr in zip(sample,srs):
+                datasetDict[sr].dataInfo.observedN = int(obsN)
+            for i,dataset in enumerate(expRes.origdatasets):
+                D = self.createEMStatsDict ( dataset )
+                D["newObs"]=D["origN"]
+                D["origN"]=origN[dataset.dataInfo.dataId]
+                D["type"]="pyhf"
+                label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
+                self.addToStats ( label, D, dataset.globalInfo )
 
     def fakeBackgrounds ( self, listOfExpRes ):
         """ thats the method that samples the backgrounds """
