@@ -590,6 +590,10 @@ class Plotter ( LoggerBase ):
             if p == 0.:
                 return -10 # big number
             Z = - scipy.stats.norm.ppf ( p )
+            if not np.isfinite ( Z ):
+                newZ = np.sign ( Z ) * 6
+                self.pprint ( f"significance for p={p} was {Z} will cap to {int(newZ)}!" )
+                Z = newZ
             #if abs(Z) > 2.5:
             #    print ( "@@2 Z", Z, "p", p )
             return Z
