@@ -960,8 +960,11 @@ Just filter the database:
             lmbda = max ( 0., lmbda )
             k = scipy.stats.poisson.rvs ( lmbda )
             D = self.createEMStatsDict ( dataset )
-            D["newObs"]=k
-            D["lmbda"]=lmbda
+            if self.fixedbackgrounds:
+                D["newObs"]=dataset.dataInfo.expectedBG
+            else:
+                D["newObs"]=k
+                D["lmbda"]=lmbda
             D["type"]=tpe
             expRes.datasets[i].dataInfo.observedN = k
             label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
@@ -972,7 +975,8 @@ Just filter the database:
         """ synthesize fake observations by sampling a pyhf model
         :param expRes: the experimental result to do this for
         """
-        self.error ( f"FIXME fake pyhf backgrounds for {expRes.globalInfo.id}" )
+        if abs ( self.fudge - 1. ) > 1e-5:
+            self.error ( f"FIXME fudge factors not yet implemented for pyhf ({expRes.globalInfo.id})" )
         datasetDict= { ds.getID(): ds for ds in expRes.origdatasets }
         ## store original values
         origN = { k : v.dataInfo.observedN for k,v in datasetDict.items() }
@@ -999,7 +1003,10 @@ Just filter the database:
                 datasetDict[sr].dataInfo.observedN = int(obsN)
             for i,dataset in enumerate(expRes.origdatasets):
                 D = self.createEMStatsDict ( dataset )
-                D["newObs"]=D["origN"]
+                if self.fixedbackgrounds:
+                    D["newObs"]=dataset.dataInfo.expectedBG
+                else:
+                    D["newObs"]=D["origN"]
                 D["origN"]=origN[dataset.dataInfo.dataId]
                 D["type"]="pyhf"
                 label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
