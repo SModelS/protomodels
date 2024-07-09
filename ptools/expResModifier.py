@@ -124,6 +124,8 @@ Just filter the database:
             setattr ( self, a, value )
         if "rundir" in args:
             self.rundir = setup( args["rundir"] )
+        if self.outfile in [ "None", "NONE", "none" ]:
+            self.outfile = None
         self.logfile = "modifier.log"
         self.startLogger()
         self.logCall()
@@ -205,7 +207,7 @@ Just filter the database:
                 dt = info.dataType
                 if dt == "upperLimit":
                     for txname in dataset.txnameList:
-                        D[txname]=list ( txname.txnameData.y_values )
+                        D[txname.txName]=list ( txname.txnameData.y_values )
 
                 for i in [ "observedN", "origN", "expectedBG", "lmbda", "bgError",
                            "origUpperLimit", "origExpectedUpperLimit", "upperLimit",
@@ -1150,6 +1152,9 @@ Just filter the database:
             return
         if self.suffix in [ "None", "none", "", None ]:
             return
+        if self.outfile in [ None ]:
+            self.pprint ( f"creation of pickle file was suppressed" )
+            return
         self.pprint ( f"writing to {self.outfile}" )
         self.db.createBinaryFile( self.outfile )
 
@@ -1297,18 +1302,18 @@ Just filter the database:
         if type(self.rundir)==str and not "/" in self.rundir and \
                 not self.rundir.startswith("."):
             self.rundir = f"{os.environ['HOME']}/{self.rundir}"
+        statsname = self.suffix + ".dict"
         if self.outfile is not None:
             if self.outfile == "":
                 self.outfile = self.suffix+".pcl"
-            statsname = self.suffix + ".dict"
             if self.playback not in [ None, "" ]:
                 self.playback ( self.playback, self.outfile )
                 statsname = "playback.dict"
 
-            if not self.outfile.endswith(".pcl"):
+            if not self.outfile.endswith(".pcl") and self.outfile != None:
                 print ( f"[expResModifier] warning, shouldnt the name of your outputfile ``{self.outfile}'' end with .pcl?" )
-        else:
-            statsname = None
+        #else: # outfile is None
+        #    statsname = None
         self.filter ( )
         if self.dontsample:
             print ( "[expResModifier] we were asked to not sample, so we exit now." )
@@ -1340,22 +1345,22 @@ if __name__ == "__main__":
     import argparse
     from argparse import RawTextHelpFormatter
     argparser = argparse.ArgumentParser(
-                        description='experimental results modifier. used to take out potential signals from the database by setting all observations to values sampled from the background expectations. can insert signals, too.', formatter_class = RawTextHelpFormatter,
+                        description='Experimental results modifier. Used to synthesize fake data by setting all observations to values sampled from the background models. Can insert signals, too.', formatter_class = RawTextHelpFormatter,
                         epilog=ExpResModifier.epilog )
     argparser.add_argument ( '-d', '--dbpath',
             help='database to use [../../smodels-database]',
             type=str, default="../../smodels-database" )
     argparser.add_argument ( '-o', '--outfile',
-            help='file to write out database pickle. If left empty, then outfile is <suffix>.pcl [""]',
+            help='file to write out database pickle. If left empty, then outfile is <suffix>.pcl. if "none", then dont create pickle file [""]',
             type=str, default="" )
     argparser.add_argument ( '-s', '--suffix',
-            help='suffix for database version, if None or '' then do not write out ["fake1"]',
+            help='suffix for database version, if None or "" then do not write out ["fake1"]',
             type=str, default="fake1" )
     argparser.add_argument ( '-R', '--rundir',
             help='override rundir [None]',
             type=str, default=None )
     argparser.add_argument ( '-f', '--fudge',
-            help='fudge factor [1.0]',
+            help='fudge factor. all systematic errors will be multiplied by that [1.0]',
             type=float, default=1.0 )
     argparser.add_argument ( '--nofastlim',
             help='remove fastlim results',
@@ -1379,7 +1384,7 @@ if __name__ == "__main__":
             help='do not sample at all, only filter',
             action='store_true' )
     argparser.add_argument ( '-l', '--lognormal',
-            help='use lognormal, not Gaussian for nuisances',
+            help='use lognormal, not Gaussian for nuisances (1d regions only)',
             action='store_true' )
     argparser.add_argument ( '--fixedsignals',
             help='fix the contributions from the signals, dont draw from Poissonian',
