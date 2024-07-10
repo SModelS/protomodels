@@ -1056,7 +1056,7 @@ Just filter the database:
                     D["new_p"]=p
                     newZ = computeZFromP ( p )
                     D["new_Z"]=newZ
-                if sr == "CR_ewk_top_low":
+                if False and sr == "CR_ewk_top_low":
                     ic ( srs )
                     ic ( sampleDict )
                     ic ( dataset.dataInfo.observedN )
