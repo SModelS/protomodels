@@ -33,6 +33,7 @@ from smodels.experiment.databaseObj import Database
 from builder.loggerbase import LoggerBase
 from tester.combinationsmatrix import getMatrix
 from typing import Dict, List, Text
+from icecream import ic
 
 logger.setLevel("ERROR")
 
@@ -519,6 +520,7 @@ Just filter the database:
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
         if len ( txnames ) == 0:
+
             self.warning ( f"no txnames for {label}." )
         D["txns"]=",".join(txnames )
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
@@ -1000,7 +1002,7 @@ Just filter the database:
             self.error ( f"FIXME fudge factors not yet implemented for pyhf ({expRes.globalInfo.id})" )
         datasetDict= { ds.getID(): ds for ds in expRes.origdatasets }
         ## store original values
-        origN = { k : v.dataInfo.observedN for k,v in datasetDict.items() }
+        # origN = { k : v.dataInfo.observedN for k,v in datasetDict.items() }
         srNsigs = [0.] * len(expRes.origdatasets)
         from smodels.base.runtime import _deltas_rel_default
         from smodels.statistics.statsTools import StatsComputer
@@ -1020,8 +1022,8 @@ Just filter the database:
             pdf_bkg = model.main_model.make_pdf(pyhf.tensorlib.astensor(pars_bkg))
             # pdf_bkg = model.make_pdf(pyhf.tensorlib.astensor(pars_bkg))
             sample = pdf_bkg.sample()
-            orderedsample = [] # sample
-            # order = self.orderOfSRs ( model.config.samples )
+            sampleDict = {}
+            orderedsample = []
             ##first we need a dictionary to translate the SR names
             for i,sr in enumerate ( srs ):
                 ## we append to orderedsample in the right order
@@ -1031,20 +1033,22 @@ Just filter the database:
                 idx = channelnames.index(sr) # what position is it
                 # idx = order.index(sr)
                 orderedsample.append ( sample[idx] )
+                sampleDict[sr]= sample[idx]
+
+            #for obsN,sr in zip(orderedsample,srs):
+            #    datasetDict[sr].dataInfo.observedN = int(obsN)
 
             for obsN,sr in zip(orderedsample,srs):
-                datasetDict[sr].dataInfo.observedN = int(obsN)
-
-            for i,dataset in enumerate(expRes.origdatasets):
+                dataset = datasetDict[sr]
                 D = self.createEMStatsDict ( dataset )
+                newObs = int(obsN)
                 if self.fixedbackgrounds:
                     D["newObs"]=dataset.dataInfo.expectedBG
                 else:
-                    D["newObs"]=D["origN"]
-                D["origN"]=int(origN[dataset.dataInfo.dataId])
+                    D["newObs"]=newObs
                 D["type"]="pyhf"
                 if self.compute_ps:
-                    obs = dataset.dataInfo.observedN
+                    obs = newObs
                     exp = dataset.dataInfo.expectedBG
                     err = dataset.dataInfo.bgError
                     p = computeP ( obs, exp, err )
@@ -1052,8 +1056,17 @@ Just filter the database:
                     D["new_p"]=p
                     newZ = computeZFromP ( p )
                     D["new_Z"]=newZ
+                if sr == "CR_ewk_top_low":
+                    ic ( srs )
+                    ic ( sampleDict )
+                    ic ( dataset.dataInfo.observedN )
+                    ic ( D )
+                    ic ( sr )
                 label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
                 self.addToStats ( label, D, dataset.globalInfo )
+                ## as the very last measure, we replace the observation with
+                ## the fake observation
+                dataset.dataInfo.observedN = newObs
 
     def fakeBackgrounds ( self, listOfExpRes ):
         """ thats the method that samples the backgrounds """
