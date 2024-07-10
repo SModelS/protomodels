@@ -32,7 +32,7 @@ from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
 from builder.loggerbase import LoggerBase
 from tester.combinationsmatrix import getMatrix
-from typing import Dict
+from typing import Dict, List, Text
 
 logger.setLevel("ERROR")
 
@@ -982,6 +982,16 @@ Just filter the database:
             self.addToStats ( label, D, dataset.globalInfo )
 
 
+    def getChannelNames ( self, channels : List[Text] ) -> List:
+        """ get the names of channels from the pyhf entry """
+        ret = []
+        for channel in channels:
+            if ";" in channel:
+                [ ret.append(x) for x in channel.split(";") ]
+            else:
+                ret.append ( channel )
+        return ret
+
     def fakeBackgroundsForPyhf ( self, expRes ):
         """ synthesize fake observations by sampling a pyhf model
         :param expRes: the experimental result to do this for
@@ -1000,25 +1010,38 @@ Just filter the database:
         computer = StatsComputer.forPyhf( cdataset, srNsigs,
                 _deltas_rel_default )
         srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
-        #if False and "2018-14" in expRes.globalInfo.id:
-        #    import IPython; IPython.embed ( colors = "neutral" ); sys.exit()
-        for ws, srs in zip(computer.likelihoodComputer.workspaces,\
-                srs_in_workspaces):
+        for ws_i, (ws, srs) in enumerate(zip(
+                    computer.likelihoodComputer.workspaces, srs_in_workspaces) ):
             ## srs are the names of the signal regions
             model = ws.model()
+            channelnames = self.getChannelNames ( model.config.channels )
             pars_bkg = model.config.suggested_init()
             pars_bkg[model.config.poi_index] = 0.0 ## background
-            pdf_bkg = model.make_pdf(pyhf.tensorlib.astensor(pars_bkg))
+            pdf_bkg = model.main_model.make_pdf(pyhf.tensorlib.astensor(pars_bkg))
+            # pdf_bkg = model.make_pdf(pyhf.tensorlib.astensor(pars_bkg))
             sample = pdf_bkg.sample()
-            for obsN,sr in zip(sample,srs):
+            orderedsample = [] # sample
+            # order = self.orderOfSRs ( model.config.samples )
+            ##first we need a dictionary to translate the SR names
+            for i,sr in enumerate ( srs ):
+                ## we append to orderedsample in the right order
+                if not sr in channelnames:
+                    logger.error ( f"SR {sr} not in channels {channelnames}" )
+                    sys.exit()
+                idx = channelnames.index(sr) # what position is it
+                # idx = order.index(sr)
+                orderedsample.append ( sample[idx] )
+
+            for obsN,sr in zip(orderedsample,srs):
                 datasetDict[sr].dataInfo.observedN = int(obsN)
+
             for i,dataset in enumerate(expRes.origdatasets):
                 D = self.createEMStatsDict ( dataset )
                 if self.fixedbackgrounds:
                     D["newObs"]=dataset.dataInfo.expectedBG
                 else:
                     D["newObs"]=D["origN"]
-                D["origN"]=origN[dataset.dataInfo.dataId]
+                D["origN"]=int(origN[dataset.dataInfo.dataId])
                 D["type"]="pyhf"
                 if self.compute_ps:
                     obs = dataset.dataInfo.observedN
