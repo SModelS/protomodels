@@ -187,7 +187,7 @@ Just filter the database:
         """ dont produce a new fake database, extract a stats dict
             from an existing database. """
         self.info ( "extracting stats" )
-        picklefile = self.rundir + "/" + self.dbpath
+        picklefile = os.path.abspath ( self.rundir + "/" + self.dbpath )
         if self.rundir in self.dbpath:
             picklefile = self.dbpath
         self.pprint ( f"Extracting stats from {picklefile}" )
