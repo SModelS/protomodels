@@ -14,8 +14,8 @@ def extractPValues( analyses : List ):
         for k,v in D.items():
             for ana in anas:
                 if ana in k:
-                    if "orig_p" in v:
-                        pvalues.append ( v["orig_p"] )
+                    if "new_p" in v:
+                        pvalues.append ( v["new_p"] )
                         hasEntry = True
         nuniverses += 1
     # print ( pvalues )
@@ -40,5 +40,6 @@ def runPlotting( anas : List ):
     plotPValues ( info, anas )
 
 if __name__ == "__main__":
-    anas = [ "ATLAS-SUSY-2019-09" ]
+    # anas = [ "ATLAS-SUSY-2019-09" ]
+    anas = [ "CMS-SUS-21-002" ]
     runPlotting( anas )
