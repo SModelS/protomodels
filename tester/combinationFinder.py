@@ -5,6 +5,7 @@
 from tester.combinationsmatrix import getMatrix
 from typing import Dict,Union,List
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
+from tester.combinationsmatrix import getYamlMatrix
 
 class CombinationFinder(object):
 
@@ -14,8 +15,11 @@ class CombinationFinder(object):
                                    if None, use default combination_matrix present
                                    in tester/combinationsmatrix.py
         """
-        
-        self.cM = getMatrix()
+        combinationsmatrix, status = getYamlMatrix()
+        if not combinationsmatrix or status != 0:
+            sys.exit("Combination matrix not loaded correctly when instantiating CombinationFinder class.")
+
+        self.cM = combinationsmatrix
         if combination_matrix != None:
             self.cM = combination_matrix
 
@@ -40,7 +44,7 @@ class CombinationFinder(object):
                 else:
                     self.__eM[ana][combAna] = True
                     self.__eM[combAna][ana] = True
-        
+
         #print("excl matrix = ", self.__eM)
 
     def getCombinationMatrix(self) -> Dict:
@@ -48,11 +52,11 @@ class CombinationFinder(object):
         :param theoryPredictionList: List of theory predictions
         :returns: a dict of true/false combinations for the theory predictions
         """
-        
-        
+
+
         tp_ana = [tp.analysisId() for tp in self.listoftp if tp.analysisId() in self.__eM.keys()]
         self.listoftp = [tp for tp in self.listoftp if tp.analysisId() in tp_ana]
-        
+
         #print("\n tp_ana ", tp_ana)
         #ext = ["agg","ma5","eff","adl","slv1"]
         '''
@@ -61,7 +65,7 @@ class CombinationFinder(object):
             for ex in ext:
                 if ex in ana: ana = ana.replace(f"-{ex}","")
         '''
-        
+
         combMatrix = {ana:{combAna:self.__eM[ana][combAna] for combAna in tp_ana} for ana in tp_ana}
         '''
         for key, value in combMatrix.items():
@@ -88,8 +92,8 @@ class CombinationFinder(object):
             if exp1 != exp2: return True                                      #if diff expts return True
             elif sq_s1 != sq_s2 : return True                                   #if diff sqrts return True
             else: return False
-        
-        
+
+
         #check if two analyses can be combined (do we want it now?)
         for i,ana in enumerate(tp_ana):
             for j,combAna in enumerate(tp_ana[i+1:]):
@@ -102,10 +106,10 @@ class CombinationFinder(object):
                         #print("combinable though not present in matrix:", ana,combAna)
                         combMatrix[ana][combAna] = True
                         combMatrix[combAna][ana] = True
-                        
+
         return combMatrix
 
-    
+
     def isSubsetOf(self, newcomb_tuple, combinations) -> bool:
         """ checks if a comb already exists or is a subset of some other comb
             in the current list of combinations
@@ -116,8 +120,8 @@ class CombinationFinder(object):
             if set(newcomb_tuple).issubset(set(comb_tuple)):
                 return True
         return False
-    
-    
+
+
     def getPossibleCombinations(self, predictions: list[TheoryPrediction]) -> List:
         """
         :param theoryPredictionList: List of theory predictions
@@ -154,7 +158,7 @@ class CombinationFinder(object):
                             comb = comb + (combPred,)
                             new_comb.add(comb)        #add updated comb to new_comb
                             update_Comb = True
-                        
+
                         elif True in currentCombine:
                             #combPred can be combined with some analyses in current comb, store in new_comb
                             nc = [c for i,c in enumerate(comb) if currentCombine[i] == True]
@@ -165,28 +169,28 @@ class CombinationFinder(object):
                                 already_in = self.isSubsetOf(nc,new_comb)       #check if nc is in new_comb already
                                 if not already_in: new_comb.add(nc)             #add updated comb to new_comb
                             update_Comb = True
-                        
+
                         else: continue
-                        
-                            
+
+
                     #add new_combs to combinables and remove old_combs from combinables
                     if update_Comb:
                         combinables = combinables.difference(old_comb)
                         combinables = combinables.union(new_comb)
                     #add the two analyses in combinables as a tuple
                     else: combinables.add((pred,combPred))
-                
+
         combinables = sorted(list(combinables), key = lambda x: len(x), reverse=True) #sort according to decreasing length of combinable theory predictions
         combinables = [list(comb) for comb in combinables]                            #convert tuples of combinations to list
         aids = [[c.analysisId() for c in comb] for comb in combinables]
         return combinables
-                
-        
+
+
         '''
         def get_weights()
         combMatrix = np.array(combMatrix)
-        
-        
+
+
         #get weights
         lbsm = numpy.array([preds.likelihood(1., expected = exp) for preds in self.listoftp], dtype=object)
         lsm = numpy.array([preds.likelihood(0., expected = exp) for preds in self.listoftp], dtype=object)
@@ -194,11 +198,11 @@ class CombinationFinder(object):
 
         #call pathfinder
         bam = pf.BinaryAcceptance(combMatrix, weights=np.array(weight_vector))
-        
+
         #Get the allowed list of combinations with decreasing weights
         whdfs = pf.WHDFS(bam, top=self.ntop)
         whdfs.find_paths()
-        
+
         #return list of theory predictions for which the combination has max weight
         top_path = whdfs.get_paths[0]  # gets indices of analyses which are best combinable
         best_comb = [self.listoftp[i] for i in top_path]
@@ -218,7 +222,7 @@ if __name__ == "__main__":
     #filename = "ew_3t6no481.slha"
     model = Model(BSMparticles = BSMList, SMparticles = SMList)
     model.updateParticles(inputFile = filename)
-    
+
     print("Decomposing model")
     toplist = decomposer.decompose(model, 0.005*fb, doCompress=True, doInvisible=True, minmassgap=5.*GeV)
     #toplist = decomposer.decompose(model, 0.005*fb, massCompress=True, invisibleCompress=True, minmassgap=5.*GeV)
@@ -227,10 +231,10 @@ if __name__ == "__main__":
     listOfAna = ['all']
     comb_dict = {"ATLAS-SUSY-2018-32":['ATLAS-SUSY-2018-41'], "ATLAS-SUSY-2018-41":['ATLAS-SUSY-2018-32', 'ATLAS-SUSY-2019-02'], "ATLAS-SUSY-2019-02":['ATLAS-SUSY-2018-41']}
     db = Database ( "official" )
-    
+
     print("Getting experimental Results")
     expresults = db.getExpResults(analysisIDs=listOfAna, dataTypes=['efficiencyMap','combined'])
-    
+
     print("Finding theory Predictions")
     allPreds = theoryPredictionsFor(expresults, toplist, combinedResults=True)
     allPredsana = [tp.analysisId() for tp in allPreds]
@@ -245,5 +249,3 @@ if __name__ == "__main__":
         for bp in bestThPred:
             ana = [b.analysisId() for b in bp]
             print("\n Model Point: ", filename, " , Combination: ", ana)
-
-    

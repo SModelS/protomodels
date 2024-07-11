@@ -15,22 +15,22 @@ import IPython
 from typing import Union, Dict
 from os import PathLike
 import subprocess
+from tester.combinationsmatrix import getYamlMatrix
 
 def getCombinationsMatrix ( path : Union[None,Dict,PathLike] ):
     """ get the combinations matrix. If path is matrix dictionary itself, return it.
-        If path is None, retrieve matrix from tester.combinationsmatrix.getMatrix.
+        If path is None, retrieve matrix from tester.combinationsmatrix.getYamlMatrix.
     """
-       
+
     if type ( path ) == type ( None ):
-        from tester.combinationsmatrix import getMatrix
-        return getMatrix()
+        return getYamlMatrix()
     if type ( path ) == dict:
         return path
     import importlib
-    spec = importlib.util.spec_from_file_location( "getMatrix", path )
+    spec = importlib.util.spec_from_file_location( "getYamlMatrix", path )
     imp = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(imp)
-    return imp.getMatrix()
+    return imp.getYamlMatrix()
 
 def sortBySqrts ( results, sqrts ):
     ret = []
@@ -107,7 +107,10 @@ def draw( args : dict ):
            outputfile: file name of output file (matrix.png)
            nofastlim: if True, discard fastlim results
     """
-    matrix = getCombinationsMatrix ( args["combinationsmatrix"] )
+    combinationsmatrix, status = getCombinationsMatrix ( args["combinationsmatrix"] )
+    if not combinationsmatrix or status != 0:
+        sys.exit("Combination matrix not loaded correctly.")
+
     sqrtses = [ 8, 13 ]
     if args["sqrts"] not in [ "all" ]:
         sqrtses = [ int(args["sqrts"]) ]
@@ -117,7 +120,7 @@ def draw( args : dict ):
 
     # dir = "/home/walten/git/smodels-database/"
     dbdir = args["database"]
-    d=Database( dbdir, combinationsmatrix = matrix )
+    d=Database( dbdir, combinationsmatrix = combinationsmatrix )
     print(d)
     analysisIds = [ "all" ]
     if "analyses" in args and args["analyses"]!=None:
@@ -141,7 +144,7 @@ def draw( args : dict ):
     matplotlib.use('agg')
     labelsize = 14
     # x- and y- tickpads are to adjust the position of the analysis id labels
-    xtickpad, ytickpad = -55, -55 
+    xtickpad, ytickpad = -55, -55
     if nres < 60:
         xtickpad = 0
         ytickpad = 0
@@ -188,7 +191,7 @@ def draw( args : dict ):
             #if partial:
             #    print ( f"{label}+{f.globalInfo.id}: partially combinable" )
             # sys.exit()
-            #isUn = analysisCombiner.canCombine ( e.globalInfo, f.globalInfo, 
+            #isUn = analysisCombiner.canCombine ( e.globalInfo, f.globalInfo,
             #        args["strategy"] )
             # isUn = e.isUncorrelatedWith ( f )
             v = 0.
@@ -266,7 +269,7 @@ def draw( args : dict ):
             ct += 1
     if args["drawtimestamp"]:
         plt.text ( .01, .01, "plot produced %s from database v%s" % \
-                   ( time.strftime("%h %d %Y" ), d.databaseVersion ), 
+                   ( time.strftime("%h %d %Y" ), d.databaseVersion ),
                    c="grey", transform = fig.transFigure, fontsize=24 )
     outputfile = args["outputfile"]
     if "@M" in outputfile:
@@ -310,7 +313,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '-d', '--database', nargs='?',
             help=f'path to database [{dbpath}]', type=str, default=dbpath )
     argparser.add_argument ( '-c', '--combinationsmatrix', nargs='?',
-            help='path to combinationsmatrix file (will call getMatrix() within that file). If none, get it from protomodels.tester.combinationsmatrix.getMatrix() [None]',
+            help='path to combinationsmatrix file (will call getYamlMatrix() within that file). If none, get it from protomodels.tester.combinationsmatrix.getYamlMatrix() [None]',
             type=str, default=None )
     argparser.add_argument ( '-e', '--experiment', nargs='?',
             help='plot only specific experiment CMS,ATLAS,all [all]',
@@ -321,7 +324,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '-o', '--outputfile', nargs='?',
             help='outputfile (@M gets replaced by [experiment][sqrts]) [matrix@M.png]',
             type=str, default='matrix@M.png' )
-    argparser.add_argument ( '-a', '--analyses', 
+    argparser.add_argument ( '-a', '--analyses',
             help='select for comma separated list of analyses [None]',
             type=str, default=None )
     argparser.add_argument ( '-t', '--triangular',

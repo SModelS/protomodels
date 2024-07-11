@@ -22,6 +22,7 @@ from os import PathLike
 from typing import List, Union
 from builder.loggerbase import LoggerBase
 from tester.combiner import Combiner
+from tester.combinationsmatrix import getYamlMatrix
 
 class Critic ( LoggerBase ):
     def __init__ ( self, walkerid : int, dbpath : PathLike = "official", expected : bool = False, select : str = "all", do_srcombine : bool = False ):
@@ -34,7 +35,11 @@ class Critic ( LoggerBase ):
         if dbpath.endswith ( ".pcl" ):
             force_load = "pcl"
 
-        self.database = Database( dbpath, force_load = force_load )
+        combinationsmatrix, status = getYamlMatrix()
+        if not combinationsmatrix or status != 0:
+            sys.exit("Combination matrix not loaded correctly when instantiating Critic class.")
+
+        self.database = Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
         self.combiner = Combiner(self.walkerid)
 
     # def getMaxAllowedMu(self, protomodel):

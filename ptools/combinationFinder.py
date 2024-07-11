@@ -89,8 +89,8 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
             bam[tpId] = set()
         for tpred2 in theorypredictions[i+1:]:
             tpId2 = experimentalId(tpred2)
-            # if tpred.dataset.isCombinableWith(tpred2.dataset):
-            if analysisCombiner.canCombineUsingMatrix(tpred, tpred2):
+            # if analysisCombiner.canCombineUsingMatrix(tpred, tpred2):
+            if tpred.dataset.isCombinableWith(tpred2.dataset):
                 bam[tpId].add(tpId2)
 
     return {"weights": weights, "bam": bam, "theoryPred": theoryPred}

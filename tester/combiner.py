@@ -918,11 +918,19 @@ if __name__ == "__main__":
     from smodels.share.models.SMparticles import SMList
     from smodels.base.model import Model
     from smodels.base.physicsUnits import fb
+    from tester.combinationsmatrix import getYamlMatrix
+    
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
     model.updateParticles(inputFile=args.slhafile)
+
+    combinationsmatrix, status = getYamlMatrix()
+    if not combinationsmatrix or status != 0:
+        sys.exit("Combination matrix not loaded correctly.")
+
     print ( "[combiner] loading database", args.database )
-    db = Database ( args.database )
+    db = Database ( args.database, combinationsmatrix = combinationsmatrix )
     print ( "[combiner] done loading database" )
+
     anaIds = [ "CMS-SUS-16-033" ]
     anaIds = [ "all" ]
     dts = [ "all" ]

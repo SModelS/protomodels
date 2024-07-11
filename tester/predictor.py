@@ -21,6 +21,7 @@ from smodels.base.exceptions import SModelSBaseError as SModelSError
 from os import PathLike
 from typing import List, Union
 from builder.loggerbase import LoggerBase
+from tester.combinationsmatrix import getYamlMatrix
 
 try:
     from tester.combiner import Combiner
@@ -59,7 +60,12 @@ class Predictor ( LoggerBase ):
                 time.sleep ( ntries * 5 )
                 if ntries > 5:
                     break
-        self.database=Database( dbpath, force_load = force_load )
+
+        combinationsmatrix, status = getYamlMatrix()
+        if not combinationsmatrix or status != 0:
+            sys.exit("Combination matrix not loaded correctly when instantiating Predictor class.")
+
+        self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
         self.fetchResults()
         self.combiner = Combiner(self.walkerid)
 

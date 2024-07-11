@@ -31,7 +31,7 @@ from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
 from builder.loggerbase import LoggerBase
-from tester.combinationsmatrix import getMatrix
+from tester.combinationsmatrix import getYamlMatrix
 from typing import Dict, List, Text
 from icecream import ic
 
@@ -193,7 +193,10 @@ Just filter the database:
             picklefile = self.dbpath
         self.pprint ( f"Extracting stats from {picklefile}" )
         if self.db == None:
-            self.db = Database ( picklefile )
+            combinationsmatrix, status = getYamlMatrix()
+            if not combinationsmatrix or status != 0:
+                logger.error("Combination matrix not loaded correctly.")
+            self.db = Database ( picklefile, combinationsmatrix=combinationsmatrix )
         self.dbversion = self.db.databaseVersion
         listOfExpRes = self.db.expResultList
         self.stats = {}
@@ -398,7 +401,10 @@ Just filter the database:
             spmodel = "no protomodel given"
         self.info ( f"starting to create {self.outfile} from {self.dbpath}. suffix is '{self.suffix}', {spmodel}." )
         if self.db == None:
-            self.db = Database ( self.dbpath, combinationsmatrix=getMatrix())
+            combinationsmatrix, status = getYamlMatrix()
+            if not combinationsmatrix or status != 0:
+                logger.error("Combination matrix not loaded correctly.")
+            self.db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
         self.dbversion = self.db.databaseVersion
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
         self.produceProtoModel ( self.pmodel, self.db.databaseVersion )
@@ -1112,7 +1118,10 @@ Just filter the database:
             return
         self.log ( f"starting to filter {self.outfile}. suffix is {self.suffix}." )
         if self.db == None:
-            self.db =Database ( self.dbpath, combinationsmatrix=getMatrix())
+            combinationsmatrix, status = getYamlMatrix()
+            if not combinationsmatrix or status != 0:
+                logger.error("Combination matrix not loaded correctly.")
+            self.db =Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
         listOfExpRes = self.db.expResultList ## seems to be the safest bet?
         if self.remove_nonagg:
             from smodels_utils.helper.databaseManipulations import filterNonAggregatedFromList
@@ -1223,7 +1232,10 @@ Just filter the database:
         line = lines.pop(0)
         D = eval ( line )
         if self.db == None:
-            self.db =Database ( self.dbpath, combinationsmatrix=getMatrix())
+            combinationsmatrix, status = getYamlMatrix()
+            if not combinationsmatrix or status != 0:
+                logger.error("Combination matrix not loaded correctly.")
+            self.db =Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
         for k,v in D.items():
             if k in [ "dbpath", "database" ]:
                 continue
@@ -1348,7 +1360,10 @@ Just filter the database:
             TxNameData._keep_values = True
             from smodels.experiment.databaseObj import Database
             print ( f"[expResModifier] starting to build database at {self.database}." )
-            db = Database ( self.database )
+            combinationsmatrix, status = getYamlMatrix()
+            if not combinationsmatrix or status != 0:
+                logger.error("Combination matrix not loaded correctly.")
+            db = Database ( self.database, combinationsmatrix=combinationsmatrix )
             print ( f"[expResModifier] built database at {self.database}. Exiting." )
             sys.exit()
         if self.rundir == None:

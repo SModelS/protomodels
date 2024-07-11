@@ -605,16 +605,45 @@ def getMatrix():
     return allowed
 
 
-def getYamlMatrix(experiment,sqrts):
+def getYamlMatrix(experiment=None,sqrts=None):
     import os, yaml
 
+    status = 0
+    combinabilityMatrix = {}
     abs_path = os.path.dirname( os.path.abspath( __file__ ) )
-    file_path = os.path.join( abs_path, f'{experiment}{sqrts}.yaml' )
 
-    with open(file_path,'r') as file:
-        CombinabilityMatrix = yaml.safe_load(file)
+    if experiment is None and sqrts is None:
+        for sqrts in [8,13]:
+            for exp in ['ATLAS','CMS']:
+                matrix = {}
 
-    return CombinabilityMatrix
+                file_path = os.path.join( abs_path, f'{experiment}{sqrts}.yaml' )
+                with open(file_path,'r') as file:
+                    matrix = yaml.safe_load(file)
+
+                if not matrix:
+                    print(f'ERROR: {experiment}{sqrts}.yaml not loaded correctly!')
+                    status = 1
+
+                combinabilityMatrix.update ( yaml.safe_load(file) )
+    else:
+        if experiment is None or sqrts is None:
+            print(f'Specify either both experiment and sqrts or none. Got experiment={experiment} and sqrts={sqrts}. Will return no combinability matrix.')
+            status = 1
+        else:
+            matrix = {}
+
+            file_path = os.path.join( abs_path, f'{experiment}{sqrts}.yaml' )
+            with open(file_path,'r') as file:
+                matrix = yaml.safe_load(file)
+
+            if not matrix:
+                print(f'ERROR: {experiment}{sqrts}.yaml not loaded correctly!')
+                status = 1
+
+            combinabilityMatrix = matrix
+
+    return combinabilityMatrix, status
 
 
 if __name__ == "__main__":

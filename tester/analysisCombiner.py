@@ -6,6 +6,7 @@ from smodels.matching.theoryPrediction import TheoryPrediction
 from smodels.experiment.infoObj import Info
 import fnmatch, yaml
 from typing import Union
+from tester.combinationsmatrix import getYamlMatrix
 
 moreComments = { ## collect a few more comments on analyses
     "CMS-SUS-18-002": "lepton veto",
@@ -126,10 +127,9 @@ def canCombineUsingMatrix ( globA : Union[TheoryPrediction,Info],
         ## overlap in the constraints? then for sure a no!
         return False
 
-    from tester.combinationsmatrix import getYamlMatrix
-    combinabilityMatrix = getYamlMatrix(expA,sqrtsA)
+    combinabilityMatrix, status = getYamlMatrix(expA,sqrtsA)
 
-    if not combinabilityMatrix:
+    if not combinabilityMatrix or status != 0:
         print(f"Something is wrong with the combinability matrix. Got {combinabilityMatrix}.")
         return False
 
