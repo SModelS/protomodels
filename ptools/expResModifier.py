@@ -998,8 +998,9 @@ Just filter the database:
         """ synthesize fake observations by sampling a pyhf model
         :param expRes: the experimental result to do this for
         """
+        anaId = expRes.globalInfo.id
         if abs ( self.fudge - 1. ) > 1e-5:
-            self.error ( f"FIXME fudge factors not yet implemented for pyhf ({expRes.globalInfo.id})" )
+            self.error ( f"FIXME fudge factors not yet implemented for pyhf ({anaId})" )
         datasetDict= { ds.getID(): ds for ds in expRes.origdatasets }
         ## store original values
         # origN = { k : v.dataInfo.observedN for k,v in datasetDict.items() }
@@ -1028,7 +1029,7 @@ Just filter the database:
             for i,sr in enumerate ( srs ):
                 ## we append to orderedsample in the right order
                 if not sr in channelnames:
-                    logger.error ( f"SR {sr} not in channels {channelnames}" )
+                    logger.error ( f"SR {sr} not in channels {channelnames} in {anaId}" )
                     sys.exit()
                 idx = channelnames.index(sr) # what position is it
                 # idx = order.index(sr)
@@ -1062,7 +1063,7 @@ Just filter the database:
                     ic ( dataset.dataInfo.observedN )
                     ic ( D )
                     ic ( sr )
-                label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
+                label = anaId + ":" + dataset.dataInfo.dataId
                 self.addToStats ( label, D, dataset.globalInfo )
                 ## as the very last measure, we replace the observation with
                 ## the fake observation
