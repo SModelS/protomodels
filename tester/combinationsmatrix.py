@@ -613,19 +613,19 @@ def getYamlMatrix(experiment=None,sqrts=None):
     abs_path = os.path.dirname( os.path.abspath( __file__ ) )
 
     if experiment is None and sqrts is None:
-        for sqrts in [8,13]:
+        for s in [8,13]:
             for exp in ['ATLAS','CMS']:
                 matrix = {}
 
-                file_path = os.path.join( abs_path, f'{experiment}{sqrts}.yaml' )
+                file_path = os.path.join( abs_path, f'{exp}{s}.yaml' )
                 with open(file_path,'r') as file:
                     matrix = yaml.safe_load(file)
 
                 if not matrix:
-                    print(f'ERROR: {experiment}{sqrts}.yaml not loaded correctly!')
+                    print(f'ERROR: {exp}{s}.yaml not loaded correctly!')
                     status = 1
-
-                combinabilityMatrix.update ( yaml.safe_load(file) )
+                else:
+                    combinabilityMatrix.update ( matrix )
     else:
         if experiment is None or sqrts is None:
             print(f'Specify either both experiment and sqrts or none. Got experiment={experiment} and sqrts={sqrts}. Will return no combinability matrix.')

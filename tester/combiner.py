@@ -738,12 +738,12 @@ class Combiner ( LoggerBase ):
             ret *= l
         return ret
 
-    def getMostSignificantCombination(self, predictions : List[TheoryPrediction], expected : bool =False) -> Tuple:
+    def getMostSignificantCombination(self, predictions : List[TheoryPrediction]) -> Tuple:
         """
             Gets the most significant combination and its corresponding weight (-2 ln L0/L1 for the whole combination)
             given the list of theory predictions.
         """
-        comb_dict = bamAndWeights(predictions, expected)        #get the true/false comb matrix, along with weights
+        comb_dict = bamAndWeights(predictions, expected=False)        #get the true/false comb matrix, along with weights
         pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
 
         most_significant_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
@@ -760,12 +760,12 @@ class Combiner ( LoggerBase ):
 
         return tp_comb, weight
 
-    def getMostSensitiveCombination(self, predictions : List[TheoryPrediction], expected : bool =True) -> Tuple:
+    def getMostSensitiveCombination(self, predictions : List[TheoryPrediction]) -> Tuple:
         """
             Gets the most sensitive combination and its corresponding weight (-2 ln L1/L0 (expected likelihoods) for the whole combination)
             given the list of theory predictions.
         """
-        comb_dict = bamAndWeights(predictions, expected, excl_mode=True)        #get the true/false comb matrix, along with weights
+        comb_dict = bamAndWeights(predictions, expected=True, excl_mode=True)        #get the true/false comb matrix, along with weights
         pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
 
         most_sensitive_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
@@ -919,7 +919,7 @@ if __name__ == "__main__":
     from smodels.base.model import Model
     from smodels.base.physicsUnits import fb
     from tester.combinationsmatrix import getYamlMatrix
-    
+
     model = Model(BSMparticles=BSMList, SMparticles=SMList)
     model.updateParticles(inputFile=args.slhafile)
 

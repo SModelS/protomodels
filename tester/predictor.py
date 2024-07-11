@@ -229,7 +229,7 @@ class Predictor ( LoggerBase ):
         slhafile = protomodel.createSLHAFile()
 
         # now use all prediction with likelihood values to compute the TL of the model
-        predictions = self.runSModelS( slhafile, sigmacut,allpreds=True, ULpreds=False )
+        predictions = self.runSModelS( slhafile, sigmacut, allpreds=True, ULpreds=False )
         if not predictions: return False
 
         if keep_predictions:
@@ -379,7 +379,7 @@ class Predictor ( LoggerBase ):
         ## find highest observed significance
         #(set mumax just slightly below its value, so muhat is always below)
         # mumax = protomodel.mumax
-        bestCombo,TL,muhat = self.combiner.findHighestSignificance ( predictions,expected=False )   #, mumax = mumax
+        bestCombo,TL,muhat = self.combiner.findHighestSignificance ( predictions, expected=False )   #, mumax = mumax
 
         if hasattr ( protomodel, "keep_meta" ) and protomodel.keep_meta:
             protomodel.bestCombo = bestCombo

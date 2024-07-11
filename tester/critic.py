@@ -20,6 +20,7 @@ from smodels.base.model import Model
 from smodels.base.exceptions import SModelSBaseError as SModelSError
 from os import PathLike
 from typing import List, Union
+from smodels.base.smodelsLogging import logger
 from builder.loggerbase import LoggerBase
 from tester.combiner import Combiner
 from tester.combinationsmatrix import getYamlMatrix
@@ -127,7 +128,7 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.critic_description += "; llhd-based critic combined datasets:" + ",".join( [experimentalId(comb) for comb in best_comb] ) + f"with r={robsComb}"
+            protomodel.critic_description += "; llhd-based critic combined datasets:" + ",".join( [experimentalId(comb) for comb in mostSensiComb] ) + f"with r={robsComb}"
 
         return
 

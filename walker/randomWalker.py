@@ -237,6 +237,8 @@ class RandomWalker ( LoggerBase ):
                     muhat_converge = True
                     break
                 manipulator.rescaleSignalBy(model.muhat) #?
+            else:
+                break # Rescale signal by a significant number?
 
         if not muhat_converge:  #reverting step
             self.pprint ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {model.muhat}. Going back to previous step." )
@@ -439,7 +441,7 @@ class RandomWalker ( LoggerBase ):
                 self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.highlight ( "info", f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: check critics." )
+                self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}; u={u:.2f} > {ratio:.2f}: check critics." )
 
                 if self.critic.predict_critic(self.protomodel, keep_predictions=True):
                     self.pprint ( "Passed both critics, taking the step." )
