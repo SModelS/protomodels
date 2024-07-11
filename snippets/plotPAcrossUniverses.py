@@ -41,5 +41,5 @@ def runPlotting( anas : List ):
 
 if __name__ == "__main__":
     # anas = [ "ATLAS-SUSY-2019-09" ]
-    anas = [ "CMS-SUS-21-002" ]
+    anas = [ "CMS-EXO-20-004" ]
     runPlotting( anas )
