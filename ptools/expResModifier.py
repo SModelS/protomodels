@@ -33,7 +33,7 @@ from smodels.experiment.databaseObj import Database
 from builder.loggerbase import LoggerBase
 from tester.combinationsmatrix import getYamlMatrix
 from typing import Dict, List, Text
-from icecream import ic
+# from icecream import ic
 
 logger.setLevel("ERROR")
 
