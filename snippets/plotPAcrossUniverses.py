@@ -30,9 +30,11 @@ def plotPValues( info, anas ):
     title += f" [{info['nuniverses']} universes]" 
     plt.title ( title )
     plt.savefig ( "pvalues.png" )
-    import subprocess
-    o = subprocess.getoutput ( "timg pvalues.png" )
-    print ( o )
+    import shutil
+    if shutil.which ("timg") is not None:
+        import subprocess
+        o = subprocess.getoutput ( "timg pvalues.png" )
+        print ( o )
     # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 def runPlotting( anas : List ):
@@ -40,6 +42,12 @@ def runPlotting( anas : List ):
     plotPValues ( info, anas )
 
 if __name__ == "__main__":
-    # anas = [ "ATLAS-SUSY-2019-09" ]
-    anas = [ "CMS-EXO-20-004" ]
+    import argparse
+    argparser = argparse.ArgumentParser( description='simple script to plot p-values across universes' )
+    argparser.add_argument ( '-a', '--analyses',
+            help='analyses to plot p-values for, comma separated ["ATLAS-SUSY-2019-09"]',
+            type=str, default="ATLAS-SUSY-2019-09" )
+    args = argparser.parse_args()
+    anas = args.analyses.split(",")
+    # anas = [ "CMS-EXO-20-004" ]
     runPlotting( anas )
