@@ -861,20 +861,22 @@ class Plotter ( LoggerBase ):
             # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
                 H2 = plt.hist ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] ), weights = fweights,
                             bins=bins, stacked=True, zorder=9,
-                            label="fake", color=["red" ], linewidth=3, histtype="step" )
+                            label="synthetic SM-only data", color=["red" ], linewidth=3, histtype="step" )
         self.discussPs ( P, Pfake, weights, weightsfake )
-        # loc = "lower center"
         loc = "best"
         _, stdnmx = list (self.getBins ( 100 ) )
         scale = 1. / 0.39894 * .75
         stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
-        if not self.pvalues:
+        if self.pvalues:
+            loc = "upper right"
+        else:
             nmcolor = "red"
             nmcolor = "black"
             plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted", 
                        label="standard normal" )
         if nLegendEntries > 1 or self.options["alwayslegend"]:
             legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.1) )
+            legend.set_zorder ( 10 )
         if self.likelihood == "lognormal+poisson":
             title += " (lognormal)"
         if self.likelihood == "gauss":
