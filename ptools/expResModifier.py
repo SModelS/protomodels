@@ -1000,13 +1000,44 @@ Just filter the database:
                 ret.append ( channel )
         return ret
 
+    def fudgePyhfModel ( self, expRes, computer ):
+        """ fudge the pyhf model, ie multiply all errors with self.fudge """
+        anaId = expRes.globalInfo.id
+        self.error ( f"FIXME fudge factors not yet implemented for pyhf ({anaId})" )
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        ## FIXME this needs more thought: which errors get rescaled, which dont, etc
+        for iws,ws in enumerate(computer.likelihoodComputer.workspaces):
+            for ich,channel in enumerate(ws["channels"]):
+                for ism,sample in enumerate(channel["samples"]):
+                    if not "modifiers" in sample:
+                        continue
+                    for im,modifier in enumerate(sample["modifiers"] ):
+                        if not "data" in modifier:
+                            continue
+                        if modifier["data"] is None:
+                            continue
+                        data = modifier["data"]
+                        if "hi" in data:
+                            center = (data["hi"]+data["lo"])/2.
+                            delta = data["hi"] - center
+                            #ic ( f"@@7 old hi {data['hi']}" ) 
+                            data["hi"] = center + delta * self.fudge
+                            data["lo"] = center - delta * self.fudge
+                            #ic ( f"@@7 new hi {data['hi']}" ) 
+                            #ic ( f"@@7 new hi {computer.likelihoodComputer.workspaces[iws]['channels'][ich]['samples'][ism]['modifiers'][im]['data']['hi']}" )
+                        if "hi_data" in data:
+                            for idd,(hi,lo) in enumerate ( zip ( data["hi_data"],data["lo_data"] ) ):
+                                # print ( f"@@9 old hi_data {hi,lo}" ) 
+                                center = (hi+lo)/2.
+                                delta = hi - center
+                                data["hi_data"][idd] = center + delta * self.fudge
+                                data["lo_data"][idd] = center - delta * self.fudge
+                                # print ( f"@@9 new hi {computer.likelihoodComputer.workspaces[iws]['channels'][ich]['samples'][ism]['modifiers'][im]['data']['hi_data'][idd]}" )
+
     def fakeBackgroundsForPyhf ( self, expRes ):
         """ synthesize fake observations by sampling a pyhf model
         :param expRes: the experimental result to do this for
         """
-        anaId = expRes.globalInfo.id
-        if abs ( self.fudge - 1. ) > 1e-5:
-            self.error ( f"FIXME fudge factors not yet implemented for pyhf ({anaId})" )
         datasetDict= { ds.getID(): ds for ds in expRes.origdatasets }
         ## store original values
         # origN = { k : v.dataInfo.observedN for k,v in datasetDict.items() }
@@ -1018,7 +1049,11 @@ Just filter the database:
         cdataset = CombinedDataSet ( expRes )
         computer = StatsComputer.forPyhf( cdataset, srNsigs,
                 _deltas_rel_default )
+        if abs ( self.fudge - 1. ) > 1e-5:
+            self.fudgePyhfModel ( expRes, computer )
         srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
+        anaId = expRes.globalInfo.id
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         for ws_i, (ws, srs) in enumerate(zip(
                     computer.likelihoodComputer.workspaces, srs_in_workspaces) ):
             ## srs are the names of the signal regions
