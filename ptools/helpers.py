@@ -209,23 +209,28 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> fl
     :returns: p-value
     """
     # return -1
-    from icecream import ic
-    ic ( "FIXME needs implementation! computePSLv2" )
+    from smodels.statistics.simplifiedLikelihoods import Data
+    d = Data ( obs, bg, bgerr**2, third )
+    #from icecream import ic
+    #ic ( "FIXME needs implementation! computePSLv2" )
     n = 50000
     ret = 0.
+    rhoparam = d.rho[0][0]
+    # thtadbn = scipy.stats.multivariate_normal(np.zeros(self.size), rhoparam )
     while ret < 1e-22 or ret > 1. - 1e-22:
-        lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
-        lmbda = lmbda[lmbda>0.]
-        #if lognormal:
-        #    # for lognormal and signals
-        #    central = bg
-        #    if self.signalmodel and sigN != None:
-        #        central = bg + sigN
-        #    if lognormal and central > ( bgerr / 4. ):
-        #        loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
-        #        stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
-        #        lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
-        fakeobs = scipy.stats.poisson.rvs ( lmbda )
+        ctr = 0
+        # thtas = thtadbn.rvs( n )
+        thtas = scipy.stats.norm.rvs ( loc=[0.]*n, scale=[1.]*n )
+        lmbdas = d.A + d.B * thtas + d.C * thtas**2
+        indices = numpy.where ( lmbdas < 0. )[0]
+        while len(indices)>0:
+            thta = scipy.stats.norm.rvs( loc=[0.]*len(indices), scale=[1.]*len(indices) )
+            lmbdas [ indices ] = thta
+            indices = numpy.where ( lmbdas < 0. )
+            ctr += 1
+            if ctr > 20:
+                break
+        fakeobs = scipy.stats.poisson.rvs ( lmbdas )
         ## == we count half
         ret = ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
         n *= 5
