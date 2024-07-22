@@ -27,10 +27,10 @@ def getJsonFileName(dset: DataSet) -> str:
         if dslist[0] in dsId:                               #check which json file has the corresponding datasets
             file = file.split(".")[0]                       #get only name of json file, not the .json part
             return file
-        
+
     # if no file got matched with dataset
     print(f"JSON file present for {dset.globalinfo.id} but combined dataset does not match to any JSON file")
-    
+
     return "NoJsonFound"
 
 def experimentalId(pred : TheoryPrediction) -> str:
@@ -41,13 +41,13 @@ def experimentalId(pred : TheoryPrediction) -> str:
         - anaId:combined        if dataType = combined,SLv1,v2
         - anaId:jsonFileName    if dataType = combined,pyhf
     """
-    
+
     anaId = pred.analysisId()
     dtype = pred.dataType()
-    
+
     if dtype == "upperLimit":
         return f"{anaId}:{dtype}"
-    
+
     elif dtype == "combined":
         if hasattr(pred.dataset.globalInfo, "jsonFiles"):   #pyhf
             jfile = getJsonFileName(pred.dataset)
@@ -144,6 +144,25 @@ def computeZFromP ( pvalue : float ) -> float:
     """
     return - scipy.stats.norm.ppf ( pvalue )
 
+def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None ) -> float:
+    """ given a dataset, compute p for SM hypothesis
+    :param obsN: if not None, compute for the observation
+
+    :returns: p-value
+    """
+    exp = dataset.dataInfo.expectedBG
+    err = dataset.dataInfo.bgError
+    if obsN is None:
+        obs = dataset.dataInfo.observedN
+    thirdMoment = None
+    if hasattr ( dataset.dataInfo, "thirdMoment" ):
+        thirdMoment = dataset.dataInfo.thirdMoment
+    if thirdMoment is None:
+        p = computeP ( obsN, exp, err )
+        return p
+    p = computePSLv2 ( obsN, exp, err, thirdMoment )
+    return p
+
 def computeP ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
@@ -178,6 +197,42 @@ def computeP ( obs : float, bg : float, bgerr : float,
         if n > 4000000:
             break
     return ret
+
+def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> float:
+    """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2
+
+    :param obs: observed number of events
+    :param bg: number of expected background events
+    :param bgerr: error on number of expected bg events
+    :param third: the third moment
+
+    :returns: p-value
+    """
+    # return -1
+    from icecream import ic
+    ic ( "FIXME needs implementation! computePSLv2" )
+    n = 50000
+    ret = 0.
+    while ret < 1e-22 or ret > 1. - 1e-22:
+        lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
+        lmbda = lmbda[lmbda>0.]
+        #if lognormal:
+        #    # for lognormal and signals
+        #    central = bg
+        #    if self.signalmodel and sigN != None:
+        #        central = bg + sigN
+        #    if lognormal and central > ( bgerr / 4. ):
+        #        loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
+        #        stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
+        #        lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
+        fakeobs = scipy.stats.poisson.rvs ( lmbda )
+        ## == we count half
+        ret = ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
+        n *= 5
+        if n > 4000000:
+            break
+    return ret
+
 
 def stripUnits( container ):
     """ strip all units from a mass vector """

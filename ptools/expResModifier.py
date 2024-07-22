@@ -17,7 +17,7 @@ setup()
 from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
-from ptools.helpers import computeP, computeZFromP
+from ptools.helpers import computeP, computeZFromP, computePForDataSet, computePSLv2
 from smodels.base import runtime
 if False:
     runtime._experimental = True
@@ -434,13 +434,19 @@ Just filter the database:
         sample from background and put the value as observed """
         orig = dataset.dataInfo.observedN
         exp = dataset.dataInfo.expectedBG
+        thirdMoment = None
+        if hasattr ( dataset.dataInfo, "thirdMoment" ):
+            thirdMoment = dataset.dataInfo.thirdMoment
         err = 0.
         if not self.fixedbackgrounds:
             err = dataset.dataInfo.bgError * self.fudge
         D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge,
               "lumi": float(dataset.globalInfo.lumi * fb) }
         if self.compute_ps:
-            p = computeP ( orig, exp, err )
+            if thirdMoment is None:
+                p = computeP ( orig, exp, err )
+            else:
+                p = computePSLv2 ( orig, exp, err, thirdMoment )
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
             D["orig_p"]=p
             origZ = computeZFromP ( p )
@@ -468,7 +474,10 @@ Just filter the database:
                 obs = stats.poisson.rvs ( lmbda )
                 toterr = math.sqrt ( err**2 + exp )
             if True: # toterr > 0.:
-                pnew = computeP ( orig, exp, err )
+                if thirdMoment is None:
+                    pnew = computeP ( orig, exp, err )
+                else:
+                    pnew = computePSLv2 ( orig, exp, err, thirdMoment )
                 Z = - scipy.stats.norm.ppf ( pnew )
                 # Z = ( obs - exp ) / toterr
                 # origZ = ( orig - exp ) / toterr
@@ -486,7 +495,10 @@ Just filter the database:
         D["newObs"]=obs
         self.comments["newObs"]="the new fake observation"
         if self.compute_ps:
-            p = computeP ( obs, exp, err )
+            if thirdMoment is None:
+                p = computeP ( obs, exp, err )
+            else:
+                p = computePSLv2 ( obs, exp, err, thirdMoment )
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
             D["new_p"]=p
         D["obsBg"]=obs
@@ -511,13 +523,19 @@ Just filter the database:
         datasets """
         orig = dataset.dataInfo.observedN
         exp = dataset.dataInfo.expectedBG
+        thirdMoment = None
+        if hasattr ( dataset.dataInfo, "thirdMoment" ):
+            thirdMoment = dataset.dataInfo.thirdMoment
         err = 0.
         if not self.fixedbackgrounds:
             err = dataset.dataInfo.bgError * self.fudge
         D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge,
               "lumi": float(dataset.globalInfo.lumi * fb) }
         if self.compute_ps:
-            p = computeP ( orig, exp, err )
+            if thirdMoment is None:
+                p = computeP ( orig, exp, err )
+            else:
+                p = computePSLv2 ( orig, exp, err, thirdMoment )
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
             D["orig_p"]=p
             origZ = computeZFromP ( p )
@@ -976,9 +994,7 @@ Just filter the database:
                 D["newObs"]=obs
                 D["lmbda"]=lmbda
             if self.compute_ps:
-                exp = dataset.dataInfo.expectedBG
-                err = dataset.dataInfo.bgError
-                p = computeP ( obs, exp, err )
+                p = computePForDataSet ( dataset, obs )
                 self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
                 D["new_p"]=p
                 newZ = computeZFromP ( p )
@@ -1090,10 +1106,7 @@ Just filter the database:
                     D["newObs"]=newObs
                 D["type"]="pyhf"
                 if self.compute_ps:
-                    obs = newObs
-                    exp = dataset.dataInfo.expectedBG
-                    err = dataset.dataInfo.bgError
-                    p = computeP ( obs, exp, err )
+                    p = computePForDataSet ( dataset, newObs )
                     self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
                     D["new_p"]=p
                     newZ = computeZFromP ( p )
