@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from typing import List
+from icecream import ic
 
 def extractPValues( analyses : List ):
     from ptools.helpers import readDictionaryFile
@@ -15,7 +16,11 @@ def extractPValues( analyses : List ):
             for ana in anas:
                 if ana in k:
                     if "new_p" in v:
-                        pvalues.append ( v["new_p"] )
+                        expectedBG = v["expectedBG"]
+                        bgError = v["bgError"]
+                        if True: # expectedBG + 2*bgError > 5.:
+                        # ic ( f"{k}: p={v['new_p']}" )
+                            pvalues.append ( v["new_p"] )
                         hasEntry = True
         nuniverses += 1
     # print ( pvalues )
