@@ -440,7 +440,7 @@ Just filter the database:
         err = 0.
         if not self.fixedbackgrounds:
             err = dataset.dataInfo.bgError * self.fudge
-        D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge,
+        D = { "origN": int(orig), "expectedBG": exp, "bgError": err, "fudge": self.fudge,
               "lumi": float(dataset.globalInfo.lumi * fb) }
         if self.compute_ps:
             if thirdMoment is None:
@@ -529,7 +529,7 @@ Just filter the database:
         err = 0.
         if not self.fixedbackgrounds:
             err = dataset.dataInfo.bgError * self.fudge
-        D = { "origN": orig, "expectedBG": exp, "bgError": err, "fudge": self.fudge,
+        D = { "origN": int(orig), "expectedBG": exp, "bgError": err, "fudge": self.fudge,
               "lumi": float(dataset.globalInfo.lumi * fb) }
         if self.compute_ps:
             if thirdMoment is None:
