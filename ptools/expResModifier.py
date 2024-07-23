@@ -1019,7 +1019,7 @@ Just filter the database:
     def fudgePyhfModel ( self, expRes, computer ):
         """ fudge the pyhf model, ie multiply all errors with self.fudge """
         anaId = expRes.globalInfo.id
-        self.error ( f"FIXME fudge factors not yet implemented for pyhf ({anaId})" )
+        # self.error ( f"FIXME fudge factors not yet implemented for pyhf ({anaId})" )
         # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         ## FIXME this needs more thought: which errors get rescaled, which dont, etc
         for iws,ws in enumerate(computer.likelihoodComputer.workspaces):
