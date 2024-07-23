@@ -436,7 +436,7 @@ Just filter the database:
         exp = dataset.dataInfo.expectedBG
         thirdMoment = None
         if hasattr ( dataset.dataInfo, "thirdMoment" ):
-            thirdMoment = dataset.dataInfo.thirdMoment
+            thirdMoment = dataset.dataInfo.thirdMoment * self.fudge**3
         err = 0.
         if not self.fixedbackgrounds:
             err = dataset.dataInfo.bgError * self.fudge
@@ -462,7 +462,7 @@ Just filter the database:
                 lmbda = self.drawNuisance ( exp, err )
             dataset.dataInfo.lmbda = lmbda
             if hasattr ( dataset.dataInfo, "thirdMoment" ):
-                thirdMoment = float ( dataset.dataInfo.thirdMoment )
+                thirdMoment = float ( dataset.dataInfo.thirdMoment ) * self.fudge**3
                 lmbda += thirdMoment * (lmbda-exp)**2 / err**4
             if lmbda < 0.:
                 lmbda = 0.
@@ -525,7 +525,7 @@ Just filter the database:
         exp = dataset.dataInfo.expectedBG
         thirdMoment = None
         if hasattr ( dataset.dataInfo, "thirdMoment" ):
-            thirdMoment = dataset.dataInfo.thirdMoment
+            thirdMoment = dataset.dataInfo.thirdMoment * self.fudge**3
         err = 0.
         if not self.fixedbackgrounds:
             err = dataset.dataInfo.bgError * self.fudge
@@ -979,7 +979,7 @@ Just filter the database:
         tpe = "SLv1"
         if hasattr ( expRes.datasets[0].dataInfo, "thirdMoment" ):
             tpe = "SLv2"
-            thirdMoments = [ x.dataInfo.thirdMoment for x in expRes.datasets ]
+            thirdMoments = [ x.dataInfo.thirdMoment * self.fudge**3 for x in expRes.datasets ]
         # print ( f"@@3 for {expRes.globalInfo.id} rvs {rvs[:3]} cnt {centers[:3]} diag {diag[:3]}" )
         for i,dataset in enumerate(expRes.datasets):
             lmbda = centers[i] + rvs[i]

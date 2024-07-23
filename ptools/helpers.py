@@ -210,8 +210,15 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> fl
     """
     # return -1
     from smodels.statistics.simplifiedLikelihoods import Data
+    printErr = True
+    while 8*bgerr**3 - third**2 < 0.:
+        if printErr:
+            ## FIXME ugly hack, shrink the third momenta 
+            print ( f"[helpers] third moments too large (bgerr={bgerr:.3g}, third={third:.3g}). shrink them!" )
+            printErr = False
+        third *= 0.9
     d = Data ( obs, bg, bgerr**2, third )
-    #from icecream import ic
+    from icecream import ic
     #ic ( "FIXME needs implementation! computePSLv2" )
     n = 50000
     ret = 0.
@@ -226,11 +233,21 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> fl
         while len(indices)>0:
             thta = scipy.stats.norm.rvs( loc=[0.]*len(indices), scale=[1.]*len(indices) )
             lmbdas [ indices ] = thta
-            indices = numpy.where ( lmbdas < 0. )
+            indices = numpy.where ( lmbdas < 0. )[0]
             ctr += 1
-            if ctr > 20:
+            if ctr > 20: # after trying 20 times we set to almost zero
+                lmbdas [ indices ] = [0.]*len(indices)
                 break
-        fakeobs = scipy.stats.poisson.rvs ( lmbdas )
+        try:
+            fakeobs = scipy.stats.poisson.rvs ( lmbdas )
+        except ValueError as e:
+            ic ( lmbdas )
+            ic ( d.A )
+            ic ( d.B )
+            ic ( d.C )
+            ic ( d.rho )
+            ic ( obs, bg, bgerr, third )
+            import sys; sys.exit()
         ## == we count half
         ret = ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
         n *= 5
