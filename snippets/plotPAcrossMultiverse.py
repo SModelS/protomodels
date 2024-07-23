@@ -2,9 +2,10 @@
 
 from typing import List
 from icecream import ic
+import numpy as np
 import os
 
-def extractPValues( analyses : List, directory : os.PathLike ):
+def extractPValues( analyses : List, directory : os.PathLike, verbose ):
     from ptools.helpers import readDictionaryFile
     import glob
     files = glob.glob ( f"{directory}/*.dict" )
@@ -20,8 +21,9 @@ def extractPValues( analyses : List, directory : os.PathLike ):
                     if "new_p" in v:
                         expectedBG = v["expectedBG"]
                         bgError = v["bgError"]
+                        if verbose:
+                            print ( f"{k}:expectedBG={expectedBG}+-{bgError} newObs={v['newObs']} p={v['new_p']}" )
                         if True: # expectedBG + 2*bgError > 5.:
-                        # ic ( f"{k}: p={v['new_p']}" )
                             pvalues.append ( v["new_p"] )
                         hasEntry = True
         nuniverses += 1
@@ -33,7 +35,7 @@ def plotPValues( info, anas, outfile ):
     nuniverses = info["nuniverses"]
     from matplotlib import pyplot as plt
     fig, ax = plt.subplots()
-    plt.hist ( pvalues )
+    plt.hist ( pvalues, bins=np.arange(0.0,1.01,0.1) )
     plt.xlabel ( "p-values" )
     plt.ylabel ( "# SRs" )
     title = ", ".join ( anas )
@@ -48,8 +50,8 @@ def plotPValues( info, anas, outfile ):
         print ( o )
     # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
-def runPlotting( anas : List, directory : os.PathLike, outfile : os.PathLike ):
-    info = extractPValues( anas, directory )
+def runPlotting( anas : List, directory : os.PathLike, outfile : os.PathLike, verbose : bool ):
+    info = extractPValues( anas, directory, verbose )
     plotPValues ( info, anas, outfile )
 
 if __name__ == "__main__":
@@ -64,7 +66,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-o', '--outfile',
             help='output file name ["pvalues.png"]',
             type=str, default="pvalues.png" )
+    argparser.add_argument ( '-v', '--verbose',
+            help='verbose', action="store_true" )
     args = argparser.parse_args()
     anas = args.analyses.split(",")
     # anas = [ "CMS-EXO-20-004" ]
-    runPlotting( anas, args.directory, args.outfile )
+    runPlotting( anas, args.directory, args.outfile, args.verbose )
