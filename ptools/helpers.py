@@ -211,10 +211,10 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> fl
     # return -1
     from smodels.statistics.simplifiedLikelihoods import Data
     printErr = True
-    while 8*bgerr**3 - third**2 < 0.:
+    while 8*bgerr**6 - third**2 < 0.:
         if printErr:
             ## FIXME ugly hack, shrink the third momenta 
-            print ( f"[helpers] third moments too large (bgerr={bgerr:.3g}, third={third:.3g}). shrink them!" )
+            print ( f"[helpers] third moments too large (bgerr**2={bgerr**2:.3g}, third={third:.3g}). shrink them!" )
             printErr = False
         third *= 0.9
     d = Data ( obs, bg, bgerr**2, third )
