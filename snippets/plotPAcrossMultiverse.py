@@ -2,13 +2,15 @@
 
 from typing import List
 from icecream import ic
+import os
 
-def extractPValues( analyses : List ):
+def extractPValues( analyses : List, directory : os.PathLike ):
     from ptools.helpers import readDictionaryFile
     import glob
-    files = glob.glob ( "dicts/*.dict" )
+    files = glob.glob ( f"{directory}/*.dict" )
     pvalues = []
     nuniverses = 0
+    print ( f"[plotPAcrossMultiverse] found {len(files)} files in '{directory}/'" )
     for f in files:
         hasEntry = False
         D = readDictionaryFile ( f )["data"]
@@ -26,25 +28,29 @@ def extractPValues( analyses : List ):
     # print ( pvalues )
     return { "pvalues": pvalues, "nuniverses": nuniverses }
 
-def plotPValues( info, anas ):
+def plotPValues( info, anas, outfile ):
     pvalues = info["pvalues"]
+    nuniverses = info["nuniverses"]
     from matplotlib import pyplot as plt
+    fig, ax = plt.subplots()
     plt.hist ( pvalues )
     plt.xlabel ( "p-values" )
+    plt.ylabel ( "# SRs" )
     title = ", ".join ( anas )
-    title += f" [{info['nuniverses']} universes]" 
+    # title += f" [{info['nuniverses']} universes]" 
     plt.title ( title )
-    plt.savefig ( "pvalues.png" )
+    plt.text ( -.1, -.1, f"{nuniverses} universes", transform=ax.transAxes )
+    plt.savefig ( outfile )
     import shutil
     if shutil.which ("timg") is not None:
         import subprocess
-        o = subprocess.getoutput ( "timg pvalues.png" )
+        o = subprocess.getoutput ( f"timg {outfile}" )
         print ( o )
     # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
-def runPlotting( anas : List ):
-    info = extractPValues( anas )
-    plotPValues ( info, anas )
+def runPlotting( anas : List, directory : os.PathLike, outfile : os.PathLike ):
+    info = extractPValues( anas, directory )
+    plotPValues ( info, anas, outfile )
 
 if __name__ == "__main__":
     import argparse
@@ -52,7 +58,13 @@ if __name__ == "__main__":
     argparser.add_argument ( '-a', '--analyses',
             help='analyses to plot p-values for, comma separated ["ATLAS-SUSY-2019-09"]',
             type=str, default="ATLAS-SUSY-2019-09" )
+    argparser.add_argument ( '-d', '--directory',
+            help='directory to look for dict files ["dicts"]',
+            type=str, default="dicts" )
+    argparser.add_argument ( '-o', '--outfile',
+            help='output file name ["pvalues.png"]',
+            type=str, default="pvalues.png" )
     args = argparser.parse_args()
     anas = args.analyses.split(",")
     # anas = [ "CMS-EXO-20-004" ]
-    runPlotting( anas )
+    runPlotting( anas, args.directory, args.outfile )
