@@ -44,9 +44,9 @@ def create ( nmin = 1, nmax = 100, f = 1.0, overwrite = False ):
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser( description="tool to create a consistent set of fake universes at once" )
-    argparser.add_argument ( '-n', help='highest id of fake universe to be created [100]',
+    argparser.add_argument ( '-N', help='highest id of fake universe to be created [100]',
             type=int, default=100 )
-    argparser.add_argument ( '-N', help='lowest id of fake universe to be created [100]',
+    argparser.add_argument ( '-n', help='lowest id of fake universe to be created [1]',
             type=int, default=1 )
     argparser.add_argument ( '-p', help='number of processes [5]',
             type=int, default=5 )
@@ -56,10 +56,11 @@ if __name__ == "__main__":
             action='store_true' )
     args = argparser.parse_args()
     nprocesses = 5
-    dn = int ( ( args.n+1-args.N) / nprocesses )
+    dn = int ( ( args.N+1-args.n) / nprocesses )
     for p in range(nprocesses):
         pid = os.fork()
         if pid != 0:
-            nmin = args.N + p * dn
-            nmax = (p+1)*dn
+            nmin = args.n + p * dn
+            nmax = args.n + (p+1)*dn - 1
+            print ( nmin, nmax )
             create( nmin, nmax, args.fudge, args.overwrite )
