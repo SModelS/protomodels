@@ -5,7 +5,7 @@ import subprocess, os
 def isFudged ( f ):
     return abs(f-1.0)>1e-5
 
-def create ( n = 100, f = 1.0, overwrite = False ):
+def create ( nmin = 1, nmax = 100, f = 1.0, overwrite = False ):
     """
     :param n: number of universes
     :param f: fudge factor
@@ -15,8 +15,11 @@ def create ( n = 100, f = 1.0, overwrite = False ):
     if isFudged(f):
         directory = f"dictsf{int(f*100)}"
     if not os.path.exists ( directory ):
-        os.mkdir ( directory )
-    for i in range(1,n+1):
+        try:
+            os.mkdir ( directory )
+        except FileExistsError as e:
+            pass
+    for i in range(nmin,nmax+1):
         out = f"{i:03d}"
         if os.path.exists ( f"{directory}/{out}.dict" ) and not overwrite:
             continue
@@ -41,11 +44,22 @@ def create ( n = 100, f = 1.0, overwrite = False ):
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser( description="tool to create a consistent set of fake universes at once" )
-    argparser.add_argument ( '-n', help='number of fake universes [100]',
+    argparser.add_argument ( '-n', help='highest id of fake universe to be created [100]',
             type=int, default=100 )
+    argparser.add_argument ( '-N', help='lowest id of fake universe to be created [100]',
+            type=int, default=1 )
+    argparser.add_argument ( '-p', help='number of processes [5]',
+            type=int, default=5 )
     argparser.add_argument ( '-f', '--fudge', help='fudge factor [1.0]',
             type=float, default=1.0 )
     argparser.add_argument ( '-o', '--overwrite', help='overwrite old files',
             action='store_true' )
     args = argparser.parse_args()
-    create( args.n, args.fudge, args.overwrite )
+    nprocesses = 5
+    dn = int ( ( args.n+1-args.N) / nprocesses )
+    for p in range(nprocesses):
+        pid = os.fork()
+        if pid != 0:
+            nmin = args.N + p * dn
+            nmax = (p+1)*dn
+            create( nmin, nmax, args.fudge, args.overwrite )
