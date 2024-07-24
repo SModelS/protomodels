@@ -22,7 +22,10 @@ def extractPValues( analyses : List, directory : os.PathLike, verbose ):
                         expectedBG = v["expectedBG"]
                         bgError = v["bgError"]
                         if verbose:
-                            print ( f"{k}:expectedBG={expectedBG}+-{bgError} newObs={v['newObs']} p={v['new_p']}" )
+                            s3rd=""
+                            if "thirdMoment" in v:
+                                s3rd = ";"+v["thirdMoment"]
+                            print ( f"{k}:expectedBG={expectedBG}+-{bgError}{s3rd} newObs={v['newObs']} p={v['new_p']}" )
                         if True: # expectedBG + 2*bgError > 5.:
                             pvalues.append ( v["new_p"] )
                         hasEntry = True
