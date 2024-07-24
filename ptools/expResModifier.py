@@ -33,7 +33,7 @@ from smodels.experiment.databaseObj import Database
 from builder.loggerbase import LoggerBase
 from tester.combinationsmatrix import getYamlMatrix
 from typing import Dict, List, Text
-# from icecream import ic
+from icecream import ic
 
 logger.setLevel("ERROR")
 
@@ -465,6 +465,7 @@ Just filter the database:
             dataset.dataInfo.lmbda = lmbda
             if hasattr ( dataset.dataInfo, "thirdMoment" ):
                 thirdMoment = float ( dataset.dataInfo.thirdMoment ) * self.fudge**3
+                # ic ( lmbda, exp, thirdMoment )
                 lmbda += thirdMoment * (lmbda-exp)**2 / err**4
             if lmbda < 0.:
                 lmbda = 0.
@@ -978,8 +979,9 @@ Just filter the database:
         covm = np.array ( expRes.globalInfo.covariance )
         if abs ( self.fudge - 1 ) > 1e-8:
             covm = self.fudge**2 * covm
-        diag = np.array ([expRes.globalInfo.covariance[i][i] for i in range(len(covm))])
-        centers = np.array ( [ x.dataInfo.expectedBG for x in expRes.datasets ] )
+        # diag = np.array ([expRes.globalInfo.covariance[i][i] for i in range(len(covm))])
+        expectedBGs = np.array([ x.dataInfo.expectedBG for x in expRes.datasets ] )
+        observed = np.array([ x.dataInfo.observedN for x in expRes.datasets ] )
         zeroes = np.array ( [0.]*len(covm) )
         rvs = scipy.stats.multivariate_normal.rvs ( zeroes, covm )
         ## FIXME SLv2 needed also!
@@ -988,11 +990,16 @@ Just filter the database:
         if hasattr ( expRes.datasets[0].dataInfo, "thirdMoment" ):
             tpe = "SLv2"
             thirdMoments = [ x.dataInfo.thirdMoment * self.fudge**3 for x in expRes.datasets ]
+        from smodels.statistics.simplifiedLikelihoods import Data
+        data = Data ( observed, expectedBGs, covm, thirdMoments )
         # print ( f"@@3 for {expRes.globalInfo.id} rvs {rvs[:3]} cnt {centers[:3]} diag {diag[:3]}" )
         for i,dataset in enumerate(expRes.datasets):
-            lmbda = centers[i] + rvs[i]
-            if thirdMoments != None:
-                lmbda += thirdMoments[i] / diag[i]**2 * rvs[i]**2
+            lmbda = dataset.dataInfo.expectedBG + rvs[i]
+            if tpe == "SLv2":
+                lmbda = data.A[i] + rvs[i] + data.C[i] * rvs[i]**2 / data.B[i]**2
+                # lmbda += dataset.dataInfo.thirdMoments / diag[i]**2 * rvs[i]**2
+            #if "CMS-SUS-20-004" in expRes.globalInfo.id:
+            #    ic ( lmbda, expectedBGs[i], rvs[i], thirdMoments[i] )
             lmbda = max ( 0., lmbda )
             obs = scipy.stats.poisson.rvs ( lmbda )
             D = self.createEMStatsDict ( dataset )
