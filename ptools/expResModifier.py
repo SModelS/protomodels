@@ -215,7 +215,7 @@ Just filter the database:
 
                 for i in [ "observedN", "origN", "expectedBG", "lmbda", "bgError",
                            "origUpperLimit", "origExpectedUpperLimit", "upperLimit",
-                           "expectedUpperLimit" ]:
+                           "expectedUpperLimit", "thirdMoment" ]:
                     if hasattr ( info, i ):
                         D[i] = getattr ( info, i )
                 if self.timestamps:
@@ -446,6 +446,8 @@ Just filter the database:
             if thirdMoment is None:
                 p = computeP ( orig, exp, err )
             else:
+                D["thirdMoment"]=thirdMoment
+                self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
             D["orig_p"]=p
@@ -477,6 +479,8 @@ Just filter the database:
                 if thirdMoment is None:
                     pnew = computeP ( orig, exp, err )
                 else:
+                    D["thirdMoment"]=thirdMoment
+                    self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                     pnew = computePSLv2 ( orig, exp, err, thirdMoment )
                 Z = - scipy.stats.norm.ppf ( pnew )
                 # Z = ( obs - exp ) / toterr
@@ -498,6 +502,8 @@ Just filter the database:
             if thirdMoment is None:
                 p = computeP ( obs, exp, err )
             else:
+                D["thirdMoment"]=thirdMoment
+                self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( obs, exp, err, thirdMoment )
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
             D["new_p"]=p
@@ -535,6 +541,8 @@ Just filter the database:
             if thirdMoment is None:
                 p = computeP ( orig, exp, err )
             else:
+                D["thirdMoment"]=thirdMoment
+                self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
             D["orig_p"]=p

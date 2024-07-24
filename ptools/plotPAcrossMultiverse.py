@@ -17,7 +17,7 @@ def extractPValues( analyses : List, directory : os.PathLike, verbose ):
         D = readDictionaryFile ( f )["data"]
         for k,v in D.items():
             for ana in anas:
-                if ana in k:
+                if ana == k:
                     if "new_p" in v:
                         expectedBG = v["expectedBG"]
                         bgError = v["bgError"]
