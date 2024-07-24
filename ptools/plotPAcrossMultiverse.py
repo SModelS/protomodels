@@ -35,6 +35,8 @@ def extractPValues( analyses : List, directory : os.PathLike, verbose,
                         addPValue ( pvalues, v, verbose, min_expected )
                 elif ana in k:
                     addPValue ( pvalues, v, verbose, min_expected )
+                elif ana == "*":
+                    addPValue ( pvalues, v, verbose, min_expected )
         nuniverses += 1
     # print ( pvalues )
     return { "pvalues": pvalues, "nuniverses": nuniverses }
@@ -48,6 +50,8 @@ def plotPValues( info, anas, outfile ):
     plt.xlabel ( "p-values" )
     plt.ylabel ( "# SRs" )
     title = ", ".join ( anas )
+    if title == "*":
+        title = "all analyses"
     # title += f" [{info['nuniverses']} universes]" 
     plt.title ( title )
     plt.text ( -.1, -.1, f"{nuniverses} universes", transform=ax.transAxes )
@@ -68,7 +72,7 @@ if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser( description='simple script to plot p-values across universes' )
     argparser.add_argument ( '-a', '--analyses',
-            help='analyses to plot p-values for, comma separated ["ATLAS-SUSY-2019-09"]',
+            help='analyses to plot p-values for, comma separated, "*" is for all ["ATLAS-SUSY-2019-09"]',
             type=str, default="ATLAS-SUSY-2019-09" )
     argparser.add_argument ( '-d', '--directory',
             help='directory to look for dict files ["dicts"]',
