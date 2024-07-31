@@ -1097,10 +1097,8 @@ Just filter the database:
             orderedsample = []
             ##first we need a dictionary to translate the SR names
             for i,sr in enumerate ( srs ):
-                if type(sr)==dict:
-                    if sr["type"]!="SR":
-                        continue
-                    sr=sr["pyhf"]
+                if sr["type"]!="SR":
+                    continue
                 ## we append to orderedsample in the right order
                 ssr = sr
                 if "[" in ssr:
