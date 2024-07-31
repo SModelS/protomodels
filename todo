@@ -2,8 +2,7 @@ todo:
 =====
 *) expResModifier, test that the distributions are ok, for SL, for pyhf, 
 	 fudge, etc
-*) extend the BAM, add most recent analyses (SN,WW)
-*) fit simplified likelihoods for full pyhf likelihoods for speedup (MMA)
+*) fit simplified likelihoods for full pyhf likelihoods for speedup (MMA, waiting for JYA)
 *) introduce smart initialisation of walker (WW)
 *) the code that introduces offshell branching ratios, put it into a
 separate method
@@ -13,11 +12,15 @@ separate method
 *) move to using jamies pathfinder, drop maximization of mu (SN)
 .) study the ulobs/ulexp distribution in great detail, so we can make
    an informed choice in the critic (SN)
-*) extend protomodels to non-Z2
 *) think of smarter choices for mcmc-type (sampling) algorithms (HARG)
 *) improve the critic, split into two critics, implement UL-based
    critic (TP, MMA)
 *) use YIC information criterion (JY et al)
+
+v3:
+===
+*) extend the BAM, add most recent analyses (SN,WW,MMA)
+*) extend protomodels to non-Z2
 
 unsure:
 =======
