@@ -465,7 +465,6 @@ Just filter the database:
             dataset.dataInfo.lmbda = lmbda
             if hasattr ( dataset.dataInfo, "thirdMoment" ):
                 thirdMoment = float ( dataset.dataInfo.thirdMoment ) * self.fudge**3
-                # ic ( lmbda, exp, thirdMoment )
                 lmbda += thirdMoment * (lmbda-exp)**2 / err**4
             if lmbda < 0.:
                 lmbda = 0.
@@ -998,8 +997,6 @@ Just filter the database:
             if tpe == "SLv2":
                 lmbda = data.A[i] + rvs[i] + data.C[i] * rvs[i]**2 / data.B[i]**2
                 # lmbda += dataset.dataInfo.thirdMoments / diag[i]**2 * rvs[i]**2
-            #if "CMS-SUS-20-004" in expRes.globalInfo.id:
-            #    ic ( lmbda, expectedBGs[i], rvs[i], thirdMoments[i] )
             lmbda = max ( 0., lmbda )
             obs = scipy.stats.poisson.rvs ( lmbda )
             D = self.createEMStatsDict ( dataset )
@@ -1051,11 +1048,8 @@ Just filter the database:
                         if "hi" in data:
                             center = (data["hi"]+data["lo"])/2.
                             delta = data["hi"] - center
-                            #ic ( f"@@7 old hi {data['hi']}" ) 
                             data["hi"] = center + delta * self.fudge
                             data["lo"] = center - delta * self.fudge
-                            #ic ( f"@@7 new hi {data['hi']}" ) 
-                            #ic ( f"@@7 new hi {computer.likelihoodComputer.workspaces[iws]['channels'][ich]['samples'][ism]['modifiers'][im]['data']['hi']}" )
                         if "hi_data" in data:
                             for idd,(hi,lo) in enumerate ( zip ( data["hi_data"],data["lo_data"] ) ):
                                 # print ( f"@@9 old hi_data {hi,lo}" ) 
@@ -1072,13 +1066,17 @@ Just filter the database:
         datasetDict= { ds.getID(): ds for ds in expRes.origdatasets }
         ## store original values
         # origN = { k : v.dataInfo.observedN for k,v in datasetDict.items() }
-        srNsigs = [0.] * len(expRes.origdatasets)
+        srNsigDict = {ds.getID() : 0.0 for ds in expRes.origdatasets}
+        # Update with theory predictions
+        #srNsigDict.update({pred.dataset.getID() :
+        #              (pred.xsection*pred.dataset.getLumi()).asNumber()
+        #              for pred in self.datasetPredictions})
         from smodels.base.runtime import _deltas_rel_default
         from smodels.statistics.statsTools import StatsComputer
         from smodels.experiment.datasetObj import CombinedDataSet
         import pyhf
         cdataset = CombinedDataSet ( expRes )
-        computer = StatsComputer.forPyhf( cdataset, srNsigs,
+        computer = StatsComputer.forPyhf( cdataset, srNsigDict,
                 _deltas_rel_default )
         if abs ( self.fudge - 1. ) > 1e-5:
             self.fudgePyhfModel ( expRes, computer )
@@ -1099,11 +1097,21 @@ Just filter the database:
             orderedsample = []
             ##first we need a dictionary to translate the SR names
             for i,sr in enumerate ( srs ):
+                if type(sr)==dict:
+                    if sr["type"]!="SR":
+                        continue
+                    sr=sr["pyhf"]
                 ## we append to orderedsample in the right order
-                if not sr in channelnames:
+                ssr = sr
+                if "[" in ssr:
+                    ssr = ssr[:ssr.find("[")]
+                if not sr in channelnames and not ssr in channelnames:
                     logger.error ( f"SR {sr} not in channels {channelnames} in {anaId}" )
                     sys.exit()
-                idx = channelnames.index(sr) # what position is it
+                if sr in channelnames:
+                    idx = channelnames.index(sr) # what position is it
+                else:
+                    idx = channelnames.index(ssr) # what position is it
                 # idx = order.index(sr)
                 orderedsample.append ( sample[idx] )
                 sampleDict[sr]= sample[idx]
@@ -1112,6 +1120,10 @@ Just filter the database:
             #    datasetDict[sr].dataInfo.observedN = int(obsN)
 
             for obsN,sr in zip(orderedsample,srs):
+                if type(sr) == dict:
+                    sr = sr["smodels"]
+                if sr == None:
+                    continue
                 dataset = datasetDict[sr]
                 D = self.createEMStatsDict ( dataset )
                 newObs = int(obsN)
@@ -1126,12 +1138,6 @@ Just filter the database:
                     D["new_p"]=p
                     newZ = computeZFromP ( p )
                     D["new_Z"]=newZ
-                if False and sr == "CR_ewk_top_low":
-                    ic ( srs )
-                    ic ( sampleDict )
-                    ic ( dataset.dataInfo.observedN )
-                    ic ( D )
-                    ic ( sr )
                 label = anaId + ":" + dataset.dataInfo.dataId
                 self.addToStats ( label, D, dataset.globalInfo )
                 ## as the very last measure, we replace the observation with
