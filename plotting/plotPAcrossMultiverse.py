@@ -72,8 +72,8 @@ if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser( description='simple script to plot p-values across universes' )
     argparser.add_argument ( '-a', '--analyses',
-            help='analyses to plot p-values for, comma separated, "*" is for all ["ATLAS-SUSY-2019-09"]',
-            type=str, default="ATLAS-SUSY-2019-09" )
+            help='analyses to plot p-values for, comma separated, "*" is for all ["*"]',
+            type=str, default="*" )
     argparser.add_argument ( '-d', '--directory',
             help='directory to look for dict files ["dicts"]',
             type=str, default="dicts" )
