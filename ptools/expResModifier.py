@@ -1082,6 +1082,7 @@ Just filter the database:
             self.fudgePyhfModel ( expRes, computer )
         srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
         anaId = expRes.globalInfo.id
+        #ic ( anaId )
         # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         for ws_i, (ws, srs) in enumerate(zip(
                     computer.likelihoodComputer.workspaces, srs_in_workspaces) ):
@@ -1093,39 +1094,33 @@ Just filter the database:
             pdf_bkg = model.main_model.make_pdf(pyhf.tensorlib.astensor(pars_bkg))
             # pdf_bkg = model.make_pdf(pyhf.tensorlib.astensor(pars_bkg))
             sample = pdf_bkg.sample()
-            sampleDict = {}
-            orderedsample = []
+            sampleDictPyhf = {}
             ##first we need a dictionary to translate the SR names
-            for i,sr in enumerate ( srs ):
-                if sr["type"]!="SR":
-                    continue
-                ## we append to orderedsample in the right order
-                sr = sr["pyhf"]
-                ssr = sr
-                if "[" in ssr:
-                    ssr = ssr[:ssr.find("[")]
-                if not sr in channelnames and not ssr in channelnames:
-                    logger.error ( f"SR {sr} not in channels {channelnames} in {anaId}" )
-                    sys.exit()
-                if sr in channelnames:
-                    idx = channelnames.index(sr) # what position is it
+            #ic ( channelnames )
+            sampleidx=0
+            for channelname in channelnames:
+                if model.config.channel_nbins [ channelname] == 1:
+                    sampleDictPyhf[channelname]= float ( sample[sampleidx] )
+                    sampleidx+=1
                 else:
-                    idx = channelnames.index(ssr) # what position is it
-                # idx = order.index(sr)
-                orderedsample.append ( sample[idx] )
-                sampleDict[sr]= sample[idx]
-
-            #for obsN,sr in zip(orderedsample,srs):
-            #    datasetDict[sr].dataInfo.observedN = int(obsN)
-
-            for obsN,sr in zip(orderedsample,srs):
-                if type(sr) == dict:
-                    sr = sr["smodels"]
-                if sr == None:
+                    for i in range ( model.config.channel_nbins[channelname]):
+                        fullname = f"{channelname}[{i}]"
+                        sampleDictPyhf[fullname]= float ( sample[sampleidx] )
+                        sampleidx+=1
+            sampleDictSModelS = {}
+            #if anaId == "ATLAS-SUSY-2018-31":
+            #    ic ( srs )
+            #    ic ( sampleDictPyhf )
+            for sr in srs:
+                if sr["pyhf"] in sampleDictPyhf:
+                    sampleDictSModelS[ sr["smodels"] ] = sampleDictPyhf[ sr["pyhf"] ]
+            for sr in srs:
+                srname = sr["smodels"]
+                if sr["type"] != "SR": 
                     continue
-                dataset = datasetDict[sr]
+                dataset = datasetDict[srname]
                 D = self.createEMStatsDict ( dataset )
-                newObs = int(obsN)
+                newObs = int( sampleDictSModelS[ srname ] )
                 if self.fixedbackgrounds:
                     D["newObs"]=dataset.dataInfo.expectedBG
                 else:
@@ -1142,6 +1137,9 @@ Just filter the database:
                 ## as the very last measure, we replace the observation with
                 ## the fake observation
                 dataset.dataInfo.observedN = newObs
+        #if anaId == "ATLAS-SUSY-2018-31":
+        #    import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+
 
     def fakeBackgrounds ( self, listOfExpRes ):
         """ thats the method that samples the backgrounds """
