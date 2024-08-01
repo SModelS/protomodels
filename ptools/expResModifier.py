@@ -1100,6 +1100,7 @@ Just filter the database:
                 if sr["type"]!="SR":
                     continue
                 ## we append to orderedsample in the right order
+                sr = sr["pyhf"]
                 ssr = sr
                 if "[" in ssr:
                     ssr = ssr[:ssr.find("[")]
