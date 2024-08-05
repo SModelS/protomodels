@@ -14,16 +14,21 @@ from smodels_utils.helper.various import getSqrts, findCollaboration
 from ptools.moreHelpers import namesForSetsOfTopologies
 from typing import Union, Text, List, Dict
 from protomodels.builder.loggerbase import LoggerBase
+import subprocess, shutil
 
 class Analyzer ( LoggerBase ):
     def __init__ ( self, pathname : str, topos : Union[Text,None,List], 
-                   nocolors : bool = False ):
+                   nocolors : bool = False, latex : bool = False,
+                   enum : bool = False ):
         """
         :param pathname: filename of dictionary
         :param topos: topologies to filter for
         """
         super ( Analyzer, self ).__init__ ( 0 )
         self.setColors ( nocolors )
+        self.latex = latex
+        self.enum = enum
+        self.latexHeader()
         self.reportZvalues = True
         self.filenames = []
         topos, _ = namesForSetsOfTopologies ( topos )
@@ -40,6 +45,45 @@ class Analyzer ( LoggerBase ):
             self.filenames += glob.glob ( pname )
         self.pvalues = { 8:[], 13:[] }
         self.Zvalues = { 8:[], 13:[] }
+
+    def latexHeader ( self ):
+        if not self.latex:
+            return
+        self.latexfile = open ( "regions.tex", "wt" )
+        self.latexfile.write ( f"% list of most significant excesses\n" )
+        import time
+        self.latexfile.write ( f"% file created {time.asctime()}\n" )
+        self.latexfile.write ( f"\n" )
+        lformat = "{|l|l|l|l|r|r|}"
+        if self.enum:
+            lformat = lformat[:2]+"l|"+lformat[3:]
+        # self.latexfile.write ( r"\resizebox{\textwidth}{!}{" )
+        self.latexfile.write ( r"\begin{tabular}"+lformat )
+        self.latexfile.write ( "\n" )
+        self.latexfile.write ( r"\hline" )
+        if self.enum:
+            self.latexfile.write ( r"{\bf nr} & " )
+        self.latexfile.write ( r"{\bf Z} & {\bf analysis} & {\bf SR} & {\bf topo} & {\bf obsN} & {\bf expected} \\" )
+        self.latexfile.write ( "\n" )
+        self.latexfile.write ( r"\hline" )
+        self.latexfile.write ( "\n" )
+
+    def latexFooter( self ):
+        if not self.latex:
+            return
+        self.latexfile.write ( r"\hline" )
+        self.latexfile.write ( r"\end{tabular}" )
+        self.latexfile.write ( "\n" )
+        self.latexfile.close()
+        if not os.path.exists ( "region_list.tex" ):
+            cmd = "ln -s share/ExcessesListTemplate.tex ./region_list.tex"
+            subprocess.getoutput ( cmd )
+        cmd = "pdflatex region_list.tex"
+        subprocess.getoutput ( cmd )
+        if shutil.which ( "timg" ) != None:
+            cmd  = "timg region_list.pdf"
+            o = subprocess.getoutput ( cmd )
+            print ( o )
 
     def setColors ( self, nocolors ):
         self.green,self.reset="",""
@@ -63,9 +107,9 @@ class Analyzer ( LoggerBase ):
             self.pprint ( f"pavg={np.mean(pavg):.2f}" )
             self.pprint ( f"pavg(13tev)={np.mean(pavg13):.2f}" )
 
-    def analyze ( self, nlargest : int, nsmallest : int, enum : bool ):
+    def analyze ( self, nlargest : int, nsmallest : int ):
         for filename in self.filenames:
-            self.analyzeFile ( filename, nlargest, nsmallest, enum )
+            self.analyzeFile ( filename, nlargest, nsmallest )
 
     def read ( self, fname ):
         from ptools.expResModifier import readDictFile 
@@ -124,8 +168,12 @@ class Analyzer ( LoggerBase ):
                 topos.append ( topo )
         return ",".join(topos)
 
-    def analyzeFile ( self, filename : str, nlargest : int, nsmallest : int,
-           enum : bool ):
+    def writeLatex ( self, line ):
+        if not self.latex:
+            return
+        self.latexfile.write ( line )
+
+    def analyzeFile ( self, filename : str, nlargest : int, nsmallest : int ):
         self.pprint ( f"reading {filename}" )
         meta, data = self.read ( filename )
         byS, byp = {}, {}
@@ -168,35 +216,46 @@ class Analyzer ( LoggerBase ):
             bgErr = values["bgError"]
             Z = - scipy.stats.norm.ppf ( p )
             line = ""
-            if enum:
+            if self.enum:
                 line += f"#{ctr+1:2d}: "
+                self.writeLatex ( f"{ctr+1:2d} & " )
             if self.reportZvalues:
                 line += f"Z={Z:.2f}:"
+                self.writeLatex ( f"{Z:.2f} & " )
             else:
                 line += f"p={k:.2f}:"
+                self.writeLatex ( f"{p:.2f} & " )
             line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
+            anaonly = ana[:ana.find(":")]
+            sr = ana[ana.find(":")+1:].replace("_",r"\_")
+            self.writeLatex ( f"{anaonly} & {sr} & {topos} & {obsN:.0f} & {expBG:.2f}+-{bgErr:.2f} \\\\\n" )
             print ( line )
         print ()
-        for ctr,k in enumerate(keys[-nsmallest:]):
-            values = byp[k][1]
-            ana = byp[k][0]
-            topos = self.getTopos ( values, ana )
-            p = values["orig_p"]
-            obsN = values["origN"]
-            expBG = values["expectedBG"]
-            bgErr = values["bgError"]
-            Z = - scipy.stats.norm.ppf ( p )
-            line = ""
-            if enum:
-                line += f"#{ctr+1:2d}: "
-            if self.reportZvalues:
-                line += f"Z={Z:.2f}:"
-            else:
-                line += f"p={k:.2f}:"
-            line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
-            print ( line )
+        if nsmallest>0:
+            for ctr,k in enumerate(keys[-nsmallest:]):
+                values = byp[k][1]
+                ana = byp[k][0]
+                topos = self.getTopos ( values, ana )
+                p = values["orig_p"]
+                obsN = values["origN"]
+                expBG = values["expectedBG"]
+                bgErr = values["bgError"]
+                Z = - scipy.stats.norm.ppf ( p )
+                line = ""
+                if self.enum:
+                    line += f"#{ctr+1:2d}: "
+                    self.writeLatex ( f"{ctr+1:2d} & " )
+                if self.reportZvalues:
+                    line += f"Z={Z:.2f}:"
+                    self.writeLatex ( f"{Z:.2f} & " )
+                else:
+                    line += f"p={k:.2f}:"
+                line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
+                self.writeLatex ( f"{anaonly} & {sr} & {topos} & {obsN:.0f} & {expBG:.2f}+-{bgErr:.2f} \\\\\n" )
+                print ( line )
         
         self.summarize()
+        self.latexFooter()
 
 
 
@@ -219,9 +278,12 @@ def main():
             help='enumerate the list', action="store_true" )
     argparser.add_argument ( '--nocolors',
             help='dont use colors in output', action="store_true" )
+    argparser.add_argument ( '-l', '--latex', help='create a latex version',
+            action="store_true" )
     args=argparser.parse_args()
-    analyzer = Analyzer ( args.dictfile, args.topos, args.nocolors )
-    analyzer.analyze ( args.nlargest, args.nsmallest, args.enumerate )
+    analyzer = Analyzer ( args.dictfile, args.topos, args.nocolors, args.latex,
+                          args.enumerate )
+    analyzer.analyze ( args.nlargest, args.nsmallest )
 
 if __name__ == "__main__":
     main()

@@ -687,7 +687,7 @@ class Plotter ( LoggerBase ):
         """ rough plot does not have legend, so we write it ourselves """
         from PIL import Image, ImageDraw, ImageFont
         import ptools
-        path = ptools.__file__.replace("ptools/__init__.py","shared/")
+        path = ptools.__file__.replace("ptools/__init__.py","share/")
         font = os.path.join ( os.path.abspath ( path ), "Gaegu-Regular.ttf" )
         img = Image.open ( filename )
         d1 = ImageDraw.Draw(img)
