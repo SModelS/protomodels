@@ -256,7 +256,7 @@ class Plotter ( LoggerBase ):
                 pathname = pathname.split(",")
             for pname in pathname:
                 if os.path.isdir ( pname ):
-                    pname = pname + "/db*dict"
+                    pname = pname + "/*dict"
                     self.filenames += glob.glob ( pname )
                 else:
                     self.filenames.append ( pname )
