@@ -13,8 +13,8 @@ def addPValue ( pvalues : List, v : Dict, verbose : bool , min_expected : float 
         if verbose:
             s3rd=""
             if "thirdMoment" in v:
-                s3rd = ";"+v["thirdMoment"]
-            print ( f"{k}:expectedBG={expectedBG}+-{bgError}{s3rd} newObs={v['newObs']} p={v['new_p']}" )
+                s3rd = ";"+str(v["thirdMoment"])
+            print ( f"expectedBG={expectedBG}+-{bgError}{s3rd} newObs={v['newObs']} p={v['new_p']}" )
         if expectedBG > min_expected:
             pvalues.append ( v["new_p"] )
 
@@ -41,12 +41,12 @@ def extractPValues( analyses : List, directory : os.PathLike, verbose,
     # print ( pvalues )
     return { "pvalues": pvalues, "nuniverses": nuniverses }
 
-def plotPValues( info, anas, outfile ):
+def plotPValues( info, anas, outfile, nbins : int ):
     pvalues = info["pvalues"]
     nuniverses = info["nuniverses"]
     from matplotlib import pyplot as plt
     fig, ax = plt.subplots()
-    plt.hist ( pvalues, bins=np.arange(0.0,1.01,0.1) )
+    plt.hist ( pvalues, bins=np.arange(0.0,1.01,1/nbins) )
     plt.xlabel ( "p-values" )
     plt.ylabel ( "# SRs" )
     title = ", ".join ( anas )
@@ -64,9 +64,9 @@ def plotPValues( info, anas, outfile ):
     # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 def runPlotting( anas : List, directory : os.PathLike, outfile : os.PathLike, 
-                 verbose : bool, min_expected : float ):
+                 verbose : bool, min_expected : float, nbins : int ):
     info = extractPValues( anas, directory, verbose, min_expected )
-    plotPValues ( info, anas, outfile )
+    plotPValues ( info, anas, outfile, nbins )
 
 if __name__ == "__main__":
     import argparse
@@ -83,10 +83,13 @@ if __name__ == "__main__":
     argparser.add_argument ( '-m', '--min_expected',
             help='minimum expected value to add [0.0]',
             type=float, default=0.0 )
+    argparser.add_argument ( '-n', '--nbins',
+            help='number of bins [10]',
+            type=int, default=10 )
     argparser.add_argument ( '-v', '--verbose',
             help='verbose', action="store_true" )
     args = argparser.parse_args()
     anas = args.analyses.split(",")
     # anas = [ "CMS-EXO-20-004" ]
     runPlotting( anas, args.directory, args.outfile, args.verbose, 
-                 args.min_expected )
+                 args.min_expected, args.nbins )
