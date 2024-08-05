@@ -901,7 +901,7 @@ class Plotter ( LoggerBase ):
         plt.ylabel ( ylabel )
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
         nAnas = len ( self.nanas )
-        nSRs = len(Ptot)
+        nSRs = int ( len(Ptot) / len(self.filenames ) )
         plotStats = True
         if "plotStats" in self.options:
             plotStats = self.options["plotStats"]
