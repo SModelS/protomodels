@@ -9,18 +9,19 @@ separate method
 *) add an option to range the ssms, for "SUSY runs" (SN)
 *) implement random changes in the pairs of masses and ssms that leave the
    total xsec largely the same (SN)
-*) move to using jamies pathfinder, drop maximization of mu (SN)
-.) study the ulobs/ulexp distribution in great detail, so we can make
-   an informed choice in the critic (SN)
 *) think of smarter choices for mcmc-type (sampling) algorithms (HARG)
-*) improve the critic, split into two critics, implement UL-based
+*) study the ulobs/ulexp distribution in great detail, so we can make
+   an informed choice in the critic (SN)
+.) use YIC information criterion (JY et al)
+.) move to using jamies pathfinder, drop maximization of mu (SN)
+.) improve the critic, split into two critics, implement UL-based
    critic (TP, MMA)
-*) use YIC information criterion (JY et al)
 
 v3:
 ===
 *) extend the BAM, add most recent analyses (SN,WW,MMA)
 *) extend protomodels to non-Z2
+*) think about a number-of-combinations-based penalty
 
 unsure:
 =======

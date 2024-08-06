@@ -928,8 +928,8 @@ def getArgs( cmdline = None ):
     import argparse
     argparser = argparse.ArgumentParser(description="meta statistics plotter, i.e. the thing that plots pDatabase.png")
     argparser.add_argument ( '-d', '--dictfile', nargs='*',
-            help='input dictionary file(s) or directory, as generated eg via "expResModifier.py -d <smodels-database> -C" [../data/database/]',
-            type=str, default='../data/database/' )
+            help='input dictionary file(s) or directory, as generated eg via "expResModifier.py -d <smodels-database> -C" [./dicts/]',
+            type=str, default='./dicts/' )
     argparser.add_argument ( '-o', '--outfile', nargs='?',
             help='output file [./pDatabase@@FILTER@@.png]',
             type=str, default='./pDatabase@@FILTER@@.png' )

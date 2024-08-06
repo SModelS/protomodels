@@ -29,6 +29,8 @@ def extractPValues( analyses : List, directory : os.PathLike, verbose,
     for f in files:
         D = readDictionaryFile ( f )["data"]
         for k,v in D.items():
+            if "new_p" in v and v["new_p"]==0.0:
+                print ( k, v, f )
             for ana in anas:
                 if ":" in ana:
                     if ana == k:
