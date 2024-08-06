@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 from typing import Optional, Union, List, Dict
 from pathlib import Path
@@ -13,6 +14,8 @@ from smodels.base.model import Model
 from smodels.decomposition.decomposer import decompose
 from multiprocessing import Process, Manager
 from tester.combinationsmatrix import getYamlMatrix
+
+import pseudo_distribution
 
 pmodel_path = Path(__file__).parent / 'pmodels/'
 
@@ -47,6 +50,26 @@ def _get_pseudodata_args(database: str, seed: float = None) -> Dict:
             'outfile': None,
             }
     return args
+
+
+def optimize_mu(slha_dict: dict, slha_file: str, pseudo_databse: Dict, tries: int = 5) -> dict:
+
+    slha_dict = createSLHAFileFromDict(slha_dict, muhat=1, slhafilename=slha_file)
+    i_d = Path(slha_file).stem
+    for _ in range(tries):
+        real_data = get_llr_at_point(slha_file, pseudo_databse=pseudo_databse)
+        real_res = pseudo_distribution.find_best_sets([real_data], num_cor=1, penalty=False)
+        muhat = get_muhat([real_data['theoryPred'][key] for key in real_res[0]['best']])
+        if muhat > 0.0:
+            print(f'{i_d}, MUHAT: {muhat:.4f}')
+            slha_dict = createSLHAFileFromDict(slha_dict, muhat=muhat, slhafilename=slha_file)
+        else:
+            print(f'{i_d}, MUHAT <= 0.0: {muhat:.4f}')
+            break
+        if abs(1 - muhat) < 1e-3:
+            break
+    real_res[0]['muhat'] = muhat
+    return real_res[0]
 
 
 def gen_llr(database: str, slhafile: str, model: Optional[List[str]] = None, seed: Optional[float] = None,
