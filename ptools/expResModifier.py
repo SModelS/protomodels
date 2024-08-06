@@ -196,7 +196,9 @@ Just filter the database:
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
+            print ( f"[expResModifier] loading database {self.database}" )
             self.db = Database ( picklefile, combinationsmatrix=combinationsmatrix )
+            print ( f"[expResModifier] loaded" )
         self.dbversion = self.db.databaseVersion
         listOfExpRes = self.db.expResultList
         self.stats = {}
@@ -404,7 +406,9 @@ Just filter the database:
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
+            print ( f"[expResModifier] loading database {self.dbpath} [0]" )
             self.db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
+            print ( f"[expResModifier] loaded" )
         self.dbversion = self.db.databaseVersion
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
         self.produceProtoModel ( self.pmodel, self.db.databaseVersion )
@@ -1429,6 +1433,7 @@ Just filter the database:
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
+            print ( f"[expResModifier] loading database {self.database}" )
             db = Database ( self.database, combinationsmatrix=combinationsmatrix )
             print ( f"[expResModifier] built database at {self.database}. Exiting." )
             sys.exit()
