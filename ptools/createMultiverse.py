@@ -5,7 +5,8 @@ import subprocess, os
 def isFudged ( f ):
     return abs(f-1.0)>1e-5
 
-def create ( nmin = 1, nmax = 100, f = 1.0, overwrite = False ):
+def create ( nmin = 1, nmax = 100, f = 1.0, overwrite = False, 
+             database = "official" ):
     """
     :param n: number of universes
     :param f: fudge factor
@@ -25,7 +26,7 @@ def create ( nmin = 1, nmax = 100, f = 1.0, overwrite = False ):
             continue
         if isFudged(f):
             out += f"f{int(f*100)}"
-        cmd = f"./ptools/expResModifier.py -C -d official -o none -s {out}"
+        cmd = f"./ptools/expResModifier.py -C -d {database} -o none -s {out}"
         if isFudged(f):
             cmd += f" -f {f}"
         print ( f"{i}: {cmd}" )
@@ -48,19 +49,21 @@ if __name__ == "__main__":
             type=int, default=100 )
     argparser.add_argument ( '-n', help='lowest id of fake universe to be created [1]',
             type=int, default=1 )
-    argparser.add_argument ( '-p', help='number of processes [5]',
+    argparser.add_argument ( '-p', '--nprocesses', help='number of processes [5]',
             type=int, default=5 )
     argparser.add_argument ( '-f', '--fudge', help='fudge factor [1.0]',
             type=float, default=1.0 )
+    argparser.add_argument ( '-d', '--database', help='database path [official]',
+            type=str, default="official" )
     argparser.add_argument ( '-o', '--overwrite', help='overwrite old files',
             action='store_true' )
     args = argparser.parse_args()
-    nprocesses = 5
-    dn = int ( ( args.N+1-args.n) / nprocesses )
+    nprocesses = args.nprocesses
+    dn = int ( ( args.N+1-args.n) / args.nprocesses )
     for p in range(nprocesses):
         pid = os.fork()
         if pid != 0:
             nmin = args.n + p * dn
             nmax = args.n + (p+1)*dn - 1
             print ( nmin, nmax )
-            create( nmin, nmax, args.fudge, args.overwrite )
+            create( nmin, nmax, args.fudge, args.overwrite, args.database )
