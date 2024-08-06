@@ -38,7 +38,7 @@ def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
 
 
 def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray,
-                 sort_bam: bool = False, penalty: bool = True) -> Dict[str, NDArray]:
+                 sort_bam: bool = False) -> Dict[str, NDArray]:
     """
     Get the highest sum weights that can be combined according to the binary acceptance matrix.
 
@@ -54,19 +54,10 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray,
     if min(weights) < 0.0:
         offset = abs(min(weights)) + 1
     bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights + offset)
-
-    def weight_function(path: list):
-        k = (len(path) - 1)
-        penalty = 0.6 * np.sqrt(2 * k) if k > 0 else 0
-        return np.sum(bam.weights[path]) + penalty
-
     results = {}
     if sort_bam:
         results['order'] = bam.sort_bam_by_weight()
     whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
-    if penalty:
-        whdfs.weight_func = weight_function
-        whdfs.wlimit_func = weight_function
     whdfs.find_paths(verbose=False, runs=50)
     results['path'] = whdfs.best.path
     results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset)
@@ -74,7 +65,7 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray,
     return results
 
 
-def get_multi_best_set(pseudo_gen_dicts: List[Dict], penalty: bool = True) -> Dict[str, float]:
+def get_multi_best_set(pseudo_gen_dicts: List[Dict]) -> Dict[str, float]:
     """
     Iterate through a list of dictionaries containing the dictionaries of corelation and weight information
     gathered from the SModelS API
@@ -88,13 +79,13 @@ def get_multi_best_set(pseudo_gen_dicts: List[Dict], penalty: bool = True) -> Di
     result = {}
     for i, item in enumerate(pseudo_gen_dicts):
         bam_wgths = get_bam_weight(item['bam'], item['weights'])
-        temp_res = get_best_set(bam_wgths['bam'], bam_wgths['weights'], penalty=penalty)
+        temp_res = get_best_set(bam_wgths['bam'], bam_wgths['weights'])
         best_labels = [bam_wgths['labels'][p] for p in temp_res['path']]
         result[i] = {'best': best_labels, 'weight': temp_res['weight'], 'offset': temp_res['offset']}
     return result
 
 
-def _best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Dict, penalty: bool = True) -> None:
+def _best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Dict) -> None:
     """
     Multi-processing worker for find_best_sets
 
@@ -104,12 +95,12 @@ def _best_set_worker(pseudo_gen_dicts: List[Dict], run_num: int, return_dict: Di
         run_num (int): Unique integer identifier for labeling return dictionary
         return_dict (Dict): DictProxy for Manager
     """
-    for key, item in get_multi_best_set(pseudo_gen_dicts, penalty=penalty).items():
+    for key, item in get_multi_best_set(pseudo_gen_dicts).items():
         idx = (run_num * len(pseudo_gen_dicts)) + key
         return_dict.update({idx: item})
 
 
-def find_best_sets(pseudo_gen_dicts: List[Dict], num_cor: int = 1, penalty: bool = True) -> Dict[int, Dict]:
+def find_best_sets(pseudo_gen_dicts: List[Dict], num_cor: int = 1) -> Dict[int, Dict]:
 
     """
     Propagate the get_multi_best_set function over multiple CPU's
@@ -129,14 +120,14 @@ def find_best_sets(pseudo_gen_dicts: List[Dict], num_cor: int = 1, penalty: bool
 
     if num_cor < 2:
         print(F"Starting job 1. Calculating {len(pseudo_gen_dicts)} best combinations")
-        outputdict = get_multi_best_set(pseudo_gen_dicts, penalty=penalty)
+        outputdict = get_multi_best_set(pseudo_gen_dicts)
     else:
         jobs = []
         manager = Manager()
         outputdict = manager.dict()
         bam_weights = split_list(pseudo_gen_dicts, num_cor)
         for i, bam_wgts in enumerate(bam_weights):
-            p = Process(target=_best_set_worker, args=(bam_wgts, i, outputdict, penalty))
+            p = Process(target=_best_set_worker, args=(bam_wgts, i, outputdict))
             jobs.append(p)
             p.start()
             print(F"Starting job {i+1}. Calculating {len(bam_wgts)} best combinations")
