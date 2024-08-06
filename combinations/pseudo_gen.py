@@ -58,7 +58,7 @@ def optimize_mu(slha_dict: dict, slha_file: str, pseudo_databse: Dict, tries: in
     i_d = Path(slha_file).stem
     for _ in range(tries):
         real_data = get_llr_at_point(slha_file, pseudo_databse=pseudo_databse)
-        real_res = pseudo_distribution.find_best_sets([real_data], num_cor=1, penalty=False)
+        real_res = pseudo_distribution.find_best_sets([real_data], num_cor=1)
         muhat = get_muhat([real_data['theoryPred'][key] for key in real_res[0]['best']])
         if muhat > 0.0:
             print(f'{i_d}, MUHAT: {muhat:.4f}')
@@ -73,7 +73,8 @@ def optimize_mu(slha_dict: dict, slha_file: str, pseudo_databse: Dict, tries: in
 
 
 def gen_llr(database: str, slhafile: str, model: Optional[List[str]] = None, seed: Optional[float] = None,
-            bootstrap_num: int = 1, select_significant: bool = True) -> List[Dict[str, float]]:
+            bootstrap_num: int = 1, select_significant: bool = True,
+            slha_dict: Optional[Dict] = None) -> List[Dict[str, float]]:
     """
     Generate pseudo NLLR using "ExpResModifier"
 
@@ -100,11 +101,26 @@ def gen_llr(database: str, slhafile: str, model: Optional[List[str]] = None, see
     modifier = ExpResModifier(args)
     modifier.filter()
     llr_dict = []
+    result = None
+    listOfExpRes = modifier.removeEmpty(modifier.db.expResultList)
+
     for _ in range(bootstrap_num):
-        listOfExpRes = modifier.removeEmpty(modifier.db.expResultList)
         pseudo_databse = {'database': modifier.db, 'expResults': modifier.fakeBackgrounds(listOfExpRes)}
+        if slha_dict is not None:
+            muhat, attempt, minimise = 0.0, 0.0, True
+            while minimise:
+                if attempt == 5:
+                    break
+                result = optimize_mu(slha_dict, slhafile, pseudo_databse, tries=5)
+                muhat = result['muhat']
+                if abs(1 - muhat) > 1e-3 and attempt < 5:
+                    pseudo_databse = {'database': modifier.db, 'expResults': modifier.fakeBackgrounds(listOfExpRes)}
+                else:
+                    minimise = False
         llr_at_point = get_llr_at_point(slhafile, pseudo_databse=pseudo_databse, select_significant=select_significant)
-        llr_dict.append({key: item for key, item in llr_at_point.items() if key != 'theoryPred'})
+        _ = llr_at_point.pop('theoryPred')
+        llr_dict.append({'weights': llr_at_point, 'result': result})
+
     return llr_dict
 
 
