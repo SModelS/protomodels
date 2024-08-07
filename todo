@@ -12,6 +12,8 @@ separate method
 *) think of smarter choices for mcmc-type (sampling) algorithms (HARG)
 *) study the ulobs/ulexp distribution in great detail, so we can make
    an informed choice in the critic (SN)
+*) add widths (for the right particles only)
+*) add XN1-XN1 production mechanism
 .) use YIC information criterion (JY et al)
 .) move to using jamies pathfinder, drop maximization of mu (SN)
 .) improve the critic, split into two critics, implement UL-based
