@@ -52,7 +52,7 @@ class Plotter ( LoggerBase ):
                     var base64 = btoa(decoded);
                     var imgSource = `data:image/svg+xml;base64,${base64}`;
                     e.innerHTML = "<img id='svgplot'>";
-                    document.getElementById('svgplot').src = imgSource;       
+                    document.getElementById('svgplot').src = imgSource;
                 }}, 1);
             </script>
             """
@@ -94,7 +94,7 @@ class Plotter ( LoggerBase ):
         if True and os.path.exists (htmlname ):
             # self.pprint ( f"removing {htmlname}" )
             os.unlink ( htmlname )
-        
+
     def showPng ( self, filename ):
         if ("show" in self.options and self.options["show"]==True) or self.show == True:
             from smodels_utils.plotting.mpkitty import timg
@@ -859,23 +859,29 @@ class Plotter ( LoggerBase ):
                 if weighted:
                     fweights = np.concatenate ( [ weightsfake["8"], weightsfake["13_lt"], weightsfake["13_gt"] ] )
             # fweights = [ [ nm1 ]*len(Pfake[8]), [ nm1 ]*len(Pfake[13]) ]
-                H2 = plt.hist ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] ), weights = fweights,
-                            bins=bins, stacked=True, zorder=9,
-                            label="synthetic SM-only data", color=["red" ], linewidth=3, histtype="step" )
+                linewidth = 3
+                if not self.pvalues:
+                    linewidth = 2
+                H2 = plt.hist ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
+                        Pfake["13_gt"] ] ), weights = fweights, bins=bins,
+                        stacked=True, zorder=9, label="synthetic SM-only data",
+                        color=["red" ], linewidth=linewidth, histtype="step" )
         self.discussPs ( P, Pfake, weights, weightsfake )
-        loc = "best"
+        loc, bbox_to_anchor = "best", None
         _, stdnmx = list (self.getBins ( 100 ) )
         scale = 1. / 0.39894 * .75
         stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
         if self.pvalues:
             loc = "upper right"
+            bbox_to_anchor = (1.12,1.02)
         else:
             nmcolor = "red"
             nmcolor = "black"
-            plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted", 
+            plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
                        label="standard normal" )
         if nLegendEntries > 1 or self.options["alwayslegend"]:
-            legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.1) )
+            legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.2),
+                    bbox_to_anchor = bbox_to_anchor )
             legend.set_zorder ( 10 )
         if self.likelihood == "lognormal+poisson":
             title += " (lognormal)"
@@ -939,10 +945,10 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-u', '--unscale',
             help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
     argparser.add_argument ( '--nosuperseded',
-            help='ignore entries in the .dict file that are marked as superseded', 
+            help='ignore entries in the .dict file that are marked as superseded',
             action='store_true' )
     argparser.add_argument ( '--nofastlim',
-            help='ignore entries in the .dict file that are marked as fastlim', 
+            help='ignore entries in the .dict file that are marked as fastlim',
             action='store_true' )
     argparser.add_argument ( '-w', '--weighted',
             help='weighted plot, i.e. each analysis (not each SR) counts equally', action='store_true' )
@@ -951,7 +957,7 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-p', '--pvalues',
             help='plot p-values, not significances', action='store_true' )
     argparser.add_argument ( '-b', '--before',
-            help='plot only entries before a certain date, like 2017/2/27', 
+            help='plot only entries before a certain date, like 2017/2/27',
             type=str, default=None )
     argparser.add_argument ( '-S', '--signalmodel',
             help='use the signal+bg model for computing likelihoods', action='store_true' )
