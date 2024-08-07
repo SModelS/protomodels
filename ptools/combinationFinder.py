@@ -139,6 +139,8 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     Returns:
         Dict[str, NDArray]: Containing the combination path indices and sum of weight sum.
     """
+    if len(weights)==0:
+        return {}
     weights -= 1                                                #check later when decided
     offset = 0.0
     if min(weights) < 0.0:
