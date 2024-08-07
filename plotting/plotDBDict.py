@@ -711,12 +711,14 @@ class Plotter ( LoggerBase ):
         """ determine the plot title """
         dbname = os.path.basename ( self.meta["database"] )
         title = f"SModelS database v{dbname}"
+        if "+" in dbname: ## too long
+            title = f"v{dbname}"
         # title = f"$p$-values, SModelS database v{dbname}"
         fudge = 1.
         if "fudge" in self.meta:
             fudge = self.meta["fudge"]
-        if abs ( fudge - 1. ) > 1e-3:
-            title += f", fudge={fudge:.2f}"
+        #if abs ( fudge - 1. ) > 1e-3:
+        #    title += f", fudge={fudge:.2f}"
         selecting = "selecting "
         if self.description != None:
             self.pprint ( f"we selected {','.join(self.topologies)}" )
@@ -888,7 +890,7 @@ class Plotter ( LoggerBase ):
         if self.likelihood == "gauss":
             title += " (simple)"
         if self.collaboration != "ALL":
-            title += f" {self.collaboration} only"
+            title += f", {self.collaboration} only"
         plt.title  ( title )
         if self.pvalues:
             plt.plot ( [ .5, .5 ], [ -.003, .2 ], c="tab:grey", linewidth=1,
@@ -915,7 +917,7 @@ class Plotter ( LoggerBase ):
             plt.text ( .67, -.12, f"this plot contains {nSRs} SRs from {nAnas} analyses", transform=ax.transAxes, c="grey", fontsize=7 )
         if abs ( self.fudge - 1. ) > 1e-5:
             plt.text ( -.1, -.12, f"fudge={self.fudge:.2f}", transform=ax.transAxes,
-                       c="grey", fontsize=7 )
+                       c="black", fontsize=10 )
 
         # plt.ylabel ( "# Signal Regions" )
         self.pprint ( f"plotting {self.outfile}" )

@@ -1,0 +1,23 @@
+\documentclass[20pt,landscape]{article}
+\pdfoutput=1
+\usepackage[a4paper,margin=5mm,landscape]{geometry}
+%\usepackage[a3paper, left=0mm, right=0mm, top=2mm, bottom=2mm]{geometry}
+\usepackage{graphicx}
+%\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+%\usepackage{amssymb}
+% \usepackage{xspace}
+\usepackage[usenames,dvipsnames]{xcolor}
+\definecolor{darkgreen}{RGB}{10,200,10}
+% \newcommand{\text}{\mathrm} %% needed for the bibliography
+% \newcommand{\pyhf}{\textsc{Pyhf}\xspace}
+% \urlstyle{same}
+\begin{document}
+\thispagestyle{empty}
+
+\begin{table}
+\centering
+\resizebox{\textwidth}{!}{
+\input{regions.tex}}
+\end{table}
+
+\end{document}
