@@ -307,7 +307,7 @@ class HiscorePlotter ( LoggerBase ):
         f.write("\\hline\n" )
         for tp in self.protomodel.bestCombo:
             self.oneEntryTexRawNumbers ( tp, f, usePrettyNames )
-        f.write("\end{tabular}\n" )
+        f.write( r"\end{tabular}\n" )
         f.close()
 
     def oneEntryTexRawNumbers ( self, tp : TheoryPrediction, f : TextIO,
@@ -334,7 +334,7 @@ class HiscorePlotter ( LoggerBase ):
             if ( obsN - int(obsN) ) < 1e-6:
                 obsN=int(obsN)
             print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError}" )
-            did = dI.dataId.replace("_","\_")
+            did = dI.dataId.replace("_",r"\_")
             if len(did)>9:
                 did=did[:6]+" ..."
             eBG = dI.expectedBG
@@ -345,7 +345,7 @@ class HiscorePlotter ( LoggerBase ):
                 bgErr=int(bgErr)
             S = "N/A"
             if Z != None:
-                S = f"{Z:.1f} $\sigma$"
+                S = f"{Z:.1f} $\\sigma$"
             # pids = tp.PIDs
             pids = self.combiner.getAllPidsOfTheoryPred ( tp )
             particles = namer.texName ( pids, addDollars=True, addSign = False,
@@ -366,7 +366,7 @@ class HiscorePlotter ( LoggerBase ):
             oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
             sigma_exp = eUL / 1.96 # the expected scale, sigma
             if Z is not None:
-                S = f"{Z:.1f} $\sigma$"
+                S = f"{Z:.1f} $\\sigma$"
             pids = self.combiner.getAllPidsOfTheoryPred ( tp )
             particles = namer.texName ( pids, addDollars=True, addSign = False,
                                         addBrackets = False )
@@ -434,7 +434,7 @@ class HiscorePlotter ( LoggerBase ):
                 perc = 100.
                 if totalcont != 0.:
                     perc = round(100.*(self.protomodel.K - v)/totalcont )
-                tok[v] = f"{namer.texName(k)}: K_\mathrm{{without}}={v:.2f} ({perc}%)"
+                tok[v] = f"{namer.texName(k)}: K_\\mathrm{{without}}={v:.2f} ({perc}%)"
             keys = list ( tok.keys() )
             keys.sort()
             for v in keys:
@@ -510,8 +510,8 @@ class HiscorePlotter ( LoggerBase ):
         :param usePrettyNames: use the pretty names, not analysis ids
         """
         g=open("rvalues.tex","wt")
-        g.write ( "\\begin{tabular}{l|c|c|c|c|c}\n" )
-        g.write ( "\\bf{Analysis Name} & \\bf{Production} & $\sigma_{XX}$ (fb) & $\sigma^\mathrm{UL}_\mathrm{obs}$ (fb) & $\sigma^\mathrm{UL}_\mathrm{exp}$ (fb) & $r$ \\\\\n" )
+        g.write ( r"\begin{tabular}{l|c|c|c|c|c}\n" )
+        g.write ( r"\bf{Analysis Name} & \bf{Production} & $\sigma_{XX}$ (fb) & $\sigma^\mathrm{UL}_\mathrm{obs}$ (fb) & $\sigma^\mathrm{UL}_\mathrm{exp}$ (fb) & $r$ \\\n" )
         #g.write ( "\\begin{tabular}{l|c|r|r}\n" )
         #g.write ( "\\bf{Analysis Name} & \\bf{Topo} & $r_{\mathrm{obs}}$ & $r_{\mathrm{exp}}$ \\\\\n" )
         g.write ( "\\hline\n" )
