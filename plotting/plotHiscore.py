@@ -22,7 +22,7 @@ logger.setLevel("ERROR")
 from os import PathLike
 from colorama import Fore
 from typing import Union, Dict, TextIO, List
-from ptools.helpers import computeP, computeZFromP
+from ptools.helpers import computeP, computeZFromP, getAllPidsOfTheoryPred
 from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
 from builder.loggerbase import LoggerBase
         
@@ -162,7 +162,7 @@ class HiscorePlotter ( LoggerBase ):
         dt = { "upperLimit": "ul", "efficiencyMap": "em", "combined": "comb" }
         f.write ( f"<tr><td>{idAndUrl}</td><td>{dt[dtype]}</td> " )
         Z = self.significanceOfTP ( tp )
-        pids = self.combiner.getAllPidsOfTheoryPred ( tp )
+        pids = getAllPidsOfTheoryPred ( tp )
         particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
         if dtype == "efficiencyMap":
             dI = tp.dataset.dataInfo
@@ -347,7 +347,7 @@ class HiscorePlotter ( LoggerBase ):
             if Z != None:
                 S = f"{Z:.1f} $\\sigma$"
             # pids = tp.PIDs
-            pids = self.combiner.getAllPidsOfTheoryPred ( tp )
+            pids = getAllPidsOfTheoryPred ( tp )
             particles = namer.texName ( pids, addDollars=True, addSign = False,
                                           addBrackets = False )
             obs = dI.observedN
@@ -367,7 +367,7 @@ class HiscorePlotter ( LoggerBase ):
             sigma_exp = eUL / 1.96 # the expected scale, sigma
             if Z is not None:
                 S = f"{Z:.1f} $\\sigma$"
-            pids = self.combiner.getAllPidsOfTheoryPred ( tp )
+            pids = getAllPidsOfTheoryPred ( tp )
             particles = namer.texName ( pids, addDollars=True, addSign = False,
                                         addBrackets = False )
             sigmapred=f"{tp.xsection.asNumber(fb)} fb"
@@ -851,7 +851,7 @@ class HiscorePlotter ( LoggerBase ):
             if tpred.dataId() in [ "None", None ]:
                 dType = "ul"
             name = name + ":" + dType
-        pids = self.combiner.getAllPidsOfTheoryPred ( tpred )
+        pids = getAllPidsOfTheoryPred ( tpred )
         for pid in pids:
             if pid == LSP:
                 continue
