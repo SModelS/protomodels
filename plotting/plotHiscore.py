@@ -44,7 +44,7 @@ class HiscorePlotter ( LoggerBase ):
         """
         if not wanted:
             return False
-        comment = f"automated update by plotHiscore.py to {upload}:\n    K={self.protomodel.K:.3f} Z={self.protomodel.Z:.2f} walkerid={self.protomodel.walkerid}"
+        comment = f"automated update by plotHiscore.py to {upload}:\n    K={self.protomodel.K:.3f} TL={self.protomodel.TL:.2f} walkerid={self.protomodel.walkerid}"
         destdir = dest
         destdir = destdir.replace(upload,"")
         destdir = destdir.replace("//","")
@@ -705,7 +705,7 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( "<center>\n" )
         f.write ( f"<table><td><h1>" )
         f.write ( f"Current best protomodel: <i>K</i>={self.protomodel.K:.2f}" )
-        f.write ( f", <i>Z</i>={self.protomodel.Z:.2f}" )
+        f.write ( f", <i>TL</i>={self.protomodel.TL:.2f}" )
         f.write ( f"</h1><td>" )
         f.write ( f"<img height=60px src={self.url}/protomodels/logos/protomodel_lego.png>" )
         f.write ( "</table>\n" )
