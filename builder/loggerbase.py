@@ -3,7 +3,7 @@
 """ Class for all things around logging """
 
 from colorama import Fore as ansi
-import time
+import time, os
 
 __all__ = [ "LoggerBase" ]
 
@@ -13,6 +13,7 @@ class LoggerBase:
     def __init__ ( self, walkerid : int = 0 ):
         """ instantiate the logger class with a walkerid """
         self.walkerid = walkerid
+        self.logdir = "logs/"
         module = str(type(self)).replace("<class '","").replace("'>","")
         p1 = module.find(".")
         if module.count(".")==2:
@@ -20,6 +21,8 @@ class LoggerBase:
             self.module = module[p1+1:p2]
         else:
             self.module = module[p1+1:]
+        if not os.path.exists ( self.logdir ):
+            os.mkdir ( self.logdir )
 
     def error ( self, *args ):
         self.highlight ( "error", *args )
@@ -55,7 +58,7 @@ class LoggerBase:
 
     def log ( self, *args ):
         """ logging to file """
-        with open( f"walker{self.walkerid}.log", "a" ) as f:
+        with open( f"{self.logdir}/walker{self.walkerid}.log", "a" ) as f:
             f.write ( f'[{self.module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
 
 if __name__ == "__main__":
