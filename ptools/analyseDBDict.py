@@ -81,7 +81,7 @@ class Analyzer ( LoggerBase ):
         cmd = "pdflatex region_list.tex"
         subprocess.getoutput ( cmd )
         if shutil.which ( "timg" ) != None:
-            cmd  = "timg region_list.pdf"
+            cmd  = "timg -U -W --auto-crop region_list.pdf"
             o = subprocess.getoutput ( cmd )
             print ( o )
 
