@@ -86,6 +86,7 @@ class Analyzer ( LoggerBase ):
             print ( o )
 
     def setColors ( self, nocolors ):
+        self.use_colors = not nocolors
         self.green,self.reset="",""
         if not nocolors:
             try:
@@ -216,19 +217,26 @@ class Analyzer ( LoggerBase ):
             bgErr = values["bgError"]
             Z = - scipy.stats.norm.ppf ( p )
             line = ""
+            from smodels_utils.helper.various import getCollaboration
+            coll = getCollaboration ( ana )
+            bcol = ""
+            if self.use_colors:
+                bcol = r"\color{darkgreen} "
+                if coll == "CMS":
+                    bcol = r"\color{darkblue} "
             if self.enum:
                 line += f"#{ctr+1:2d}: "
-                self.writeLatex ( f"{ctr+1:2d} & " )
+                self.writeLatex ( f"{bcol}{ctr+1:2d} & " )
             if self.reportZvalues:
                 line += f"Z={Z:.2f}:"
-                self.writeLatex ( f"{Z:.2f} & " )
+                self.writeLatex ( f" {bcol} {Z:.2f} & " )
             else:
                 line += f"p={k:.2f}:"
-                self.writeLatex ( f"{p:.2f} & " )
+                self.writeLatex ( f"{bcol} {p:.2f} & " )
             line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
             anaonly = ana[:ana.find(":")]
             sr = ana[ana.find(":")+1:].replace("_",r"\_")
-            self.writeLatex ( f"{anaonly} & {sr} & {topos} & {obsN:.0f} & {expBG:.2f}$\\pm${bgErr:.2f} \\\\\n" )
+            self.writeLatex ( f"{bcol}{anaonly} & {bcol}{sr} & {bcol}{topos} & {bcol}{obsN:.0f} & {bcol}{expBG:.2f}$\\pm${bgErr:.2f} \\\\\n" )
             print ( line )
         print ()
         if nsmallest>0:
@@ -244,14 +252,14 @@ class Analyzer ( LoggerBase ):
                 line = ""
                 if self.enum:
                     line += f"#{ctr+1:2d}: "
-                    self.writeLatex ( f"{ctr+1:2d} & " )
+                    self.writeLatex ( f"{bcol}{ctr+1:2d} & " )
                 if self.reportZvalues:
                     line += f"Z={Z:.2f}:"
-                    self.writeLatex ( f"{Z:.2f} & " )
+                    self.writeLatex ( f"{bcol}{Z:.2f} & " )
                 else:
                     line += f"p={k:.2f}:"
                 line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
-                self.writeLatex ( f"{anaonly} & {sr} & {topos} & {obsN:.0f} & {expBG:.2f}+-{bgErr:.2f} \\\\\n" )
+                self.writeLatex ( f"{bcol}{anaonly} & {bcol}{sr} & {bcol}{topos} & {bcol}{obsN:.0f} & {bcol}{expBG:.2f}+-{bgErr:.2f} \\\\\n" )
                 print ( line )
         
         self.summarize()
