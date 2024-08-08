@@ -21,7 +21,7 @@ from ptools.sparticleNames import SParticleNames
 from ptools.hiscoreTools import fetchHiscoresObj
 from walker.hiscores import Hiscores
 from typing import Union, List, Dict
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
         
 namer = SParticleNames ( susy = False )
 

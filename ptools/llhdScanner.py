@@ -19,7 +19,7 @@ from plotting import plotLlhds
 from typing import Dict, Tuple, Union, List
 from ptools.sparticleNames import SParticleNames
 from ptools import moreHelpers
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 
 namer = SParticleNames ( False )
 

@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
-from protomodels.builder.loggerbase import LoggerBase
+from protomodels.base.loggerbase import LoggerBase
 
 class VariancePlotter ( LoggerBase ):
     def __init__ ( self ):

@@ -16,7 +16,7 @@ from ptools import helpers
 from ptools import sparticleNames
 from typing import Union
 from os import PathLike
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 
 class Hiscores ( LoggerBase ):
     """ encapsulates the hiscore list. """

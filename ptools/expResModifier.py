@@ -30,7 +30,7 @@ from smodels.base.physicsUnits import fb
 from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 from tester.combinationsmatrix import getYamlMatrix
 from typing import Dict, List, Text
 from icecream import ic

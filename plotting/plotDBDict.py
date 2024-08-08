@@ -15,7 +15,7 @@ from typing import Union
 sys.path.insert(0,"../")
 from ptools.helpers import computeP
 from ptools.moreHelpers import namesForSetsOfTopologies
-from protomodels.builder.loggerbase import LoggerBase
+from protomodels.base.loggerbase import LoggerBase
 
 class Plotter ( LoggerBase ):
 

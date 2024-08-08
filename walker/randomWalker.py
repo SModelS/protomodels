@@ -28,7 +28,7 @@ from pympler.asizeof import asizeof
 from smodels.base.smodelsLogging import logger
 from typing import Callable, Dict, Union
 from os import PathLike
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 from ptools.helpers import prettyPrint
 
 logger.setLevel("ERROR")

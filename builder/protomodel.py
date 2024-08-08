@@ -18,7 +18,7 @@ from ptools.sparticleNames import SParticleNames
 from typing import Union, List, Tuple
 
 from smodels.base.smodelsLogging import setLogLevel
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 setLogLevel ( "error" )
 
 

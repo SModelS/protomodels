@@ -10,7 +10,7 @@ import numpy as np
 import scipy
 import random
 import pyslha
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 from typing import List, Set, Dict, Tuple, Union
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel

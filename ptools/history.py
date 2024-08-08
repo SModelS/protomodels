@@ -4,7 +4,7 @@
 When executed, it runs a typical walker with the history recorder. """
 
 import time
-from protomodels.builder.loggerbase import LoggerBase
+from protomodels.base.loggerbase import LoggerBase
 
 class History ( LoggerBase ):
     def __init__ ( self, outfile = "history.list" ):

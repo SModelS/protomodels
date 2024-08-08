@@ -19,7 +19,7 @@ import numpy as np
 from colorama import Fore as ansi
 from typing import Union, Dict, List, Tuple, Set 
 from unum import Unum
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 from os import PathLike
 
 class Manipulator ( LoggerBase ):

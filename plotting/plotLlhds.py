@@ -18,7 +18,7 @@ if "plotting" in os.getcwd():
     sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
 matplotlib.rcParams['hatch.linewidth'] = .5  # previous svg hatch linewidth
-from protomodels.builder.loggerbase import LoggerBase
+from protomodels.base.loggerbase import LoggerBase
 from protomodels.tester.combiner import Combiner
 from typing import Dict, Tuple, Union
 

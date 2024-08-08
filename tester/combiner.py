@@ -12,7 +12,7 @@ from smodels.base.model import Model
 from smodels.matching.theoryPrediction import TheoryPrediction, TheoryPredictionsCombiner
 import sys, os
 sys.path.insert(0,os.path.abspath ( os.path.dirname(__file__) ) )
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 from typing import Set
 
 try:

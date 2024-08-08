@@ -21,7 +21,7 @@ from smodels.base.exceptions import SModelSBaseError as SModelSError
 from os import PathLike
 from typing import List, Union
 from smodels.base.smodelsLogging import logger
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 from tester.combiner import Combiner
 from tester.combinationsmatrix import getYamlMatrix
 

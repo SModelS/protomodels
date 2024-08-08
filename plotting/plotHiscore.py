@@ -24,7 +24,7 @@ from colorama import Fore
 from typing import Union, Dict, TextIO, List
 from ptools.helpers import computeP, computeZFromP, getAllPidsOfTheoryPred
 from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
         
 namer = SParticleNames ( susy = False )
 bibtex = BibtexWriter()

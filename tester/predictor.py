@@ -20,7 +20,7 @@ from smodels.base.model import Model
 from smodels.base.exceptions import SModelSBaseError as SModelSError
 from os import PathLike
 from typing import List, Union
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 from tester.combinationsmatrix import getYamlMatrix
 
 try:

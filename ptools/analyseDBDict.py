@@ -13,7 +13,7 @@ import matplotlib.mlab as mlab
 from smodels_utils.helper.various import getSqrts, findCollaboration
 from ptools.moreHelpers import namesForSetsOfTopologies
 from typing import Union, Text, List, Dict
-from protomodels.builder.loggerbase import LoggerBase
+from protomodels.base.loggerbase import LoggerBase
 import subprocess, shutil
 
 class Analyzer ( LoggerBase ):

@@ -8,7 +8,7 @@ import pickle, sys, subprocess, os
 from matplotlib import pyplot as plt
 import numpy as np
 import IPython
-from builder.loggerbase import LoggerBase
+from base.loggerbase import LoggerBase
 from ptools.sparticleNames import SParticleNames
 from typing import Set
 
