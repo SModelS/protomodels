@@ -249,6 +249,8 @@ class Analyzer ( LoggerBase ):
                 expBG = values["expectedBG"]
                 bgErr = values["bgError"]
                 Z = - scipy.stats.norm.ppf ( p )
+                anaonly = ana[:ana.find(":")]
+                sr = ana[ana.find(":")+1:].replace("_",r"\_")
                 line = ""
                 if self.enum:
                     line += f"#{ctr+1:2d}: "
