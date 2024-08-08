@@ -228,7 +228,7 @@ class Analyzer ( LoggerBase ):
             line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
             anaonly = ana[:ana.find(":")]
             sr = ana[ana.find(":")+1:].replace("_",r"\_")
-            self.writeLatex ( f"{anaonly} & {sr} & {topos} & {obsN:.0f} & {expBG:.2f}+-{bgErr:.2f} \\\\\n" )
+            self.writeLatex ( f"{anaonly} & {sr} & {topos} & {obsN:.0f} & {expBG:.2f}$\\pm${bgErr:.2f} \\\\\n" )
             print ( line )
         print ()
         if nsmallest>0:
