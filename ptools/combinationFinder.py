@@ -141,19 +141,22 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     """
     if len(weights)==0:
         return {}
-    weights -= 1                                                #check later when decided
-    offset = 0.0
-    if min(weights) < 0.0:
-        offset = abs(min(weights)) + 1
-    bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights + offset)
+    # weights -= 1                                                #check later when decided
+    # offset = 0.0
+    # if min(weights) < 0.0:
+    #     offset = abs(min(weights)) + 1
+    # bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights + offset)
+    bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights, allow_negative_weights=True)
     results = {}
     if sort_bam:
         results['order'] = bam.sort_bam_by_weight()             #?? sorting because weights changed, how do use order again?
-    whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
+    # whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
+    whdfs = pf.WHDFS(bam, top=1, ignore_subset=False)
     whdfs.find_paths(verbose=False, runs=50)
     results['path'] = whdfs.best.path
-    results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset) + 1.0
-    results['offset'] = offset
+    # results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset) + 1.0     # Do not reweight here, it also used by the most sensitive combination
+    results['weight'] = whdfs.best.weight
+    # results['offset'] = offset
     return results
 
 
@@ -172,5 +175,6 @@ def find_best_comb(bam_weight_dict: Dict) -> Dict[str, float]:
     temp_res = get_best_set(bam_wgths['bam'], bam_wgths['weights'])         #get best path for bam and weight
     best_labels = [bam_wgths['labels'][p] for p in temp_res['path']]        #get corresponding srs in best path
 
-    result = {'best': best_labels, 'weight': temp_res['weight'], 'offset': temp_res['offset']}   #store labels and weight in dict
+    # result = {'best': best_labels, 'weight': temp_res['weight'], 'offset': temp_res['offset']}   #store labels and weight in dict
+    result = {'best': best_labels, 'weight': temp_res['weight']}   #store labels and weight in dict
     return result

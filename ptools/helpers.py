@@ -29,7 +29,7 @@ def getJsonFileName(dset: DataSet) -> str:
             return file
 
     # if no file got matched with dataset
-    print(f"JSON file present for {dset.globalinfo.id} but combined dataset does not match to any JSON file")
+    print(f"JSON file present for {dset.globalInfo.id} but combined dataset does not match to any JSON file")
 
     return "NoJsonFound"
 
@@ -213,7 +213,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> fl
     printErr = True
     while 8*bgerr**6 - third**2 < 0.:
         if printErr:
-            ## FIXME ugly hack, shrink the third momenta 
+            ## FIXME ugly hack, shrink the third momenta
             print ( f"[helpers] third moments too large (bgerr**2={bgerr**2:.3g}, third={third:.3g}). shrink them!" )
             printErr = False
         third *= 0.9
