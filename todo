@@ -13,7 +13,7 @@ separate method
 *) study the ulobs/ulexp distribution in great detail, so we can make
    an informed choice in the critic (SN)
 *) add widths (for the right particles only)
-*) add X1Z-X1Z production mechanism
+*) think about how to cover monojets in protomodels
 .) use YIC information criterion (JY et al)
 .) move to using jamies pathfinder, drop maximization of mu (SN)
 .) improve the critic, split into two critics, implement UL-based
