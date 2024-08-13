@@ -441,7 +441,7 @@ class RandomWalker ( LoggerBase ):
                 self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}; u={u:.2f} > {ratio:.2f}: check critics." )
+                self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}; u={u:.2f} <= {ratio:.2f}: check critics." )   #SN: <+ and not > right?
 
                 if self.critic.predict_critic(self.protomodel, keep_predictions=True):
                     self.pprint ( "Passed both critics, taking the step." )

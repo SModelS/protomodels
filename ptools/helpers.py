@@ -16,6 +16,7 @@ from smodels.matching.theoryPrediction import TheoryPrediction
 import scipy.stats
 from os import PathLike
 from typing import Union, Set
+from base.loggerbase import LoggerBase
 
 def getJsonFileName(dset: DataSet) -> str:
     "get file name of json used by the combined dataset dset"
@@ -24,12 +25,13 @@ def getJsonFileName(dset: DataSet) -> str:
     dsId = [ds.getID() for ds in dset._datasets]            #get the dataset ids in the combined dataset dset
 
     for file, dslist in jsonFileDict.items():
-        if dslist[0] in dsId:                               #check which json file has the corresponding datasets
+        if dslist[0]['smodels'] in dsId:                               #check which json file has the corresponding datasets
             file = file.split(".")[0]                       #get only name of json file, not the .json part
             return file
 
     # if no file got matched with dataset
-    print(f"JSON file present for {dset.globalInfo.id} but combined dataset does not match to any JSON file")
+    logger = LoggerBase(walkerid = -1)
+    logger.info(f"JSON file present for {dset.globalInfo.id} but combined dataset does not match to any JSON file")
 
     return "NoJsonFound"
 
