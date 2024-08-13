@@ -77,8 +77,9 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
     shorts["electroweakinos_offshell"]="TChiWZoff,TChiWWoff"
     shorts["electroweakinos"]=shorts["electroweakinos_onshell"]+","+shorts["electroweakinos_offshell"]
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
+    shorts["gluinos"]="T1,T3W,T5,T5tttt,T5bbbb,T5WW,T5ZZ,T5WWoff,T5tctc,T5tbtt,T5tbtb,T5bbbt,T5tbtt,T5tbtb,T5HH,T5HZ,T5AAT5bbbbZg,T5ttttZg,T5ttbbWWoff,T5ttofftt,T5gg,T5WZh"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
-    shorts["colored"]="T1,T2,TGQ,T3GQ,T5GQ,TGQqtt,TGQbtq,TGQbbq,T1bbbb,T1tttt,T1bbbboff,T1ttttoff,T1btbt,T6WW"
+    shorts["colored"]="T1,T2,TGQ,T3W,T3GQ,T5GQ,TGQqtt,TGQbtq,TGQbbq,T1bbbb,T1tttt,T1bbbboff,T1ttttoff,T1btbt,T6WW,T5,T5tttt,T5bbbb,T5WW,T5ZZ,T5WWoff,T5tctc,T5tbtt,T5tbtb,T5bbbt,T5tbtt,T5tbtb,T5HH,T5HZ,T5AAT5bbbbZg,T5ttttZg,T5ttbbWWoff,T5ttofftt,T5gg,T5WZh"
     description["gauginos"]="ewkinos + onshell gauge bosons"
     description["electroweakinos"]="ewkinos"
     description["electroweakinos_offshell"]="ewkinos, off-shell decays only"
@@ -88,6 +89,7 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
     shorts["colored"]="T1,T2,TGQ,T3GQ,T5GQ,TGQqtt,TGQbtq,TGQbbq,T1bbbb,T1tttt,T1bbbboff,T1ttttoff,T1btbt,T6WW"
     description["stops"]="stops, on- and off-shell"
     description["sbottoms"]="sbottoms"
+    description["gluinos"]="gluinos"
     description["colored"]="light squarks and gluinos"
     if name in shorts:
         d = None
