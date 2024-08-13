@@ -10,6 +10,7 @@ except ImportError as e:
 from typing import Iterable, Dict, List, Optional, Union
 from numpy.typing import NDArray
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
+from base.loggerbase import LoggerBase
 
 __all__ = [ "selectMostSignificantSRs", "bamAndWeights", "find_best_comb"  ]
 
@@ -92,6 +93,8 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
             # if analysisCombiner.canCombineUsingMatrix(tpred, tpred2):
             if tpred.dataset.isCombinableWith(tpred2.dataset):
                 bam[tpId].add(tpId2)
+                if tpId2 not in bam: bam[tpId2] = set()
+                bam[tpId2].add(tpId)
 
     return {"weights": weights, "bam": bam, "theoryPred": theoryPred}
 
@@ -115,8 +118,13 @@ def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
         bam[i, :] = [True if sr in over[key] else False for sr in columns_labels]
 
     if not np.allclose(bam, bam.T):
-        print("ERROR: Bam not symmetric!")      #move to loggerbase comment later on when loggerbase.py is moved
-
+        logger = LoggerBase(walkerid = -1)
+        logger.highlight("error", "BAM not symmetric!")
+        for i in range(len(columns_labels)):
+            for j in range(len(columns_labels)):
+                if bam[i,j] != bam[j,i]:
+                    logger.info(f"Not symmetric: {columns_labels[i]}, {columns_labels[j]}, {bam[i,j]}, {bam[j,i]}")
+    
     # bam |= np.triu(bam).T            # Not symmetric
     bam |= bam.T                       #ensure matrix is symmetric
 
