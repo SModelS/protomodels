@@ -25,7 +25,7 @@ from scipy import optimize, stats
 from scipy.special import erf
 from typing import List, Union, Tuple, Set
 from ptools.helpers import getAllPidsOfTheoryPred
-from ptools.combinationFinder import selectMostSignificantSRs, bamAndWeights, find_best_comb
+from ptools.bamCreator import selectMostSignificantSRs, bamAndWeights, find_best_comb
 # import IPython
 
 class Combiner ( LoggerBase ):
