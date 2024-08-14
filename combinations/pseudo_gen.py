@@ -8,7 +8,7 @@ from ptools.expResModifier import ExpResModifier
 from smodels.experiment.databaseObj import Database
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionsCombiner
 from smodels.base.physicsUnits import GeV, fb
-from smodels.share.models.mssm import BSMList
+from share.model_spec import BSMList
 from smodels.share.models.SMparticles import SMList
 from smodels.base.model import Model
 from smodels.decomposition.decomposer import decompose

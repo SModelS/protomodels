@@ -23,7 +23,7 @@ if False:
     runtime._experimental = True
 from smodels.base.model import Model
 from smodels.share.models.SMparticles import SMList
-from smodels.share.models.mssm import BSMList
+from share.model_spec import BSMList
 from smodels.matching.theoryPrediction import theoryPredictionsFor
 from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer
 from smodels.base.physicsUnits import fb
