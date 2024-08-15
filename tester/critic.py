@@ -20,17 +20,20 @@ from smodels.base.model import Model
 from smodels.base.exceptions import SModelSBaseError as SModelSError
 from os import PathLike
 from typing import List, Union
-from smodels.base.smodelsLogging import logger
+#from smodels.base.smodelsLogging import logger
 from base.loggerbase import LoggerBase
 from tester.combiner import Combiner
 from tester.combinationsmatrix import getYamlMatrix
 
 class Critic ( LoggerBase ):
     def __init__ ( self, walkerid : int, dbpath : PathLike = "official", expected : bool = False, select : str = "all", do_srcombine : bool = False ):
+        #call the super class of the critic i.e Loggerbase
+        super ( Critic, self ).__init__ ( walkerid )
         self.walkerid = walkerid
         self.do_srcombine = do_srcombine
         self.r_threshold = 1.38
         self.sensitivity_threshold = 0.7
+        self.verbose = 1
 
         force_load = None
         if dbpath.endswith ( ".pcl" ):
@@ -83,7 +86,7 @@ class Critic ( LoggerBase ):
             r = theorypred.getRValue(expected=False)
 
             if r is None:
-                logger.warning("The computation of the observed r-value of the most sensitive combination gave None.")
+                self.highlight("warning","The computation of the observed r-value of the most sensitive combination gave None.")
                 r = 20 # Something is wrong, we exclude
 
             robs.append(r)
@@ -146,7 +149,7 @@ class Critic ( LoggerBase ):
         """
 
         if not os.path.exists ( inputFile ):
-            logger.warning(f"error, cannot find inputFile {inputFile}" )
+            self.highlight("error", f"cannot find inputFile {inputFile}" )
             return []
         model = Model ( BSMList, SMList )
         try:
@@ -242,12 +245,12 @@ class Critic ( LoggerBase ):
 
         if not allowed_by_UL_critic:
             if keep_slhafile:
-                logger.info( f"Keeping {protomodel.currentSLHA}, as requested" )
+                self.info( f"Keeping {protomodel.currentSLHA}, as requested" )
             else:
                 protomodel.delCurrentSLHA()
             return False
 
-        logger.info("Model allowed by UL-based critic. Starting llhd-based critic.")
+        self.info("Model allowed by UL-based critic. Starting llhd-based critic.")
 
         # --- llhd-based critic ---
 
@@ -259,7 +262,7 @@ class Critic ( LoggerBase ):
         self.updateModelPredictionsWithCombinedPreds(protomodel, mostSensiComb, robsComb)
 
         if keep_slhafile:
-            logger.info(f"Keeping {protomodel.currentSLHA}, as requested" )
+            self.info(f"Keeping {protomodel.currentSLHA}, as requested" )
         else:
             protomodel.delCurrentSLHA()
 
@@ -270,7 +273,7 @@ class Critic ( LoggerBase ):
         if allowed_by_llhd_critic:
             return True
         else:
-            logger.info("Model failed llhd-based critic.")
+            self.info("Model failed llhd-based critic.")
             return False
 
 
@@ -364,7 +367,7 @@ class Critic ( LoggerBase ):
             r = tpCombiner.getRValue(expected=False)
 
         if r is None:
-            logger.warning("The computation of the observed r-value of the most sensitive combination gave None.")
+            self.highlight("warning","The computation of the observed r-value of the most sensitive combination gave None.")
             return False, best_comb, None
 
         return r < 1, best_comb, r          #SN: r < r_threshold?
