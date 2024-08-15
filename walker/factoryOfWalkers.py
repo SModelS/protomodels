@@ -35,8 +35,8 @@ def _run ( walker, catch_exceptions, seed ):
             f.write ( f"walker {walker.walkerid} threw: {e}\n" )
             import traceback
             f.write ( f"traceback: {str(traceback.format_exc())}\n" )
-            if hasattr ( walker.model, "currentSLHA" ):
-                f.write ( f"slha file was {walker.model.currentSLHA}\n" )
+            if hasattr ( walker.manipulator.M, "currentSLHA" ):
+                f.write ( f"slha file was {walker.manipulator.M.currentSLHA}\n" )
         from colorama import Fore as ansi
         print ( f"{ansi.RED}walker {walker.walkerid} threw: {e}{ansi.RESET}\n" )
 

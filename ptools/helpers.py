@@ -30,8 +30,7 @@ def getJsonFileName(dset: DataSet) -> str:
             return file
 
     # if no file got matched with dataset
-    logger = LoggerBase(walkerid = -1)
-    logger.info(f"JSON file present for {dset.globalInfo.id} but combined dataset does not match to any JSON file")
+    print(f"JSON file present for {dset.globalInfo.id} but combined dataset does not match to any JSON file")
 
     return "NoJsonFound"
 
