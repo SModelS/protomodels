@@ -8,7 +8,7 @@ import time, os
 __all__ = [ "LoggerBase" ]
 
 class LoggerBase:
-    __slots__ = [ "walkerid", "module" ]
+    __slots__ = [ "walkerid", "module", "logdir" ]
 
     def __init__ ( self, walkerid : int = 0 ):
         """ instantiate the logger class with a walkerid """
