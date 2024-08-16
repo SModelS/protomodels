@@ -13,7 +13,7 @@ from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPredic
 sys.path.insert(0,"../")
 from builder.protomodel import ProtoModel
 from smodels.share.models.SMparticles import SMList
-from smodels.share.models.mssm import BSMList
+from share.model_spec import BSMList
 from smodels.base.physicsUnits import fb, GeV, TeV
 from smodels.experiment.databaseObj import Database
 from smodels.base.model import Model

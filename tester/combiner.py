@@ -6,7 +6,7 @@ __all__ = [ "Combiner" ]
 
 from smodels.decomposition import decomposer
 from smodels.share.models.SMparticles import SMList
-from smodels.share.models.mssm import BSMList
+from share.model_spec import BSMList
 from smodels.base.physicsUnits import fb
 from smodels.base.model import Model
 from smodels.matching.theoryPrediction import TheoryPrediction, TheoryPredictionsCombiner
@@ -749,7 +749,8 @@ class Combiner ( LoggerBase ):
         most_significant_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
         comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
 
-        weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
+        if len(comb_lbl)>1:
+            weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
 
         #from ptools.helpers import experimentalId
         #tpred_lbl = {experimentalId(tpred):tpred for tpred in predictions}
@@ -916,7 +917,6 @@ if __name__ == "__main__":
         sys.exit()
     from smodels.experiment.databaseObj import Database
     from smodels.decomposition import decomposer
-    from smodels.share.models.mssm import BSMList
     from smodels.share.models.SMparticles import SMList
     from smodels.base.model import Model
     from smodels.base.physicsUnits import fb

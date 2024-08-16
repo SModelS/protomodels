@@ -58,11 +58,8 @@ def plotPValues( info, anas, outfile, nbins : int ):
     plt.title ( title )
     plt.text ( -.1, -.1, f"{nuniverses} universes", transform=ax.transAxes )
     plt.savefig ( outfile )
-    import shutil
-    if shutil.which ("timg") is not None:
-        import subprocess
-        o = subprocess.getoutput ( f"timg {outfile}" )
-        print ( o )
+    from helpers.various import viewImage
+    viewImage ( outfile )
     # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 def runPlotting( anas : List, directory : os.PathLike, outfile : os.PathLike, 

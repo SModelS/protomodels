@@ -6,7 +6,7 @@ def isFudged ( f ):
     return abs(f-1.0)>1e-5
 
 def create ( nmin = 1, nmax = 100, f = 1.0, overwrite = False, 
-             database = "official" ):
+             database = "official", outfiles = "none" ):
     """
     :param n: number of universes
     :param f: fudge factor
@@ -26,21 +26,23 @@ def create ( nmin = 1, nmax = 100, f = 1.0, overwrite = False,
             continue
         if isFudged(f):
             out += f"f{int(f*100)}"
-        cmd = f"./ptools/expResModifier.py -C -d {database} -o none -s {out}"
+        outfile = outfiles.replace("%d",str(i) )
+        outfile = outfile.replace("%3d",f"{i:03d}" )
+        cmd = f"./ptools/expResModifier.py -C -d {database} -o {outfile} -s {out}"
         if isFudged(f):
             cmd += f" -f {f}"
-        print ( f"{i}: {cmd}" )
+        print ( f"[createMultiVerse] {i}: {cmd}" )
         o = subprocess.getoutput ( cmd )
         if len(o)==0:
             o = "done"
         print ( f"   `-: {o}" )
 
         cmd = f"mv {out}.dict {directory}"
-        print ( f"{i}: {cmd}" )
+        print ( f"[createMultiverse] {i}: {cmd}" )
         o = subprocess.getoutput ( cmd )
         if len(o)==0:
             o = "done"
-        print ( f"   `-: {o}" )
+        print ( f"[createMultiverse]   `-: {o}" )
 
 if __name__ == "__main__":
     import argparse
@@ -55,6 +57,8 @@ if __name__ == "__main__":
             type=float, default=1.0 )
     argparser.add_argument ( '-d', '--database', help='database path [official]',
             type=str, default="official" )
+    argparser.add_argument ( '--outfiles', help='names of output files [none]',
+            type=str, default="none" )
     argparser.add_argument ( '-o', '--overwrite', help='overwrite old files',
             action='store_true' )
     args = argparser.parse_args()
@@ -66,4 +70,5 @@ if __name__ == "__main__":
             nmin = args.n + p * dn
             nmax = args.n + (p+1)*dn - 1
             print ( nmin, nmax )
-            create( nmin, nmax, args.fudge, args.overwrite, args.database )
+            create( nmin, nmax, args.fudge, args.overwrite, args.database, 
+                    args.outfiles )

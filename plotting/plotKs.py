@@ -6,31 +6,47 @@ import matplotlib.pyplot as plt
 import scipy.stats
 import numpy as np
 import matplotlib
+from typing import List
 
 matplotlib.use('agg')
 
-def read( which="fake", datadir="./" ):
-    pattern = { "fake": "fake*dict", "real": "real*.dict", "realf": "realf*dict",
-                "signal": "signal?.dict", "signalf": "signal*f.dict" }
+def read( which : str ="fake", datadir : str ="./" ) -> List:
+    """ read the K values from hiscores dictionary files.
+    the type of run is determine from the filename, fake*dict or bg*dict is
+    SM-only synthetic, real*dict corresponds to the actual observations, etc
+
+    :returns: a list of K values
+    """
+    pattern = { "fake": [ "fake*dict", "bg*dict" ], "real": [ "real*.dict" ], 
+        "realf": [ "realf*dict" ], "signal": [ "signal?.dict" ], 
+        "signalf": [ "signal*f.dict" ] }
     if not which in pattern:
         pattern[which]=which+"*.dict"
-    files = glob.glob( datadir + pattern[which] )
+    files = []
+    for wh in pattern[which]:
+        files += list ( glob.glob( datadir + "/" + wh ) )
     Ks=[]
     for f in files:
         h=open(f,"rt")
         lines=h.read()
         h.close()
-        D=eval(lines)
-        Ks.append(D[0]["K"])
+        try:
+            D=eval(lines)
+            Ks.append(D[0]["K"])
+        except (ValueError,SyntaxError) as e:
+            print ( f"[plotKs] error when reading {f}: {e}" )
     return Ks
 
-def plot( opts: dict, outputfile, datadir ):
+
+def plot( opts: dict ):
     """ plot the money plot.
     :param opts: dictionary detailing what to plot, e.g { "signals": True,
           "fastlim": True, "real": True }
-    :param outputfile: the filename of outputfile, eg Kvalues.png
-    :param datadir: directory of the data dict files, eg ./
+    :iparam outputfile: the filename of outputfile, eg Kvalues.png
+    :iparam datadir: directory of the data dict files, eg ./
     """
+    outputfile = opts["outputfile"]
+    datadir = opts["datadir"]
     Ks=read ( opts["fakeprefix"], datadir )
     Kreal = read ( "real", datadir )
     Ksig = read ( opts["signalprefix"], datadir )
@@ -39,7 +55,7 @@ def plot( opts: dict, outputfile, datadir ):
     fmin, fmax, npoints = .3, 1.2, 100
     if opts["real"]:
         allK += Kreal
-    if opts["signal"]:
+    if opts["signals"]:
         allK += Ksig
         fmax = 1.1
     if opts["fastlim"]:
@@ -58,7 +74,7 @@ def plot( opts: dict, outputfile, datadir ):
         plt.plot ( Ks, ys, "ro", label="$K_\mathrm{fake}$" )
         print ( "K(bg)=%.3f, [%.3f,%.3f] %d entries" % \
                 ( np.mean(Ks), min(Ks), max(Ks), len(Ks) ) )
-    if opts["signal"] and len(Ksig)>0:
+    if opts["signals"] and len(Ksig)>0:
         ysig = kde.evaluate( Ksig )
         ysig = [ x - .001 for x in ysig ]
         # marker="c*"
@@ -126,7 +142,12 @@ if __name__ == "__main__":
                              help="specify the prefix for the signal [signal]",
                              type=str, default="signal" )
     args = argparser.parse_args()
+    """
     opts = { "signal": args.signals, "fastlim": args.fastlim, "real": args.real,
              "fakes": args.fakes, "fakeprefix": args.fakeprefix,
              "signalprefix": args.signalprefix }
-    plot( opts, args.outputfile, args.datadir )
+    """
+    opts = vars ( args )
+    from helpers.various import viewImage
+    plot( opts )
+    viewImage ( opts["outputfile"] )
