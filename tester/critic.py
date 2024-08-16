@@ -352,7 +352,7 @@ class Critic ( LoggerBase ):
         if cut > 0:
             for tpred in predictions:
                 rexp = tpred.getRValue(expected = True)
-                if rexp >= cut:
+                if rexp is not None and rexp >= cut:
                     EMpreds.append(tpred)
         else:
             EMpreds = predictions
