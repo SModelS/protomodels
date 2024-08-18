@@ -23,11 +23,12 @@ def getJsonFileName(dset: DataSet) -> str:
 
     jsonFileDict = dset.globalInfo.jsonFiles
     dsId = [ds.getID() for ds in dset._datasets]            #get the dataset ids in the combined dataset dset
-
+    
     for file, dslist in jsonFileDict.items():
-        if dslist[0]['smodels'] in dsId:                               #check which json file has the corresponding datasets
-            file = file.split(".")[0]                       #get only name of json file, not the .json part
-            return file
+        for ds in dslist:
+            if ds['smodels'] in dsId:                               #check which json file has the corresponding datasets
+                file = file.split(".")[0]                       #get only name of json file, not the .json part
+                return file
 
     # if no file got matched with dataset
     print(f"JSON file present for {dset.globalInfo.id} but combined dataset does not match to any JSON file")
@@ -50,7 +51,7 @@ def experimentalId(pred : TheoryPrediction) -> str:
         return f"{anaId}:{dtype}"
 
     elif dtype == "combined":
-        if hasattr(pred.dataset.globalInfo, "jsonFiles"):   #pyhf
+        if pred._statsComputer.dataType == "pyhf":
             jfile = getJsonFileName(pred.dataset)
             return f"{anaId}:{jfile}"
         else:
