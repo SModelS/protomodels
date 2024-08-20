@@ -11,7 +11,8 @@ import pickle, time, os, sys
 from smodels.decomposition import decomposer
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionList, TheoryPredictionsCombiner
 sys.path.insert(0,"../")
-from builder.protomodel import ProtoModel, Manipulator
+from builder.protomodel import ProtoModel
+from builder.manipulator import Manipulator
 from smodels.share.models.SMparticles import SMList
 from share.model_spec import BSMList
 from smodels.base.physicsUnits import fb, GeV, TeV
