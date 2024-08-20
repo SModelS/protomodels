@@ -106,10 +106,11 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
     def compare ( dentry, pentry ) -> bool:
         ## compare one dictentry with one pickleentry,
         ## true, if things are different
+        if pentry == None or pentry.K == None: ## picklefile is not working
+            # so, update!
+            return True
         newV = dentry["K"] + dentry["TL"] + sum(dentry["masses"].values()) + \
                sum(dentry["ssmultipliers"].values())
-        if pentry == None:
-            return True
 
         oldV = pentry.K + pentry.TL + sum(pentry.masses.values()) + \
                sum(pentry.ssmultipliers.values())

@@ -209,7 +209,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
             step = D["step"]
         if "K" in D:
             K = D["K"]
-        if K > Kold + 1e-10: #  + .001:
+        if K is not None and K > Kold + 1e-10: #  + .001:
             from builder.manipulator import Manipulator
             m = Manipulator ( model )
             T=str(int(time.time()))
