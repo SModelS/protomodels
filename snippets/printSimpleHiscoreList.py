@@ -42,9 +42,11 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             r2 = timestamp.rfind(" ")
             timestamp = timestamp[r1:r2]
         if extended:
+            step = entry["step"]
             print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET} TL={TL:.3f}; {sparticles}" )
             print ( f"       `---: {entry['description']}" )
-            print ( f"       `---: {timestamp}" )
+            print ( f"       `---:{timestamp}" )
+            print ( f"       `---: step {step}" )
             print ( )
         else:
             print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET}; TL={TL:.3f}; {sparticles} {timestamp}" )

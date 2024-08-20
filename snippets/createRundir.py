@@ -27,6 +27,9 @@ def create ( path : str ):
     if not os.path.exists ( f"{path}/hiscoreCLI.py" ):
         cmd = f"ln -s ~/git/protomodels/ptools/hiscoreCLI.py {path}/"
         o = subprocess.getoutput ( cmd )
+    if not os.path.exists ( f"{path}/clean.sh" ):
+        cmd = f"ln -s ~/git/protomodels/snippets/clean.sh {path}/"
+        o = subprocess.getoutput ( cmd )
 
 if __name__ == "__main__":
     import sys
