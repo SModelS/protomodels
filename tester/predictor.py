@@ -11,7 +11,7 @@ import pickle, time, os, sys
 from smodels.decomposition import decomposer
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionList, TheoryPredictionsCombiner
 sys.path.insert(0,"../")
-from builder.protomodel import ProtoModel
+from builder.protomodel import ProtoModel, Manipulator
 from smodels.share.models.SMparticles import SMList
 from share.model_spec import BSMList
 from smodels.base.physicsUnits import fb, GeV, TeV
@@ -380,6 +380,11 @@ class Predictor ( LoggerBase ):
         #(set mumax just slightly below its value, so muhat is always below)
         # mumax = protomodel.mumax
         bestCombo,TL,muhat = self.combiner.findHighestSignificance ( predictions, expected=False )   #, mumax = mumax
+
+        ## normalize again
+        ma = Manipulator ( protomodel )
+        ma.rescaleSignalBy ( muhat )
+        muhat = 1.
 
         if hasattr ( protomodel, "keep_meta" ) and protomodel.keep_meta:
             protomodel.bestCombo = bestCombo

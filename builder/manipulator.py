@@ -778,7 +778,7 @@ class Manipulator ( LoggerBase ):
             return
         if abs ( s - 1.0 ) < 1e-5:
             return
-        self.log ( "rescaling signal by muhat of %.2f" % s )
+        self.log ( f"rescaling signal by muhat of {s:.2f}" )
         self.M.rvalues = [r*s for r in self.M.rvalues[:]]
         self.M.muhat *= 1./s
         if self.M.mumax: self.M.mumax*= 1./s
