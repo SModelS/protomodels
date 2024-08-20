@@ -5,7 +5,8 @@ todo:
 *) think about how to cover monojets in protomodels
 *) fix the issue with negative weights in - 2 ln ( L0/L1 )
 *) smodels only reports the most sensitive of several combined likelihoods
-   within a single analysis, even if reportAllSRs = True. Fix that.
+   within a single analysis, even if reportAllSRs = True (happens
+	 only if several jsons are given for a single analysis). Fix that.
 *) expResModifier, test that the distributions are ok, for SL, for pyhf, 
 	 fudge, etc
 *) fit simplified likelihoods for full pyhf likelihoods for speedup (MMA, waiting for JYA)
