@@ -57,7 +57,7 @@ if __name__ == "__main__":
             type=float, default=1.0 )
     argparser.add_argument ( '-d', '--database', help='database path [official]',
             type=str, default="official" )
-    argparser.add_argument ( '--outfiles', help='names of output files [none]',
+    argparser.add_argument ( '--outfiles', help='names of output files, %d and %3d get replaced by the index of the universe [none]',
             type=str, default="none" )
     argparser.add_argument ( '-o', '--overwrite', help='overwrite old files',
             action='store_true' )
