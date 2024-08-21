@@ -4,8 +4,10 @@ try:
 except ImportError as e:
     # FIXME in the long run the line below should disappear
     import sys,os
-    sys.path.insert(0, os.path.expanduser("~/PathFinder"))
-    sys.path.insert(0, os.path.expanduser("~/git/PathFinder"))
+    for path in [ "~/PathFinder", "~/git/PathFinder" ]:
+        epath = os.path.expanduser ( path )
+        if os.path.exists ( epath ):
+            sys.path.insert(0, epath )
     import pathfinder as pf
 from typing import Iterable, Dict, List, Optional, Union
 from numpy.typing import NDArray
