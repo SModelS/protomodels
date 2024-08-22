@@ -351,16 +351,6 @@ class RandomWalker ( LoggerBase ):
             return
         self.printStats( )
 
-        self.log ( "Step %d check if result goes into hiscore list" % \
-                   ( self.protomodel.step ) )
-        srs = "%s" % ", ".join ( [ "%.2f" % x for x in self.protomodel.rvalues[:3] ] )
-        self.log ( "r values before calling .newResult are at %s" % srs )
-        self.hiscoreList.newResult ( self.manipulator ) ## add to high score list
-        srs = "%s" % ", ".join ( [ "%.2f" % x for x in self.protomodel.rvalues[:3] ] )
-        self.log ( "r values after calling .newResult are at %s" % srs )
-        self.log ( "done check for result to go into hiscore list" )
-        self.log ( "Step %d/%s finished." % ( self.protomodel.step, smaxstp ) )
-
     def checkIfToTeleport ( self, pmax=0.1, norm = 10.0 ):
         """ check if we should teleport to a high score model. If yes, then we
             should then also perform the teleportation. The teleportation is
@@ -405,6 +395,15 @@ class RandomWalker ( LoggerBase ):
 
     def takeStep ( self ):
         """ take the step, save it as last step """
+        ## possibly add to hiscore list
+        self.log ( f"Step {self.protomodel.step} check if result goes into hiscore list" )
+        srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
+        self.log ( f"r values before calling .newResult are at {srs}" )
+        self.hiscoreList.newResult ( self.manipulator ) ## add to high score list
+        srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
+        self.log ( f"r values after calling .newResult are at {srs}" )
+        self.log ( "done check for result to go into hiscore list" )
+        self.log ( f"Step {self.protomodel.step}/{smaxstp} finished." )
         ## Backup model
         self.manipulator.backupModel()
         # Update current K and TL values
