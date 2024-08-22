@@ -341,9 +341,6 @@ class RandomWalker ( LoggerBase ):
         nUnfrozen = len ( self.protomodel.unFrozenParticles() )
         self.pprint ( "best combo for strategy ``%s'' is %s: %s: [K=%.2f, TL=%.2f, %d unfrozen]" % \
             ( self.manipulator.strategy, self.protomodel.letters, self.protomodel.description, self.protomodel.K, self.protomodel.TL, nUnfrozen ) )
-        smaxstp = "%s" % self.maxsteps
-        if self.maxsteps < 0:
-            smaxstp = "inf"
 
         #For low scoring models, teleport to a high score model:
         if self.checkIfToTeleport( pmax=0.5, norm = 10.0 ):
@@ -403,7 +400,6 @@ class RandomWalker ( LoggerBase ):
         srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
         self.log ( f"r values after calling .newResult are at {srs}" )
         self.log ( "done check for result to go into hiscore list" )
-        self.log ( f"Step {self.protomodel.step}/{smaxstp} finished." )
         ## Backup model
         self.manipulator.backupModel()
         # Update current K and TL values
@@ -502,8 +498,12 @@ class RandomWalker ( LoggerBase ):
             # obtain the ratio of posteriors
             self.decideOnTakingStep ()
             self.record()
+            smaxstp = f"{self.maxsteps}"
+            if self.maxsteps < 0:
+                smaxstp = "inf"
+            self.log ( f"Step {self.protomodel.step}/{smaxstp} finished." )
         self.manipulator.M.delCurrentSLHA()
-        self.pprint ( "Was asked to stop after %d steps" % self.maxsteps )
+        self.pprint ( f"Was asked to stop after {self.maxsteps} steps" )
 
 if __name__ == "__main__":
     masses = { 1000022: 47.1, 1000023: 449.8, 1000024: 135.47, 1000037: 398.7,
