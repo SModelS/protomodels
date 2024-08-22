@@ -532,7 +532,7 @@ class Manipulator ( LoggerBase ):
         :param detailed: if true, give more details
         """
         print ( "theory predictions:" )
-        combo = self.M.tpList
+        combo = self.M.ul_critic_tpList
         for c in combo:
             i = c["tp"]
             dId = i.dataId() if i.dataId() != None else "UL"
@@ -753,7 +753,7 @@ class Manipulator ( LoggerBase ):
 
         print ( )
         print('  * Constraints:')
-        for tp in sorted( self.M.tpList, key = lambda x: x['robs'], reverse=True ):
+        for tp in sorted( self.M.ul_critic_tpList, key = lambda x: x['robs'], reverse=True ):
             if not allTheoryPredictions and tp['robs'] < 1.0:
                 # if not all theory predictions are asked for, only do r>=1
                 continue
@@ -784,8 +784,8 @@ class Manipulator ( LoggerBase ):
         if self.M.mumax: self.M.mumax*= 1./s
         self.M.rescaleXSecsBy(s)
 
-        if hasattr(self.M,'tpList') and self.M.tpList is not None:
-            for i,tp in enumerate(self.M.tpList[:]):
+        if hasattr(self.M,'ul_critic_tpList') and self.M.ul_critic_tpList is not None:
+            for i,tp in enumerate(self.M.ul_critic_tpList[:]):
                 rnew = tp['robs']*s
                 if tp['rexp']:
                     rexpnew = tp['rexp']*s
@@ -798,7 +798,7 @@ class Manipulator ( LoggerBase ):
                 #    del tpNew.likelihood
                 #if hasattr(tpNew,'chi2'):
                 #    del tpNew.chi2
-                self.M.tpList[i] = { "robs": rnew,"rexp": rexpnew, "tp": tpNew }
+                self.M.ul_critic_tpList[i] = { "robs": rnew,"rexp": rexpnew, "tp": tpNew }
         if hasattr(self.M,'bestCombo') and self.M.bestCombo is not None:
             for tp in self.M.bestCombo:
                 tp.xsection *= s #rescale theoryPrediction
@@ -1874,7 +1874,7 @@ class Manipulator ( LoggerBase ):
         self._backup = { "llhd": self.M.llhd, "letters": self.M.letters, "TL": self.M.TL,
                          "K": self.M.K, "muhat": self.M.muhat,
                          "description": self.M.description,
-                         "tpList": copy.deepcopy(self.M.tpList),
+                         "ul_critic_tpList": copy.deepcopy(self.M.ul_critic_tpList),
                          "bestCombo": copy.deepcopy(self.M.bestCombo),
                          "masses": copy.deepcopy(self.M.masses),
                          "ssmultipliers": copy.deepcopy(self.M.ssmultipliers),

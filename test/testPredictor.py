@@ -36,7 +36,7 @@ class PredictionsTest(unittest.TestCase):
         pNew.bestCombo = None
         pNew.muhat = None
         pNew.mumax = None
-        pNew.tpList = []
+        pNew.ul_critic_tpList = []
 
 
         #Test against old version:
@@ -78,10 +78,10 @@ class PredictionsTest(unittest.TestCase):
             self.assertEqual(str(pred.dataset),str(pNew.bestCombo[i].dataset))
             self.assertAlmostEqual(pred.xsection.value.asNumber(),pNew.bestCombo[i].xsection.value.asNumber(),3)
             self.assertAlmostEqual(pred.upperLimit.asNumber(),pNew.bestCombo[i].upperLimit.asNumber(),3)
-        for i,pred in enumerate(protomodel.tpList):
-            self.assertAlmostEqual(pred['robs'],pNew.tpList[i]['robs'])
-            self.assertEqual(str(pred['tp'].expResult),str(pNew.tpList[i]['tp'].expResult))
-            self.assertAlmostEqual(pred['tp'].xsection.value.asNumber(),pNew.tpList[i]['tp'].xsection.value.asNumber(),3)
+        for i,pred in enumerate(protomodel.ul_critic_tpList):
+            self.assertAlmostEqual(pred['robs'],pNew.ul_critic_tpList[i]['robs'])
+            self.assertEqual(str(pred['tp'].expResult),str(pNew.ul_critic_tpList[i]['tp'].expResult))
+            self.assertAlmostEqual(pred['tp'].xsection.value.asNumber(),pNew.ul_critic_tpList[i]['tp'].xsection.value.asNumber(),3)
 
 
         #Remove files generated during run

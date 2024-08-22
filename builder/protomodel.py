@@ -83,7 +83,7 @@ class ProtoModel ( LoggerBase ):
         """Use the template SLHA file to store possible decays and initialize the LSP"""
 
         #Make sure the masses, decays and multipliers are empty
-        self.tpList = [] ## store information about the theory predictions
+        self.ul_critic_tpList = [] ## store information about the theory predictions
         self.rvalues = [] ## store the r values of the exclusion attempt
         self.llhd=0.
         self.muhat = 1.
@@ -581,8 +581,8 @@ class ProtoModel ( LoggerBase ):
 
     def copy(self, cp_predictions : bool = False):
         """
-        Create a copy of self. If cp_predictions the bestCombo and tpList attributes
-        is copied using deepcopy.
+        Create a copy of self. If cp_predictions the bestCombo and 
+        ul_critic_tpList attributes is copied using deepcopy.
 
         :returns: copy of protomodel
         """
@@ -620,7 +620,7 @@ class ProtoModel ( LoggerBase ):
         newmodel._xsecSSMs = dict([[pid,ssm] for pid,ssm in self._xsecSSMs.items()])
         newmodel._xsecMasses = dict([[pid,m] for pid,m in self._xsecMasses.items()])
         if cp_predictions:
-            newmodel.tpList = copy.deepcopy(self.tpList)
+            newmodel.ul_critic_tpList = copy.deepcopy(self.ul_critic_tpList)
             newmodel.bestCombo = copy.deepcopy(self.bestCombo)
 
         return newmodel
