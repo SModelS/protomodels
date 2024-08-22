@@ -749,7 +749,7 @@ class Combiner ( LoggerBase ):
         most_significant_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
         comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
 
-        if len(comb_lbl)>1:
+        if False: # len(comb_lbl)>1:
             weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
 
         #from ptools.helpers import experimentalId
