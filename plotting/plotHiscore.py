@@ -582,13 +582,14 @@ class HiscorePlotter ( LoggerBase ):
         dotlessv = dbver.replace(".","")
         f.write ( f" it was produced with database {{\\tt v{dotlessv}}}, combination strategy {{\\tt {strategy}}} walker {self.protomodel.walkerid} in step {self.protomodel.step}." )
         f.write ( "\n" )
-        if hasattr ( protomodel, "ul_critic_tpList" ):
-            rvalues=protomodel.ul_critic_tpList
-            rvalues.sort(key=lambda x: x['robs'],reverse=True )
-            writeRValuesTex ( rvalues )
-                #writeRValuesTexOld ( rvalues )
-        else:
-            print ( "[plotHiscore] protomodel has no r values!" )
+        if len(self.protomodel.ul_critic_tpList) == 0:
+            from tester.critic import Critic
+            cr = Critic(0,do_srcombine=True)
+            cr.predict_critic( self.protomodel, keep_predictions=True )
+        rvalues=self.protomodel.ul_critic_tpList
+        rvalues.sort(key=lambda x: x['robs'],reverse=True )
+        writeRValuesTex ( rvalues )
+            #writeRValuesTexOld ( rvalues )
 
         if hasattr ( protomodel, "analysisContributions" ):
             print ( "[plotHiscore] contributions-per-analysis are defined" )
@@ -736,21 +737,21 @@ class HiscorePlotter ( LoggerBase ):
         self.addSPlots ( f )
         f.write ( "<br>\n" )
         f.write ( "<table width=80%>\n<tr><td>\n" )
-        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
-        if hasattr ( self.protomodel, "ul_critic_tpList" ):
-            rvalues=self.protomodel.ul_critic_tpList
-            rvalues.sort(key=lambda x: x['robs'],reverse=True )
-            f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
-            for rv in rvalues[:4]:
-                srv="N/A"
-                if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
-                    srv= f"{rv['rexp']:.2f}"
-                elif type(rv['rexp']) != type(None):
-                    srv=str(rv['rexp'])
-                f.write ( f"<li>{self.anaNameAndUrl ( rv['tp'] )}:{rv['tp'].dataType(short=True)}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>\n" )
-            f.write("</ul>\n")
-        else:
-            print ( "[plotHiscore] protomodel has no r values!" )
+        if len(self.protomodel.ul_critic_tpList) == 0:
+            from tester.critic import Critic
+            cr = Critic(0,do_srcombine=True)
+            cr.predict_critic( self.protomodel, keep_predictions=True )
+        rvalues=self.protomodel.ul_critic_tpList
+        rvalues.sort(key=lambda x: x['robs'],reverse=True )
+        f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
+        for rv in rvalues[:4]:
+            srv="N/A"
+            if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
+                srv= f"{rv['rexp']:.2f}"
+            elif type(rv['rexp']) != type(None):
+                srv=str(rv['rexp'])
+            f.write ( f"<li>{self.anaNameAndUrl ( rv['tp'] )}:{rv['tp'].dataType(short=True)}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>\n" )
+        f.write("</ul>\n")
 
         if hasattr ( self.protomodel, "analysisContributions" ):
             print ( "[plotHiscore] contributions-per-analysis are defined" )
