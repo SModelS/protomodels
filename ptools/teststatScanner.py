@@ -70,9 +70,9 @@ class TeststatScanner ( LoggerBase ):
         :returns: list of dictionaries of robs, rexp, anaid
         """
         critics = []
-        if not hasattr ( model, "tpList" ):
+        if not hasattr ( model, "ul_critic_tpList" ):
             return critics
-        for p in model.tpList:
+        for p in model.ul_critic_tpList:
             d = { "robs": p["robs"], "rexp": p["rexp"], 
                   "anaid": p["tp"].dataset.globalInfo.id }
             critics.append ( d )

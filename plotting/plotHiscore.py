@@ -8,6 +8,7 @@ setup()
 from ptools import hiscoreTools
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
+from tester.critic import Critic
 from tester.combiner import Combiner
 from builder import protomodel
 from builder.protomodel import ProtoModel
@@ -581,11 +582,11 @@ class HiscorePlotter ( LoggerBase ):
         dotlessv = dbver.replace(".","")
         f.write ( f" it was produced with database {{\\tt v{dotlessv}}}, combination strategy {{\\tt {strategy}}} walker {self.protomodel.walkerid} in step {self.protomodel.step}." )
         f.write ( "\n" )
-        if hasattr ( protomodel, "tpList" ):
-            rvalues=protomodel.tpList
+        if hasattr ( protomodel, "ul_critic_tpList" ):
+            rvalues=protomodel.ul_critic_tpList
             rvalues.sort(key=lambda x: x['robs'],reverse=True )
             writeRValuesTex ( rvalues )
-            #writeRValuesTexOld ( rvalues )
+                #writeRValuesTexOld ( rvalues )
         else:
             print ( "[plotHiscore] protomodel has no r values!" )
 
@@ -733,37 +734,11 @@ class HiscorePlotter ( LoggerBase ):
         # take out all frozen ssm plots
         self.addLikelihoodPlots ( f )
         self.addSPlots ( f )
-        """
-        ossms = { (-1000006,1000006), (1000021,1000021), (-2000006,2000006) }
-        for fname in glob.glob("ssm_*_*.png" ):
-            pids = fname.replace("ssm_","").replace(".png","")
-            pids = tuple ( map ( str, pids.split("_") ) )
-            ossms.add ( pids )
-        frozen = self.protomodel.frozenParticles()
-        ssms = set()
-        for pids in ossms:
-            hasFrozenPid=False
-            for pid in pids:
-                if pid in frozen: #  or -pid in frozen:
-                    hasFrozenPid = True
-                    break
-            if not hasFrozenPid:
-                ssms.add ( pids )
-
-
-        if len(ssms)>0:
-        f.write ( " SSM plots for: " )
-        first = True
-        for pids in ssms:
-            if not first:
-                f.write ( ", " )
-            f.write ( f"<a href=./ssm_{pids[0]}_{pids[1]}.png?{dt}>({pids[0]},{pids[1]})</a>"  )
-            first = False
-        """
         f.write ( "<br>\n" )
         f.write ( "<table width=80%>\n<tr><td>\n" )
-        if hasattr ( self.protomodel, "tpList" ):
-            rvalues=self.protomodel.tpList
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        if hasattr ( self.protomodel, "ul_critic_tpList" ):
+            rvalues=self.protomodel.ul_critic_tpList
             rvalues.sort(key=lambda x: x['robs'],reverse=True )
             f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
             for rv in rvalues[:4]:
@@ -926,6 +901,7 @@ class HiscorePlotter ( LoggerBase ):
         self.protomodel = pm
         self.combiner = Combiner ( self.protomodel.walkerid )
         self.predictor = Predictor ( 0, dbpath, do_srcombine = True )
+        self.critic = Critic ( 0, dbpath, do_srcombine = True )
 
         protoslha = self.protomodel.createSLHAFile ()
         subprocess.getoutput ( f"cp {protoslha} hiscore.slha" )
@@ -956,6 +932,7 @@ class HiscorePlotter ( LoggerBase ):
             if options["tex"]:
                 self.writeIndexTex( texdoc )
         self.predictor.predict ( self.protomodel, keep_predictions = True )
+        self.critic.predict_critic ( self.protomodel )
         self.writeRawNumbersLatex ( )
         self.writeRawNumbersHtml ( )
         if options["keep"]:
