@@ -43,6 +43,7 @@ def cli( infile : str = "hiscores.dict",
     from builder.manipulator import Manipulator
     from tester.combiner import Combiner
     from tester.predictor import Predictor
+    from tester.critic import Critic
     from ptools.sparticleNames import SParticleNames
     from smodels.experiment.databaseObj import Database
     print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database," )
@@ -61,6 +62,9 @@ def cli( infile : str = "hiscores.dict",
     co = Combiner() # instantiate for convenience
     print ( f"[hiscoreCLI] {ansi.RED}pr = Predictor ( ){ansi.RESET}" )
     pr = Predictor( 0, do_srcombine=do_srcombine, dbpath=dbpath ) # instantiate for convenience
+    print ( f"[hiscoreCLI] {ansi.RED}cr = Critic ( ){ansi.RESET}" )
+    cr = Critic ( 0, do_srcombine=do_srcombine, dbpath=dbpath )
+
     # print ( f"[hiscoreCLI] Instantiations: {ansi.RED}ma, co, hi, pr{ansi.RESET}" )
 
     if args.execute not in [ "", None ]:
