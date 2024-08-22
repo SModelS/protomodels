@@ -32,7 +32,7 @@ except:
 class Predictor ( LoggerBase ):
     def __init__ ( self, walkerid : int, dbpath : PathLike = "official",
                    expected : bool = False, select : str = "all",
-                   do_srcombine : bool = False ):
+                   do_srcombine : bool = True ):
         """
         the predictor class, i.e. the class that computes the predictions,
         finds the best combinations, and computes the final test statistics
