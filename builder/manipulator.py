@@ -565,8 +565,13 @@ class Manipulator ( LoggerBase ):
             if pid in protomodel.decays:
                 protomodel.decays.pop(pid)
 
+        olddecays = list ( protomodel.decays.keys() )
         #Loop over all decays:
-        for pid in protomodel.decays:
+        for pid in olddecays:
+            if not pid in protomodel.decays:
+                ## self.normalizeBranchings is allowed to take out
+                ## pids, thus we need to check
+                continue
             #Get allowed decay channels:
             openChannels = protomodel.getOpenChannels(pid)
             #Check if any of the existing decays are forbidden:
@@ -659,13 +664,16 @@ class Manipulator ( LoggerBase ):
             protomodel = self.M
 
         if not pid in protomodel.decays:
-            protomodel.pprint ( "when attempting to normalize: %d not in decays" % pid )
+            protomodel.pprint(f"when attempting to normalize: {pid} not in decays")
             return
 
         BRtot = sum(protomodel.decays[pid].values())
         if BRtot == 0:
             if pid != protomodel.LSP:
-                protomodel.pprint ( "when attempting to normalize: total BR (%d) is zero" % pid )
+                protomodel.pprint ( f"when attempting to normalize: total BR ({pid}) is zero. we need to take out {pid}." )
+                ## we need to freeze also <pid> now
+                ## (since we have no sensible channels anymore)
+                self.freezeParticle ( pid )
             return
 
         if abs(BRtot-1.0) < 1e-4:

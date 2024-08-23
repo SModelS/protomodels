@@ -6,9 +6,10 @@ import os
 from os import PathLike
 from ptools.sparticleNames import SParticleNames 
 from colorama import Fore as ansi
+from typing import Union
 
 def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
-    extended : bool = False  ):
+    extended : bool = False, nmax : Union[None,int] = None ):
     """ summarize the content of the dict file 
 
     :param dictfile: path to dictionary file
@@ -20,8 +21,12 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
     f=open( dictfile, "rt" )
     D=eval(f.read() )
     f.close()
+    if nmax == None:
+        nmax = 10
+        if extended:
+            nmax = 3
     for i,entry in enumerate ( D ):
-        if extended and i > 2:
+        if extended and i >= nmax:
             break
         wid = 0
         K, TL = entry['K'], entry['TL']
@@ -61,5 +66,7 @@ if __name__ == "__main__":
         default="./hiscores.dict" )
     argparser.add_argument ( '-x', '--extended', action="store_true",
         help="extended info" )
+    argparser.add_argument ( '-n', '--nmax', type=int, default=None,
+        help="print maximally this number of entries [None]" )
     args = argparser.parse_args()
-    summarizeHiscores ( args.hiscores, args.extended )
+    summarizeHiscores ( args.hiscores, args.extended, args.nmax )
