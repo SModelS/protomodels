@@ -22,7 +22,10 @@ class LoggerBase:
         else:
             self.module = module[p1+1:]
         if not os.path.exists ( self.logdir ):
-            os.mkdir ( self.logdir )
+            try:
+                os.mkdir ( self.logdir )
+            except FileExistsError as e:
+                pass
 
     def error ( self, *args ):
         self.highlight ( "error", *args )
