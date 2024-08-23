@@ -673,7 +673,7 @@ class Manipulator ( LoggerBase ):
                 protomodel.pprint ( f"when attempting to normalize: total BR ({pid}) is zero. we need to take out {pid}." )
                 ## we need to freeze also <pid> now
                 ## (since we have no sensible channels anymore)
-                self.freezeParticle ( pid )
+                self.freezeParticle ( pid, force=True )
             return
 
         if abs(BRtot-1.0) < 1e-4:
