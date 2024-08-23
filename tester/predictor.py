@@ -375,6 +375,10 @@ class Predictor ( LoggerBase ):
 
     def computeSignificance(self, protomodel, predictions, strategy):
         """ compute the K and TL values, and attach them to the protomodel """
+        if len ( predictions ) == 0:
+            protomodel.K = None
+            protomodel.TL = None
+            return
 
         self.log ( f"now find combo with highest TL given {len(predictions)} predictions" )
         ## find highest observed significance
