@@ -39,7 +39,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
                 sparticles += ", "
             name = SParticleNames( False).asciiName(p)
             mass = entry["masses"][p]
-            sparticles += f"{name}={mass:.1f}"
+            sparticles += f"{ansi.CYAN}{name}{ansi.RESET}={mass:.1f}"
         timestamp = ""
         if "timestamp" in entry:
             timestamp = entry["timestamp"]
