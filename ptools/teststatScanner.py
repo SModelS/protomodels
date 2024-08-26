@@ -126,7 +126,7 @@ class TeststatScanner ( LoggerBase ):
             self.pprint ()
             modelpointfile = self.getModelPointFile ( m )
             with open ( modelpointfile, "wt" ) as f:
-                f.write ( f"{{ 'm': {m}, 'K': {model.K}, 'Z': {model.Z}, 'r': {model.rvalues}, 'timestamp': '{time.asctime()}', 'critics': {ret[m]['critics']} }}\n" )
+                f.write ( f"{{ 'm': {m}, 'K': {model.K}, 'TL': {model.TL}, 'r': {model.rvalues}, 'timestamp': '{time.asctime()}', 'critics': {ret[m]['critics']} }}\n" )
             if ctr % 10 == 0:
                 self.writePickleFile() # fixme wont do that so often
         return ret
@@ -161,7 +161,7 @@ class TeststatScanner ( LoggerBase ):
         ret = {}
         model.delXSecs()
         predictor.predict ( model )
-        self.pprint ( f"#{i}: before we begin, Z is {model.Z:.3f}" )
+        self.pprint ( f"#{i}: before we begin, TL is {model.TL:.3f}" )
 
         for ctr,ssm in enumerate(ssmrange):
             # fname = model.createNewSLHAFileName ( prefix = f"ssm{i}p{pids[0]}{pids[1]}{ssm:.2f}" )
@@ -172,7 +172,7 @@ class TeststatScanner ( LoggerBase ):
             predictor.predict ( ma.M, keep_predictions = True )
             self.pprint ( f"#{i}: we change the ssm from {ssmold:.3f} to {ssm:.3f}" )
             self.pprint ( f"#{i}: start with {ctr}/{len(ssmrange)}, ssm={ssm:.2f}" )
-            self.pprint ( f"#{i}:   `- K({ssm:.3f})={ma.M.K:.3f} Z={ma.M.Z:.3f}" )
+            self.pprint ( f"#{i}:   `- K({ssm:.3f})={ma.M.K:.3f} TL={ma.M.TL:.3f}" )
             # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
             mssm = ma.M.muhat*ssm
             ret[ssm]={ "TL": ma.M.TL, "r": ma.M.rvalues, 
