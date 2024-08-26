@@ -41,7 +41,7 @@ class Combiner ( LoggerBase ):
         return pids
 
     def getAllPidsOfTheoryPred ( self, theorypred ):
-        print ( "FIXME this method is obsolete, call ptools.helpers.getAllPidsOfTheoryPred directly!!" )
+        print ( "FIXME the method combiner.getAllPidsOfTheoryPred is obsolete, call ptools.helpers.getAllPidsOfTheoryPred directly!!" )
         return getAllPidsOfTheoryPred (theorypred )
 
     def getAnaIdsWithPids ( self, combo, pids ):
