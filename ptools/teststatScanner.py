@@ -277,6 +277,10 @@ class TeststatScanner ( LoggerBase ):
         mdict["mass"] = mass
         values = {}
         for f in files:
+            if os.stat ( f ).st_size == 0:
+                self.warn ( f"{f} is an empty file!!" )
+                os.unlink ( f )
+                continue
             with open ( f, "rt" ) as h:
                 r = eval ( h.read() )
                 values[ r["m"] ] = r
