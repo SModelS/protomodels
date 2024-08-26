@@ -20,6 +20,7 @@ from ptools.sparticleNames import SParticleNames
 matplotlib.rcParams['hatch.linewidth'] = .5  # previous svg hatch linewidth
 from protomodels.base.loggerbase import LoggerBase
 from protomodels.tester.combiner import Combiner
+from ptools.helpers import getAllPidsOfTheoryPred
 from typing import Dict, Tuple, Union
 
 def findMin ( oldZ ):
@@ -494,7 +495,7 @@ class LlhdPlot ( LoggerBase ):
             if tpred.dataId() in [ "None", None ]:
                 dType = "ul"
             name = name + ":" + dType
-        pids = self.combiner.getAllPidsOfTheoryPred ( tpred )
+        pids = getAllPidsOfTheoryPred ( tpred )
         for pid in pids:
             if pid == LSP:
                 continue
