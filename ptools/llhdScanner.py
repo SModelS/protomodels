@@ -18,6 +18,7 @@ from smodels.base.runtime import nCPUs
 from smodels.matching.theoryPrediction import TheoryPrediction
 from tester.combiner import Combiner
 from tester.predictor import Predictor
+from tester.critic import Critic
 from plotting import plotLlhds
 from typing import Dict, Tuple, Union, List
 from ptools.sparticleNames import SParticleNames
@@ -45,30 +46,27 @@ def findPids ( rundir ):
 
 class LlhdThread ( LoggerBase ):
     """ one thread of the sweep """
-    def __init__ ( self, threadnr: int, rundir: str,
-                   protomodel, xvariable, yvariable,
-                   mxvariable : float, myvariable : float, 
-                   nevents: int, predictor : Predictor, picklefile : str,
-                   topo : str ):
+    def __init__ ( self, threadnr: int, obj ):
         """ the constructor. 
         """
         super ( LlhdThread, self ).__init__ ( threadnr )
-        self.rundir = setup( rundir )
-        yname = moreHelpers.shortYVarName( yvariable )
+        self.rundir = setup( obj.rundir )
+        yname = moreHelpers.shortYVarName( obj.yvariable )
         self.resultsdir = f"{self.rundir}/llhds_{namer.asciiName(xvariable)}{yname}/"
-        self.topo = topo
-        self.threadnr = threadnr
-        self.picklefile = picklefile
-        self.M = copy.deepcopy ( protomodel )
+        self.topo = obj.topo
+        self.threadnr = obj.threadnr
+        self.picklefile = obj.picklefile
+        self.M = copy.deepcopy ( obj.protomodel )
         self.origmasses = copy.deepcopy ( self.M.masses )
         self.origssmultipliers = copy.deepcopy ( self.M.ssmultipliers )
         self.M.createNewSLHAFileName ( prefix=f"lthrd{threadnr}_{xvariable}" )
-        self.xvariable = xvariable
-        self.yvariable = yvariable
-        self.mxvariable = mxvariable
-        self.myvariable = myvariable
-        self.nevents = nevents
-        self.predictor = predictor
+        self.xvariable = obj.xvariable
+        self.yvariable = obj.yvariable
+        self.mxvariable = obj.mxvariable
+        self.myvariable = obj.myvariable
+        self.nevents = obj.nevents
+        self.predictor = obj.predictor
+        self.critic = obj.critic
         self.mkResultsDir()
 
     def getDefaultDictionary ( self ):
@@ -349,12 +347,11 @@ class LlhdThread ( LoggerBase ):
                 self.addNewPoint ( point ) ## add the point
         return masspoints
 
-def runThread ( threadid: int, rundir: str, M, xvariable, yvariable, mxvariable,
-                myvariable, nevents: int, rxvariable, ryvariable, predictor, 
-                return_dict, picklefile, topo ):
+def runThread ( threadid: int, obj, rxvariable, ryvariable, 
+        return_dict : Union[Dict,None] = None ):
     """ the method needed for parallelization to work """
-    thread = LlhdThread ( threadid, rundir, M, xvariable, yvariable, mxvariable, 
-                          myvariable, nevents, predictor, picklefile, topo )
+
+    thread = LlhdThread ( threadid, obj )
     newpoints = thread.run ( rxvariable, ryvariable )
     if return_dict != None:
         return_dict[threadid]=newpoints
@@ -384,6 +381,8 @@ class LlhdScanner ( LoggerBase ):
         self.nproc = nproc
         self.skip_production = skip_production
         self.predictor = Predictor ( 0, dbpath=dbpath, 
+                select=select, do_srcombine = do_srcombine )
+        self.critic = Critic ( 0, dbpath=dbpath, 
                 select=select, do_srcombine = do_srcombine )
         self.pprint ( f"self.predictor = Predictor ( 0, dbpath='{dbpath}', select='{select}', do_srcombine = {do_srcombine} )" )
 
@@ -427,17 +426,14 @@ class LlhdScanner ( LoggerBase ):
             return
                 
         if self.nproc == 1:
-            return runThread ( 0, self.rundir, self.M, self.xvariable, \
-                    self.yvariable, self.mxvariable, self.myvariable, \
-                    self.nevents, rxvariable, ryvariable, self.predictor, None, \
-                    self.picklefile, self.topo )
+            return runThread ( 0, self, rxvariable, ryvariable )
         chunkedRxvariable = [ list(rxvariable[i::self.nproc]) for i in range(self.nproc) ]
         processes = []
         manager = multiprocessing.Manager()
         return_dict=manager.dict()
         for ctr,chunk in enumerate(chunkedRxvariable):
             self.M.walkerid = 2000+ctr
-            p = multiprocessing.Process ( target = runThread, args = ( ctr, self.rundir, self.M, self.xvariable, self.yvariable, self.mxvariable, self.myvariable, self.nevents, chunk, ryvariable, self.predictor, return_dict, self.picklefile, self.topo ) )
+            p = multiprocessing.Process ( target = runThread, args = ( ctr, self, chunk, ryvariable, return_dict ) )
             p.start()
             processes.append ( p )
 
@@ -497,9 +493,7 @@ class LlhdScanner ( LoggerBase ):
         self.predictor.filterForTopos ( topo )
         self.M.walkerid = 2000
 
-        thread0 = LlhdThread ( 0, self.rundir, self.M, self.xvariable, 
-                self.yvariable, self.mxvariable, self.myvariable, self.nevents, 
-                self.predictor, self.picklefile, self.topo )
+        thread0 = LlhdThread ( 0, self )
         thread0.ntotal = len(rxvariable)*len(ryvariable)+1
         thread0.writeRunMeta()
         if not thread0.hasResultsForPoint ( self.mxvariable, self.myvariable ):
