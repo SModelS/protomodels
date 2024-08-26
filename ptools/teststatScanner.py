@@ -111,13 +111,13 @@ class TeststatScanner ( LoggerBase ):
             if self.args['dry_run']:
                 self.pprint ( f"#{i}: dry-run, not doing anything" )
                 ret[m]["K"] = 0.
-                ret[m]["Z"] = 0.
+                ret[m]["TL"] = 0.
                 ret[m]["r"] = [ 0, 0, 0 ]
                 ret[m]["critics"] = []
             else:
                 _ = predictor.predict ( model, keep_predictions = True )
                 ret[m]["K"] = model.K
-                ret[m]["Z"] = model.Z
+                ret[m]["TL"] = model.TL
                 ret[m]["r"] = model.rvalues
                 ret[m]["critics"] = self.createCriticResults ( model )
             print ()
@@ -175,7 +175,7 @@ class TeststatScanner ( LoggerBase ):
             self.pprint ( f"#{i}:   `- K({ssm:.3f})={ma.M.K:.3f} Z={ma.M.Z:.3f}" )
             # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
             mssm = ma.M.muhat*ssm
-            ret[ssm]={ "Z": ma.M.Z, "r": ma.M.rvalues, 
+            ret[ssm]={ "TL": ma.M.TL, "r": ma.M.rvalues, 
                 "K": ma.M.K,"muhat": ma.M.muhat }
             ret[ssm]["critics"] = self.createCriticResults ( ma.M )
             #if False : # os.exists ( fname ):
@@ -666,6 +666,7 @@ if __name__ == "__main__":
     args.pid = namer.pid ( args.pid )
     ## allow also eg Xt as pid name
     scanner = TeststatScanner( args )
+    logger = LoggerBase ( 0 )
     pids = args.pid
     if pids == 0:
         allpids = scanner.findPids( )
@@ -675,6 +676,9 @@ if __name__ == "__main__":
             scanner.produceSSMs( args.pid, args.pid2 )
         else:
             scanner.produce( pids )
+    else:
+        logger.warn ( f"no --produce was given, skipping production" )
+        
     if args.draw:
         if args.pid != 0:
             scanner.draw( pids, args.interactive, pid2 = args.pid2 )
