@@ -6,8 +6,11 @@ __all__ = [ "LlhdScanner" ]
 
 import os, sys, multiprocessing, time, numpy, subprocess, copy, glob
 import pickle, random, shutil
-from protomodels.csetup import setup
-setup()
+try:
+    from protomodels.csetup import setup
+    setup()
+except ModuleNotFoundError as e:
+    pass
 from smodels.tools.wrapperBase import WrapperBase
 WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 from smodels.base.physicsUnits import fb
