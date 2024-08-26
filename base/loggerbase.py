@@ -30,6 +30,9 @@ class LoggerBase:
     def error ( self, *args ):
         self.highlight ( "error", *args )
 
+    def warn ( self, *args ):
+        self.highlight ( "warn", *args )
+
     def info ( self, *args ):
         """ logging to file, but also write to screen """
         self.log ( *args )
