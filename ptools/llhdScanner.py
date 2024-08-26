@@ -413,9 +413,7 @@ class LlhdScanner ( LoggerBase ):
             sys.exit()
         random.shuffle ( rxvariable )
         mask = []
-        thread = LlhdThread ( 0, self.rundir, self.M, self.xvariable, 
-                self.yvariable, self.mxvariable, self.myvariable, self.nevents,
-                self.predictor, self.picklefile, self.topo )
+        thread = LlhdThread ( 0, self )
         for rxv in rxvariable:
             hasMissing = False
             for rxy in ryvariable:
