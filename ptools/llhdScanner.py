@@ -52,14 +52,14 @@ class LlhdThread ( LoggerBase ):
         super ( LlhdThread, self ).__init__ ( threadnr )
         self.rundir = setup( obj.rundir )
         yname = moreHelpers.shortYVarName( obj.yvariable )
-        self.resultsdir = f"{self.rundir}/llhds_{namer.asciiName(xvariable)}{yname}/"
+        self.resultsdir = f"{self.rundir}/llhds_{namer.asciiName(obj.xvariable)}{yname}/"
         self.topo = obj.topo
-        self.threadnr = obj.threadnr
+        self.threadnr = threadnr
         self.picklefile = obj.picklefile
-        self.M = copy.deepcopy ( obj.protomodel )
+        self.M = copy.deepcopy ( obj.M )
         self.origmasses = copy.deepcopy ( self.M.masses )
         self.origssmultipliers = copy.deepcopy ( self.M.ssmultipliers )
-        self.M.createNewSLHAFileName ( prefix=f"lthrd{threadnr}_{xvariable}" )
+        self.M.createNewSLHAFileName ( prefix=f"lthrd{self.threadnr}_{obj.xvariable}" )
         self.xvariable = obj.xvariable
         self.yvariable = obj.yvariable
         self.mxvariable = obj.mxvariable
@@ -211,6 +211,7 @@ class LlhdThread ( LoggerBase ):
         if hasattr ( self.predictor, "predictions" ):
             del self.predictor.predictions
         worked = self.predictor.predict ( self.M, keep_predictions = True )
+        cr = self.critic.predict_critic ( self.M, keep_predictions = True )
         
         ## now get the likelihoods
         llhds={}
@@ -224,7 +225,9 @@ class LlhdThread ( LoggerBase ):
         del self.predictor.predictions
         self.M.delCurrentSLHA()
         critics={}
-        for critic in self.M.critic_description.split(","):
+        p1 = self.M.critic_description.find ( "Datasets: " )
+        datasets = self.M.critic_description[p1+10:]
+        for critic in datasets.split(","):
             tokens = critic.split(":")
             if len(tokens)>1:
                 critics[tokens[0]]=float(tokens[1])

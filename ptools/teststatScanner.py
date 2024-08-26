@@ -31,7 +31,8 @@ class TeststatScanner ( LoggerBase ):
         self.args = vars(args)
         # get the standard rthreshold
         pred = Predictor( 0, do_srcombine = True, dbpath = self.args['dbpath'] )
-        self.rthreshold = pred.rthreshold
+        self.warn ( f"setting the r threshold arbitrarily to 1.56" )
+        self.rthreshold = 1.56
         self.rundir = setup ( self.args["rundir"] )
         self.resultsdir = f"{self.rundir}/M{namer.asciiName(args.pid)}"
         self.mkResultDir()
