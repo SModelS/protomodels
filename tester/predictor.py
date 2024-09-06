@@ -384,12 +384,14 @@ class Predictor ( LoggerBase ):
         ## find highest observed significance
         #(set mumax just slightly below its value, so muhat is always below)
         # mumax = protomodel.mumax
-        bestCombo,TL,muhat = self.combiner.findHighestSignificance ( predictions, expected=False )   #, mumax = mumax
+        bestCombo,TL,muhat = self.combiner.findHighestSignificance ( predictions, expected=False )
 
-        ## normalize again
+        ## DONT normalize here! rescaling by muhat is done in randomwalker predict function!
+        '''
         ma = Manipulator ( protomodel )
         ma.rescaleSignalBy ( muhat )
         muhat = 1.
+        '''
 
         if hasattr ( protomodel, "keep_meta" ) and protomodel.keep_meta:
             protomodel.bestCombo = bestCombo
