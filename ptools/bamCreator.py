@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import numpy as np
 try:
     import pathfinder as pf
@@ -51,7 +52,10 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction], bound: float
 
         ratioList = {k:v for k,v in sorted(ratioList.items(), key=lambda item:item[1], reverse=True)}
         signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= (bound/100.) ]
-
+        
+        if len(signPreds) == 0:
+            pred = list(ratioList.keys())[0]
+            signPreds.append(pred)
         if len(signPreds) == 1:
             secondPred = list(ratioList.keys())[1]
             signPreds.append(secondPred)
@@ -132,6 +136,7 @@ def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
 
     weight_array = np.array([item for _, item in weight.items()])
     order = np.argsort(weight_array)[::-1]
+    
     return {'bam': bam[order, :][:, order],
             'weights': weight_array[order],
             'labels': [columns_labels[i] for i in order]}
@@ -151,22 +156,22 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     """
     if len(weights)==0:
         return {}
-    # weights -= 1                                                #check later when decided
-    # offset = 0.0
-    # if min(weights) < 0.0:
-    #     offset = abs(min(weights)) + 1
-    # bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights + offset)
-    bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights, allow_negative_weights=True)
+    # weights -= 1
+    offset = 0.0
+    if min(weights) < 0.0:
+        offset = abs(min(weights)) + 1          #dont allow for any negative weights
+
+    bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights + offset, allow_negative_weights=False)
     results = {}
     if sort_bam:
-        results['order'] = bam.sort_bam_by_weight()             #?? sorting because weights changed, how do use order again?
-    # whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
+        results['order'] = bam.sort_bam_by_weight()
+        
     whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
     whdfs.find_paths(verbose=False, runs=50)
+
     results['path'] = whdfs.best.path
-    # results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset) + 1.0     # Do not reweight here, it also used by the most sensitive combination
-    results['weight'] = whdfs.best.weight
-    # results['offset'] = offset
+    results['weight'] = whdfs.best.weight - (len(whdfs.best.path) * offset)         #remove offset from final best weight
+
     return results
 
 
@@ -180,10 +185,10 @@ def find_best_comb(bam_weight_dict: Dict) -> Dict[str, float]:
     Returns:
         Dict[str, float, int]: Dictionary of list of best srs and corresponding weight for the given bam_weight_dict
     """
+    bam_wgths = get_bam_weight(bam_weight_dict['bam'], bam_weight_dict['weights'])                #get bam and corresponding weights
+    temp_res = get_best_set(bam_wgths['bam'], bam_wgths['weights'], bam_wgths['labels'])          #get best path for bam and weight
+    best_labels = [bam_wgths['labels'][p] for p in temp_res['path']]                              #get corresponding srs in best path
 
-    bam_wgths = get_bam_weight(bam_weight_dict['bam'], bam_weight_dict['weights'])                #get bam and corresponfding weights
-    temp_res = get_best_set(bam_wgths['bam'], bam_wgths['weights'])         #get best path for bam and weight
-    best_labels = [bam_wgths['labels'][p] for p in temp_res['path']]        #get corresponding srs in best path
 
     # result = {'best': best_labels, 'weight': temp_res['weight'], 'offset': temp_res['offset']}   #store labels and weight in dict
     result = {'best': best_labels, 'weight': temp_res['weight']}   #store labels and weight in dict
