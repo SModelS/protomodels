@@ -629,42 +629,42 @@ class Combiner ( LoggerBase ):
         :param predictions: all predictions of all SRs
         :returns: list of predictions of most significant SR of each analysis
         """
-        sortByAnaId = {}                             # first sort all by ana id + data Type
+        sortByAnaId = {}                            # first sort all by ana id + data Type
         for pred in predictions:
             Id = pred.analysisId()+":"+pred.dataType(True)
             if not Id in sortByAnaId:
                 sortByAnaId[Id]=[]
             sortByAnaId[Id].append ( pred )         #keep all em-type ds of one analysis under one key
-
         ret = []
         keptThese = [] ## log the ana ids that we kept, for debugging only.
         for Id,preds in sortByAnaId.items():
-            if len(preds) == 1:                 # If only 1 prediction, use it
-                ret.append( preds[0] )
-                keptThese.append ( preds[0].experimentalId() )   #self.getPredictionID ( pred )
-                continue
-
-            maxRatio, ratioList, signPreds = 0., {}, []
+            maxRatio, bestpred = 0., None
             for pred in preds:
-                l0 = pred.likelihood(mu=0,expected=False)
-                l1 = pred.likelihood(mu=1,expected=False)
-                ratio = - math.log(l0/l1)
-                ratioList[pred] = ratio
+                oul = pred.getUpperLimit(expected=False)
+                eul = pred.getUpperLimit(expected=True)
+                if oul is None or eul is None:
+                    continue
+                ratio = oul / eul
                 if ratio > maxRatio:
                     maxRatio = ratio
-
-            ratioList = {k:v for k,v in sorted(ratioList.items(), key=lambda item:item[1], reverse=True)}
-            # remove the bottom half, or comapre it to the maxRatio?
-            if maxRatio > 0.:
-                signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio > 0. ]
-            else:
-                signPreds = [pred for pred, ratio in ratioList.items() if (ratio/maxRatio - 0.) > 1e-05 ]   #???
-
-            ret = ret + signPreds
-            keptThese = keptThese + [pred.experimentalId() for pred in signPreds]
-
+                    bestpred = pred
+            if maxRatio > 0. and bestpred != None:
+                ret.append ( bestpred )
+                keptThese.append ( self.getPredictionID ( bestpred ) )
         self.pprint ( f"selected predictions down via SRs from {len(predictions)}"\
                       f" to {len(ret)}." )
+        debug = False ## print the selections in debug mode
+        if debug:
+            for ctr,i in enumerate(predictions):
+                ul,eul=i.getUpperLimit(),i.getUpperLimit(expected=True)
+                r=float("nan")
+                if type(eul) != type(None) and eul.asNumber(fb) > 0.:
+                    r = ( ul / eul ).asNumber()
+                didwhat = Fore.RED + "discarded"
+                pId = self.getPredictionID( i )
+                if pId in keptThese:
+                    didwhat = "kept     "
+                print(f" `- {didwhat}: #{ctr} {pId}: r={r:.2f}{Fore.RESET}")
         return ret
     '''
 
@@ -738,20 +738,26 @@ class Combiner ( LoggerBase ):
             ret *= l
         return ret
 
-    def getMostSignificantCombination(self, predictions : List[TheoryPrediction]) -> Tuple:
+    def getMostSignificantCombination(self, predictions : List[TheoryPrediction], use_pathfinder=True) -> Tuple:
         """
             Gets the most significant combination and its corresponding weight (-2 ln L0/L1 for the whole combination)
             given the list of theory predictions.
         """
         comb_dict = bamAndWeights(predictions, expected=False)        #get the true/false comb matrix, along with weights
         pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
+        
+        if use_pathfinder: most_significant_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
+ 
+        else:
+            from tester.alternate_pf import getBestComb
+            most_significant_comb_dict = getBestComb(predictions, expected=False)
 
-        most_significant_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
         comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
-
+        
+        #Add Jamie's penalty
         if len(comb_lbl)>1:
             weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
-
+        
         #from ptools.helpers import experimentalId
         #tpred_lbl = {experimentalId(tpred):tpred for tpred in predictions}
 
