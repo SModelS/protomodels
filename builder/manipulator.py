@@ -1288,7 +1288,7 @@ class Manipulator ( LoggerBase ):
 
         offshell = False
         if pid in [ 1000023, 1000024 ]:
-            # for C1 and N2 we want a 10% chance to start in the offshell regime
+            # for C1 and N2 we want a 10% chance to start in the offshell regime -> increase prob?
             p = random.uniform ( 0, 1 )
             if p < 0.1:
                 offshell = True
@@ -1457,6 +1457,22 @@ class Manipulator ( LoggerBase ):
                 self.pprint ( f"huh? we have a tmpmass of {pid} is {tmpmass} was at {self.M.masses[pid]} dx={dx} breaking off after {ctIterations} iterations" )
                 tmpmass = self.M.masses[pid]
                 break
+                
+        if pid in [ 1000023, 1000024 ]:
+            was_offshell, is_offshell = False, False
+            if pid == 1000023:
+                was_offshell = (self.M.masses[pid] - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
+                is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
+            if pid == 1000024:
+                was_offshell = (self.M.masses[pid] - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
+                is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
+            if was_offshell != is_offshell:
+                self.pprint ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
+                self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
+                self.M.masses[pid]=tmpmass
+                self.initBranchings[pid]
+                return 1
+                
         self.pprint ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
         self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
         self.M.masses[pid]=tmpmass
