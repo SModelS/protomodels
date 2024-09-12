@@ -17,7 +17,7 @@ import smodels
 import copy, os, sys, itertools, colorama, random
 import numpy as np
 from colorama import Fore as ansi
-from typing import Union, Dict, List, Tuple, Set 
+from typing import Union, Dict, List, Tuple, Set
 from unum import Unum
 from base.loggerbase import LoggerBase
 from os import PathLike
@@ -27,12 +27,12 @@ class Manipulator ( LoggerBase ):
 
     # walledpids are particle ids that have a minimum mass requirement,
     # given as the values in the dictionary
-    walledpids = { 1000001 : 310, 1000002 : 310, 1000003 : 310, 1000004 : 310, 
+    walledpids = { 1000001 : 310, 1000002 : 310, 1000003 : 310, 1000004 : 310,
                    1000021 : 310, 1000023 : 20, 1000024 :  100, 1000037 : 100,
                    1000025 : 20 }
     ## forbiddenparticles are particle ids that we do not touch in this run
     forbiddenparticles = []
-    
+
     mass_W = 80.377
     mwidth_W = 0.012
     mass_Z = 91.1876
@@ -112,15 +112,15 @@ class Manipulator ( LoggerBase ):
                     pair = ( pid1, pid2 )
         return pair,dmin
 
-    
+
     def checkIfOffshell(self, protomodel, pid):
         offshell = False
         if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
         elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
         else: offshell = False
-        
+
         return offshell
-    
+
     def teleportToHiscore ( self ):
         """ without further ado, discard your current model and start
             fresh with the hiscore model. """
@@ -173,38 +173,38 @@ class Manipulator ( LoggerBase ):
         :param new_ssm: The input signal strength multipier
         :param sqrts: The sqrts at which the protomodel xsec needs to remain the same. Default is 13(TeV)
         """
-        
+
         model = self.M
         model_xsecs = model.getXsecs()[0]   #get all the protomodel xsec
         model_xs = 0.
         model_mass = 0.
-        
+
         if type(sqrts) == Unum: sqrts = sqrts.asNumber(TeV)
-        
+
         for xsec in model_xsecs:
             if (xsec.pid == pid_pair) and (xsec.info.sqrts.asNumber(TeV) - sqrts) <= 1e-07:  #get the protomodel xsec at pid_pair and sqrts
                 model_xs = xsec.value.asNumber(fb)
             else: return
-            
-        
+
+
         print("Model Xsec: ", model_xs)
         new_susy_xs = (model_xs/new_ssm)*fb         #the new susy xsec according to the new_ssm
         print("Susy Xsec: ", new_susy_xs)
-                
+
         from ptools.xsecFit import xsecFitter
         func = xsecFitter(pid_pair, sqrts)
-        
+
         model_mass = func.getValueFromFit(new_susy_xs, inverse=True)        #get the mass according to the new_susy_xsec from the xsecFitter
         if model_mass is None:
             print(f"No ref xsec available for {pid_pair}")
             return
         print("new mass: ", model_mass)
-        
+
         #update the protomodel's ssm and mass for the pid_pair
         model.ssmultipliers[pid_pair] = new_ssm
         if pid_pair[0] in model.masses: model.masses[pid_pair[0]] = model_mass.asNumber(GeV)
         else: model.masses[pid_pair[1]] = model_mass.asNumber(GeV)
-        
+
     def changeSSMAccToMass(self, pid_pair: Tuple, new_mass: Union[int, float, Unum], sqrts:Union[int,float,Unum] = 13):
         """
         Change signal strength multiplier of a protomodel pid_pair according to an input mass keeping the protomodel xsec
@@ -213,39 +213,39 @@ class Manipulator ( LoggerBase ):
         :param new_mass: The input mass
         :param sqrts: The sqrts at which the protomodel xsec needs to remain the same
         """
-        
+
         model = self.M
         model_mass = new_mass
-        
+
         if type(new_mass) is not Unum: model_mass = new_mass*GeV
         if type(sqrts) is Unum: sqrts = sqrts.asNumber(TeV)
-        
+
         from ptools.xsecFit import xsecFitter
         func = xsecFitter(pid_pair, sqrts)
-        
+
         susy_xs = func.getValueFromFit(model_mass, inverse=False)         #get the susy_xsec according to the new_mass from the xsecFitter
         if susy_xs is None:
             print(f"No ref xsec for {pid_pair} at mass {model_mass}")
             return
-        
+
         print("new susy xsec: ", susy_xs)
-        
+
         susy_xs = susy_xs.asNumber(fb)
         model_xsecs = model.getXsecs()[0]                                 #get all the protomodel xsec
         for xsec in model_xsecs:
             if (xsec.pid == pid_pair) and (xsec.info.sqrts.asNumber(TeV) - sqrts) <= 1e-07:  #get the protomodel xsec at pid_pair and sqrts
                 model_xs = xsec.value.asNumber(fb)
             else: return
-        
+
         new_ssm = (model_xs/susy_xs)        #the new_ssm according to the new_susy_xsec
         print("New SSM: ", new_ssm)
-        
+
         #update the protomodel's ssm and mass for the pid_pair
         model.ssmultipliers[pid_pair] = new_ssm
         if pid_pair[0] in model.masses: model.masses[pid_pair[0]] = model_mass.asNumber(GeV)
         else: model.masses[pid_pair[1]] = model_mass.asNumber(GeV)
 
-    
+
     def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict",
             cleanOut : bool = True, comment : str = "", appendMode : bool = False,
             ndecimals : int = 6 ) -> Dict:
@@ -537,7 +537,7 @@ class Manipulator ( LoggerBase ):
             print ( pidline )
 
     def printAllTheoryPredictions ( self, detailed : bool = False ):
-        """ pretty print all theory predictions for the model 
+        """ pretty print all theory predictions for the model
         :param detailed: if true, give more details
         """
         print ( "theory predictions:" )
@@ -564,8 +564,8 @@ class Manipulator ( LoggerBase ):
                 pidline += ( " ..." )
             print ( pidline )
 
-    def removeAllOffshell ( self, rescaleSSMs=False, protomodel = None ):
-        """ remove all offshell decays and decays of frozen particles. Renormalize all branchings """
+    def removeIllegalBRs ( self, rescaleSSMs=False, protomodel = None ):
+        """ remove all illegal decays and decays of frozen particles. Renormalize all branchings """
 
         if protomodel is None:
             protomodel = self.M
@@ -606,7 +606,7 @@ class Manipulator ( LoggerBase ):
 
         #Erase BRs (if any has been stored) for offshell too?
         protomodel.decays[pid] = {}
-        
+
         #Get the allowed decay channels:
         openChannels = self.M.getOpenChannels(pid)
         dkeys = set()
@@ -614,19 +614,19 @@ class Manipulator ( LoggerBase ):
             dk = self.M.decay_keys[pid][dpid]
             dkeys.add(dk)
         dkeys = list(dkeys)
-         
-        
+
+
         nitems = len(openChannels)
-        
+
         offshell = self.checkIfOffshell(protomodel, pid)
         #if pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
         #if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
-        
+
         for dk in dkeys:
             decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
             br = random.gauss ( 1. / nitems, np.sqrt ( .5 / nitems )  )
             br = max ( 0., br )
-            
+
             for dpid in decay_chan:
                 if offshell:
                     if pid == 1000023:
@@ -641,7 +641,7 @@ class Manipulator ( LoggerBase ):
                 else:
                     if len(dpid) == 3: protomodel.decays[pid][dpid] = 0.0  #turn off offshell 3 body decays
                     else: protomodel.decays[pid][dpid] = br
-        
+
         if offshell: return
 
         #Make sure there is at least one open channel:
@@ -948,7 +948,7 @@ class Manipulator ( LoggerBase ):
         for dpid in openChannels:
             dk = self.M.decay_keys[pid][dpid]
             dkeys.add(dk)
-        
+
         dkeys = list(dkeys)
 
         if len(openChannels) < 2:
@@ -970,13 +970,13 @@ class Manipulator ( LoggerBase ):
                 self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                 self.log ( f"changed decay of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
                 self.M.decays[pid].update({dpid: br})
-            
+
             return 1
 
         #Otherwise randomly change each channel(s) (based on the current BR)
         for dk in dkeys:
             oldbr = 0.
-            
+
             #Check if decay channel already existed:
             decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
             if decay_chan[0] in self.M.decays[pid]:
@@ -984,7 +984,7 @@ class Manipulator ( LoggerBase ):
 
             #Close channel(s) (with zeroBRprob probability)
             if oldbr > 0:
-                
+
                 uZero = random.uniform( 0., 1. )
                 if uZero < zeroBRprob:
                     for dpid in decay_chan:
@@ -1000,8 +1000,8 @@ class Manipulator ( LoggerBase ):
                 self.record ( f"change branchings of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                 self.log ( f"changed  branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
                 self.M.decays[pid][dpid] = br
-        
-        
+
+
         #Make sure there is at least one open channel:
         BRtot = sum(self.M.decays[pid].values())
         if BRtot == 0.0:
@@ -1013,8 +1013,8 @@ class Manipulator ( LoggerBase ):
                 self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                 self.log ( f"changed decay of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
                 self.M.decays[pid].update({dpid: br})
-           
-        
+
+
 
         #Make sure BRs add up to 1:
         self.normalizeBranchings(pid)
@@ -1255,7 +1255,7 @@ class Manipulator ( LoggerBase ):
             protomodel.ssmultipliers.pop(pids)
 
         #Fix branching ratios and rescale signal strenghts, so other channels are not affected
-        self.removeAllOffshell(rescaleSSMs=True, protomodel=protomodel)
+        self.removeIllegalBRs(rescaleSSMs=True, protomodel=protomodel)
         return 1
 
     def unFreezeParticle (self, pid, force = False, protomodel = None):
@@ -1327,7 +1327,7 @@ class Manipulator ( LoggerBase ):
         self.pprint ( f"Unfroze mass of {self.namer.asciiName(pid)} to "\
                       f"{protomodel.masses[pid]:.1f}" )
 
-      
+
         # Set branchings
         self.initBranchings(pid)
 
@@ -1391,16 +1391,16 @@ class Manipulator ( LoggerBase ):
                 if otherpid not in were_frozen: was_offshell = checkIfOffshell(self.M, otherpid)
                 self.M.masses[otherpid] = mass * random.uniform ( .99, 1.01 )
                 self.log ( f"mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" )
-                # FIXMEif the particle was frozen before, we need to unfreeze
+                # If the particle was frozen before, we need to unfreeze
                 if otherpid in were_frozen:
                     self.initBranchings(otherpid)
                     self.initSSMFor(otherpid)
                 #if otherpid was not offshell before but now is offshell and vice versa, initialize branchings
-                if checkIfOffshell(self.M, otherpid) != was_offshell: self.initBranchings(otherpid)
+                elif checkIfOffshell(self.M, otherpid) != was_offshell: self.initBranchings(otherpid)
                 self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
         #Fix branching ratios and rescale signal strenghts, so other channels are not affected
-        self.removeAllOffshell(rescaleSSMs=True)
+        self.removeIllegalBRs(rescaleSSMs=True)
 
         return ret
 
@@ -1438,7 +1438,7 @@ class Manipulator ( LoggerBase ):
             minMass = self.M.masses[self.M.LSP]
         if not maxMass:
             maxMass = self.M.maxMass
-        
+
         was_offshell, offshell = self.checkIfOffshell(self.M, pid), False
         if pid in [ 1000023, 1000024 ] and not was_offshell:
             # for C1 and N2 we want a 10% chance to move into the offshell region
@@ -1479,7 +1479,7 @@ class Manipulator ( LoggerBase ):
                 self.pprint ( f"huh? we have a tmpmass of {pid} is {tmpmass} was at {self.M.masses[pid]} dx={dx} breaking off after {ctIterations} iterations" )
                 tmpmass = self.M.masses[pid]
                 break
-                
+
         if pid in [ 1000023, 1000024 ]:
             if pid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
             if pid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
@@ -1489,7 +1489,7 @@ class Manipulator ( LoggerBase ):
                 self.M.masses[pid]=tmpmass
                 self.initBranchings[pid]
                 return 1
-                
+
         self.pprint ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
         self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
         self.M.masses[pid]=tmpmass
