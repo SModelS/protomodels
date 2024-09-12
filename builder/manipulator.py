@@ -112,6 +112,15 @@ class Manipulator ( LoggerBase ):
                     pair = ( pid1, pid2 )
         return pair,dmin
 
+    
+    def checkIfOffshell(self, protomodel, pid):
+        offshell = False
+        if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
+        elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
+        else: offshell = False
+        
+        return offshell
+    
     def teleportToHiscore ( self ):
         """ without further ado, discard your current model and start
             fresh with the hiscore model. """
@@ -609,9 +618,9 @@ class Manipulator ( LoggerBase ):
         
         nitems = len(openChannels)
         
-        offshell = False
-        if pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
-        if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
+        offshell = self.checkIfOffshell(protomodel, pid)
+        #if pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
+        #if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
         
         for dk in dkeys:
             decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
@@ -1293,7 +1302,8 @@ class Manipulator ( LoggerBase ):
             if p < 0.1:
                 offshell = True
                 self.log ( f"Unfreezing {self.namer.asciiName(pid)}, randomly chose to restrict to offshell mass!" )
-                maxMax = minMass + 90.
+                if pid == 1000023: maxMax = minMass + self.mass_Z + self.mwidth_Z
+                else: maxMax = minMass + self.mass_W + self.mwidth_W
 
         tmpMass = random.uniform ( minMass, maxMass )
         ctr = 0
@@ -1368,22 +1378,25 @@ class Manipulator ( LoggerBase ):
 
         ret = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass, maxMass=maxMass )
         if pid in [ 1000023, 1000024 ]:
-            # for C1 and N2, if one of the two gets changed, have a 10% that
-            # the other gets set to the same value
+            # for C1 and N2, if one of the two gets changed, have a 10% chance that the other gets set to the same value
             p=random.uniform(0,1)
+            offshell = self.checkIfOffshell(self.M, pid)
+            if offshell: p=random.uniform(0,0.5)        #SN: check if this makes sense?
             if p < .1:
                 mass = self.M.masses[pid]
                 otherpid = 1000024 if pid == 1000023 else 1000023
-                ## remember the frozen particles, so we can check
-                # if we just unfroze this guy
+                # remember the frozen particles, so we can check if we just unfroze this guy
                 were_frozen = self.M.frozenParticles()
+                was_offshell = False
+                if otherpid not in were_frozen: was_offshell = checkIfOffshell(self.M, otherpid)
                 self.M.masses[otherpid] = mass * random.uniform ( .99, 1.01 )
                 self.log ( f"mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" )
-                # FIXME if the particle was frozen before, we need to
-                # unfreeze
+                # FIXMEif the particle was frozen before, we need to unfreeze
                 if otherpid in were_frozen:
                     self.initBranchings(otherpid)
                     self.initSSMFor(otherpid)
+                #if otherpid was not offshell before but now is offshell and vice versa, initialize branchings
+                if checkIfOffshell(self.M, otherpid) != was_offshell: self.initBranchings(otherpid)
                 self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
         #Fix branching ratios and rescale signal strenghts, so other channels are not affected
@@ -1425,21 +1438,30 @@ class Manipulator ( LoggerBase ):
             minMass = self.M.masses[self.M.LSP]
         if not maxMass:
             maxMass = self.M.maxMass
+        
+        was_offshell, offshell = self.checkIfOffshell(self.M, pid), False
+        if pid in [ 1000023, 1000024 ] and not was_offshell:
+            # for C1 and N2 we want a 10% chance to move into the offshell region
+            p = random.uniform ( 0, 1 )
+            if p < 0.1:
+                offshell = True
+                self.log ( f"randomly chose {self.namer.asciiName(pid)} to restrict to offshell mass!" )
+                if pid == 1000023: maxMax = minMass + self.mass_Z + self.mwidth_Z
+                else: maxMax = minMass + self.mass_W + self.mwidth_W
+
         massIsLegal = False
         ctIterations = 0
         while not massIsLegal:
             ctIterations += 1
             massIsLegal = True
             tmpmass = self.M.masses[pid]+random.uniform(-dx,dx)
+            if offshell: tmpMass = random.uniform ( minMass, maxMass )
             # Enforce mass interval:
-            if pid in [ 1000006, 2000006 ] and \
-                    self.inCorridorRegion ( tmpmass, self.M.masses[self.M.LSP] ):
+            if pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpmass, self.M.masses[self.M.LSP] ):
                 massIsLegal = False
-            if pid == self.M.LSP and 1000006 in self.M.masses and \
-                    self.inCorridorRegion ( self.M.masses[1000006], tmpmass ):
+            if pid == self.M.LSP and 1000006 in self.M.masses and self.inCorridorRegion ( self.M.masses[1000006], tmpmass ):
                 massIsLegal = False
-            if pid == self.M.LSP and 2000006 in self.M.masses and \
-                    self.inCorridorRegion ( self.M.masses[2000006], tmpmass ):
+            if pid == self.M.LSP and 2000006 in self.M.masses and self.inCorridorRegion ( self.M.masses[2000006], tmpmass ):
                 massIsLegal = False
             if tmpmass > maxMass: ## check again if we are legal
                 # tmpmass = maxMass-1.0
@@ -1459,14 +1481,9 @@ class Manipulator ( LoggerBase ):
                 break
                 
         if pid in [ 1000023, 1000024 ]:
-            was_offshell, is_offshell = False, False
-            if pid == 1000023:
-                was_offshell = (self.M.masses[pid] - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
-                is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
-            if pid == 1000024:
-                was_offshell = (self.M.masses[pid] - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
-                is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
-            if was_offshell != is_offshell:
+            if pid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
+            if pid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
+            if was_offshell != is_offshell:     #initialize branchings
                 self.pprint ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
                 self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
                 self.M.masses[pid]=tmpmass
