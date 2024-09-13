@@ -23,7 +23,7 @@ def getJsonFileName(dset: DataSet) -> str:
 
     jsonFileDict = dset.globalInfo.jsonFiles
     dsId = [ds.getID() for ds in dset._datasets]            #get the dataset ids in the combined dataset dset
-    
+
     for file, dslist in jsonFileDict.items():
         for ds in dslist:
             if ds['smodels'] in dsId:                               #check which json file has the corresponding datasets
@@ -155,7 +155,7 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None ) -> f
     exp = dataset.dataInfo.expectedBG
     err = dataset.dataInfo.bgError
     if obsN is None:
-        obs = dataset.dataInfo.observedN
+        obsN = dataset.dataInfo.observedN
     thirdMoment = None
     if hasattr ( dataset.dataInfo, "thirdMoment" ):
         thirdMoment = dataset.dataInfo.thirdMoment
