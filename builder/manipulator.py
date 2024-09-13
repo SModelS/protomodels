@@ -1487,7 +1487,7 @@ class Manipulator ( LoggerBase ):
                 self.pprint ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
                 self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
                 self.M.masses[pid]=tmpmass
-                self.initBranchings[pid]
+                self.initBranchings(pid)
                 return 1
 
         self.pprint ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
