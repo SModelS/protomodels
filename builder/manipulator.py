@@ -1388,7 +1388,7 @@ class Manipulator ( LoggerBase ):
                 # remember the frozen particles, so we can check if we just unfroze this guy
                 were_frozen = self.M.frozenParticles()
                 was_offshell = False
-                if otherpid not in were_frozen: was_offshell = checkIfOffshell(self.M, otherpid)
+                if otherpid not in were_frozen: was_offshell = self.checkIfOffshell(self.M, otherpid)
                 self.M.masses[otherpid] = mass * random.uniform ( .99, 1.01 )
                 self.log ( f"mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" )
                 # If the particle was frozen before, we need to unfreeze
@@ -1396,7 +1396,7 @@ class Manipulator ( LoggerBase ):
                     self.initBranchings(otherpid)
                     self.initSSMFor(otherpid)
                 #if otherpid was not offshell before but now is offshell and vice versa, initialize branchings
-                elif checkIfOffshell(self.M, otherpid) != was_offshell: self.initBranchings(otherpid)
+                elif self.checkIfOffshell(self.M, otherpid) != was_offshell: self.initBranchings(otherpid)
                 self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
         #Fix branching ratios and rescale signal strenghts, so other channels are not affected
