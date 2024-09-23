@@ -199,7 +199,7 @@ class SParticleNames:
             html = html[:m.start()]+"<sub>"+repl+"</sub>"+html[m.end():]
 
         while True:
-            m = re.search ( "\^{[0-9&;A-Za-z-+]*}", html)
+            m = re.search ( r"\^{[0-9&;A-Za-z-+]*}", html)
             if m == None:
                 break
             repl = html[m.start()+2:m.end()-1]
