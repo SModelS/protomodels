@@ -743,6 +743,7 @@ class Combiner ( LoggerBase ):
             Gets the most significant combination and its corresponding weight (-2 ln L0/L1 for the whole combination)
             given the list of theory predictions.
         """
+        self.log(f"Finding most significant combination for {len(predictions)}")
         comb_dict = bamAndWeights(predictions, expected=False)        #get the true/false comb matrix, along with weights
         pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
         
@@ -754,9 +755,9 @@ class Combiner ( LoggerBase ):
 
         comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
         
-        #Add Jamie's penalty
-        if len(comb_lbl)>1:
-            weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
+        #Removing Jamie's penalty for now
+        #if len(comb_lbl)>1:
+        #    weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
         
         #from ptools.helpers import experimentalId
         #tpred_lbl = {experimentalId(tpred):tpred for tpred in predictions}
@@ -774,6 +775,7 @@ class Combiner ( LoggerBase ):
             Gets the most sensitive combination and its corresponding weight (-2 ln L1/L0 (expected likelihoods) for the whole combination)
             given the list of theory predictions.
         """
+        self.log(f"Finding most sensitive combination for {len(predictions)}")
         comb_dict = bamAndWeights(predictions, expected=True, excl_mode=True)        #get the true/false comb matrix, along with weights
         pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
 

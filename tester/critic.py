@@ -136,13 +136,11 @@ class Critic ( LoggerBase ):
         return
 
 
-    def runSModelS(self, inputFile : PathLike, combineSRs : bool, sigmacut : float, allpreds : bool, ULpreds : bool, maxcond : float = 0.2 ) -> List[TheoryPrediction]:
+    def runSModelS(self, inputFile : PathLike, combineSRs : bool, ULpreds: bool, sigmacut : float, maxcond : float = 0.2 ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
-        :param sigmacut: the cut on the topology weights, typically 0.02*fb
-        :param allpreds: if true, return all predictions of analyses, else
-                         only best signal region
         :param ULpreds: if true, also returns the list of theory predictions for UL-type results
+        :param sigmacut: the cut on the topology weights, typically 0.02*fb
         :param maxcond: maximum relative violation of conditions for valid results
 
         :returns: list of all theory predictions
@@ -164,18 +162,7 @@ class Critic ( LoggerBase ):
                 raise e
 
         mingap=10*GeV
-
-        # self.log ( "Now decomposing" )
         topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
-        #self.log ( f"decomposed model into {len(topos)} topologies." )
-
-
-        if allpreds:
-            bestDataSet=False
-        else:
-            bestDataSet=True
-
-        # self.log ( "start getting preds" )
         if False:
             from smodels.base import runtime
             runtime._experimental = True
@@ -184,7 +171,7 @@ class Critic ( LoggerBase ):
         predictions = []
         ulpreds = []
 
-        theoryPredictions = theoryPredictionsFor ( self.database, topos, useBestDataset=bestDataSet, combinedResults=combineSRs )
+        theoryPredictions = theoryPredictionsFor ( self.database, topos, useBestDataset=True, combinedResults=combineSRs )
         preds = TheoryPredictionList(theoryPredictions, maxcond)
 
         if preds != None:
@@ -193,7 +180,7 @@ class Critic ( LoggerBase ):
                     ulpreds.append ( pred )
                     continue
                 datasetPreds.append ( pred )
-
+        
         for pred in datasetPreds:
             if pred.dataType() == "combined":
                 predictions.append ( pred )
@@ -202,20 +189,10 @@ class Critic ( LoggerBase ):
             if pred.dataset.globalInfo.id in combinedIds:
                 continue
             predictions.append ( pred )
-
-        # sap = "best preds"
-        # if allpreds:
-        #     sap = "all preds"
-        # sllhd = ""
-        # if ULpreds:
-        #     sllhd = ", with UL preds"
-        # self.log( f"For critics: returning {len(predictions)} predictions, {sap}{sllhd}" )
-
         if ULpreds:
             return ulpreds, predictions
-        else:
-            return predictions
-
+        
+        return predictions
 
     def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, keep_predictions : bool = True, keep_slhafile : bool = False ):
         """ Compute the critic predictions and statistical variables, for a protomodel.
@@ -233,7 +210,7 @@ class Critic ( LoggerBase ):
         # --- UL-based critic ---
 
         # Run SModelS to get for UL-type predictions, and best SR preditcions if no UL-type result.
-        UL_preds, bestSR_preds = self.runSModelS( slhafile, combineSRs=False, sigmacut=sigmacut, allpreds=False, ULpreds=True )
+        UL_preds, bestSR_preds = self.runSModelS( slhafile, combineSRs=False, ULpreds=True, sigmacut=sigmacut)
 
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
@@ -254,7 +231,7 @@ class Critic ( LoggerBase ):
 
         # --- llhd-based critic ---
 
-        predictions = self.runSModelS( slhafile, combineSRs=True, sigmacut=sigmacut, allpreds=False, ULpreds=False )
+        predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut )
 
         allowed_by_llhd_critic, mostSensiComb, robsComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
 
@@ -271,9 +248,10 @@ class Critic ( LoggerBase ):
         # protomodel.mumax = self.getMaxAllowedMu(protomodel)
 
         if allowed_by_llhd_critic:
+            self.log(f"Model passed llhd-based critic with critic robs = {robsComb}.")
             return True
         else:
-            self.info("Model failed llhd-based critic.")
+            self.info(f"Model failed llhd-based critic with critic robs = {robsComb}.")
             return False
 
 
@@ -284,10 +262,10 @@ class Critic ( LoggerBase ):
         predictions = []
         set_ids = set ()
 
-        for pred in pred_list_1:
-                predictions.append ( pred )
-                set_ids.add ( pred.dataset.globalInfo.id )
-        for pred in pred_list_2:
+        for pred in pred_list_1:    #Ul preds
+            predictions.append ( pred )
+            set_ids.add ( pred.dataset.globalInfo.id )
+        for pred in pred_list_2:    #best SR preds
             id = pred.dataset.globalInfo.id
             for ext in ['agg','ma5','ewk','strong','hino','multibin','exclusive','incl','adl','eff']:
                 id = id.replace(f'-{ext}','')
@@ -331,7 +309,7 @@ class Critic ( LoggerBase ):
             max_allowed += 1
 
         protomodel.critic_description = f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}. "
-
+        self.log(f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}")
         return max_allowed >= n_excluding
 
 
@@ -359,9 +337,9 @@ class Critic ( LoggerBase ):
 
         if keep_predictions:
             self.llhd_critic_preds = EMpreds
-
+        self.log( f"Found {len(EMpreds)} llhd-based critic predictions." )
         r = None
-        best_comb, weight = self.combiner.getMostSensitiveCombination(predictions)
+        best_comb, _ = self.combiner.getMostSensitiveCombination(predictions)
         if best_comb:
             tpCombiner = TheoryPredictionsCombiner(best_comb)
             r = tpCombiner.getRValue(expected=False)

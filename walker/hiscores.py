@@ -222,10 +222,10 @@ class Hiscores ( LoggerBase ):
         :param ma: the manipulator object
         :returns: true, if result was added
         """
-        if ma.M.K <= self.currentMinK( zeroIsMin = True ):
+        if ma.M.K <= self.currentMinK():        #SN: removed zeroIsMin for now
             return False ## doesnt pass minimum requirement
-        if ma.M.K == 0.:
-            return False ## just to be sure, should be taken care of above, though
+        #if ma.M.K == 0.:
+        #    return False ## just to be sure, should be taken care of above, though
 
         # Kold = self.globalMaxK()
         Kmin = self.globalMinK()

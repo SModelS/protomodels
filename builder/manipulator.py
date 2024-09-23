@@ -619,8 +619,6 @@ class Manipulator ( LoggerBase ):
         nitems = len(openChannels)
 
         offshell = self.checkIfOffshell(protomodel, pid)
-        #if pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
-        #if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
 
         for dk in dkeys:
             decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
@@ -1396,7 +1394,8 @@ class Manipulator ( LoggerBase ):
                     self.initBranchings(otherpid)
                     self.initSSMFor(otherpid)
                 #if otherpid was not offshell before but now is offshell and vice versa, initialize branchings
-                elif self.checkIfOffshell(self.M, otherpid) != was_offshell: self.initBranchings(otherpid)
+                else: 
+                    if self.checkIfOffshell(self.M, otherpid) != was_offshell: self.initBranchings(otherpid)
                 self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
         #Fix branching ratios and rescale signal strenghts, so other channels are not affected
