@@ -52,7 +52,7 @@ class ProtoModel ( LoggerBase ):
                   1000016, 1000021, 1000022, 1000023, 1000025, 1000035, 1000024,
                   1000037 ]
         self.onesquark = False ## only one light squark
-        self.twosquark = False  ## a few squarks, but not all
+        self.twosquark = False ## a few squarks, but not all
         self.manysquark = True ## many squarks
         if self.onesquark:
             self.particles = [ 1000001, 1000005, 1000006, 1000011, 1000012,
@@ -109,9 +109,9 @@ class ProtoModel ( LoggerBase ):
             pids += [(self.LSP,-self.LSP),(-self.LSP,-self.LSP)]
         for pidpair in pids:
             self.ssmultipliers[tuple(sorted(pidpair))]= 1.0
-        
+
         slha_decay_keys = []
-        
+
         with open ( self.templateSLHA ) as slhaf:
             tmp = slhaf.readlines()
             for line in tmp:
@@ -123,8 +123,7 @@ class ProtoModel ( LoggerBase ):
                     slhaline = [l for l in slhaline if l!='']
                     #decay_key = [slhaline[0],slhaline[1:]]
                     slha_decay_keys.append(slhaline)
-                            
-        
+
         for p in self.particles:
             decays = []
             dkey = {}
@@ -144,7 +143,7 @@ class ProtoModel ( LoggerBase ):
 
                     decays.append ( dpd )
                     dkey.update({dpd: key[0]})
-            
+
             self.possibledecays[p]=decays
             self.decay_keys[p] = dkey
 
@@ -255,7 +254,7 @@ class ProtoModel ( LoggerBase ):
             openChannels.add ( dpid )
 
         openChannels = list(openChannels)
-        
+
         return openChannels
 
     def frozenParticles ( self ):
@@ -581,7 +580,7 @@ class ProtoModel ( LoggerBase ):
 
     def copy(self, cp_predictions : bool = False):
         """
-        Create a copy of self. If cp_predictions the bestCombo and 
+        Create a copy of self. If cp_predictions the bestCombo and
         ul_critic_tpList attributes is copied using deepcopy.
 
         :returns: copy of protomodel
@@ -620,8 +619,9 @@ class ProtoModel ( LoggerBase ):
         newmodel._xsecSSMs = dict([[pid,ssm] for pid,ssm in self._xsecSSMs.items()])
         newmodel._xsecMasses = dict([[pid,m] for pid,m in self._xsecMasses.items()])
         if cp_predictions:
-            newmodel.ul_critic_tpList = copy.deepcopy(self.ul_critic_tpList)
             newmodel.bestCombo = copy.deepcopy(self.bestCombo)
+            newmodel.ul_critic_tpList = copy.deepcopy(self.ul_critic_tpList)
+            newmodel.llhd_critic_preds = copy.deepcopy(self.llhd_critic_preds)
 
         return newmodel
 

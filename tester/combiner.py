@@ -696,24 +696,72 @@ class Combiner ( LoggerBase ):
         for pid, decays in protomodel.decays.items():
             if not pid in [ 1000024, 1000023 ]:
                 continue
-            if len ( decays ) == 1: # only one flavor? allow!
+            if len (decays) == 0:
                 continue
-            ## is there an electron decay?
-            if ( 1000022, 11 ) in decays and decays[(1000022,11)] not in [ 0., 1.]:
-                if (1000022, 13) in decays:
-                    delta_br = abs ( decays[(1000022,11)]-decays[(1000022,13)] )
-                    l = 1. - delta_br / 5.
-                    ret *= l
-                if (1000022, 15) in decays:
-                    delta_br = abs ( decays[(1000022,11)]-decays[(1000022,15)] )
-                    l = 1. - delta_br / 20.
-                    ret *= l
-            elif ( 1000022, 13 ) in decays and decays[(1000022,13)] not in [ 0., 1.]:
-                # no electron, but muon and tau!
-                if (1000022, 15) in decays:
-                    delta_br = abs ( decays[(1000022,13)]-decays[(1000022,15)] )
-                    l = 1. - delta_br / 20.
-                    ret *= l
+
+            if all( [ len(decay) == 2 for decay in decays.keys() ] ):  # On-shell, continue
+                continue
+            if not all( [ len(decay) == 3 for decay in decays.keys() ] ): # If both on- and off-shell decays, disallow
+                self.pprint(f"pID {pid} has both on- AND off-shell decays: {decays}! Returning a prior of 0.")
+                return 0
+            if len ( decays ) == 1:
+                if list(decays.keys())[0] in [(1000022, 2, 1), (1000022, 2, 2), (1000022, 5, 5)]: # If the open channel is for light quarks or bb, allow
+                    continue
+
+            lep_decays = 0
+            C1_has_lep = False
+            for decay in decays.keys():
+                if pid == 1000024 and decay in [(1000022, 11, 12), (1000022, 13, 14), (1000022, 15, 16)] and decays[decay] != 0.:
+                    lep_decays += 1
+                    continue
+                if pid == 1000023 and decay in [(1000022, 11, 11), (1000022, 13, 13), (1000022, 15, 15)]:
+                    if and decays[decay] == 0.:
+                        C1_has_lep = True # Chargino 1 has leptonic decays but set to 0
+                    else:
+                        lep_decays += 1
+                    continue
+            if lep_decays == 0: # Multiple open channels but no leptonic one, ok for neutralino 2, disallow for chargino 1
+                if pid == 1000023:
+                    continue
+                elif pid == 1000024 and not C1_has_lep:
+                    self.pprint(f"Chargino 1 has multiple open channels but no leptonic one: {decays}! Returning a prior of 0.")
+                    return 0
+
+            # Penalise for each missing leptonic channel
+            mtau = 1.78 # GeV
+            if pid = 1000024:
+                mtau *= 2 # the chargino decays into two taus
+            if (protomodel.masses[pid] - protomodel.masses[1000022]) >= mtau: # If tau decays are allowed
+                if lep_decays != 3:
+                    ret *= 1/(4-lep_decays)
+                    continue
+            else:
+                if lep_decays != 2:
+                    ret *= 1/2
+                    continue
+
+            br = [decays[decay] for decay in decays]
+            delta_br = numpy.max( [numpy.max(br)-numpy.mean(br), numpy.mean(br)-numpy.min(br)] )
+            l = 1. - delta_br / 3.
+            ret *= l
+
+            # Old version
+            # ## is there an electron decay?
+            # if ( 1000022, 11 ) in decays and decays[(1000022,11)] not in [ 0., 1.]:
+            #     if (1000022, 13) in decays:
+            #         delta_br = abs ( decays[(1000022,11)]-decays[(1000022,13)] )
+            #         l = 1. - delta_br / 5.
+            #         ret *= l
+            #     if (1000022, 15) in decays:
+            #         delta_br = abs ( decays[(1000022,11)]-decays[(1000022,15)] )
+            #         l = 1. - delta_br / 20.
+            #         ret *= l
+            # elif ( 1000022, 13 ) in decays and decays[(1000022,13)] not in [ 0., 1.]:
+            #     # no electron, but muon and tau!
+            #     if (1000022, 15) in decays:
+            #         delta_br = abs ( decays[(1000022,13)]-decays[(1000022,15)] )
+            #         l = 1. - delta_br / 20.
+            #         ret *= l
         return ret
 
     def penaltyForExtremeSSMs ( self, protomodel ) -> float:
@@ -746,19 +794,19 @@ class Combiner ( LoggerBase ):
         self.log(f"Finding most significant combination for {len(predictions)}")
         comb_dict = bamAndWeights(predictions, expected=False)        #get the true/false comb matrix, along with weights
         pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
-        
+
         if use_pathfinder: most_significant_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
- 
+
         else:
             from tester.alternate_pf import getBestComb
             most_significant_comb_dict = getBestComb(predictions, expected=False)
 
         comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
-        
+
         #Removing Jamie's penalty for now
         #if len(comb_lbl)>1:
         #    weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
-        
+
         #from ptools.helpers import experimentalId
         #tpred_lbl = {experimentalId(tpred):tpred for tpred in predictions}
 
