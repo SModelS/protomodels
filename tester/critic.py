@@ -108,7 +108,7 @@ class Critic ( LoggerBase ):
         critic_description = []
         for tp in tpList[:3]:
             rtype = tp['tp'].dataType(short=True)
-            tmp = f"{tp['tp'].analysisId()}({rtype}):{tp['robs']:.2f}"
+            tmp = f"{tp['tp'].analysisId()}({rtype}):[robs={tp['robs']:.2f},rexp={tp['rexp']:.2f}]"
             critic_description.append ( tmp )
         if len(tpList)>3:
             critic_description.append ( "..." )
@@ -180,7 +180,7 @@ class Critic ( LoggerBase ):
                     ulpreds.append ( pred )
                     continue
                 datasetPreds.append ( pred )
-        
+
         for pred in datasetPreds:
             if pred.dataType() == "combined":
                 predictions.append ( pred )
@@ -191,7 +191,7 @@ class Critic ( LoggerBase ):
             predictions.append ( pred )
         if ULpreds:
             return ulpreds, predictions
-        
+
         return predictions
 
     def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, keep_predictions : bool = True, keep_slhafile : bool = False ):
