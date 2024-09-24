@@ -715,7 +715,7 @@ class Combiner ( LoggerBase ):
                     lep_decays += 1
                     continue
                 if pid == 1000023 and decay in [(1000022, 11, 11), (1000022, 13, 13), (1000022, 15, 15)]:
-                    if and decays[decay] == 0.:
+                    if decays[decay] == 0.:
                         C1_has_lep = True # Chargino 1 has leptonic decays but set to 0
                     else:
                         lep_decays += 1
@@ -804,7 +804,7 @@ class Combiner ( LoggerBase ):
         comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
 
         #Removing Jamie's penalty for now
-        #if len(comb_lbl)>1:
+        # if len(comb_lbl)>1:
         #    weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
 
         #from ptools.helpers import experimentalId
