@@ -729,7 +729,7 @@ class Combiner ( LoggerBase ):
 
             # Penalise for each missing leptonic channel
             mtau = 1.78 # GeV
-            if pid = 1000024:
+            if pid == 1000024:
                 mtau *= 2 # the chargino decays into two taus
             if (protomodel.masses[pid] - protomodel.masses[1000022]) >= mtau: # If tau decays are allowed
                 if lep_decays != 3:
