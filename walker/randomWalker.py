@@ -229,6 +229,7 @@ class RandomWalker ( LoggerBase ):
         #print(f"Adress of manip : {id(manipulator)}")
         model = manipulator.M
         muhat_converge = False
+        previousMuhat = None
         for i in range(5):
             predict = self.predictor.predict(model)
             if predict: #returns False if no preds are found or TL is None (i.e no comb found)
@@ -237,13 +238,14 @@ class RandomWalker ( LoggerBase ):
                     self.pprint(f"Step {model.step} converged at loop {i} with muhat {model.muhat}!")
                     muhat_converge = True
                     break
+                previousMuhat = model.muhat
                 manipulator.rescaleSignalBy(model.muhat) #?
             else:
                 break # Rescale signal by a significant number?
 
         if not muhat_converge:  #reverting step
             if predict:
-                self.pprint ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {model.muhat}. Going back to previous step." )
+                self.pprint ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {previousMuhat}. Going back to previous step." )
             else:
                 self.pprint ( f"Step {model.step} did not converge to muhat 1.0. Model did not find any prediction." )
             return False
