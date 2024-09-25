@@ -702,7 +702,8 @@ class Combiner ( LoggerBase ):
             if all( [ len(decay) == 2 for decay in decays.keys() ] ):  # On-shell, continue
                 continue
             if not all( [ len(decay) == 3 for decay in decays.keys() ] ): # If both on- and off-shell decays, disallow
-                self.pprint(f"pID {pid} has both on- AND off-shell decays: {decays}! Returning a prior of 0.")
+                from termcolor import colored
+                self.pprint(colored(f"pID {pid} of mass {protomodel.masses[pid]} has both on- AND off-shell decays: {decays}! Returning a prior of 0.", "red"))
                 return 0
             if len ( decays ) == 1:
                 if list(decays.keys())[0] in [(1000022, 2, 1), (1000022, 2, 2), (1000022, 5, 5)]: # If the open channel is for light quarks or bb, allow
