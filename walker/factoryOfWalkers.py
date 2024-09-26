@@ -49,6 +49,10 @@ def startWalkers ( walkers : List, catch_exceptions : bool = False,
     :returns: number of started walkers
     """
     processes=[]
+    print("Starting Walk")
+    if len(walkers) == 1: 
+        _run ( walkers[0], catch_exceptions, seed )
+        return 1
     for walker in walkers:
         p = multiprocessing.Process ( target=_run, args=( walker, catch_exceptions, seed ) )
         p.start()
@@ -178,6 +182,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
                     do_srcombine = do_srcombine, 
                     seed = seed, stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
+    #start running walkers
     startWalkers ( walkers, catch_exceptions=catch_exceptions, seed=seed )
     if update_hiscores:
         import time
@@ -214,7 +219,6 @@ if __name__ == "__main__":
     s = "all"
     dbpath = "./default.pcl"
     dbpath = "official"
-    # dbpath = "~/git/smodels-database"
     w = RandomWalker( walkerid=0, nsteps = 200, 
                       dbpath=dbpath, cheatcode=0, select=s,
                       rundir="./", seed = None )
