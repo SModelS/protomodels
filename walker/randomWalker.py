@@ -76,11 +76,12 @@ class RandomWalker ( LoggerBase ):
         self.rundir = rundir
         if rundir == None:
             self.rundir = "./"
-
+        self.random_seed = numpy.random.seed()
         if seed is not None:
+            self.random_seed = seed
             from ptools import helpers
-            helpers.seedRandomNumbers(seed + walkerid )
-            self.pprint ( f"setting random seed to {seed}" )
+            helpers.seedRandomNumbers(self.random_seed + walkerid )
+            self.pprint ( f"setting random seed to {self.random_seed}" )
 
         #Initialize Predictor
         self.predictor =  Predictor( self.walkerid, dbpath=dbpath,
@@ -100,7 +101,7 @@ class RandomWalker ( LoggerBase ):
                 dbversion = self.predictor.database.databaseVersion )
 
         self.manipulator = Manipulator ( protomodel, strategy,
-                        do_record = record_history, seed = seed )
+                        do_record = record_history, seed = self.random_seed )
         self.catch_exceptions = catch_exceptions
         self.maxsteps = nsteps
         if stopTeleportationAfter == None:
@@ -236,16 +237,21 @@ class RandomWalker ( LoggerBase ):
                 if abs(model.muhat - 1.0) < 1e-02:
                     self.pprint(f"Step {model.step} converged at loop {i} with muhat {model.muhat}!")
                     muhat_converge = True
+                    proto_dict = model.getPmodelDict()
+                    self.log(f"Protomodel: {proto_dict}")
                     break
                 manipulator.rescaleSignalBy(model.muhat) #?
             else:
                 break # Rescale signal by a significant number?
 
         if not muhat_converge:  #reverting step
+            proto_dict = model.getPmodelDict()
             if predict:
                 self.pprint ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {model.muhat}. Going back to previous step." )
+                self.log(f"Protomodel: {proto_dict}")           
             else:
                 self.pprint ( f"Step {model.step} did not converge to muhat 1.0. Model did not find any prediction." )
+                self.log(f"Protomodel: {proto_dict}") 
             return False
 
         return True
@@ -256,6 +262,7 @@ class RandomWalker ( LoggerBase ):
         self.pprint ( "Step %d begins." % ( self.protomodel.step ) )
         self.printStats( )
         #Remove data about best combo
+        self.pprint("Clean best combo")
         self.protomodel.cleanBestCombo()
         # self.printStats( substep=11 )
         printMemUsage = False
@@ -271,6 +278,7 @@ class RandomWalker ( LoggerBase ):
         # self.printStats( substep=12 )
 
         #Take a step in the model space:
+        self.pprint("randomly change model")
         self.manipulator.randomlyChangeModel()
         # self.printStats( substep=13 )
 
@@ -279,9 +287,10 @@ class RandomWalker ( LoggerBase ):
 
         #Try to create a simpler model
         #(merge pre-defined particles if their mass difference is below dm)
+        self.pprint("try to simplify model")
         protomodelSimp = self.manipulator.simplifyModel(dm=200.0)
         manipulatorSimp = None
-        if protomodelSimp: manipulatorSimp = Manipulator ( protomodelSimp, strategy="aggressive",do_record = False, seed = 0 )
+        if protomodelSimp: manipulatorSimp = Manipulator ( protomodelSimp, strategy="aggressive",do_record = False, seed = self.random_seed )
         boolProtoSimp = False
 
         # self.printStats( substep=14 )
@@ -394,11 +403,11 @@ class RandomWalker ( LoggerBase ):
         """ take the step, save it as last step """
         ## possibly add to hiscore list
         self.log ( f"Step {self.protomodel.step} check if result goes into hiscore list" )
-        srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
-        self.log ( f"r values before calling .newResult are at {srs}" )
+        #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )    #protomodel.rvalues were used before to find the max allowed mu
+        #self.log ( f"r values before calling .newResult are at {srs}" )
         self.hiscoreList.newResult ( self.manipulator ) ## add to high score list
-        srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
-        self.log ( f"r values after calling .newResult are at {srs}" )
+        #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
+        #self.log ( f"r values after calling .newResult are at {srs}" )
         self.log ( "done check for result to go into hiscore list" )
         ## Backup model
         self.manipulator.backupModel()
@@ -506,14 +515,22 @@ class RandomWalker ( LoggerBase ):
         self.pprint ( f"Was asked to stop after {self.maxsteps} steps" )
 
 if __name__ == "__main__":
-    masses = { 1000022: 47.1, 1000023: 449.8, 1000024: 135.47, 1000037: 398.7,
-               1000006: 543.7 }
-    ssms = {(1000022, 1000022): 0.188322, (1000023, 1000023): 0.208443, (1000022, 1000023): 0.213852, (1000024, 1000024): 1.402063, (-1000024, 1000024): 1.402063, (-1000024, -1000024): 1.402063, (1000022, 1000024): 1.173816, (-1000024, 1000022): 1.173816, (1000023, 1000024): 1.363297, (-1000024, 1000023): 1.363297, (1000037, 1000037): 1.414218, (-1000037, 1000037): 1.414218, (-1000037, -1000037): 1.009287, (1000022, 1000037): 1.257227, (-1000037, 1000022): 1.257227, (1000023, 1000037): 2.62731, (-1000037, 1000023): 2.62731, (1000024, 1000037): 0.0, (-1000037, 1000024): 0.0, (-1000024, 1000037): 0.0, (-1000037, -1000024): 0.0, (1000006, 1000006): 0.050047, (-1000006, 1000006): 0.050047, (-1000006, -1000006): 0.050047, (1000006, 1000022): 0.055586, (-1000006, 1000022): 0.055586}
-    decays = {1000022: {}, 1000023: {(1000022, 25): 1.0}, 1000024: {(1000022, 24): 1.0}, 1000037: {(1000022, 24): 0.353533, (1000024, 23): 0.646467}, 1000006: {(1000022, 6): 1.0}}
+    #masses = { 1000022: 47.1, 1000023: 449.8, 1000024: 135.47, 1000037: 398.7,
+    #           1000006: 543.7 }
+    masses = {1000022: 46.514732, 1000023: 449.803627, 1000024: 131.803097, 1000037: 397.765894}
+    
+    #ssms = {(1000022, 1000022): 0.188322, (1000023, 1000023): 0.208443, (1000022, 1000023): 0.213852, (1000024, 1000024): 1.402063, (-1000024, 1000024): 1.402063, (-1000024, -1000024): 1.402063, (1000022, 1000024): 1.173816, (-1000024, 1000022): 1.173816, (1000023, 1000024): 1.363297, (-1000024, 1000023): 1.363297, (1000037, 1000037): 1.414218, (-1000037, 1000037): 1.414218, (-1000037, -1000037): 1.009287, (1000022, 1000037): 1.257227, (-1000037, 1000022): 1.257227, (1000023, 1000037): 2.62731, (-1000037, 1000023): 2.62731, (1000024, 1000037): 0.0, (-1000037, 1000024): 0.0, (-1000024, 1000037): 0.0, (-1000037, -1000024): 0.0, (1000006, 1000006): 0.050047, (-1000006, 1000006): 0.050047, (-1000006, -1000006): 0.050047, (1000006, 1000022): 0.055586, (-1000006, 1000022): 0.055586}
+    ssms = {(1000022, 1000022): 0.191043, (1000023, 1000023): 0.204701, (1000022, 1000023): 0.0, (1000024, 1000024): 1.829998, (-1000024, 1000024): 1.829998, (-1000024, -1000024): 1.829998, (1000022, 1000024): 1.329093, (-1000024, 1000022): 1.329093, (1000023, 1000024): 0.0, (-1000024, 1000023): 0.0, (1000037, 1000037): 0.210542, (-1000037, 1000037): 0.210542, (-1000037, -1000037): 0.210542, (1000022, 1000037): 0.334781, (-1000037, 1000022): 0.334781, (1000023, 1000037): 0.949861, (-1000037, 1000023): 0.949861, (1000024, 1000037): 0.0, (-1000037, 1000024): 0.0, (-1000024, 1000037): 0.0, (-1000037, -1000024): 0.0}
+    
+    #decays = {1000022: {}, 1000023: {(1000022, 25): 1.0}, 1000024: {(1000022, 24): 1.0}, 1000037: {(1000022, 24): 0.353533, (1000024, 23): 0.646467}, 1000006: {(1000022, 6): 1.0}}
+    decays = {1000022: {}, 1000023: {(1000022, 25): 1.0}, 1000024: {(1000022, 24): 1.0}, 1000037: {(1000022, 24): 1.0}}
+    
     D = {'masses': masses, 'ssmultipliers': ssms, 'decays': decays }
     dbpath = "official"
-    select = "txnames:electroweakinos,stops"
+    select = "txnames:electroweakinos,electroweakinos_offshell"
     select = "all"
-    walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
-            do_srcombine = True, select = select )
+    walker = RandomWalker( walkerid=0, nsteps = 1000,
+                    dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
+    #walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
+    #        do_srcombine = True, select = select )
     walker.walk()

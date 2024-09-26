@@ -308,7 +308,7 @@ class Critic ( LoggerBase ):
                 n_excluding += 1
 
         max_allowed = 0
-        while binom.cdf(max_allowed,n_sensitive,0.05) <= 0.66:
+        while binom.cdf(max_allowed,n_sensitive,0.05) <= 0.66:  #rewrite as max_allowed = binom.ppf(0.66, n_sensitive, 0.05)?
             max_allowed += 1
 
         protomodel.critic_description = f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}. "
@@ -342,7 +342,7 @@ class Critic ( LoggerBase ):
             self.llhd_critic_preds = EMpreds
         self.log( f"Found {len(EMpreds)} llhd-based critic predictions." )
         r = None
-        best_comb, _ = self.combiner.getMostSensitiveCombination(predictions)
+        best_comb, _ = self.combiner.getMostSensitiveCombination(EMpreds)
         if best_comb:
             tpCombiner = TheoryPredictionsCombiner(best_comb)
             r = tpCombiner.getRValue(expected=False)

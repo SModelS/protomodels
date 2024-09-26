@@ -246,6 +246,16 @@ class Manipulator ( LoggerBase ):
         else: model.masses[pid_pair[1]] = model_mass.asNumber(GeV)
 
 
+    def getPmodelDict (self, get_xsecs=False) -> Dict:
+        if type(self.M) == type(None):
+            ## there is nothing to write
+            self.log("No protomodel")
+            return
+        
+        proto_dict = self.M.dict()
+        if not get_xsecs: del proto_dict['xsecs[fb]']
+        return proto_dict
+    
     def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict",
             cleanOut : bool = True, comment : str = "", appendMode : bool = False,
             ndecimals : int = 6 ) -> Dict:
@@ -621,6 +631,7 @@ class Manipulator ( LoggerBase ):
         offshell = self.checkIfOffshell(protomodel, pid)
 
         for dk in dkeys:
+            #get the list of decay channels with the same dkey
             decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
             br = random.gauss ( 1. / nitems, np.sqrt ( .5 / nitems )  )
             br = max ( 0., br )
@@ -941,6 +952,9 @@ class Manipulator ( LoggerBase ):
     def randomlyChangeBranchingOfPid ( self, pid, zeroBRprob = 0.05, singleBRprob = 0.05):
         """ randomly change the branching a particle pid """
 
+        if pid in [1000023, 1000024] and self.checkIfOffshell(pid): #dont change brs of offshell C1 and N2
+            return 0
+        
         openChannels = self.M.getOpenChannels(pid)
         dkeys = set()
         for dpid in openChannels:
@@ -1300,8 +1314,8 @@ class Manipulator ( LoggerBase ):
             if p < 0.1:
                 offshell = True
                 self.log ( f"Unfreezing {self.namer.asciiName(pid)}, randomly chose to restrict to offshell mass!" )
-                if pid == 1000023: maxMax = minMass + self.mass_Z + self.mwidth_Z
-                else: maxMax = minMass + self.mass_W + self.mwidth_W
+                if pid == 1000023: maxMass = minMass + self.mass_Z + self.mwidth_Z
+                else: maxMass = minMass + self.mass_W + self.mwidth_W
 
         tmpMass = random.uniform ( minMass, maxMass )
         ctr = 0

@@ -288,6 +288,7 @@ class Predictor ( LoggerBase ):
             if "No cross-sections found" in str(e):
                 # okay, everything under control, we just return empty list
                 # of theory predictions
+                self.log(f"No cross-sections found for protomodel point")
                 return []
             else:
                 # no idea what that is. pass it on.
@@ -298,7 +299,6 @@ class Predictor ( LoggerBase ):
         # self.log ( "Now decomposing" )
         topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
         self.log ( f"decomposed model into {len(topos)} topologies." )
-
 
         if allpreds:
             bestDataSet=False
@@ -313,10 +313,15 @@ class Predictor ( LoggerBase ):
         EMpreds = [] # the SR specific predictions
         predictions = []
         ulpreds = []
-
+        self.log("start computing preds")
+        import time
+        start_time = time.time()
         theoryPredictions = theoryPredictionsFor ( self.database, topos, useBestDataset=bestDataSet, combinedResults=self.do_srcombine )
         preds = TheoryPredictionList(theoryPredictions, maxcond)
 
+        end_time = time.time()
+        time_taken = end_time - start_time
+        self.log(f"finished computing preds, taken {time_taken:.6f} seconds")
         if preds != None:
             for pred in preds:
                 if pred.dataType() == 'upperLimit':
