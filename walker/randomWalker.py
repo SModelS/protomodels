@@ -238,7 +238,7 @@ class RandomWalker ( LoggerBase ):
                 if abs(model.muhat - 1.0) < 1e-02:
                     self.pprint(f"Step {model.step} converged at loop {i} with muhat {model.muhat}!")
                     muhat_converge = True
-                    proto_dict = model.getPmodelDict()
+                    proto_dict = manipulator.getPmodelDict()
                     self.log(f"Protomodel: {proto_dict}")
                     break
                 previousMuhat = model.muhat
@@ -247,7 +247,7 @@ class RandomWalker ( LoggerBase ):
                 break # Rescale signal by a significant number?
 
         if not muhat_converge:  #reverting step
-            proto_dict = model.getPmodelDict()
+            proto_dict = manipulator.getPmodelDict()
             if predict:
                 self.pprint ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {previousMuhat}. Going back to previous step." )
                 self.log(f"Protomodel: {proto_dict}")           
