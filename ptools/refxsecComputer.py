@@ -492,7 +492,7 @@ class RefXSecComputer:
         # associate production
         associateproduction = ( ( 1000001, 1000021 ), ( 1000002, 1000021 ), ( 1000003, 1000021 ), ( 1000004, 1000021 ), ( 1000005, 1000021 ), ( 2000005, 1000021 ), ( 1000006, 1000021 ), ( 2000006, 1000021 ),
                                 ( 1000011, -1000012 ), ( 1000013, -1000014 ), ( 1000015, -1000016 ), ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016 ),
-                                ( 1000022, 1000023 ), ( 1000024, 1000023 ), ( -1000024, 1000023 ), ( 1000023, 1000025 ), ( 1000037, 1000023 ), ( -1000037, 1000023 ),
+                                ( 1000022, 1000023 ), ( 1000022, 1000024 ), ( 1000022, -1000024 ), ( 1000024, 1000023 ), ( -1000024, 1000023 ), ( 1000023, 1000025 ), ( 1000037, 1000023 ), ( -1000037, 1000023 ),
                                 ( 1000024, 1000025 ), ( -1000024, 1000025 ), ( -1000024, 1000037 ), ( -1000037, 1000024 ),
                                 ( 1000037, 1000025 ), ( -1000037, 1000025 )
                               )
@@ -663,7 +663,7 @@ class RefXSecComputer:
             filename = "xsecslepslep%d.txt" % sqrts
             if sqrts == 8:
                 pb == False
-        if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000023, 1000025 ]: # Charginos(-) neutralinos production
+        if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000022, 1000023, 1000025 ]: # Charginos(-) neutralinos production
             filename = "xsecN2C1m%d.txt" % sqrts
             order = NLL
             isEWK = True
@@ -678,7 +678,7 @@ class RefXSecComputer:
             #         pb = True
             #     else:
             #         logger.info ( f"Asking for ({pid1,pid2}) production but masses differ ({masses[0],masses[1]}) for {sqrts} TeV. We only have for mass-degenerate case. Will use it." )
-        if (pid1 in [ 1000023, 1000025 ] and pid2 in [ 1000024, 1000037 ]) or (pid1 == 1000024 and pid2 == 1000025): # Charginos(+) neutralinos productions -- 'or' condition because pid1 < pid2
+        if (pid1 in [ 1000022, 1000023, 1000025 ] and pid2 in [ 1000024, 1000037 ]) or (pid1 == 1000024 and pid2 == 1000025): # Charginos(+) neutralinos productions -- 'or' condition because pid1 < pid2
             filename = "xsecN2C1p%d.txt" % sqrts
             order = NLL
             if sqrts == 13:
