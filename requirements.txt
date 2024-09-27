@@ -1,0 +1,8 @@
+smodels
+termcolor
+colorama
+numpy
+scipy
+pyslha
+pyhf
+matplotlib
