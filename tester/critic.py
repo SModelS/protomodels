@@ -329,18 +329,24 @@ class Critic ( LoggerBase ):
             return True, None, None  # the model is not excluded
 
         EMpreds = []
-
+        rexp_max = 0.
         if cut > 0:
             for tpred in predictions:
                 rexp = tpred.getRValue(expected = True)
+                if rexp > rexp_max: rexp_max = rexp
                 if rexp is not None and rexp >= cut:
                     EMpreds.append(tpred)
         else:
             EMpreds = predictions
-
+        
         if keep_predictions:
             self.llhd_critic_preds = EMpreds
-        self.log( f"Found {len(EMpreds)} llhd-based critic predictions." )
+        self.log( f"Found {len(EMpreds)} llhd-based critic predictions passing rexp cut of {cut}" )
+        if len(EMpreds) == 0:
+            num_non_sen_res = len(predictions)
+            self.log(f"There are {num_non_sen_res} llhd-based critic predicitions, but none of them passed the rexp cut of {cut}. Highest rexp is {rexp_max}")
+            return True, None, None          # the model is not excluded, SN: should we allow for the best llhd based critic though?
+        
         r = None
         best_comb, _ = self.combiner.getMostSensitiveCombination(EMpreds)
         if best_comb:
