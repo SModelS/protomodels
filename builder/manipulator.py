@@ -113,7 +113,8 @@ class Manipulator ( LoggerBase ):
         return pair,dmin
 
 
-    def checkIfOffshell(self, protomodel, pid):
+    def checkIfOffshell(self, pid):
+        protomodel = self.M
         offshell = False
         if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
         elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
@@ -628,7 +629,7 @@ class Manipulator ( LoggerBase ):
 
         nitems = len(openChannels)
 
-        offshell = self.checkIfOffshell(protomodel, pid)
+        offshell = self.checkIfOffshell(pid)
 
         for dk in dkeys:
             #get the list of decay channels with the same dkey
@@ -1392,7 +1393,7 @@ class Manipulator ( LoggerBase ):
         if pid in [ 1000023, 1000024 ]:
             # for C1 and N2, if one of the two gets changed, have a 10% chance that the other gets set to the same value
             p=random.uniform(0,1)
-            offshell = self.checkIfOffshell(self.M, pid)
+            offshell = self.checkIfOffshell(pid)
             if offshell: p=random.uniform(0,0.5)        #SN: check if this makes sense?
             if p < .1:
                 mass = self.M.masses[pid]
@@ -1400,7 +1401,7 @@ class Manipulator ( LoggerBase ):
                 # remember the frozen particles, so we can check if we just unfroze this guy
                 were_frozen = self.M.frozenParticles()
                 was_offshell = False
-                if otherpid not in were_frozen: was_offshell = self.checkIfOffshell(self.M, otherpid)
+                if otherpid not in were_frozen: was_offshell = self.checkIfOffshell(otherpid)
                 self.M.masses[otherpid] = mass * random.uniform ( .99, 1.01 )
                 self.log ( f"mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" )
                 # If the particle was frozen before, we need to unfreeze
@@ -1409,7 +1410,7 @@ class Manipulator ( LoggerBase ):
                     self.initSSMFor(otherpid)
                 #if otherpid was not offshell before but now is offshell and vice versa, initialize branchings
                 else: 
-                    if self.checkIfOffshell(self.M, otherpid) != was_offshell: self.initBranchings(otherpid)
+                    if self.checkIfOffshell(otherpid) != was_offshell: self.initBranchings(otherpid)
                 self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
         #Fix branching ratios and rescale signal strenghts, so other channels are not affected
@@ -1452,7 +1453,7 @@ class Manipulator ( LoggerBase ):
         if not maxMass:
             maxMass = self.M.maxMass
 
-        was_offshell, offshell = self.checkIfOffshell(self.M, pid), False
+        was_offshell, offshell = self.checkIfOffshell(pid), False
         if pid in [ 1000023, 1000024 ] and not was_offshell:
             # for C1 and N2 we want a 10% chance to move into the offshell region
             p = random.uniform ( 0, 1 )
