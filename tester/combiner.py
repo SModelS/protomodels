@@ -487,7 +487,7 @@ class Combiner ( LoggerBase ):
             prior = numpy.exp ( -(1/2) * ( (nparticles/a)**2 + (nbranchings/b)**2 + (nssms/c)**2 ) )
         # verbose = True
         if verbose:
-            self.pprint ( f"prior ``{name}'': {nparticles} particles, {nbranchings} branchings, {nssms:.1f} equivalent unique ssms: {prior}" )
+            self.log ( f"prior ``{name}'': {nparticles} particles, {nbranchings} branchings, {nssms:.1f} equivalent unique ssms: {prior}" )
         if nll:
             return - numpy.log ( prior )
         return prior
@@ -577,7 +577,7 @@ class Combiner ( LoggerBase ):
         ret = self.priorForNDF ( nUnfrozen, nbr, nssms, name, verbose )
         if verbose:
             ssmstring = [ "%.2f" % x for x in cssms.keys() ]
-            self.pprint ( "           `- the unique ssms are: %s" % ", ".join ( ssmstring ) )
+            self.log ( "           `- the unique ssms are: %s" % ", ".join ( ssmstring ) )
         if nll:
             return - math.log ( ret )
         return ret
@@ -865,7 +865,7 @@ class Combiner ( LoggerBase ):
         filtered_preds = selectMostSignificantSRs(predictions)
         self.letters = self.getLetters ( filtered_preds )
 
-        self.pprint(f"Filtered predictions from {len(predictions)} to {len(filtered_preds)}")
+        self.log(f"Filtered predictions from {len(predictions)} to {len(filtered_preds)}")
 
         most_significant_comb, weight = self.getMostSignificantCombination(filtered_preds)
 

@@ -171,7 +171,7 @@ class Predictor ( LoggerBase ):
             s = self.select.replace("txnames:","")
             from ptools.moreHelpers import namesForSetsOfTopologies
             txnames = namesForSetsOfTopologies ( s )[0]
-            self.pprint ( f"I have been asked to select txnames for {txnames}" )
+            self.log ( f"I have been asked to select txnames for {txnames}" )
             txnames = txnames.split(",")
 
         listOfExpRes = self.database.getExpResults( dataTypes = dataTypes,
@@ -179,7 +179,7 @@ class Predictor ( LoggerBase ):
                                                     useNonValidated=True )
         if self.modifier:
             listOfExpRes = self.modifier.modify ( listOfExpRes )
-        self.pprint ( f"I will be working with {len(listOfExpRes)} results" )
+        self.log ( f"I will be working with {len(listOfExpRes)} results" )
 
         self.listOfExpRes = listOfExpRes
         if False:
@@ -258,7 +258,7 @@ class Predictor ( LoggerBase ):
                     keep_predictions = keep_predictions )
 
         if keep_slhafile:
-            self.pprint ( f"keeping {protomodel.currentSLHA}, as requested" )
+            self.log ( f"keeping {protomodel.currentSLHA}, as requested" )
         else:
             protomodel.delCurrentSLHA()
         # we keep track of the database version, when predicting

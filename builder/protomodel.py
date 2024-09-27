@@ -393,7 +393,6 @@ class ProtoModel ( LoggerBase ):
                     os.remove( tmpSLHA )
                 countAttempts += 1
                 if countAttempts > 1:
-                    self.log( f"error computing cross-sections: {e}, attempt # {countAttempts}" )
                     self.pprint( f"error computing cross-sections: {e}, attempt # {countAttempts}" )
                     import traceback
                     trackback.print_stack()

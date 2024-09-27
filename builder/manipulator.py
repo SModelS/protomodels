@@ -144,8 +144,8 @@ class Manipulator ( LoggerBase ):
             choices += [i]*f
             f=f*2
         ith = random.choice ( choices )
-        self.pprint ( "teleporting, we have %d dicts" % len(dicts) )
-        self.pprint ( "choosing the %dth entry, it has a K of %.2f" % \
+        self.log ( "teleporting, we have %d dicts" % len(dicts) )
+        self.log ( "choosing the %dth entry, it has a K of %.2f" % \
                       ( ith, dicts[ith]["K"] ) )
         step = self.M.step
         nth = "%dth" % ith
@@ -485,7 +485,7 @@ class Manipulator ( LoggerBase ):
         """ check protomodel for NaNs, for debugging only """
         for pid,m in self.M.masses.items():
             if np.isnan ( m ):
-                self.pprint ( "checking for nans: mass of %d is nan" % pid )
+                self.pprint ( "Checking for nans: mass of %d is nan" % pid )
 
     def get ( self ):
         """ since the shallowcopy business does not work as expected,
@@ -683,13 +683,13 @@ class Manipulator ( LoggerBase ):
             protomodel = self.M
 
         if not pid in protomodel.decays:
-            protomodel.pprint(f"when attempting to normalize: {pid} not in decays")
+            protomodel.pprint(f"When attempting to normalize: {pid} not in decays")
             return
 
         BRtot = sum(protomodel.decays[pid].values())
         if BRtot == 0:
             if pid != protomodel.LSP:
-                protomodel.pprint ( f"when attempting to normalize: total BR ({pid}) is zero. we need to take out {pid}." )
+                protomodel.pprint ( f"When attempting to normalize: total BR ({pid}) is zero. we need to take out {pid}." )
                 ## we need to freeze also <pid> now
                 ## (since we have no sensible channels anymore)
                 self.freezeParticle ( pid, force=True )
@@ -801,7 +801,7 @@ class Manipulator ( LoggerBase ):
         """ multiply the signal strength multipliers with s """
 
         if s == 0.:
-            self.pprint ( "rescaling by zero? Ignore." )
+            self.log ( "Rescaling by zero? Ignore." )
             return
         if abs ( s - 1.0 ) < 1e-5:
             return
@@ -930,7 +930,7 @@ class Manipulator ( LoggerBase ):
         self.log ( "randomly change branchings" )
         unfrozenparticles = self.M.unFrozenParticles( withLSP=False )
         if len(unfrozenparticles)<2:
-            self.pprint ( "not enough unfrozen particles to change random branching" )
+            self.log ( "not enough unfrozen particles to change random branching" )
             return 0
         p = random.choice ( unfrozenparticles )
         if not p in self.M.decays.keys():
@@ -952,9 +952,6 @@ class Manipulator ( LoggerBase ):
 
     def randomlyChangeBranchingOfPid ( self, pid, zeroBRprob = 0.05, singleBRprob = 0.05):
         """ randomly change the branching a particle pid """
-
-        if pid in [1000023, 1000024] and self.checkIfOffshell(pid): #dont change brs of offshell C1 and N2
-            return 0
         
         openChannels = self.M.getOpenChannels(pid)
         dkeys = set()
@@ -965,7 +962,7 @@ class Manipulator ( LoggerBase ):
         dkeys = list(dkeys)
 
         if len(openChannels) < 2:
-            self.pprint ( f"number of open channels of {pid} is {len(openChannels)}: cannot change branchings." )
+            self.log ( f"number of open channels of {pid} is {len(openChannels)}: cannot change branchings." )
             # not enough channels open to tamper with branchings!
             return 0
 
@@ -1056,7 +1053,7 @@ class Manipulator ( LoggerBase ):
             return self.randomlyChangeSSOfOneParticle()
         unfrozenparticles = self.M.unFrozenParticles( withLSP=False )
         if len(unfrozenparticles)<2:
-            self.pprint ( "not enough unfrozen particles to change random signal strength" )
+            self.log ( "not enough unfrozen particles to change random signal strength" )
             return 0
         #Randomly choose which process pids to change:
         p = random.choice ( unfrozenparticles )
@@ -1087,7 +1084,7 @@ class Manipulator ( LoggerBase ):
         unfrozenparticles = self.M.unFrozenParticles( withLSP=False )
 
         if len(unfrozenparticles)<2:
-            self.pprint ( "not enough unfrozen particles to change random signal strength" )
+            self.log ( "Not enough unfrozen particles to change random signal strength" )
             return 0
         p = random.choice ( unfrozenparticles )
         if pid != None:
@@ -1337,7 +1334,7 @@ class Manipulator ( LoggerBase ):
                       f"{tmpMass:.1f}" )
         #Randomly select mass of unfrozen particle:
         protomodel.masses[pid] = tmpMass
-        self.pprint ( f"Unfroze mass of {self.namer.asciiName(pid)} to "\
+        self.log ( f"Unfroze mass of {self.namer.asciiName(pid)} to "\
                       f"{protomodel.masses[pid]:.1f}" )
 
 
@@ -1498,13 +1495,13 @@ class Manipulator ( LoggerBase ):
             if pid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
             if pid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
             if was_offshell != is_offshell:     #initialize branchings
-                self.pprint ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
+                self.log ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
                 self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
                 self.M.masses[pid]=tmpmass
                 self.initBranchings(pid)
                 return 1
 
-        self.pprint ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
+        self.log ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
         self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
         self.M.masses[pid]=tmpmass
 
@@ -1605,7 +1602,7 @@ class Manipulator ( LoggerBase ):
         pair = list(pair)
         pair.sort()
         p1,p2 = pair[0], pair[1]
-        self.pprint ( "merging %s and %s" % \
+        self.log ( "merging %s and %s" % \
                 ( self.namer.asciiName(p1), self.namer.asciiName( p2 ) ) )
         self.log ( "masses before merger: %.2f, %.2f" % \
                    ( protomodel.masses[p1], protomodel.masses[p2] ) )

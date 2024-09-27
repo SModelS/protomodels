@@ -127,7 +127,7 @@ class RandomWalker ( LoggerBase ):
             #self.predictor.predict(self.protomodel)
             self.predict(self.manipulator)
             if type(self.manipulator.M.TL) != type(None):
-                self.pprint ( f"Cheat model gets TL={self.manipulator.M.TL:.2f}, "\
+                self.log ( f"Cheat model gets TL={self.manipulator.M.TL:.2f}, "\
                               f"K={self.manipulator.M.K:.2f}" )
             # self.printStats ( substep=4 )
             self.manipulator.backupModel()
@@ -220,7 +220,7 @@ class RandomWalker ( LoggerBase ):
             pidsbc = list ( self.manipulator.getAllPidsOfBestCombo() )
             pidsbc.sort()
             prtclesbc = ", ".join ( map ( namer.asciiName, pidsbc ) )
-            self.pprint ( f"Step {self.protomodel.step} has {nUnfrozen}/{nTotal} unfrozen particles: {prtcles} [in best combo: {prtclesbc}]" )
+            self.log ( f"Step {self.protomodel.step} has {nUnfrozen}/{nTotal} unfrozen particles: {prtcles} [in best combo: {prtclesbc}]" )
             if len(pidsbc)>0 and not set(pidsbc).issubset ( set(pidsp) ):
                 self.pprint ( f"  `-- error! best combo pids ({pidsbc}) arent subset of masses pids ({pidsp})!" )
                 self.manipulator.M.bestCombo = None
@@ -236,7 +236,7 @@ class RandomWalker ( LoggerBase ):
             if predict: #returns False if no preds are found or TL is None (i.e no comb found)
                 #print(f"i {i}, muhat {model.muhat}, convergence {abs(model.muhat - 1.0)}")
                 if abs(model.muhat - 1.0) < 1e-02:
-                    self.pprint(f"Step {model.step} converged at loop {i} with muhat {model.muhat}!")
+                    self.log(f"Step {model.step} converged at loop {i} with muhat {model.muhat}!")
                     muhat_converge = True
                     proto_dict = manipulator.getPmodelDict()
                     self.log(f"Protomodel: {proto_dict}")
@@ -249,10 +249,10 @@ class RandomWalker ( LoggerBase ):
         if not muhat_converge:  #reverting step
             proto_dict = manipulator.getPmodelDict()
             if predict:
-                self.pprint ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {previousMuhat}. Going back to previous step." )
+                self.log ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {previousMuhat}. Going back to previous step." )
                 self.log(f"Protomodel: {proto_dict}")           
             else:
-                self.pprint ( f"Step {model.step} did not converge to muhat 1.0. Model did not find any prediction." )
+                self.log ( f"Step {model.step} did not converge to muhat 1.0. Model did not find any prediction." )
                 self.log(f"Protomodel: {proto_dict}") 
             return False
 
@@ -264,7 +264,7 @@ class RandomWalker ( LoggerBase ):
         self.pprint ( "Step %d begins." % ( self.protomodel.step ) )
         self.printStats( )
         #Remove data about best combo
-        self.pprint("Clean best combo")
+        self.log("Clean best combo")
         self.protomodel.cleanBestCombo()
         # self.printStats( substep=11 )
         printMemUsage = False
@@ -280,7 +280,7 @@ class RandomWalker ( LoggerBase ):
         # self.printStats( substep=12 )
 
         #Take a step in the model space:
-        self.pprint("randomly change model")
+        self.log("Randomly change model")
         self.manipulator.randomlyChangeModel()
         # self.printStats( substep=13 )
 
@@ -289,7 +289,7 @@ class RandomWalker ( LoggerBase ):
 
         #Try to create a simpler model
         #(merge pre-defined particles if their mass difference is below dm)
-        self.pprint("try to simplify model")
+        self.log("Try to simplify model")
         protomodelSimp = self.manipulator.simplifyModel(dm=200.0)
         manipulatorSimp = None
         if protomodelSimp: manipulatorSimp = Manipulator ( protomodelSimp, strategy="aggressive",do_record = False, seed = self.random_seed )
@@ -300,12 +300,10 @@ class RandomWalker ( LoggerBase ):
         if self.catch_exceptions:
             try:
                 if not self.predict(self.manipulator):
-                    #print("return")
                     self.protomodel.K = None
-                    return #??
+                    return 
                 if protomodelSimp:
-                    #print(f"Address of manip before call {id(manipulatorSimp)}")
-                    boolProtoSimp = self.predict(manipulatorSimp) #!rewrite
+                    boolProtoSimp = self.predict(manipulatorSimp) 
             except Exception as e:
                 self.pprint ( f"@@@ caught exception @@@" )
                 self.pprint ( f"{type(e)} ``{str(e)}'' encountered when trying to predict. lets revert and not count it as a step." )
@@ -350,8 +348,8 @@ class RandomWalker ( LoggerBase ):
                    ( self.protomodel.step, self.protomodel.TL ) )
 
         nUnfrozen = len ( self.protomodel.unFrozenParticles() )
-        self.pprint ( "best combo for strategy ``%s'' is %s: %s: [K=%.2f, TL=%.2f, %d unfrozen]" % \
-            ( self.manipulator.strategy, self.protomodel.letters, self.protomodel.description, self.protomodel.K, self.protomodel.TL, nUnfrozen ) )
+        self.log ( "Best combo is %s: %s: [K=%.2f, TL=%.2f, %d unfrozen]" % \
+            ( self.protomodel.letters, self.protomodel.description, self.protomodel.K, self.protomodel.TL, nUnfrozen ) )
 
         #For low scoring models, teleport to a high score model:
         if self.checkIfToTeleport( pmax=0.5, norm = 10.0 ):
@@ -436,10 +434,10 @@ class RandomWalker ( LoggerBase ):
             self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}: check critics." )
 
             if self.critic.predict_critic(self.protomodel, keep_predictions=True):
-                self.pprint ( "Passed both critics, taking the step." )
+                self.log ( "Passed both critics, taking the step." )
                 self.takeStep()
             else:
-                self.pprint ( "Failed at least one critic, the step is reverted." )
+                self.log ( "Failed at least one critic, the step is reverted." )
                 self.manipulator.restoreModel( reportReversion=True )
 
         else:
@@ -448,16 +446,16 @@ class RandomWalker ( LoggerBase ):
             u = random.uniform(0.,1.)
             ratio = numpy.exp(.5*( newK - K))
             if u > ratio:
-                self.pprint ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
+                self.log ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
                 self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}; u={u:.2f} <= {ratio:.2f}: check critics." )   #SN: <+ and not > right?
 
                 if self.critic.predict_critic(self.protomodel, keep_predictions=True):
-                    self.pprint ( "Passed both critics, taking the step." )
+                    self.log ( "Passed both critics, taking the step." )
                     self.takeStep()
                 else:
-                    self.pprint ( "Failed at least one critic, the step is reverted." )
+                    self.log ( "Failed at least one critic, the step is reverted." )
                     self.manipulator.restoreModel( reportReversion=True )
 
     def record ( self ):
@@ -502,7 +500,7 @@ class RandomWalker ( LoggerBase ):
 
             #If no combination was found, go back
             if self.protomodel.K is None:
-                print("returned")
+                self.log("K is none, return to previous model")
                 self.manipulator.restoreModel(reportReversion=True)
                 continue
 
@@ -512,7 +510,7 @@ class RandomWalker ( LoggerBase ):
             smaxstp = f"{self.maxsteps}"
             if self.maxsteps < 0:
                 smaxstp = "inf"
-            self.log ( f"Step {self.protomodel.step}/{smaxstp} finished." )
+            self.pprint ( f"Step {self.protomodel.step}/{smaxstp} finished." )
         self.manipulator.M.delCurrentSLHA()
         self.pprint ( f"Was asked to stop after {self.maxsteps} steps" )
 

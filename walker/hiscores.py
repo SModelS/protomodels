@@ -200,7 +200,7 @@ class Hiscores ( LoggerBase ):
                     time.sleep( .1+3*tryRead )
         D=m.writeDictFile ( None, cleanOut = False, ndecimals = 6 )
         newlist = self.insertHiscore ( oldhiscores, D )
-        self.pprint ( f"write model to {hiscorefile}" )
+        self.log ( f"write model to {hiscorefile}" )
         with open ( hiscorefile, "wt" ) as f:
             f.write ( "[" )
             for ctr,l in enumerate(newlist):
@@ -468,7 +468,7 @@ class Hiscores ( LoggerBase ):
                 self.updateListFromPickle()
                 return False
         shortname = helpers.simplifyUnixPath(pickleFile)
-        self.pprint ( f"saving new hiscore list to {shortname}" )
+        self.log ( f"saving new hiscore list to {shortname}" )
         try:
             if self.backup and os.path.exists ( pickleFile ):
                 subprocess.getoutput ( f"mv -f {pickleFile} old_{pickleFile}" )
@@ -506,7 +506,7 @@ class Hiscores ( LoggerBase ):
         minK = pprint ( self.currentMinK() )
         saving = "yes" if self.save_hiscores else "no"
             
-        self.pprint ( f"New result with K={K}, TL={TL}, needs to pass K>{minK}, saving: {saving}" )
+        self.log ( f"New result with K={K}, TL={TL}, needs to pass K>{minK}, saving: {saving}" )
         if not self.save_hiscores:
             return False
         if ma.M.K == None:
