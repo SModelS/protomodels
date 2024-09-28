@@ -251,6 +251,18 @@ class ProtoModel ( LoggerBase ):
             if mdaughter >= self.masses[pid]:
                 continue
 
+            offshell = False
+            mass_W = 80.377
+            mwidth_W = 0.012
+            mass_Z = 91.1876
+            mwidth_Z = 0.0021
+            if pid == 1000023 and (self.masses[pid] - self.masses[self.LSP]) < (mass_Z + mwidth_Z): offshell = True
+            elif pid == 1000024 and (self.masses[pid] - self.masses[self.LSP]) < (mass_W + mwidth_W): offshell = True
+            else: offshell = False
+
+            if not offshell and len(dpid) == 3:
+                continue
+
             openChannels.add ( dpid )
 
         openChannels = list(openChannels)
