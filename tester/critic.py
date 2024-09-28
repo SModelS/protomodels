@@ -134,7 +134,7 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.critic_description += "; llhd-based critic combined datasets:" + ",".join( [experimentalId(comb) for comb in mostSensiComb] ) + f"with r={robsComb}"
+            protomodel.critic_description += "; llhd-based critic combined datasets:" + ",".join( [experimentalId(comb) for comb in mostSensiComb] ) + f" with r={robsComb}"
 
         return
 
@@ -338,7 +338,7 @@ class Critic ( LoggerBase ):
                     EMpreds.append(tpred)
         else:
             EMpreds = predictions
-        
+
         if keep_predictions:
             self.llhd_critic_preds = EMpreds
         self.log( f"Found {len(EMpreds)} llhd-based critic predictions passing rexp cut of {cut}" )
@@ -346,7 +346,7 @@ class Critic ( LoggerBase ):
             num_non_sen_res = len(predictions)
             self.log(f"There are {num_non_sen_res} llhd-based critic predicitions, but none of them passed the rexp cut of {cut}. Highest rexp is {rexp_max}")
             return True, None, None          # the model is not excluded, SN: should we allow for the best llhd based critic though?
-        
+
         r = None
         best_comb, _ = self.combiner.getMostSensitiveCombination(EMpreds)
         if best_comb:
