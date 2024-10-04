@@ -174,7 +174,19 @@ class Critic ( LoggerBase ):
         predictions = []
         ulpreds = []
 
-        theoryPredictions = theoryPredictionsFor ( self.database, topos, useBestDataset=True, combinedResults=combineSRs )
+        try:
+            theoryPredictions = theoryPredictionsFor ( self.database, topos, useBestDataset=True, combinedResults=combineSRs )
+        except Exception as e:
+            import time
+            outfile = f"pmodel-{self.walkerid}_{self.protomodel.step}-{int(time.time())}.dict"
+            self.error ( f"critic just caught: {e} when asking for theoryPredictions. Will write model to {outfile}" )
+            self.error ( f"topos are {topos}" )
+            from builder.manipulator import Manipulator
+            ma = Manipulator ( self.protomodel )
+            comment = f"when computing r-value for combo: walkerid={self.walkerid} step={self.protomodel.step}"
+            ma.writeDictFile ( outfile, comment = comment )
+            raise e
+
         preds = TheoryPredictionList(theoryPredictions, maxcond)
 
         if preds != None:
@@ -209,6 +221,7 @@ class Critic ( LoggerBase ):
         """
         # Create SLHA file (for running SModelS)
         slhafile = protomodel.createSLHAFile()
+        self.protomodel = protomodel
 
         # --- UL-based critic ---
 
@@ -333,8 +346,12 @@ class Critic ( LoggerBase ):
         if cut > 0:
             for tpred in predictions:
                 rexp = tpred.getRValue(expected = True)
+                if rexp == None:
+                    from ptools.helpers import experimentalId
+                    self.warn( f"r_exp for {experimentalId(tpred)} is None!" )
+                    continue
                 if rexp > rexp_max: rexp_max = rexp
-                if rexp is not None and rexp >= cut:
+                if rexp >= cut:
                     EMpreds.append(tpred)
         else:
             EMpreds = predictions
@@ -351,7 +368,22 @@ class Critic ( LoggerBase ):
         best_comb, _ = self.combiner.getMostSensitiveCombination(EMpreds)
         if best_comb:
             tpCombiner = TheoryPredictionsCombiner(best_comb)
-            r = tpCombiner.getRValue(expected=False)
+            try:
+                r = tpCombiner.getRValue(expected=False)
+            except Exception as e:
+                import time
+                outfile = f"pmodel-{self.walkerid}_{self.protomodel.step}-{int(time.time())}.dict"
+                self.error ( f"when computing r-value for combination, caught {e}. will write model to {outfile}" )
+                from ptools.helpers import experimentalId
+                line = ""
+                for pred in EMpreds:
+                    line += f"{experimentalId(pred)}, "
+                self.error ( f"best_comb consists of {len(best_comb)} predictions: {line}" )
+                from builder.manipulator import Manipulator
+                ma = Manipulator ( self.protomodel )
+                comment = f"when computing r-value for combo: walkerid={self.walkerid} step={self.protomodel.step}"
+                ma.writeDictFile ( outfile, comment = comment )
+                raise e
 
         if r is None:
             self.highlight("warning","The computation of the observed r-value of the most sensitive combination gave None.")
