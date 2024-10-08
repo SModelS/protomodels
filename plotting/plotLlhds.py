@@ -8,7 +8,7 @@ import pickle, sys, copy, subprocess, os, time, glob, math
 from colorama import Fore as ansi
 import IPython
 import numpy as np
-from protomodels.csetup import setup
+from csetup import setup
 setup()
 import matplotlib
 matplotlib.use("Agg")
@@ -18,8 +18,8 @@ if "plotting" in os.getcwd():
     sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
 matplotlib.rcParams['hatch.linewidth'] = .5  # previous svg hatch linewidth
-from protomodels.base.loggerbase import LoggerBase
-from protomodels.tester.combiner import Combiner
+from base.loggerbase import LoggerBase
+from tester.combiner import Combiner
 from ptools.helpers import getAllPidsOfTheoryPred
 from typing import Dict, Tuple, Union
 

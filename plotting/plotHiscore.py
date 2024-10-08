@@ -523,14 +523,18 @@ class HiscorePlotter ( LoggerBase ):
             else:
                 srv=str(rv['rexp'])
             anaId = rv['tp'].analysisId()
-            prettyName = getPrettyName( rv['tp'] )
+            prettyName = self.getPrettyName( rv['tp'] )
             prettyName = prettyTexAnalysisName ( prettyName, anaid = anaId )
             ref = bibtex.query ( anaId )
             txnames = ",".join ( map(str,rv['tp'].txnames) )
-            allpids = rv['tp'].PIDs
+            from ptools.helpers import getAllPidsOfTheoryPred
+            allpids = getAllPidsOfTheoryPred(rv['tp'])
             pids=[]
             for p in allpids:
                 tmp=[]
+                if type(p)==int:
+                    pids.append((p,))
+                    continue
                 for b in p:
                     if type(b[0])==int:
                         tmp.append(b[0])
@@ -549,7 +553,7 @@ class HiscorePlotter ( LoggerBase ):
             if type(rv['tp'].getUpperLimit ( expected = True )) != type(None):
                 sigmaexp = "%.2f" % rv['tp'].getUpperLimit ( expected=True ).asNumber(fb)
             sigmaobs = rv['tp'].getUpperLimit().asNumber(fb)
-            g.write ( f"{prettyName}~\\cite{{{ref}}} & {prod} & {sigmapred:.2f} & {sigmaobs:.2f} & {sigmaexp} & {rv['obs']:.2f}\\\\\n" )
+            g.write ( f"{prettyName}~\\cite{{{ref}}} & {prod} & {sigmapred:.2f} & {sigmaobs:.2f} & {sigmaexp} \\\\\n" )#& {rv['obs']:.2f}
         g.write ( "\\end{tabular}\n" )
         g.close()
 
@@ -588,8 +592,8 @@ class HiscorePlotter ( LoggerBase ):
             cr.predict_critic( self.protomodel, keep_predictions=True )
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
-        writeRValuesTex ( rvalues )
-            #writeRValuesTexOld ( rvalues )
+        self.writeRValuesTex( rvalues )
+        #writeRValuesTexOld ( rvalues )
 
         if hasattr ( protomodel, "analysisContributions" ):
             print ( "[plotHiscore] contributions-per-analysis are defined" )
