@@ -116,8 +116,10 @@ class Manipulator ( LoggerBase ):
     def checkIfOffshell(self, pid):
         protomodel = self.M
         offshell = False
-        if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
-        elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
+        if 1000023 in protomodel.unFrozenParticles() or 1000024 in protomodel.unFrozenParticles():
+            if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
+            elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
+            else: offshell = False
         else: offshell = False
 
         return offshell
@@ -1408,7 +1410,8 @@ class Manipulator ( LoggerBase ):
                 #if otherpid was not offshell before but now is offshell and vice versa, initialize branchings
                 else: 
                     if self.checkIfOffshell(otherpid) != was_offshell: self.initBranchings(otherpid)
-                self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
+                if otherpid in self.M.unFrozenParticles(): #added check since sometimes after initBranchings, total br is 0 and particle is removed
+                    self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
 
         #Fix branching ratios and rescale signal strenghts, so other channels are not affected
         self.removeIllegalBRs(rescaleSSMs=True)
