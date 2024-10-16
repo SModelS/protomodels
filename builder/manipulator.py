@@ -1389,7 +1389,7 @@ class Manipulator ( LoggerBase ):
             minMass = max ( self.walledpids[abs(pid)], minMass )
 
         ret = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass, maxMass=maxMass )
-        if pid in [ 1000023, 1000024 ]:
+        if pid in [ 1000023, 1000024 ] and pid in self.M.unFrozenParticles():
             # for C1 and N2, if one of the two gets changed, have a 10% chance that the other gets set to the same value
             p=random.uniform(0,1)
             offshell = self.checkIfOffshell(pid)
