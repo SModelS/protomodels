@@ -27,7 +27,7 @@ sns.set_style('ticks',{'font.family':'Times New Roman', 'font.serif':'Times New 
 sns.set_context('paper', font_scale=2.0)
 # sns.set_palette(sns.color_palette("Paired"))
 sns.set_palette(sns.color_palette("deep"))
-from smodels.tools import smodelsLogging
+from smodels.base import smodelsLogging
 smodelsLogging.setLogLevel('error')
 
 argparser = argparse.ArgumentParser(description="high score comparison plotter")
