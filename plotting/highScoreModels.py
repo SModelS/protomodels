@@ -114,6 +114,7 @@ def fromDict(inputDict):
 #Get highest score from each run:
 protomodelsDict = {}
 files = f'../data/{runname}*.dict'
+print ( f"get the higest scores from {files}" )
 for ff in glob.glob( files ):
     if runname == "narrow" and "fudged" in ff:
         continue
@@ -127,7 +128,7 @@ for ff in glob.glob( files ):
 protomodelsDictReal = {}
 # realwinner = 9
 realwinner, winnerK = -1, -1
-print ( "realname", realname )
+print ( f"get the 'real' files are: ../data/{realname}*.dict" )
 for ff in glob.glob(f'../data/{realname}*.dict'):
     with open(ff,'r') as f:
         pList = eval(f.read())
@@ -168,7 +169,7 @@ particles = list(set(particles))
 #Build useful dataset:
 nparticles = np.array([len(p.unFrozenParticles()) for p in modelList])
 Kvalues = np.array([p.K if (p.K and p.K > 0) else 0.0 for p in modelList])
-Zvalues = np.array([p.Z if (p.Z and p.Z > 0) else 0.0 for p in modelList])
+Zvalues = np.array([p.TL if (p.TL and p.TL > 0) else 0.0 for p in modelList])
 masses = dict([[pid,[]] for pid in particles])
 for p in modelList:
     for pid in masses:
