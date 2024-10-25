@@ -23,6 +23,7 @@ from os import PathLike
 from typing import List, Union
 from base.loggerbase import LoggerBase
 from tester.combinationsmatrix import getYamlMatrix
+from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
 
 try:
     from tester.combiner import Combiner
@@ -65,8 +66,10 @@ class Predictor ( LoggerBase ):
         combinationsmatrix, status = getYamlMatrix()
         if not combinationsmatrix or status != 0:
             sys.exit("Combination matrix not loaded correctly when instantiating Predictor class.")
-
+        
         self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
+        if 'official' not in dbpath:
+            self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
         self.fetchResults()
         self.combiner = Combiner(self.walkerid)
 
@@ -378,7 +381,7 @@ class Predictor ( LoggerBase ):
                 print ( f" - {p.analysisId()}:{dataId}: {txns}" )
 
 
-    def computeSignificance(self, protomodel, predictions, strategy):
+    def computeSignificance(self, protomodel, predictions, strategy, test_param_space=False):
         """ compute the K and TL values, and attach them to the protomodel """
         if len ( predictions ) == 0:
             protomodel.K = None
@@ -426,6 +429,9 @@ class Predictor ( LoggerBase ):
                 protomodel.K = None
             else:
                 protomodel.K = self.combiner.computeK ( TL, prior )
+            
+            if 'test_param_space':
+                protomodel.K = 1.0
             #protomodel.llhd = llhd
 
 
