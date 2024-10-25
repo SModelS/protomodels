@@ -840,7 +840,7 @@ class Manipulator ( LoggerBase ):
     def randomlyChangeModel(self,sigmaUnFreeze : float = 0.5, probBR : float = 0.2,
             probSS : float = 0.25, probSSingle : float = 0.8, ssmSigma : float = 0.1,
             probMerge : float = 0.05, sigmaFreeze : float = 0.5,
-            probMassive : float = 0.3, probMass : float = 0.05, dx : float = 200):
+            probMassive : float = 0.3, probMass : float = 0.05, dx : float = 200, keep_track_of_changes= False):
         """Randomly modify the proto-model following the steps:
 
         1) A random particle can be unfrozen with a probability
@@ -854,18 +854,41 @@ class Manipulator ( LoggerBase ):
         6) A random mass can be changed by a maximum value of dx
         with probability of probMass
         """
-
+        
+        changeDesc = {}
         nChanges = 0
-        nChanges += self.randomlyUnfreezeParticle(sigma=sigmaUnFreeze)
-        nChanges += self.randomlyChangeBranchings(prob=probBR)
-        nChanges += self.randomlyChangeSignalStrengths(prob = probSS,
-                                       probSingle = probSSingle, ssmSigma = ssmSigma)
-        nChanges+=self.randomlyFreezeParticle(sigma= sigmaFreeze, probMassive = probMassive)
+        
+        changes, pid = self.randomlyUnfreezeParticle(sigma=sigmaUnFreeze)
+        changeDesc['addParticle'] = pid
+        nChanges += changes
+        
+        changes = self.randomlyChangeBranchings(prob=probBR)
+        changeDesc['br'] = changes
+        nChanges += changes
+        
+        changes = self.randomlyChangeSignalStrengths(prob = probSS, probSingle = probSSingle, ssmSigma = ssmSigma)
+        changeDesc['ssm'] = changes
+        nChanges += changes
+        
+        changes, pid = self.randomlyFreezeParticle(sigma= sigmaFreeze, probMassive = probMassive)
+        changeDesc['remParticle'] = pid
+        nChanges += changes
+        
         if not nChanges: #If nothing has changed, force a random change of masses
-            nChanges+=self.randomlyChangeMasses(prob=1.0, dx = dx)
+            changes = self.randomlyChangeMasses(prob=1.0, dx = dx)
+            changeDesc['mass'] = changes
+            nChanges += changes
         else: #Change masses with 5% probability
-            nChanges+=self.randomlyChangeMasses(prob = probMass, dx = dx)
-
+            changes = self.randomlyChangeMasses(prob = probMass, dx = dx)
+            changeDesc['mass'] = changes
+            nChanges += changes
+        
+        proto = self.M
+        if keep_track_of_changes: proto.changeDesc = changeDesc
+        proto.totalNumofChanges = nChanges
+        self.log(f"changes with respect to previous protomodel:{changeDesc}")
+        self.log(f"Total number of changes: {nChanges}")
+        
         #Update cross-sections (if needed)
         self.M.getXsecs()
 
@@ -892,18 +915,18 @@ class Manipulator ( LoggerBase ):
             mu = 1. - .7 / denom ## make it more unlikely when TL is high
             uUnfreeze = random.gauss( mu ,sigma)
             if uUnfreeze < nUnfrozen/float(nTotal):
-                return 0
+                return 0, None
 
         self.log ( "unfreeze random particle" )
         # Randomly select the pid:
         frozen = self.M.frozenParticles()
         if len(frozen)==0:
-            return 0
+            return 0, None
         pid = random.choice ( frozen )
 
         if pid in self.forbiddenparticles:
             self.log ( f"wanted to unfreeze {self.namer.asciiName(pid)} but its forbidden" )
-            return 0
+            return 0, None
 
         #Check for canonical ordering.
         #If pid matches the heavier state and the lighter state is frozen,
@@ -914,7 +937,7 @@ class Manipulator ( LoggerBase ):
                 break
 
         self.log ( f"Unfreezing {self.namer.asciiName(pid)}" )
-        return self.unFreezeParticle(pid)
+        return self.unFreezeParticle(pid), pid
 
     def randomlyChangeBranchings ( self, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05 ):
         """ randomly change the branchings of a single particle
@@ -1184,7 +1207,7 @@ class Manipulator ( LoggerBase ):
         nUnfrozen = len( self.M.unFrozenParticles() )
         #Always keep at least 2 particles
         if nUnfrozen <= 2:
-            return 0
+            return 0, None
 
         nTotal = len ( self.M.particles )
         denom = 1.
@@ -1195,7 +1218,7 @@ class Manipulator ( LoggerBase ):
         mu = .4 / denom ## make it more unlikely when Z is high
         uFreeze = random.gauss(mu,sigma)
         if uFreeze > nUnfrozen/float(nTotal):
-            return 0
+            return 0, None
 
         # in every nth step freeze random particle
         if random.uniform(0,1) < probMassive:
@@ -1206,11 +1229,11 @@ class Manipulator ( LoggerBase ):
         unfrozen = self.M.unFrozenParticles( withLSP = False )
         if len(unfrozen)<2:
             self.log ( "only two particles are unfrozen, so dont freeze anything" )
-            return 0 ## freeze only if at least 3 unfrozen particles exist
+            return 0, None ## freeze only if at least 3 unfrozen particles exist
         pid = random.choice ( unfrozen )
 
         self.freezeParticle ( pid )
-        return 1
+        return 1, pid
 
     def freezeMostMassiveParticle ( self, protomodel=None ):
         """ freezes the most massive unfrozen particle """
@@ -1220,7 +1243,7 @@ class Manipulator ( LoggerBase ):
 
         unfrozen = protomodel.unFrozenParticles( withLSP=False )
         if len(unfrozen)<2:
-            return 0 ## freeze only if at least 3 unfrozen particles exist
+            return 0,None ## freeze only if at least 3 unfrozen particles exist
         pid,minmass=0,0
         for i in unfrozen:
             if protomodel.masses[i]>minmass:
@@ -1229,7 +1252,7 @@ class Manipulator ( LoggerBase ):
         # p = random.choice ( unfrozen )
         protomodel.log ( f"Freezing most massive {self.namer.asciiName(pid)} ({minmass:.1f})" )
         self.freezeParticle ( pid, protomodel = protomodel )
-        return 1
+        return 1,pid
 
     def freezeParticle ( self, pid, force = False, protomodel = None ):
         """ freeze particle pid, take care of offshell removal, and
@@ -1412,6 +1435,7 @@ class Manipulator ( LoggerBase ):
                     if self.checkIfOffshell(otherpid) != was_offshell: self.initBranchings(otherpid)
                 if otherpid in self.M.unFrozenParticles(): #added check since sometimes after initBranchings, total br is 0 and particle is removed
                     self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
+                    ret+=1
 
         #Fix branching ratios and rescale signal strenghts, so other channels are not affected
         self.removeIllegalBRs(rescaleSSMs=True)
