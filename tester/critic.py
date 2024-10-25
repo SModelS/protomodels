@@ -24,6 +24,7 @@ from typing import List, Union
 from base.loggerbase import LoggerBase
 from tester.combiner import Combiner
 from tester.combinationsmatrix import getYamlMatrix
+from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
 
 class Critic ( LoggerBase ):
     def __init__ ( self, walkerid : int, dbpath : PathLike = "official", expected : bool = False, select : str = "all", do_srcombine : bool = False ):
@@ -43,7 +44,9 @@ class Critic ( LoggerBase ):
         if not combinationsmatrix or status != 0:
             sys.exit("Combination matrix not loaded correctly when instantiating Critic class.")
 
-        self.database = Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
+        self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
+        if 'official' not in dbpath:
+            self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
         self.combiner = Combiner(self.walkerid)
 
     # def getMaxAllowedMu(self, protomodel):
@@ -378,7 +381,8 @@ class Critic ( LoggerBase ):
                 line = ""
                 for pred in EMpreds:
                     line += f"{experimentalId(pred)}, "
-                self.error ( f"best_comb consists of {len(best_comb)} predictions: {line}" )
+                    if pred in best_comb: best_line += f"{experimentalId(pred)}, "
+                self.error ( f"best_comb consists of {len(best_comb)} predictions: {best_line}; All predictions: {line}" )
                 from builder.manipulator import Manipulator
                 ma = Manipulator ( self.protomodel )
                 comment = f"when computing r-value for combo: walkerid={self.walkerid} step={self.protomodel.step}"
@@ -389,4 +393,4 @@ class Critic ( LoggerBase ):
             self.highlight("warning","The computation of the observed r-value of the most sensitive combination gave None.")
             return False, best_comb, None
 
-        return r < 1, best_comb, r          #SN: r < r_threshold?
+        return r < 1, best_comb, r              #change r threshold?
