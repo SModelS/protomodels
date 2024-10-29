@@ -225,10 +225,17 @@ class RandomWalker ( LoggerBase ):
                 self.pprint ( f"  `-- error! best combo pids ({pidsbc}) arent subset of masses pids ({pidsp})!" )
                 self.manipulator.M.bestCombo = None
 
-    def predict ( self, manipulator : Manipulator ):
+    def predict ( self, manipulator : Manipulator, test_param_space=False ):
         """ Calls predictor.predict to get the theory predictions for model. Loops for 5 times till model.muhat is close to 1.0 """
         #print(f"Adress of manip : {id(manipulator)}")
         model = manipulator.M
+        if test_param_space:
+            model.K = 1.0
+            model.TL = 1.0
+            proto_dict = manipulator.getPmodelDict()
+            self.log(f"Protomodel: {proto_dict}")
+            return True
+
         muhat_converge = False
         previousMuhat = None
         for i in range(5):
@@ -416,7 +423,7 @@ class RandomWalker ( LoggerBase ):
         self.currentTL = self.protomodel.TL
         self.manipulator.record( "take step" )
 
-    def decideOnTakingStep ( self ):
+    def decideOnTakingStep ( self, test_param_space=False ):
         """ depending on the ratio of K values, decide on whether to take the step or not.
             If ratio > 1., take the step, if < 1, let chance decide. """
         K = self.currentK
@@ -425,6 +432,10 @@ class RandomWalker ( LoggerBase ):
             return
 
         newK = self.protomodel.K
+        if test_param_space:
+            self.takeStep()
+            self.log("Testing parameter space, K,TL = 1.0. Take step")
+            return
         if newK == None:
             # if the new is none, but the old isnt, we go back
             self.manipulator.restoreModel( reportReversion=True )
@@ -526,11 +537,11 @@ if __name__ == "__main__":
     decays = {1000022: {}, 1000023: {(1000022, 25): 1.0}, 1000024: {(1000022, 24): 1.0}, 1000037: {(1000022, 24): 1.0}}
     
     D = {'masses': masses, 'ssmultipliers': ssms, 'decays': decays }
-    dbpath = "official"
+    dbpath = "../../smodels-database/"
     select = "txnames:electroweakinos,electroweakinos_offshell"
     select = "all"
-    walker = RandomWalker( walkerid=0, nsteps = 1000,
-                    dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
-    #walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
-    #        do_srcombine = True, select = select )
+    #walker = RandomWalker( walkerid=0, nsteps = 1000,
+    #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
+    walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
+            do_srcombine = True, select = select )
     walker.walk()
