@@ -31,6 +31,14 @@ from os import PathLike
 from base.loggerbase import LoggerBase
 from ptools.helpers import prettyPrint
 
+try:
+    from smodels.statistics.pyhfInterface import setBackend
+    o = setBackend ( "pytorch" )
+    if not o:
+        logger.warning ( "could not set backend to pytorch, falling back to numpy" )
+except ImportError as e:
+    logger.warning ( "could not set backend to pytorch: {e} (are you using smodels >=3.0.1)?" )
+
 logger.setLevel("ERROR")
 
 def __cleanDirectory ():
