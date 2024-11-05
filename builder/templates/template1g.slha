@@ -53,7 +53,7 @@ BLOCK MASS  # Mass Spectrum
 # PDG code           mass       particle
         24     8.04311880E+01   # W+
         25     1.27018939E+02   # h
-        35     1.99976010E+05   # H
+        35     M35              # H
         36     2.00000001E+05   # A
         37     2.00174344E+05   # H+
          5     4.85697885E+00   # b-quark pole mass calculated from mb(mb)_Msbar
@@ -456,3 +456,8 @@ DECAY   1000025     4.86632501E+00   # neutralino3 decays
      D1000025_1000024_24  2     1000024       -24   # BR(~chi_30 -> ~chi_1+   W-)
      D1000025_1000022_25  2     1000022        25   # BR(~chi_30 -> ~chi_10   h )
      D1000025_1000023_25  2     1000023        25   # BR(~chi_30 -> ~chi_20   h )
+
+DECAY        35     4.86632501E+00   # new scalar decays
+     D35_1000022_1000022  2     1000022        -1000022   # BR(H -> ~chi_10 ~chi10 )
+     D35_1_1 2                  1 -1  # BR(H -> q q )
+     D35_6_6 2                  6 -6  # BR(H -> t t )
