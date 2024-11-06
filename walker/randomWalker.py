@@ -546,6 +546,7 @@ if __name__ == "__main__":
     
     D = {'masses': masses, 'ssmultipliers': ssms, 'decays': decays }
     dbpath = "../../smodels-database/"
+    dbpath = "official"
     select = "txnames:electroweakinos,electroweakinos_offshell"
     select = "all"
     #walker = RandomWalker( walkerid=0, nsteps = 1000,
