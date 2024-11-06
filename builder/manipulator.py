@@ -1808,6 +1808,9 @@ class Manipulator ( LoggerBase ):
             pidss.sort()
             print ( f"{sqrts} TeV:" )
             for pids in pidss:
+                mpids = tuple ( [ x for x in pids if x != None ] )
+                if len(mpids)==1:
+                    mpids = mpids[0]
                 xsec = xsecs[sqrts][pids]
                 label = ""
                 comment = ""
@@ -1815,7 +1818,7 @@ class Manipulator ( LoggerBase ):
                     comment = xsec.comment
                 if "dict" in xsec.info.label:
                     label = " (from dict)"
-                print ( f" {str(pids):>22s}: {xsec.value.asNumber(fb):.2f} fb{label} {comment}" )
+                print ( f" {str(mpids):>22s}: {xsec.value.asNumber(fb):.2f} fb{label} {comment}" )
 
     def simplifyDecays ( self ):
         """ return the decays only of the unfrozen particles,
