@@ -46,7 +46,7 @@ class ProtoModel ( LoggerBase ):
         self.maxMass = 2400. ## maximum masses we consider
         self.step = 0 ## count the steps
         self.dbversion = dbversion ## keep track of the database version
-        self.particles = [ 35, 1000001, 2000001, 1000002, 2000002, 1000003, 2000003,
+        self.particles = [ 1000001, 2000001, 1000002, 2000002, 1000003, 2000003,
                   1000004, 2000004, 1000005, 2000005, 1000006, 2000006, 1000011,
                   2000011, 1000012, 1000013, 2000013, 1000014, 1000015, 2000015,
                   1000016, 1000021, 1000022, 1000023, 1000025, 1000035, 1000024,
@@ -65,9 +65,10 @@ class ProtoModel ( LoggerBase ):
                       1000023, 1000025, 1000024, 1000037 ]
             self.templateSLHA = "templates/template_2q.slha"
         if self.manysquark:
-            self.particles = [ 35, 1000001, 1000002, 1000003, 1000004, 1000005, 1000006,
+            self.particles = [ 1000001, 1000002, 1000003, 1000004, 1000005, 1000006,
                       2000005, 2000006, 1000011, 1000012, 1000013, 1000014, 1000015,
                       1000016, 1000021, 1000022, 1000023, 1000025, 1000024, 1000037 ]
+            # self.particles.append ( 35 ) ## for the scalar higgs
             self.templateSLHA = "templates/template1g.slha"
             if False:
                 self.particles.append ( 2000021 )
