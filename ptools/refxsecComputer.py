@@ -164,6 +164,7 @@ class RefXSecComputer:
             # PDGs of incoming states
             header += " " + str(pdg)
         # Number of outgoing states
+        xsec.pid = tuple ( [ x for x in xsec.pid if x != None ] )
         header += " " + str(len(xsec.pid))
         for pid in xsec.pid:
             # PDGs of outgoing states
@@ -410,8 +411,9 @@ class RefXSecComputer:
         for channel in channels:
             # obtain xsecs for all masses, but for the given channel
             pids = channel["pids"]
-            if pids[1] < pids[0]:
+            if pids[1]!=None and pids[1] < pids[0]:
                 pids = ( pids[1], pids[0] )
+            # obtain xsecs for all masses, but for the given channel
             xsecall,order,comment = self.getXSecsFor ( pids[0], pids[1],
                     sqrts, ewk, channel["masses"] )
             # print ( f"for channel {pids}: {str(xsecall)[:10]}" )
@@ -496,15 +498,18 @@ class RefXSecComputer:
                                 ( 1000024, 1000025 ), ( -1000024, 1000025 ), ( -1000024, 1000037 ), ( -1000037, 1000024 ),
                                 ( 1000037, 1000025 ), ( -1000037, 1000025 )
                               )
+        schannel = ( 35, )
 
         for pid,mass in masses.items():
-            if pid < 999999:
+            if pid < 999999 and pid not in schannel:
                 continue
             if type(mass) not in [ float, int ]:
                 logger.error ( f"I found a mass of {mass} in {slhafile}, do not know what to do with it." )
                 sys.exit(-1)
             if mass > 5000:
                 continue
+            if pid in schannel:
+                channels.append ( { "pids": (pid,None), "masses": ( mass,None ) } )
 
             if pid in samesignmodes:
                 channels.append ( { "pids": (pid,pid), "masses": ( mass, mass ) } )
@@ -571,6 +576,8 @@ class RefXSecComputer:
             return mass
         if type(mass) in [ str ]:
             return float(mass)
+        if type(mass) in [ tuple, list ]:
+            mass = [ x for x in mass if x != None ]
         # for i in range(len(mass)-1):
         #     smass = mass[i]+mass[i+1]
         #     if smass > 1e-6 and abs (mass[i]-mass[i+1]) / smass > 1e-3:
@@ -641,6 +648,13 @@ class RefXSecComputer:
         isEWK = False
         comment = ""
         # comment="refxsec [pb]"
+        if pid1 in [ 35 ] and pid2 == None:
+            #if sqrts == 8: # we dont have xsecs for that
+            #    return None, None, None
+            filename = f"xsecScalar{sqrts}.txt"
+            columns["xsec"]=1
+            isEWK=False
+            order = LO
         if pid1 in [ 1000021 ] and pid2 == pid1: # Gluino pair production
             filename = "xsecgluino%d.txt" % sqrts
             columns["xsec"] = 2

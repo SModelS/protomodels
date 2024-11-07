@@ -83,7 +83,7 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
         # nll0 = tpred.lsm(expected=expected, return_nll=True)
         nll0 = tpred.likelihood(mu=0, expected=expected, return_nll=True)
         nll1 = tpred.likelihood(mu=1, expected=expected, return_nll=True)
-        w = np.NaN
+        w = np.nan
         if nll0 is not None and nll1 is not None:
             # w = -2 * (ll0 - ll1) = 2 * (ll1 - ll0) = 2 * (-ll0 - (-ll1)) = 2 * (nll0 - nll1) for anamoly mode
             w = 2 * (nll0 - nll1)
