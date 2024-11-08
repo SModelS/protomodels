@@ -40,7 +40,7 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction], bound: float
             #keptThese.append ( preds[0].experimentalId() )   #self.getPredictionID ( pred )
             continue
 
-        maxRatio, ratioList = 0., {}
+        maxRatio, ratioList = -float("inf"), {}
         for pred in preds:
             nll0 = pred.likelihood(mu=0, expected=False, return_nll=True)
             nll1 = pred.likelihood(mu=1, expected=False, return_nll=True)
