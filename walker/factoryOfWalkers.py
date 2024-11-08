@@ -49,7 +49,7 @@ def startWalkers ( walkers : List, catch_exceptions : bool = False,
     :returns: number of started walkers
     """
     processes=[]
-    print("Starting Walk")
+    print("[factoryOfWalkers] startWalkers")
     if len(walkers) == 1: 
         _run ( walkers[0], catch_exceptions, seed )
         return 1
