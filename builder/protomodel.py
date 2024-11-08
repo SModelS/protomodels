@@ -69,7 +69,7 @@ class ProtoModel ( LoggerBase ):
                       2000005, 2000006, 1000011, 1000012, 1000013, 1000014, 1000015,
                       1000016, 1000021, 1000022, 1000023, 1000025, 1000024, 1000037 ]
             # self.particles.append ( 35 ) ## for the new scalar
-            self.particles.append ( 55 ) ## for the new vector boson
+            # self.particles.append ( 55 ) ## for the new vector boson
             self.templateSLHA = "templates/template1g.slha"
             if False:
                 self.particles.append ( 2000021 )

@@ -65,7 +65,7 @@ c2 = Particle(isSM=False, label='C2+', pdg=1000037, eCharge=1, colordim=1, spin=
 H = Particle(isSM=False, label='H+', pdg=37, eCharge=+1, colordim=1, spin=0)
 A0 = Particle(isSM=False, label='A0', pdg=36, eCharge=0, colordim=1, spin=0, _isInvisible=False)
 H0 = Particle(isSM=False, label='H0', pdg=35, eCharge=0, colordim=1, spin=0, _isInvisible=False)
-Zprime = Particle(isSM=False, label='Zprime', pdg=55, eCharge=0, colordim=1, spin=1, _isInvisible=False)
+Zprime = Particle(isSM=False, label="Z'", pdg=55, eCharge=0, colordim=1, spin=1, _isInvisible=False)
 
 squarks = [sdl,sul,sdr,sur] + [ssl,scl,ssr,scr] + [sb1,st1,sb2,st2]
 sleptons = [sel,snel,ser] + [smul,snmul,smur] + [sta1,sntal,sta2]
