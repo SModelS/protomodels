@@ -430,7 +430,7 @@ class Predictor ( LoggerBase ):
             else:
                 protomodel.K = self.combiner.computeK ( TL, prior )
             
-            if 'test_param_space':
+            if test_param_space:
                 protomodel.K = 1.0
             #protomodel.llhd = llhd
 
