@@ -50,6 +50,26 @@ class RefXSecComputer:
         except ImportError as e:
             pass
         self.shareDir = f"{codedir}/ptools/xsecTables/"
+        # productions of same-sign-pid pairs when the particle is within reach
+        self.samesignmodes = ( 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 )
+        # production of opposite-sign-pid pairs when the particle is within reach
+        self.oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 
+                2000005, 1000006, 2000006, 1000011, 1000013, 1000015, 1000024, 
+                1000037 )
+
+        # associate production
+        self.associateproduction = ( ( 1000001, 1000021 ), ( 1000002, 1000021 ), 
+                ( 1000003, 1000021 ), ( 1000004, 1000021 ), ( 1000005, 1000021 ), 
+                ( 2000005, 1000021 ), ( 1000006, 1000021 ), ( 2000006, 1000021 ),
+                ( 1000011, -1000012 ), ( 1000013, -1000014 ), ( 1000015, -1000016 ),
+                ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016 ),
+                ( 1000022, 1000023 ), ( 1000022, 1000024 ), ( 1000022, -1000024 ), 
+                ( 1000024, 1000023 ), ( -1000024, 1000023 ), ( 1000023, 1000025 ), 
+                ( 1000037, 1000023 ), ( -1000037, 1000023 ), ( 1000024, 1000025 ), 
+                ( -1000024, 1000025 ), ( -1000024, 1000037 ), ( -1000037, 1000024 ),
+                ( 1000037, 1000025 ), ( -1000037, 1000025 ))
+        # self.schannel = ( 35, 55, )
+        self.schannel = tuple()
 
     def warn ( self, *txt ):
         stxt=str(*txt)
@@ -486,45 +506,32 @@ class RefXSecComputer:
         masses = slhadata.blocks["MASS"]
         # print ( "findOpenChannels" )
         channels = []
-        # productions of same-sign-pid pairs when the particle is within reach
-        samesignmodes = ( 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 )
-        # production of opposite-sign-pid pairs when the particle is within reach
-        oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006, 1000011, 1000013, 1000015, 1000024, 1000037 )
-
-        # associate production
-        associateproduction = ( ( 1000001, 1000021 ), ( 1000002, 1000021 ), ( 1000003, 1000021 ), ( 1000004, 1000021 ), ( 1000005, 1000021 ), ( 2000005, 1000021 ), ( 1000006, 1000021 ), ( 2000006, 1000021 ),
-                                ( 1000011, -1000012 ), ( 1000013, -1000014 ), ( 1000015, -1000016 ), ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016 ),
-                                ( 1000022, 1000023 ), ( 1000022, 1000024 ), ( 1000022, -1000024 ), ( 1000024, 1000023 ), ( -1000024, 1000023 ), ( 1000023, 1000025 ), ( 1000037, 1000023 ), ( -1000037, 1000023 ),
-                                ( 1000024, 1000025 ), ( -1000024, 1000025 ), ( -1000024, 1000037 ), ( -1000037, 1000024 ),
-                                ( 1000037, 1000025 ), ( -1000037, 1000025 )
-                              )
-        schannel = ( 35, )
 
         for pid,mass in masses.items():
-            if pid < 999999 and pid not in schannel:
+            if pid < 999999 and pid not in self.schannel:
                 continue
             if type(mass) not in [ float, int ]:
                 logger.error ( f"I found a mass of {mass} in {slhafile}, do not know what to do with it." )
                 sys.exit(-1)
             if mass > 5000:
                 continue
-            if pid in schannel:
+            if pid in self.schannel:
                 channels.append ( { "pids": (pid,None), "masses": ( mass,None ) } )
 
-            if pid in samesignmodes:
+            if pid in self.samesignmodes:
                 channels.append ( { "pids": (pid,pid), "masses": ( mass, mass ) } )
-            if pid in oppositesignmodes:
+            if pid in self.oppositesignmodes:
                 channels.append ( { "pids": (-pid,pid), "masses": ( mass, mass ) } )
             for jpid, jmass in masses.items():
                 if pid >= jpid or jpid < 999999 or jmass > 5000:
                     continue
-                if (pid,jpid) in associateproduction:
+                if (pid,jpid) in self.associateproduction:
                     channels.append ( { "pids": (jpid,pid), "masses": (jmass, mass ) } )
-                if (jpid,pid) in associateproduction:
+                if (jpid,pid) in self.associateproduction:
                     channels.append ( { "pids": (pid,jpid), "masses": (mass, jmass ) } )
-                if (-pid,jpid) in associateproduction:
+                if (-pid,jpid) in self.associateproduction:
                     channels.append ( { "pids": (jpid,-pid), "masses": (jmass, mass ) } )
-                if (-jpid,pid) in associateproduction:
+                if (-jpid,pid) in self.associateproduction:
                     channels.append ( { "pids": (pid,-jpid), "masses": (mass, jmass ) } )
         if len(channels)==0:
             print ( f"[refxsecComputer] found no open channels for {slhafile}" )
@@ -652,6 +659,13 @@ class RefXSecComputer:
             #if sqrts == 8: # we dont have xsecs for that
             #    return None, None, None
             filename = f"xsecScalar{sqrts}.txt"
+            columns["xsec"]=1
+            isEWK=False
+            order = LO
+        if pid1 in [ 55 ] and pid2 == None:
+            #if sqrts == 8: # we dont have xsecs for that
+            #    return None, None, None
+            filename = f"xsecVector{sqrts}.txt"
             columns["xsec"]=1
             isEWK=False
             order = LO

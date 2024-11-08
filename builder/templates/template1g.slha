@@ -58,6 +58,7 @@ BLOCK MASS  # Mass Spectrum
         36     2.00000001E+05   # A
         37     2.00174344E+05   # H+
          5     4.85697885E+00   # b-quark pole mass calculated from mb(mb)_Msbar
+## 		   55     M55              # Z'
    1000001     M1000001         # ~d_L
    2000001     1E+06            # ~d_R
    1000002     M1000002         # ~u_L
@@ -458,7 +459,12 @@ DECAY   1000025     4.86632501E+00   # neutralino3 decays
      D1000025_1000022_25  2     1000022        25   # BR(~chi_30 -> ~chi_10   h )
      D1000025_1000023_25  2     1000023        25   # BR(~chi_30 -> ~chi_20   h )
 
-##DECAY        35     4.86632501E+00   # new scalar decays
+##DECAY        35     4.86632501E+00   # new scalar mediator decays
 ##     D35_1000022_1000022  2     1000022        -1000022   # BR(H -> ~chi_10 ~chi10 )
 ##     D35_1_1 2                  1 -1  # BR(H -> q q )
 ##     D35_6_6 2                  6 -6  # BR(H -> t t )
+
+#DECAY        55     4.86632501E+00   # vector mediator decays
+#     D55_1000022_1000022  2     1000022        -1000022   # BR(H -> ~chi_10 ~chi10 )
+#     D55_1_1 2                  1 -1  # BR(H -> q q )
+#     D55_6_6 2                  6 -6  # BR(H -> t t )

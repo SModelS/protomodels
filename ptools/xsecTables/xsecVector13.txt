@@ -1,4 +1,5 @@
-# created with createXSecTable.py
+# created with smodels-utils/slha/createXSecTable.py
+# from TRV1.tar.gz
   50 376900.0
  100 53312.0
  150 15711.0
