@@ -19,6 +19,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
         print ( f"[printSimpleHiscoreList] {dictfile} does not exist" )
         return
     f=open( dictfile, "rt" )
+    import numpy as np
     D=eval(f.read() )
     f.close()
     if nmax == None:
