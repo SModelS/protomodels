@@ -27,7 +27,8 @@ def getVariance ( xs, ys, expected ):
 def plot ( ):
     # xs = np.arange(-3,6,.03)
     xs = np.arange(-7,8,.1)
-    ns = [ 1, 2, 5, 20 ]
+    ns = range(1,200)
+    plot = [ 1, 2, 5, 20 ]
     dicts = { n: [] for n in ns }
     for x in xs:
         for n in ns:
@@ -35,12 +36,28 @@ def plot ( ):
     for n in ns:
         e = getExpected ( xs, dicts[n] )
         v = np.sqrt ( getVariance ( xs, dicts[n], e ) )
+        print ( f"n {n} e {e:.2f}+-{v:.2f}" )
+    for n in plot:
         plt.plot(xs,dicts[n],label = f"max({n} SR): {e:.2f}+-{v:.2f}" )
     plt.legend()
     plt.savefig("penalty.png")
     o = subprocess.getoutput ( "timg penalty.png" )
     print ( o )
         
+def plotTrend ():
+    with open ( "penalties", "rt" ) as f:
+        lines = f.readlines()
+        f.close()
+    xs, ys = [] , []
+    for line in lines:
+        tokens = line.split("," )
+        xs.append ( int(tokens[0]) )
+        ys.append ( float(tokens[1]) )
+    plt.plot ( xs, ys )
+    plt.savefig ( "trend.png" )
+    o = subprocess.getoutput ( "timg trend.png" )
+    print ( o )
 
 if __name__ == "__main__":
-    plot ()
+    plotTrend ()
+    # plot ()
