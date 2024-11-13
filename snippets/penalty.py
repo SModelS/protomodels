@@ -53,10 +53,24 @@ def plotTrend ():
         tokens = line.split("," )
         xs.append ( int(tokens[0]) )
         ys.append ( float(tokens[1]) )
-    plt.plot ( xs, ys )
+    ys = [ y - ys[0] for y in ys ] # subtract first!
+    #print ( "xs", xs[:10] )
+    #print ( "ys", ys[:10] )
+    #sigmas = [ np.sqrt ( y ) + 1e-6 for y in ys ]
+    plt.scatter ( xs, ys )
+    from scipy.optimize import curve_fit
+    popt, pcov = curve_fit(lambda t, a: a*np.log(t), xs, ys ) # , sigma=sigmas, absolute_sigma=True)
+    #print ( "popt", popt, pcov )
+    a = popt[0]
+    # b = popt[1]
+    #print ( "a", a )
+    print ( f"{a} * log ( x )" )
+    preds = [ a * np.log(t) for t in xs ]
+    plt.plot ( xs, preds, c="orange" )
     plt.savefig ( "trend.png" )
     o = subprocess.getoutput ( "timg trend.png" )
     print ( o )
+    # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 if __name__ == "__main__":
     plotTrend ()
