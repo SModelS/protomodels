@@ -35,7 +35,7 @@ def plot ( ):
     for n in ns:
         e = getExpected ( xs, dicts[n] )
         v = np.sqrt ( getVariance ( xs, dicts[n], e ) )
-        plt.plot(xs,dicts[n],label = f"max({n} SN): {e:.2f}+-{v:.2f}" )
+        plt.plot(xs,dicts[n],label = f"max({n} SR): {e:.2f}+-{v:.2f}" )
     plt.legend()
     plt.savefig("penalty.png")
     o = subprocess.getoutput ( "timg penalty.png" )
