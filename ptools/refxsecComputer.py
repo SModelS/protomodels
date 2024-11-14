@@ -58,16 +58,17 @@ class RefXSecComputer:
                 1000037 )
 
         # associate production
-        self.associateproduction = ( ( 1000001, 1000021 ), ( 1000002, 1000021 ), 
-                ( 1000003, 1000021 ), ( 1000004, 1000021 ), ( 1000005, 1000021 ), 
-                ( 2000005, 1000021 ), ( 1000006, 1000021 ), ( 2000006, 1000021 ),
-                ( 1000011, -1000012 ), ( 1000013, -1000014 ), ( 1000015, -1000016 ),
-                ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016 ),
-                ( 1000022, 1000023 ), ( 1000022, 1000024 ), ( 1000022, -1000024 ), 
-                ( 1000024, 1000023 ), ( -1000024, 1000023 ), ( 1000023, 1000025 ), 
-                ( 1000037, 1000023 ), ( -1000037, 1000023 ), ( 1000024, 1000025 ), 
+        #IMP! When adding prod modes, make sure pid[0] < pid[1]!!
+        self.associateproduction = ( ( 1000001, 1000021 ), ( 1000002, 1000021),
+                ( 1000003, 1000021 ), ( 1000004, 1000021 ), ( 1000005, 1000021),
+                ( 1000021, 2000005 ), ( 1000006, 1000021 ), ( 1000021, 2000006),
+                ( -1000012, 1000011), ( -1000014, 1000013), (-1000016, 1000015),
+                ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016),
+                ( 1000022, 1000023 ), ( 1000022, 1000024 ), ( -1000024, 1000022),
+                ( 1000023, 1000024 ), ( -1000024, 1000023 ), ( 1000023, 1000025 ),
+                ( 1000023, 1000037 ), ( -1000037, 1000023 ), ( 1000024, 1000025 ),
                 ( -1000024, 1000025 ), ( -1000024, 1000037 ), ( -1000037, 1000024 ),
-                ( 1000037, 1000025 ), ( -1000037, 1000025 ))
+                ( 1000025, 1000037 ), ( -1000037, 1000025 ))
         # self.schannel = ( 35, 55, )
         self.schannel = tuple()
 
@@ -526,13 +527,18 @@ class RefXSecComputer:
                 if pid >= jpid or jpid < 999999 or jmass > 5000:
                     continue
                 if (pid,jpid) in self.associateproduction:
-                    channels.append ( { "pids": (jpid,pid), "masses": (jmass, mass ) } )
-                if (jpid,pid) in self.associateproduction:
                     channels.append ( { "pids": (pid,jpid), "masses": (mass, jmass ) } )
-                if (-pid,jpid) in self.associateproduction:
+                if -pid < jpid and (-pid,jpid) in self.associateproduction:
+                    channels.append ( { "pids": (-pid,jpid), "masses": (mass, jmass ) } )
+                if jpid < -pid and (jpid,-pid) in self.associateproduction:
                     channels.append ( { "pids": (jpid,-pid), "masses": (jmass, mass ) } )
-                if (-jpid,pid) in self.associateproduction:
+                    ppair = (-pid,jpid); masspair = (mass,jmass)
+                if pid < -jpid and (pid,-jpid) in self.associateproduction:
                     channels.append ( { "pids": (pid,-jpid), "masses": (mass, jmass ) } )
+                if -jpid < pid and (-jpid,pid) in self.associateproduction:
+                    channels.append ( { "pids": (-jpid,pid), "masses": (jmass, mass ) } )
+
+
         if len(channels)==0:
             print ( f"[refxsecComputer] found no open channels for {slhafile}" )
         return channels
