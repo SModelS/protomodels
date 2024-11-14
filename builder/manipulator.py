@@ -1273,7 +1273,6 @@ class Manipulator ( LoggerBase ):
         """
 
         nUnfrozen = len( self.M.unFrozenParticles() )
-        print("nunfrozen = ", nUnfrozen)
         #Always keep at least 2 particles
         if nUnfrozen <= 2:
             self.log("Only 2 particles present, not freezing any particle")
