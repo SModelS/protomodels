@@ -262,7 +262,7 @@ class ProtoModel ( LoggerBase ):
             elif pid == 1000024 and (self.masses[pid] - self.masses[self.LSP]) < (mass_W + mwidth_W): offshell = True
             else: offshell = False
 
-            if not offshell and len(dpid) == 3:
+            if not offshell and len(dpid) == 3 and pid in [1000023, 1000024]:       #turn off 3-body decays for onshell X^2_Z and X^1_W
                 continue
 
             openChannels.add ( dpid )
