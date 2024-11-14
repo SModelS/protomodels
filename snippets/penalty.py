@@ -7,7 +7,8 @@ import subprocess
 
 def m ( x : float , n : int = 10 ):
     # ret = n*scipy.stats.norm.cdf(x)**(n-1)*scipy.stats.norm.pdf(x)
-    ret = n*scipy.stats.t.cdf(x,df=3,loc=-1.18,scale=4.73/5.)**(n-1)*scipy.stats.t.pdf(x,df=3,loc=-1.18,scale=4.73/5.)
+    #ret = n*scipy.stats.t.cdf(x,df=3,loc=-1.18,scale=4.73/5.)**(n-1)*scipy.stats.t.pdf(x,df=3,loc=-1.18,scale=4.73/5.)
+    ret = n*scipy.stats.t.cdf(x,df=3,loc=-0.42,scale=1.7/5.)**(n-1)*scipy.stats.t.pdf(x,df=3,loc=-0.42,scale=1.7/5.)
     return ret
 
 def getExpected ( xs, ys ):
@@ -25,11 +26,12 @@ def getVariance ( xs, ys, expected ):
     return V#  / (len(xs)-1)
 
 def plot ( ):
-    # xs = np.arange(-3,6,.03)
-    xs = np.arange(-7,8,.1)
+    xs = np.arange(-3,5,.03)
+    # xs = np.arange(-7,8,.1)
     ns = range(1,200)
     plot = [ 1, 2, 5, 20 ]
     dicts = { n: [] for n in ns }
+    f = open ( "penalties", "wt" )
     for x in xs:
         for n in ns:
             dicts[n].append ( m (x, n ) )
@@ -37,6 +39,7 @@ def plot ( ):
         e = getExpected ( xs, dicts[n] )
         v = np.sqrt ( getVariance ( xs, dicts[n], e ) )
         print ( f"n {n} e {e:.2f}+-{v:.2f}" )
+        f.write ( f"{n}, {e}\n" )
     for n in plot:
         plt.plot(xs,dicts[n],label = f"max({n} SR): {e:.2f}+-{v:.2f}" )
     plt.legend()
@@ -79,5 +82,5 @@ def plotTrend ():
     # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 if __name__ == "__main__":
-    plotTrend ()
     # plot ()
+    plotTrend ()
