@@ -974,10 +974,10 @@ class Manipulator ( LoggerBase ):
 
         #Decide whether to unfreeze according to the number of active particles
         #(always unfreeze if the model only has one particle) -> still keep?
-        nUnfrozen = len( self.propose_model.unFrozenParticles() )
+        nUnfrozen = len( self.M.unFrozenParticles() )
 
         # Randomly select the pid:
-        frozen = self.propose_model.frozenParticles()
+        frozen = self.M.frozenParticles()
         if len(frozen)==0:
             return None
         pid = random.choice ( frozen )
