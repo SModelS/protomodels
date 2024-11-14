@@ -57,7 +57,7 @@ def plotTrend ():
     #print ( "xs", xs[:10] )
     #print ( "ys", ys[:10] )
     #sigmas = [ np.sqrt ( y ) + 1e-6 for y in ys ]
-    plt.scatter ( xs, ys )
+    plt.scatter ( xs, ys, label = "data (approx. Jamie's Fig 8.7)" )
     from scipy.optimize import curve_fit
     popt, pcov = curve_fit(lambda t, a: a*np.log(t), xs, ys ) # , sigma=sigmas, absolute_sigma=True)
     #print ( "popt", popt, pcov )
@@ -66,7 +66,13 @@ def plotTrend ():
     #print ( "a", a )
     print ( f"{a} * log ( x )" )
     preds = [ a * np.log(t) for t in xs ]
-    plt.plot ( xs, preds, c="orange" )
+    simplelog = [ np.log(t) for t in xs ]
+    plt.plot ( xs, preds, c="orange", label=f"{a:.3f}*ln(n)" )
+    plt.plot ( xs, simplelog, c="red", label="ln(n)" )
+    plt.legend()
+    plt.title ( "first rough sketch for an <n>-SR penalty term" )
+    plt.xlabel ( "n" )
+    plt.ylabel ( "expected weight" )
     plt.savefig ( "trend.png" )
     o = subprocess.getoutput ( "timg trend.png" )
     print ( o )
