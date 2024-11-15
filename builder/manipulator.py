@@ -1520,6 +1520,8 @@ class Manipulator ( LoggerBase ):
         """
         denom = np.sqrt(self.M.TL) + 1.0
         dx = self.M.masses[pid]/(4*denom)
+        if dx < 0.:
+            self.highlight ( "info", f"dx={dx}<0. this should not happen. pid={pid} mass={self.M.masses[pid]} denom={denom}" )
         
         self.log(f"Current mass of {pid} = {self.M.masses[pid]}, dx = {dx}")
 
