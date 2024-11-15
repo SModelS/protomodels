@@ -405,7 +405,7 @@ class Hiscores ( LoggerBase ):
             self.fileAttempts+=1
             if self.fileAttempts<20: # try again
                 self.pprint ( "Exception[X] %s: type(%s), Waiting for %s file, %d" % (str(e),type(e),self.pickleFile,self.fileAttempts) )
-                time.sleep ( (.2 + random.uniform(0.,1.))*self.fileAttempts )
+                time.sleep ( (.2 + np.random.uniform(0.,1.))*self.fileAttempts )
                 self.updateListFromPickle()
                 self.pprint ( "Loading hiscores worked this time" )
             else:

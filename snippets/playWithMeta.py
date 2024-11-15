@@ -57,10 +57,10 @@ def write():
     for i in range(200):
         if i % 10 == 0:
             print ( ".", end="", flush=True )
-        mu = random.uniform ( 1., 30. )
+        mu = np.random.uniform ( 1., 30. )
         sigma = -1
         while sigma < 0.:
-            sigma = random.gauss( mu, mu )
+            sigma = np.random.normal( mu, mu )
         ss = drawNuisance ( mu, sigma, logn, 100 )
         for x in ss:
             p = computePWithToys ( x, mu, sigma, 0, logn, 10000 )

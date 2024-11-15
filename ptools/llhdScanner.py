@@ -6,8 +6,9 @@ __all__ = [ "LlhdScanner" ]
 
 import os, sys, multiprocessing, time, numpy, subprocess, copy, glob
 import pickle, random, shutil
+import numpy as np
 try:
-    from protomodels.csetup import setup
+    from csetup import setup
     setup()
 except ModuleNotFoundError as e:
     pass
@@ -212,7 +213,9 @@ class LlhdThread ( LoggerBase ):
             del self.predictor.predictions
         worked = self.predictor.predict ( self.M, keep_predictions = True )
         cr = self.critic.predict_critic ( self.M, keep_predictions = True )
-        
+        print("worked ", worked)
+        if not worked:
+            return { "llhd": None, "critic": None, "oul": None, "eul": None }
         ## now get the likelihoods
         llhds={}
         ## start with the SM likelihood
@@ -225,13 +228,24 @@ class LlhdThread ( LoggerBase ):
         del self.predictor.predictions
         self.M.delCurrentSLHA()
         critics={}
-        p1 = self.M.critic_description.find ( "Datasets: " )
-        datasets = self.M.critic_description[p1+10:]
+        print("critic desc ", self.M.critic_description)
+        num_of_critics = len(self.M.critic_description.split(';'))
+        ul_critic = self.M.critic_description.split(';')[0] #, llhd_critic, self.M.critic_description.split(';')[1]
+        p1 = ul_critic.find ( "Datasets: " )
+        datasets = ul_critic[p1+10:]
         for critic in datasets.split(","):
+            print("Crtiic ", critic)
             tokens = critic.split(":")
             if len(tokens)>1:
                 critics[tokens[0]]=float(tokens[1])
-
+        if num_of_critics > 1:
+            llhd_critic = self.M.critic_description.split(';')[1]
+            p1 = llhd_critic.find("datasets:")
+            p2 = llhd_critic.find("with r=")
+            datasets = llhd_critic[p1+9:p2-1]
+            comb_r = float(llhd_critic[p2+7:])
+            critics[datasets] = comb_r
+        
         return { "llhd": llhds, "critic": critics, "oul": ouls, "eul": euls }
 
     def getLimits ( self, predictions : List[TheoryPrediction], 
@@ -339,7 +353,9 @@ class LlhdThread ( LoggerBase ):
                         self.M.masses[pid_]=m2 + 1.
                 point = self.getPredictions ( False )
                 llhds = point["llhd"]
+                if not llhds: continue
                 nllhds,nnonzeroes=0,0
+                
                 for mu,llhd in llhds.items():
                     nllhds+=len(llhd)
 
@@ -411,7 +427,7 @@ class LlhdScanner ( LoggerBase ):
             self.pprint ( f"dry_run. would run for xvariable={rxvariable}" )
             self.pprint ( f"yvariable={ryvariable}" )
             sys.exit()
-        random.shuffle ( rxvariable )
+        np.random.shuffle ( rxvariable )
         mask = []
         thread = LlhdThread ( 0, self )
         for rxv in rxvariable:

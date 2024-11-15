@@ -209,7 +209,7 @@ class Initialiser ( LoggerBase ):
             result = choice[0]
             txns = result["txns"].split(",")
             ## choose a random txname
-            txn  = random.choice ( txns )
+            txn  = np.random.choice ( txns )
         self.pprint ( f"choosing random txn from {result['id']}: {txn}" )
         return txn
 
@@ -229,7 +229,7 @@ class Initialiser ( LoggerBase ):
                 apos = 1 - pos # thats the alternative pid
                 if not ties[apos] in pids:
                     return None
-                if random.uniform ( 0, 1 ) < .5:
+                if np.random.uniform ( 0, 1 ) < .5:
                     # tie them only in half the cases
                     return ties[apos]
                 return None
@@ -240,13 +240,13 @@ class Initialiser ( LoggerBase ):
         pidsdict = copy.deepcopy ( self.pidsForTxnames[txname] )            
         masses = {}
         pid = ProtoModel.LSP
-        lspmass = random.uniform ( *self.massRanges[pid] )
+        lspmass = np.random.uniform ( *self.massRanges[pid] )
         self.pprint ( f"setting mass of {namer.asciiName(pid)} to {lspmass:.1f}" )
         masses[pid]=lspmass
         leftsquarks = [ 1000001, 1000002, 1000003, 1000004 ]
         rightsquarks = [ 2000001, 2000002, 2000003, 2000004 ]
         squarks = leftsquarks + rightsquarks
-        mylightsquark = random.choice ( leftsquarks )
+        mylightsquark = np.random.choice ( leftsquarks )
 
         for position,pids in pidsdict.items():
             if mylightsquark in pids:
@@ -268,8 +268,8 @@ class Initialiser ( LoggerBase ):
                     sys.exit()
                 mass = -1.
                 while mass < lspmass:
-                    mass = random.uniform ( *self.massRanges[pid] )
-                ## for C1 and N2: with a certain change we set them to the same 
+                    mass = np.random.uniform ( *self.massRanges[pid] )
+                ## for C1 and N2: with a certain change we set them to the same
                 ## value
                 masses[pid]=mass
                 self.pprint ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f}" )
@@ -334,7 +334,7 @@ class Initialiser ( LoggerBase ):
         """ propose a random initial model. """
         # choose a random txn
         submodels = []
-        nmodels = random.choice ( [1,2,3] )
+        nmodels = np.random.choice ( [1,2,3] )
         self.pprint ( f"proposed model will consist of {nmodels} submodels." )
         for i in range(nmodels):
             submodels.append ( self.createRandomSubmodel() )

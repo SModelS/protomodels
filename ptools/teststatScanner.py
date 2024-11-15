@@ -240,7 +240,7 @@ class TeststatScanner ( LoggerBase ):
                 continue ## there is nothing to see beyond
             mrangetot.append( m2 )
         # mrangetot.sort()
-        random.shuffle ( mrangetot )
+        np.random.shuffle ( mrangetot )
         mranges = [ mrangetot[i::self.nproc] for i in range(self.nproc) ]
         self.pprint ( f"start scanning with m({namer.asciiName(pid)})={mass:.1f} with {self.nproc} procs, {len(mrangetot)} mass points, select={self.args['select']}, do_srcombine={self.args['do_srcombine']}" )
         expected = False

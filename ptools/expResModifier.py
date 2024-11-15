@@ -130,6 +130,7 @@ Just filter the database:
         self.logfile = "modifier.log"
         self.startLogger()
         self.logCall()
+        #self.database = setup(args["dbpath"])
         if "seed" in args:
             self.setSeed ( args["seed"] )
         self.run()
@@ -1079,6 +1080,8 @@ Just filter the database:
         from smodels.statistics.statsTools import StatsComputer
         from smodels.experiment.datasetObj import CombinedDataSet
         import pyhf
+        
+        #create combined dataset for pyhf pred
         cdataset = CombinedDataSet ( expRes )
         computer = StatsComputer.forPyhf( cdataset, srNsigDict,
                 _deltas_rel_default )
@@ -1086,8 +1089,7 @@ Just filter the database:
             self.fudgePyhfModel ( expRes, computer )
         srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
         anaId = expRes.globalInfo.id
-        #ic ( anaId )
-        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+
         for ws_i, (ws, srs) in enumerate(zip(
                     computer.likelihoodComputer.workspaces, srs_in_workspaces) ):
             ## srs are the names of the signal regions
@@ -1112,9 +1114,7 @@ Just filter the database:
                         sampleDictPyhf[fullname]= float ( sample[sampleidx] )
                         sampleidx+=1
             sampleDictSModelS = {}
-            #if anaId == "ATLAS-SUSY-2018-31":
-            #    ic ( srs )
-            #    ic ( sampleDictPyhf )
+
             for sr in srs:
                 if sr["pyhf"] in sampleDictPyhf:
                     sampleDictSModelS[ sr["smodels"] ] = sampleDictPyhf[ sr["pyhf"] ]
@@ -1429,6 +1429,8 @@ Just filter the database:
             from smodels.experiment.txnameObj import TxNameData
             TxNameData._keep_values = True
             from smodels.experiment.databaseObj import Database
+            #self.database = "official"
+            self.database = "../../../smodels-database"
             print ( f"[expResModifier] starting to build database at {self.database}." )
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:

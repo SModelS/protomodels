@@ -6,7 +6,8 @@ __all__ = [ "RandomWalker" ]
 
 import pickle, sys, time, math, socket, os
 import subprocess
-import numpy, colorama
+import colorama
+import numpy as np
 
 sys.path.insert(0,f"{os.environ['HOME']}/git/protomodels/")
 try:
@@ -84,7 +85,7 @@ class RandomWalker ( LoggerBase ):
         self.rundir = rundir
         if rundir == None:
             self.rundir = "./"
-        self.random_seed = numpy.random.seed()
+        self.random_seed = np.random.seed()
         if seed is not None:
             self.random_seed = seed
             from ptools import helpers
@@ -403,7 +404,7 @@ class RandomWalker ( LoggerBase ):
         #Otherwise compute the teleportation probability:
         dK = ( ourK - bestK ) / norm
         prob = pmax*(1. - math.exp( dK ))
-        a = random.uniform ( 0., 1. )
+        a = np.random.uniform ( 0., 1. )
         doTP = ( a < prob ) ## do teleport, yes or no
         sDoTP = "a>p: dont teleport."
         if doTP:
@@ -462,8 +463,8 @@ class RandomWalker ( LoggerBase ):
         else:
             import random
 
-            u = random.uniform(0.,1.)
-            ratio = numpy.exp(.5*( newK - K))
+            u = np.random.uniform(0.,1.)
+            ratio = np.exp(.5*( newK - K))
             if u > ratio:
                 self.log ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )

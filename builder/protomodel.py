@@ -4,7 +4,7 @@
 
 __all__ = [ "ProtoModel" ]
 
-import random, tempfile, os, time, colorama, copy, sys, pickle, random
+import random, tempfile, os, time, colorama, copy, sys, pickle
 sys.path.insert(0,"../")
 sys.path.insert(0,f"{os.environ['HOME']}/git/smodels/")
 from smodels.tools.wrapperBase import WrapperBase
@@ -16,7 +16,7 @@ from smodels.base.physicsUnits import TeV, fb
 from ptools import helpers
 from ptools.sparticleNames import SParticleNames
 from typing import Union, List, Tuple
-
+import numpy as np
 from smodels.base.smodelsLogging import setLogLevel
 from base.loggerbase import LoggerBase
 setLogLevel ( "error" )
@@ -104,7 +104,7 @@ class ProtoModel ( LoggerBase ):
         self._xsecSSMs = {} #Store the signal strenght multiplier used for computing the cross-sections
         self.ssmultipliers = {} ## signal strength multipliers
         ## Inititiaze LSP
-        self.masses[ProtoModel.LSP]=random.uniform(200,500)
+        self.masses[ProtoModel.LSP] = np.random.uniform(200,500)
         self.decays[ProtoModel.LSP]= {}
         pids = [(self.LSP,self.LSP)]
         if self.hasAntiParticle(self.LSP):
@@ -411,7 +411,7 @@ class ProtoModel ( LoggerBase ):
                     import traceback
                     traceback.print_stack()
                 # helpers.cpPythia8()
-                time.sleep ( random.uniform ( 5, 10 ) )
+                time.sleep ( np.random.uniform ( 5, 10 ) )
                 if countAttempts > 5:
                     break
 
@@ -545,7 +545,7 @@ class ProtoModel ( LoggerBase ):
                     self.delXSecs()
                     if ctAttempts > 5:
                         break
-                    time.sleep ( random.uniform ( 0.5, 2.*ctAttempts ) )
+                    time.sleep ( np.random.uniform ( 0.5, 2.*ctAttempts ) )
 
         return outputSLHA
 

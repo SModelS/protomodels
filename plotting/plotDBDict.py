@@ -23,10 +23,9 @@ class Plotter ( LoggerBase ):
         """ the template for the roughviz plot, we will overwrite the
             original one with this """
         from jinja2 import Template
-        import random
         import string
         template = Template(data.decode("utf-8"))
-        id_name = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+        id_name = ''.join(np.random.choice(string.ascii_lowercase) for i in range(10))
         output = template.render(id_name = id_name,
                                  labels = labels,
                                  values = values,

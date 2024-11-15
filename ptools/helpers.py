@@ -17,6 +17,7 @@ import scipy.stats
 from os import PathLike
 from typing import Union, Set
 from base.loggerbase import LoggerBase
+import numpy as np
 
 def getJsonFileName(dset: DataSet) -> str:
     "get file name of json used by the combined dataset dset"
@@ -327,10 +328,8 @@ def countDecays( templatefile = "../builder/templates/template1g.slha" ):
 
 def seedRandomNumbers ( seed ):
     """ seed all random number generation """
-    import random, numpy
-    random.seed ( seed )
     ## scipy takes random numbers from numpy.random, so
-    numpy.random.seed ( seed )
+    np.random.seed ( seed )
     import scipy.stats as s
     r = s.norm.rvs()
     print(f"[helpers] seeding the random number generators with {seed}. Here is a first realization of a standard normal: {r:.3f}")
@@ -344,7 +343,7 @@ def cpPythia8 ( ):
     lockfile = libdir+"/lock"
     ctr = 0
     while os.path.exists ( lockfile ):
-        time.sleep ( random.uniform ( 1, 3 ) )
+        time.sleep ( np.random.uniform ( 1, 3 ) )
         ctr += 1
         if ctr > 5:
             break
