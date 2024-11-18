@@ -1518,7 +1518,11 @@ class Manipulator ( LoggerBase ):
 
         :returns: 1 for success
         """
-        denom = np.sqrt(self.M.TL) + 1.0
+        denom = 1.0
+        
+        if self.M.TL > 0:                           #short term fix -> discuss with Wg!
+            denom = np.sqrt(self.M.TL) + 1.0
+
         dx = self.M.masses[pid]/(4*denom)
         if dx < 0.:
             self.highlight ( "info", f"dx={dx}<0. this should not happen. pid={pid} mass={self.M.masses[pid]} denom={denom}" )
