@@ -1186,17 +1186,23 @@ class Manipulator ( LoggerBase ):
         
         a = np.random.uniform ( 0., 1. )
         if a > .9: ## sometimes, just knock out a random SSM
-            randomProd = np.random.choice ( list ( protomodel.ssmultipliers.keys() ) )
+            prod_list = list(protomodel.ssmultipliers.keys())
+            random_ind = np.random.choice(len(prod_list))
+            randomProd = prod_list[random_ind]
             self.record ( f"change ssm of {self.namer.texName(randomProd,addDollars=True)} to 1e-5" )
             protomodel.ssmultipliers[randomProd]=0.00001
             return 1
         if a < .1: ## sometimes, just try to set to 1. SN: if not 1 already?
-            randomProd = np.random.choice ( list ( protomodel.ssmultipliers.keys() ) )
+            prod_list = list(protomodel.ssmultipliers.keys())
+            random_ind = np.random.choice(len(prod_list))
+            randomProd = prod_list[random_ind]
             self.record ( f"change ssm of {self.namer.texName(randomProd,addDollars=True)} to 1." )
             protomodel.ssmultipliers[randomProd]=1.
             return 1
         if .1 < a < .2: ## sometimes, just try to set to ssm of different particle
-            randomProd = np.random.choice ( list ( protomodel.ssmultipliers.keys() ) )
+            prod_list = list(protomodel.ssmultipliers.keys())
+            random_ind = np.random.choice(len(prod_list))
+            randomProd = prod_list[random_ind]
             v = np.random.choice ( list ( protomodel.ssmultipliers.values() ) )
             self.record ( f"change ssm of {self.namer.texName(randomProd,addDollars=True)} to {v:.2f}" )
             protomodel.ssmultipliers[randomProd]=v
