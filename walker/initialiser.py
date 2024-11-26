@@ -209,7 +209,7 @@ class Initialiser ( LoggerBase ):
             result = choice[0]
             txns = result["txns"].split(",")
             ## choose a random txname
-            txn  = np.random.choice ( txns )
+            txn  = str(np.random.choice ( txns ))
         self.pprint ( f"choosing random txn from {result['id']}: {txn}" )
         return txn
 
@@ -240,13 +240,13 @@ class Initialiser ( LoggerBase ):
         pidsdict = copy.deepcopy ( self.pidsForTxnames[txname] )            
         masses = {}
         pid = ProtoModel.LSP
-        lspmass = np.random.uniform ( *self.massRanges[pid] )
+        lspmass = float(np.random.uniform ( *self.massRanges[pid] ))
         self.pprint ( f"setting mass of {namer.asciiName(pid)} to {lspmass:.1f}" )
         masses[pid]=lspmass
         leftsquarks = [ 1000001, 1000002, 1000003, 1000004 ]
         rightsquarks = [ 2000001, 2000002, 2000003, 2000004 ]
         squarks = leftsquarks + rightsquarks
-        mylightsquark = np.random.choice ( leftsquarks )
+        mylightsquark = int(np.random.choice ( leftsquarks ))
 
         for position,pids in pidsdict.items():
             if mylightsquark in pids:
@@ -268,7 +268,7 @@ class Initialiser ( LoggerBase ):
                     sys.exit()
                 mass = -1.
                 while mass < lspmass:
-                    mass = np.random.uniform ( *self.massRanges[pid] )
+                    mass = float(np.random.uniform ( *self.massRanges[pid] ))
                 ## for C1 and N2: with a certain change we set them to the same
                 ## value
                 masses[pid]=mass

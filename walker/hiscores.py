@@ -8,7 +8,7 @@ __all__ = [ "Hiscores" ]
 import random, copy, pickle, os, fcntl, time, subprocess, colorama
 import numpy as np
 from scipy import stats
-from protomodels.csetup import setup
+from csetup import setup
 setup()
 from builder.manipulator import Manipulator
 from tester.combiner import Combiner

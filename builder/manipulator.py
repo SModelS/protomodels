@@ -150,7 +150,7 @@ class Manipulator ( LoggerBase ):
         for i in range(len(dicts)-1,-1,-1):
             choices += [i]*f
             f=f*2
-        ith = np.random.choice ( choices )
+        ith = int(np.random.choice ( choices ))
         self.log ( "teleporting, we have %d dicts" % len(dicts) )
         self.log ( "choosing the %dth entry, it has a K of %.2f" % \
                       ( ith, dicts[ith]["K"] ) )
@@ -186,21 +186,24 @@ class Manipulator ( LoggerBase ):
         model_xsecs = model.getXsecs()[0]   #get all the protomodel xsec
         model_xs = 0.
         model_mass = 0.
-
+        change = False
+        
         if type(sqrts) == Unum: sqrts = sqrts.asNumber(TeV)
-
+        print("here")
         for xsec in model_xsecs:
-            if (xsec.pid == pid_pair) and (xsec.info.sqrts.asNumber(TeV) - sqrts) <= 1e-07:  #get the protomodel xsec at pid_pair and sqrts
+            if (xsec.pid == pid_pair) and abs(xsec.info.sqrts.asNumber(TeV) - sqrts) <= 1e-07:  #get the protomodel xsec at pid_pair and sqrts
                 model_xs = xsec.value.asNumber(fb)
-            else: return
+                change = True
+    
+        if not change: return
 
 
         print("Model Xsec: ", model_xs)
         new_susy_xs = (model_xs/new_ssm)*fb         #the new susy xsec according to the new_ssm
         print("Susy Xsec: ", new_susy_xs)
 
-        from ptools.xsecFit import xsecFitter
-        func = xsecFitter(pid_pair, sqrts)
+        from ptools.xsecFit import XSecFitter
+        func = XSecFitter(pid_pair, sqrts)
 
         model_mass = func.getValueFromFit(new_susy_xs, inverse=True)        #get the mass according to the new_susy_xsec from the xsecFitter
         if model_mass is None:
@@ -241,7 +244,7 @@ class Manipulator ( LoggerBase ):
         susy_xs = susy_xs.asNumber(fb)
         model_xsecs = model.getXsecs()[0]                                 #get all the protomodel xsec
         for xsec in model_xsecs:
-            if (xsec.pid == pid_pair) and (xsec.info.sqrts.asNumber(TeV) - sqrts) <= 1e-07:  #get the protomodel xsec at pid_pair and sqrts
+            if (xsec.pid == pid_pair) and abs(xsec.info.sqrts.asNumber(TeV) - sqrts) <= 1e-07:  #get the protomodel xsec at pid_pair and sqrts
                 model_xs = xsec.value.asNumber(fb)
             else: return
 
@@ -326,8 +329,10 @@ class Manipulator ( LoggerBase ):
             D["smodelsver"]=smodels.installation.version()
             D["dbver"]=self.M.dbversion
         D["description"]=self.M.description
-        if hasattr ( self.M, "critic_description" ):
-            D["critic_description"]=self.M.critic_description
+        if hasattr ( self.M, "ul_critic" ):
+            D["UL_critic"]=self.M.ul_critic
+        if hasattr ( self.M, "ll_critic" ):
+            D["Llhd_critic"]=self.M.ll_critic
         if len(comment)>0:
             D["comment"]=comment
         if outfile == None:
@@ -850,7 +855,7 @@ class Manipulator ( LoggerBase ):
                 #if hasattr(tp,'chi2'):
                 #    del tp.chi2
     
-    def proposal_density(self, unfreezing = False):         #shift prior from combiner here or vice versa
+    def proposal_density(self, unfreezing = False, force_unfreeze=False):         #shift prior from combiner here or vice versa
         a,b,c = 2,4,8
 
         n_par_current = len(self.M.masses.keys())
@@ -867,6 +872,10 @@ class Manipulator ( LoggerBase ):
         
         #print(f"Prior propose {prior_propose}")
         #print(f"Prior current {prior_current}")
+        if force_unfreeze:
+            self.M = self.propose_model
+            self.propose_model = self.M.copy()
+            return True
         
         factor = 1.5
         if unfreezing: factor = 2.0
@@ -885,7 +894,7 @@ class Manipulator ( LoggerBase ):
             self.propose_model = self.M.copy()
             return True
 
-    def randomlyChangeModel(self,sigmaUnFreeze : float = 0.5, probBR : float = 0.2,
+    def randomlyChangeModel(self,force_unfreeze : bool = False, probBR : float = 0.2,
             probSS : float = 0.25, probSSingle : float = 0.8, ssmSigma : float = 1.0,
             probMerge : float = 0.05, sigmaFreeze : float = 0.5,
             probMassive : float = 0.3, probMass : float = 0.05, keep_track_of_changes= False):
@@ -908,10 +917,16 @@ class Manipulator ( LoggerBase ):
         changeDesc = {}
         nChanges = 0
         
-        #print(f"Protomodel before: {self.M.unFrozenParticles()}")
+        # If TL < = 0, try to drastically change model, else will be stuck in a model with low TL for many steps
+        if self.M.TL <=0 :
+            probSS = 1.0
+            probBR = 1.0
+            probMass = 1.0
+            force_unfreeze = True
+            #do we want to not freeze particles? -> not freezing if less than or equal to 3 particles
         
-        recentlyUnfrozen = self.randomlyUnfreezeParticle(sigma=sigmaUnFreeze)
-        accept_proposal = self.proposal_density(unfreezing=True)
+        recentlyUnfrozen = self.randomlyUnfreezeParticle()
+        accept_proposal = self.proposal_density(unfreezing=True, force_unfreeze=force_unfreeze)
         if recentlyUnfrozen:
             if accept_proposal:
                 nChanges += 1
@@ -921,7 +936,7 @@ class Manipulator ( LoggerBase ):
                 self.log(f"Reject unfreezing {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
                 recentlyUnfrozen = None
 
-        frozenParticle = self.randomlyFreezeParticle(sigma=sigmaFreeze, probMassive = probMassive, recentlyUnfrozen=recentlyUnfrozen)
+        frozenParticle = self.randomlyFreezeParticle(recentlyUnfrozen=recentlyUnfrozen)
         if frozenParticle:
             accept_proposal = self.proposal_density()
             if accept_proposal:
@@ -962,7 +977,7 @@ class Manipulator ( LoggerBase ):
         #Update cross-sections (if needed)
         self.M.getXsecs()
 
-    def randomlyUnfreezeParticle ( self, sigma=0.5, force = False ) -> int:
+    def randomlyUnfreezeParticle ( self ) -> int:
         """ Unfreezes a (random) frozen particle according to gaussian distribution
             with a width of <sigma>.
 
@@ -980,7 +995,7 @@ class Manipulator ( LoggerBase ):
         frozen = self.M.frozenParticles()
         if len(frozen)==0:
             return None
-        pid = np.random.choice ( frozen )
+        pid = int(np.random.choice ( frozen ))
 
         if pid in self.forbiddenparticles:
             self.log ( f"wanted to unfreeze {self.namer.asciiName(pid)} but its forbidden" )
@@ -1015,7 +1030,7 @@ class Manipulator ( LoggerBase ):
         if len(unfrozenparticles)<2:
             self.log( "not enough unfrozen particles to change random branching" )
             return 0
-        p = np.random.choice ( unfrozenparticles )
+        p = int(np.random.choice ( unfrozenparticles ))
         if not p in self.M.decays.keys():
             self.highlight ( "error", "why is %d not in decays?? %s" % ( p, self.M.decays.keys() ) )
             # we dont know about this decay? we initialize with the default!
@@ -1091,7 +1106,7 @@ class Manipulator ( LoggerBase ):
 
             #Randomly change BR around old value
             Min,Max = max(0.,oldbr-dx), min(oldbr+dx,1.)
-            br = np.random.uniform( Min, Max )/len(decay_chan)
+            br = float(np.random.uniform( Min, Max )/len(decay_chan))
             for dpid in decay_chan:
                 self.record ( f"change branchings of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                 self.log ( f"changed  branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
@@ -1143,8 +1158,8 @@ class Manipulator ( LoggerBase ):
             return 0
         
         #Randomly choose which process pids to change:
-        p = np.random.choice ( unfrozenparticles )
-        q = np.random.choice ( unfrozenparticles )
+        p = int(np.random.choice ( unfrozenparticles ))
+        q = int(np.random.choice ( unfrozenparticles ))
         #Half of the time select the anti-particle:
         if protomodel.hasAntiParticle(p) and np.random.uniform(0,1)<.5:
             p = -p
@@ -1181,31 +1196,31 @@ class Manipulator ( LoggerBase ):
             self.log ( "Not enough unfrozen particles to change random signal strength" )   #why? we are changing only for 1 particle?
             return 0
         
-        p = np.random.choice ( unfrozenparticles )
+        p = int(np.random.choice ( unfrozenparticles ))
         if pid != None: p = pid
         
         a = np.random.uniform ( 0., 1. )
         if a > .9: ## sometimes, just knock out a random SSM
             prod_list = list(protomodel.ssmultipliers.keys())
-            random_ind = np.random.choice(len(prod_list))
+            random_ind = int(np.random.choice(len(prod_list)))
             randomProd = prod_list[random_ind]
             self.record ( f"change ssm of {self.namer.texName(randomProd,addDollars=True)} to 1e-5" )
             protomodel.ssmultipliers[randomProd]=0.00001
             return 1
         if a < .1: ## sometimes, just try to set to 1. SN: if not 1 already?
             prod_list = list(protomodel.ssmultipliers.keys())
-            random_ind = np.random.choice(len(prod_list))
+            random_ind = int(np.random.choice(len(prod_list)))
             randomProd = prod_list[random_ind]
             self.record ( f"change ssm of {self.namer.texName(randomProd,addDollars=True)} to 1." )
             protomodel.ssmultipliers[randomProd]=1.
             return 1
         if .1 < a < .2: ## sometimes, just try to set to ssm of different particle
             prod_list = list(protomodel.ssmultipliers.keys())
-            random_ind = np.random.choice(len(prod_list))
+            random_ind = int(np.random.choice(len(prod_list)))
             randomProd = prod_list[random_ind]
             v = np.random.choice ( list ( protomodel.ssmultipliers.values() ) )
             self.record ( f"change ssm of {self.namer.texName(randomProd,addDollars=True)} to {v:.2f}" )
-            protomodel.ssmultipliers[randomProd]=v
+            protomodel.ssmultipliers[randomProd]= float(v)
             return 1
 
         ssms = []
@@ -1270,11 +1285,8 @@ class Manipulator ( LoggerBase ):
             self.changeSSM ( (-pids[0],- pids[1]), newssm, recursive=False, verbose=False )
 
 
-    def randomlyFreezeParticle ( self, sigma= 0.5, probMassive = 0.3, recentlyUnfrozen = None ):
+    def randomlyFreezeParticle ( self, recentlyUnfrozen = None ):
         """ freezes a random unfrozen particle according to gaussian distribution with width sigma.
-
-        :param sigma: Width of the gaussian distribution
-        :param probMassive: Probability for freezing the most massive particle
         :param recentlyUnfrozen: do not freeze recently unfrozen particle if not None
         """
 
@@ -1283,6 +1295,9 @@ class Manipulator ( LoggerBase ):
         if nUnfrozen <= 2:
             self.log("Only 2 particles present, not freezing any particle")
             return None
+        
+        if nUnfrozen <=3 and self.M.TL <=0 :
+            self.log(f"Only {nUnfrozen} particles and low TL {self.M.TL}. Not freezing anything.")
             
         unfrozen = [pid for pid in self.M.unFrozenParticles( withLSP = False ) if pid != recentlyUnfrozen]
         
@@ -1290,7 +1305,7 @@ class Manipulator ( LoggerBase ):
             self.log("Cannot freeze recently unfrozen particle {recentlyUnfrozen}. Not freezing any particle.")
             return None
         
-        pid = np.random.choice ( unfrozen )
+        pid = int(np.random.choice ( unfrozen ))
         self.log(f"Propose freezing pid: {pid}")
         self.freezeParticle ( pid, protomodel=self.propose_model )
         
@@ -1402,11 +1417,11 @@ class Manipulator ( LoggerBase ):
                 else: maxMass = minMass + self.mass_W + self.mwidth_W
         
         #redefine mass initialisation?
-        tmpMass = np.random.uniform ( minMass, maxMass )
+        tmpMass = float(np.random.uniform ( minMass, maxMass ))
         ctr = 0
         while pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpMass, protomodel.masses[protomodel.LSP] ):
             # if in corridor region, redraw!
-            tmpMass = np.random.uniform ( minMass, maxMass )
+            tmpMass = float(np.random.uniform ( minMass, maxMass ))
             ctr += 1
             if ctr > 5: ## seems like the air is too thin. make more space.
                 mstop2 = 2000.
@@ -1446,7 +1461,7 @@ class Manipulator ( LoggerBase ):
             self.log("Error: No particles to change masses?")
             return 0
 
-        pid = np.random.choice ( unfrozen )
+        pid = int(np.random.choice ( unfrozen ))
 
         #Define mass interval
         maxMass = self.M.maxMass
@@ -1484,7 +1499,7 @@ class Manipulator ( LoggerBase ):
                 were_frozen = self.M.frozenParticles()
                 was_offshell = False
                 if otherpid not in were_frozen: was_offshell = self.checkIfOffshell(otherpid)
-                self.M.masses[otherpid] = mass * np.random.uniform ( .99, 1.01 )
+                self.M.masses[otherpid] = float(mass * np.random.uniform ( .99, 1.01 ))
                 self.log ( f"mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" )
                 # If the particle was frozen before, we need to unfreeze
                 if otherpid in were_frozen:
@@ -1557,7 +1572,7 @@ class Manipulator ( LoggerBase ):
             massIsLegal = True
             #tmpmass = self.M.masses[pid]+random.uniform(-dx,dx)
             tmpmass = float(norm.rvs(loc=self.M.masses[pid], scale=dx))
-            if offshell: tmpMass = np.random.uniform ( minMass, maxMass )
+            if offshell: tmpMass = float(np.random.uniform ( minMass, maxMass ))
             # Enforce mass interval:
             if pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpmass, self.M.masses[self.M.LSP] ):
                 massIsLegal = False
