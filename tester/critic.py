@@ -76,7 +76,7 @@ class Critic ( LoggerBase ):
         """
 
         if not predictions: # If empty list
-            protomodel.critic_description = "No dataset for fast critic."
+            protomodel.ul_critic = "No dataset for fast critic."
             if keep_predictions:
                 protomodel.ul_critic_robs = None
                 protomodel.ul_critic_tpList = None
@@ -118,7 +118,7 @@ class Critic ( LoggerBase ):
             critic_description.append ( tmp )
         if len(tpList)>3:
             critic_description.append ( "..." )
-        protomodel.critic_description += "Datasets: " + ",".join ( critic_description )
+        protomodel.ul_critic += "Datasets: " + ",".join ( critic_description )
 
         return
 
@@ -137,7 +137,7 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.critic_description += "; llhd-based critic combined datasets:" + ",".join( [experimentalId(comb) for comb in mostSensiComb] ) + f" with r={robsComb}"
+            protomodel.ll_critic = ",".join( [experimentalId(comb) for comb in mostSensiComb] ) + f" with r={robsComb:.2f}"
 
         return
 
@@ -327,8 +327,8 @@ class Critic ( LoggerBase ):
         while binom.cdf(max_allowed,n_sensitive,0.05) <= 0.66:  #rewrite as max_allowed = binom.ppf(0.66, n_sensitive, 0.05)?
             max_allowed += 1
 
-        protomodel.critic_description = f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}. "
-        self.log(f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}")
+        protomodel.ul_critic = f"n_sen={n_sensitive}, n_excl={n_excluding}, max_all={max_allowed} => passes critic: {max_allowed >= n_excluding}. "
+        self.log(f"UL-based critic: n_sen={n_sensitive}, n_excl={n_excluding}, max_all={max_allowed} => passes critic: {max_allowed >= n_excluding}")
         return max_allowed >= n_excluding
 
 
