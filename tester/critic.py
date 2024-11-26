@@ -378,7 +378,7 @@ class Critic ( LoggerBase ):
                 outfile = f"pmodel-{self.walkerid}_{self.protomodel.step}-{int(time.time())}.dict"
                 self.error ( f"when computing r-value for combination, caught {e}. will write model to {outfile}" )
                 from ptools.helpers import experimentalId
-                line = ""
+                line, best_line = "", ""
                 for pred in EMpreds:
                     line += f"{experimentalId(pred)}, "
                     if pred in best_comb: best_line += f"{experimentalId(pred)}, "
