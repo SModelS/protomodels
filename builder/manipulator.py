@@ -1157,16 +1157,25 @@ class Manipulator ( LoggerBase ):
             self.log ( "not enough unfrozen particles to change random signal strength" )
             return 0
         
+        #first get allowed production modes
+        tmpSLHA = tempfile.mktemp( prefix=f".{protomodel.walkerid}_xsecfile", suffix=".slha",dir=protomodel.SLHATEMPDIR )
+        slhafile = protomodel.createSLHAFile(tmpSLHA, addXsecs=False)
+        from ptools.refxsecComputer import RefXSecComputer
+        comp = RefXSecComputer()
+        prodModes = comp.findOpenChannels(slhafile)
+        
+        #filter the production modes which have the unfrozen particles
+        pidpair = set()
+        for modes in prodModes:
+            for pid in unfrozenparticles:
+                if pid in modes['pids']:pidpair.add(modes['pids'])
+           
+        pidpair = list(pidpair)
+        
         #Randomly choose which process pids to change:
-        p = int(np.random.choice ( unfrozenparticles ))
-        q = int(np.random.choice ( unfrozenparticles ))
-        #Half of the time select the anti-particle:
-        if protomodel.hasAntiParticle(p) and np.random.uniform(0,1)<.5:
-            p = -p
-        if protomodel.hasAntiParticle(q) and np.random.uniform(0,1)<.5:
-            q = -q
-        pair = protomodel.toTuple(p,q)
-        newSSM = 1.0
+        random_ind = int(np.random.choice(len(pidpair)))
+        pair = pidpair[random_ind]
+        
         if not pair in protomodel.ssmultipliers:
             self.record ( f"add ssm of {self.namer.texName(pair,addDollars=True)} to 1.0" )
             ssm = float(10**(norm.rvs(0.0, ssmSigma)))   #center ssm around 1.0, better to have log scale
@@ -1177,7 +1186,7 @@ class Manipulator ( LoggerBase ):
             protomodel.ssmultipliers[pair] = newSSM
 
         #self.changeSSM(pair,newSSM)
-        self.log ( "changing signal strength multiplier of %s,%s: %.2f." % \
+        self.log ( "Changing signal strength multiplier of %s,%s: %.2f." % \
                    ( self.namer.asciiName(pair[0]), self.namer.asciiName(pair[1]), newSSM ) )
         self.record ( "change ssm of %s,%s to %.2f." % \
                     ( self.namer.texName(pair[0]), self.namer.texName(pair[1]), newSSM ) )
