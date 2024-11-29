@@ -1154,7 +1154,7 @@ class Manipulator ( LoggerBase ):
         
         unfrozenparticles = self.M.unFrozenParticles( withLSP=False )
         if len(unfrozenparticles)<2:
-            self.log ( "not enough unfrozen particles to change random signal strength" )
+            self.log ( "Not enough unfrozen particles to change random signal strength" )
             return 0
         
         #first get allowed production modes
