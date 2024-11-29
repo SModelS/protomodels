@@ -254,8 +254,8 @@ class RandomWalker ( LoggerBase ):
                 if abs(model.muhat - 1.0) < 1e-02:
                     self.log(f"Step {model.step} converged at loop {i} with muhat {model.muhat}!")
                     muhat_converge = True
-                    proto_dict = manipulator.getPmodelDict()
-                    self.log(f"Protomodel: {proto_dict}")
+                    #proto_dict = manipulator.getPmodelDict()
+                    #self.log(f"Protomodel: {proto_dict}")
                     break
                 previousMuhat = model.muhat
                 manipulator.rescaleSignalBy(model.muhat) #?
@@ -351,7 +351,8 @@ class RandomWalker ( LoggerBase ):
                         and (protomodelSimp.K > self.manipulator.M.K)):
                 self.manipulator.M = protomodelSimp
 
-
+        proto_dict = self.manipulator.getPmodelDict()
+        self.log(f"Protomodel: {proto_dict}")
         #If no combination could be found, return
         if self.manipulator.M.TL is None or self.manipulator.M.K is None:
             return
@@ -491,7 +492,10 @@ class RandomWalker ( LoggerBase ):
         self.manipulator.backupModel()
         if len ( self.manipulator.M.unFrozenParticles( withLSP=False ) ) < 1:
             ## start with unfreezing a random particle
-            self.manipulator.randomlyUnfreezeParticle(force = True)
+            self.log("Only LSP present. Forcing to unfreeze random particle")
+            self.manipulator.propose_model = self.manipulator.M.copy()
+            unfrozenParticle = self.manipulator.randomlyUnfreezeParticle()
+            self.manipulator.proposal_density(unfreezing=True, force_unfreeze=True)
             self.manipulator.backupModel()
 
         while self.maxsteps < 0 or self.protomodel.step<self.maxsteps:
