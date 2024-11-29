@@ -1028,7 +1028,7 @@ class Manipulator ( LoggerBase ):
             
         unfrozenparticles = self.M.unFrozenParticles( withLSP=False )
         if len(unfrozenparticles)<2:
-            self.log( "not enough unfrozen particles to change random branching" )
+            self.log( "Not enough unfrozen particles to change random branching" )
             return 0
         p = int(np.random.choice ( unfrozenparticles ))
         if not p in self.M.decays.keys():
