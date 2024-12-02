@@ -1176,10 +1176,11 @@ class Manipulator ( LoggerBase ):
         random_ind = int(np.random.choice(len(pidpair)))
         pair = pidpair[random_ind]
         
+        newSSM = 1.0
         if not pair in protomodel.ssmultipliers:
             self.record ( f"add ssm of {self.namer.texName(pair,addDollars=True)} to 1.0" )
-            ssm = float(10**(norm.rvs(0.0, ssmSigma)))   #center ssm around 1.0, better to have log scale
-            protomodel.ssmultipliers[pair] = ssm
+            newSSM = float(10**(norm.rvs(0.0, ssmSigma)))   #center ssm around 1.0, better to have log scale
+            protomodel.ssmultipliers[pair] = newSSM
         else:
             newSSM = float(protomodel.ssmultipliers[pair]*(10**(norm.rvs(0.0, ssmSigma))))
             if newSSM > 10000: newSSM = 10000
