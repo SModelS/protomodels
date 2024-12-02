@@ -21,6 +21,10 @@ class LoggerBase:
             self.module = module[p1+1:p2]
         else:
             self.module = module[p1+1:]
+        self.mkLogDir()
+
+    def mkLogDir ( self ):
+        """ create the log directory if it does not exist yet """
         if not os.path.exists ( self.logdir ):
             try:
                 os.mkdir ( self.logdir )
@@ -64,6 +68,7 @@ class LoggerBase:
 
     def log ( self, *args ):
         """ logging to file """
+        self.mkLogDir ()
         with open( f"{self.logdir}/walker{self.walkerid}.log", "a" ) as f:
             f.write ( f'[{self.module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
 
