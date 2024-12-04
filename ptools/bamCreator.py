@@ -13,7 +13,7 @@ except ImportError as e:
 from typing import Iterable, Dict, List, Optional, Union
 from numpy.typing import NDArray
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
-from base.loggerbase import LoggerBase
+#from base.loggerbase import LoggerBase
 
 __all__ = [ "selectMostSignificantSRs", "bamAndWeights", "find_best_comb"  ]
 

@@ -16,7 +16,7 @@ from smodels.matching.theoryPrediction import TheoryPrediction
 import scipy.stats
 from os import PathLike
 from typing import Union, Set
-from base.loggerbase import LoggerBase
+#from base.loggerbase import LoggerBase
 import numpy as np
 
 def getJsonFileName(dset: DataSet) -> str:
