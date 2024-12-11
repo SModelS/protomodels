@@ -110,7 +110,8 @@ class ProtoModel ( LoggerBase ):
         if self.hasAntiParticle(self.LSP):
             pids += [(self.LSP,-self.LSP),(-self.LSP,-self.LSP)]
         for pidpair in pids:
-            self.ssmultipliers[tuple(sorted(pidpair))]= 1.0
+            from scipy.stats import norm
+            self.ssmultipliers[tuple(sorted(pidpair))]= float(10**(norm.rvs(0.0, 1.0)))
 
         slha_decay_keys = []
 
@@ -218,6 +219,30 @@ class ProtoModel ( LoggerBase ):
 
         return self._stored_xsecs
 
+    def getAllowedProdModes(self, return_mass=False):
+        '''
+        Get the list of allowed production modes for the protomodel
+        :param return_mass: If True, return the mass of the particles in the prod modes along with the prod modes
+        
+        :return: List of all allowed production modes for the protomodel
+        '''
+        
+        tmpSLHA = tempfile.mktemp( prefix=f".{self.walkerid}_xsecfile", suffix=".slha",dir=self.SLHATEMPDIR )
+        slhafile = self.createSLHAFile(tmpSLHA, addXsecs=False)
+        
+        from ptools.refxsecComputer import RefXSecComputer
+        comp = RefXSecComputer()
+        channels = comp.findOpenChannels(slhafile)
+        
+        if return_mass: return channels
+        
+        prodModes = []
+        for modes in channels:
+            prodModes.append(modes['pids'])
+        if len(prodModes) == 0:
+            print("huh? we have 0 prod modes? We have {len(channels)} channels.")
+        return prodModes
+        
     def getOpenChannels(self,pid : int ):
         """get the list of open decay channels for particle pid. Open channels are
         the decays to unfrozen particles and to lighter particles.
