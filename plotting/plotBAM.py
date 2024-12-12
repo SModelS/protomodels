@@ -239,14 +239,13 @@ def draw( args : dict ):
     ct = 0
     for ana in exps:
         for sqrts in sqrtses:
-            name= "%s%d" % ( ana, sqrts )
+            name= f"{ana}{sqrts}"
             xcoord = .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] )
             ycoord = n- .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] ) -3
             if len(sqrtses)>1 or len(exps)>1:
-                plt.text(-5,xcoord-3,"%s\n%d TeV" % ( ana, sqrts ),
-                         fontsize=44, c="black", rotation=90,
-                         horizontalalignment="center" )
-                plt.text(ycoord,-8,"%s\n%d TeV" % ( ana, sqrts ) ,
+                plt.text(-5,xcoord-3,f"{ana}\n{sqrts} TeV", fontsize=44, 
+                         c="black", rotation=90, horizontalalignment="center" )
+                plt.text(ycoord,-8, f"{ana}\n{sqrts} TeV",
                          fontsize=44, c="black", horizontalalignment="center" )
             yt = bins[ana][sqrts][1] +1
             extrudes = 3 # how far does the line extrude into tick labels?
