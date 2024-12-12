@@ -150,6 +150,10 @@ def draw( args : dict ):
         xtickpad = 0
         ytickpad = 0
         labelsize = 26
+    if nres < 30:
+        xtickpad = 0
+        ytickpad = 0
+        labelsize = 40
     if nres < 5:
         xtickpad = -580
         ytickpad = -580
@@ -169,7 +173,7 @@ def draw( args : dict ):
         hasLikelihood = hasLLHD ( e )
         ana = analysisCombiner.getExperimentName ( e.globalInfo )
         #if not hasLikelihood:
-        #    print ( "no likelihood: %s" % label )
+        #    print ( f"no likelihood: {label}" )
         sqrts = int(e.globalInfo.sqrts.asNumber(TeV))
         ymax=0
         if x < bins[ana][sqrts][0]:
