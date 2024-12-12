@@ -12,7 +12,7 @@ from smodels.base.smodelsLogging import colors
 from smodels_utils.helper.various import hasLLHD
 from tester import analysisCombiner
 import IPython
-from typing import Union, Dict
+from typing import Union, Dict, List
 from os import PathLike
 import subprocess
 from tester.combinationsmatrix import getYamlMatrix
@@ -32,14 +32,15 @@ def getCombinationsMatrix ( path : Union[None,Dict,PathLike] ):
     spec.loader.exec_module(imp)
     return imp.getYamlMatrix()
 
-def sortBySqrts ( results, sqrts ):
+def sortBySqrts ( results : List, sqrts : TeV ) -> List:
     ret = []
     for res in results:
         if abs (res.globalInfo.sqrts.asNumber(TeV) - sqrts ) < 0.1:
             ret.append ( res )
     return ret
 
-def noFastlim ( results ):
+def noFastlim ( results : List ) -> List:
+    """ remove fastlim results, FIXME should recycle method from smodels-utils """
     ret = []
     for res in results:
         if hasattr ( res.globalInfo, "contact" ) and "fastlim" in res.globalInfo.contact:
@@ -83,7 +84,7 @@ def sortOutDupes ( results ):
             ret.append ( res )
     return ret
 
-def checkForPartialCombinability ( e1, e2 ):
+def checkForPartialCombinability ( e1, e2 ) -> bool:
     """ check if a and b are partially combinable """
     ads = e1.datasets
     bds = e2.datasets
