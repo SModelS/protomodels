@@ -268,8 +268,9 @@ def draw( args : dict ):
                 plt.plot ( [ n-yt-.5, n-yt-.5], [ymax, -extrudes ], c=lc, alpha=alpha )
             ct += 1
     if args["drawtimestamp"]:
-        plt.text ( .01, .01, "plot produced %s from database v%s" % \
-                   ( time.strftime("%h %d %Y" ), d.databaseVersion ),
+        t = time.strftime("%h %d %Y" )
+        plt.text ( .01, -.01, 
+                   f"plot produced {t} from database v{d.databaseVersion}",
                    c="grey", transform = fig.transFigure, fontsize=24 )
     outputfile = args["outputfile"]
     if "@M" in outputfile:
