@@ -154,6 +154,10 @@ def draw( args : dict ):
         xtickpad = 0
         ytickpad = 0
         labelsize = 40
+    if nres < 18:
+        xtickpad = 0
+        ytickpad = 0
+        labelsize = 50
     if nres < 5:
         xtickpad = -580
         ytickpad = -580
@@ -239,7 +243,9 @@ def draw( args : dict ):
     labels.reverse()
     ax.set_yticklabels( labels ) ## need to invert
     if len(exps)==1 and len(sqrtses)==1:
-        plt.text ( .45, .95, f"{exps[0]}, {sqrtses[0]} TeV",
+        title = args["title"]
+        title = title.replace("@exp@",exps[0]).replace("@sqrts@",str(sqrtses[0]))
+        plt.text ( .45, .95, title,
                    fontsize = 3 * labelsize, transform = fig.transFigure )
     ct = 0
     for ana in exps:
@@ -332,6 +338,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-a', '--analyses',
             help='select for comma separated list of analyses [None]',
             type=str, default=None )
+    argparser.add_argument ( '--title',
+            help='specify the title [@exp@, @sqrts@ TeV]',
+            type=str, default="@exp@, @sqrts@ TeV" )
     argparser.add_argument ( '-t', '--triangular',
             help='plot as lower triangle matrix?',
             action="store_true" )
