@@ -284,8 +284,8 @@ def draw( args : dict ):
     if nres < 5:
         ## fewer than 5 results? make it very small!
         dpi = 15
-    plt.tight_layout( )
-    plt.savefig ( outputfile, dpi=dpi )
+    # plt.tight_layout( )
+    plt.savefig ( outputfile, dpi=dpi, bbox_inches="tight" )
     if "trim" in args and args["trim"]:
         cmd = f"convert {outputfile} -trim trimmed.{outputfile}"
         subprocess.getoutput ( cmd )
