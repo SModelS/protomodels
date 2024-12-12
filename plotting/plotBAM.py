@@ -273,9 +273,9 @@ def draw( args : dict ):
             ct += 1
     if args["drawtimestamp"]:
         t = time.strftime("%h %d %Y" )
-        plt.text ( .01, -.01, 
-                   f"plot produced {t} from database v{d.databaseVersion}",
-                   c="grey", transform = fig.transFigure, fontsize=24 )
+        dbver = d.databaseVersion
+        plt.text ( .01, -.05, f"plot produced {t} from database v{dbver}",
+                   va="bottom", c="grey", transform = fig.transFigure, fontsize=24 )
     outputfile = args["outputfile"]
     if "@M" in outputfile:
         modifiers = ""
