@@ -235,7 +235,7 @@ def draw( args : dict ):
     labels.reverse()
     ax.set_yticklabels( labels ) ## need to invert
     if len(exps)==1 and len(sqrtses)==1:
-        plt.text ( .45, .95, "%s, %d TeV" % ( exps[0], sqrtses[0] ),
+        plt.text ( .45, .95, f"{exps[0]}, {sqrtses[0]} TeV",
                    fontsize = 3 * labelsize, transform = fig.transFigure )
     ct = 0
     for ana in exps:
