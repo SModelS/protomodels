@@ -125,6 +125,9 @@ class RandomWalker ( LoggerBase ):
         if "SLURM_JOBID" in os.environ:
             jobid = os.environ["SLURM_JOBID"]
         self.pprint ( f"Ramping up with slurm jobid {jobid}" )
+        
+        #keep track of log llhd ratio
+        self.trace_logllhdratio = []
 
         if cheatcode <= 0:
             self.takeStep() # the first step should be considered as "taken"
@@ -348,7 +351,9 @@ class RandomWalker ( LoggerBase ):
         #Now keep the model with highest score:
         if protomodelSimp and boolProtoSimp:
             if self.manipulator.M.K is None or (protomodelSimp.K is not None
-                        and (protomodelSimp.K > self.manipulator.M.K)):
+                        and (protomodelSimp.K >= self.manipulator.M.K)):
+                self.log("Accepting the simplified model")
+                self.manipulator.proposal_ratio['q_total'] *= self.manipulator.proposal_ratio['merge']['q']
                 self.manipulator.M = protomodelSimp
 
         proto_dict = self.manipulator.getPmodelDict()
@@ -437,22 +442,31 @@ class RandomWalker ( LoggerBase ):
         """ depending on the ratio of K values, decide on whether to take the step or not.
             If ratio > 1., take the step, if < 1, let chance decide. """
         K = self.currentK
+        log_llhdRatio_current = self.currentTL
         if K == None: # if the old is none, we do everything
             self.takeStep()
             return
 
         newK = self.protomodel.K
+        log_llhdRatio_new = self.protomodel.TL
+        
         if test_param_space:
             self.takeStep()
             self.log("Testing parameter space, K,TL = 1.0. Take step")
             return
+        
         if newK == None:
             # if the new is none, but the old isnt, we go back
             self.manipulator.restoreModel( reportReversion=True )
             return
-
-        if newK > K:
-            self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}: check critics." )
+        
+        #K = 2 log (L1/L0) + 2 log(prior)
+        # acceptance ratio = 1/2 (newK - K) + log (proposal_ratio)
+        acceptance_ratio = 0.5*( newK - K) + np.log(self.manipulator.proposal_ratio['q_total'])
+        self.log(f"Step {self.protomodel.step}: Acceptance ratio {acceptance_ratio}")
+        #print(f"Step {self.protomodel.step}: Acceptance ratio {acceptance_ratio}, K {K}, newK {newK}")
+        if acceptance_ratio > 1:
+            self.highlight ( "info", f"Acceptance ratio > 1.0. K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )
 
             if self.critic.predict_critic(self.protomodel, keep_predictions=True):
                 self.highlight ( "info", "Passed both critics, taking the step." )
@@ -462,18 +476,18 @@ class RandomWalker ( LoggerBase ):
                 self.manipulator.restoreModel( reportReversion=True )
 
         else:
-            import random
-
+            #Draw random number u
             u = np.random.uniform(0.,1.)
-            ratio = np.exp(.5*( newK - K))
-            if u > ratio:
-                self.log ( f"u={u:.2f} > {ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
+            #print(f"Step {self.protomodel.step}: u {u}, Acceptance ratio {acceptance_ratio}, K {K}, newK {newK}")
+            if u > acceptance_ratio:
+                self.log ( f"u={u:.2f} > {acceptance_ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.highlight ( "info", f"K: {prettyPrint(K)} -> {prettyPrint(newK)}; u={u:.2f} <= {ratio:.2f}: check critics." )   #SN: <+ and not > right?
+                self.highlight ( "info", f"u={u:.2f} <= {acceptance_ratio:.2f};K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )   #SN: <+ and not > right?
 
                 if self.critic.predict_critic(self.protomodel, keep_predictions=True):
                     self.log ( "Passed both critics, taking the step." )
+                    self.trace_logllhdratio.append(log_llhdRatio_new - log_llhdRatio_current)
                     self.takeStep()
                 else:
                     self.log ( "Failed at least one critic, the step is reverted." )
@@ -494,8 +508,11 @@ class RandomWalker ( LoggerBase ):
             ## start with unfreezing a random particle
             self.log("Only LSP present. Forcing to unfreeze random particle")
             self.manipulator.propose_model = self.manipulator.M.copy()
+            self.manipulator.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
+            
             unfrozenParticle = self.manipulator.randomlyUnfreezeParticle()
-            self.manipulator.proposal_density(unfreezing=True, force_unfreeze=True)
+
+            self.manipulator.proposal_density( move='add_par', force_unfreeze=True)
             self.manipulator.backupModel()
 
         while self.maxsteps < 0 or self.protomodel.step<self.maxsteps:
