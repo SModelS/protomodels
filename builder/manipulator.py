@@ -191,7 +191,7 @@ class Manipulator ( LoggerBase ):
         change = False
         
         if type(sqrts) == Unum: sqrts = sqrts.asNumber(TeV)
-        print("here")
+        #print("here")
         for xsec in model_xsecs:
             if (xsec.pid == pid_pair) and abs(xsec.info.sqrts.asNumber(TeV) - sqrts) <= 1e-07:  #get the protomodel xsec at pid_pair and sqrts
                 model_xs = xsec.value.asNumber(fb)
@@ -200,9 +200,9 @@ class Manipulator ( LoggerBase ):
         if not change: return
 
 
-        print("Model Xsec: ", model_xs)
+        #print("Model Xsec: ", model_xs)
         new_susy_xs = (model_xs/new_ssm)*fb         #the new susy xsec according to the new_ssm
-        print("Susy Xsec: ", new_susy_xs)
+        #print("Susy Xsec: ", new_susy_xs)
 
         from ptools.xsecFit import XSecFitter
         func = XSecFitter(pid_pair, sqrts)
@@ -211,7 +211,7 @@ class Manipulator ( LoggerBase ):
         if model_mass is None:
             print(f"No ref xsec available for {pid_pair}")
             return
-        print("new mass: ", model_mass)
+        #print("new mass: ", model_mass)
 
         #update the protomodel's ssm and mass for the pid_pair
         model.ssmultipliers[pid_pair] = new_ssm
@@ -238,10 +238,10 @@ class Manipulator ( LoggerBase ):
 
         susy_xs = func.getValueFromFit(model_mass, inverse=False)         #get the susy_xsec according to the new_mass from the xsecFitter
         if susy_xs is None:
-            print(f"No ref xsec for {pid_pair} at mass {model_mass}")
+            #print(f"No ref xsec for {pid_pair} at mass {model_mass}")
             return
 
-        print("new susy xsec: ", susy_xs)
+        #print("new susy xsec: ", susy_xs)
 
         susy_xs = susy_xs.asNumber(fb)
         model_xsecs = model.getXsecs()[0]                                 #get all the protomodel xsec
@@ -251,7 +251,7 @@ class Manipulator ( LoggerBase ):
             else: return
 
         new_ssm = (model_xs/susy_xs)        #the new_ssm according to the new_susy_xsec
-        print("New SSM: ", new_ssm)
+        #print("New SSM: ", new_ssm)
 
         #update the protomodel's ssm and mass for the pid_pair
         model.ssmultipliers[pid_pair] = new_ssm
@@ -610,10 +610,10 @@ class Manipulator ( LoggerBase ):
             openChannels = protomodel.getOpenChannels(pid)
             #Check if any of the existing decays are forbidden:
             delDecays = [dpid for dpid in protomodel.decays[pid] if not  dpid in openChannels]
-            if delDecays != []: print(f"removing decays of {pid}: {delDecays}")
+            #if delDecays != []: print(f"removing decays of {pid}: {delDecays}")
             for dpid in delDecays:
                 protomodel.decays[pid].pop(dpid)
-            if delDecays != []: print(f"remaining decays of {pid}: {protomodel.decays[pid]}")
+            #if delDecays != []: print(f"remaining decays of {pid}: {protomodel.decays[pid]}")
             #Make sure to normalize the branchings
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs, protomodel=protomodel)
 
@@ -702,7 +702,7 @@ class Manipulator ( LoggerBase ):
         BRtot = sum(protomodel.decays[pid].values())
         if BRtot == 0:
             if pid != protomodel.LSP:
-                print(f"decay of {pid}: {protomodel.decays[pid]}")
+                #print(f"decay of {pid}: {protomodel.decays[pid]}")
                 self.log(f"decay of {pid}: {protomodel.decays[pid]}")
                 protomodel.pprint ( f"When attempting to normalize: total BR ({pid}) is zero. we need to take out {pid}." )
                 ## we need to freeze also <pid> now
@@ -855,7 +855,7 @@ class Manipulator ( LoggerBase ):
         
         a,b,c = 2,4,8
         shift_parameter = 8
-        print(f"Move {move}")
+        #print(f"Move {move}")
         #total number of particles
         n_par_current = len(self.M.unFrozenParticles() )
         n_par_propose = len(self.propose_model.unFrozenParticles())
@@ -870,8 +870,8 @@ class Manipulator ( LoggerBase ):
         
         deg_prop = n_par_propose + n_decays_propose + n_ssms_propose
         deg_current = n_par_current + n_decays_current + n_ssms_current
-        print(f"Current deg: {deg_current}")
-        print(f"Proposed deg: {deg_prop}")
+        #print(f"Current deg: {deg_current}")
+        #print(f"Proposed deg: {deg_prop}")
         
         z_current = (n_par_current - shift_parameter)/a + n_decays_current/b + n_ssms_current/c
         z_propose = (n_par_propose - shift_parameter)/a + n_decays_propose/b + n_ssms_propose/c
@@ -879,17 +879,17 @@ class Manipulator ( LoggerBase ):
         prob_12, prob_21 = 1.0, 1.0
         
         if z_propose > z_current:
-            print(f"z_propose {z_propose} > z_current {z_current}")
+            #print(f"z_propose {z_propose} > z_current {z_current}")
             prob_12 = (1 + np.exp(z_current))/(1 + np.exp(z_propose))            #Adding new degrees of freedom, i->i+1
             prob_21 = (1 + np.exp(-z_propose))/(1 + np.exp(-z_current))          #i+1 -> i
-            print(f"prob12, prob21 {prob_12}, {prob_21}")
+            #print(f"prob12, prob21 {prob_12}, {prob_21}")
         elif z_propose < z_current:
-            print(f"z_propose {z_propose} < z_current {z_current}")
+            #print(f"z_propose {z_propose} < z_current {z_current}")
             prob_12 = (1 + np.exp(-z_current))/(1 + np.exp(-z_propose))          #Removing degrees of freedom, i->i+1
             prob_21 = (1 + np.exp(z_propose))/(1 + np.exp(z_current))            #i+1 ->i
-            print(f"prob12, prob21 {prob_12}, {prob_21}")
+            #print(f"prob12, prob21 {prob_12}, {prob_21}")
         else:
-            print(f"z_propose {z_propose} = z_current {z_current}")     #No change in degrees of freedom
+            #print(f"z_propose {z_propose} = z_current {z_current}")     #No change in degrees of freedom
             prob_12, prob_21 = 1.0, 1.0
         #print(f"Prior propose {prior_propose}")
         #print(f"Prior current {prior_current}")
@@ -902,18 +902,18 @@ class Manipulator ( LoggerBase ):
         '''
         
         prob = min(1.0, prob_12)
-        print(f"Probability to accept change {prob}")
+        #print(f"Probability to accept change {prob}")
 
         u = np.random.uniform(0,1)
         if u > prob:
-            print(f"Reject move {move}")
+            #print(f"Reject move {move}")
             self.log(f"u={u:.2f} > proposal prob {prob:.2f}. Reject Move.")
             self.propose_model = self.M.copy()
             self.proposal_ratio[move] = {'q': 1.0}
-            print(f"q_total after {move}: {self.proposal_ratio['q_total']}")
+            #print(f"q_total after {move}: {self.proposal_ratio['q_total']}")
             return False
         else:
-            print(f"accept move {move}")
+            #print(f"accept move {move}")
             self.log(f"u={u:.2f} <= proposal prob {prob:.2f}. Accept Move.")
             self.M = self.propose_model
             self.propose_model = self.M.copy()
@@ -921,7 +921,7 @@ class Manipulator ( LoggerBase ):
             for parameter, q_par in self.proposal_ratio[move].items():
                 print(f"Parameter : {parameter}, q_par {q_par}")
                 self.proposal_ratio['q_total'] *= q_par
-            print(f"log q_total after {move}: {np.log(self.proposal_ratio['q_total'])}")
+            #print(f"log q_total after {move}: {np.log(self.proposal_ratio['q_total'])}")
             self.log(f"Log of total proposal ratio after {move}: {np.log(self.proposal_ratio['q_total']):.2f}")
             return True
 
@@ -962,7 +962,7 @@ class Manipulator ( LoggerBase ):
             if accept_move:
                 nChanges += 1
                 self.log(f"Accept unfreezing of {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
-                print(f"Protomodel now: {self.M.unFrozenParticles()}")
+                #print(f"Protomodel now: {self.M.unFrozenParticles()}")
             else:
                 self.log(f"Reject unfreezing {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
                 recentlyUnfrozen = None
@@ -973,7 +973,7 @@ class Manipulator ( LoggerBase ):
             if accept_move:
                 nChanges += 1
                 self.log(f"Accept freezing of {frozenParticle} ({self.namer.asciiName(frozenParticle)})")
-                print(f"Protomodel now: {self.M.unFrozenParticles()}")
+                #print(f"Protomodel now: {self.M.unFrozenParticles()}")
             else:
                 self.log(f"Reject freezing of {frozenParticle} ({self.namer.asciiName(frozenParticle)})")
         
@@ -1002,7 +1002,7 @@ class Manipulator ( LoggerBase ):
         else: #Change masses with 5% probability
             changes = self.randomlyChangeMasses(prob = probMass)
             nChanges += changes
-        print(f"q_total = {self.proposal_ratio['q_total']}")
+        #print(f"q_total = {self.proposal_ratio['q_total']}")
         #Update cross-sections (if needed)
         self.M.getXsecs()
 
@@ -1039,7 +1039,7 @@ class Manipulator ( LoggerBase ):
                 break
 
         self.log ( f"Propose unfreezing pid: {pid}({self.namer.asciiName(pid)})" )
-        print(f"Propose unfreezing {self.namer.asciiName(pid)}" )
+        #print(f"Propose unfreezing {self.namer.asciiName(pid)}" )
         return self.unFreezeParticle(pid, protomodel = self.propose_model)
 
     def randomlyChangeBranchings ( self, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05 ):
@@ -1124,7 +1124,7 @@ class Manipulator ( LoggerBase ):
                 self.log ( f"changed decay of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
                 protomodel.decays[pid].update({dpid: br})
             
-            print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
+            #print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
             return 1
 
         #Otherwise randomly change each channel(s) (based on the current BR)
@@ -1184,8 +1184,8 @@ class Manipulator ( LoggerBase ):
 
         #Make sure BRsprot add up to 1:
         self.normalizeBranchings(pid, protomodel=protomodel)
-        print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
-        print(f"Prob to add {self.proposal_ratio['br']['add']}")
+        #print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
+        #print(f"Prob to add {self.proposal_ratio['br']['add']}")
         return 1
 
     def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25, probSingle : float =0.8, ssmSigma=1.0 ) -> int:
@@ -1240,7 +1240,7 @@ class Manipulator ( LoggerBase ):
             prob_add = 0.7/len(pidpair)
             prob_rem = 0.1/len(prod_list)
             self.proposal_ratio['ssm']['rem'] = prob_add/prob_rem
-            print(f"Prob to rem {self.proposal_ratio['ssm']['rem']}")
+            #print(f"Prob to rem {self.proposal_ratio['ssm']['rem']}")
             return 1
         if a < .1: ## sometimes, just try to set ssm to 1.
             prod_list = list(protomodel.ssmultipliers.keys())
@@ -1274,7 +1274,7 @@ class Manipulator ( LoggerBase ):
             prob_add = 0.7/len(pidpair)
             prob_rem = 0.1/len(protomodel.ssmultipliers.keys())
             self.proposal_ratio['ssm']['add'] = prob_rem/prob_add
-            print(f"Adding new pair of ssm {pidpair} with ratio {self.proposal_ratio['ssm']['add']}")
+            #print(f"Adding new pair of ssm {pidpair} with ratio {self.proposal_ratio['ssm']['add']}")
             self.record ( f"Initialize ssm of {self.namer.texName(pair,addDollars=True)} to {newSSM}" )
         else:
             newSSM = float(protomodel.ssmultipliers[pair]*(lognorm.rvs(s = ssmSigma, scale = 1.0)))
@@ -1444,13 +1444,13 @@ class Manipulator ( LoggerBase ):
         #self.record ( f"freeze {self.namer.texName(pid,addDollars=True)}" )
         #Remove pid from masses, decays and signal multipliers:
         self.log(f"Propose freezing pid: {pid}({self.namer.asciiName(pid)})")
-        print(f"Propose freezing pid: {pid}")
+        #print(f"Propose freezing pid: {pid}")
         
         num_frozen = len(protomodel.frozenParticles())
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(add pid from frozen)/p(rem pid from unfrozen) = (1/(n_fr+1))/(1/n_un)
         if merge: self.proposal_ratio['merge']['q'] *= len(unfrozen)/(num_frozen + 1)
         else: self.proposal_ratio['rem_par']['q'] *= len(unfrozen)/(num_frozen + 1)
-        print(f"Prob to freeze = {self.proposal_ratio['rem_par']['q']}")
+        #print(f"Prob to freeze = {self.proposal_ratio['rem_par']['q']}")
         
         if  pid in protomodel.masses: protomodel.masses.pop(pid)
         if  pid in protomodel.decays: protomodel.decays.pop(pid)
@@ -1486,7 +1486,7 @@ class Manipulator ( LoggerBase ):
         num_unfrozen = len(protomodel.unFrozenParticles( withLSP=False ))
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(rem pid)/p(add pid) = (1/(n_un+1))/(1/n_fr)
         self.proposal_ratio['add_par']['q'] *= len(frozen)/(num_unfrozen + 1)
-        print(f"Prob to unfreeze = {self.proposal_ratio['add_par']['q']}")
+        #print(f"Prob to unfreeze = {self.proposal_ratio['add_par']['q']}")
         #Absolute mass range:
         maxMass = protomodel.maxMass    #2400 GeV
         minMass = protomodel.masses[protomodel.LSP]
@@ -1888,7 +1888,7 @@ class Manipulator ( LoggerBase ):
         prob_rem = 1.0          #Removing degrees of freedom
         prob_add = (1 + np.exp(z_new))/(1 + np.exp(z_old))
         self.proposal_ratio['merge'] = {'q':prob_add}
-        print(f"prob  merge = {prob_add}")
+        #print(f"prob  merge = {prob_add}")
         
         ## finally freeze p2:
         self.freezeParticle(p2,protomodel=protomodel,merge=True)
