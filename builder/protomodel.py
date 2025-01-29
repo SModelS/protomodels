@@ -104,14 +104,14 @@ class ProtoModel ( LoggerBase ):
         self._xsecSSMs = {} #Store the signal strenght multiplier used for computing the cross-sections
         self.ssmultipliers = {} ## signal strength multipliers
         ## Inititiaze LSP
-        self.masses[ProtoModel.LSP] = float(np.random.uniform(200,500))
+        self.masses[ProtoModel.LSP] = float(np.random.uniform(100,500))
         self.decays[ProtoModel.LSP]= {}
-        pids = [(self.LSP,self.LSP)]
+        pids = []                   #No (LSP,LSP) pair production
         if self.hasAntiParticle(self.LSP):
             pids += [(self.LSP,-self.LSP),(-self.LSP,-self.LSP)]
         for pidpair in pids:
-            from scipy.stats import norm
-            self.ssmultipliers[tuple(sorted(pidpair))]= float(10**(norm.rvs(0.0, 1.0)))
+            from scipy.stats import lognorm
+            self.ssmultipliers[tuple(sorted(pidpair))]= float(lognorm.rvs(s = 1.0, scale = 1.0))
 
         slha_decay_keys = []
 

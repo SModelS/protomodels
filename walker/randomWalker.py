@@ -280,7 +280,7 @@ class RandomWalker ( LoggerBase ):
     def onestep ( self ):
         #Add one step
         self.protomodel.step+=1
-        self.pprint ( "Step %d begins." % ( self.protomodel.step ) )
+        self.pprint (f"Step {self.protomodel.step} begins.")
         self.printStats( )
         #Remove data about best combo
         self.log("Clean best combo")
@@ -461,8 +461,10 @@ class RandomWalker ( LoggerBase ):
             return
         
         #K = 2 log (L1/L0) + 2 log(prior)
-        # acceptance ratio = 1/2 (newK - K) + log (proposal_ratio)
-        acceptance_ratio = 0.5*( newK - K) + np.log(self.manipulator.proposal_ratio['q_total'])
+        #acceptance ratio = (new_L1/new_l0)/(current_L1/current_L0) * (new_prior)/(old_prior) * proposal_ratio
+        #acceptance ratio = exp( (log(new_L1/new_l0) + log(new_prior)) - (log(current_L1/current_L0) - log(old_prior)) + log(proposal_ratio))
+        # acceptance ratio = exp(1/2 (newK - K) + log (proposal_ratio))
+        acceptance_ratio = np.exp(0.5*( newK - K) + np.log(self.manipulator.proposal_ratio['q_total']))
         self.log(f"Step {self.protomodel.step}: Acceptance ratio {acceptance_ratio}")
         #print(f"Step {self.protomodel.step}: Acceptance ratio {acceptance_ratio}, K {K}, newK {newK}")
         if acceptance_ratio > 1:
@@ -480,7 +482,7 @@ class RandomWalker ( LoggerBase ):
             u = np.random.uniform(0.,1.)
             #print(f"Step {self.protomodel.step}: u {u}, Acceptance ratio {acceptance_ratio}, K {K}, newK {newK}")
             if u > acceptance_ratio:
-                self.log ( f"u={u:.2f} > {acceptance_ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
+                self.highlight ( f"u={u:.2f} > {acceptance_ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
                 self.manipulator.restoreModel( reportReversion=True )
             else:
                 self.highlight ( "info", f"u={u:.2f} <= {acceptance_ratio:.2f};K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )   #SN: <+ and not > right?

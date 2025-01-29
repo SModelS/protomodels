@@ -21,7 +21,7 @@ from base.loggerbase import LoggerBase
 class Hiscores ( LoggerBase ):
     """ encapsulates the hiscore list. """
     def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
-                   picklefile: PathLike="hiscores.cache", backup : bool = True,
+                   picklefile: PathLike="hiscores.cache", backup : bool = True, keep_separate_hiscores = False,
                    hiscores = None, predictor = None ):
         """ the constructor
         :param save_hiscores: if true, then assume you want to save, not just read.
@@ -41,6 +41,7 @@ class Hiscores ( LoggerBase ):
         self.pickleFile = picklefile
         self.mtime = 0 ## last modification time of current list
         self.namer = sparticleNames.SParticleNames ( susy = False )
+        self.keep_separate_hiscores = keep_separate_hiscores
         if hiscores == None:
             self.updateListFromPickle ( )
         else:
@@ -200,7 +201,7 @@ class Hiscores ( LoggerBase ):
                     time.sleep( .1+3*tryRead )
         D=m.writeDictFile ( None, cleanOut = False, ndecimals = 6 )
         newlist = self.insertHiscore ( oldhiscores, D )
-        self.log ( f"write model to {hiscorefile}" )
+        self.log ( f"Write model to {hiscorefile}" )
         with open ( hiscorefile, "wt" ) as f:
             f.write ( "[" )
             for ctr,l in enumerate(newlist):
@@ -222,7 +223,9 @@ class Hiscores ( LoggerBase ):
         :param ma: the manipulator object
         :returns: true, if result was added
         """
-        if ma.M.K <= self.currentMinK():        #SN: removed zeroIsMin for now
+        
+        if ma.M.K < self.currentMinK():        #SN: removed zeroIsMin for now
+            self.log(f"K {ma.M.K} less than Min K {self.currentMinK()}. Not adding to hiscore list.")
             return False ## doesnt pass minimum requirement
         #if ma.M.K == 0.:
         #    return False ## just to be sure, should be taken care of above, though
@@ -231,20 +234,20 @@ class Hiscores ( LoggerBase ):
         Kmin = self.globalMinK()
         # self.pprint ( f"adding results Kold is {Kold} Knew is {ma.M.K}" )
         ## FIXME we should only write into this file in the first maxstep/3 steps
-        if ma.M.K > Kmin:
-            # self.pprint ( "WARNING we shouldnt write into hiscore file afte maxstep/3 steps!!" )
-            self.updateHiscoreFile( ma )
-            ## we have a new hiscore?
-            ## compute the particle contributions
-            #if not hasattr ( ma.M, "particleContributions" ):
-            #    self.pprint ( "particleContributions missing, compute them!" )
-            #    self.computeParticleContributions(m)
-            ## compute the analysis contributions
-            #if not hasattr ( ma.M, "analysisContributions" ):
-            #    self.pprint ( "analysisContributions missing, compute them!" )
-            #    self.computeAnalysisContributions(m)
-            protomodel = ma.M
-            protomodel.getXsecs() #Make sure cross-sections have been computed
+        #if ma.M.K > Kmin:              #FIXME!
+        # self.pprint ( "WARNING we shouldnt write into hiscore file afte maxstep/3 steps!!" )
+        self.updateHiscoreFile( ma, hiscorefile = f"hiscores{self.walkerid}.dict")
+        ## we have a new hiscore?
+        ## compute the particle contributions
+        #if not hasattr ( ma.M, "particleContributions" ):
+        #    self.pprint ( "particleContributions missing, compute them!" )
+        #    self.computeParticleContributions(m)
+        ## compute the analysis contributions
+        #if not hasattr ( ma.M, "analysisContributions" ):
+        #    self.pprint ( "analysisContributions missing, compute them!" )
+        #    self.computeAnalysisContributions(m)
+        protomodel = ma.M
+        protomodel.getXsecs() #Make sure cross-sections have been computed
 
         for i,mi in enumerate(self.hiscores):
             if mi!=None and mi.almostSameAs ( ma.M ):
