@@ -1529,7 +1529,7 @@ class Manipulator ( LoggerBase ):
                 mstop2 = 2000.
                 if 2000006 in protomodel.masses:
                     mstop2 = protomodel.masses[2000006]
-                protomodel.masses[2000006] = mstop2 + 20.
+                    protomodel.masses[2000006] = mstop2 + 20.
                 if pid == 1000006:
                     maxMass = mstop2 + 20.
         
@@ -1540,9 +1540,11 @@ class Manipulator ( LoggerBase ):
 
 
         # Set branchings
+        self.log(f"Initializing Branchings for {pid}")
         self.initBranchings(pid, protomodel=protomodel)
-
+        
         #Add pid pair production and associated production to protomodel.ssmultipliers:
+        self.log(f"Initializing Production Modes for {pid}")
         self.initSSMFor(pid, protomodel=protomodel)
 
         return pid
