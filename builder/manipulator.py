@@ -1092,9 +1092,9 @@ class Manipulator ( LoggerBase ):
             dkeys.add(dk)
 
         dkeys = list(dkeys)
-
+        self.log( f"Trying to change branchings of {pid} ({self.namer.asciiName(pid)})." )
         if len(openChannels) < 2:
-            self.log( f"Number of open channels of {pid} is {len(openChannels).Cannot change branchings." )
+            self.log( f"Number of open channels of {pid} is {len(openChannels)}.Cannot change branchings." )
             # not enough channels open to tamper with branchings!
             return 0
         
