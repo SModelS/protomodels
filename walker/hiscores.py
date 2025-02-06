@@ -136,7 +136,8 @@ class Hiscores ( LoggerBase ):
         for oldhi in L: ## as long as the Ks are above the new K, append
             if self.similarDicts ( oldhi, hi ):
                 ## already exists in list? skip insertion
-                return L
+                self.log("Protomodel already exists in hiscore file. Skip")
+                return L, False
             if oldhi["K"]>= K:
                 ret.append ( oldhi )
             else:
@@ -147,7 +148,7 @@ class Hiscores ( LoggerBase ):
         for oldhi in L[len(ret)-1:]:
             ret.append ( oldhi )
         ret = ret[:10] ## cut off, max ten
-        return ret
+        return ret, True
 
     @classmethod
     def fromDictionaryFile ( cls, path : PathLike,
@@ -175,9 +176,9 @@ class Hiscores ( LoggerBase ):
         return cls ( hiscores= hiscores, predictor = predictor )
 
         # assert False, "implement me"
-
-    def updateHiscoreFile ( self, m : Manipulator,
-           hiscorefile : PathLike = "hiscores.dict" ) -> bool:
+    
+    def updateGlobalHiscoreFile ( self, m : Manipulator,
+           hiscorefile : PathLike = "hiscores_global.dict" ) -> bool:
         """
         we have a new hiscore, add to hiscores.dict
         :param m: manipulator
@@ -200,8 +201,8 @@ class Hiscores ( LoggerBase ):
                 except SyntaxError as e:
                     time.sleep( .1+3*tryRead )
         D=m.writeDictFile ( None, cleanOut = False, ndecimals = 6 )
-        newlist = self.insertHiscore ( oldhiscores, D )
-        self.log ( f"Write model to {hiscorefile}" )
+        newlist, added = self.insertHiscore ( oldhiscores, D )
+        self.log (f"Write model to {hiscorefile}" )
         with open ( hiscorefile, "wt" ) as f:
             f.write ( "[" )
             for ctr,l in enumerate(newlist):
@@ -217,6 +218,86 @@ class Hiscores ( LoggerBase ):
             f.write ( f"{newlist[-1]['K']}\n" )
             f.close()
         return True
+    
+    def updateTopHiscoreFile ( self, m : Manipulator,
+           hiscorefile : PathLike = "hiscores_top.dict" ) -> bool:
+        """
+        Update the top hiscore model from each walk
+        :param m: manipulator
+        :param hiscorefile: the hiscore dict file to update
+        :returns: true, if successful
+        """
+        hiscore_top = []
+        import glob
+        high_files = glob.glob("all_hiscores/hiscore*.dict")
+        for file in high_files:
+            if os.path.exists ( file ):
+                tryRead=0
+                success=False
+                ## stop loop at success or when tryRead is at least 5
+                while (not success) and tryRead<5:
+                    tryRead+=1
+                    try:
+                        with open ( file, "rt" ) as h:
+                            txt = h.read()
+                            hiscores = eval( txt )
+                            hiscore_top.append(hiscores[0])
+                            h.close()
+                            success=True
+                    except SyntaxError as e:
+                        time.sleep( .1+3*tryRead )
+        
+        newlist = sorted(hiscore_top, key=lambda val:val['K'], reverse=True)
+        self.log(f"Updating  {hiscorefile}" )
+        with open ( hiscorefile, "wt" ) as f:
+            f.write ( "[" )
+            for ctr,l in enumerate(newlist):
+                f.write ( f"{l}" )
+                if ctr < len(newlist)-1:
+                    f.write ( ",\n" % ( l ) )
+            f.write ( "]\n" )
+            f.close()
+        return True
+        
+    def updateHiscoreFile ( self, m : Manipulator,
+           hiscorefile : PathLike = "hiscores.dict" ) -> bool:
+        """
+        we have a new hiscore, add to hiscores.dict
+        :param m: manipulator
+        :param hiscorefile: the hiscore dict file to update
+        :returns: true, if successful
+        """
+        oldhiscores=[]
+        if not os.path.isdir("all_hiscores"):
+            os.mkdir("all_hiscores")
+        if os.path.exists ( f"all_hiscores/{hiscorefile}" ):
+            tryRead=0
+            success=False
+            ## stop loop at success or when tryRead is at least 5
+            while (not success) and tryRead<5:
+                tryRead+=1
+                try:
+                    with open ( f"all_hiscores/{hiscorefile}" , "rt" ) as h:
+                        txt = h.read()
+                        oldhiscores = eval( txt )
+                        h.close()
+                        success=True
+                except SyntaxError as e:
+                    time.sleep( .1+3*tryRead )
+        D=m.writeDictFile ( None, cleanOut = False, ndecimals = 6 )
+        newlist, added = self.insertHiscore ( oldhiscores, D )
+        if added:
+            self.log(f"Write model to {hiscorefile}" )
+            with open ( f"all_hiscores/{hiscorefile}", "wt" ) as f:
+                f.write ( "[" )
+                for ctr,l in enumerate(newlist):
+                    f.write ( f"{l}" )
+                    if ctr < len(newlist)-1:
+                        f.write ( ",\n" % ( l ) )
+                f.write ( "]\n" )
+                f.close()
+            return True
+        return False
 
     def addResult ( self, ma ):
         """ add a result to the list
@@ -224,19 +305,22 @@ class Hiscores ( LoggerBase ):
         :returns: true, if result was added
         """
         
-        if ma.M.K < self.currentMinK():        #SN: removed zeroIsMin for now
-            self.log(f"K {ma.M.K} less than Min K {self.currentMinK()}. Not adding to hiscore list.")
-            return False ## doesnt pass minimum requirement
+        #if ma.M.K < self.currentMinK():        #SN: removed zeroIsMin for now
+        #    self.log(f"K {ma.M.K} less than Min K {self.currentMinK()}. Not adding to hiscore list.")
+        #    return False ## doesnt pass minimum requirement
         #if ma.M.K == 0.:
         #    return False ## just to be sure, should be taken care of above, though
 
         # Kold = self.globalMaxK()
-        Kmin = self.globalMinK()
+        #Kmin = self.globalMinK()
         # self.pprint ( f"adding results Kold is {Kold} Knew is {ma.M.K}" )
         ## FIXME we should only write into this file in the first maxstep/3 steps
         #if ma.M.K > Kmin:              #FIXME!
         # self.pprint ( "WARNING we shouldnt write into hiscore file afte maxstep/3 steps!!" )
-        self.updateHiscoreFile( ma, hiscorefile = f"hiscores{self.walkerid}.dict")
+        added = self.updateHiscoreFile( ma, hiscorefile = f"hiscores{self.walkerid}.dict")
+        if added:
+            self.updateGlobalHiscoreFile( ma)
+            self.updateTopHiscoreFile(ma)
         ## we have a new hiscore?
         ## compute the particle contributions
         #if not hasattr ( ma.M, "particleContributions" ):
@@ -514,8 +598,8 @@ class Hiscores ( LoggerBase ):
             return False
         if ma.M.K == None:
             return False # clearly out
-        if ma.M.K <= self.currentMinK():
-            return False ## clearly out
+        #if ma.M.K <= self.currentMinK():
+        #    return False ## clearly out
         self.addResult ( ma )
         return True
 
