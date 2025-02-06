@@ -261,11 +261,14 @@ class RandomWalker ( LoggerBase ):
                     #self.log(f"Protomodel: {proto_dict}")
                     break
                 previousMuhat = model.muhat
+                if model.muhat == 0.0: break
                 manipulator.rescaleSignalBy(model.muhat) #?
             else:
                 break # Rescale signal by a significant number?
 
         if not muhat_converge:  #reverting step
+            model.K = None
+            model.TL = None
             proto_dict = manipulator.getPmodelDict()
             if predict:
                 self.log ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {previousMuhat}. Going back to previous step." )
@@ -291,11 +294,7 @@ class RandomWalker ( LoggerBase ):
             self.pprint ( f"memory footprint (kb): walker {asizeof(self)/1024}, model {asizeof(self.protomodel)/1024}" )
 
         #Trim the model, so we start only with the relevant particles for the
-        #best combination in the previous step:
-        if self.protomodel.bestCombo:
-            self.log ( "freeze pids that arent in best combo, we dont need them:" )
-            nfrozen = self.manipulator.freezePidsNotInBestCombo()
-            self.log ( " `- froze %d particles not in best combo" % nfrozen )
+        #best combination in the previous step -> doing in predictor now
         # self.printStats( substep=12 )
 
         #Take a step in the model space:
@@ -356,8 +355,6 @@ class RandomWalker ( LoggerBase ):
                 self.manipulator.proposal_ratio['q_total'] *= self.manipulator.proposal_ratio['merge']['q']
                 self.manipulator.M = protomodelSimp
 
-        proto_dict = self.manipulator.getPmodelDict()
-        self.log(f"Protomodel: {proto_dict}")
         #If no combination could be found, return
         if self.manipulator.M.TL is None or self.manipulator.M.K is None:
             return
@@ -472,9 +469,13 @@ class RandomWalker ( LoggerBase ):
 
             if self.critic.predict_critic(self.protomodel, keep_predictions=True):
                 self.highlight ( "info", "Passed both critics, taking the step." )
+                proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=True)
+                self.log(f"Protomodel: {proto_dict}")
                 self.takeStep()
             else:
                 self.highlight ( "info", "Failed at least one critic, the step is reverted." )
+                proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=False)
+                self.log(f"Protomodel: {proto_dict}")
                 self.manipulator.restoreModel( reportReversion=True )
 
         else:
@@ -482,17 +483,23 @@ class RandomWalker ( LoggerBase ):
             u = np.random.uniform(0.,1.)
             #print(f"Step {self.protomodel.step}: u {u}, Acceptance ratio {acceptance_ratio}, K {K}, newK {newK}")
             if u > acceptance_ratio:
-                self.highlight ( f"u={u:.2f} > {acceptance_ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
+                self.highlight ("info", f"u={u:.2f} > {acceptance_ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
+                proto_dict = self.manipulator.getPmodelDict(acc=False, critic_acc=False)
+                self.log(f"Protomodel: {proto_dict}")
                 self.manipulator.restoreModel( reportReversion=True )
             else:
                 self.highlight ( "info", f"u={u:.2f} <= {acceptance_ratio:.2f};K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )   #SN: <+ and not > right?
 
                 if self.critic.predict_critic(self.protomodel, keep_predictions=True):
                     self.log ( "Passed both critics, taking the step." )
+                    proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=True)
+                    self.log(f"Protomodel: {proto_dict}")
                     self.trace_logllhdratio.append(log_llhdRatio_new - log_llhdRatio_current)
                     self.takeStep()
                 else:
                     self.log ( "Failed at least one critic, the step is reverted." )
+                    proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=False)
+                    self.log(f"Protomodel: {proto_dict}")
                     self.manipulator.restoreModel( reportReversion=True )
 
     def record ( self ):

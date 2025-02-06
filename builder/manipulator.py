@@ -260,14 +260,22 @@ class Manipulator ( LoggerBase ):
         else: model.masses[pid_pair[1]] = model_mass.asNumber(GeV)
 
 
-    def getPmodelDict (self, get_xsecs=False) -> Dict:
+    def getPmodelDict (self, get_xsecs=False, acc=False, critic_acc=False) -> Dict:
         if type(self.M) == type(None):
             ## there is nothing to write
             self.log("No protomodel")
             return
         
-        proto_dict = self.M.dict()
-        if not get_xsecs: del proto_dict['xsecs[fb]']
+        proto_dict = self.M.dict(sort_dict=True)
+        if not get_xsecs and 'xsecs[fb]' in proto_dict.keys(): del proto_dict['xsecs[fb]']
+        
+        if acc and critic_acc: proto_dict['Accepted'] = 0
+        elif acc and not critic_acc: proto_dict['Accepted'] = 1
+        else: proto_dict['Accepted'] = 2
+        
+        proto_dict['K'] = self.M.K
+        proto_dict['TL'] = self.M.TL
+        
         return proto_dict
     
     def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict",
@@ -299,6 +307,8 @@ class Manipulator ( LoggerBase ):
                         D["decays"].pop(k)
                 else:
                     D["masses"][k]=round(v,ndecimals)
+                    print(f"ndecimal {ndecimals}")
+                    print(f"mass: {D['masses'][k]}")
             for k,decays in self.M.dict()["decays"].items():
                 for i,v in decays.items():
                     if not k in D["decays"]:
@@ -666,7 +676,9 @@ class Manipulator ( LoggerBase ):
                     if len(dpid) == 3 and pid in [1000023,1000024]: protomodel.decays[pid][dpid] = 0.0  #turn off offshell 3 body decays for X^2_Z and X^1_W
                     else: protomodel.decays[pid][dpid] = br
 
-        if offshell: return
+        if offshell:
+            self.normalizeBranchings(pid, protomodel=protomodel)
+            return
 
         #Make sure there is at least one open channel:
         BRtot = sum(protomodel.decays[pid].values())
@@ -977,7 +989,6 @@ class Manipulator ( LoggerBase ):
                 #print(f"Protomodel now: {self.M.unFrozenParticles()}")
             else:
                 self.log(f"Reject freezing of {frozenParticle} ({self.namer.asciiName(frozenParticle)})")
-        
         
         changes = self.randomlyChangeBranchings(prob=probBR)
         if changes > 0:
@@ -1446,13 +1457,14 @@ class Manipulator ( LoggerBase ):
         #protomodel.log ( f"Freezing {self.namer.asciiName(pid)}" )
         #self.record ( f"freeze {self.namer.texName(pid,addDollars=True)}" )
         #Remove pid from masses, decays and signal multipliers:
-        self.log(f"Propose freezing pid: {pid}({self.namer.asciiName(pid)})")
+        if not force: self.log(f"Propose freezing pid: {pid}({self.namer.asciiName(pid)})")
+        else: self.log(f"Freezing pid: {pid}({self.namer.asciiName(pid)})")
         #print(f"Propose freezing pid: {pid}")
         
         num_frozen = len(protomodel.frozenParticles())
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(add pid from frozen)/p(rem pid from unfrozen) = (1/(n_fr+1))/(1/n_un)
         if merge: self.proposal_ratio['merge']['q'] *= len(unfrozen)/(num_frozen + 1)
-        else: self.proposal_ratio['rem_par']['q'] *= len(unfrozen)/(num_frozen + 1)
+        if not force: self.proposal_ratio['rem_par']['q'] *= len(unfrozen)/(num_frozen + 1)
         #print(f"Prob to freeze = {self.proposal_ratio['rem_par']['q']}")
         
         if  pid in protomodel.masses: protomodel.masses.pop(pid)
@@ -2160,8 +2172,8 @@ class Manipulator ( LoggerBase ):
         nfrozen = 0
         for pid in unfrozen:
             if not pid in okPids:
-                frozen_pid = self.freezeParticle ( pid )
-                if not frozen_pid: nfrozen += 1
+                frozen_pid = self.freezeParticle ( pid, force=True )
+                if frozen_pid: nfrozen += 1
         return nfrozen
 
     def backupModel ( self ):

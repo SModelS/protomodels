@@ -260,6 +260,15 @@ class ProtoModel ( LoggerBase ):
         #Get all relevant masses
         allMasses = dict([[pid,mass] for pid,mass in self.masses.items()])
         allMasses.update(smMasses)
+        
+        offshell = False
+        mass_W = 80.377
+        mwidth_W = 0.012
+        mass_Z = 91.1876
+        mwidth_Z = 0.0021
+        if pid == 1000023 and (self.masses[pid] - self.masses[self.LSP]) < (mass_Z + mwidth_Z): offshell = True
+        elif pid == 1000024 and (self.masses[pid] - self.masses[self.LSP]) < (mass_W + mwidth_W):offshell = True
+        else: offshell = False
 
         for dpid in self.possibledecays[pid]:
             #Get the list of BSM particles in the decay:
@@ -278,21 +287,23 @@ class ProtoModel ( LoggerBase ):
             if mdaughter >= self.masses[pid]:
                 continue
 
-            offshell = False
-            mass_W = 80.377
-            mwidth_W = 0.012
-            mass_Z = 91.1876
-            mwidth_Z = 0.0021
-            if pid == 1000023 and (self.masses[pid] - self.masses[self.LSP]) < (mass_Z + mwidth_Z): offshell = True
-            elif pid == 1000024 and (self.masses[pid] - self.masses[self.LSP]) < (mass_W + mwidth_W): offshell = True
-            else: offshell = False
-
             if not offshell and len(dpid) == 3 and pid in [1000023, 1000024]:       #turn off 3-body decays for onshell X^2_Z and X^1_W
                 continue
 
             openChannels.add ( dpid )
 
         openChannels = list(openChannels)
+        
+        #remove all decay channels assoaciated with a dkey if one of them is not present for offshell decays to ensure flavor democracy
+        if offshell:
+            for dpid, dk in self.decay_keys[pid].items():
+                if dpid in openChannels:
+                    decay_chan = [key for key,value in self.decay_keys[pid].items() if value == dk]
+                    dec_not_present = [dc for dc in decay_chan if dc not in openChannels]
+                    if len(dec_not_present) > 0:
+                        self.highlight("warn", f"{dec_not_present} not in {openChannels} but {dpid} present. Removing {dpid}")
+                        openChannels.remove(dpid)
+                        self.highlight("warn", f"OpenChannels now {openChannels}")
 
         return openChannels
 
@@ -574,13 +585,22 @@ class ProtoModel ( LoggerBase ):
 
         return outputSLHA
 
-    def dict ( self ):
+    def dict ( self, sort_dict=False ):
         """ return the dictionary that can be written out """
         xsecs = {}
         tmp = self.getXsecs()
         if len(tmp)>0:
             for xsec in tmp[0]:
                 xsecs[(xsec.pid,xsec.info.sqrts.asNumber(TeV))]=xsec.value.asNumber(fb)
+        if sort_dict:
+            pmodel_dict = {}
+            pmodel_dict['masses'] = {pid:self.masses[pid] for pid in sorted(self.masses)}
+            pmodel_dict['ssmultipliers'] = {ppair:self.ssmultipliers[ppair] for ppair in sorted(self.ssmultipliers)}
+            decay_dict = {pid:{dpid:self.decays[pid][dpid] for dpid in sorted(self.decays[pid])} for pid in sorted(self.decays)}
+            pmodel_dict['decays'] = decay_dict
+            pmodel_dict['xsecs[fb]'] = xsecs
+            return pmodel_dict
+        
         return { "masses": self.masses, "ssmultipliers": self.ssmultipliers,
                  "decays": self.decays, "xsecs[fb]": xsecs }
 

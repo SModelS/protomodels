@@ -411,6 +411,8 @@ class Predictor ( LoggerBase ):
         protomodel.muhat = muhat
 
         protomodel.TL = TL
+        if TL is None: # TL is None when no combination was found
+            protomodel.K = None
 
         if abs(muhat - 1.0) < 1e-02:
             prior = self.combiner.computePrior ( protomodel )
@@ -429,6 +431,27 @@ class Predictor ( LoggerBase ):
                 protomodel.K = None
             else:
                 protomodel.K = self.combiner.computeK ( TL, prior )
+            
+            #FIXME!
+            if protomodel.bestCombo:
+                self.log ( "freeze pids that arent in best combo, we dont need them:" )
+                ma = Manipulator ( protomodel )
+                nfrozen = ma.freezePidsNotInBestCombo()
+                self.highlight ("info", "Froze %d particles not in best combo" % nfrozen )
+                if nfrozen > 0:     #compute prior for reduced model
+                    prior = self.combiner.computePrior ( protomodel )
+                    ## temporary hack: penalize for missing experiment
+                    missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )
+                    extremeSSMs = self.combiner.penaltyForExtremeSSMs ( protomodel )
+                    undemocraticFlavors = self.combiner.penaltyForUndemocraticFlavors ( protomodel )
+                    oldprior = prior
+                    prior *= missingExpPenalty * extremeSSMs * undemocraticFlavors
+                    K = self.combiner.computeK ( TL, prior )
+                    if K <= protomodel.K:
+                        self.highlight("error", f"K {K} after removing {nfrozen} particles is smaller than before {protomodel.K}. Something is fishy.")
+                    else:
+                        protomodel.K = K
+            
             
             if test_param_space:
                 protomodel.K = 1.0
