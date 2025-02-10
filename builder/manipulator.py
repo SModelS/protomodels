@@ -307,8 +307,6 @@ class Manipulator ( LoggerBase ):
                         D["decays"].pop(k)
                 else:
                     D["masses"][k]=round(v,ndecimals)
-                    print(f"ndecimal {ndecimals}")
-                    print(f"mass: {D['masses'][k]}")
             for k,decays in self.M.dict()["decays"].items():
                 for i,v in decays.items():
                     if not k in D["decays"]:

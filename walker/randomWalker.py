@@ -245,7 +245,7 @@ class RandomWalker ( LoggerBase ):
             model.K = 1.0
             model.TL = 1.0
             proto_dict = manipulator.getPmodelDict()
-            #self.log(f"Protomodel: {proto_dict}")
+            self.log(f"Protomodel: {proto_dict}")
             return True
 
         muhat_converge = False
