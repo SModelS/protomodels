@@ -16,7 +16,7 @@ from base.loggerbase import LoggerBase
 import numpy, math, copy, sys, time
 from colorama import Fore
 from typing import List, Union, Tuple, Set
-from ptools.helpers import getAllPidsOfTheoryPred
+from ptools.helpers import getAllPidsOfTheoryPred, getAllProdModesOfTheoryPred
 from ptools.bamCreator import selectMostSignificantSRs, bamAndWeights, find_best_comb
 
 class Combiner ( LoggerBase ):
@@ -30,6 +30,13 @@ class Combiner ( LoggerBase ):
         for theoryPred in combo:
             pids = pids.union ( getAllPidsOfTheoryPred ( theoryPred ) )
         return pids
+    
+    def getAllSSMsOfCombo ( self, combo : List[TheoryPrediction] ) -> Set:
+        """ get all production modes (PID1, PID2) that make it into one combo """
+        prod_modes = set()
+        for theoryPred in combo:
+            prod_modes = prod_modes.union ( getAllProdModesOfTheoryPred ( theoryPred ) )
+        return prod_modes
 
     def getAnaIdsWithPids ( self, combo, pids ):
         # from best combo, retrieve all ana ids that contain *all* pids

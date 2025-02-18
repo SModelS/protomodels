@@ -251,7 +251,7 @@ class RandomWalker ( LoggerBase ):
         muhat_converge = False
         previousMuhat = None
         for i in range(5):
-            predict = self.predictor.predict(model)
+            predict = self.predictor.predict(manipulator)
             if predict: #returns False if no preds are found or TL is None (i.e no comb found)
                 #print(f"i {i}, muhat {model.muhat}, convergence {abs(model.muhat - 1.0)}")
                 if abs(model.muhat - 1.0) < 1e-02:
@@ -462,7 +462,7 @@ class RandomWalker ( LoggerBase ):
         #acceptance ratio = exp( (log(new_L1/new_l0) + log(new_prior)) - (log(current_L1/current_L0) - log(old_prior)) + log(proposal_ratio))
         # acceptance ratio = exp(1/2 (newK - K) + log (proposal_ratio))
         acceptance_ratio = np.exp(0.5*( newK - K) + np.log(self.manipulator.proposal_ratio['q_total']))
-        self.log(f"Step {self.protomodel.step}: Acceptance ratio {acceptance_ratio}")
+        self.log(f"Step {self.protomodel.step}: Acceptance ratio: {acceptance_ratio}, K: {newK}, Log proposal ratio: {np.log(self.manipulator.proposal_ratio['q_total']}")
         #print(f"Step {self.protomodel.step}: Acceptance ratio {acceptance_ratio}, K {K}, newK {newK}")
         if acceptance_ratio > 1:
             self.highlight ( "info", f"Acceptance ratio > 1.0. K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )

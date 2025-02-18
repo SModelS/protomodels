@@ -61,6 +61,19 @@ def experimentalId(pred : TheoryPrediction) -> str:
         dsId = pred.dataId()                                #for em-type results
         return f"{anaId}:{dsId}"
 
+def getAllProdModesOfTheoryPred (pred : TheoryPrediction) -> Set:
+    """ Get all Prod Modes assoaciated with a theory pred i.e (PV->PID1,PID2..)"""
+    prod_modes = set()
+    smses = pred.smsList
+    for sms in smses:
+        for momIndex,dIndex in sms.genIndexIterator():
+            if momIndex == sms.rootIndex:  # Get Primary Vertex
+                daughter = sms.indexToNode(dIndex)
+                dppdg = [d.pdg for d in daughter]
+                dppdg = tuple(sorted(dppdg))
+                prod_modes.add(dppdg)
+                continue
+    return prod_modes
 
 def getAllPidsOfTheoryPred ( pred : TheoryPrediction ) -> Set:
     """ get all pids that make it into a theory prediction """

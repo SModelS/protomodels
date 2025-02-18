@@ -764,6 +764,7 @@ class Manipulator ( LoggerBase ):
             if abs(ppair[0]) in unfrozen and abs(ppair[1]) in unfrozen:
                 if abs(ppair[0]) == pid or abs(ppair[1]) == pid:
                     ssm = float(lognorm.rvs(s = ssmSigma, scale = 1.0))   #center ssm around 1.0, better to have log scale
+                    if ssm > 100.: ssm = 100.
                     protomodel.ssmultipliers[ppair] = ssm
             
 
@@ -859,25 +860,22 @@ class Manipulator ( LoggerBase ):
                 #if hasattr(tp,'chi2'):
                 #    del tp.chi2
         
-    def proposal_density(self, move, force_unfreeze=False):         #shift prior from combiner here or vice versa
-        """ Define the proposal density for changing the model
-        :param move: specify which move we are making
-        """
+    def z_model(self, model_current, model_propose, force_move=False):
         
         a,b,c = 2,4,8
         shift_parameter = 8
         #print(f"Move {move}")
         #total number of particles
-        n_par_current = len(self.M.unFrozenParticles() )
-        n_par_propose = len(self.propose_model.unFrozenParticles())
+        n_par_current = len(model_current.unFrozenParticles() )
+        n_par_propose = len(model_propose.unFrozenParticles())
         
         #total number of non-trivial br
-        n_decays_current = sum([len(dc.keys())- 1 for par, dc in self.M.decays.items() if par != 1000022])
-        n_decays_propose = sum([len(dc.keys())- 1 for par, dc in self.propose_model.decays.items() if par != 1000022])
+        n_decays_current = sum([len(dc.keys())- 1 for par, dc in model_current.decays.items() if par != 1000022])
+        n_decays_propose = sum([len(dc.keys())- 1 for par, dc in model_propose.decays.items() if par != 1000022])
         
         #total number of production modes
-        n_ssms_current = len([ssm for ssm in self.M.ssmultipliers.values() if ssm > 1e-04])
-        n_ssms_propose = len([ssm for ssm in self.propose_model.ssmultipliers.values() if ssm > 1e-04])
+        n_ssms_current = len([ssm for ssm in model_current.ssmultipliers.values() if ssm > 1e-04])
+        n_ssms_propose = len([ssm for ssm in model_propose.ssmultipliers.values() if ssm > 1e-04])
         
         deg_prop = n_par_propose + n_decays_propose + n_ssms_propose
         deg_current = n_par_current + n_decays_current + n_ssms_current
@@ -886,32 +884,36 @@ class Manipulator ( LoggerBase ):
         
         z_current = (n_par_current - shift_parameter)/a + n_decays_current/b + n_ssms_current/c
         z_propose = (n_par_propose - shift_parameter)/a + n_decays_propose/b + n_ssms_propose/c
-        
         prob_12, prob_21 = 1.0, 1.0
         
         if z_propose > z_current:
             #print(f"z_propose {z_propose} > z_current {z_current}")
             prob_12 = (1 + np.exp(z_current))/(1 + np.exp(z_propose))            #Adding new degrees of freedom, i->i+1
+            if force_move: prob_12 = 1.0
             prob_21 = (1 + np.exp(-z_propose))/(1 + np.exp(-z_current))          #i+1 -> i
             #print(f"prob12, prob21 {prob_12}, {prob_21}")
         elif z_propose < z_current:
             #print(f"z_propose {z_propose} < z_current {z_current}")
             prob_12 = (1 + np.exp(-z_current))/(1 + np.exp(-z_propose))          #Removing degrees of freedom, i->i+1
+            if force_move: prob_12 = 1.0
             prob_21 = (1 + np.exp(z_propose))/(1 + np.exp(z_current))            #i+1 ->i
             #print(f"prob12, prob21 {prob_12}, {prob_21}")
         else:
             #print(f"z_propose {z_propose} = z_current {z_current}")     #No change in degrees of freedom
             prob_12, prob_21 = 1.0, 1.0
-        #print(f"Prior propose {prior_propose}")
-        #print(f"Prior current {prior_current}")
         
-        '''
-        if force_unfreeze:
-            self.M = self.propose_model
-            self.propose_model = self.M.copy()
-            return True
-        '''
+        if prob_12 > 1.0 or prob_21 > 1.0:
+            self.highlight("error", f"Proposal probabilities greater than 1.0 while changing the dimensions: {prob_12},{prob_21}.")
         
+        return prob_12, prob_21
+    
+    def proposal_density(self, move, force_unfreeze=False):         #shift prior from combiner here or vice versa
+        """ Define the proposal density for changing the model
+        :param move: specify which move we are making
+        """
+        
+        prob_12, prob_21 = self.z_model(self.M, self.propose_model)
+
         prob = min(1.0, prob_12)
         #print(f"Probability to accept change {prob}")
 
@@ -1052,13 +1054,13 @@ class Manipulator ( LoggerBase ):
         #print(f"Propose unfreezing {self.namer.asciiName(pid)}" )
         return self.unFreezeParticle(pid, protomodel = self.propose_model)
 
-    def randomlyChangeBranchings ( self, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05 ):
+    def randomlyChangeBranchings ( self, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05, addBRprob = 0.1 ):
         """ randomly change the branchings of a single particle
 
         :param prob: Probability for changing a branching ratio
         :param zeroBRprob: With zeroBRprob probability, close decay channel
         :param singleBRprob: With probability singleBRprob, keep only one decay channel
-
+        :param addBRprob: With probability addBRprob, add a new decay channel for the pid
         """
 
         uBranch = np.random.uniform(0,1)
@@ -1075,7 +1077,7 @@ class Manipulator ( LoggerBase ):
             self.highlight ( "error", "why is %d not in decays?? %s" % ( p, self.M.decays.keys() ) )
             # we dont know about this decay? we initialize with the default!
 
-        return self.randomlyChangeBranchingOfPid ( p, self.propose_model, zeroBRprob, singleBRprob )
+        return self.randomlyChangeBranchingOfPid ( p, self.propose_model, zeroBRprob, singleBRprob, addBRprob)
 
     def record ( self, change : str ):
         """ log the changes that have been performed on the model
@@ -1088,7 +1090,7 @@ class Manipulator ( LoggerBase ):
             self.recording = self.recording[-20:]
 
 
-    def randomlyChangeBranchingOfPid ( self, pid, protomodel = None, zeroBRprob = 0.05, singleBRprob = 0.05):
+    def randomlyChangeBranchingOfPid ( self, pid, protomodel = None, zeroBRprob = 0.05, singleBRprob = 0.05, addBRprob = 0.1):
         """ randomly change the branching a particle pid """
         
         if protomodel is None:
@@ -1118,13 +1120,13 @@ class Manipulator ( LoggerBase ):
             self.log(f"Keeping only one decay channel for {pid} ({self.namer.asciiName(pid)}).")
             #Choose random decay key:
             dk = np.random.choice(dkeys)
-            decay_chan = [key for key,value in protomodel.decay_keys[pid].items() if value == dk]  #get decay channel assocaiated with key, make sure all channels assocaited with same key get same branchings
+            #get decay channel assocaiated with key, make sure all channels assocaited with same key get same branchings
+            decay_chan = [key for key,value in protomodel.decay_keys[pid].items() if value == dk]
             #Get proposal ratio for removing old br
             #proposal ratio for rem br =  p(i+1 -> i)/ p(i->i+1) = p(add br to i+1 to go to i)/p(rem br to go to i+1)
-            #p(add) = p(not closing br) = (1 - (singleBRprob +zeroBRprob))P(br !=0 during addition)
-            #P(br !=0 during addition) = 1 - P(br=0 while addition) = 1 - uniform.cdf(1e-05; 0, dx) ~ 1       (look below in code)
+            #p(add) = p(addBR)
             #p(rem) = p(singleBR)p(not choosing dk) = singleBRprob * (1 - 1/(len(dkeys))
-            prob_add = 1.0 - (singleBRprob + zeroBRprob)
+            prob_add = addBRprob
             prob_rem = singleBRprob * (1.0 - 1/len(dkeys))
             self.proposal_ratio['br']['rem'] *= prob_add/prob_rem
             
@@ -1146,41 +1148,49 @@ class Manipulator ( LoggerBase ):
             decay_chan = [key for key,value in protomodel.decay_keys[pid].items() if value == dk]
             if decay_chan[0] in protomodel.decays[pid]:
                 oldbr = self.M.decays[pid][decay_chan[0]]
-
-            #Close channel(s) (with zeroBRprob probability)
+            
             if oldbr > 0:
-
+                #Close channel(s) (with zeroBRprob probability)
                 uZero = np.random.uniform( 0., 1. )
                 if uZero < zeroBRprob:
                     #Get proposal ratio for removing old br
                     #proposal ratio for rem br = p(add)/p(rem) = p(i+1 -> i)/ p(i->i+1)
-                    #p(add) = p(not closing br) = (1 - (singleBRprob +zeroBRprob))
+                    #p(add) = p(addBRprob)
                     #p(rem) = p(zeroBR)
-                    self.proposal_ratio['br']['rem'] *= (1 - (singleBRprob + zeroBRprob))/zeroBRprob
+                    self.proposal_ratio['br']['rem'] *= addBRprob/zeroBRprob
                     for dpid in decay_chan:
-                        self.record ( f"change branchings of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to 0." )
-                        self.log ( f"Changed  branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} from {oldbr:.2f} to 0. Removing decay." )
+                        self.record ( f"Removed decay {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} with br {oldbr:.2f}." )
+                        self.log ( f"Removed decay {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} with br {oldbr:.2f}." )
                         protomodel.decays[pid].pop(dpid)
                     continue
 
-            #Randomly change BR around old value
-            Min,Max = max(0.,oldbr-dx), min(oldbr+dx,1.)
-            br = float(np.random.uniform( Min, Max )/len(decay_chan))
-            for dpid in decay_chan:
-                protomodel.decays[pid][dpid] = br
-                if oldbr == 0 and br > 0:
-                    #Get proposal ratio for adding new br
-                    #proposal ratio for add br = p(rem)/p(add) = p(i+1 -> i)/ p(i->i+1)
-                    #p(add) = p(not closing br)
-                    #p(rem) = p(singleBR*p(rem br) + zeroBR)
-                    #Initialize prob_den_old!!!!
-                    self.log(f"Added new decay {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} with br: {br:.2f}")
-                    prob_add = 1.0 - (singleBRprob + zeroBRprob)
-                    prob_rem = singleBRprob * (1.0 - 1/len(dkeys)) + zeroBRprob
-                    self.proposal_ratio['br']['add'] *= prob_rem/prob_add
-                else:
+                #Randomly change BR around old value
+                #Min,Max = max(0.,oldbr-dx), min(oldbr+dx,1.)
+                #br = float(np.random.uniform( Min, Max )/len(decay_chan))
+                br = float(norm.rvs ( 1. / len(openChannels), np.sqrt ( .5 / len(openChannels) )  ))
+                br = max(0.001, br)
+                for dpid in decay_chan:
+                    protomodel.decays[pid][dpid] = br
                     self.record ( f"Change branchings of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                     self.log ( f"Changed  branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
+            
+            else:
+                #Add channel(s) (with addBRprob probability)
+                uAdd = np.random.uniform( 0., 1. )
+                if uAdd < addBRprob:
+                    br = float(norm.rvs ( 1. / len(openChannels), np.sqrt ( .5 / len(openChannels) )  ))
+                    br = max(0.001, br)
+                    #Get proposal ratio for adding new br
+                    #proposal ratio for add br = p(rem)/p(add) = p(i+1 -> i)/ p(i->i+1)
+                    #p(add) = p(addBR)
+                    #p(rem) = p(singleBR*p(rem br) + zeroBR)
+                    prob_add = addBRprob
+                    prob_rem = singleBRprob * (1.0 - 1/len(dkeys)) + zeroBRprob
+                    self.proposal_ratio['br']['add'] *= prob_rem/prob_add
+                    for dpid in decay_chan:
+                        protomodel.decays[pid][dpid] = br
+                        self.log ( f"Added decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} with br {br:.2f}" )
+                        
 
         #Make sure there is at least one open channel:
         BRtot = sum(protomodel.decays[pid].values())
@@ -1279,6 +1289,7 @@ class Manipulator ( LoggerBase ):
         newSSM = 1.0
         if not pair in protomodel.ssmultipliers:
             newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0)) #center ssm around 1.0, better to have log scale
+            if newSSM > 100.: newSSM = 100.
             protomodel.ssmultipliers[pair] = newSSM
             #get proposal ratio
             #proposal ratio for add ssm = p(i+1 -> i)/ p(i->i+1) = p(rem)/p(add)
@@ -1290,8 +1301,8 @@ class Manipulator ( LoggerBase ):
             #print(f"Adding new pair of ssm {pidpair} with ratio {self.proposal_ratio['ssm']['add']}")
             self.log( f"Add new prod mode {self.namer.texName(pair,addDollars=True)} with ssm {newSSM}" )
         else:
-            newSSM = float(protomodel.ssmultipliers[pair]*(lognorm.rvs(s = ssmSigma, scale = 1.0)))
-            if newSSM > 10000: newSSM = 10000
+            newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
+            if newSSM > 100.: newSSM = 100.
             protomodel.ssmultipliers[pair] = newSSM
             #self.changeSSM(pair,newSSM)
             self.log ( "Changing signal strength multiplier of %s,%s: %.2f." % \
@@ -1319,8 +1330,8 @@ class Manipulator ( LoggerBase ):
         ssms = []
         for dpd,v in protomodel.ssmultipliers.items():
             if p in dpd or -p in dpd:
-                newSSM = float(protomodel.ssmultipliers[dpd]*(lognorm.rvs(s = ssmSigma, scale = 1.0)))
-                if newSSM > 10000.: newSSM = 10000.
+                newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
+                if newSSM > 100.: newSSM = 100.
                 protomodel.ssmultipliers[dpd]= newSSM
                 #self.changeSSM ( dpd, newssm )
                 ssms.append ( newSSM )
@@ -1358,8 +1369,8 @@ class Manipulator ( LoggerBase ):
             self.highlight ( "warn", f"when changing SSMs, cannot find {str(pids)}. not changing anything." )
             return
         oldssm = self.M.ssmultipliers[pids]
-        if newssm > 10000.:
-            newssm = 10000.
+        if newssm > 100.:
+            newssm = 100.
         if verbose:
             self.record ( f"change ssm of {self.namer.texName(pids,addDollars=True)} to {newssm:.2f}" )
         self.M.ssmultipliers[pids]=newssm
@@ -1460,6 +1471,7 @@ class Manipulator ( LoggerBase ):
         #print(f"Propose freezing pid: {pid}")
         
         num_frozen = len(protomodel.frozenParticles())
+        if self.forbiddenparticles != [] : num_frozen -= len(self.forbiddenparticles)
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(add pid from frozen)/p(rem pid from unfrozen) = (1/(n_fr+1))/(1/n_un)
         if merge: self.proposal_ratio['merge']['q'] *= len(unfrozen)/(num_frozen + 1)
         if not force: self.proposal_ratio['rem_par']['q'] *= len(unfrozen)/(num_frozen + 1)
@@ -1489,17 +1501,20 @@ class Manipulator ( LoggerBase ):
 
         #Check for canonical ordering.
         frozen = protomodel.frozenParticles( )
+        n_frozen = len(frozen)
         if not force:
             #If pid matches the heavier state and the lighter state is frozen,
             #do not unfreeze the particle
             for pids in self.canonicalOrder:
                 if pid == pids[1] and pids[0] in frozen:
                     return None
-
-        num_unfrozen = len(protomodel.unFrozenParticles( withLSP=False ))
+        
+        if self.forbiddenparticles != []: n_frozen -= len(self.forbiddenparticles)
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(rem pid)/p(add pid) = (1/(n_un+1))/(1/n_fr)
-        self.proposal_ratio['add_par']['q'] *= len(frozen)/(num_unfrozen + 1)
+        num_unfrozen = len(protomodel.unFrozenParticles( withLSP=False ))
+        self.proposal_ratio['add_par']['q'] *= n_frozen/(num_unfrozen + 1)
         #print(f"Prob to unfreeze = {self.proposal_ratio['add_par']['q']}")
+        
         #Absolute mass range:
         maxMass = protomodel.maxMass    #2400 GeV
         minMass = protomodel.masses[protomodel.LSP]
@@ -2148,6 +2163,33 @@ class Manipulator ( LoggerBase ):
         if store:
             self.M.ssmultipliers = ret
         return ret
+    
+    def freezeSSMsNotInBestCombo ( self ):
+        """Freeze Production Modes which do not contribute to the best combination"""
+        if not self.M.bestCombo: #no combination
+            return None
+        
+        nfrozen = 0
+        from tester.combiner import Combiner
+        c = Combiner ( self.walkerid )
+        prodmodes_combo = c.getAllSSMsOfCombo ( self.M.bestCombo )
+        prodmodes_model = list(self.M.ssmultipliers.keys())[:]
+        for pm in prodmodes_model:
+            if pm not in prodmodes_combo:
+                self.log(f"Removing {pm} production as it does not contribute to the best combination.")
+                old_protomodel = self.M.copy()
+                self.M.ssmultipliers.pop(pm)
+                #Get proposal ratio for freezing ssms:
+                #q(rem) = 1.0 since we force removal
+                #q(add) get from function z_k
+                #Total proposal ratio for move = q(add)*(0.7/len(allowed production modes)) (See how we add new production modes)
+                q_12, q_21 = self.z_model(old_protomodel, self.M, force_move=True)
+                len_prod_modes = len(self.M.getAllowedProdModes())
+                q_mov = (q_21/q_12)*(0.7/len_prod_modes)
+                self.proposal_ratio['q_total'] *= q_mov
+                nfrozen += 1
+        
+        return nfrozen
 
     def getAllPidsOfBestCombo ( self ) -> Set:
         """ get all the particle ids of BSM particles in
@@ -2159,19 +2201,42 @@ class Manipulator ( LoggerBase ):
         return c.getAllPidsOfCombo ( self.M.bestCombo )
 
     def freezePidsNotInBestCombo ( self ):
-        """ all pids that arent in best combo but have
-            unfrozen masses -- freeze them """
-        #self.pprint ( f"freezePidsNotInBestCombo FIXME do sth smart here!!" )
-        # return 0 ## FIXME do sth smarter
+        """ Freeze pids that are present in the protomodel, but do not contribute to the best combination"""
+
         okPids = self.getAllPidsOfBestCombo()
         if len(okPids)==0: ## means we dont have a best combo
             return 0
         unfrozen = self.M.unFrozenParticles( withLSP=False )
+        import copy
+        olddecays = copy.deepcopy(self.M.decays)
         nfrozen = 0
         for pid in unfrozen:
             if not pid in okPids:
-                frozen_pid = self.freezeParticle ( pid, force=True )
-                if frozen_pid: nfrozen += 1
+                freeze = True
+                #pid could be in the decay of another particle contributing to the bestCombo
+                for par,dec in olddecays.items():
+                    if par == pid: continue
+                    dpids = dec.keys()
+                    pidpresent = [True if pid in dp else False for dp in dpids]
+                    if True in pidpresent:
+                        self.log(f"{self.namer.asciiName(pid)} not in bestCombo but in decay {self.namer.asciiName(par)} in bestCombo. Not taking out {self.namer.asciiName(pid)}.")
+                        freeze = False
+                        break
+                if freeze:
+                    self.log(f"{self.namer.asciiName(pid)} does not contribute to bestCombo. Taking out {self.namer.asciiName(pid)}.")
+                    old_protomodel = self.M.copy()
+                    frozen_pid = self.freezeParticle ( pid, force=True )
+                    if frozen_pid:
+                        nfrozen += 1
+                        #Get proposal ratio for freezing ssms:
+                        #q(rem) = 1.0 since we force removal
+                        #q(add) get from function z_k
+                        #Total proposal ratio for move = q(add)*(1/(n_fr)) (See how we add new particles)
+                        q_12, q_21 = self.z_model(old_protomodel, self.M, force_move=True)
+                        len_frozen = len(self.M.frozenParticles())
+                        q_mov = (q_21/q_12)*(1.0/len_frozen)
+                        self.proposal_ratio['q_total'] *= q_mov
+        
         return nfrozen
 
     def backupModel ( self ):

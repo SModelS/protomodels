@@ -207,7 +207,7 @@ class Predictor ( LoggerBase ):
     #         ret.append ( p )
     #     return ret
 
-    def predict ( self, protomodel : ProtoModel, sigmacut = 0.02*fb,
+    def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb,
                   strategy : str = "aggressive",keep_predictions : bool = False, keep_slhafile : bool = False ) -> bool:
         """ Compute the predictions and statistical variables, for a
             protomodel.
@@ -223,7 +223,7 @@ class Predictor ( LoggerBase ):
         :returns: False, if no combinations could be found, else True
         """
 
-
+        protomodel = manipulator.M
         if hasattr ( self, "predictions" ):
             del self.predictions ## make sure we dont accidentally use old preds
         self.walkerid = protomodel.walkerid ## set the walker ids, for debugging
@@ -240,7 +240,7 @@ class Predictor ( LoggerBase ):
             self.predictions = predictions
 
         # Compute significance and store in the model:
-        self.computeSignificance( protomodel, predictions, strategy )
+        self.computeSignificance( protomodel, manipulator, predictions, strategy )
 
         if protomodel.TL is None:
             self.log ( f"done with prediction. Could not find combinations (TL={protomodel.TL})" )
@@ -381,7 +381,7 @@ class Predictor ( LoggerBase ):
                 print ( f" - {p.analysisId()}:{dataId}: {txns}" )
 
 
-    def computeSignificance(self, protomodel, predictions, strategy, test_param_space=False):
+    def computeSignificance(self, protomodel, manipulator, predictions, strategy, test_param_space=False):
         """ compute the K and TL values, and attach them to the protomodel """
         if len ( predictions ) == 0:
             protomodel.K = None
@@ -435,9 +435,11 @@ class Predictor ( LoggerBase ):
             #FIXME!
             if protomodel.bestCombo:
                 self.log ( "freeze pids that arent in best combo, we dont need them:" )
-                ma = Manipulator ( protomodel )
-                nfrozen = ma.freezePidsNotInBestCombo()
-                self.highlight ("info", "Froze %d particles not in best combo" % nfrozen )
+                nfrozen = manipulator.freezePidsNotInBestCombo()
+                self.highlight ("info", f"Froze {nfrozen} particles not in best combo")
+                nfrozen_ssm = manipulator.freezeSSMsNotInBestCombo()
+                self.highlight ("info", f"Froze {nfrozen_ssm} ssms not in best combo")
+                nfrozen += nfrozen_ssm
                 if nfrozen > 0:     #compute prior for reduced model
                     prior = self.combiner.computePrior ( protomodel )
                     ## temporary hack: penalize for missing experiment
