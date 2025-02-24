@@ -454,18 +454,20 @@ class ProtoModel ( LoggerBase ):
         if keep_slha:
             self.createSLHAFile( self.currentSLHA, addXsecs = True )
 
-    def rescaleXSecsBy(self, s : float ):
-        """rescale the stored cross-sections by a factor s"""
+    def rescaleXSecsBy(self, s : float, excl : list = []):
+        """
+        Rescale the stored cross-sections by a factor s
+        :param excl: do not rescale xsecs/ssms of the prod modes in the list
+        """
 
         #Before rescaling, make sure we get the latest cross-sections:
         x = self.getXsecs()
         xsecs = x[0]
         comment = x[1]
         for xsec in xsecs:
-            xsec.value *= s
+            if xsec.pid not in excl: xsec.value *= s
         for k,v in self.ssmultipliers.items():
-            self.ssmultipliers[k] = v * s
-
+            if k not in excl: self.ssmultipliers[k] = v * s
         self._stored_xsecs = (xsecs,comment)
         self._xsecSSMs = dict([[pid,ssm] for pid,ssm in self.ssmultipliers.items()])
 

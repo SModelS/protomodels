@@ -461,8 +461,9 @@ class RandomWalker ( LoggerBase ):
         #acceptance ratio = (new_L1/new_l0)/(current_L1/current_L0) * (new_prior)/(old_prior) * proposal_ratio
         #acceptance ratio = exp( (log(new_L1/new_l0) + log(new_prior)) - (log(current_L1/current_L0) - log(old_prior)) + log(proposal_ratio))
         # acceptance ratio = exp(1/2 (newK - K) + log (proposal_ratio))
-        acceptance_ratio = np.exp(0.5*( newK - K) + np.log(self.manipulator.proposal_ratio['q_total']))
-        self.log(f"Step {self.protomodel.step}: Acceptance ratio: {acceptance_ratio}, K: {newK}, Log proposal ratio: {np.log(self.manipulator.proposal_ratio['q_total']}")
+        log_prop_ratio = np.log(self.manipulator.proposal_ratio['q_total'])
+        acceptance_ratio = np.exp(0.5*( newK - K) + log_prop_ratio)
+        self.log(f"Step {self.protomodel.step}: Acceptance ratio: {acceptance_ratio}, K ratio: {0.5*(newK-K)}, Log proposal ratio: {log_prop_ratio}")
         #print(f"Step {self.protomodel.step}: Acceptance ratio {acceptance_ratio}, K {K}, newK {newK}")
         if acceptance_ratio > 1:
             self.highlight ( "info", f"Acceptance ratio > 1.0. K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )
@@ -582,6 +583,6 @@ if __name__ == "__main__":
     select = "all"
     #walker = RandomWalker( walkerid=0, nsteps = 1000,
     #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
-    walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
+    walker = RandomWalker.fromDictionary ( D, walkerid = 42, dbpath = dbpath,
             do_srcombine = True, select = select )
     walker.walk()

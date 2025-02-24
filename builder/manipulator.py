@@ -834,7 +834,8 @@ class Manipulator ( LoggerBase ):
         self.M.rvalues = [r*s for r in self.M.rvalues[:]]
         self.M.muhat *= 1./s
         if self.M.mumax: self.M.mumax*= 1./s
-        self.M.rescaleXSecsBy(s)
+        excl_prod_modes = self.getSSMsNotInBestCombo()
+        self.M.rescaleXSecsBy(s, excl=excl_prod_modes)
 
         if hasattr(self.M,'ul_critic_tpList') and self.M.ul_critic_tpList is not None:
             for i,tp in enumerate(self.M.ul_critic_tpList[:]):
@@ -1621,6 +1622,7 @@ class Manipulator ( LoggerBase ):
             if offshell: p = np.random.uniform(0,0.5)        #SN: check if this makes sense?
             if p < .1:
                 mass = self.M.masses[pid]
+                #Put canonical ordering here!!!!!!!!
                 otherpid = 1000024 if pid == 1000023 else 1000023
                 # remember the frozen particles, so we can check if we just unfroze this guy
                 were_frozen = self.M.frozenParticles()
@@ -2164,21 +2166,22 @@ class Manipulator ( LoggerBase ):
             self.M.ssmultipliers = ret
         return ret
     
-    def freezeSSMsNotInBestCombo ( self ):
+    def getSSMsNotInBestCombo ( self ):
         """Freeze Production Modes which do not contribute to the best combination"""
         if not self.M.bestCombo: #no combination
             return None
         
         nfrozen = 0
+        prod_modes = []
         from tester.combiner import Combiner
         c = Combiner ( self.walkerid )
         prodmodes_combo = c.getAllSSMsOfCombo ( self.M.bestCombo )
         prodmodes_model = list(self.M.ssmultipliers.keys())[:]
         for pm in prodmodes_model:
             if pm not in prodmodes_combo:
-                self.log(f"Removing {pm} production as it does not contribute to the best combination.")
-                old_protomodel = self.M.copy()
-                self.M.ssmultipliers.pop(pm)
+                self.log(f"Not rescaling {pm} production as it does not contribute to the best combination.")
+                prod_modes.append(pm)
+                '''
                 #Get proposal ratio for freezing ssms:
                 #q(rem) = 1.0 since we force removal
                 #q(add) get from function z_k
@@ -2188,8 +2191,9 @@ class Manipulator ( LoggerBase ):
                 q_mov = (q_21/q_12)*(0.7/len_prod_modes)
                 self.proposal_ratio['q_total'] *= q_mov
                 nfrozen += 1
+                '''
         
-        return nfrozen
+        return prod_modes
 
     def getAllPidsOfBestCombo ( self ) -> Set:
         """ get all the particle ids of BSM particles in
@@ -2226,16 +2230,7 @@ class Manipulator ( LoggerBase ):
                     self.log(f"{self.namer.asciiName(pid)} does not contribute to bestCombo. Taking out {self.namer.asciiName(pid)}.")
                     old_protomodel = self.M.copy()
                     frozen_pid = self.freezeParticle ( pid, force=True )
-                    if frozen_pid:
-                        nfrozen += 1
-                        #Get proposal ratio for freezing ssms:
-                        #q(rem) = 1.0 since we force removal
-                        #q(add) get from function z_k
-                        #Total proposal ratio for move = q(add)*(1/(n_fr)) (See how we add new particles)
-                        q_12, q_21 = self.z_model(old_protomodel, self.M, force_move=True)
-                        len_frozen = len(self.M.frozenParticles())
-                        q_mov = (q_21/q_12)*(1.0/len_frozen)
-                        self.proposal_ratio['q_total'] *= q_mov
+                    if frozen_pid: nfrozen += 1
         
         return nfrozen
 

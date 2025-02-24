@@ -437,9 +437,9 @@ class Predictor ( LoggerBase ):
                 self.log ( "freeze pids that arent in best combo, we dont need them:" )
                 nfrozen = manipulator.freezePidsNotInBestCombo()
                 self.highlight ("info", f"Froze {nfrozen} particles not in best combo")
-                nfrozen_ssm = manipulator.freezeSSMsNotInBestCombo()
-                self.highlight ("info", f"Froze {nfrozen_ssm} ssms not in best combo")
-                nfrozen += nfrozen_ssm
+                #nfrozen_ssm = manipulator.freezeSSMsNotInBestCombo()
+                #self.highlight ("info", f"Froze {nfrozen_ssm} ssms not in best combo")
+                #nfrozen += nfrozen_ssm
                 if nfrozen > 0:     #compute prior for reduced model
                     prior = self.combiner.computePrior ( protomodel )
                     ## temporary hack: penalize for missing experiment
