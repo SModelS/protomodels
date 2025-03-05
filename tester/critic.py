@@ -233,7 +233,7 @@ class Critic ( LoggerBase ):
 
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
-
+        num_preds = len(predictions)
         allowed_by_UL_critic = self.UL_critic(protomodel, predictions)
 
         # Extract the relevant prediction information and store in the protomodel:
@@ -251,7 +251,7 @@ class Critic ( LoggerBase ):
         # --- llhd-based critic ---
 
         predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut )
-
+        num_preds += len(predictions)
         allowed_by_llhd_critic, mostSensiComb, robsComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
 
         # Extract the relevant prediction information and store in the protomodel:
@@ -267,6 +267,9 @@ class Critic ( LoggerBase ):
         # protomodel.mumax = self.getMaxAllowedMu(protomodel)
 
         if allowed_by_llhd_critic:
+            if num_preds == 0:  # No constraints for the model, it is excluded
+                self.log("Model has no UL critic preds or Llhd based critic preds. Excluding Model")
+                return False
             self.log(f"Model passed llhd-based critic with critic robs = {robsComb}.")
             return True
         else:
@@ -342,7 +345,7 @@ class Critic ( LoggerBase ):
         """
 
         if not predictions:          # If empty list
-            return True, None, None  # the model is not excluded
+            return True, None, None
 
         EMpreds = []
         rexp_max = 0.

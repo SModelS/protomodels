@@ -692,7 +692,8 @@ class Manipulator ( LoggerBase ):
             BRtot = 1.0
 
         #Make sure to normalize the branchings:
-        self.normalizeBranchings(pid, protomodel=protomodel)
+        initialized = self.normalizeBranchings(pid, protomodel=protomodel)
+        if not initialized: return False
         protomodel.decays = self.simplifyDecays(protomodel=protomodel)
 
     def normalizeBranchings(self, pid, rescaleSSMs=False, protomodel=None):
@@ -719,7 +720,7 @@ class Manipulator ( LoggerBase ):
                 ## we need to freeze also <pid> now
                 ## (since we have no sensible channels anymore)
                 self.freezeParticle ( pid, force=True, protomodel=protomodel )
-            return
+            return False
 
         if abs(BRtot-1.0) < 1e-4:
             #BRs are already normalized.
@@ -1471,7 +1472,15 @@ class Manipulator ( LoggerBase ):
         else: self.log(f"Freezing pid: {pid}({self.namer.asciiName(pid)})")
         #print(f"Propose freezing pid: {pid}")
         
+        #get total num of frozen and unfrozen par for proposal ratio
+        num_unfrozen = len(unfrozen)
         num_frozen = len(protomodel.frozenParticles())
+        for pids in self.canonicalOrder:
+            if pids[0] in unfrozen and pids[1] in unfrozen:
+                num_unfrozen -= 1       #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
+            if pids[0] in protomodel.frozenParticles() and pids[1] in protomodel.frozenParticles():
+                num_frozen -= 1         #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
+        
         if self.forbiddenparticles != [] : num_frozen -= len(self.forbiddenparticles)
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(add pid from frozen)/p(rem pid from unfrozen) = (1/(n_fr+1))/(1/n_un)
         if merge: self.proposal_ratio['merge']['q'] *= len(unfrozen)/(num_frozen + 1)
@@ -1503,6 +1512,8 @@ class Manipulator ( LoggerBase ):
         #Check for canonical ordering.
         frozen = protomodel.frozenParticles( )
         n_frozen = len(frozen)
+        num_unfrozen = len(protomodel.unFrozenParticles( withLSP=False ))
+        
         if not force:
             #If pid matches the heavier state and the lighter state is frozen,
             #do not unfreeze the particle
@@ -1510,9 +1521,15 @@ class Manipulator ( LoggerBase ):
                 if pid == pids[1] and pids[0] in frozen:
                     return None
         
+        #get total num of frozen and unfrozen par for proposal ratio
+        for pids in self.canonicalOrder:
+            if pids[0] in frozen and pids[1] in frozen:
+                n_frozen -= 1                   #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
+            if pids[0] in protomodel.unFrozenParticles() and pids[1] in protomodel.unFrozenParticles():
+                num_unfrozen -= 1               #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
+        
         if self.forbiddenparticles != []: n_frozen -= len(self.forbiddenparticles)
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(rem pid)/p(add pid) = (1/(n_un+1))/(1/n_fr)
-        num_unfrozen = len(protomodel.unFrozenParticles( withLSP=False ))
         self.proposal_ratio['add_par']['q'] *= n_frozen/(num_unfrozen + 1)
         #print(f"Prob to unfreeze = {self.proposal_ratio['add_par']['q']}")
         
@@ -1567,7 +1584,11 @@ class Manipulator ( LoggerBase ):
 
         # Set branchings
         self.log(f"Initializing Branchings for {pid}")
-        self.initBranchings(pid, protomodel=protomodel)
+        initialized = self.initBranchings(pid, protomodel=protomodel)
+        if not initialized:
+            self.log(f"No decays for {pid}")
+            self.proposal_ratio['add_par']['q'] = 1.
+            return None
         
         #Add pid pair production and associated production to protomodel.ssmultipliers:
         self.log(f"Initializing Production Modes for {pid}")
@@ -1607,7 +1628,9 @@ class Manipulator ( LoggerBase ):
                 minMass = self.M.masses[pids[0]]
 
         #If the particle is the LSP, relax the lower limit
-        if pid == self.M.LSP:   minMass = 10.0
+        if pid == self.M.LSP:
+            minMass = 10.0
+            maxMass = 1500.0
 
         # an artificial wall because the maps are bounded from below
         if abs(pid) in self.walledpids:
@@ -1622,18 +1645,20 @@ class Manipulator ( LoggerBase ):
             if offshell: p = np.random.uniform(0,0.5)        #SN: check if this makes sense?
             if p < .1:
                 mass = self.M.masses[pid]
-                #Put canonical ordering here!!!!!!!!
                 otherpid = 1000024 if pid == 1000023 else 1000023
+                heavypid = 1000037 if pid == 1000023 else 1000025 #get N3 and C2 masses
                 # remember the frozen particles, so we can check if we just unfroze this guy
                 were_frozen = self.M.frozenParticles()
                 was_offshell = False
                 if otherpid not in were_frozen: was_offshell = self.checkIfOffshell(otherpid)
                 self.M.masses[otherpid] = float(mass * np.random.uniform ( .99, 1.01 ))
+                if heavypid not in were_frozen: #check for canonical ordering
+                    if self.M.masses[otherpid] > self.M.masses[heavypid]: self.M.masses[otherpid] = self.M.masses[heavypid] - 10.
                 self.log ( f"mass of {self.namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {self.namer.asciiName(otherpid)}!" )
                 # If the particle was frozen before, we need to unfreeze
                 if otherpid in were_frozen:
-                    self.initBranchings(otherpid)
-                    self.initSSMFor(otherpid)
+                    initialized = self.initBranchings(otherpid)
+                    if initialized: self.initSSMFor(otherpid)
                 #if otherpid was not offshell before but now is offshell and vice versa, initialize branchings
                 else: 
                     if self.checkIfOffshell(otherpid) != was_offshell: self.initBranchings(otherpid)

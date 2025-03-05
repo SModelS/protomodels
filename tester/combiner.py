@@ -211,14 +211,22 @@ class Combiner ( LoggerBase ):
         if len(predictions)==0:
             return .01 # penalize but doesnt matter, there is no likelihood
         hasExperiment = { "ATLAS": False, "CMS": False }
+        numExperiment = { "ATLAS": 0, "CMS": 0 }
         for p in predictions:
             for experiment in [ "CMS", "ATLAS" ]:
                 if experiment in p.dataset.globalInfo.id:
                     hasExperiment[experiment]=True
+                    numExperiment[experiment] += 1
         if hasExperiment["ATLAS"] and hasExperiment["CMS"]:
             return 1.
-        self.pprint ( f"penalty! we only have {','.join( k for k,v in hasExperiment.items() if v )}" )
-        return .1 # penalize!
+        elif numExperiment["ATLAS"] > 2 or numExperiment["CMS"] > 2:
+            num = numExperiment["ATLAS"] if numExperiment["ATLAS"] > 0 else numExperiment["CMS"]
+            self.log ( f"penalty! we only have {num} {','.join( k for k,v in hasExperiment.items() if v )} results" )
+            return 0.8
+        else:
+            num = numExperiment["ATLAS"] if numExperiment["ATLAS"] > 0 else numExperiment["CMS"]
+            self.log ( f"penalty! we only have {num} {','.join( k for k,v in hasExperiment.items() if v )} results" )
+            return 0.5 # penalize!
 
     def penaltyForUndemocraticFlavors ( self, protomodel ) -> float:
         """ very simple hack for now, penalize for undemocratic flavor decays
@@ -243,16 +251,19 @@ class Combiner ( LoggerBase ):
                     continue
 
             lep_decays = 0
+            lep_br = []
             C1_has_lep = False
             for decay in decays.keys():
                 if pid == 1000024 and decay in [(1000022, 11, 12), (1000022, 13, 14), (1000022, 15, 16)] and decays[decay] != 0.:
                     lep_decays += 1
+                    lep_br.append(decays[decay])
                     continue
                 if pid == 1000023 and decay in [(1000022, 11, 11), (1000022, 13, 13), (1000022, 15, 15)]:
                     if decays[decay] == 0.:
                         C1_has_lep = True # Chargino 1 has leptonic decays but set to 0
                     else:
                         lep_decays += 1
+                        lep_br.append(decays[decay])
                     continue
             if lep_decays == 0: # Multiple open channels but no leptonic one, ok for neutralino 2, disallow for chargino 1
                 if pid == 1000023:
@@ -274,10 +285,11 @@ class Combiner ( LoggerBase ):
                     ret *= 1/2
                     continue
 
-            br = [decays[decay] for decay in decays]
-            delta_br = numpy.max( [numpy.max(br)-numpy.mean(br), numpy.mean(br)-numpy.min(br)] )
-            l = 1. - delta_br / 3.
-            ret *= l
+            if lep_br != []:
+                delta_br = numpy.max( [numpy.max(lep_br)-numpy.mean(lep_br), numpy.mean(lep_br)-numpy.min(lep_br)] )
+                if delta_br != 0: self.highlight("warning", f"Undemocratic lep flavor decay for {pid}")
+                l = 1. - delta_br / 3.
+                ret *= l
 
             # Old version
             # ## is there an electron decay?
