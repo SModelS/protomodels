@@ -300,6 +300,7 @@ class RandomWalker ( LoggerBase ):
         #Take a step in the model space:
         self.log("Randomly change model")
         self.manipulator.randomlyChangeModel()
+        self.manipulator.reassignPID()
         # self.printStats( substep=13 )
 
         nUnfrozen = len( self.protomodel.unFrozenParticles() )
@@ -564,6 +565,8 @@ class RandomWalker ( LoggerBase ):
             self.pprint ( f"Step {self.protomodel.step}/{smaxstp} finished." )
         self.manipulator.M.delCurrentSLHA()
         self.pprint ( f"Was asked to stop after {self.maxsteps} steps" )
+        self.pprint(f"Writing last protomodel to pmodel{self.walkerid}.dict")
+        self.manipulator.writeDictFile(outfile=f"pmodel{self.walkerid}.dict")
 
 if __name__ == "__main__":
     #masses = { 1000022: 47.1, 1000023: 449.8, 1000024: 135.47, 1000037: 398.7,
@@ -581,8 +584,8 @@ if __name__ == "__main__":
     dbpath = "official"
     select = "txnames:electroweakinos,electroweakinos_offshell"
     select = "all"
-    #walker = RandomWalker( walkerid=0, nsteps = 1000,
+    #walker = RandomWalker( walkerid=10, nsteps = 1000,
     #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
-    walker = RandomWalker.fromDictionary ( D, walkerid = 42, dbpath = dbpath,
+    walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
             do_srcombine = True, select = select )
     walker.walk()

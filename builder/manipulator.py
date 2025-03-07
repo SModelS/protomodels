@@ -331,6 +331,8 @@ class Manipulator ( LoggerBase ):
             D["seed"]=self.seed
         D["TL"]=nround(self.M.TL,ndecimals)
         D["K"]=nround(self.M.K,ndecimals)
+        D["walkerid"]=self.M.walkerid
+        D["step"]=self.M.step
         if not cleanOut:
             import time
             D["timestamp"]=time.asctime()
@@ -693,8 +695,11 @@ class Manipulator ( LoggerBase ):
 
         #Make sure to normalize the branchings:
         initialized = self.normalizeBranchings(pid, protomodel=protomodel)
-        if not initialized: return False
+        if not initialized:
+            self.highlight("error", f"No branchings for {pid}: {protomodel.decays[pid]}")
+            return False
         protomodel.decays = self.simplifyDecays(protomodel=protomodel)
+        return True
 
     def normalizeBranchings(self, pid, rescaleSSMs=False, protomodel=None):
         """ normalize branchings of a particle if the total BR is differs from 1.0.
@@ -709,7 +714,7 @@ class Manipulator ( LoggerBase ):
 
         if not pid in protomodel.decays:
             protomodel.pprint(f"When attempting to normalize: {pid} not in decays")
-            return
+            return False
 
         BRtot = sum(protomodel.decays[pid].values())
         if BRtot == 0:
@@ -724,7 +729,7 @@ class Manipulator ( LoggerBase ):
 
         if abs(BRtot-1.0) < 1e-4:
             #BRs are already normalized.
-            return
+            return True
         
         self.log ( f"normalized branchings of {self.namer.asciiName(pid)} by {BRtot:.2f}" )
 
@@ -734,7 +739,7 @@ class Manipulator ( LoggerBase ):
         ## adjust the signal strength multipliers to keep everything else
         ## as it was
         if not rescaleSSMs:
-            return
+            return True
         
         #rescaling ssms?
         for pidpair,ssm in protomodel.ssmultipliers.items():
@@ -745,6 +750,8 @@ class Manipulator ( LoggerBase ):
             else:
                 continue
             protomodel.ssmultipliers[pidpair]=newssm
+        
+        return True
 
     def initSSMFor(self, pid, protomodel=None, ssmSigma=1.0):
         """ Initialize SSM multipliers (for pair production of particle/anti-particle):
@@ -972,8 +979,8 @@ class Manipulator ( LoggerBase ):
             #do we want to not freeze particles? -> not freezing if less than or equal to 3 particles
         
         recentlyUnfrozen = self.randomlyUnfreezeParticle()
-        accept_move = self.proposal_density(move='add_par', force_unfreeze=force_unfreeze)
         if recentlyUnfrozen:
+            accept_move = self.proposal_density(move='add_par', force_unfreeze=force_unfreeze)
             if accept_move:
                 nChanges += 1
                 self.log(f"Accept unfreezing of {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
@@ -1036,6 +1043,9 @@ class Manipulator ( LoggerBase ):
 
         # Randomly select the pid:
         frozen = self.M.frozenParticles()
+        if self.forbiddenparticles != []:
+            frozen = [par for par in self.M.frozenParticles() if par not in self.forbiddenparticles]
+
         if len(frozen)==0:
             return None
         pid = int(np.random.choice ( frozen ))
@@ -1510,7 +1520,7 @@ class Manipulator ( LoggerBase ):
             protomodel = self.M
 
         #Check for canonical ordering.
-        frozen = protomodel.frozenParticles( )
+        frozen = protomodel.frozenParticles()
         n_frozen = len(frozen)
         num_unfrozen = len(protomodel.unFrozenParticles( withLSP=False ))
         
@@ -1776,6 +1786,28 @@ class Manipulator ( LoggerBase ):
 
         return 1
 
+    def reassignPID(self):
+        """Check if a heavier mass eigenstate is present when the lighter one is not. If so, reassign the heavier eigenstate to the lighter one."""
+        unfrozen = self.M.unFrozenParticles()
+        frozen = self.M.frozenParticles()
+        for pids in self.canonicalOrder:
+            if pids[0] in frozen and pids[1] in unfrozen:
+                self.log(f"{self.namer.asciiName(pids[0])} not present but {self.namer.asciiName(pids[1])} present. Reassigning {self.namer.asciiName(pids[1])} to {self.namer.asciiName(pids[0])}")
+                self.M.masses[pids[0]] = self.M.masses[pids[1]]
+                self.M.masses.pop(pids[1])
+                self.M.decays[pids[0]] = self.M.decays[pids[1]]
+                self.M.decays.pop(pids[1])
+                
+                newssms = {}
+                oldssms = self.M.ssmultipliers
+                lightpid = int(abs(pids[0])*abs(pids[1])/pids[1])    #get the charge right
+                for pidpair, ssm in oldssms.items():
+                    newpidpair = [lightpid if abs(pids[1]) == abs(pid) else pid for pid in pidpair]
+                    newpidpair = tuple(sorted(newpidpair))
+                    newssms[newpidpair] = ssm
+                self.M.ssmultipliers  = newssms
+                self.removeIllegalBRs(rescaleSSMs=True)
+        
     def simplifyModel ( self, dm= 200. ):
         """ Try to simplify model, merging pair of candidate particles with similar masses.
         :param dm: Maximum mass difference for merging
