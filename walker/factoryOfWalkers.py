@@ -87,7 +87,7 @@ def writeMetaInfo ( rundir : str, meta : Dict ):
 def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
           dbpath : PathLike = "official", cheatcode : int = 0, 
           rundir : Union[None,str] = None, maxsteps : int = 10000,
-          seed : Union[None,int] = None, 
+          seed : Union[None,int] = None, test_param_space = False,
           catch_exceptions : bool = True, select : str = "all",
           do_srcombine : bool = False, record_history : bool = False, 
           update_hiscores : bool = False, stopTeleportationAfter : int = -1,
@@ -158,7 +158,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             print ( f"[factoryOfWalkers:{hostname};{time.strftime('%H:%M:%S')}] starting {i} @ {rundir} with cheatcode {cheatcode}" )
             w = RandomWalker( walkerid=i, nsteps = maxsteps,
                               dbpath=dbpath, cheatcode=cheatcode, select=select,
-                              rundir=rundir, do_srcombine = do_srcombine,
+                              rundir=rundir, do_srcombine = do_srcombine, test_param_space = test_param_space,
                               record_history=record_history, seed=seed,
                               stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
@@ -169,7 +169,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
                     walkerid = i, nsteps = maxsteps,
                     expected = False, select = select, dbpath = dbpath,
-                    rundir = rundir, do_srcombine = do_srcombine, seed = seed,
+                    rundir = rundir, do_srcombine = do_srcombine, seed = seed,test_param_space = test_param_space,
                     stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
         else:
@@ -179,7 +179,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
                     strategy = "aggressive", walkerid = i, dbpath = dbpath, 
                     expected = False, select = select, rundir = rundir, 
-                    do_srcombine = do_srcombine, 
+                    do_srcombine = do_srcombine, test_param_space = test_param_space,
                     seed = seed, stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
     #start running walkers
