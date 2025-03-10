@@ -4,6 +4,7 @@
 
 __all__ = [ "RandomWalker" ]
 
+import signal
 import pickle, sys, time, math, socket, os
 import subprocess
 import colorama
@@ -55,7 +56,7 @@ class RandomWalker ( LoggerBase ):
             cheatcode : int = 0, dbpath : PathLike = "./database.pcl",
             expected : bool = False, select : str = "all",
             catch_exceptions : bool = True, rundir : Union[PathLike,None] = None,
-            do_srcombine : bool = False,
+            do_srcombine : bool = False, test_param_space = False,
             record_history : bool = False, seed : Union[int,None] = None,
             stopTeleportationAfter : int = -1 ):
         """ initialise the walker
@@ -86,6 +87,7 @@ class RandomWalker ( LoggerBase ):
         if rundir == None:
             self.rundir = "./"
         self.random_seed = np.random.seed()
+        self.test_param_space = test_param_space
         if seed is not None:
             self.random_seed = seed
             from ptools import helpers
@@ -145,8 +147,11 @@ class RandomWalker ( LoggerBase ):
             self.manipulator.backupModel()
             self.hiscoreList.newResult ( self.manipulator )
             self.printStats ( substep=5 )
+            #self.manipulator.M.K = 1.0
+            #self.manipulator.M.TL = 1.0
             self.currentK = self.manipulator.M.K
             self.currentTL = self.manipulator.M.TL
+
 
     def setWalkerId ( self, Id ):
         self.walkerid = Id
@@ -237,11 +242,11 @@ class RandomWalker ( LoggerBase ):
                 self.pprint ( f"  `-- error! best combo pids ({pidsbc}) arent subset of masses pids ({pidsp})!" )
                 self.manipulator.M.bestCombo = None
 
-    def predict ( self, manipulator : Manipulator, test_param_space=False ):
+    def predict ( self, manipulator : Manipulator):
         """ Calls predictor.predict to get the theory predictions for model. Loops for 5 times till model.muhat is close to 1.0 """
         #print(f"Adress of manip : {id(manipulator)}")
         model = manipulator.M
-        if test_param_space:
+        if self.test_param_space:
             model.K = 1.0
             model.TL = 1.0
             proto_dict = manipulator.getPmodelDict()
@@ -300,6 +305,7 @@ class RandomWalker ( LoggerBase ):
         #Take a step in the model space:
         self.log("Randomly change model")
         self.manipulator.randomlyChangeModel()
+        print("reassigning pid")
         self.manipulator.reassignPID()
         # self.printStats( substep=13 )
 
@@ -421,14 +427,15 @@ class RandomWalker ( LoggerBase ):
 
     def takeStep ( self ):
         """ take the step, save it as last step """
-        ## possibly add to hiscore list
-        self.log ( f"Step {self.protomodel.step} check if result goes into hiscore list" )
-        #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )    #protomodel.rvalues were used before to find the max allowed mu
-        #self.log ( f"r values before calling .newResult are at {srs}" )
-        self.hiscoreList.newResult ( self.manipulator ) ## add to high score list
-        #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
-        #self.log ( f"r values after calling .newResult are at {srs}" )
-        self.log ( "done check for result to go into hiscore list" )
+        if self.test_param_space:
+            ## possibly add to hiscore list
+            self.log ( f"Step {self.protomodel.step} check if result goes into hiscore list" )
+            #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )    #protomodel.rvalues were used before to find the max allowed mu
+            #self.log ( f"r values before calling .newResult are at {srs}" )
+            self.hiscoreList.newResult ( self.manipulator ) ## add to high score list
+            #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
+            #self.log ( f"r values after calling .newResult are at {srs}" )
+            self.log ( "done check for result to go into hiscore list" )
         ## Backup model
         self.manipulator.backupModel()
         # Update current K and TL values
@@ -436,7 +443,7 @@ class RandomWalker ( LoggerBase ):
         self.currentTL = self.protomodel.TL
         self.manipulator.record( "take step" )
 
-    def decideOnTakingStep ( self, test_param_space=False ):
+    def decideOnTakingStep ( self):
         """ depending on the ratio of K values, decide on whether to take the step or not.
             If ratio > 1., take the step, if < 1, let chance decide. """
         K = self.currentK
@@ -448,7 +455,7 @@ class RandomWalker ( LoggerBase ):
         newK = self.protomodel.K
         log_llhdRatio_new = self.protomodel.TL
         
-        if test_param_space:
+        if self.test_param_space:
             self.takeStep()
             self.log("Testing parameter space, K,TL = 1.0. Take step")
             return
@@ -525,11 +532,27 @@ class RandomWalker ( LoggerBase ):
 
             self.manipulator.proposal_density( move='add_par', force_unfreeze=True)
             self.manipulator.backupModel()
+        
+        
+        def handle_termination(signum=None, frame=None):
+            """Handles both SLURM termination signals and manual interruptions."""
+            self.highlight("info", f"Saving current protomodel to pmodel{self.walkerid}.dict")
+            self.manipulator.restoreModel( reportReversion=True )
+            self.manipulator.writeDictFile(outfile=f"pmodel{self.walkerid}.dict", step=self.manipulator.M.step - 1)
+            sys.exit(0)
+        # Register signal handlers for graceful shutdown
+        signal.signal(signal.SIGTERM, handle_termination)  # SLURM termination signal
+        signal.signal(signal.SIGINT, handle_termination)   # Manual interruption (Ctrl+C)
+        signal.signal(signal.SIGUSR1, handle_termination)  # SLURM preemption signal
 
         while self.maxsteps < 0 or self.protomodel.step<self.maxsteps:
-
             if not catchem:
-                self.onestep()
+                try:
+                    self.onestep()
+                except KeyboardInterrupt:
+                    self.highlight(f"error", "Interrupted by user/ Killed by slurm.")
+                    handle_termination()
+                    
             else:
                 try:
                     self.onestep()
@@ -548,6 +571,9 @@ class RandomWalker ( LoggerBase ):
                         f.write ( f"   `- exception occured in walker #{self.protomodel.walkerid}\n" )
                         import traceback
                         f.write ( f"traceback: {str(traceback.format_exc())}\n" )
+                    self.highlight("info", f"Saving last protomodel to pmodel{self.walkerid}.dict")
+                    self.manipulator.restoreModel( reportReversion=True )
+                    self.manipulator.writeDictFile(outfile=f"pmodel{self.walkerid}.dict", step=self.manipulator.M.step - 1)
                     sys.exit(-1)
 
             #If no combination was found, go back
@@ -563,6 +589,7 @@ class RandomWalker ( LoggerBase ):
             if self.maxsteps < 0:
                 smaxstp = "inf"
             self.pprint ( f"Step {self.protomodel.step}/{smaxstp} finished." )
+        
         self.manipulator.M.delCurrentSLHA()
         self.pprint ( f"Was asked to stop after {self.maxsteps} steps" )
         self.pprint(f"Writing last protomodel to pmodel{self.walkerid}.dict")
@@ -584,8 +611,8 @@ if __name__ == "__main__":
     dbpath = "official"
     select = "txnames:electroweakinos,electroweakinos_offshell"
     select = "all"
-    #walker = RandomWalker( walkerid=10, nsteps = 1000,
-    #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
-    walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
-            do_srcombine = True, select = select )
+    walker = RandomWalker( walkerid=112, nsteps = 1000,
+                    dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
+    #walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
+    #        do_srcombine = True, select = select )
     walker.walk()

@@ -86,17 +86,15 @@ class Manipulator ( LoggerBase ):
         self.seed = seed
         self.strategy = strategy
         self.verbose = verbose
-        #Store a canonical order for the masses. So the ordering in each
-        #tuple is enforced
-        self.canonicalOrder =  [ ( 1000006, 2000006 ), ( 1000005, 2000005 ),
-                          ( 1000023, 1000025 ), ( 1000024, 1000037 ),
-                          ( 1000025, 1000035 ), ( 1000023, 1000025 ),
-                          ( 1000001, 1000002 ), (1000001, 1000003) ]        #consider Xu and Xs as an extension of Xd, Xc not considered since charm-tagging results exist
-        #Define groups of particles to be merged if their mass difference is below
-        #a given mass gap
-        self.mergerCandidates =   [ (1000001, 1000002, 1000003),
-                                    ( 1000005, 2000005 ), (1000006, 2000006),
-                                    ( 1000024, 1000037 ), ( 1000023, 1000025 )  ]
+        
+        #Store a canonical order for the masses. So the ordering in each tuple is enforced
+        #consider Xu and Xs as an extension of Xd, Xc not considered since charm-tagging results exist
+        self.canonicalOrder =  [( 1000001, 1000002 ),(1000001, 1000003),( 1000005, 2000005 ),( 1000006, 2000006 ),
+                          ( 1000023, 1000025 ), ( 1000024, 1000037 ),( 1000025, 1000035 )]
+        
+        #Define groups of particles to be merged if their mass difference is below a given mass gap
+        self.mergerCandidates =   [(1000001, 1000002, 1000003), ( 1000005, 2000005 ), (1000006, 2000006),
+                                    ( 1000024, 1000037 ), ( 1000023, 1000025 )]
         self.do_record = do_record ## if True, then record changes
         self.recording = [] ## just in case
 
@@ -278,13 +276,14 @@ class Manipulator ( LoggerBase ):
         
         return proto_dict
     
-    def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict",
+    def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict", step=None,
             cleanOut : bool = True, comment : str = "", appendMode : bool = False,
             ndecimals : int = 6 ) -> Dict:
         """ write out the dict file to outfile
 
         :param outfile: output file, but replacing %t with int(time.time()). If None,
                         then dont write file, just create dictionary object
+        :param step: The step at which the protomodel is present. If None, step=self.M.step
         :param cleanOut: clean the dictionary from defaults, remove meta info
         :param comment: add a comment field
         :param ndecimals: number of digits after decimal when rounding
@@ -332,7 +331,8 @@ class Manipulator ( LoggerBase ):
         D["TL"]=nround(self.M.TL,ndecimals)
         D["K"]=nround(self.M.K,ndecimals)
         D["walkerid"]=self.M.walkerid
-        D["step"]=self.M.step
+        if step: D["step"]= step
+        else: D["step"] =  self.M.step
         if not cleanOut:
             import time
             D["timestamp"]=time.asctime()
@@ -434,7 +434,17 @@ class Manipulator ( LoggerBase ):
                 continue
 
         return ret
+    '''
+    def initModel(self):
+        
+        self.propose_model = self.manipulator.M.copy()
+        self.manipulator.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
+        
+        unfrozenParticle = self.manipulator.randomlyUnfreezeParticle()
 
+        self.manipulator.proposal_density( move='add_par', force_unfreeze=True)
+        self.manipulator.backupModel()
+    '''
 
     def initFromDict ( self, D : Dict, filename : str = "",
             initTestStats : bool = False ):
@@ -696,7 +706,6 @@ class Manipulator ( LoggerBase ):
         #Make sure to normalize the branchings:
         initialized = self.normalizeBranchings(pid, protomodel=protomodel)
         if not initialized:
-            self.highlight("error", f"No branchings for {pid}: {protomodel.decays[pid]}")
             return False
         protomodel.decays = self.simplifyDecays(protomodel=protomodel)
         return True
@@ -2293,7 +2302,7 @@ class Manipulator ( LoggerBase ):
 
     def backupModel ( self ):
         """ backup the current state """
-
+        print(self.M)
         self._backup = { "llhd": self.M.llhd, "letters": self.M.letters, "TL": self.M.TL,
                          "K": self.M.K, "muhat": self.M.muhat,
                          "description": self.M.description,
@@ -2306,7 +2315,10 @@ class Manipulator ( LoggerBase ):
                          "_stored_xsecs" : copy.deepcopy(self.M._stored_xsecs),
                          "_xsecMasses" : copy.deepcopy(self.M._xsecMasses),
                          "_xsecSSMs" : copy.deepcopy(self.M._xsecSSMs),
-                         }
+                        }
+        if hasattr ( self.M, "ul_critic" ): self._backup["ul_critic"]=self.M.ul_critic
+        if hasattr ( self.M, "ll_critic" ): self._backup["ll_critic"]=self.M.ll_critic
+                         
 
     def restoreModel ( self, reportReversion=False ):
         """ restore from the backup """
