@@ -433,6 +433,7 @@ class Predictor ( LoggerBase ):
                 protomodel.K = self.combiner.computeK ( TL, prior )
             
             #FIXME!
+            '''
             if protomodel.bestCombo:
                 self.log ( "freeze pids that arent in best combo, we dont need them:" )
                 nfrozen = manipulator.freezePidsNotInBestCombo()
@@ -453,6 +454,7 @@ class Predictor ( LoggerBase ):
                         self.highlight("error", f"K {K} after removing {nfrozen} particles is smaller than before {protomodel.K}. Something is fishy.")
                     else:
                         protomodel.K = K
+            '''
             
             
             if test_param_space:

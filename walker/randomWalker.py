@@ -138,19 +138,24 @@ class RandomWalker ( LoggerBase ):
             self.currentK = -20.0
         else:
             self.manipulator.cheat ( cheatcode )
-            #self.predictor.predict(self.protomodel)
-            self.predict(self.manipulator)
-            if type(self.manipulator.M.TL) != type(None):
-                self.log ( f"Cheat model gets TL={self.manipulator.M.TL:.2f}, "\
-                              f"K={self.manipulator.M.K:.2f}" )
-            # self.printStats ( substep=4 )
-            self.manipulator.backupModel()
-            self.hiscoreList.newResult ( self.manipulator )
-            self.printStats ( substep=5 )
-            #self.manipulator.M.K = 1.0
-            #self.manipulator.M.TL = 1.0
-            self.currentK = self.manipulator.M.K
-            self.currentTL = self.manipulator.M.TL
+            if self.test_param_space:
+                self.manipulator.M.K, self.manipulator.M.TL = 1.0,1.0
+                self.currentK = self.manipulator.M.K
+                self.currentTL = self.manipulator.M.TL
+            
+            else:
+                self.predict(self.manipulator)
+                if type(self.manipulator.M.TL) != type(None):
+                    self.log ( f"Cheat model gets TL={self.manipulator.M.TL:.2f}, "\
+                                  f"K={self.manipulator.M.K:.2f}" )
+                    # self.printStats ( substep=4 )
+                    self.manipulator.backupModel()
+                    self.hiscoreList.newResult ( self.manipulator )
+                self.printStats ( substep=5 )
+                #self.manipulator.M.K = 1.0
+                #self.manipulator.M.TL = 1.0
+                self.currentK = self.manipulator.M.K
+                self.currentTL = self.manipulator.M.TL
 
 
     def setWalkerId ( self, Id ):
@@ -427,7 +432,7 @@ class RandomWalker ( LoggerBase ):
 
     def takeStep ( self ):
         """ take the step, save it as last step """
-        if self.test_param_space:
+        if not self.test_param_space:
             ## possibly add to hiscore list
             self.log ( f"Step {self.protomodel.step} check if result goes into hiscore list" )
             #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )    #protomodel.rvalues were used before to find the max allowed mu
