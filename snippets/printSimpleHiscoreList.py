@@ -63,8 +63,8 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
         description='summarize the data in hiscores.dict to have an overview' )
     argparser.add_argument ( '-H', '--hiscores', type=str,
-        help="path to hiscores.dict file [./hiscores.dict]", 
-        default="./hiscores.dict" )
+        help="path to hiscores.dict file [./hiscores_global.dict]", 
+        default="./hiscores_global.dict" )
     argparser.add_argument ( '-x', '--extended', action="store_true",
         help="extended info" )
     argparser.add_argument ( '-n', '--nmax', type=int, default=None,
