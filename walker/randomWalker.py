@@ -494,7 +494,8 @@ class RandomWalker ( LoggerBase ):
 
         else:
             #Draw random number u
-            u = np.random.uniform(0.,1.)
+            from scipy.stats import uniform
+            u = uniform.rvs(loc=0.,scale=1.,size=1)
             #print(f"Step {self.protomodel.step}: u {u}, Acceptance ratio {acceptance_ratio}, K {K}, newK {newK}")
             if u > acceptance_ratio:
                 self.highlight ("info", f"u={u:.2f} > {acceptance_ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
@@ -616,8 +617,8 @@ if __name__ == "__main__":
     dbpath = "official"
     select = "txnames:electroweakinos,electroweakinos_offshell"
     select = "all"
-    walker = RandomWalker( walkerid=112, nsteps = 1000,
-                    dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
-    #walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
-    #        do_srcombine = True, select = select )
+    #walker = RandomWalker( walkerid=0, nsteps = 1000,
+    #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
+    walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
+            do_srcombine = True, select = select )
     walker.walk()
