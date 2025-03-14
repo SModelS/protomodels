@@ -992,6 +992,8 @@ def getArgs( cmdline = None ):
             type=str, default=None )
     argparser.add_argument ( '-U', '--ulalso',
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
+    argparser.add_argument ( '--list_abbreviations',
+            help='list all abbreviations of topology names', action='store_true' )
     argparser.add_argument ( '-r', '--roughviz',
             help='roughviz plot', action='store_true' )
     argparser.add_argument ( '--show',
@@ -1005,6 +1007,14 @@ def getArgs( cmdline = None ):
             cmdline = cmdline[1:]
 
     args=argparser.parse_args( cmdline )
+    if args.list_abbreviations:
+        print ( "Defined abbreviations:" )
+        print ( "======================" )
+        shorts, descriptions = namesForSetsOfTopologies ( "list" )
+        for short,topos in shorts.items():
+            print ( short )
+        sys.exit()
+        
     if type(args.options) == str:
         args.options = eval ( args.options )
     if args.options is None:

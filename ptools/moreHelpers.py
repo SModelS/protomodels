@@ -52,9 +52,10 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
         -> Tuple[Text,Union[Text,None]]:
     """ some abbreviations for sets of topologies,
     e.g. electroweakino -> TChiWZ, TChiWH, .... 
-    :param name: abbreviation
+    :param name: abbreviation. if "list", then list them all.
     :returns: string with comma separated list of topos, and description
               if not an abbreviation, returns originalname, None
+              if "list", returns dictionary of short names with descriptions
     """
     if name is None:
         return "all", None
@@ -86,7 +87,7 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
     description["electroweakinos"]="ewkinos"
     description["electroweakinos_offshell"]="ewkinos, off-shell decays only"
     description["electroweakinos_onshell"]="ewkinos, on-shell gauge boson decays only"
-    description["darkmatter"]="dark matter + ISR object"
+    description["darkmatter"]="dark matter"
     description["massdenegerate"]="mass degenerate stuff"
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
@@ -95,6 +96,8 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
     description["sbottoms"]="sbottoms"
     description["gluinos"]="gluinos"
     description["colored"]="light squarks and gluinos"
+    if name == "list": ## list them all
+        return shorts, description
     if name in shorts:
         d = None
         if name in description:
