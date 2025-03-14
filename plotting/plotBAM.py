@@ -95,6 +95,21 @@ def checkForPartialCombinability ( e1, e2 ) -> bool:
                 return True
     return False
 
+def filterResults ( results : list, excludes : list ) -> list:
+    """ given the list of excludes, filter results """
+    import fnmatch
+    ret = []
+    for result in results[:5]:
+        anaId = result.globalInfo.id
+        isExcluded = False
+        for exclude in excludes:
+            if fnmatch.fnmatch ( anaId, exclude ):
+                isExcluded = True
+                break
+        if not isExcluded:
+            ret.append ( result )
+    return ret
+
 def draw( args : dict ):
     """
     draw the correlation matrix
@@ -136,6 +151,9 @@ def draw( args : dict ):
     results = sortOutDupes ( results )
     if args["sqrts"] in [ "8", "13" ]:
         results = sortBySqrts ( results, int(args["sqrts"]) )
+
+    excludes = args["exclude"].split(",")
+    results = filterResults ( results, excludes )
 
     #results.sort()
     nres = len ( results )
@@ -305,9 +323,12 @@ def draw( args : dict ):
     return outputfile
 
 def show ( outputfile ):
-    cmd = f"timg {outputfile}"
-    o = subprocess.getoutput ( cmd )
-    print ( o )
+    import shutil
+    if shutil.which ( "timg" ) != None:
+        cmd = f"timg {outputfile}"
+        # print ( cmd )
+        o = subprocess.getoutput ( cmd )
+        print ( o )
 
 def plotHandCrafted():
     """ modify this to produce your special version of this plot """
@@ -332,6 +353,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-s', '--sqrts', nargs='?',
             help='plot only specific sqrts 8,13,all [all]',
             type=str, default='all' )
+    argparser.add_argument ( '--exclude', 
+            help='exclude this comma-separated list of analysis, wildcards allowed [none]',
+            type=str, default='' )
     argparser.add_argument ( '-o', '--outputfile', nargs='?',
             help='outputfile (@M gets replaced by [experiment][sqrts]) [matrix@M.png]',
             type=str, default='matrix@M.png' )
@@ -353,7 +377,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-N', '--notimestamp',
             help='dont put a timestamp on it',
             action="store_true" )
+    argparser.add_argument ( '--show', help='show plot', action="store_true" )
     args=argparser.parse_args()
     args.drawtimestamp = not args.notimestamp
     outputfile = draw( vars ( args ) )
-    show ( outputfile )
+    if args.show:
+        show ( outputfile )
