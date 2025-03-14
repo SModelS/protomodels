@@ -99,11 +99,15 @@ def filterResults ( results : list, excludes : list ) -> list:
     """ given the list of excludes, filter results """
     import fnmatch
     ret = []
-    for result in results[:5]:
+    for result in results:
         anaId = result.globalInfo.id
         isExcluded = False
         for exclude in excludes:
             if fnmatch.fnmatch ( anaId, exclude ):
+                if exclude == anaId:
+                    print ( f"[plotBAM] dropping {anaId}" )
+                else:
+                    print ( f"[plotBAM] dropping {anaId}: matches {exclude}" )
                 isExcluded = True
                 break
         if not isExcluded:
