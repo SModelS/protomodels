@@ -309,7 +309,7 @@ def draw( args : dict ):
     if args["drawtimestamp"]:
         t = time.strftime("%h %d %Y" )
         dbver = d.databaseVersion
-        plt.text ( .01, -.05, f"plot produced {t} from database v{dbver}",
+        plt.text ( .01, -.05, f"plot produced {t}\nfrom database v{dbver}",
                    va="bottom", c="grey", transform = fig.transFigure, fontsize=24 )
     outputfile = args["outputfile"]
     if "@M" in outputfile:
