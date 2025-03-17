@@ -95,12 +95,14 @@ def checkForPartialCombinability ( e1, e2 ) -> bool:
                 return True
     return False
 
-def filterResults ( results : list, excludes : list ) -> list:
+def filterResults ( results : list, excludes : list, renames : dict ) -> list:
     """ given the list of excludes, filter results """
     import fnmatch
     ret = []
     for result in results:
         anaId = result.globalInfo.id
+        if anaId in renames.keys():
+            result.globalInfo.id = renames[anaId]
         isExcluded = False
         for exclude in excludes:
             if fnmatch.fnmatch ( anaId, exclude ):
@@ -157,7 +159,12 @@ def draw( args : dict ):
         results = sortBySqrts ( results, int(args["sqrts"]) )
 
     excludes = args["exclude"].split(",")
-    results = filterResults ( results, excludes )
+    renames = args["rename"]
+    if renames not in [ None, "" ]:
+        renames = eval(renames)
+    else:
+        renames = {}
+    results = filterResults ( results, excludes, renames )
 
     #results.sort()
     nres = len ( results )
@@ -276,7 +283,7 @@ def draw( args : dict ):
             xcoord = .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] )
             ycoord = n- .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] ) -3
             if len(sqrtses)>1 or len(exps)>1:
-                plt.text(-5,xcoord-3,f"{ana}\n{sqrts} TeV", fontsize=44, 
+                plt.text(-5,xcoord-3,f"{ana}\n{sqrts} TeV", fontsize=44,
                          c="black", rotation=90, horizontalalignment="center" )
                 plt.text(ycoord,-8, f"{ana}\n{sqrts} TeV",
                          fontsize=44, c="black", horizontalalignment="center" )
@@ -357,9 +364,12 @@ if __name__ == "__main__":
     argparser.add_argument ( '-s', '--sqrts', nargs='?',
             help='plot only specific sqrts 8,13,all [all]',
             type=str, default='all' )
-    argparser.add_argument ( '--exclude', 
+    argparser.add_argument ( '--exclude',
             help='exclude this comma-separated list of analysis, wildcards allowed [none]',
             type=str, default='' )
+    argparser.add_argument ( '--rename',
+            help="dictionary (given as string) of analyses to rename, e.g.: { 'ATLAS-SUSY-2018-22-multibin': 'ATLAS-SUSY-2018-22' } [none]",
+            type=str, default=None )
     argparser.add_argument ( '-o', '--outputfile', nargs='?',
             help='outputfile (@M gets replaced by [experiment][sqrts]) [matrix@M.png]',
             type=str, default='matrix@M.png' )
