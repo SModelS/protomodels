@@ -152,7 +152,7 @@ def draw( args : dict ):
         analysisIds = [ args["experiment"]+"*" ]
         exps = [ args["experiment"] ]
     dataTypes = [ "all" ]
-    if args["check_entries"]:
+    if args["effmaps_only"]:
         dataTypes = [ "efficiencyMap" ]
     results = d.getExpResults( analysisIDs = analysisIds, dataTypes = dataTypes )
     if args["nofastlim"]:
@@ -390,8 +390,8 @@ if __name__ == "__main__":
     argparser.add_argument ( '-t', '--triangular',
             help='plot as lower triangle matrix?',
             action="store_true" )
-    argparser.add_argument ( '--check_entries',
-            help='check entries: only plot entries that exist in database',
+    argparser.add_argument ( '--effmaps_only',
+            help='plot only for efficiency map results',
             action="store_true" )
     argparser.add_argument ( '-T', '--trim',
             help='trim the figure in the end',
