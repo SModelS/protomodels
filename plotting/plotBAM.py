@@ -193,7 +193,7 @@ def draw( args : dict ):
     if nres < 10:
         xtickpad = 0 # -580
         ytickpad = 0#  -580
-        labelsize = 70
+        labelsize = 100
     if nres < 5:
         xtickpad = -580
         ytickpad = -580
