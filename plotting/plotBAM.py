@@ -190,6 +190,10 @@ def draw( args : dict ):
         xtickpad = 0
         ytickpad = 0
         labelsize = 50
+    if nres < 10:
+        xtickpad = 0 # -580
+        ytickpad = 0#  -580
+        labelsize = 70
     if nres < 5:
         xtickpad = -580
         ytickpad = -580
@@ -277,8 +281,9 @@ def draw( args : dict ):
     if len(exps)==1 and len(sqrtses)==1:
         title = args["title"]
         title = title.replace("@exp@",exps[0]).replace("@sqrts@",str(sqrtses[0]))
-        plt.text ( .45, .95, title,
-                   fontsize = 3 * labelsize, transform = fig.transFigure )
+        plt.text ( .9, .95, title,
+                   fontsize = 3 * labelsize, transform = fig.transFigure,
+                   horizontalalignment = "right" )
     ct = 0
     for ana in exps:
         for sqrts in sqrtses:
