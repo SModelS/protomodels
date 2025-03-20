@@ -151,7 +151,10 @@ def draw( args : dict ):
     if args["experiment"] in [ "CMS", "ATLAS" ]:
         analysisIds = [ args["experiment"]+"*" ]
         exps = [ args["experiment"] ]
-    results = d.getExpResults( analysisIDs = analysisIds )
+    dataTypes = [ "all" ]
+    if args["check_entries"]:
+        dataTypes = [ "efficiencyMap" ]
+    results = d.getExpResults( analysisIDs = analysisIds, dataTypes = dataTypes )
     if args["nofastlim"]:
         results = noFastlim ( results )
     results = sortOutDupes ( results )
@@ -381,6 +384,9 @@ if __name__ == "__main__":
             type=str, default="@exp@, @sqrts@ TeV" )
     argparser.add_argument ( '-t', '--triangular',
             help='plot as lower triangle matrix?',
+            action="store_true" )
+    argparser.add_argument ( '--check_entries',
+            help='check entries: only plot entries that exist in database',
             action="store_true" )
     argparser.add_argument ( '-T', '--trim',
             help='trim the figure in the end',
