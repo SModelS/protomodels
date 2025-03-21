@@ -3,7 +3,7 @@
 ../plotting/plotBAM.py -s 13 -e ATLAS --exclude "ATLAS-EXOT-*,ATLAS-SUSY-2018-22-multibin,ATLAS-SUSY-2018-16-hino,ATLAS-SUSY-2018-05-ewk" --rename "{'ATLAS-SUSY-2018-05-strong':'ATLAS-SUSY-2018-05'}" --show --effmaps_only
 
 # exclude cms-exo-19-* so that cms-exo-20-004 is in
-../plotting/plotBAM.py -s 13 -e CMS --exclude "CMS-EXO-19-*" --show --effmaps_only
+../plotting/plotBAM.py -s 13 -e CMS --exclude "CMS-EXO-19-*,CMS-EXO-13-*" --show --effmaps_only
  
 ../plotting/plotBAM.py -s 8 -e ATLAS --show --effmaps_only
 
