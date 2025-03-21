@@ -189,11 +189,11 @@ def draw( args : dict ):
         labelsize = 40
         xoff_title, yoff_title = .47, .9
     if nres < 18:
-        xoff_title, yoff_title = .35, .95
         xtickpad = 0
         ytickpad = 0
         labelsize = 50
     if nres < 10:
+        xoff_title, yoff_title = .35, .95
         xtickpad = 0 # -580
         ytickpad = 0#  -580
         labelsize = 100
