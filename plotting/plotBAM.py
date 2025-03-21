@@ -179,6 +179,8 @@ def draw( args : dict ):
     # x- and y- tickpads are to adjust the position of the analysis id labels
     xtickpad, ytickpad = -55, -55
     xoff_title, yoff_title = .35, .95
+    ts_off_x = .6 ## timestamp offset x
+    ts_off_y = 0. ## timestamp offset y
     if nres < 60:
         xtickpad = 0
         ytickpad = 0
@@ -188,11 +190,16 @@ def draw( args : dict ):
         ytickpad = 0
         labelsize = 40
         xoff_title, yoff_title = .47, .9
+        ts_off_x = -.01
     if nres < 18:
+        ts_off_x = -.05
+        ts_off_y = -.0
         xtickpad = 0
         ytickpad = 0
         labelsize = 60
     if nres < 10:
+        ts_off_x = -.2
+        ts_off_y = -.1
         xoff_title, yoff_title = .35, .95
         xtickpad = 0 # -580
         ytickpad = 0#  -580
@@ -332,8 +339,9 @@ def draw( args : dict ):
     if args["drawtimestamp"]:
         t = time.strftime("%h %d %Y" )
         dbver = d.databaseVersion
-        plt.text ( .01, -.05, f"plot produced {t}\nfrom database v{dbver}",
-                   va="bottom", c="grey", transform = fig.transFigure, fontsize=24 )
+        plt.text ( ts_off_x, ts_off_y, f"plot produced {t}\nfrom database v{dbver}",
+                   va="bottom", c="lightgrey", transform = fig.transFigure, 
+                   fontsize = .5 * labelsize )
     outputfile = args["outputfile"]
     if "@M" in outputfile:
         modifiers = ""
