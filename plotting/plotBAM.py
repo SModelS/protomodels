@@ -284,7 +284,7 @@ def draw( args : dict ):
         plt.gca().set_xticks( xticks, minor='true')
         plt.gca().set_yticks( xticks, minor='true')
         # plt.grid ( visible = True )
-        plt.grid(which='minor')
+        plt.grid(which='minor',color="white")
     # plt.xticks ( rotation=90, horizontalalignment="center" )
     fig = plt.gcf()
     fig.set_size_inches(30, 30)
