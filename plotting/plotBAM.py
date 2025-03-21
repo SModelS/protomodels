@@ -191,7 +191,7 @@ def draw( args : dict ):
     if nres < 18:
         xtickpad = 0
         ytickpad = 0
-        labelsize = 50
+        labelsize = 60
     if nres < 10:
         xoff_title, yoff_title = .35, .95
         xtickpad = 0 # -580
@@ -266,7 +266,18 @@ def draw( args : dict ):
     cmap=LinearSegmentedColormap.from_list('rg',l, N=len(c) )
     plt.matshow ( h, aspect = "equal", origin = "lower", cmap = cmap,
                   vmin = 0, vmax = 5. )
-    plt.grid ( visible = False )
+    drawGrid = True
+    if drawGrid:
+        # This is very hack-ish
+        #xticks_ = plt.gca().get_xticks()[1:-1]
+        # xticks = [x - 0.5 for x in plt.gca().get_xticks()][1:-1]
+        #print ( "xticks", xticks_ )
+        #xticks = list ( range ( int(min(xticks_)), int(max(xticks_)+2 )) )
+        xticks = [ x+.5 for x in range(len(results)) ]
+        plt.gca().set_xticks( xticks, minor='true')
+        plt.gca().set_yticks( xticks, minor='true')
+        # plt.grid ( visible = True )
+        plt.grid(which='minor')
     # plt.xticks ( rotation=90, horizontalalignment="center" )
     fig = plt.gcf()
     fig.set_size_inches(30, 30)
