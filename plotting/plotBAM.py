@@ -178,6 +178,7 @@ def draw( args : dict ):
     labelsize = 14
     # x- and y- tickpads are to adjust the position of the analysis id labels
     xtickpad, ytickpad = -55, -55
+    xoff_title, yoff_title = .35, .95
     if nres < 60:
         xtickpad = 0
         ytickpad = 0
@@ -186,7 +187,9 @@ def draw( args : dict ):
         xtickpad = 0
         ytickpad = 0
         labelsize = 40
+        xoff_title, yoff_title = .47, .9
     if nres < 18:
+        xoff_title, yoff_title = .35, .95
         xtickpad = 0
         ytickpad = 0
         labelsize = 50
@@ -254,6 +257,7 @@ def draw( args : dict ):
             # h[n-x-1][y]= v
 
     c = [ "b", "limegreen", "red", "orange", "white", "grey" ]
+    c = [ "b", "tab:green", "tab:red", "tab:orange", "white", "tab:grey" ]
     # c[3]="darkgreen"
     v = np.arange(0.,1.00001,1. / (len(c)-1) )
     l = list(zip(v,c))
@@ -281,9 +285,9 @@ def draw( args : dict ):
     if len(exps)==1 and len(sqrtses)==1:
         title = args["title"]
         title = title.replace("@exp@",exps[0]).replace("@sqrts@",str(sqrtses[0]))
-        plt.text ( .9, .95, title,
-                   fontsize = 3 * labelsize, transform = fig.transFigure,
-                   horizontalalignment = "right" )
+        plt.text ( xoff_title, yoff_title, title,
+                   fontsize = 2 * labelsize, transform = fig.transFigure,
+                   horizontalalignment = "center" )
     ct = 0
     for ana in exps:
         for sqrts in sqrtses:
