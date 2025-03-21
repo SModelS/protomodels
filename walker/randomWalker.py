@@ -145,7 +145,7 @@ class RandomWalker ( LoggerBase ):
             
             else:
                 self.predict(self.manipulator)
-                if type(self.manipulator.M.TL) != type(None):
+                if type(self.manipulator.M.TL) != type(None) and type(self.manipulator.M.K) != type(None):
                     self.log ( f"Cheat model gets TL={self.manipulator.M.TL:.2f}, "\
                                   f"K={self.manipulator.M.K:.2f}" )
                     # self.printStats ( substep=4 )
@@ -322,7 +322,9 @@ class RandomWalker ( LoggerBase ):
         self.log("Try to simplify model")
         protomodelSimp = self.manipulator.simplifyModel(dm=200.0)
         manipulatorSimp = None
-        if protomodelSimp: manipulatorSimp = Manipulator ( protomodelSimp, strategy="aggressive",do_record = False, seed = self.random_seed )
+        if protomodelSimp: 
+            manipulatorSimp = Manipulator ( protomodelSimp, strategy="aggressive",do_record = False, seed = self.random_seed )
+            manipulatorSimp.reassignPID()
         boolProtoSimp = False
 
         # self.printStats( substep=14 )
@@ -469,7 +471,11 @@ class RandomWalker ( LoggerBase ):
             # if the new is none, but the old isnt, we go back
             self.manipulator.restoreModel( reportReversion=True )
             return
-        
+        if log_llhdRatio_current >= 1.0 and log_llhdRatio_new < 1.0:
+            #If current log likeihood ratio >= 1.0, but the new step has a log llhd ratio < 1.0, return to previous protomodel
+            self.log(f"Previous TL: {log_llhdRatio_current} >= 1.0, New TL: {log_llhdRatio_new} < 1.0. Going back to previous model")
+            self.manipulator.restoreModel( reportReversion=True )
+            return
         #K = 2 log (L1/L0) + 2 log(prior)
         #acceptance ratio = (new_L1/new_l0)/(current_L1/current_L0) * (new_prior)/(old_prior) * proposal_ratio
         #acceptance ratio = exp( (log(new_L1/new_l0) + log(new_prior)) - (log(current_L1/current_L0) - log(old_prior)) + log(proposal_ratio))
@@ -495,7 +501,7 @@ class RandomWalker ( LoggerBase ):
         else:
             #Draw random number u
             from scipy.stats import uniform
-            u = uniform.rvs(loc=0.,scale=1.,size=1)
+            u = uniform.rvs(loc=0.,scale=1.,size=1)[0]
             #print(f"Step {self.protomodel.step}: u {u}, Acceptance ratio {acceptance_ratio}, K {K}, newK {newK}")
             if u > acceptance_ratio:
                 self.highlight ("info", f"u={u:.2f} > {acceptance_ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )

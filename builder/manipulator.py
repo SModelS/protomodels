@@ -478,8 +478,8 @@ class Manipulator ( LoggerBase ):
                 self.M.decays[mpid][dpid]=v
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
-        if "walkerid" in D:
-            self.M.walkerid = D["walkerid"]
+        #if "walkerid" in D:
+        #    self.M.walkerid = D["walkerid"]
         if initTestStats:
             if "TL" in D:
                 self.M.TL = D["TL"]
@@ -932,7 +932,7 @@ class Manipulator ( LoggerBase ):
         
         prob_12, prob_21 = self.z_model(self.M, self.propose_model)
 
-        prob = min(1.0, prob_12)
+        prob = min(1.0, prob_12/np.sqrt(self.M.TL))
         #print(f"Probability to accept change {prob}")
 
         u = np.random.uniform(0,1)
@@ -949,10 +949,16 @@ class Manipulator ( LoggerBase ):
             self.M = self.propose_model
             self.propose_model = self.M.copy()
             self.proposal_ratio[move]['q'] *= prob_21/prob_12
+            if np.isnan(np.log(self.proposal_ratio[move]['q'])):
+                self.log(f"Move {move} has nan value for {self.proposal_ratio[move]['q']}")
+                self.proposal_ratio[move]['q'] = 1.0
             for parameter, q_par in self.proposal_ratio[move].items():
                 #print(f"Parameter : {parameter}, q_par {q_par}")
                 self.proposal_ratio['q_total'] *= q_par
             #print(f"log q_total after {move}: {np.log(self.proposal_ratio['q_total'])}")
+            if np.isnan(np.log(self.proposal_ratio['q_total'])):
+                self.log(f"Move {move} has nan value for qtotal {self.proposal_ratio['q_total']}")
+                self.proposal_ratio['q_total'] = 1.0
             self.log(f"Log of total proposal ratio after {move}: {np.log(self.proposal_ratio['q_total']):.2f}")
             return True
 
@@ -1273,6 +1279,7 @@ class Manipulator ( LoggerBase ):
         a = np.random.uniform ( 0., 1. )
         if a > .9: ## sometimes, just knock out a random SSM
             prod_list = list(protomodel.ssmultipliers.keys())
+            if len(prod_list) == 0: return 0
             random_ind = int(np.random.choice(len(prod_list)))
             randomProd = prod_list[random_ind]
             self.log(f"Remove prod mode {self.namer.texName(randomProd,addDollars=True)}" )
@@ -1288,6 +1295,7 @@ class Manipulator ( LoggerBase ):
             return 1
         if a < .1: ## sometimes, just try to set ssm to 1.
             prod_list = list(protomodel.ssmultipliers.keys())
+            if len(prod_list) == 0: return 0
             random_ind = int(np.random.choice(len(prod_list)))
             randomProd = prod_list[random_ind]
             self.log(f"Change ssm of {self.namer.texName(randomProd,addDollars=True)} to 1." )
@@ -1295,6 +1303,7 @@ class Manipulator ( LoggerBase ):
             return 1
         if .1 < a < .2: ## sometimes, just try to set to ssm of different particle
             prod_list = list(protomodel.ssmultipliers.keys())
+            if len(prod_list) == 0: return 0
             random_ind = int(np.random.choice(len(prod_list)))
             randomProd = prod_list[random_ind]
             v = np.random.choice ( list ( protomodel.ssmultipliers.values() ) )
@@ -1495,12 +1504,15 @@ class Manipulator ( LoggerBase ):
         num_unfrozen = len(unfrozen)
         num_frozen = len(protomodel.frozenParticles())
         for pids in self.canonicalOrder:
+            if pids[0] in self.forbiddenparticles and pids[1] in self.forbiddenparticles: continue
             if pids[0] in unfrozen and pids[1] in unfrozen:
                 num_unfrozen -= 1       #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
             if pids[0] in protomodel.frozenParticles() and pids[1] in protomodel.frozenParticles():
                 num_frozen -= 1         #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
         
-        if self.forbiddenparticles != [] : num_frozen -= len(self.forbiddenparticles)
+        if self.forbiddenparticles != [] : 
+            num_frozen -= len(self.forbiddenparticles)
+            if num_frozen < 0: self.log(f"NUm frozen {num_frozen} <0 !"); num_frozen = 1
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(add pid from frozen)/p(rem pid from unfrozen) = (1/(n_fr+1))/(1/n_un)
         if merge: self.proposal_ratio['merge']['q'] *= len(unfrozen)/(num_frozen + 1)
         if not force: self.proposal_ratio['rem_par']['q'] *= len(unfrozen)/(num_frozen + 1)
@@ -1542,12 +1554,15 @@ class Manipulator ( LoggerBase ):
         
         #get total num of frozen and unfrozen par for proposal ratio
         for pids in self.canonicalOrder:
+            if pids[0] in self.forbiddenparticles and pids[1] in self.forbiddenparticles: continue
             if pids[0] in frozen and pids[1] in frozen:
                 n_frozen -= 1                   #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
             if pids[0] in protomodel.unFrozenParticles() and pids[1] in protomodel.unFrozenParticles():
                 num_unfrozen -= 1               #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
         
-        if self.forbiddenparticles != []: n_frozen -= len(self.forbiddenparticles)
+        if self.forbiddenparticles != []: 
+            n_frozen -= len(self.forbiddenparticles)
+            if n_frozen < 0: self.log(f"Num frozen {n_frozen} < 0! "); n_frozen = 1
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(rem pid)/p(add pid) = (1/(n_un+1))/(1/n_fr)
         self.proposal_ratio['add_par']['q'] *= n_frozen/(num_unfrozen + 1)
         #print(f"Prob to unfreeze = {self.proposal_ratio['add_par']['q']}")

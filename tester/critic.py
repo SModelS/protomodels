@@ -225,7 +225,7 @@ class Critic ( LoggerBase ):
         # Create SLHA file (for running SModelS)
         slhafile = protomodel.createSLHAFile()
         self.protomodel = protomodel
-
+        num_preds = 0
         # --- UL-based critic ---
 
         # Run SModelS to get for UL-type predictions, and best SR preditcions if no UL-type result.
@@ -233,9 +233,8 @@ class Critic ( LoggerBase ):
 
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
-        num_preds = len(predictions)
-        allowed_by_UL_critic = self.UL_critic(protomodel, predictions)
-
+        allowed_by_UL_critic, n_sensitive = self.UL_critic(protomodel, predictions)
+        if n_sensitive: num_preds = n_sensitive
         # Extract the relevant prediction information and store in the protomodel:
         self.updateModelPredictionsWithULPreds(protomodel, predictions, keep_predictions)
 
@@ -250,10 +249,9 @@ class Critic ( LoggerBase ):
 
         # --- llhd-based critic ---
 
-        predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut )
-        num_preds += len(predictions)
+        predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut )       
         allowed_by_llhd_critic, mostSensiComb, robsComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
-
+        if mostSensiComb: num_preds += len(predictions)
         # Extract the relevant prediction information and store in the protomodel:
         self.updateModelPredictionsWithCombinedPreds(protomodel, mostSensiComb, robsComb)
 
@@ -307,7 +305,7 @@ class Critic ( LoggerBase ):
         """
 
         if not predictions: # If empty list
-            return True     # the model is not excluded
+            return True, None     # the model is not excluded
 
         from scipy.stats import binom
 
@@ -332,7 +330,7 @@ class Critic ( LoggerBase ):
 
         protomodel.ul_critic = f"n_sen={n_sensitive}, n_excl={n_excluding}, max_all={max_allowed} => passes critic: {max_allowed >= n_excluding}. "
         self.log(f"UL-based critic: n_sen={n_sensitive}, n_excl={n_excluding}, max_all={max_allowed} => passes critic: {max_allowed >= n_excluding}")
-        return max_allowed >= n_excluding
+        return max_allowed >= n_excluding, n_sensitive
 
 
     def llhd_critic(self, predictions, cut=0, keep_predictions=False):
