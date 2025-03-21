@@ -95,6 +95,27 @@ def checkForPartialCombinability ( e1, e2 ) -> bool:
                 return True
     return False
 
+def filterResults ( results : list, excludes : list, renames : dict ) -> list:
+    """ given the list of excludes, filter results """
+    import fnmatch
+    ret = []
+    for result in results:
+        anaId = result.globalInfo.id
+        if anaId in renames.keys():
+            result.globalInfo.id = renames[anaId]
+        isExcluded = False
+        for exclude in excludes:
+            if fnmatch.fnmatch ( anaId, exclude ):
+                if exclude == anaId:
+                    print ( f"[plotBAM] dropping {anaId}" )
+                else:
+                    print ( f"[plotBAM] dropping {anaId}: matches {exclude}" )
+                isExcluded = True
+                break
+        if not isExcluded:
+            ret.append ( result )
+    return ret
+
 def draw( args : dict ):
     """
     draw the correlation matrix
@@ -130,12 +151,23 @@ def draw( args : dict ):
     if args["experiment"] in [ "CMS", "ATLAS" ]:
         analysisIds = [ args["experiment"]+"*" ]
         exps = [ args["experiment"] ]
-    results = d.getExpResults( analysisIDs = analysisIds )
+    dataTypes = [ "all" ]
+    if args["effmaps_only"]:
+        dataTypes = [ "efficiencyMap" ]
+    results = d.getExpResults( analysisIDs = analysisIds, dataTypes = dataTypes )
     if args["nofastlim"]:
         results = noFastlim ( results )
     results = sortOutDupes ( results )
     if args["sqrts"] in [ "8", "13" ]:
         results = sortBySqrts ( results, int(args["sqrts"]) )
+
+    excludes = args["exclude"].split(",")
+    renames = args["rename"]
+    if renames not in [ None, "" ]:
+        renames = eval(renames)
+    else:
+        renames = {}
+    results = filterResults ( results, excludes, renames )
 
     #results.sort()
     nres = len ( results )
@@ -146,6 +178,9 @@ def draw( args : dict ):
     labelsize = 14
     # x- and y- tickpads are to adjust the position of the analysis id labels
     xtickpad, ytickpad = -55, -55
+    xoff_title, yoff_title = .35, .95
+    ts_off_x = .6 ## timestamp offset x
+    ts_off_y = 0. ## timestamp offset y
     if nres < 60:
         xtickpad = 0
         ytickpad = 0
@@ -154,10 +189,21 @@ def draw( args : dict ):
         xtickpad = 0
         ytickpad = 0
         labelsize = 40
+        xoff_title, yoff_title = .47, .9
+        ts_off_x = -.01
     if nres < 18:
+        ts_off_x = -.05
+        ts_off_y = -.0
         xtickpad = 0
         ytickpad = 0
-        labelsize = 50
+        labelsize = 60
+    if nres < 10:
+        ts_off_x = -.2
+        ts_off_y = -.1
+        xoff_title, yoff_title = .35, .95
+        xtickpad = 0 # -580
+        ytickpad = 0#  -580
+        labelsize = 100
     if nres < 5:
         xtickpad = -580
         ytickpad = -580
@@ -218,6 +264,7 @@ def draw( args : dict ):
             # h[n-x-1][y]= v
 
     c = [ "b", "limegreen", "red", "orange", "white", "grey" ]
+    c = [ "b", "tab:green", "tab:red", "tab:orange", "white", "tab:grey" ]
     # c[3]="darkgreen"
     v = np.arange(0.,1.00001,1. / (len(c)-1) )
     l = list(zip(v,c))
@@ -226,7 +273,18 @@ def draw( args : dict ):
     cmap=LinearSegmentedColormap.from_list('rg',l, N=len(c) )
     plt.matshow ( h, aspect = "equal", origin = "lower", cmap = cmap,
                   vmin = 0, vmax = 5. )
-    plt.grid ( visible = False )
+    drawGrid = True
+    if drawGrid:
+        # This is very hack-ish
+        #xticks_ = plt.gca().get_xticks()[1:-1]
+        # xticks = [x - 0.5 for x in plt.gca().get_xticks()][1:-1]
+        #print ( "xticks", xticks_ )
+        #xticks = list ( range ( int(min(xticks_)), int(max(xticks_)+2 )) )
+        xticks = [ x+.5 for x in range(len(results)) ]
+        plt.gca().set_xticks( xticks, minor='true')
+        plt.gca().set_yticks( xticks, minor='true')
+        # plt.grid ( visible = True )
+        plt.grid(which='minor',color="white")
     # plt.xticks ( rotation=90, horizontalalignment="center" )
     fig = plt.gcf()
     fig.set_size_inches(30, 30)
@@ -245,8 +303,9 @@ def draw( args : dict ):
     if len(exps)==1 and len(sqrtses)==1:
         title = args["title"]
         title = title.replace("@exp@",exps[0]).replace("@sqrts@",str(sqrtses[0]))
-        plt.text ( .45, .95, title,
-                   fontsize = 3 * labelsize, transform = fig.transFigure )
+        plt.text ( xoff_title, yoff_title, title,
+                   fontsize = 2 * labelsize, transform = fig.transFigure,
+                   horizontalalignment = "center" )
     ct = 0
     for ana in exps:
         for sqrts in sqrtses:
@@ -254,7 +313,7 @@ def draw( args : dict ):
             xcoord = .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] )
             ycoord = n- .5 * ( bins[ana][sqrts][0] + bins[ana][sqrts][1] ) -3
             if len(sqrtses)>1 or len(exps)>1:
-                plt.text(-5,xcoord-3,f"{ana}\n{sqrts} TeV", fontsize=44, 
+                plt.text(-5,xcoord-3,f"{ana}\n{sqrts} TeV", fontsize=44,
                          c="black", rotation=90, horizontalalignment="center" )
                 plt.text(ycoord,-8, f"{ana}\n{sqrts} TeV",
                          fontsize=44, c="black", horizontalalignment="center" )
@@ -280,8 +339,9 @@ def draw( args : dict ):
     if args["drawtimestamp"]:
         t = time.strftime("%h %d %Y" )
         dbver = d.databaseVersion
-        plt.text ( .01, -.05, f"plot produced {t} from database v{dbver}",
-                   va="bottom", c="grey", transform = fig.transFigure, fontsize=24 )
+        plt.text ( ts_off_x, ts_off_y, f"plot produced {t}\nfrom database v{dbver}",
+                   va="bottom", c="lightgrey", transform = fig.transFigure, 
+                   fontsize = .5 * labelsize )
     outputfile = args["outputfile"]
     if "@M" in outputfile:
         modifiers = ""
@@ -305,9 +365,12 @@ def draw( args : dict ):
     return outputfile
 
 def show ( outputfile ):
-    cmd = f"timg {outputfile}"
-    o = subprocess.getoutput ( cmd )
-    print ( o )
+    import shutil
+    if shutil.which ( "timg" ) != None:
+        cmd = f"timg {outputfile}"
+        # print ( cmd )
+        o = subprocess.getoutput ( cmd )
+        print ( o )
 
 def plotHandCrafted():
     """ modify this to produce your special version of this plot """
@@ -332,6 +395,12 @@ if __name__ == "__main__":
     argparser.add_argument ( '-s', '--sqrts', nargs='?',
             help='plot only specific sqrts 8,13,all [all]',
             type=str, default='all' )
+    argparser.add_argument ( '--exclude',
+            help='exclude this comma-separated list of analysis, wildcards allowed [none]',
+            type=str, default='' )
+    argparser.add_argument ( '--rename',
+            help="dictionary (given as string) of analyses to rename, e.g.: { 'ATLAS-SUSY-2018-22-multibin': 'ATLAS-SUSY-2018-22' } [none]",
+            type=str, default=None )
     argparser.add_argument ( '-o', '--outputfile', nargs='?',
             help='outputfile (@M gets replaced by [experiment][sqrts]) [matrix@M.png]',
             type=str, default='matrix@M.png' )
@@ -344,6 +413,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-t', '--triangular',
             help='plot as lower triangle matrix?',
             action="store_true" )
+    argparser.add_argument ( '--effmaps_only',
+            help='plot only for efficiency map results',
+            action="store_true" )
     argparser.add_argument ( '-T', '--trim',
             help='trim the figure in the end',
             action="store_true" )
@@ -353,7 +425,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-N', '--notimestamp',
             help='dont put a timestamp on it',
             action="store_true" )
+    argparser.add_argument ( '--show', help='show plot', action="store_true" )
     args=argparser.parse_args()
     args.drawtimestamp = not args.notimestamp
     outputfile = draw( vars ( args ) )
-    show ( outputfile )
+    if args.show:
+        show ( outputfile )
