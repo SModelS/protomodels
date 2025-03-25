@@ -208,7 +208,7 @@ class Predictor ( LoggerBase ):
     #     return ret
 
     def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb,
-                  strategy : str = "aggressive",keep_predictions : bool = False, keep_slhafile : bool = False ) -> bool:
+                  strategy : str = "aggressive",keep_predictions : bool = False, keep_slhafile : bool = False, run_mcmc=False ) -> bool:
         """ Compute the predictions and statistical variables, for a
             protomodel.
 
@@ -220,6 +220,7 @@ class Predictor ( LoggerBase ):
         predictor(self).critic_preds.
         :param keep_slhafile: if True, then keep the temporary slha file,
         print out its name
+        :param run_mcmc: if True, run a mcmc without changing dimesnions (keep TL = log(L1))
         :returns: False, if no combinations could be found, else True
         """
 
@@ -240,7 +241,7 @@ class Predictor ( LoggerBase ):
             self.predictions = predictions
 
         # Compute significance and store in the model:
-        self.computeSignificance( protomodel, manipulator, predictions, strategy )
+        self.computeSignificance( protomodel, manipulator, predictions, strategy, run_mcmc=run_mcmc)
 
         if protomodel.TL is None:
             self.log ( f"done with prediction. Could not find combinations (TL={protomodel.TL})" )
@@ -381,7 +382,7 @@ class Predictor ( LoggerBase ):
                 print ( f" - {p.analysisId()}:{dataId}: {txns}" )
 
 
-    def computeSignificance(self, protomodel, manipulator, predictions, strategy, test_param_space=False):
+    def computeSignificance(self, protomodel, manipulator, predictions, strategy, test_param_space=False, run_mcmc=False):
         """ compute the K and TL values, and attach them to the protomodel """
         if len ( predictions ) == 0:
             protomodel.K = None
@@ -393,7 +394,9 @@ class Predictor ( LoggerBase ):
         #(set mumax just slightly below its value, so muhat is always below)
         # mumax = protomodel.mumax
         bestCombo,TL,muhat = self.combiner.findHighestSignificance ( predictions, expected=False )
-
+        if run_mcmc:
+            tpredcomb = TheoryPredictionsCombiner(bestCombo)
+            TL = -2*(tpredcomb.likelihood(mu=1, expected=False, return_nll=True)) #multiply by 2 since later while computing K, we multiply log prior by 2
         ## DONT normalize here! rescaling by muhat is done in randomwalker predict function!
         '''
         ma = Manipulator ( protomodel )

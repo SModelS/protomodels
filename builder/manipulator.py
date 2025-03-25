@@ -687,8 +687,10 @@ class Manipulator ( LoggerBase ):
                     else: protomodel.decays[pid][dpid] = br
 
         if offshell:
-            self.normalizeBranchings(pid, protomodel=protomodel)
-            return
+            initialized = self.normalizeBranchings(pid, protomodel=protomodel)
+            if not initialized:
+                return False
+            return True
 
         #Make sure there is at least one open channel:
         BRtot = sum(protomodel.decays[pid].values())
@@ -965,7 +967,7 @@ class Manipulator ( LoggerBase ):
     def randomlyChangeModel(self,force_unfreeze : bool = False, probBR : float = 0.2,
             probSS : float = 0.25, probSSingle : float = 0.8, ssmSigma : float = 1.0,
             probMerge : float = 0.05, sigmaFreeze : float = 0.5,
-            probMassive : float = 0.3, probMass : float = 0.05, keep_track_of_changes= False):
+            probMassive : float = 0.3, probMass : float = 0.05, run_mcmc= False):
         """Randomly modify the proto-model following the steps:
 
         1) A random particle can be unfrozen with a probability
@@ -993,51 +995,59 @@ class Manipulator ( LoggerBase ):
             force_unfreeze = True
             #do we want to not freeze particles? -> not freezing if less than or equal to 3 particles
         
-        recentlyUnfrozen = self.randomlyUnfreezeParticle()
-        if recentlyUnfrozen:
-            accept_move = self.proposal_density(move='add_par', force_unfreeze=force_unfreeze)
-            if accept_move:
-                nChanges += 1
-                self.log(f"Accept unfreezing of {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
-                #print(f"Protomodel now: {self.M.unFrozenParticles()}")
-            else:
-                self.log(f"Reject unfreezing {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
-                recentlyUnfrozen = None
+        if not run_mcmc:
+            recentlyUnfrozen = self.randomlyUnfreezeParticle()
+            if recentlyUnfrozen:
+                accept_move = self.proposal_density(move='add_par', force_unfreeze=force_unfreeze)
+                if accept_move:
+                    nChanges += 1
+                    self.log(f"Accept unfreezing of {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
+                    #print(f"Protomodel now: {self.M.unFrozenParticles()}")
+                else:
+                    self.log(f"Reject unfreezing {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
+                    recentlyUnfrozen = None
 
-        frozenParticle = self.randomlyFreezeParticle(recentlyUnfrozen=recentlyUnfrozen)
-        if frozenParticle:
-            accept_move = self.proposal_density(move='rem_par')
-            if accept_move:
-                nChanges += 1
-                self.log(f"Accept freezing of {frozenParticle} ({self.namer.asciiName(frozenParticle)})")
-                #print(f"Protomodel now: {self.M.unFrozenParticles()}")
-            else:
-                self.log(f"Reject freezing of {frozenParticle} ({self.namer.asciiName(frozenParticle)})")
+            frozenParticle = self.randomlyFreezeParticle(recentlyUnfrozen=recentlyUnfrozen)
+            if frozenParticle:
+                accept_move = self.proposal_density(move='rem_par')
+                if accept_move:
+                    nChanges += 1
+                    self.log(f"Accept freezing of {frozenParticle} ({self.namer.asciiName(frozenParticle)})")
+                    #print(f"Protomodel now: {self.M.unFrozenParticles()}")
+                else:
+                    self.log(f"Reject freezing of {frozenParticle} ({self.namer.asciiName(frozenParticle)})")
+            
+            changes = self.randomlyChangeBranchings(protomodel=self.propose_model, prob=probBR)
+            if changes > 0:
+                accept_move = self.proposal_density(move='br')
+                if accept_move :
+                    nChanges += 1          #;print(f"Protomodel after: {self.M.decays}")
+                    self.log("Accept changes in branchings")
+                else: self.log(f"Reject changing branchings")
+            
+            changes = self.randomlyChangeSignalStrengths(protomodel=self.propose_model, prob = probSS, probSingle = probSSingle, ssmSigma = ssmSigma)
+            if changes > 0:
+                accept_move = self.proposal_density(move='ssm')
+                if accept_move:
+                    nChanges += 1       #; print(f"Protomodel after: {self.M.ssmultipliers}")
+                    self.log("Accept changes in ssm")
+                else: self.log("Reject changes in ssm")
+
         
-        changes = self.randomlyChangeBranchings(prob=probBR)
-        if changes > 0:
-            accept_move = self.proposal_density(move='br')
-            if accept_move :
-                nChanges += 1          #;print(f"Protomodel after: {self.M.decays}")
-                self.log("Accept changes in branchings")
-            else: self.log(f"Reject changing branchings")
-
-
-        changes = self.randomlyChangeSignalStrengths(protomodel=self.propose_model, prob = probSS, probSingle = probSSingle, ssmSigma = ssmSigma)
-        if changes > 0:
-            accept_move = self.proposal_density(move='ssm')
-            if accept_move:
-                nChanges += 1       #; print(f"Protomodel after: {self.M.ssmultipliers}")
-                self.log("Accept changes in ssm")
-            else: self.log("Reject changes in ssm")
+        else:
+            changes = self.randomlyChangeBranchings(protomodel = self.M, prob=0.4, zeroBRprob = 0., singleBRprob = 0., addBRprob = 0.)
+            nChanges += changes
+            changes = self.randomlyChangeSignalStrengths(protomodel=self.M, prob=0.4, probSingle=1.0, ssmSigma=ssmSigma)
+            nChanges += changes
 
 
         if not nChanges: #If nothing has changed, force a random change of masses
             changes = self.randomlyChangeMasses(prob=1.0)
             nChanges += changes
         else: #Change masses with 5% probability
-            changes = self.randomlyChangeMasses(prob = probMass)
-            nChanges += changes
+            if run_mcmc: self.randomlyChangeMasses(prob = 0.7)
+            else: self.randomlyChangeMasses(prob = probMass)
+            
         #print(f"q_total = {self.proposal_ratio['q_total']}")
         #Update cross-sections (if needed)
         self.M.getXsecs()
@@ -1081,7 +1091,7 @@ class Manipulator ( LoggerBase ):
         #print(f"Propose unfreezing {self.namer.asciiName(pid)}" )
         return self.unFreezeParticle(pid, protomodel = self.propose_model)
 
-    def randomlyChangeBranchings ( self, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05, addBRprob = 0.1 ):
+    def randomlyChangeBranchings ( self, protomodel = None, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05, addBRprob = 0.1 ):
         """ randomly change the branchings of a single particle
 
         :param prob: Probability for changing a branching ratio
@@ -1089,7 +1099,8 @@ class Manipulator ( LoggerBase ):
         :param singleBRprob: With probability singleBRprob, keep only one decay channel
         :param addBRprob: With probability addBRprob, add a new decay channel for the pid
         """
-
+        if protomodel is None:
+            protomodel = self.M
         uBranch = np.random.uniform(0,1)
         if uBranch < (1-prob):
             self.log("Not changing branchings")
@@ -1104,7 +1115,7 @@ class Manipulator ( LoggerBase ):
             self.highlight ( "error", "why is %d not in decays?? %s" % ( p, self.M.decays.keys() ) )
             # we dont know about this decay? we initialize with the default!
 
-        return self.randomlyChangeBranchingOfPid ( p, self.propose_model, zeroBRprob, singleBRprob, addBRprob)
+        return self.randomlyChangeBranchingOfPid ( p, protomodel, zeroBRprob, singleBRprob, addBRprob)
 
     def record ( self, change : str ):
         """ log the changes that have been performed on the model
@@ -1622,6 +1633,7 @@ class Manipulator ( LoggerBase ):
         if not initialized:
             self.log(f"No decays for {pid}")
             self.proposal_ratio['add_par']['q'] = 1.
+            self.freezeParticle ( pid, force=True, protomodel=protomodel )
             return None
         
         #Add pid pair production and associated production to protomodel.ssmultipliers:

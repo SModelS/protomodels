@@ -56,7 +56,7 @@ class RandomWalker ( LoggerBase ):
             cheatcode : int = 0, dbpath : PathLike = "./database.pcl",
             expected : bool = False, select : str = "all",
             catch_exceptions : bool = True, rundir : Union[PathLike,None] = None,
-            do_srcombine : bool = False, test_param_space = False,
+            do_srcombine : bool = False, test_param_space = False, run_mcmc = False,
             record_history : bool = False, seed : Union[int,None] = None,
             stopTeleportationAfter : int = -1 ):
         """ initialise the walker
@@ -70,6 +70,8 @@ class RandomWalker ( LoggerBase ):
         :param catch_exceptions: should we catch exceptions
         :param do_srcombine: if true, then also perform combinations, either via
                            simplified likelihoods or via pyhf
+        :param test_param_space: if true, run with constant K and TL (=1.0)
+        :param run_mcmc: if true, run mcmc walk without changing dimensions
         :param record_history: if true, attach a history recorder class
         :param seed: random seed, int or None
         :param stopTeleportationAfter: int or None. we stop teleportation after
@@ -130,6 +132,7 @@ class RandomWalker ( LoggerBase ):
         
         #keep track of log llhd ratio
         self.trace_logllhdratio = []
+        self.run_mcmc = run_mcmc
 
         if cheatcode <= 0:
             self.takeStep() # the first step should be considered as "taken"
@@ -261,7 +264,7 @@ class RandomWalker ( LoggerBase ):
         muhat_converge = False
         previousMuhat = None
         for i in range(5):
-            predict = self.predictor.predict(manipulator)
+            predict = self.predictor.predict(manipulator, run_mcmc=self.run_mcmc)
             if predict: #returns False if no preds are found or TL is None (i.e no comb found)
                 #print(f"i {i}, muhat {model.muhat}, convergence {abs(model.muhat - 1.0)}")
                 if abs(model.muhat - 1.0) < 1e-02:
@@ -309,7 +312,7 @@ class RandomWalker ( LoggerBase ):
 
         #Take a step in the model space:
         self.log("Randomly change model")
-        self.manipulator.randomlyChangeModel()
+        self.manipulator.randomlyChangeModel(run_mcmc = self.run_mcmc)
         print("reassigning pid")
         self.manipulator.reassignPID()
         # self.printStats( substep=13 )
