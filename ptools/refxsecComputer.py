@@ -482,20 +482,21 @@ class RefXSecComputer:
                 ssm = ssmultipliers[pids]
                 channel["ssm"] = ssm
                 xsec = xsec * ssm
+                channel["xsec"] = xsec
+                channel["sqrts"] = sqrts
+                channel["order"] = order
+                channel["comment"] = comment
+                orderStr = crossSection.orderToString(order,False,False)
+                channel["label"] = f"{int(sqrts)} TeV ({orderStr})"
+                a = self.dictToXSection ( channel )
+                a.comment = comment
+                # print ( "adding", a, hasattr ( a, "comment" ) )
+                xsecs.add ( a )
             else:
                 logger.debug (f"*** No signal strength multiplier for {pids} ***")
                 logger.debug (pids,pids in ssmultipliers)
                 logger.debug (ssmultipliers)
-            channel["xsec"] = xsec
-            channel["sqrts"] = sqrts
-            channel["order"] = order
-            channel["comment"] = comment
-            orderStr = crossSection.orderToString(order,False,False)
-            channel["label"] = f"{int(sqrts)} TeV ({orderStr})"
-            a = self.dictToXSection ( channel )
-            a.comment = comment
-            # print ( "adding", a, hasattr ( a, "comment" ) )
-            xsecs.add ( a )
+            
         # print ( "xdding", xsecs, hasattr ( xsecs[0], "comment" ) )
         self.xsecs = xsecs
         if len(self.xsecs)>0:
