@@ -340,6 +340,8 @@ class Predictor ( LoggerBase ):
         for pred in EMpreds:
             if pred.dataset.globalInfo.id in combinedIds:
                 continue
+            if hasattr(pred.dataset.globalInfo, "covariance") or hasattr(pred.dataset.globalInfo, "jsonFiles"):
+                continue
             predictions.append ( pred )
 
         sap = "best preds"

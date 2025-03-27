@@ -899,6 +899,19 @@ class Manipulator ( LoggerBase ):
         
         deg_prop = n_par_propose + n_decays_propose + n_ssms_propose
         deg_current = n_par_current + n_decays_current + n_ssms_current
+        if self.run_mcmc:
+            if deg_prop != deg_current:
+                self.highlight("error", f"Error! Dimension Changed during mcmc walk!")
+                if n_par_current != n_par_propose:
+                    self.log(f"Particle content changed during mcmc walk. Prev num of par {n_par_current}, current num of par {n_par_propose}")
+                if n_decays_current != n_decays_propose:
+                    self.log(f"Decays changed during mcmc walk. Prev num of decays {n_decays_current}, current num of decays {n_decays_propose}")
+                    print(f"current: {model_propose.decays}, {n_decays_propose}")
+                    print(f"prev: {model_current.decays}, {n_decays_current}")
+                if n_ssms_current != n_ssms_propose:
+                    self.log(f"Production modes changed during mcmc walk. Prev num of prod modes {n_ssms_current}, current num of prod modes {n_ssms_propose}")
+                return False
+            return True
         #print(f"Current deg: {deg_current}")
         #print(f"Proposed deg: {deg_prop}")
         
@@ -982,8 +995,10 @@ class Manipulator ( LoggerBase ):
         with probability of probMass
         """
         
-        self.propose_model = self.M.copy()
         self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
+        self.run_mcmc = run_mcmc
+        if self.run_mcmc: old_model = self.M.copy()
+        else: self.propose_model = self.M.copy()
         changeDesc = {}
         nChanges = 0
         
@@ -995,7 +1010,7 @@ class Manipulator ( LoggerBase ):
             force_unfreeze = True
             #do we want to not freeze particles? -> not freezing if less than or equal to 3 particles
         
-        if not run_mcmc:
+        if not self.run_mcmc:
             recentlyUnfrozen = self.randomlyUnfreezeParticle()
             if recentlyUnfrozen:
                 accept_move = self.proposal_density(move='add_par', force_unfreeze=force_unfreeze)
@@ -1045,9 +1060,14 @@ class Manipulator ( LoggerBase ):
             changes = self.randomlyChangeMasses(prob=1.0)
             nChanges += changes
         else: #Change masses with 5% probability
-            if run_mcmc: self.randomlyChangeMasses(prob = 0.7)
+            if self.run_mcmc: self.randomlyChangeMasses(prob = 0.7)
             else: self.randomlyChangeMasses(prob = probMass)
-            
+        
+        if self.run_mcmc:
+            check_dim_change = self.z_model(old_model, self.M)
+            if not check_dim_change:
+                self.log("Returning to previous model")
+                self.M = old_model
         #print(f"q_total = {self.proposal_ratio['q_total']}")
         #Update cross-sections (if needed)
         self.M.getXsecs()
@@ -1689,6 +1709,7 @@ class Manipulator ( LoggerBase ):
             p = np.random.uniform(0,1)
             offshell = self.checkIfOffshell(pid)
             if offshell: p = np.random.uniform(0,0.5)        #SN: check if this makes sense?
+            if self.run_mcmc: p = 1.0
             if p < .1:
                 mass = self.M.masses[pid]
                 otherpid = 1000024 if pid == 1000023 else 1000023
@@ -1744,7 +1765,7 @@ class Manipulator ( LoggerBase ):
         if self.M.TL > 0:                           #short term fix -> discuss with Wg!
             denom = np.sqrt(self.M.TL) + 1.0
         
-        step_size = 100                          #if self.M.masses[pid]>100 else 100
+        step_size = 100 if self.M.masses[pid]<1000 else 500
         dx = (step_size)/denom
         if dx < 0.:
             self.highlight ( "info", f"dx={dx}<0. this should not happen. pid={pid} mass={self.M.masses[pid]} denom={denom}" )
@@ -1760,6 +1781,7 @@ class Manipulator ( LoggerBase ):
         if pid in [ 1000023, 1000024 ] and not was_offshell:
             # for C1 and N2 we want a 10% chance to move into the offshell region
             p = np.random.uniform ( 0, 1 )
+            if self.run_mcmc: p = 1.0        #dont jump from onshell to offshell and vice-versa in mcmc walk
             if p < 0.1:
                 offshell = True
                 self.log ( f"randomly chose {self.namer.asciiName(pid)} to restrict to offshell mass!" )
@@ -1810,6 +1832,9 @@ class Manipulator ( LoggerBase ):
             if pid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
             if pid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
             if was_offshell != is_offshell:     #initialize branchings
+                if self.run_mcmc:
+                    self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {pid}.")
+                    return 0
                 self.log ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
                 self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
                 self.M.masses[pid]=tmpmass
@@ -1838,7 +1863,7 @@ class Manipulator ( LoggerBase ):
                 oldssms = self.M.ssmultipliers
                 lightpid = int(abs(pids[0])*abs(pids[1])/pids[1])    #get the charge right
                 for pidpair, ssm in oldssms.items():
-                    newpidpair = [lightpid if abs(pids[1]) == abs(pid) else pid for pid in pidpair]
+                    newpidpair = [int(lightpid*pid/abs(pid)) if abs(pids[1]) == abs(pid) else pid for pid in pidpair]
                     newpidpair = tuple(sorted(newpidpair))
                     newssms[newpidpair] = ssm
                 self.M.ssmultipliers  = newssms

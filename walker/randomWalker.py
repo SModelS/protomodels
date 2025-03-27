@@ -133,7 +133,7 @@ class RandomWalker ( LoggerBase ):
         #keep track of log llhd ratio
         self.trace_logllhdratio = []
         self.run_mcmc = run_mcmc
-
+        if self.run_mcmc: self.highlight("info", "Running MCMC walk")
         if cheatcode <= 0:
             self.takeStep() # the first step should be considered as "taken"
             #Set current TL and K values to threshold values
@@ -313,7 +313,6 @@ class RandomWalker ( LoggerBase ):
         #Take a step in the model space:
         self.log("Randomly change model")
         self.manipulator.randomlyChangeModel(run_mcmc = self.run_mcmc)
-        print("reassigning pid")
         self.manipulator.reassignPID()
         # self.printStats( substep=13 )
 
@@ -322,10 +321,12 @@ class RandomWalker ( LoggerBase ):
 
         #Try to create a simpler model
         #(merge pre-defined particles if their mass difference is below dm)
-        self.log("Try to simplify model")
-        protomodelSimp = self.manipulator.simplifyModel(dm=200.0)
+        if not self.run_mcmc:
+            self.log("Try to simplify model")
+            protomodelSimp = self.manipulator.simplifyModel(dm=200.0)
+        else: protomodelSimp = None
         manipulatorSimp = None
-        if protomodelSimp: 
+        if protomodelSimp:
             manipulatorSimp = Manipulator ( protomodelSimp, strategy="aggressive",do_record = False, seed = self.random_seed )
             manipulatorSimp.reassignPID()
         boolProtoSimp = False
