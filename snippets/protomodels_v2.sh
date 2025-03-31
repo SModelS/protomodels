@@ -16,9 +16,9 @@ for the protomodels v2 paper """
 
 ../plotting/plotDBDict.py -d ../share/300.dict --show -a '^ATLAS-EXOT-*,^CMS-EXO-19-*,^ATLAS-SUSY-2018-22-multibin,^ATLAS-SUSY-2018-16-hino,^ATLAS-SUSY-2018-05-ewk' -t 'electroweakinos,darkmatter' -T "protomodels_v2: ewkinos + dark matter" -o "metastats_ewkinos.png" --pvalues
 
-../../smodels-utils/bin/writeAnalysesTable.py -S 13 -e CMS -k -d ~/git/smodels-database --timg -P -p -N -b -H --exclude "CMS-EXO-19-*" -o CMS13.tex
+../../smodels-utils/bin/writeAnalysesTable.py -S 13 -e CMS -k -d ~/git/smodels-database --timg -P -p -N -b -H --exclude "CMS-EXO-19-*" -o cms13.tex
 
-../../smodels-utils/bin/writeAnalysesTable.py -S 13 -e ATLAS -k -d ~/git/smodels-database --timg -P -p -N -b -H --exclude "ATLAS-EXOT-*,ATLAS-SUSY-2018-22-multibin,ATLAS-SUSY-2018-16-hino,ATLAS-SUSY-2018-05-ewk" -o ATLAS13.tex
+../../smodels-utils/bin/writeAnalysesTable.py -S 13 -e ATLAS -k -d ~/git/smodels-database --timg -P -p -N -b -H --exclude "ATLAS-EXOT-*,ATLAS-SUSY-2018-22-multibin,ATLAS-SUSY-2018-16-hino,ATLAS-SUSY-2018-05-ewk" -o atlas13.tex
 
-../../smodels-utils/bin/writeAnalysesTable.py -S 8 -e ATLAS -k -d ~/git/smodels-database --timg -P -p -N -b -H -o ATLAS8.tex
-../../smodels-utils/bin/writeAnalysesTable.py -S 8 -e CMS -k -d ~/git/smodels-database --timg -P -p -N -b -H  -o CMS8.tex
+../../smodels-utils/bin/writeAnalysesTable.py -S 8 -e ATLAS -k -d ~/git/smodels-database --timg -P -p -N -b -H -o atlas8.tex
+../../smodels-utils/bin/writeAnalysesTable.py -S 8 -e CMS -k -d ~/git/smodels-database --timg -P -p -N -b -H  -o cms8.tex
