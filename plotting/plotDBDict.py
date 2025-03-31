@@ -136,7 +136,7 @@ class Plotter ( LoggerBase ):
         self.topologies = []
         self.negativetopos = []
         self.negativeanalyses = []
-        self.outfile = self.determineOutFile ( "./pDatabase@@FILTER@@.png" )
+        self.outfile = "not_specified.png"
         self.title = None
         self.roughviz = False
         self.options = { "alwayslegend": False }
@@ -243,8 +243,6 @@ class Plotter ( LoggerBase ):
                         self.negativeanalyses.append ( a[1:] )
                     else:
                         self.analyses.append ( a )
-        print ( f"@@1 negative {self.negativeanalyses}" )
-        print ( f"@@1 positive {self.analyses}" )
         self.filenames = []
         if "comment" in args:
             comment = args['comment']
@@ -566,8 +564,12 @@ class Plotter ( LoggerBase ):
         if outfile is None:
             return "tmp.png"
         origt = self.origtopos.replace(" ","").replace(",","_")
-        flt = "_"+origt+"_^".join(self.negativetopos)
-        flt += "_".join(self.analyses)+"_^".join(self.negativeanalyses )
+        flt = "_"+origt+"_not".join(self.negativetopos)
+        flt += "_".join(self.analyses) # 
+        if len(self.negativeanalyses)>0:
+            flt += "_not"
+            flt += "_not".join(self.negativeanalyses )
+        flt = flt.replace("*","star").replace("?","questionmark")
         outfile = outfile.replace("@@FILTER@@", flt )
         return outfile
 
