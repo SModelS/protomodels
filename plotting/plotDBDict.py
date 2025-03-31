@@ -2,9 +2,13 @@
 
 """ plot the meta statistics of database.dict """
 
+import sys,os
+dirname = os.path.dirname ( os.path.abspath ( __file__ ) )
+dirname = dirname.replace("/plotting","").replace("/protomodels","")
+sys.path.insert(0,dirname)
+
 from smodels_utils.plotting import mpkitty as plt
 from smodels_utils.helper import prettyDescriptions
-
 import numpy as np
 import os, glob, sys, math, fnmatch
 from copy import deepcopy as cp
@@ -12,7 +16,6 @@ import scipy.stats
 import matplotlib.mlab as mlab
 from typing import Union
 
-sys.path.insert(0,"../")
 from ptools.helpers import computeP
 from ptools.moreHelpers import namesForSetsOfTopologies
 from protomodels.base.loggerbase import LoggerBase
@@ -419,6 +422,7 @@ class Plotter ( LoggerBase ):
                 if len(self.negativeanalyses) != 0:
                     passesAnas=True
                     for ana in self.negativeanalyses:
+                        # print ( f"@@b does {anaid} match {ana}: {fnmatch.fnmatch ( anaid, ana )}" )
                         if fnmatch.fnmatch ( anaid, ana ):
                             passesAnas=False
                             break

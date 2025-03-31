@@ -8,3 +8,5 @@
 ../plotting/plotBAM.py -s 8 -e ATLAS --show --effmaps_only -t --title "ATLAS-"
 
 ../plotting/plotBAM.py -s 8 -e CMS --show --effmaps_only -t --title "CMS-"
+
+../plotting/plotDBDict.py -d ../share/300.dict --show -a '^ATLAS-EXOT-*,^CMS-EXO-19-*,^ATLAS-SUSY-2018-22-multibin,^ATLAS-SUSY-2018-16-hino,^ATLAS-SUSY-2018-05-ewk'
