@@ -6,7 +6,7 @@ from smodels_utils.plotting import mpkitty as plt
 from smodels_utils.helper import prettyDescriptions
 
 import numpy as np
-import os, glob, sys, math
+import os, glob, sys, math, fnmatch
 from copy import deepcopy as cp
 import scipy.stats
 import matplotlib.mlab as mlab
@@ -243,6 +243,8 @@ class Plotter ( LoggerBase ):
                         self.negativeanalyses.append ( a[1:] )
                     else:
                         self.analyses.append ( a )
+        print ( f"@@1 negative {self.negativeanalyses}" )
+        print ( f"@@1 positive {self.analyses}" )
         self.filenames = []
         if "comment" in args:
             comment = args['comment']
@@ -413,13 +415,13 @@ class Plotter ( LoggerBase ):
                 if len(self.analyses)==0 and len(self.negativeanalyses)==0:
                     passesAnas=True
                 for ana in self.analyses:
-                    if ana in anaid:
+                    if fnmatch.fnmatch ( anaid, ana ):
                         passesAnas=True
                         break
                 if len(self.negativeanalyses) != 0:
                     passesAnas=True
                     for ana in self.negativeanalyses:
-                        if ana in anaid:
+                        if fnmatch.fnmatch ( anaid, ana ):
                             passesAnas=False
                             break
                 if not passesAnas:
@@ -971,7 +973,7 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '--sqrts', nargs='*',
             help='sqrtses [8,13,13.6]', type=float, default=[8,13,13.6] )
     argparser.add_argument ( '-a', '--analyses', nargs='?',
-            help='filter for certain analyses, e.g. CMS-SUS-16-039-ma5. Comma separated. "^" before the name acts as negation [None]',
+            help='filter for certain analyses, e.g. CMS-SUS-16-039-*. Unix-type wildcards. Comma separated. "^" before the name acts as negation [None]',
             type=str, default=None )
     argparser.add_argument ( '-f', '--filter', nargs='?',
             help='filter out signal regions with expectedBG<x [x=0.]',
