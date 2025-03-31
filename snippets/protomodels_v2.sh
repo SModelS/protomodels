@@ -18,7 +18,7 @@ for the protomodels v2 paper """
 
 ../../smodels-utils/bin/writeAnalysesTable.py -S 13 -e CMS -k -d ~/git/smodels-database --timg -P -p -N -b -H --exclude "CMS-EXO-19-*" -o cms13.tex
 
-../../smodels-utils/bin/writeAnalysesTable.py -S 13 -e ATLAS -k -d ~/git/smodels-database --timg -P -p -N -b -H --exclude "ATLAS-EXOT-*,ATLAS-SUSY-2018-22-multibin,ATLAS-SUSY-2018-16-hino,ATLAS-SUSY-2018-05-ewk" -o atlas13.tex
+../../smodels-utils/bin/writeAnalysesTable.py -S 13 -e ATLAS -k -d ~/git/smodels-database --timg -P -p -N -b -H --exclude "ATLAS-EXOT-*,ATLAS-SUSY-2018-22-multibin,ATLAS-SUSY-2018-16-hino,ATLAS-SUSY-2018-05-ewk,ATLAS-SUSY-2018-42-incl" -o atlas13.tex
 
 ../../smodels-utils/bin/writeAnalysesTable.py -S 8 -e ATLAS -k -d ~/git/smodels-database --timg -P -p -N -b -H -o atlas8.tex
 ../../smodels-utils/bin/writeAnalysesTable.py -S 8 -e CMS -k -d ~/git/smodels-database --timg -P -p -N -b -H  -o cms8.tex
