@@ -148,7 +148,9 @@ def readDictionaryFile ( filename : PathLike ) -> dict:
     ret = { "meta": {}, "data": {}, "basename": basename }
     ret["meta"].update (  eval(lines[0]) )
     nan=float("nan")
-    data = eval("\n".join(lines[1:]),{'inf':float('inf'), 'nan':float('nan')})
+    import importlib
+    data = eval("\n".join(lines[1:]),{'inf':float('inf'), 'nan':float('nan'),
+                                      'np': importlib.import_module('numpy') })
     ret["data"] = data
     return ret
 
