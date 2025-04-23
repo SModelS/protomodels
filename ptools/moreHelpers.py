@@ -75,7 +75,7 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
     shorts["gauginos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
     shorts["gauginos_offshell"]=shorts["gauginos"]+",TChiWZoff,TChiWWoff"
     shorts["electroweakinos_onshell"]='TChiH,TChiChipmSlepStau,TChipChimSlepSnu,TChiHH,TChiWW,TChiWZ,TChipChimSlepSlep,TChipChimStauSnu,TChiZH,TChiWH,TChipChimgg,TChiZZ,TChiChipmStauStau,TChiChipmSlepSlep,TChiChipmSlepL,TChiChipmStauL'
-    shorts["electroweakinos_offshell"]="TChiWZoff,TChiWWoff"
+    shorts["electroweakinos_offshell"]="TChiWZoff,TChiWWoff,TChiISR,TChiWISRll,TChiZISRll,TChiZISRqq"
     shorts["electroweakinos"]=shorts["electroweakinos_onshell"]+","+shorts["electroweakinos_offshell"]
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["gluinos"]="T1,T3W,T5,T5tttt,T5bbbb,T5WW,T5ZZ,T5WWoff,T5tctc,T5tbtt,T5tbtb,T5bbbt,T5tbtt,T5tbtb,T5HH,T5HZ,T5AAT5bbbbZg,T5ttttZg,T5ttbbWWoff,T5ttofftt,T5gg,T5WZh"

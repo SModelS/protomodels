@@ -168,7 +168,7 @@ class Hiscores ( LoggerBase ):
         c = 0
         while True:
             m = Manipulator( path, nth = c )
-            predictor.predict ( m.M, keep_predictions=True )
+            predictor.predict ( m, keep_predictions=True )
             hiscores.append ( m.M )
             c+=1
             if type(firstn) == int and c > firstn:

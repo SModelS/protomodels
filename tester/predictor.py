@@ -207,7 +207,7 @@ class Predictor ( LoggerBase ):
     #         ret.append ( p )
     #     return ret
 
-    def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb,
+    def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb, mingap = 10*GeV,
                   strategy : str = "aggressive",keep_predictions : bool = False, keep_slhafile : bool = False, run_mcmc=False ) -> bool:
         """ Compute the predictions and statistical variables, for a
             protomodel.
@@ -234,7 +234,7 @@ class Predictor ( LoggerBase ):
         slhafile = protomodel.createSLHAFile()
 
         # now use all prediction with likelihood values to compute the TL of the model
-        predictions = self.runSModelS( slhafile, sigmacut, allpreds=True, ULpreds=False )
+        predictions = self.runSModelS( slhafile, sigmacut, mingap, allpreds=True, ULpreds=False )
         if not predictions: return False
 
         if keep_predictions:
@@ -269,7 +269,7 @@ class Predictor ( LoggerBase ):
         protomodel.dbversion = self.database.databaseVersion
         return True
 
-    def runSModelS(self, inputFile : PathLike, sigmacut : float,
+    def runSModelS(self, inputFile : PathLike, sigmacut : float, mingap : float,
             allpreds : bool, ULpreds : bool, maxcond : float = 0.2 ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
@@ -298,7 +298,7 @@ class Predictor ( LoggerBase ):
                 # no idea what that is. pass it on.
                 raise e
 
-        mingap=10*GeV
+        #mingap=3*GeV
 
         # self.log ( "Now decomposing" )
         topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
@@ -414,11 +414,15 @@ class Predictor ( LoggerBase ):
         protomodel.description = self.combiner.getComboDescription(protomodel.bestCombo)
 
         protomodel.muhat = muhat
-
         protomodel.TL = TL
+        
         if TL is None: # TL is None when no combination was found
             protomodel.K = None
-
+        if muhat is None:
+            protomodel.K = None
+            self.highlight("warning", "No muhat found")
+            return
+        
         if abs(muhat - 1.0) < 1e-02:
             prior = self.combiner.computePrior ( protomodel )
             ## temporary hack: penalize for missing experiment
@@ -435,7 +439,7 @@ class Predictor ( LoggerBase ):
             if TL is None: # TL is None when no combination was found
                 protomodel.K = None
             else:
-                protomodel.K = self.combiner.computeK ( TL, prior )
+                protomodel.K = float(self.combiner.computeK ( TL, prior ))
             
             #FIXME!
             '''

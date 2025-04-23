@@ -35,7 +35,8 @@ class Critic ( LoggerBase ):
         self.r_threshold = 1.38
         self.sensitivity_threshold = 0.7
         self.verbose = 1
-
+        self.select = select
+        
         force_load = None
         if dbpath.endswith ( ".pcl" ):
             force_load = "pcl"
@@ -47,6 +48,7 @@ class Critic ( LoggerBase ):
         self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
         if 'official' not in dbpath:
             self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
+        self.fetchResults()
         self.combiner = Combiner(self.walkerid)
 
     # def getMaxAllowedMu(self, protomodel):
@@ -67,6 +69,36 @@ class Critic ( LoggerBase ):
     #     return mumax
 
 
+    def fetchResults ( self ):
+        """ fetch the list of results, perform all selecting
+            and modding """
+
+        dataTypes = [ "all" ]
+        if self.select == "em":
+            dataTypes = [ "efficiencyMap" ]
+        if self.select == "ul":
+            dataTypes = [ "upperLimit" ]
+        txnames = [ "all" ]
+        if self.select.startswith("txnames:"):
+            s = self.select.replace("txnames:","")
+            from ptools.moreHelpers import namesForSetsOfTopologies
+            txnames = namesForSetsOfTopologies ( s )[0]
+            txnames = txnames.split(",")
+
+        listOfExpRes = self.database.getExpResults( dataTypes = dataTypes,
+                                                    txnames = txnames,
+                                                    useNonValidated=True )
+        #if self.modifier:
+        #    listOfExpRes = self.modifier.modify ( listOfExpRes )
+
+
+        self.listOfExpRes = listOfExpRes
+        if False:
+            f=open("expresults.txt","wt")
+            for expRes in self.listOfExpRes:
+                f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
+            f.close()
+    
     def updateModelPredictionsWithULPreds(self, protomodel, predictions, keep_predictions):
         """ Extract information from list of theory predictions and store list of dict with r_obs,
             r_exp and theory prediction(sorted according to decreasing r_obs values) in the protomodel.
@@ -142,7 +174,8 @@ class Critic ( LoggerBase ):
         return
 
 
-    def runSModelS(self, inputFile : PathLike, combineSRs : bool, ULpreds: bool, sigmacut : float, maxcond : float = 0.2 ) -> List[TheoryPrediction]:
+    def runSModelS(self, inputFile : PathLike, combineSRs : bool, ULpreds: bool, sigmacut : float, mingap:float,
+                    maxcond : float = 0.2 ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
         :param ULpreds: if true, also returns the list of theory predictions for UL-type results
@@ -167,7 +200,7 @@ class Critic ( LoggerBase ):
                 # no idea what that is. pass it on.
                 raise e
 
-        mingap=10*GeV
+        #mingap=10*GeV
         topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
         if False:
             from smodels.base import runtime
@@ -212,7 +245,8 @@ class Critic ( LoggerBase ):
 
         return predictions
 
-    def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, keep_predictions : bool = True, keep_slhafile : bool = False ):
+    def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, mingap = 10*GeV,
+                        keep_predictions : bool = True, keep_slhafile : bool = False ):
         """ Compute the critic predictions and statistical variables, for a protomodel.
 
         :param sigmacut: weight cut on the predict xsecs for theoryPredictions
@@ -229,7 +263,7 @@ class Critic ( LoggerBase ):
         # --- UL-based critic ---
 
         # Run SModelS to get for UL-type predictions, and best SR preditcions if no UL-type result.
-        UL_preds, bestSR_preds = self.runSModelS( slhafile, combineSRs=False, ULpreds=True, sigmacut=sigmacut)
+        UL_preds, bestSR_preds = self.runSModelS( slhafile, combineSRs=False, ULpreds=True, sigmacut=sigmacut, mingap=mingap)
 
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
@@ -249,7 +283,7 @@ class Critic ( LoggerBase ):
 
         # --- llhd-based critic ---
 
-        predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut )       
+        predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut, mingap=mingap )
         allowed_by_llhd_critic, mostSensiComb, robsComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
         if mostSensiComb: num_preds += len(predictions)
         # Extract the relevant prediction information and store in the protomodel:
