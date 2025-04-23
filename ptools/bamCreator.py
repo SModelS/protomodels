@@ -191,5 +191,5 @@ def find_best_comb(bam_weight_dict: Dict) -> Dict[str, float]:
 
 
     # result = {'best': best_labels, 'weight': temp_res['weight'], 'offset': temp_res['offset']}   #store labels and weight in dict
-    result = {'best': best_labels, 'weight': temp_res['weight']}   #store labels and weight in dict
+    result = {'best': best_labels, 'weight': float(temp_res['weight'])}   #store labels and weight in dict
     return result

@@ -554,7 +554,8 @@ class RandomWalker ( LoggerBase ):
             """Handles both SLURM termination signals and manual interruptions."""
             self.highlight("info", f"Saving current protomodel to pmodel{self.walkerid}.dict")
             self.manipulator.restoreModel( reportReversion=True )
-            self.manipulator.writeDictFile(outfile=f"pmodel{self.walkerid}.dict", step=self.manipulator.M.step - 1)
+            if not os.path.isdir("Pmodels"): os.mkdir("Pmodels")
+            self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict", step=self.manipulator.M.step - 1)
             sys.exit(0)
         # Register signal handlers for graceful shutdown
         signal.signal(signal.SIGTERM, handle_termination)  # SLURM termination signal
@@ -589,7 +590,8 @@ class RandomWalker ( LoggerBase ):
                         f.write ( f"traceback: {str(traceback.format_exc())}\n" )
                     self.highlight("info", f"Saving last protomodel to pmodel{self.walkerid}.dict")
                     self.manipulator.restoreModel( reportReversion=True )
-                    self.manipulator.writeDictFile(outfile=f"pmodel{self.walkerid}.dict", step=self.manipulator.M.step - 1)
+                    if not os.path.isdir("Pmodels"): os.mkdir("Pmodels")
+                    self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict", step=self.manipulator.M.step - 1)
                     sys.exit(-1)
 
             #If no combination was found, go back
@@ -609,7 +611,8 @@ class RandomWalker ( LoggerBase ):
         self.manipulator.M.delCurrentSLHA()
         self.pprint ( f"Was asked to stop after {self.maxsteps} steps" )
         self.pprint(f"Writing last protomodel to pmodel{self.walkerid}.dict")
-        self.manipulator.writeDictFile(outfile=f"pmodel{self.walkerid}.dict")
+        if not os.path.isdir("Pmodels"): os.mkdir("Pmodels")
+        self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict")
 
 if __name__ == "__main__":
     #masses = { 1000022: 47.1, 1000023: 449.8, 1000024: 135.47, 1000037: 398.7,

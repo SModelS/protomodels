@@ -447,8 +447,8 @@ class Combiner ( LoggerBase ):
 
         most_significant_comb, weight = self.getMostSignificantCombination(filtered_preds)
 
-        muhat = self.getMuhat(most_significant_comb)
-        TL = weight
+        muhat = float(self.getMuhat(most_significant_comb))
+        TL = float(weight)
 
         return most_significant_comb,TL,muhat
 

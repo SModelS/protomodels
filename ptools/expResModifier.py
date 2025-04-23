@@ -1175,7 +1175,7 @@ Just filter the database:
         txnd.tri._points = numpy.array ( txnd.tri._points, dtype=numpy.float32 )
         return txnd
 
-    def filter ( self ):
+    def filter ( self, exclude_anas: list = [] ):
         """ filter the list fo experimental results.
         :param outfile: store result in outfile (a pickle file)
         :param nofastlim: remove fastlim results
@@ -1185,7 +1185,8 @@ Just filter the database:
         :param remove_nonagg: remove non-aggregated results
         """
         if not ( self.nofastlim or self.onlyvalidated or self.nosuperseded or self.remove_orig or self.remove_nonagg or self.noupperlimits ):
-            return
+            if exclude_anas == []:
+                return
         self.log ( f"starting to filter {self.outfile}. suffix is {self.suffix}." )
         if self.db == None:
             combinationsmatrix, status = getYamlMatrix()
@@ -1227,6 +1228,16 @@ Just filter the database:
                     self.pprint ( f" `- skipping private {anaId}" )
                     addThisOne = False
                     self.hasFiltered = True
+            import fnmatch
+            for exclude in exclude_anas:
+                if fnmatch.fnmatch ( anaId, exclude ):
+                    if exclude == anaId:
+                      print ( f"dropping {anaId}" )
+                    else:
+                        print ( f"dropping {anaId}: matches {exclude}" )
+                    addThisOne = False
+                    self.hasFiltered = True
+                    break
             if not addThisOne:
                 self.hasFiltered = True
                 continue
