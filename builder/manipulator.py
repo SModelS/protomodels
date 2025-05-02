@@ -507,7 +507,7 @@ class Manipulator ( LoggerBase ):
         ## cheating, i.e. starting with models that are known to work well
         if mode == 0: ## no cheating
             return
-        filename = f"pmodel{mode}.dict"
+        filename = f"Pmodels/pmodel{mode}.dict"
         if not os.path.exists ( filename ):
             self.highlight ( "red", f"cheat mode {mode} started, but no {os.getcwd()}/{filename} found" )
             sys.exit(-1)
@@ -947,7 +947,8 @@ class Manipulator ( LoggerBase ):
         
         prob_12, prob_21 = self.z_model(self.M, self.propose_model)
 
-        prob = min(1.0, prob_12/np.sqrt(self.M.TL))
+        if self.M.TL > 0.0: prob = min(1.0, prob_12/np.sqrt(self.M.TL))
+        else: prob = min(1.0, prob_12)
         #print(f"Probability to accept change {prob}")
 
         u = np.random.uniform(0,1)
