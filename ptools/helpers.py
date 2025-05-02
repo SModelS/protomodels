@@ -67,9 +67,22 @@ def getAllProdModesOfTheoryPred (pred : TheoryPrediction) -> Set:
     smses = pred.smsList
     for sms in smses:
         for momIndex,dIndex in sms.genIndexIterator():
+            pdg1, pdg2 = [],[]
+            mass_comp = False
             if momIndex == sms.rootIndex:  # Get Primary Vertex
                 daughter = sms.indexToNode(dIndex)
                 dppdg = [d.pdg for d in daughter]
+                for item in dppdg:
+                    if isinstance(item, list): pdg2 += item; mass_comp = True
+                    else: pdg1.append(item)
+                if mass_comp:                               #Ex: For cases such as: [1000023, [1000022, -1000022]]
+                    import itertools
+                    pprod = itertools.product(pdg1, pdg2)
+                    for pids in pprod:
+                        if -1000022 in pids: continue       #FIXME! Hack for now, only checking for -LSP
+                        dppdg = tuple(sorted(pids))
+                        prod_modes.add(dppdg)
+                    continue
                 dppdg = tuple(sorted(dppdg))
                 prod_modes.add(dppdg)
                 continue

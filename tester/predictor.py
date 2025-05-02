@@ -207,7 +207,7 @@ class Predictor ( LoggerBase ):
     #         ret.append ( p )
     #     return ret
 
-    def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb, mingap = 10*GeV,
+    def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb, mingap = 10*GeV, mingapISR = 2*GeV,
                   strategy : str = "aggressive",keep_predictions : bool = False, keep_slhafile : bool = False, run_mcmc=False ) -> bool:
         """ Compute the predictions and statistical variables, for a
             protomodel.
@@ -234,7 +234,7 @@ class Predictor ( LoggerBase ):
         slhafile = protomodel.createSLHAFile()
 
         # now use all prediction with likelihood values to compute the TL of the model
-        predictions = self.runSModelS( slhafile, sigmacut, mingap, allpreds=True, ULpreds=False )
+        predictions = self.runSModelS( slhafile, sigmacut, mingap, mingapISR, allpreds=True, ULpreds=False )
         if not predictions: return False
 
         if keep_predictions:
@@ -245,6 +245,10 @@ class Predictor ( LoggerBase ):
 
         if protomodel.TL is None:
             self.log ( f"done with prediction. Could not find combinations (TL={protomodel.TL})" )
+            protomodel.delCurrentSLHA()
+            return False
+        if protomodel.muhat is None:
+            self.log(f"done with prediction. Could not find muhat for combination {protomodel.description} (TL={protomodel.TL})" )
             protomodel.delCurrentSLHA()
             return False
         else:
@@ -269,7 +273,7 @@ class Predictor ( LoggerBase ):
         protomodel.dbversion = self.database.databaseVersion
         return True
 
-    def runSModelS(self, inputFile : PathLike, sigmacut : float, mingap : float,
+    def runSModelS(self, inputFile : PathLike, sigmacut : float, mingap : float, mingapISR:float,
             allpreds : bool, ULpreds : bool, maxcond : float = 0.2 ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
@@ -301,7 +305,7 @@ class Predictor ( LoggerBase ):
         #mingap=3*GeV
 
         # self.log ( "Now decomposing" )
-        topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
+        topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap, minmassgapISR = mingapISR )
         self.log ( f"decomposed model into {len(topos)} topologies." )
 
         if allpreds:
@@ -418,8 +422,9 @@ class Predictor ( LoggerBase ):
         
         if TL is None: # TL is None when no combination was found
             protomodel.K = None
-        if muhat is None:
+        if muhat is None or muhat == {}:
             protomodel.K = None
+            protomodel.muhat = None
             self.highlight("warning", "No muhat found")
             return
         

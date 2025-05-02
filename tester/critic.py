@@ -175,7 +175,7 @@ class Critic ( LoggerBase ):
 
 
     def runSModelS(self, inputFile : PathLike, combineSRs : bool, ULpreds: bool, sigmacut : float, mingap:float,
-                    maxcond : float = 0.2 ) -> List[TheoryPrediction]:
+                    mingapISR:float, maxcond : float = 0.2 ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
         :param ULpreds: if true, also returns the list of theory predictions for UL-type results
@@ -201,7 +201,7 @@ class Critic ( LoggerBase ):
                 raise e
 
         #mingap=10*GeV
-        topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
+        topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap, minmassgapISR = mingapISR )
         if False:
             from smodels.base import runtime
             runtime._experimental = True
@@ -245,7 +245,7 @@ class Critic ( LoggerBase ):
 
         return predictions
 
-    def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, mingap = 10*GeV,
+    def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, mingap = 10*GeV, mingapISR = 2*GeV,
                         keep_predictions : bool = True, keep_slhafile : bool = False ):
         """ Compute the critic predictions and statistical variables, for a protomodel.
 
@@ -263,7 +263,7 @@ class Critic ( LoggerBase ):
         # --- UL-based critic ---
 
         # Run SModelS to get for UL-type predictions, and best SR preditcions if no UL-type result.
-        UL_preds, bestSR_preds = self.runSModelS( slhafile, combineSRs=False, ULpreds=True, sigmacut=sigmacut, mingap=mingap)
+        UL_preds, bestSR_preds = self.runSModelS( slhafile, combineSRs=False, ULpreds=True, sigmacut=sigmacut, mingap=mingap, mingapISR=mingapISR)
 
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
@@ -283,7 +283,7 @@ class Critic ( LoggerBase ):
 
         # --- llhd-based critic ---
 
-        predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut, mingap=mingap )
+        predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut, mingap=mingap, mingapISR=mingapISR )
         allowed_by_llhd_critic, mostSensiComb, robsComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
         if mostSensiComb: num_preds += len(predictions)
         # Extract the relevant prediction information and store in the protomodel:
