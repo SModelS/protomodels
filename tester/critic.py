@@ -8,7 +8,6 @@ current model survives LHC constraints or not.
 __all__ = [ "Critic" ]
 
 import pickle, time, os, sys
-import time
 from smodels.decomposition import decomposer
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionList, TheoryPredictionsCombiner
 sys.path.insert(0,"../")
@@ -147,11 +146,11 @@ class Critic ( LoggerBase ):
             rexp = None
             if tp['rexp'] is not None:
                 rexp = f"{tp['rexp']:.2f}"
-            tmp = f"{tp['tp'].analysisId()}({rtype}):[robs={tp['robs']:.2f},rexp={rexp}]"
+            tmp = f"'{tp['tp'].analysisId()}({rtype})': {'robs':{tp['robs']:.2f}, 'rexp':{rexp}}"
             critic_description.append ( tmp )
         if len(tpList)>3:
             critic_description.append ( "..." )
-        protomodel.ul_critic += "Datasets: " + ",".join ( critic_description )
+        protomodel.ul_critic += ", 'Datasets': {" + ",".join ( critic_description ) + "}}"
 
         return
 
@@ -170,7 +169,7 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.ll_critic = ",".join( [experimentalId(comb) for comb in mostSensiComb] ) + f" with r={robsComb:.2f}"
+            protomodel.ll_critic = "{'Datasets': [" + ",".join( [experimentalId(comb) for comb in mostSensiComb] ) + f"], 'robs':{robsComb:.2f}}"
 
         return
 
@@ -363,7 +362,7 @@ class Critic ( LoggerBase ):
         while binom.cdf(max_allowed,n_sensitive,0.05) <= 0.66:  #rewrite as max_allowed = binom.ppf(0.66, n_sensitive, 0.05)?
             max_allowed += 1
 
-        protomodel.ul_critic = f"n_sen={n_sensitive}, n_excl={n_excluding}, max_all={max_allowed} => passes critic: {max_allowed >= n_excluding}. "
+        protomodel.ul_critic = f"{'n_sen':{n_sensitive}, 'n_excl':{n_excluding}, 'max_all':{max_allowed}, 'passes': {max_allowed >= n_excluding}"
         self.log(f"UL-based critic: n_sen={n_sensitive}, n_excl={n_excluding}, max_all={max_allowed} => passes critic: {max_allowed >= n_excluding}")
         return max_allowed >= n_excluding, n_sensitive
 
@@ -408,6 +407,7 @@ class Critic ( LoggerBase ):
         if best_comb:
             tpCombiner = TheoryPredictionsCombiner(best_comb)
             try:
+                import time
                 start_time = time.time()
                 r = tpCombiner.getRValue(expected=False)
                 end_time = time.time()
