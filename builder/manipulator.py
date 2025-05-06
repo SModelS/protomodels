@@ -674,9 +674,10 @@ class Manipulator ( LoggerBase ):
             for dpid in decay_chan:
                 if offshell:
                     if pid == 1000023:
-                        if '11' in dk[-2:]: protomodel.decays[pid][dpid] = 1.0/18.0
-                        elif '2' in dk[-1]: protomodel.decays[pid][dpid] = 12.0/18.0
-                        elif '5' in dk[-1]: protomodel.decays[pid][dpid] = 3.0/18.0
+                        if '11' in dk[-2:]: protomodel.decays[pid][dpid] = 1.0/21.0   #chi2->chi1 l+ l-
+                        elif '2' in dk[-1]: protomodel.decays[pid][dpid] = 12.0/21.0  #chi2->chi1 u ubar (d,c,s), 3 cols of each
+                        elif '5' in dk[-1]: protomodel.decays[pid][dpid] = 3.0/21.0   #chi2->chi1 b bbar, 3 cols of b
+                        elif '12' in dk[-2:]: protomodel.decays[pid][dpid] = 3.0/21.0  #chi2->chi1 nu nu, 3 flav of nus
                         else: protomodel.decays[pid][dpid] = 0.0
                     elif pid == 1000024:
                         if '12' in dk[-2:]: protomodel.decays[pid][dpid] = 1.0/9.0
