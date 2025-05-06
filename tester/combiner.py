@@ -392,8 +392,8 @@ class Combiner ( LoggerBase ):
         comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
 
         #Removing Jamie's penalty for now
-        # if len(comb_lbl)>1:
-        #    weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
+        if len(comb_lbl)>1:
+            weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
 
         #convert best labels to theorypreds
         tp_comb = []
@@ -446,9 +446,13 @@ class Combiner ( LoggerBase ):
         self.log(f"Filtered predictions from {len(predictions)} to {len(filtered_preds)}")
 
         most_significant_comb, weight = self.getMostSignificantCombination(filtered_preds)
-
+        import time
+        start_time = time.time()
         muhat = self.getMuhat(most_significant_comb)
         if muhat: muhat = float(muhat)
+        end_time = time.time()
+        time_taken = end_time - start_time
+        self.log("Computed muhat, taken {time_taken:.3f} seconds")
         TL = float(weight)
 
         return most_significant_comb,TL,muhat

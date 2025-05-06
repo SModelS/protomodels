@@ -207,7 +207,7 @@ class Predictor ( LoggerBase ):
     #         ret.append ( p )
     #     return ret
 
-    def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb, mingap = 10*GeV, mingapISR = 2*GeV,
+    def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb, mingap = 10*GeV, mingapISR = 1*GeV,
                   strategy : str = "aggressive",keep_predictions : bool = False, keep_slhafile : bool = False, run_mcmc=False ) -> bool:
         """ Compute the predictions and statistical variables, for a
             protomodel.
@@ -329,7 +329,7 @@ class Predictor ( LoggerBase ):
 
         end_time = time.time()
         time_taken = end_time - start_time
-        self.log(f"finished computing preds, taken {time_taken:.6f} seconds")
+        self.log(f"finished computing preds, taken {time_taken:.3f} seconds")
         if preds != None:
             for pred in preds:
                 if pred.dataType() == 'upperLimit':

@@ -8,6 +8,7 @@ current model survives LHC constraints or not.
 __all__ = [ "Critic" ]
 
 import pickle, time, os, sys
+import time
 from smodels.decomposition import decomposer
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionList, TheoryPredictionsCombiner
 sys.path.insert(0,"../")
@@ -245,7 +246,7 @@ class Critic ( LoggerBase ):
 
         return predictions
 
-    def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, mingap = 10*GeV, mingapISR = 2*GeV,
+    def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, mingap = 10*GeV, mingapISR = 1*GeV,
                         keep_predictions : bool = True, keep_slhafile : bool = False ):
         """ Compute the critic predictions and statistical variables, for a protomodel.
 
@@ -407,7 +408,11 @@ class Critic ( LoggerBase ):
         if best_comb:
             tpCombiner = TheoryPredictionsCombiner(best_comb)
             try:
+                start_time = time.time()
                 r = tpCombiner.getRValue(expected=False)
+                end_time = time.time()
+                time_taken = end_time - start_time
+                self.log("Computed robs, taken {time_taken:.3f} seconds.")
             except Exception as e:
                 import time
                 outfile = f"pmodel-{self.walkerid}_{self.protomodel.step}-{int(time.time())}.dict"
