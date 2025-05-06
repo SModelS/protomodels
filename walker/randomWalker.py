@@ -145,6 +145,7 @@ class RandomWalker ( LoggerBase ):
                 self.manipulator.M.K, self.manipulator.M.TL = 1.0,1.0
                 self.currentK = self.manipulator.M.K
                 self.currentTL = self.manipulator.M.TL
+                if self.run_mcmc: self.currentBestCombo = set(self.manipulator.M.description.split(','))
             
             else:
                 self.predict(self.manipulator)
@@ -452,6 +453,7 @@ class RandomWalker ( LoggerBase ):
         # Update current K and TL values
         self.currentK = self.protomodel.K
         self.currentTL = self.protomodel.TL
+        if self.run_mcmc: self.currentBestCombo = set(self.protomodel.description.split(','))
         self.manipulator.record( "take step" )
 
     def decideOnTakingStep ( self):
@@ -462,7 +464,13 @@ class RandomWalker ( LoggerBase ):
         if K == None: # if the old is none, we do everything
             self.takeStep()
             return
-
+        
+        if self.run_mcmc:       #check if combination of results changes during mcmc walk
+            newcombo = set(self.protomodel.description.split(','))
+            if newcombo != self.currentBestCombo:
+                self.log("Best Combination of results changed. Go back to previous model")
+                self.manipulator.restoreModel( reportReversion=True )
+                return
         newK = self.protomodel.K
         log_llhdRatio_new = self.protomodel.TL
         
