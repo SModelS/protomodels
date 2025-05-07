@@ -145,7 +145,6 @@ class RandomWalker ( LoggerBase ):
                 self.manipulator.M.K, self.manipulator.M.TL = 1.0,1.0
                 self.currentK = self.manipulator.M.K
                 self.currentTL = self.manipulator.M.TL
-                if self.run_mcmc: self.currentBestCombo = set(self.manipulator.M.description.split(','))
             
             else:
                 self.predict(self.manipulator)
@@ -160,6 +159,7 @@ class RandomWalker ( LoggerBase ):
                 #self.manipulator.M.TL = 1.0
                 self.currentK = self.manipulator.M.K
                 self.currentTL = self.manipulator.M.TL
+                if self.run_mcmc: self.currentBestCombo = set(self.manipulator.M.description.split(','))
 
 
     def setWalkerId ( self, Id ):
