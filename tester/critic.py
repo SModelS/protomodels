@@ -140,19 +140,19 @@ class Critic ( LoggerBase ):
             protomodel.ul_critic_robs = robs
             protomodel.ul_critic_tpList = tpList[:]
 
-        critic_description = []
+        critic_description = {}
         for tp in tpList[:3]:
             rtype = tp['tp'].dataType(short=True)
             robs = f"{tp['robs']:.2f}"
             rexp = None
             if tp['rexp'] is not None:
                 rexp = f"{tp['rexp']:.2f}"
-            tmp = f"'{tp['tp'].analysisId()}({rtype})': {{'robs': {robs}, 'rexp': {rexp}}}"
-            critic_description.append ( tmp )
+            tmp = {f'{tp["tp"].analysisId()}({rtype})': {'robs': robs, 'rexp': rexp}}
+            critic_description.update(tmp)
         if len(tpList)>3:
-            critic_description.append ( "..." )
-        protomodel.ul_critic += ", 'Datasets': {" + ",".join ( critic_description ) + "}}"
+            critic_description.update({'...':'...'})
 
+        protomodel.ul_critic.update({'Datasets':critic_description})
         return
 
 
@@ -170,7 +170,7 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.ll_critic = "{'Datasets': ['" + "','".join( [experimentalId(comb) for comb in mostSensiComb] ) + f"'], 'robs':{robsComb:.2f}" + "}"
+            protomodel.ll_critic = {'Datasets': [experimentalId(comb) for comb in mostSensiComb], 'robs': round(robsComb,2)}
 
         return
 
@@ -362,8 +362,9 @@ class Critic ( LoggerBase ):
         max_allowed = 0
         while binom.cdf(max_allowed,n_sensitive,0.05) <= 0.66:  #rewrite as max_allowed = binom.ppf(0.66, n_sensitive, 0.05)?
             max_allowed += 1
+        
+        protomodel.ul_critic = {'n_sen': n_sensitive, 'n_excl': n_excluding, 'max_all': max_allowed, 'passes': max_allowed >= n_excluding}
 
-        protomodel.ul_critic = "{" + f"'n_sen':{n_sensitive}, 'n_excl':{n_excluding}, 'max_all':{max_allowed}, 'passes': {max_allowed >= n_excluding}"
         self.log(f"UL-based critic: n_sen={n_sensitive}, n_excl={n_excluding}, max_all={max_allowed} => passes critic: {max_allowed >= n_excluding}")
         return max_allowed >= n_excluding, n_sensitive
 
