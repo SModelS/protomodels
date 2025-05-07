@@ -143,10 +143,11 @@ class Critic ( LoggerBase ):
         critic_description = []
         for tp in tpList[:3]:
             rtype = tp['tp'].dataType(short=True)
+            robs = f"{tp['robs']:.2f}"
             rexp = None
             if tp['rexp'] is not None:
                 rexp = f"{tp['rexp']:.2f}"
-            tmp = f"'{tp['tp'].analysisId()}({rtype})': {'robs':{tp['robs']:.2f}, 'rexp':{rexp}}"
+            tmp = f"'{tp['tp'].analysisId()}({rtype})': {{'robs': {robs}, 'rexp': {rexp}}}"
             critic_description.append ( tmp )
         if len(tpList)>3:
             critic_description.append ( "..." )
@@ -169,7 +170,7 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.ll_critic = "{'Datasets': [" + ",".join( [experimentalId(comb) for comb in mostSensiComb] ) + f"], 'robs':{robsComb:.2f}" + "}"
+            protomodel.ll_critic = "{'Datasets': ['" + "','".join( [experimentalId(comb) for comb in mostSensiComb] ) + f"'], 'robs':{robsComb:.2f}" + "}"
 
         return
 
