@@ -169,7 +169,7 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.ll_critic = "{'Datasets': [" + ",".join( [experimentalId(comb) for comb in mostSensiComb] ) + f"], 'robs':{robsComb:.2f}}"
+            protomodel.ll_critic = "{'Datasets': [" + ",".join( [experimentalId(comb) for comb in mostSensiComb] ) + f"], 'robs':{robsComb:.2f}" + "}"
 
         return
 
@@ -362,7 +362,7 @@ class Critic ( LoggerBase ):
         while binom.cdf(max_allowed,n_sensitive,0.05) <= 0.66:  #rewrite as max_allowed = binom.ppf(0.66, n_sensitive, 0.05)?
             max_allowed += 1
 
-        protomodel.ul_critic = f"{'n_sen':{n_sensitive}, 'n_excl':{n_excluding}, 'max_all':{max_allowed}, 'passes': {max_allowed >= n_excluding}"
+        protomodel.ul_critic = "{" + f"'n_sen':{n_sensitive}, 'n_excl':{n_excluding}, 'max_all':{max_allowed}, 'passes': {max_allowed >= n_excluding}"
         self.log(f"UL-based critic: n_sen={n_sensitive}, n_excl={n_excluding}, max_all={max_allowed} => passes critic: {max_allowed >= n_excluding}")
         return max_allowed >= n_excluding, n_sensitive
 
