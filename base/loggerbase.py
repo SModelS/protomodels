@@ -69,8 +69,19 @@ class LoggerBase:
     def log ( self, *args ):
         """ logging to file """
         self.mkLogDir ()
-        with open( f"{self.logdir}/walker{self.walkerid}.log", "a" ) as f:
-            f.write ( f'[{self.module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
+        ctr = 0
+        while True:
+            try:
+                with open( f"{self.logdir}/walker{self.walkerid}.log", "a" ) as f:
+                    f.write ( f'[{self.module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
+                    return
+            except OSError as e:
+                # lets try a few times, we are using network file systems,
+                # the network might be acting out
+                ctr+=1
+                time.sleep ( ctr**2 )
+                if ctr > 10:
+                    raise e
 
 if __name__ == "__main__":
     logger = LoggerBase ( 0 )
