@@ -152,7 +152,7 @@ class Critic ( LoggerBase ):
         if len(tpList)>3:
             critic_description.update({'...':'...'})
 
-        protomodel.ul_critic.update({'Datasets':critic_description})
+        protomodel.ul_critic.update({'datasets':critic_description})
         return
 
 
@@ -170,7 +170,7 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.ll_critic = {'Datasets': [experimentalId(comb) for comb in mostSensiComb], 'robs': round(robsComb,2)}
+            protomodel.llhd_critic = {'datasets': [experimentalId(comb) for comb in mostSensiComb], 'robs': round(robsComb,2)}
 
         return
 
@@ -268,12 +268,12 @@ class Critic ( LoggerBase ):
 
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
-        allowed_by_UL_critic, n_sensitive = self.UL_critic(protomodel, predictions)
+        allowed_by_ul_critic, n_sensitive = self.ul_critic(protomodel, predictions)
         if n_sensitive: num_preds = n_sensitive
         # Extract the relevant prediction information and store in the protomodel:
         self.updateModelPredictionsWithULPreds(protomodel, predictions, keep_predictions)
 
-        if not allowed_by_UL_critic:
+        if not allowed_by_ul_critic:
             if keep_slhafile:
                 self.info( f"Keeping {protomodel.currentSLHA}, as requested" )
             else:
@@ -331,7 +331,7 @@ class Critic ( LoggerBase ):
         return predictions
 
 
-    def UL_critic(self, protomodel, predictions):
+    def ul_critic(self, protomodel, predictions):
         """ UL-based critic (can also use best SR results if no UL-type result available for a given analysis).
 
         :param predictions: list of theory predictions (UL-type and EM-type)

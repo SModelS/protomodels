@@ -343,9 +343,9 @@ class Manipulator ( LoggerBase ):
             D["dbver"]=self.M.dbversion
         D["description"]=self.M.description
         if hasattr ( self.M, "ul_critic" ):
-            D["UL_critic"]=self.M.ul_critic
-        if hasattr ( self.M, "ll_critic" ):
-            D["Llhd_critic"]=self.M.ll_critic
+            D["ul_critic"]=self.M.ul_critic
+        if hasattr ( self.M, "llhd_critic" ):
+            D["llhd_critic"]=self.M.llhd_critic
         if len(comment)>0:
             D["comment"]=comment
         if outfile == None:
@@ -2371,7 +2371,7 @@ class Manipulator ( LoggerBase ):
                          "_xsecSSMs" : copy.deepcopy(self.M._xsecSSMs),
                         }
         if hasattr ( self.M, "ul_critic" ): self._backup["ul_critic"]=self.M.ul_critic
-        if hasattr ( self.M, "ll_critic" ): self._backup["ll_critic"]=self.M.ll_critic
+        if hasattr ( self.M, "llhd_critic" ): self._backup["llhd_critic"]=self.M.llhd_critic
                          
 
     def restoreModel ( self, reportReversion=False ):
