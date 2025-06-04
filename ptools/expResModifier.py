@@ -1096,7 +1096,7 @@ Just filter the database:
             try:
                 model = ws.model()
             except pyhf.exceptions.InvalidModel as e:
-                print ( f"[expResModifier] pyhf.InvalidModel for {expRes.globalInfo.id}: {e}" )
+                print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{list(expRes.globalInfo.jsonFiles.keys())[ws_i]}]: {e}" )
                 sys.exit(-1)
             channelnames = self.getChannelNames ( model.config.channels )
             pars_bkg = model.config.suggested_init()
