@@ -1093,7 +1093,11 @@ Just filter the database:
         for ws_i, (ws, srs) in enumerate(zip(
                     computer.likelihoodComputer.workspaces, srs_in_workspaces) ):
             ## srs are the names of the signal regions
-            model = ws.model()
+            try:
+                model = ws.model()
+            except pyhf.exceptions.InvalidModel as e:
+                print ( f"[expResModifier] pyhf.InvalidModel for {expRes.globalInfo.id}: {e}" )
+                sys.exit(-1)
             channelnames = self.getChannelNames ( model.config.channels )
             pars_bkg = model.config.suggested_init()
             pars_bkg[model.config.poi_index] = 0.0 ## background
