@@ -1445,14 +1445,14 @@ Just filter the database:
             TxNameData._keep_values = True
             from smodels.experiment.databaseObj import Database
             #self.database = "official"
-            self.database = "../../../smodels-database"
-            print ( f"[expResModifier] starting to build database at {self.database}." )
+            # self.database = "../../smodels-database"
+            print ( f"[expResModifier] starting to build database at {self.dbpath}." )
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
-            print ( f"[expResModifier] loading database {self.database}" )
-            db = Database ( self.database, combinationsmatrix=combinationsmatrix )
-            print ( f"[expResModifier] built database at {self.database}. Exiting." )
+            print ( f"[expResModifier] loading database {self.dbpath}" )
+            db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix )
+            print ( f"[expResModifier] built database at {self.dbpath}. Exiting." )
             sys.exit()
         if self.rundir == None:
             print ( f"[expResModifier] setting rundir to {os.getcwd()}" )
