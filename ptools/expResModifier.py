@@ -272,7 +272,7 @@ Just filter the database:
                 if not self.fixedbackgrounds:
                     x = self.drawNuisance() * self.fudge # draw but once from standard-normal
                 # x = stats.norm.rvs() * self.fudge # draw but once from standard-normal
-            D["x"] = x
+            D["x"] = float(x)
             D["lumi"] =float ( globalInfo.lumi * fb)
             allpositive = True
             for i,y in enumerate( expected.y_values ):
@@ -285,10 +285,10 @@ Just filter the database:
                 ## now lets shift, observed limit = expected limit + dx
                 obs = y + sigma_exp * x ## shift the expected by the random fake signal
                 if i == 0:
-                    D["y0old"] = observed.y_values[i]
-                    D["y0exp"] = y
-                    D["sigma_exp0"] = sigma_exp
-                    D["y0new"] = obs
+                    D["y0old"] = float ( observed.y_values[i] )
+                    D["y0exp"] = float ( y )
+                    D["sigma_exp0"] = float ( sigma_exp )
+                    D["y0new"] = float ( obs )
                     self.comments["y0old"]="the old observed y value for first entry in UL map"
                     self.comments["y0exp"]="the expected y value for first entry in UL map"
                     self.comments["y0new"]="the fake new observed bg y value for first entry in UL map"
@@ -499,12 +499,12 @@ Just filter the database:
                 dataset.dataInfo.observedN = obs
         if Z > 3.5:
             self.log ( f"WARNING!!! high em Z={Z:.2f}!!!!" )
-        D["Zbg"]=Z
+        D["Zbg"]=float(Z)
         self.comments["Zbg"]="the significance of the observation, bg only"
-        D["Z"]=Z
+        D["Z"]=float(Z)
         self.comments["Z"]="the significance of the observation, taking into account the signal"
         self.comments["lmbda"]="Poissonian lambda of the fake background"
-        D["lmbda"]=lmbda
+        D["lmbda"]=float(lmbda)
         D["newObs"]=obs
         self.comments["newObs"]="the new fake observation"
         if self.compute_ps:
@@ -1013,7 +1013,7 @@ Just filter the database:
                 D["newObs"]=dataset.dataInfo.expectedBG
             else:
                 D["newObs"]=obs
-                D["lmbda"]=lmbda
+                D["lmbda"]=float(lmbda)
             if self.compute_ps:
                 p = computePForDataSet ( dataset, obs )
                 self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
