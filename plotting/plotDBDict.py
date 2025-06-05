@@ -362,7 +362,8 @@ class Plotter ( LoggerBase ):
         """ get the sqrts of anaid plus > 100 fb^-1 lumi, as string """
         ret = 13
         t = anaid.replace("CMS-","").replace("ATLAS-","").replace("SUSY-","").\
-                  replace("SUS-","").replace("PAS-","").replace("EXO-","").replace("CONF-","")
+                  replace("SUS-","").replace("PAS-","").replace("EXO-","").replace("CONF-","").\
+                  replace("EXOT-","")
         t = t[:t.find("-")]
         t = int(t) % 2000
         if t < 15:
