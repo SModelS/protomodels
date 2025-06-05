@@ -189,7 +189,9 @@ Just filter the database:
         """ dont produce a new fake database, extract a stats dict
             from an existing database. """
         self.info ( "extracting stats" )
-        picklefile = os.path.abspath ( self.rundir + "/" + self.dbpath )
+        picklefile = self.dbpath
+        if not "/" in self.dbpath:
+            picklefile = os.path.abspath ( self.rundir + "/" + self.dbpath )
         if self.rundir in self.dbpath:
             picklefile = self.dbpath
         self.pprint ( f"Extracting stats from {picklefile}" )
@@ -197,7 +199,7 @@ Just filter the database:
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
-            print ( f"[expResModifier] loading database {self.database}" )
+            print ( f"[expResModifier] loading database {self.dbpath}" )
             self.db = Database ( picklefile, combinationsmatrix=combinationsmatrix )
             print ( f"[expResModifier] loaded db v{self.db.databaseVersion}" )
         self.dbversion = self.db.databaseVersion
