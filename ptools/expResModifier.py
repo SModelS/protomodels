@@ -190,7 +190,7 @@ Just filter the database:
             from an existing database. """
         self.info ( "extracting stats" )
         picklefile = self.dbpath
-        if not "/" in self.dbpath:
+        if not "/" in self.dbpath and not self.dbpath in [ "official" ]:
             picklefile = os.path.abspath ( self.rundir + "/" + self.dbpath )
         if self.rundir in self.dbpath:
             picklefile = self.dbpath
@@ -216,13 +216,15 @@ Just filter the database:
                 dt = info.dataType
                 if dt == "upperLimit":
                     for txname in dataset.txnameList:
-                        D[txname.txName]=list ( txname.txnameData.y_values )
+                        D[txname.txName]=list ( map ( float, txname.txnameData.y_values ) )
 
                 for i in [ "observedN", "origN", "expectedBG", "lmbda", "bgError",
                            "origUpperLimit", "origExpectedUpperLimit", "upperLimit",
                            "expectedUpperLimit", "thirdMoment" ]:
                     if hasattr ( info, i ):
                         D[i] = getattr ( info, i )
+                        if i in [ "expectedUpperLimit", "upperLimit" ]:
+                            D[i]=float ( D[i].asNumber(fb) )
                 if self.timestamps:
                     D["timestamp"]=dataset.globalInfo.lastUpdate
                 self.addToStats ( label, D, dataset.globalInfo )
@@ -409,7 +411,7 @@ Just filter the database:
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
-            print ( f"[expResModifier] loading database {os.path.abspath(self.dbpath)} [0]" )
+            print ( f"[expResModifier] loading database {self.dbpath} [0]" )
             self.db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
             print ( f"[expResModifier] loaded db v{self.db.databaseVersion}" )
         self.dbversion = self.db.databaseVersion
