@@ -1047,7 +1047,9 @@ def getArgs( cmdline = None ):
         print ( "======================" )
         shorts, descriptions = namesForSetsOfTopologies ( "list" )
         for short,topos in shorts.items():
-            print ( short )
+            topos, descr = namesForSetsOfTopologies ( short )
+            print ( f"{short}: {topos}" )
+            print ( f"         {descr}" )
         sys.exit()
         
     if type(args.options) == str:
