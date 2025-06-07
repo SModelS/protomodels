@@ -834,7 +834,7 @@ class Plotter ( LoggerBase ):
         savgp13g = f"{avgp13gt:.2f}".lstrip('0').replace("-0","-")
         labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<78/fb$", "13 TeV, full $\\mathcal{L}$" ]
         if self.ignore_sqrts:
-            labels = [ "selection", "--", "rest" ]
+            labels = [ self.select_text, "--", "rest" ]
         plotAverages = True
         if "plot_averages" in self.options:
             plotAverages = self.options["plot_averages"]
@@ -998,6 +998,9 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '--select_topologies', nargs='?',
             help='filter for certain topologies to hilight, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. [None]',
             type=str, default=None )
+    argparser.add_argument ( '--select_text', nargs='?',
+            help='the text to go in the legend for the selected topos [selected]',
+            type=str, default="selected" )
     argparser.add_argument ( '--sqrts', nargs='*',
             help='sqrtses [8,13,13.6]', type=float, default=[8,13,13.6] )
     argparser.add_argument ( '-a', '--analyses', nargs='?',
