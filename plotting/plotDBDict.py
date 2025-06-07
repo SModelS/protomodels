@@ -463,6 +463,8 @@ class Plotter ( LoggerBase ):
                     continue
 
                 sqrts = self.getSqrts100 ( k, v["lumi"] )
+                if self.ignore_sqrts:
+                    sqrts = "13_gt"  # if we ignore sqrts, we treat all as 13_gt
                 if ":ul" in k:
                     if self.useAlsoULMaps and anaid in hasEffMaps:
                         print ( f"[plotDBDict] skipping {anaid}:ul: has effmaps." )
