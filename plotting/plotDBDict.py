@@ -14,7 +14,7 @@ import os, glob, sys, math, fnmatch
 from copy import deepcopy as cp
 import scipy.stats
 import matplotlib.mlab as mlab
-from typing import Union
+from typing import Union, List
 
 from ptools.helpers import computeP
 from ptools.moreHelpers import namesForSetsOfTopologies
@@ -138,6 +138,7 @@ class Plotter ( LoggerBase ):
         self.analyses = []
         self.comment = None
         self.topologies = []
+        self.select_topologies = []
         self.negativetopos = []
         self.negativeanalyses = []
         self.outfile = "not_specified.png"
@@ -182,7 +183,7 @@ class Plotter ( LoggerBase ):
             if a=="options":
                 self.options.update ( value )
                 continue
-            if a not in [ "topologies", "analyses" ]:
+            if a not in [ "topologies", "analyses", "select_topologies" ]:
                 setattr ( self, a, value )
         if self.nbins == None:
             if "nbins" in self.options:
@@ -204,6 +205,8 @@ class Plotter ( LoggerBase ):
                     print ( f"[plotDBDict] you supplied {args['topologies']} as topologies. Did you supply the validation file instead?" )
                 args["topologies"], descr = namesForSetsOfTopologies ( args['topologies'] )
                 self.description = descr
+        if args['select_topologies'] != None:
+                args["select_topologies"], descr = namesForSetsOfTopologies ( args['select_topologies'] )
         if 'select_collaboration' in args:
             collaboration = args['select_collaboration'].upper()
             if collaboration in [ "", "*" ]:
@@ -237,6 +240,11 @@ class Plotter ( LoggerBase ):
                     self.negativetopos.append ( t[1:] )
                 else:
                     self.topologies.append ( t )
+        select_topologies = args['select_topologies']
+        if select_topologies not in  [ None, "" ]:
+            topos = select_topologies.split(",")
+            for t in topos:
+                self.select_topologies.append ( t )
 
         if "analyses" in args and args["analyses"] not in [ None ]:
             analyses = args['analyses']
@@ -391,6 +399,13 @@ class Plotter ( LoggerBase ):
                     self.srCounts[anaid]=set()
                 self.srCounts[anaid].add ( sr )
 
+    def isSelected ( self, txns : List ) -> bool:
+        print ( f"@@0 here we would heed the selection {self.select_topologies} - {txns}" )
+        for tx in txns:
+            if tx in self.select_topologies:
+                return True
+        return False
+
     def compute ( self ):
         """ compute the p-values """
         empty = {"8":[], "13_lt":[], "13_gt":[] }
@@ -465,6 +480,8 @@ class Plotter ( LoggerBase ):
                 sqrts = self.getSqrts100 ( k, v["lumi"] )
                 if self.ignore_sqrts:
                     sqrts = "13_gt"  # if we ignore sqrts, we treat all as 13_gt
+                if self.isSelected ( txns ):
+                    sqrts = "8"
                 if ":ul" in k:
                     if self.useAlsoULMaps and anaid in hasEffMaps:
                         print ( f"[plotDBDict] skipping {anaid}:ul: has effmaps." )
@@ -929,8 +946,8 @@ class Plotter ( LoggerBase ):
         if self.comment != None:
             plt.text ( .65, -.11, self.comment, transform=ax.transAxes,
                        style="italic" )
-        if self.disclaimer:
-            plt.text ( .3, .3, "do not circulate!", transform=ax.transAxes,
+        if self.disclaimer not in [ False, None, "None", "False" ]:
+            plt.text ( .3, .3, self.disclaimer, transform=ax.transAxes,
                        rotation=35, c="#ff3333", fontsize=20 )
         plt.kittyPlot ( self.outfile, self.show )
 
@@ -974,6 +991,9 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-t', '--topologies', nargs='?',
             help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. "^" before the name acts as negation [None]',
             type=str, default=None )
+    argparser.add_argument ( '--select_topologies', nargs='?',
+            help='filter for certain topologies to hilight, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. [None]',
+            type=str, default=None )
     argparser.add_argument ( '--sqrts', nargs='*',
             help='sqrtses [8,13,13.6]', type=float, default=[8,13,13.6] )
     argparser.add_argument ( '-a', '--analyses', nargs='?',
@@ -992,7 +1012,7 @@ def getArgs( cmdline = None ):
             help='supply an alternative title [None]',
             type=str, default=None )
     argparser.add_argument ( '-D', '--disclaimer',
-            help='add a disclaimer', action='store_true' )
+            type=str, default=None )
     argparser.add_argument ( '--ignore_sqrts',
             help='plot results from all runs with the same color', action='store_true' )
     argparser.add_argument ( '-O', '--options',
@@ -1037,7 +1057,7 @@ def main():
 
 def runNotebook( cmdline, options = {} ):
     """ meant to be run from with a jupyter notebook
-    :param cmdline: the command line arguments, e.g "-d ./db222pre1.dict  -r"
+    :param cmdline: the command line arguments, e.g "-d ./db310.dict  -r"
     :param options: additional options
     :returns: plotter object
     """
