@@ -536,16 +536,13 @@ class Plotter ( LoggerBase ):
     def discussPs ( self, P, Pfake, weights, weightsfake ):
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
         Pfaketot = np.concatenate ( [ Pfake["8"], Pfake["13_lt"], Pfake["13_gt"] ] )
-        self.pprint ( "real Ps: %d entries at %.3f +/- %.2f" %
-                ( len(Ptot), np.mean(Ptot), np.std(Ptot)  ) )
-        self.pprint ( "fake Ps: %d entries at %.3f +/- %.2f" %
-                ( len(Pfaketot), np.mean(Pfaketot), np.std(Pfaketot) ) )
+        self.pprint ( f"real Ps: {len(Ptot)} entries at {np.mean(Ptot):.3f} +/- {np.std(Ptot):.2f}" )
+        self.pprint ( f"fake Ps: {len(Pfaketot)} entries at {np.mean(Pfaketot):.3f} +/- {np.std(Pfaketot):.2f}" )
         for i in [ "8", "13_lt", "13_gt" ]:
             w, v = self.computeWeightedMean ( P[i], weights[i] )
             n = len(P[i])
             if n > 0:
-                self.pprint ( "real Ps, %s: %d entries at %.3f +/- %.2f" %
-                        ( i, n, w, v ) )
+                self.pprint ( f"real Ps, {i}: {n} entries at {w:.3f} +/- {v:.2f}" )
 
     def computeWeightedMean ( self, ps, ws ):
         """ weighted average of p values
@@ -784,7 +781,7 @@ class Plotter ( LoggerBase ):
         #return ret
 
     def plot( self ):
-        """ plot the p-values """
+        """ plot the p-values / significances """
         P,Pfake,weights,weightsfake=self.compute ( )
         if not self.pvalues:
             P,Pfake=self.toSignificance((P,Pfake))
@@ -811,18 +808,15 @@ class Plotter ( LoggerBase ):
         if weighted:
             wlist = [ weights["8"], weights["13_lt"], weights["13_gt"] ]
         nontrivial = [ len(x)>0 for x in wlist ]
-        # labels = [ "real, 8 TeV", "real, 13 TeV", "real, 13 TeV, > 100 / fb" ]
-        savgp8 = ( "%.2f" % avgp8 ).lstrip('0')
-        savgp13l = ( "%.2f" % avgp13lt ).lstrip('0')
-        savgp13g = ( "%.2f" % avgp13gt ).lstrip('0')
-        # labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<100/fb$", "13 TeV, $\\mathcal{L}>100/fb$" ]
-        #labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<78/fb$", "13 TeV, full lumi" ]
+        savgp8 = f"{avgp8:.2f}".lstrip('0').replace("-0","-")
+        savgp13l = f"{avgp13lt:.2f}".lstrip('0').replace("-0","-")
+        savgp13g = f"{avgp13gt:.2f}".lstrip('0').replace("-0","-")
         labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<78/fb$", "13 TeV, full $\\mathcal{L}$" ]
         plotAverages = True
         if "plot_averages" in self.options:
             plotAverages = self.options["plot_averages"]
         if plotAverages:
-            labels = [ "8 TeV [%s]" % savgp8, "13 TeV, $\\mathcal{L}<100/fb$ [%s]" % savgp13l, "13 TeV, $\\mathcal{L}>100/fb$ [%s]" % savgp13g ]
+            labels = [ f"8 TeV [{savgp8}]", f"13 TeV, $\\mathcal{{L}}<100/fb$ [{savgp13l}]", f"13 TeV, $\\mathcal{{L}}>100/fb$ [{savgp13g}]" ]
         nLegendEntries=0
         for c,l in enumerate(labels):
             if not nontrivial[c]:
@@ -997,6 +991,8 @@ def getArgs( cmdline = None ):
             type=str, default=None )
     argparser.add_argument ( '-D', '--disclaimer',
             help='add a disclaimer', action='store_true' )
+    argparser.add_argument ( '--ignore_sqrts',
+            help='plot results from all runs with the same color', action='store_true' )
     argparser.add_argument ( '-O', '--options',
             help='dictionary of options, given as string {try nbins, xlabel, ylabel, plotStats, plot_averages, weighted, yrange} [None]',
             type=str, default=None )
