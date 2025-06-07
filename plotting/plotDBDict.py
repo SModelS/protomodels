@@ -245,6 +245,9 @@ class Plotter ( LoggerBase ):
             topos = select_topologies.split(",")
             for t in topos:
                 self.select_topologies.append ( t )
+        if len(self.select_topologies)>0 and self.ignore_sqrts == False:
+            print ( f"[plotDBDict] select_topologies is on, we will set ignore_sqrts to True" )
+            self.ignore_sqrts = True
 
         if "analyses" in args and args["analyses"] not in [ None ]:
             analyses = args['analyses']
@@ -400,7 +403,6 @@ class Plotter ( LoggerBase ):
                 self.srCounts[anaid].add ( sr )
 
     def isSelected ( self, txns : List ) -> bool:
-        print ( f"@@0 here we would heed the selection {self.select_topologies} - {txns}" )
         for tx in txns:
             if tx in self.select_topologies:
                 return True
@@ -831,6 +833,8 @@ class Plotter ( LoggerBase ):
         savgp13l = f"{avgp13lt:.2f}".lstrip('0').replace("-0","-")
         savgp13g = f"{avgp13gt:.2f}".lstrip('0').replace("-0","-")
         labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<78/fb$", "13 TeV, full $\\mathcal{L}$" ]
+        if self.ignore_sqrts:
+            labels = [ "selection", "--", "rest" ]
         plotAverages = True
         if "plot_averages" in self.options:
             plotAverages = self.options["plot_averages"]
