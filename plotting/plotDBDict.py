@@ -104,7 +104,8 @@ class Plotter ( LoggerBase ):
 
     def display ( self ):
         """ show html """
-        from IPython.display import display, HTML
+        from IPython import display
+        from IPython.display import HTML
         display(HTML(self.output))
         if hasattr ( self, "script" ):
             display(HTML(self.script))
