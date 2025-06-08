@@ -291,34 +291,19 @@ class Plotter ( LoggerBase ):
                             bgerr = v["bgError"]
             self.data[ret["basename"]] = newdata
 
-    def getSqrts ( self, anaid ):
-        """ get the sqrts of anaid """
-        ret = 13
-        t = anaid.replace("CMS-","").replace("ATLAS-","").replace("SUSY-","").\
-                  replace("SUS-","").replace("PAS-","").replace("EXO-","").replace("CONF-","")
-        t = t[:t.find("-")]
-        t = int(t) % 2000
-        if t < 15:
-            ret = 8
-        return ret
-
-    def getSqrts100 ( self, anaid, lumi ):
-        """ get the sqrts of anaid plus > 100 fb^-1 lumi, as string """
-        ret = 13
-        t = anaid.replace("CMS-","").replace("ATLAS-","").replace("SUSY-","").\
-                  replace("SUS-","").replace("PAS-","").replace("EXO-","").replace("CONF-","").\
-                  replace("EXOT-","")
-        t = t[:t.find("-")]
-        t = int(t) % 2000
-        if t < 15:
-            ret = "8"
-        else:
-            ret = "13"
-            if lumi>100:
-                ret += "_gt"
-            else:
-                ret += "_lt"
-        return ret
+    def getSqrts100 ( self, anaid : str, lumi : Union[int,float] ) -> str:
+        """ get the sqrts of anaid plus > 100 fb^-1 lumi, as string 
+        :param anaid: e.g. CMS-SUS-20-004
+        :param lumi: lumi as number in 1/fb, e.g. 136
+        :returns: e.g. '13_gt'
+        """
+        from smodels_utils.helper.various import getSqrts
+        sqrts = getSqrts ( anaid )
+        if sqrts < 10:
+            return str(sqrts)
+        if lumi>100:
+            return f"{sqrts}_gt"
+        return f"{sqrts}_lt"
 
     def countSRs ( self ):
         """ count the number of signal regions for each analysis,
