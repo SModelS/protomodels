@@ -15,7 +15,7 @@ import os, glob, sys, math, fnmatch
 from copy import deepcopy as cp
 import scipy.stats
 import matplotlib.mlab as mlab
-from typing import Union, List
+from typing import Union, List, Dict
 
 from ptools.helpers import computeP
 from ptools.moreHelpers import namesForSetsOfTopologies
@@ -25,7 +25,7 @@ class Plotter ( LoggerBase ):
     """ the meta statistics plotter, see eg https://smodels.github.io/validation/300/significances.png
     """
 
-    def __init__ ( self, args ):
+    def __init__ ( self, args : Dict ):
         """
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
@@ -157,7 +157,7 @@ class Plotter ( LoggerBase ):
         self.plot( )
         self.logExecution ( )
 
-    def showPng ( self, filename ):
+    def showPng ( self, filename : os.PathLike ):
         if ("show" in self.options and self.options["show"]==True) or self.show == True:
             from smodels_utils.plotting.mpkitty import timg
             timg ( filename )
@@ -168,7 +168,7 @@ class Plotter ( LoggerBase ):
             f.write ( ' '.join ( sys.argv )+"\n" )
             f.close()
 
-    def getBins ( self, nbins = None ):
+    def getBins ( self, nbins : Union[None,int] = None ):
         """ get the bin edges """
         if nbins == None:
             nbins = self.nbins
@@ -210,6 +210,7 @@ class Plotter ( LoggerBase ):
         self.filter = 0.
         self.filtersigma = 0.
         self.disclaimer = False
+        self.warnedBefore = False # warned that --before is set
 
     def determineZmax ( self ):
         """ obtain self.Zmax from data """
@@ -221,7 +222,7 @@ class Plotter ( LoggerBase ):
         self.Zmax = np.ceil ( Zmax * 4. ) / 4.
         # self.pprint ( f"Zmax is {Zmax:.2f}" )
 
-    def selectedCollaboration( self, anaid ):
+    def selectedCollaboration( self, anaid : str ) -> bool:
         """ does anaid pass the collaboration selection? """
         if self.collaboration in [ "ALL", "all", "*" ]:
             return True
@@ -229,16 +230,20 @@ class Plotter ( LoggerBase ):
             return True
         return False
 
-    def filterByTime ( self, D ):
-        """ filter by time, let everything before self.before pass! """
+    def filterByTime ( self, D : Dict ) -> bool:
+        """ filter by time, let everything before self.before pass! 
+        :returns: true means pass the filter
+        """
         if self.before == None:
             return True
         if not "timestamp" in D:
+            if self.warnedBefore == False:
+                self.pprint ( f"'--before' is set to {self.before} but no timestamps in dict file" )
+                self.warnedBefore = True
             return True
         from datetime import datetime as dt
         deadline = dt.strptime ( self.before, "%Y/%m/%d")
         current = dt.strptime ( D["timestamp"], "%Y/%m/%d")
-        # print ( "compare", self.before,"and",D["timestamp"], deadline >= current )
         return deadline >= current
 
     def selectedSqrts( self, id ):
@@ -262,6 +267,10 @@ class Plotter ( LoggerBase ):
                 if self.nofastlim and 'fastlim' in v and v['fastlim']:
                     continue
                 if not self.selectedCollaboration ( i ):
+                    continue
+                if not self.selectedSqrts ( i ):
+                    continue
+                if not self.filterByTime ( v ):
                     continue
                 if "expectedBG" in v and v["expectedBG"]>=self.filter and \
                         v["expectedBG"]/v["bgError"]>=self.filtersigma:
