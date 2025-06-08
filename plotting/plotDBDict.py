@@ -77,7 +77,7 @@ class Plotter ( LoggerBase ):
                     print ( f"[plotDBDict] you supplied {args['topologies']} as topologies. Did you supply the validation file instead?" )
                 args["topologies"], descr = namesForSetsOfTopologies ( args['topologies'] )
                 self.description = descr
-        if "select_topologies" in args and args['select_topologies'] != None:
+        if "select_topologies" in args and args['select_topologies'] not in  [ None, [] ]:
                 args["select_topologies"], descr = namesForSetsOfTopologies ( args['select_topologies'] )
         if 'select_collaboration' in args:
             collaboration = args['select_collaboration'].upper()
@@ -197,7 +197,7 @@ class Plotter ( LoggerBase ):
         self.analyses = []
         self.comment = None
         self.topologies = []
-        self.select_topologies = []
+        self.select_topologies = None
         self.negativetopos = []
         self.negativeanalyses = []
         self.outfile = "not_specified.png"
