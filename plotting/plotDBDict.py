@@ -112,7 +112,9 @@ class Plotter ( LoggerBase ):
                     self.negativetopos.append ( t[1:] )
                 else:
                     self.topologies.append ( t )
-        select_topologies = args['select_topologies']
+        select_topologies = []
+        if "select_topologies" in args:
+            select_topologies = args['select_topologies']
         if select_topologies not in  [ None, "" ]:
             topos = select_topologies.split(",")
             for t in topos:
