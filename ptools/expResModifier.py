@@ -1020,7 +1020,7 @@ Just filter the database:
                 self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
                 D["new_p"]=float(p)
                 newZ = computeZFromP ( p )
-                D["new_Z"]=newZ
+                D["new_Z"]=float(newZ)
             D["type"]=tpe
             self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
             expRes.datasets[i].dataInfo.observedN = obs
@@ -1144,7 +1144,7 @@ Just filter the database:
                     self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
                     D["new_p"]=float(p)
                     newZ = computeZFromP ( p )
-                    D["new_Z"]=newZ
+                    D["new_Z"]=float(newZ)
                 label = anaId + ":" + dataset.dataInfo.dataId
                 self.addToStats ( label, D, dataset.globalInfo )
                 ## as the very last measure, we replace the observation with
