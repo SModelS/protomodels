@@ -199,6 +199,7 @@ class Plotter ( LoggerBase ):
         self.comment = None
         self.topologies = []
         self.select_topologies = []
+        self.ignore_sqrts = False
         self.negativetopos = []
         self.negativeanalyses = []
         self.outfile = "not_specified.png"
