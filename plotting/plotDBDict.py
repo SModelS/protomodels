@@ -112,13 +112,12 @@ class Plotter ( LoggerBase ):
                     self.negativetopos.append ( t[1:] )
                 else:
                     self.topologies.append ( t )
-        select_topologies = []
         if "select_topologies" in args:
             select_topologies = args['select_topologies']
-        if select_topologies not in  [ None, "", [] ]:
-            topos = select_topologies.split(",")
-            for t in topos:
-                self.select_topologies.append ( t )
+            if select_topologies not in  [ None, "", [] ]:
+                topos = select_topologies.split(",")
+                for t in topos:
+                    self.select_topologies.append ( t )
         if len(self.select_topologies)>0 and self.ignore_sqrts == False:
             print ( f"[plotDBDict] select_topologies is on, we will set ignore_sqrts to True" )
             self.ignore_sqrts = True
@@ -199,7 +198,7 @@ class Plotter ( LoggerBase ):
         self.analyses = []
         self.comment = None
         self.topologies = []
-        self.select_topologies = None
+        self.select_topologies = []
         self.negativetopos = []
         self.negativeanalyses = []
         self.outfile = "not_specified.png"
