@@ -459,9 +459,9 @@ Just filter the database:
                 self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
-            D["orig_p"]=p
+            D["orig_p"]=float(p)
             origZ = computeZFromP ( p )
-            D["orig_Z"]=origZ
+            D["orig_Z"]=float(origZ)
             self.comments["orig_Z"]="the significance Z of the original observation"
         Z = float("inf")
         ct = 0
@@ -515,7 +515,7 @@ Just filter the database:
                 self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( obs, exp, err, thirdMoment )
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
-            D["new_p"]=p
+            D["new_p"]=float(p)
         D["obsBg"]=obs
         self.comments["obsBg"]="the new fake observation, background component"
         D["toterr"]=toterr
@@ -554,9 +554,9 @@ Just filter the database:
                 self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
-            D["orig_p"]=p
+            D["orig_p"]=float(p)
             origZ = computeZFromP ( p )
-            D["orig_Z"]=origZ
+            D["orig_Z"]=float(origZ)
             self.comments["orig_Z"]="the significance Z of the original observation"
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
@@ -849,6 +849,7 @@ Just filter the database:
         self.addSupersededFlags()
         with open ( filename,"wt" ) as f:
             f.write ( str(meta)+"\n" )
+            f.write ( f"# this file was created with {' '.join(sys.argv)}\n" )
             if len(self.comments)>0:
                 f.write ( "# explanations on the used variables:\n" )
                 f.write ( "# =====================================\n" )
@@ -1017,7 +1018,7 @@ Just filter the database:
             if self.compute_ps:
                 p = computePForDataSet ( dataset, obs )
                 self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
-                D["new_p"]=p
+                D["new_p"]=float(p)
                 newZ = computeZFromP ( p )
                 D["new_Z"]=newZ
             D["type"]=tpe
@@ -1141,7 +1142,7 @@ Just filter the database:
                 if self.compute_ps:
                     p = computePForDataSet ( dataset, newObs )
                     self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
-                    D["new_p"]=p
+                    D["new_p"]=float(p)
                     newZ = computeZFromP ( p )
                     D["new_Z"]=newZ
                 label = anaId + ":" + dataset.dataInfo.dataId
