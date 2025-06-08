@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-""" plot the meta statistics of database.dict """
+""" plot the meta statistics of database.dict, see e.g.
+    https://smodels.github.io/validation/300/significances.png """
 
 import sys,os
 dirname = os.path.dirname ( os.path.abspath ( __file__ ) )
@@ -21,138 +22,8 @@ from ptools.moreHelpers import namesForSetsOfTopologies
 from protomodels.base.loggerbase import LoggerBase
 
 class Plotter ( LoggerBase ):
-
-    def roughviz_template( self, data, labels, values, plot_svg, **kwargs):
-        """ the template for the roughviz plot, we will overwrite the
-            original one with this """
-        from jinja2 import Template
-        import string
-        template = Template(data.decode("utf-8"))
-        id_name = ''.join(np.random.choice(string.ascii_lowercase) for i in range(10))
-        output = template.render(id_name = id_name,
-                                 labels = labels,
-                                 values = values,
-                                 kwargs = kwargs)
-        # print ( f"kwargs {kwargs}" )
-        if(plot_svg):
-            svg_id = "svg"+id_name
-            script = """
-            <style>
-            div.output_area img, div.output_area svg{
-            height: 100%!important;
-            }
-            </style>
-            <script>
-                var e = document.getElementById('"""+id_name+"""');
-                var divCheckingInterval = setInterval(function(){
-                if(e.getElementsByTagName('svg').length){
-                    clearInterval(divCheckingInterval);
-                    e.getElementsByTagName('svg')[0].setAttribute("id", '"""+svg_id+"""');
-                    var svgElement = document.getElementById('"""+svg_id+"""');
-                    var svgString = new XMLSerializer().serializeToString(svgElement);
-                    var decoded = unescape(encodeURIComponent(svgString));
-                    var base64 = btoa(decoded);
-                    var imgSource = `data:image/svg+xml;base64,${base64}`;
-                    e.innerHTML = "<img id='svgplot'>";
-                    document.getElementById('svgplot').src = imgSource;
-                }}, 1);
-            </script>
-            """
-            self.output = output
-            self.script = script
-            #self.display()
-            self.saveRoughViz()
-        else:
-            self.output = output
-            #self.display()
-
-    def saveRoughViz ( self ):
-        outfile = self.determineOutFile ( self.outfile )
-        # htmlname = "plot.html"
-        htmlname = outfile.replace(".png",".html" )
-        f = open ( htmlname, "wt" )
-        f.write ( self.output )
-        if hasattr ( self, "script" ):
-            f.write ( self.script )
-        f.close()
-        # self.pprint ( f"{htmlname} created, can be opened with ''xdg-open {htmlname}''" )
-        cwd = os.getcwd()
-        #pngname = "plot.png"
-        pngname = outfile
-        from shutil import which
-        import subprocess
-        cutycapt = which ( "cutycapt", path=f"/usr/bin:{os.environ['PATH']}" )
-        if cutycapt is None:
-            self.pprint ( f"cutycapt is not installed. maybe perform sudo apt install cutycapt" )
-        else:
-            cmd = f"cutycapt --zoom-factor=2. --delay=1000 --url=file://{cwd}/{htmlname} --out={pngname}"
-            o = subprocess.getoutput ( cmd )
-            self.pprint ( f"{pngname} created" )
-            self.addLegendToRough ( pngname )
-            self.showPng( pngname )
-        if False:
-            cmd = f"xdg-open {htmlname}"
-            subprocess.getoutput ( cmd )
-        if True and os.path.exists (htmlname ):
-            # self.pprint ( f"removing {htmlname}" )
-            os.unlink ( htmlname )
-
-    def showPng ( self, filename ):
-        if ("show" in self.options and self.options["show"]==True) or self.show == True:
-            from smodels_utils.plotting.mpkitty import timg
-            timg ( filename )
-
-    def display ( self ):
-        """ show html """
-        from IPython import display
-        from IPython.display import HTML
-        display(HTML(self.output))
-        if hasattr ( self, "script" ):
-            display(HTML(self.script))
-
-    def getBins ( self, nbins = None ):
-        """ get the bin edges """
-        if nbins == None:
-            nbins = self.nbins
-        step = 1/nbins
-        bins = np.arange ( 0., 1+1e-7, step )
-        if not self.pvalues:
-            step = (2*self.Zmax)/nbins
-            bins = np.arange ( -self.Zmax, self.Zmax+1e-7, step )
-        return step, bins
-
-    def defaults ( self ):
-        self.nbins = None # 10 for p-values, 13 for significances
-        self.fudge = 1.
-        self.Zmax = None
-        self.before = None
-        self.nosuperseded = False # yes superseded
-        self.nofastlim = False # yes fastlim
-        self.show = False
-        self.pvalues = False # if False, then p-values if true then significances
-        self.skippedAgg = set() # log all aggregated analyses that have been skipped
-        self.origtopos = "all"
-        self.collaboration = "ALL"
-        self.likelihood = "gauss+poisson"
-        self.useAlsoULMaps = False
-        self.analyses = []
-        self.comment = None
-        self.topologies = []
-        self.select_topologies = []
-        self.negativetopos = []
-        self.negativeanalyses = []
-        self.outfile = "not_specified.png"
-        self.title = None
-        self.roughviz = False
-        self.options = { "alwayslegend": False }
-        self.yrange = None
-        self.unscale = False
-        self.signalmodel = False
-        self.fakes = False
-        self.sqrts = [8,13,13.6]
-        self.filter = 0.
-        self.filtersigma = 0.
-        self.disclaimer = False
+    """ the meta statistics plotter, see eg https://smodels.github.io/validation/300/significances.png
+    """
 
     def __init__ ( self, args ):
         """
@@ -283,10 +154,62 @@ class Plotter ( LoggerBase ):
         self.read()
         if self.Zmax is None:
             self.determineZmax()
-        if self.roughviz:
-            self.rough( )
-        else:
-            self.plot( )
+        self.plot( )
+        self.logExecution ( )
+
+    def showPng ( self, filename ):
+        if ("show" in self.options and self.options["show"]==True) or self.show == True:
+            from smodels_utils.plotting.mpkitty import timg
+            timg ( filename )
+
+    def logExecution ( self ):
+        """ log the call of the executable """
+        with open ( "plotDBDict.log", "at" ) as f:
+            f.write ( ' '.join ( sys.argv )+"\n" )
+            f.close()
+
+    def getBins ( self, nbins = None ):
+        """ get the bin edges """
+        if nbins == None:
+            nbins = self.nbins
+        step = 1/nbins
+        bins = np.arange ( 0., 1+1e-7, step )
+        if not self.pvalues:
+            step = (2*self.Zmax)/nbins
+            bins = np.arange ( -self.Zmax, self.Zmax+1e-7, step )
+        return step, bins
+
+    def defaults ( self ):
+        self.nbins = None # 10 for p-values, 13 for significances
+        self.fudge = 1.
+        self.Zmax = None
+        self.before = None
+        self.nosuperseded = False # yes superseded
+        self.nofastlim = False # yes fastlim
+        self.show = False
+        self.pvalues = False # if False, then p-values if true then significances
+        self.skippedAgg = set() # log all aggregated analyses that have been skipped
+        self.origtopos = "all"
+        self.collaboration = "ALL"
+        self.likelihood = "gauss+poisson"
+        self.useAlsoULMaps = False
+        self.analyses = []
+        self.comment = None
+        self.topologies = []
+        self.select_topologies = []
+        self.negativetopos = []
+        self.negativeanalyses = []
+        self.outfile = "not_specified.png"
+        self.title = None
+        self.options = { "alwayslegend": False }
+        self.yrange = None
+        self.unscale = False
+        self.signalmodel = False
+        self.fakes = False
+        self.sqrts = [8,13,13.6]
+        self.filter = 0.
+        self.filtersigma = 0.
+        self.disclaimer = False
 
     def determineZmax ( self ):
         """ obtain self.Zmax from data """
@@ -629,107 +552,6 @@ class Plotter ( LoggerBase ):
         return None
         # scipy.stats.norm.ppf
 
-    def rough ( self ):
-        """ roughviz plot of the same data """
-        outfile = self.determineOutFile ( self.outfile )
-        debug = []
-        P,Pfake,weights,weightsfake=self.compute ( )
-        if not self.pvalues:
-            P,Pfake=self.toSignificance((P,Pfake))
-        if not "database" in self.meta:
-            print ( "error: database not defined in meta. did you pick up any dict files at all?" )
-            sys.exit()
-        title = self.getTitle()
-        weighted = False
-        if "weighted" in self.options:
-            weighted = self.options["weighted"]
-        import roughviz
-        roughviz.roughviz.generate_template = self.roughviz_template
-        if hasattr ( roughviz, "charts" ):
-            print ( "I think you installed py-roughviz, not roughviz" )
-            sys.exit(-1)
-        import pandas as pd
-        if not "database" in self.meta:
-            print ( "error: database not defined in meta. did you pick up any dict files at all?" )
-            sys.exit()
-        title = self.getTitle()
-
-        step, bins = self.getBins()
-        # print ( f"[plotDBDict bins are at {bins}" )
-
-        (p8,x8) = np.histogram ( P["8"], bins )
-        (p13lt,x13lt) = np.histogram ( P["13_lt"], bins )
-        (p13gt,x13gt) = np.histogram ( P["13_gt"], bins )
-        factor = 1.
-        if weighted:
-            factor = 100.
-            (p8,x8) = np.histogram ( P["8"], bins, weights=weights["8"] )
-            (p13lt,x13lt) = np.histogram ( P["13_lt"], bins, weights=weights["13_lt"] )
-            (p13gt,x13gt) = np.histogram ( P["13_gt"], bins, weights=weights["13_gt"] )
-        sbins = [ f"{x+step/2.:.2f}" for x in x8[:-1] ]
-        if not self.pvalues:
-            sbins = [ f"{x+step/2.:.1f}" for x in x8[:-1] ]
-        p8l = [ factor*float(x) for x in p8 ]
-        p13ltl = [ factor*float(x) for x in p13lt ]
-        #p13ltl = [ float(x)+float(y) for x,y in zip(p13lt,p8) ]
-        p13gtl = [ factor*float(x) for x in p13gt ]
-        #p13gtl = [ float(x)+float(y) for x,y in zip(p13gt,p13ltl) ]
-        d = { "labels": sbins, "8 TeV": p8l, "13 TeV, < 100/fb": p13ltl, "13 TeV, > 100/fb": p13gtl }
-        df = pd.DataFrame ( data = d )
-        if "tilde" in title:
-            title = f"${title}$"
-        columns = [ "8 TeV", "13 TeV, < 100/fb", "13 TeV, > 100/fb" ]
-        yLabel = "# SRs"
-        if weighted:
-            yLabel = "# analyses (weighted, x 100)"
-        if "ylabel" in self.options:
-            yLabel = self.options["ylabel"]
-        roughness = 6
-        if "roughness" in self.options:
-            roughness = self.options["roughness"]
-        if "title" in self.options:
-            if self.options["title"] in [ False, None ]:
-                # title = None
-                pass
-            if type(self.options["title"]) == str:
-                title = self.options["title"]
-        xlabel = "p-values"
-        if not self.pvalues:
-            xlabel = "significances"
-        if "ylabel" in self.options:
-            yLabel = self.options["ylabel"]
-        if "xlabel" in self.options:
-            xlabel = self.options["xlabel"]
-        bar = roughviz.stackedbar ( df["labels"], df[ columns],
-                xLabel=xlabel, roughness = roughness,
-                yLabel = yLabel, title = title,
-                titleFontSize = 18, plot_svg = True, interactive = False,
-                labelFontSize = 16, axisFontSize = 16, legend = "true" )
-        # bar = roughviz.outputs
-        # self.interactive( { "df": df, "bar": bar, "debug": debug }  )
-        # self.addLegendToRough ( outfile )
-        return bar, debug
-
-    def addLegendToRough ( self, filename ):
-        """ rough plot does not have legend, so we write it ourselves """
-        from PIL import Image, ImageDraw, ImageFont
-        import ptools
-        path = ptools.__file__.replace("ptools/__init__.py","share/")
-        font = os.path.join ( os.path.abspath ( path ), "Gaegu-Regular.ttf" )
-        img = Image.open ( filename )
-        d1 = ImageDraw.Draw(img)
-        myFont = ImageFont.truetype( font, 36 )
-        labels = { "8": "8 TeV", "13lt": "13 TeV, low lumi", "13gt": "13 TeV, high lumi" }
-        colors = { "8": (135, 207, 236), "13lt": (121, 202, 176), "13gt": (218, 194, 161 ) }
-        ymin, dy = 80, 50
-        ycoords = { "8": ymin+2*dy, "13lt": ymin+dy, "13gt": ymin }
-        for l in labels:
-            txt = labels[l]
-            c = colors[l]
-            y = ycoords[l]
-            d1.text((1100, y), txt, fill = c,font=myFont)
-        img.save ( filename )
-
     def interactive ( self, container ):
         import IPython
         IPython.embed( colors = "neutral" )
@@ -1029,8 +851,6 @@ def getArgs( cmdline = None ):
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
     argparser.add_argument ( '--list_abbreviations',
             help='list all abbreviations of topology names', action='store_true' )
-    argparser.add_argument ( '-r', '--roughviz',
-            help='roughviz plot', action='store_true' )
     argparser.add_argument ( '--show',
             help='show plot', action='store_true' )
     argparser.add_argument ( '--Zmax',
@@ -1073,10 +893,7 @@ def runNotebook( cmdline, options = {} ):
     args = getArgs( cmdline )
     plotter = Plotter ( args )
 
-    if args.roughviz:
-        ret, _ = plotter.rough( args.outfile, options )
-    else:
-        ret = plotter.plot( args.outfile )
+    ret = plotter.plot( args.outfile )
     return plotter
 
 if __name__ == "__main__":
