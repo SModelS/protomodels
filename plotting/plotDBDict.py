@@ -20,6 +20,7 @@ from typing import Union, List, Dict
 from ptools.helpers import computeP
 from ptools.moreHelpers import namesForSetsOfTopologies
 from protomodels.base.loggerbase import LoggerBase
+from smodels_utils.helper.various import hasLLHD, removeAnaIdSuffices
 
 class Plotter ( LoggerBase ):
     """ the meta statistics plotter, see eg https://smodels.github.io/validation/300/significances.png
@@ -463,7 +464,7 @@ class Plotter ( LoggerBase ):
                     if not math.isnan ( pfake):
                         Pfake[sqrts].append( pfake )
                         weightsfake[sqrts].append ( w )
-                self.nanas.add ( anaid )
+                self.nanas.add ( removeAnaIdSuffices ( anaid ) )
         for s in P.keys():
             P[s]=np.array(P[s])
             Pfake[s]=np.array(Pfake[s])
@@ -751,6 +752,11 @@ class Plotter ( LoggerBase ):
         plt.ylabel ( ylabel )
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
         nAnas = len ( self.nanas )
+        if True:
+            nanas = list ( self.nanas )
+            nanas.sort()
+            for x in nanas:
+                print ( x )
         nSRs = int ( len(Ptot) / len(self.filenames ) )
         plotStats = True
         if "plotStats" in self.options:
