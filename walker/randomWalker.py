@@ -95,7 +95,8 @@ class RandomWalker ( LoggerBase ):
             from ptools import helpers
             helpers.seedRandomNumbers(self.random_seed + walkerid )
             self.pprint ( f"setting random seed to {self.random_seed}" )
-
+        if not os.path.isdir("dictfiles"): os.mkdir("dictfiles")
+        self.dictfile = f"dictfiles/pmodel_{walkerid}.dict"
         #Initialize Predictor
         self.predictor =  Predictor( self.walkerid, dbpath=dbpath,
                               expected=expected, select=select, do_srcombine=do_srcombine )
@@ -251,6 +252,20 @@ class RandomWalker ( LoggerBase ):
                 self.pprint ( f"  `-- error! best combo pids ({pidsbc}) arent subset of masses pids ({pidsp})!" )
                 self.manipulator.M.bestCombo = None
 
+    def writeToDictFile(self, proto_dict):
+            # Load existing list or initialize a new one
+            if os.path.exists(self.dictfile):
+                with open (self.dictfile, "rt" ) as f:
+                    txt = f.read()
+                    dicts = eval( txt )
+                    
+            else: dicts = []
+            dicts.append(proto_dict)
+ 
+            with open (self.dictfile, "wt" ) as f:
+                f.write (f"{dicts}")
+
+
     def predict ( self, manipulator : Manipulator):
         """ Calls predictor.predict to get the theory predictions for model. Loops for 5 times till model.muhat is close to 1.0 """
         #print(f"Adress of manip : {id(manipulator)}")
@@ -260,6 +275,7 @@ class RandomWalker ( LoggerBase ):
             model.TL = 1.0
             proto_dict = manipulator.getPmodelDict()
             self.log(f"Protomodel: {proto_dict}")
+            self.writeToDictFile(proto_dict)
             return True
 
         muhat_converge = False
@@ -286,10 +302,12 @@ class RandomWalker ( LoggerBase ):
             proto_dict = manipulator.getPmodelDict()
             if predict:
                 self.log ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {previousMuhat}. Going back to previous step." )
-                self.log(f"Protomodel: {proto_dict}")           
+                self.log(f"Protomodel: {proto_dict}")   
+                self.writeToDictFile(proto_dict)
             else:
                 self.log ( f"Step {model.step} did not converge to muhat 1.0. Model did not find any prediction." )
                 self.log(f"Protomodel: {proto_dict}") 
+                self.writeToDictFile(proto_dict)
             return False
 
         return True
@@ -503,11 +521,13 @@ class RandomWalker ( LoggerBase ):
                 self.highlight ( "info", "Passed both critics, taking the step." )
                 proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=True)
                 self.log(f"Protomodel: {proto_dict}")
+                self.writeToDictFile(proto_dict)
                 self.takeStep()
             else:
                 self.highlight ( "info", "Failed at least one critic, the step is reverted." )
                 proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=False)
                 self.log(f"Protomodel: {proto_dict}")
+                self.writeToDictFile(proto_dict)
                 self.manipulator.restoreModel( reportReversion=True )
 
         else:
@@ -519,6 +539,7 @@ class RandomWalker ( LoggerBase ):
                 self.highlight ("info", f"u={u:.2f} > {acceptance_ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}: revert." )
                 proto_dict = self.manipulator.getPmodelDict(acc=False, critic_acc=False)
                 self.log(f"Protomodel: {proto_dict}")
+                self.writeToDictFile(proto_dict)
                 self.manipulator.restoreModel( reportReversion=True )
             else:
                 self.highlight ( "info", f"u={u:.2f} <= {acceptance_ratio:.2f};K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )   #SN: <+ and not > right?
@@ -527,12 +548,14 @@ class RandomWalker ( LoggerBase ):
                     self.log ( "Passed both critics, taking the step." )
                     proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=True)
                     self.log(f"Protomodel: {proto_dict}")
+                    self.writeToDictFile(proto_dict)
                     self.trace_logllhdratio.append(log_llhdRatio_new - log_llhdRatio_current)
                     self.takeStep()
                 else:
                     self.log ( "Failed at least one critic, the step is reverted." )
                     proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=False)
                     self.log(f"Protomodel: {proto_dict}")
+                    self.writeToDictFile(proto_dict)
                     self.manipulator.restoreModel( reportReversion=True )
 
     def record ( self ):

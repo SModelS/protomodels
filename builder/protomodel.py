@@ -255,7 +255,7 @@ class ProtoModel ( LoggerBase ):
         #Get list of possible decay channels:
         openChannels = set()
         unfrozen = self.unFrozenParticles()
-        smMasses = {  6: 173., 24: 81., 23: 91., 25: 125.,
+        smMasses = {  6: 173., 24: 80.377, 23: 91.1876, 25: 125.,
                          15: 1.77, 4: 1.2, 5: 5.0 }
         #Get all relevant masses
         allMasses = dict([[pid,mass] for pid,mass in self.masses.items()])
