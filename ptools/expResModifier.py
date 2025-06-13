@@ -874,7 +874,7 @@ Just filter the database:
         sigmacut = 0.02*fb
         self.topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
 
-    def addSignalsSingleProc ( self, listOfExpRes ):
+    def addSignalsSingleProc ( self, listOfExpRes : list ):
         """ thats the method that adds a typical signal """
         if self.protomodel == None:
             return listOfExpRes
@@ -882,16 +882,20 @@ Just filter the database:
         self.produceTopoList()
         ctr,els = 0, ""
         for topo in self.topos:
-            for el in topo.elementList:
-                ctr+=1
-                els += str(el) + ", "
+            for sms in self.topos[topo]:
+                ctr+= 1
+                els += str(sms)+", "
+            #for el in topo.elementList:
+            #    ctr+=1
+            #    els += str(el) + ", "
         els=els[:-2]
         self.log ( f"now add the signals from {self.getPModelName()}, {ctr} topologies: {els}" )
         addedUL, addedEM = 0, 0
-        self.pprint ( f"{len(listOfExpRes)} results: ", end="" )
+        print ( f"{len(listOfExpRes)} results: ", end="" )
         for l,expRes in enumerate(listOfExpRes):
+            self.db.selectExpResults ( analysisIDs = [ expRes.globalInfo.id ] )
             print ( ".", flush=True, end="" )
-            tpreds = theoryPredictionsFor ( expRes, self.topos, useBestDataset=False,
+            tpreds = theoryPredictionsFor ( self.db, self.topos, useBestDataset=False,
                                             combinedResults=False )
             if tpreds == None:
                 ret.append ( expRes )
@@ -912,6 +916,7 @@ Just filter the database:
                             addedEM += 1
                             listOfExpRes[l].datasets[i] = self.addSignalForEfficiencyMap ( dataset, tpred, lumi )
                     ## expRes.datasets[i] = self.fixUpperLimit ( dataset )
+        self.db.selectExpResults ( analysisIDs = [ "all" ] )
         print ( )
         self.log ( f"added {addedUL} UL signals and {addedEM} EM signals" )
         return listOfExpRes
