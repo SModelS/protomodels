@@ -289,6 +289,8 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> fl
 
 def stripUnits( container ):
     """ strip all units from a mass vector """
+    if type(container) in [ None ]:
+        return container
     ret = []
     for br in container:
         tbr = []

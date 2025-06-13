@@ -26,6 +26,7 @@ from smodels.share.models.SMparticles import SMList
 from share.model_spec import BSMList
 from smodels.matching.theoryPrediction import theoryPredictionsFor
 from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer
+# from smodels.statistics.basicStats import NllEvalType
 from smodels.base.physicsUnits import fb
 from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
@@ -574,10 +575,10 @@ Just filter the database:
             already taken care of """
         txns = list ( map ( str, tpred.txnames ) )
         txns.sort()
-        self.log ( f"add EM matching tpred {tpred.analysisId()}/{tpred.dataId()} {','.join(txns)}: {tpred.xsection.value}" )
+        self.log ( f"add EM matching tpred {tpred.analysisId()}/{tpred.dataId()} {','.join(txns)}: {tpred.xsection.asNumber(fb):.2g} fb" )
         label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
         orig = dataset.dataInfo.observedN
-        sigLambda = float ( tpred.xsection.value * lumi )
+        sigLambda = float ( tpred.xsection * lumi )
         D={}
         D["sigLambda"]=sigLambda
         self.comments["sigLambda"]="the lambda for the signal"
@@ -633,11 +634,11 @@ Just filter the database:
         computer = UpperLimitComputer(cl=1.-alpha )
         m = Data( orig+sigN, orig, err**2, nsignal = 1. )
         lumi = dataset.globalInfo.lumi# .asNumber(1./fb)
-        maxSignalXsec = computer.ulSigma(m, marginalize=True ) / lumi
+        maxSignalXsec = computer.getUpperLimitOnMu (m ) / lumi
         dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
         dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
         dataset.dataInfo.upperLimit = maxSignalXsec
-        maxSignalXsec = computer.ulSigma(m, marginalize=True, expected=True ) / lumi
+        maxSignalXsec = computer.getUpperLimitOnMu( m, expected=True ) / lumi #  NllEvalType.apriori ) #/ lumi
         dataset.dataInfo.expectedUpperLimit = maxSignalXsec
         self.addToStats ( label, D, dataset.globalInfo )
         return dataset
@@ -704,7 +705,7 @@ Just filter the database:
         from ptools import helpers
         txns = values["txns"]
         ## so we simply add the theory predicted cross section to the limit
-        sigmaN = values["sigmaN"] # tpred.xsection.value.asNumber(fb)
+        sigmaN = values["sigmaN"] # tpred.xsection.asNumber(fb)
         label = dataset.globalInfo.id + ":ul:" + txns
         D={}
         D["sigmaN"]=sigmaN
@@ -720,7 +721,7 @@ Just filter the database:
         hasAdded = 0
         txnd = txname.txnameData
         etxnd = txname.txnameDataExp
-        coordsTpred = txnd.dataToCoordinates ( values["masses"], txnd._V, txnd.delta_x ) ## coordinates of tpred
+        coordsTpred = txnd.PCAtransf( values["masses"] ) # , txnd._V, txnd.delta_x ) ## coordinates of tpred
         minDist = float("inf") ## for the closest point we store the numbers
         for yi,y in enumerate(txnd.y_values):
             pt = txnd.tri.points[yi] ## the point in the rotated coords
@@ -765,14 +766,16 @@ Just filter the database:
         from ptools import helpers
         txns = list ( map ( str, tpred.txnames ) )
         txns.sort()
-        self.log ( f"add UL matching tpred {tpred.analysisId()}: <{tpred.xsection.value}> {tpred.PIDs} {','.join(txns)}" )
+        self.log ( f"add UL matching tpred {tpred.analysisId()}: <{tpred.xsection.asNumber(fb):.2g}> fb {tpred.smsList} {','.join(txns)}" )
         ## so we simply add the theory predicted cross section to the limit
-        sigmaN = tpred.xsection.value.asNumber(fb)
+        sigmaN = tpred.xsection.asNumber(fb)
         label = tpred.analysisId() + ":ul:" + ",".join(txns)
         D={}
         D["sigmaN"]=sigmaN
-        D["pids"]=tpred.PIDs
-        D["masses"]=helpers.stripUnits ( tpred.mass )
+        # D["pids"]=tpred.PIDs
+        D["smsList"]=tpred.smsList
+        if tpred.mass is not None:
+            D["masses"]=helpers.stripUnits ( tpred.mass )
         D["txns"]=",".join(txns)
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
@@ -784,14 +787,16 @@ Just filter the database:
             hasAdded = 0
             txnd = txname.txnameData
             etxnd = txname.txnameDataExp
-            coordsTpred = txnd.dataToCoordinates ( tpred.mass, txnd._V, txnd.delta_x ) ## coordinates of tpred
+            if tpred.mass is None:
+                continue
+            coordsTpred = txnd.PCAtransf ( tpred.mass ) # , txnd._V, txnd.delta_x ) ## coordinates of tpred
             minDist, minPt = float("inf"),None ## for the closest point we store the numbers
             for yi,y in enumerate(txnd.y_values):
                 pt = txnd.tri.points[yi] ## the point in the rotated coords
                 dist = self.distance ( pt, coordsTpred )
                 if dist < minDist: ## just so we know how far away we are
                     minDist = dist
-                    minPt = txnd.coordinatesToData ( pt, txnd._V, txnd.delta_x )
+                    minPt = txnd.inversePCAtransf ( pt ) # , txnd._V, txnd.delta_x )
                 if dist > self.maxmassdist: ## change y_values only in vicinity of protomodel
                     continue
                 oldv = txnd.y_values[yi]
@@ -891,7 +896,7 @@ Just filter the database:
         els=els[:-2]
         self.log ( f"now add the signals from {self.getPModelName()}, {ctr} topologies: {els}" )
         addedUL, addedEM = 0, 0
-        print ( f"{len(listOfExpRes)} results: ", end="" )
+        print ( f"addSignalsSingleProc {len(listOfExpRes)} results get signal added: ", end="" )
         for l,expRes in enumerate(listOfExpRes):
             self.db.selectExpResults ( analysisIDs = [ expRes.globalInfo.id ] )
             print ( ".", flush=True, end="" )
@@ -1106,8 +1111,9 @@ Just filter the database:
             try:
                 model = ws.model()
             except pyhf.exceptions.InvalidModel as e:
-                print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{list(expRes.globalInfo.jsonFiles.keys())[ws_i]}]: {e}" )
-                sys.exit(-1)
+                print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{list(expRes.globalInfo.jsonFiles.keys())[ws_i]}][{ws_i}]: {e}" )
+                continue
+                # sys.exit(-1)
             channelnames = self.getChannelNames ( model.config.channels )
             pars_bkg = model.config.suggested_init()
             pars_bkg[model.config.poi_index] = 0.0 ## background
