@@ -27,7 +27,7 @@ from share.model_spec import BSMList
 from smodels.matching.theoryPrediction import theoryPredictionsFor
 from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer
 # from smodels.statistics.basicStats import NllEvalType
-from smodels.base.physicsUnits import fb
+from smodels.base.physicsUnits import fb, GeV
 from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
@@ -759,9 +759,36 @@ Just filter the database:
             self.addToStats ( label, D, dataset.globalInfo )
         return txnd
 
+    def getMassVector ( self, tpred ):
+        """ get the particle masses of a theory prediction """
+        ## FIXME this will have to be smarter
+        ret = []
+        if tpred is None:
+            return ret
+        for sms in tpred.smsList:
+            for node in sms.nodes:
+                if hasattr ( node.particle, "mass" ) and node.particle.mass.asNumber(GeV) > 0:
+                    ret.append ( node.particle.mass.asNumber(GeV) )
+        return ret
+
+    def getPIDVector ( self, tpred ):
+        """ get the particle pdgs of a theory prediction """
+        ## FIXME this will have to be smarter
+        ret = []
+        if tpred is None:
+            return ret
+        for sms in tpred.smsList:
+            for node in sms.nodes:
+                if type(node.particle.pdg) == int and node.particle.pdg > 99:
+                    ret.append ( node.particle.pdg )
+        return ret
+
+
     def addSignalForULMap ( self, dataset, tpred, lumi ):
         """ add a signal to this UL result. background sampling is
             already taken care of """
+        if tpred is None:
+            return dataset
         from smodels.base.physicsUnits import fb
         from ptools import helpers
         txns = list ( map ( str, tpred.txnames ) )
@@ -772,10 +799,9 @@ Just filter the database:
         label = tpred.analysisId() + ":ul:" + ",".join(txns)
         D={}
         D["sigmaN"]=sigmaN
-        # D["pids"]=tpred.PIDs
-        D["smsList"]=tpred.smsList
-        if tpred.mass is not None:
-            D["masses"]=helpers.stripUnits ( tpred.mass )
+        D["pids"]=self.getPIDVector ( tpred )
+        # D["smsList"]=tpred.smsList
+        D["masses"]=self.getMassVector ( tpred )
         D["txns"]=",".join(txns)
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
@@ -787,9 +813,8 @@ Just filter the database:
             hasAdded = 0
             txnd = txname.txnameData
             etxnd = txname.txnameDataExp
-            if tpred.mass is None:
-                continue
-            coordsTpred = txnd.PCAtransf ( tpred.mass ) # , txnd._V, txnd.delta_x ) ## coordinates of tpred
+            masses = self.getMassVector ( tpred )
+            coordsTpred = txnd.PCAtransf ( masses ) # , txnd._V, txnd.delta_x ) ## coordinates of tpred
             minDist, minPt = float("inf"),None ## for the closest point we store the numbers
             for yi,y in enumerate(txnd.y_values):
                 pt = txnd.tri.points[yi] ## the point in the rotated coords
@@ -879,7 +904,7 @@ Just filter the database:
         sigmacut = 0.02*fb
         self.topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
 
-    def addSignalsSingleProc ( self, listOfExpRes : list ):
+    def addSignalsSingleProc ( self, listOfExpRes : list ) -> list:
         """ thats the method that adds a typical signal """
         if self.protomodel == None:
             return listOfExpRes
