@@ -487,6 +487,8 @@ class RandomWalker ( LoggerBase ):
             newcombo = set(self.protomodel.description.split(','))
             if newcombo != self.currentBestCombo:
                 self.log("Best Combination of results changed. Go back to previous model")
+                proto_dict = self.manipulator.getPmodelDict(acc=False, critic_acc=False)
+                self.log(f"Protomodel: {proto_dict}")
                 self.manipulator.restoreModel( reportReversion=True )
                 return
         newK = self.protomodel.K

@@ -452,7 +452,7 @@ class Combiner ( LoggerBase ):
         if muhat: muhat = float(muhat)
         end_time = time.time()
         time_taken = end_time - start_time
-        self.log("Computed muhat, taken {time_taken:.3f} seconds")
+        self.log(f"Computed muhat, taken {time_taken:.3f} seconds")
         TL = float(weight)
 
         return most_significant_comb,TL,muhat

@@ -414,7 +414,7 @@ class Critic ( LoggerBase ):
                 r = tpCombiner.getRValue(expected=False)
                 end_time = time.time()
                 time_taken = end_time - start_time
-                self.log("Computed robs, taken {time_taken:.3f} seconds.")
+                self.log(f"Computed robs, taken {time_taken:.3f} seconds.")
             except Exception as e:
                 import time
                 outfile = f"pmodel-{self.walkerid}_{self.protomodel.step}-{int(time.time())}.dict"

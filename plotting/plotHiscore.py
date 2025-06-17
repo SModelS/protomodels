@@ -936,7 +936,7 @@ class HiscorePlotter ( LoggerBase ):
                 self.writeIndexHtml ( )
             if options["tex"]:
                 self.writeIndexTex( texdoc )
-        self.predictor.predict ( self.protomodel, keep_predictions = True )
+        self.predictor.predict ( m, keep_predictions = True )
         self.critic.predict_critic ( self.protomodel )
         self.writeRawNumbersLatex ( )
         self.writeRawNumbersHtml ( )
