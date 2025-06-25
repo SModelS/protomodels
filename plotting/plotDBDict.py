@@ -655,13 +655,13 @@ class Plotter ( LoggerBase ):
         savgp13l = f"{avgp13lt:.2f}".lstrip('0').replace("-0","-")
         savgp13g = f"{avgp13gt:.2f}".lstrip('0').replace("-0","-")
         labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<78/fb$", "13 TeV, full $\\mathcal{L}$" ]
-        if self.ignore_sqrts:
-            labels = [ self.select_text, "--", "rest" ]
         plotAverages = True
         if "plot_averages" in self.options:
             plotAverages = self.options["plot_averages"]
         if plotAverages:
             labels = [ f"8 TeV [{savgp8}]", f"13 TeV, $\\mathcal{{L}}<100/fb$ [{savgp13l}]", f"13 TeV, $\\mathcal{{L}}>100/fb$ [{savgp13g}]" ]
+        if self.ignore_sqrts:
+            labels = [ self.select_text, "--", "rest" ]
         nLegendEntries=0
         for c,l in enumerate(labels):
             if not nontrivial[c]:
