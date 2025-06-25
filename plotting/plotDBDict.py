@@ -93,7 +93,7 @@ class Plotter ( LoggerBase ):
             if likelihood in abbreviations:
                 likelihood = abbreviations[likelihood]
             if likelihood not in [ "gauss", "gauss+poisson", "lognormal+poisson" ]:
-                print ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
+                self.pprint ( "error, likelihood is to be one of: gauss, gauss+poisson, lognormal+poisson" )
                 sys.exit()
             self.likelihood = likelihood ## False: gauss, True: lognormal
         self.verbose = 1
@@ -119,7 +119,7 @@ class Plotter ( LoggerBase ):
                 for t in topos:
                     self.select_topologies.append ( t )
         if len(self.select_topologies)>0 and self.ignore_sqrts == False:
-            print ( f"[plotDBDict] select_topologies is on, we will set ignore_sqrts to True" )
+            self.pprint ( f"select_topologies is on, we will set ignore_sqrts to True" )
             self.ignore_sqrts = True
 
         if "analyses" in args and args["analyses"] not in [ None ]:
@@ -148,7 +148,7 @@ class Plotter ( LoggerBase ):
                 else:
                     self.filenames.append ( pname )
         else:
-            print ( "we need dictfile in args" )
+            self.pprint ( "we need dictfile in args" )
         if "outfile" in args:
             self.outfile = self.determineOutFile ( args["outfile"] )
         self.meta = {}
@@ -220,6 +220,9 @@ class Plotter ( LoggerBase ):
         Zmax = 0.
         for dictfile,filecontent in self.data.items():
             for anaid,values in filecontent.items():
+                if not "orig_Z" in values:
+                    self.pprint ( "no orig_Z in dictionaries, did you forget the '-C' flag when calling expResModifier.py?" )
+                    sys.exit(-1)
                 if values["orig_Z"] > Zmax and np.isfinite ( values["orig_Z"] ):
                     Zmax = values["orig_Z"]
         self.Zmax = np.ceil ( Zmax * 4. ) / 4.
@@ -286,7 +289,7 @@ class Plotter ( LoggerBase ):
                             newdata[i]=v
                         else:
                             if self.verbose > 2:
-                                print ( f"[plotDBDict] removing {basename}:{i} (is an UL)" )
+                                self.pprint ( f"[plotDBDict] removing {basename}:{i} (is an UL)" )
                     else:
                         eBG,bgerr=None,None
                         if "expectedBG" in v:
@@ -406,7 +409,7 @@ class Plotter ( LoggerBase ):
                     sqrts = "8"
                 if ":ul" in k:
                     if self.useAlsoULMaps and anaid in hasEffMaps:
-                        print ( f"[plotDBDict] skipping {anaid}:ul: has effmaps." )
+                        self.pprint ( f"[plotDBDict] skipping {anaid}:ul: has effmaps." )
                     if self.useAlsoULMaps and not anaid in hasEffMaps:
                         # lets take the upper limit results with us
                         p = scipy.stats.norm.cdf( v["x"] )
@@ -439,7 +442,7 @@ class Plotter ( LoggerBase ):
                         p = v["orig_p"]
                     else:
                         if not hasComplained:
-                            print ( "computing the p-values -- this might take a while, so consider doing this at expResModifier.py" )
+                            self.pprint ( "computing the p-values -- this might take a while, so consider doing this at expResModifier.py" )
                             hasComplained = True
                         lognormal = False
                         if self.likelihood == "lognormal+poisson":
@@ -542,7 +545,7 @@ class Plotter ( LoggerBase ):
                 self.pprint ( f"significance for p={p} was {Z} will cap to {int(newZ)}!" )
                 Z = newZ
             #if abs(Z) > 2.5:
-            #    print ( "@@2 Z", Z, "p", p )
+            #    self.pprint ( "@@2 Z", Z, "p", p )
             return Z
         self.pprint ( f"cannot compute significance for {p} {type(p)}" )
         sys.exit()
@@ -573,7 +576,7 @@ class Plotter ( LoggerBase ):
             stopos = ""
             for i,t in enumerate(self.topologies):
                 if "+" in t and not "+off" in t:
-                    print ( f"[plotDBDict] WARNING: topology {t} has a + sign, did you mean to instead have a comma ','?" )
+                    self.pprint ( f"WARNING: topology {t} has a + sign, did you mean to instead have a comma ','?" )
                 stopos += prettyDescriptions.prettyTxname( t, False, "latex" )
                 if i < len(self.topologies)-1:
                     stopos += ";"
@@ -617,7 +620,7 @@ class Plotter ( LoggerBase ):
                 return i-1
         return len(bins)-2 # to the right of the last one
         #ret=int(x*len(bins)) ## find the bin of the max
-        #print ( "bins", bins, "binnr", ret )
+        #self.pprint ( "bins", bins, "binnr", ret )
         #return ret
 
     def plot( self ):
@@ -629,7 +632,7 @@ class Plotter ( LoggerBase ):
         if "weighted" in self.options:
             weighted = self.options["weighted"]
         if not "database" in self.meta:
-            print ( "error: database not defined in meta. did you pick up any dict files at all?" )
+            self.pprint ( "error: database not defined in meta. did you pick up any dict files at all?" )
             sys.exit()
         title = self.getTitle()
 
@@ -757,7 +760,7 @@ class Plotter ( LoggerBase ):
         if False:
             nanas = list ( self.nanas )
             nanas.sort()
-            print ( nanas )
+            self.pprint ( nanas )
         nSRs = int ( len(Ptot) / len(self.filenames ) )
         plotStats = True
         if "plotStats" in self.options:
