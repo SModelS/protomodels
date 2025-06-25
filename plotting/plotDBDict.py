@@ -166,8 +166,18 @@ class Plotter ( LoggerBase ):
 
     def logExecution ( self ):
         """ log the call of the executable """
+        cmd = ""
+        prev=""
+        for i,a in enumerate(sys.argv):
+            if i > 0:
+                cmd += " "
+            if "select_t" in prev:
+                a = f"'{a}'"
+            cmd += a
+            prev = a
+        cmd += "\n"
         with open ( "plotDBDict.log", "at" ) as f:
-            f.write ( ' '.join ( sys.argv )+"\n" )
+            f.write ( cmd )
             f.close()
 
     def getBins ( self, nbins : Union[None,int] = None ):
