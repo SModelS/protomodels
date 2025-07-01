@@ -765,11 +765,9 @@ Just filter the database:
         ret = []
         if tpred is None:
             return ret
-        for sms in tpred.smsList:
-            for node in sms.nodes:
-                if hasattr ( node.particle, "mass" ) and node.particle.mass.asNumber(GeV) > 0:
-                    ret.append ( node.particle.mass.asNumber(GeV) )
-        return ret
+        sms=tpred.smsList[0]
+        point = tpred.txnames[0].getDataFromSMS ( sms )
+        return point
 
     def getPIDVector ( self, tpred ):
         """ get the particle pdgs of a theory prediction """
@@ -921,7 +919,7 @@ Just filter the database:
         els=els[:-2]
         self.log ( f"now add the signals from {self.getPModelName()}, {ctr} topologies: {els}" )
         addedUL, addedEM = 0, 0
-        print ( f"addSignalsSingleProc {len(listOfExpRes)} results get signal added: ", end="" )
+        print ( f"[expResModifier.addSignalsSingleProc] {len(listOfExpRes)} results get signal added: ", end="" )
         for l,expRes in enumerate(listOfExpRes):
             self.db.selectExpResults ( analysisIDs = [ expRes.globalInfo.id ] )
             print ( ".", flush=True, end="" )
