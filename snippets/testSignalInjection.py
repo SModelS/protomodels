@@ -7,7 +7,7 @@ from smodels.experiment.databaseObj import Database
 from smodels.base.physicsUnits import GeV
 
 # ./ptools/fetchFromClip.py -R rundir.frozen1 --database
-db=Database("default.pcl")
+db=Database("../../smodels-database/")
 print ( "db", db.databaseVersion )
 er = db.getExpResults( [ "CMS-SUS-19-006" ] )[0]
 ds= er.datasets[0]
@@ -26,8 +26,9 @@ for mLSP in range ( 100, 240, 50 ):
         # masses.append (  [[msquark*GeV,mLSP*GeV],[msquark*GeV,mLSP*GeV]] )
 for mass in masses:
     mvec = [ [ mass[0]*GeV, mass[1]*GeV ], [ mass[0]*GeV, mass[1]*GeV ] ]
-    oUL=txn.getULFor(mvec,expected=False)
-    eUL=txn.getULFor(mvec,expected=True)
+    mvec = [ mass[0], mass[1], mass[0], mass[1] ]
+    oUL=txn.txnameData.getValueFor(mvec)
+    eUL=txn.txnameDataExp.getValueFor(mvec)
     congr=False
     if abs(eUL - oUL ) / ( eUL + oUL ) < 1e-5:
         congr=True
