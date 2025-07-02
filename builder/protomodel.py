@@ -223,26 +223,26 @@ class ProtoModel ( LoggerBase ):
         '''
         Get the list of allowed production modes for the protomodel
         :param return_mass: If True, return the mass of the particles in the prod modes along with the prod modes
-        
+
         :return: List of all allowed production modes for the protomodel
         '''
-        
+
         tmpSLHA = tempfile.mktemp( prefix=f".{self.walkerid}_xsecfile", suffix=".slha",dir=self.SLHATEMPDIR )
         slhafile = self.createSLHAFile(tmpSLHA, addXsecs=False)
-        
+
         from ptools.refxsecComputer import RefXSecComputer
         comp = RefXSecComputer()
         channels = comp.findOpenChannels(slhafile)
-        
+
         if return_mass: return channels
-        
+
         prodModes = []
         for modes in channels:
             prodModes.append(modes['pids'])
         if len(prodModes) == 0:
             print("huh? we have 0 prod modes? We have {len(channels)} channels.")
         return prodModes
-        
+
     def getOpenChannels(self,pid : int ):
         """get the list of open decay channels for particle pid. Open channels are
         the decays to unfrozen particles and to lighter particles.
@@ -260,7 +260,7 @@ class ProtoModel ( LoggerBase ):
         #Get all relevant masses
         allMasses = dict([[pid,mass] for pid,mass in self.masses.items()])
         allMasses.update(smMasses)
-        
+
         offshell = False
         mass_W = 80.377
         mwidth_W = 0.012
@@ -293,7 +293,7 @@ class ProtoModel ( LoggerBase ):
             openChannels.add ( dpid )
 
         openChannels = list(openChannels)
-        
+
         #remove all decay channels assoaciated with a dkey if one of them is not present for offshell decays to ensure flavor democracy
         if offshell:
             for dpid, dk in self.decay_keys[pid].items():
@@ -496,7 +496,9 @@ class ProtoModel ( LoggerBase ):
                     return
 
     def writeSLHAFile ( self, outputSLHA : str ):
-        """ write the slha file, plug in protomodel params """
+        """ write the slha file, plug in protomodel params. this method does
+        however not add the xsecs, for this look at createSLHAFile.
+        """
         #Get template data:
         with open( self.templateSLHA ) as f:
             lines=f.readlines()
@@ -602,7 +604,7 @@ class ProtoModel ( LoggerBase ):
             pmodel_dict['decays'] = decay_dict
             pmodel_dict['xsecs[fb]'] = xsecs
             return pmodel_dict
-        
+
         return { "masses": self.masses, "ssmultipliers": self.ssmultipliers,
                  "decays": self.decays, "xsecs[fb]": xsecs }
 
