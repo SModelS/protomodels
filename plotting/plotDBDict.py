@@ -681,6 +681,10 @@ class Plotter ( LoggerBase ):
         # colors = [ "tab:green", "tab:blue", "cyan" ]
         # colors = [ "tab:green", "tab:blue", "lightblue" ]
         colors = [ "tab:green", "lightblue", "tab:blue" ]
+        for i in [0,1,2]:
+            if f"color{i}" in self.options:
+                colors[i] = self.options[f"color{i}"]
+
         H1 = plt.hist ( x, weights = wlist, bins=bins, histtype="bar",
                    label= labels, color= colors, stacked=True )
         if "yrange" in self.options and self.options["yrange"]!=None:
@@ -859,7 +863,7 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '--ignore_sqrts',
             help='plot results from all runs with the same color', action='store_true' )
     argparser.add_argument ( '-O', '--options',
-            help='dictionary of options, given as string {try nbins, xlabel, ylabel, plotStats, plot_averages, weighted, yrange} [None]',
+            help='dictionary of options, given as string {try nbins, xlabel, ylabel, plotStats, plot_averages, weighted, yrange, color0, color1, color2} [None]',
             type=str, default=None )
     argparser.add_argument ( '-U', '--ulalso',
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
