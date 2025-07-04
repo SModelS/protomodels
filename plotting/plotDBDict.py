@@ -171,7 +171,7 @@ class Plotter ( LoggerBase ):
         for i,a in enumerate(sys.argv):
             if i > 0:
                 cmd += " "
-            if "select_t" in prev or prev in [ "--title", "--options", "-O", "-T", "--option", "--titl" ]:
+            if "select_t" in prev or "--ti" in prev or "--op" in prev or prev in [ "-O", "-T" ]:
                 a = f"'{a}'"
             cmd += a
             prev = a
