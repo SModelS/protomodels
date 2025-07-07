@@ -82,8 +82,8 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
             description='interactive session with hiscore list loaded' )
     argparser.add_argument ( '-f', '--infile',
-            help='Hiscore file. [hiscores.dict]',
-            type=str, default="hiscores.dict" )
+            help='Hiscore file. [hiscores_global.dict]',
+            type=str, default="hiscores_global.dict" )
     argparser.add_argument ( '-d', '--dbpath',
             help='Database path. [official]',
             type=str, default="official" )
