@@ -434,6 +434,7 @@ class Manipulator ( LoggerBase ):
                 continue
 
         return ret
+
     '''
     def initModel(self):
         
@@ -463,7 +464,10 @@ class Manipulator ( LoggerBase ):
             line = line[:-2]
             self.pprint ( line )
         else:
-            self.highlight ( "info", f"starting with {os.getcwd()}/{filename}{scom}" )
+            sK=""
+            if "K" in D:
+                sK = f"[K={D['K']:.1f}] "
+            self.highlight ( "info", f"starting with {sK}{os.getcwd()}/{filename}{scom}" )
         #Reset all model attributes:
         self.M.initializeModel()
         #Set attributes to dictionary values:
