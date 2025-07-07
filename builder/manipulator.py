@@ -509,7 +509,7 @@ class Manipulator ( LoggerBase ):
         if integer, then cheat model is in f'Pmodels/pmode{mode}.dict'
         """
 
-        if model in [ "no_cheat", "", None, 0 ]: ## no cheating
+        if mode in [ "no_cheat", "", None, 0 ]: ## no cheating
             return
         filename = mode
         if type(mode)==int:
