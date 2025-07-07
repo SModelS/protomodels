@@ -53,7 +53,7 @@ def __cleanDirectory ():
 class RandomWalker ( LoggerBase ):
     def __init__ ( self, walkerid : int = 0, nsteps : int = 10000,
             strategy : str = "aggressive",
-            cheatcode : int = 0, dbpath : PathLike = "./database.pcl",
+            cheatcode : Union[str,int] = "no_cheat", dbpath : PathLike = "./database.pcl",
             expected : bool = False, select : str = "all",
             catch_exceptions : bool = True, rundir : Union[PathLike,None] = None,
             do_srcombine : bool = False, test_param_space = False, run_mcmc = False,
@@ -61,8 +61,8 @@ class RandomWalker ( LoggerBase ):
             stopTeleportationAfter : int = -1 ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
-        :param cheatcode: cheat mode. 0 is no cheating, 1 is with ranges, 2
-                      is the Z323 model.
+        :param cheatcode: cheat mode. 0 or "no_cheat" is no cheating, else
+        cheatcode is path to model.
         :param expected: remove possible signals from database
         :param select: select only subset of results (all for all, em for
                 efficiency maps only, ul for upper limits only, alternatively
@@ -135,7 +135,7 @@ class RandomWalker ( LoggerBase ):
         self.trace_logllhdratio = []
         self.run_mcmc = run_mcmc
         if self.run_mcmc: self.highlight("info", "Running MCMC walk")
-        if cheatcode <= 0:
+        if cheatcode in [ "no_cheat", "", "none", None, 0 ]:
             self.takeStep() # the first step should be considered as "taken"
             #Set current TL and K values to threshold values
             self.currentTL = -0.1
@@ -257,7 +257,11 @@ class RandomWalker ( LoggerBase ):
             if os.path.exists(self.dictfile):
                 with open (self.dictfile, "rt" ) as f:
                     txt = f.read()
-                    dicts = eval( txt )
+                    try:
+                        dicts = eval( txt )
+                    except (SyntaxError,ValueError) as e:
+                        logger.error ( f"when trying to read {self.dictfile}: {e}" )
+                        dicts = []
                     
             else: dicts = []
             dicts.append(proto_dict)

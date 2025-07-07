@@ -85,7 +85,7 @@ def writeMetaInfo ( rundir : str, meta : Dict ):
             f.close()
 
 def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
-          dbpath : PathLike = "official", cheatcode : int = 0, 
+          dbpath : PathLike = "official", cheatcode : Union[int,str] = "no_cheat", 
           rundir : Union[None,str] = None, maxsteps : int = 10000,
           seed : Union[None,int] = None, test_param_space = False, run_mcmc=False,
           catch_exceptions : bool = True, select : str = "all",
@@ -97,7 +97,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
     :param nmin: the walker id of the first walker
     :param nmax: the walker id + 1 of the last walker
     :param continueFrom: start with protomodels given in the pickle file or hiscore dictionary file
-    :param cheatcode: in case we wish to start from a cheat model
+    :param cheatcode: in case this is not 0 or "no_cheat", we wish to start from a cheat model
     :param rundir: overrride default rundir, if None use default
     :param maxsteps: maximum number of steps to be taken
     :param seed: random seed number (optional)
@@ -127,7 +127,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
     writeMetaInfo ( rundir, meta )
 
     if rundir != None and "<rundir>" in dbpath:
-        dbpath=dbpath.replace("<rundir>","%s/" % rundir )
+        dbpath=dbpath.replace("<rundir>", f"{rundir}/" )
     pfile, states = None, None
     if continueFrom == "default":
         continueFrom = f"{rundir}/states.dict" 
@@ -167,7 +167,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
         elif pfile.endswith(".hi") or pfile.endswith(".pcl"):
             nstates = len(states )
             ctr = i % nstates
-            print ( "[factoryOfWalkers] fromModel %d: loading %d/%d" % ( i, ctr, nstates ) )
+            print ( f"[factoryOfWalkers] fromModel {i}: loading {ctr}/{nstates}" )
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
                     walkerid = i, nsteps = maxsteps,
                     expected = False, select = select, dbpath = dbpath,
@@ -177,7 +177,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
         else:
             nstates = len(states )
             ctr = i % nstates
-            print ( "[factoryOfWalkers] fromDict %d: loading %d/%d" % ( i, ctr, nstates ) )
+            print ( f"[factoryOfWalkers] fromDict {i}: loading {ctr}/{nstates}" )
             w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
                     strategy = "aggressive", walkerid = i, dbpath = dbpath, 
                     expected = False, select = select, rundir = rundir, 
@@ -194,10 +194,9 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
         while ctAttempts < 7:
             steps = updateHiscores.countSteps( writeSubmitFile = False )
             if not type(steps)==tuple:
-                print ( "[factoryOfWalkers] been asked to update hiscores, but dont understand steps %s" % steps )
+                print ( f"[factoryOfWalkers] been asked to update hiscores, but dont understand steps {steps}" )
                 sys.exit(-1)
-            print ( "[factoryOfWalkers] been asked to update hiscores: %d == %d" % \
-                    ( steps[0], nmax*maxsteps ) )
+            print ( f"[factoryOfWalkers] been asked to update hiscores: {steps[0]} == {nmax*maxsteps}" )
             ctAttempts += 1
             if steps[0] == nmax*maxsteps: ## are we last?
                 updateHiscores.loop ( rundir = rundir, maxruns=1,
@@ -222,7 +221,7 @@ if __name__ == "__main__":
     dbpath = "./default.pcl"
     dbpath = "official"
     w = RandomWalker( walkerid=0, nsteps = 200, 
-                      dbpath=dbpath, cheatcode=0, select=s,
+                      dbpath=dbpath, cheatcode="no_cheat", select=s,
                       rundir="./", seed = None )
     w.walk()
 
