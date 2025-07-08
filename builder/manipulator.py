@@ -524,6 +524,9 @@ class Manipulator ( LoggerBase ):
         # scom = ""
         with open ( filename, "rt" ) as f:
             m = eval ( f.read() )
+            if type(m)==list:
+                self.pprint ( f"With {filename} a path to list of models was supplied. Will pick the first." )
+                m = m[0]
         self.initFromDict ( m, filename )
 
     def checkForNans ( self ):
