@@ -65,22 +65,23 @@ def pprintEvs ( protomodel ):
     return str(protomodel.nevents)+ " evts"
 
 def obtainHiscore ( number : int,
-        hiscorefile : PathLike = "hiscores.dict" ) -> ProtoModel:
+        hiscorefile : PathLike = "hiscores_global.dict" ) -> ProtoModel:
     """ obtain hiscore number <number> from >hiscorefile>
 
     :returns: protomodel object
     """
     hi = fetchHiscoresObj ( hiscorefile )
+    print ( f"@@0 hiscorefile {hiscorefile} hi.hiscores {hi.hiscores}" )
     TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K
     print ( f"[hiscoreTools] obtaining #{number}: K={K:.3f}" )
     ret = hi.hiscores[ number ]
     return ret
 
-def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
-                           picklefile : str = "hiscores.cache",
+def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
+                           picklefile : str = "hiscores_global.cache",
                            entrynr : Union[None,int] = 0 ) -> bool:
-    """ is hiscores.cache behind hiscores.dict, so it needs an update?
+    """ is hiscores_global.cache behind hiscores_global.dict, so it needs an update?
     :param entrynr: check for for this entry, 0 is first.
     If None, check all
 
@@ -134,15 +135,15 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores.dict",
             return True
     return False
 
-def fetchHiscoresObj ( dictfile : str = "hiscores.dict",
+def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
                        picklefile : Union[None,str] = None,
                        dbpath : str = "official" ) -> Hiscores:
-    """ create Hiscores object from hiscores.cache file.
-    update hiscores.cache file before, if needed.
+    """ create Hiscores object from hiscores_global.cache file.
+    update hiscores_global.cache file before, if needed.
 
-    :param dictfile: dictionary to update hiscores.cache from, if needed.
+    :param dictfile: dictionary to update hiscores_global.cache from, if needed.
     :param picklefile: the cached hiscore pickle file. if None,
-    then dictfile but replace hiscores.dict with hiscores.cache
+    then dictfile but replace hiscores_global.dict with hiscores_global.cache
 
     :returns: hiscore object
     """

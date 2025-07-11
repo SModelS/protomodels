@@ -649,7 +649,7 @@ if __name__ == "__main__":
             help='when scanning masses, adjust the SSMs so that the xsecs are constant',
             action="store_true" )
     argparser.add_argument ( '-F', '--force_copy',
-            help='force copying the hiscores.cache file',
+            help='force copying the hiscores_global.cache file',
             action="store_true" )
     argparser.add_argument ( '-K', '--dontkeep',
             help='dont keep the results folder',

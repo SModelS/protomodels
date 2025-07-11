@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" simple script that perpetually updates the hiscores.cache file,
+""" simple script that perpetually updates the hiscores_global.cache file,
 and the plots """
 
 __all__ = [ "loop", "didSRCombine" ]
@@ -127,8 +127,8 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
 def updateHiscores( rundir : Union[None,PathLike] = None,
                     dbpath : Union[None,PathLike] = None,
                     do_srcombine : bool = False ) -> Dict:
-    dictfile = f"{rundir}/hiscores.dict"
-    cachefile = f"{rundir}/hiscores.cache"
+    dictfile = f"{rundir}/hiscores_global.dict"
+    cachefile = f"{rundir}/hiscores_global.cache"
     from ptools import hiscoreTools
     hi = hiscoreTools.fetchHiscoresObj ( dictfile, cachefile, dbpath )
     from builder.manipulator import Manipulator
@@ -154,7 +154,7 @@ def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
     args.verbose = verbose
     args.detailed = False
     args.destinations = False
-    args.hiscorefile = f"{rundir}/hiscores.dict"
+    args.hiscorefile = f"{rundir}/hiscores_global.dict"
     args.dbpath = dbpath.replace("@rundir@",rundir )
     # args.dbpath = f"{rundir}/default.pcl"
     args.rundir = rundir
@@ -175,7 +175,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
           maxruns : Union[None,int] = 3, createPlots : bool=True,
           uploadTo : str = "temp", dbpath : str = "official",
           verbose : bool = False, do_srcombine : bool = False ):
-    """ loop (maxruns times) that updates hiscores.cache
+    """ loop (maxruns times) that updates hiscores_global.cache
 
     :param maxruns: maximally iterate that many times, if None then loop endlessly
     :param createPlots: if False, suppress plotting

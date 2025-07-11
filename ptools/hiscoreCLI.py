@@ -9,7 +9,7 @@
 
 """
 
-def cli( infile : str = "hiscores.dict", 
+def cli( infile : str = "hiscores_global.dict", 
          dbpath : str = "official", do_srcombine : bool= True ):
     """ fire up the interactive shell, preconfigured!
 

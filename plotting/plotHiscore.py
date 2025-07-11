@@ -1040,7 +1040,7 @@ def main ():
             help='which hiscore to plot [0]',
             type=int, default=0 )
     argparser.add_argument ( '-f', '--hiscorefile',
-            help='pickle file to draw from [<rundir>/hiscores.cache]',
+            help='pickle file to draw from [<rundir>/hiscores_global.cache]',
             type=str, default="default"  )
     argparser.add_argument ( '-v', '--verbosity',
             help='verbosity -- debug, info, warn, err [info]',
@@ -1095,7 +1095,7 @@ def main ():
         args.predictions = True
         args.tex = True
     if args.hiscorefile == "default":
-        args.hiscorefile = f"{rundir}/hiscores.cache"
+        args.hiscorefile = f"{rundir}/hiscores_global.cache"
     runPlotting ( args )
     if args.test:
         compileTestText()
