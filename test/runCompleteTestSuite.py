@@ -16,8 +16,7 @@ try:
     import smodels
 except:
     from ptools import setPath
-from smodels.tools.colors import colors
-colors.on = True
+from smodels_utils.helper import terminalcolors as colors
 
 v=sys.version_info
 if v[0] > 2 or ( v[0]==2 and v[1] > 6 ):
@@ -51,10 +50,9 @@ def verbose_run( flter ):
                     a=t.debug()
                 except Exception as e:
                     n_failed += 1
-                    print ( "%s FAILED: %s,%s%s" % \
-                            ( colors.error, type(e), str(e), colors.reset ) )
+                    print ( f"{colors.RED} FAILED: {type(e)},{e}{colors.RESET}" )
                     continue
-                print ( "%sok%s" % ( colors.info, colors.reset ) )
+                print ( f"{colors.GREEN}ok{colors.RESET}" )
 
                 #a=t.run() ## python3
                 # print ( "a=",a )
