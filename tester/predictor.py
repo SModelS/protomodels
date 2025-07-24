@@ -402,7 +402,7 @@ class Predictor ( LoggerBase ):
         bestCombo,TL,muhat = self.combiner.findHighestSignificance ( predictions, expected=False )
         if run_mcmc:
             tpredcomb = TheoryPredictionsCombiner(bestCombo)
-            TL = -2*(tpredcomb.likelihood(mu=1, expected=False, return_nll=True)) #multiply by 2 since later while computing K, we multiply log prior by 2
+            TL = -2*(tpredcomb.likelihood(mu=1, return_nll=True)) #multiply by 2 since later while computing K, we multiply log prior by 2
         ## DONT normalize here! rescaling by muhat is done in randomwalker predict function!
         '''
         ma = Manipulator ( protomodel )

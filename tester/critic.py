@@ -25,6 +25,10 @@ from base.loggerbase import LoggerBase
 from tester.combiner import Combiner
 from tester.combinationsmatrix import getYamlMatrix
 from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
+try:
+    from smodels.statistics.basicStats import apriori
+except Exception as e:
+    pass
 
 class Critic ( LoggerBase ):
     def __init__ ( self, walkerid : int, dbpath : PathLike = "official", expected : bool = False, select : str = "all", do_srcombine : bool = False ):
@@ -392,7 +396,10 @@ class Critic ( LoggerBase ):
         rexp_max = 0.
         if cut > 0:
             for tpred in predictions:
-                rexp = tpred.getRValue(expected = True)
+                try:
+                    rexp = tpred.getRValue(evaluationType = apriori)
+                except Exception as e:
+                    rexp = tpred.getRValue(expected = True)
                 if rexp == None:
                     from ptools.helpers import experimentalId
                     self.warn( f"r_exp for {experimentalId(tpred)} is None!" )

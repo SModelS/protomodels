@@ -164,8 +164,8 @@ def selectMostSignificantSRs(predictions: list[TheoryPrediction], percent_bound:
 
         maxRatio, ratioList = 0.0, {}
         for pred in preds:
-            nll0 = pred.likelihood(mu=0, expected=False, return_nll=True)
-            nll1 = pred.likelihood(mu=1, expected=False, return_nll=True)
+            nll0 = pred.likelihood(mu=0, return_nll=True)
+            nll1 = pred.likelihood(mu=1, return_nll=True)
             ratio = 2 * (nll0 - nll1)
             ratioList[pred] = ratio
             if ratio > maxRatio:
@@ -200,8 +200,12 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
 
     bam, weights, theoryPred = {}, {}, {}
     for i, tpred in enumerate(theorypredictions):
-        nll0 = tpred.lsm(expected=expected, return_nll=True)
-        nll1 = tpred.likelihood(expected=expected, return_nll=True)
+        try:
+            nll0 = tpred.lsm(evaluationType=expected, return_nll=True)
+            nll1 = tpred.likelihood(evaluationType=expected, return_nll=True)
+        except Exception as e:
+            nll0 = tpred.lsm(expected=expected, return_nll=True)
+            nll1 = tpred.likelihood(expected=expected, return_nll=True)
         w = np.NaN
         if nll0 is not None and nll1 is not None:
             # w = -2 * (ll0 - ll1) = 2 * (ll1 - ll0) = 2 * (-ll0 - (-ll1)) = 2 * (nll0 - nll1)

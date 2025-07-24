@@ -578,8 +578,11 @@ class Manipulator ( LoggerBase ):
                         line += f" Z={ansi.RED}{(dI.observedN - eBG ) / toterr :.1f}*sigma{ansi.RESET}"
                     print ( line )
                 if dtype in [ "upperLimit", "combined" ]:
-                    eUL = i.getUpperLimit ( expected = True ).asNumber(fb)
-                    oUL = i.getUpperLimit ( expected = False ).asNumber(fb)
+                    try:
+                        eUL = i.getUpperLimit ( expected = True ).asNumber(fb)
+                    except Exception as e:
+                        eUL = i.getUpperLimit ( evaluationType = True ).asNumber(fb)
+                    oUL = i.getUpperLimit ( ).asNumber(fb)
                     sigma_exp = eUL / 1.96 # the expected scale, sigma
                     Z = ( oUL - eUL ) / sigma_exp
                     line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={ansi.RED}{Z:.1f}*sigma{ansi.RESET}"
