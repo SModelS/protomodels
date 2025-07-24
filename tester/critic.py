@@ -118,14 +118,17 @@ class Critic ( LoggerBase ):
         tpList = []
 
         for theorypred in predictions:
-            r = theorypred.getRValue(expected=False)
+            r = theorypred.getRValue()
 
             if r is None:
                 self.highlight("warning","The computation of the observed r-value of the most sensitive combination gave None.")
                 r = 20 # Something is wrong, we exclude
 
             robs.append(r)
-            rexp = theorypred.getRValue(expected=True)
+            try:
+                rexp = theorypred.getRValue(expected=True)
+            except Exception as e:
+                rexp = theorypred.getRValue(evaluationType=True)
             tpList.append( { "robs": r, "rexp": rexp, "tp": theorypred } )
 
 
@@ -347,8 +350,12 @@ class Critic ( LoggerBase ):
         n_sensitive, n_excluding = 0, 0
 
         for pred in predictions:
-            robs = pred.getRValue (expected=False)
-            rexp = pred.getRValue (expected=True)
+            try:
+                robs = pred.getRValue (expected=False)
+                rexp = pred.getRValue (expected=True)
+            except Exception as e:
+                robs = pred.getRValue (evaluationType=False)
+                rexp = pred.getRValue (evaluationType=True)
 
             if rexp is None:
                 rexp = robs
