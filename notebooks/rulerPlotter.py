@@ -79,7 +79,7 @@ class RulerPlot:
         ## cut off at 3 TeV
         ret = [ m for m in masses.values() if m<3000. ]
         self.masses = ret
-        self.logger.info ( "masses %s" % self.masses )
+        self.logger.info ( f"masses {self.masses}" )
         return ret
 
 
@@ -123,7 +123,7 @@ class RulerPlot:
     def retrieveMasses ( self ):
         """ retrieve the masses from slha file """
         logger=logging.getLogger(__name__)
-        logger.info ( "now extracting masses from slha file %s" % ( self.slhafile) )
+        logger.info ( f"now extracting masses from slha file {self.slhafile}" )
         namer = SParticleNames( susy = False )
         f = pyslha.read ( self.slhafile )
         m = f.blocks["MASS"]
@@ -197,7 +197,7 @@ class RulerPlot:
                     # print ( "m,mana",m,mana )
                     if abs(m-mana)<.1: ## max mass gap
                         if abs(m-mana)>1e-2:
-                            print ( "WARNING: clustering particle masses %.2f and %.2f. hope its ok. check it." % ( m, mana )  )
+                            print ( f"WARNING: clustering particle masses {m:.2f} and {mana:.2f}. hope its ok. check it."  )
                         keys.append ( mana )
                         for cana,ana in enumerate(analyses):
                             plt.text ( m-50., .91-yoff-.07*cana, ana.replace("201","1" ), c=col )
@@ -276,7 +276,7 @@ class RulerPlot:
                     # print ( "m,mana",m,mana )
                     if abs(m-mana)<.1: ## max mass gap
                         if abs(m-mana)>1e-2:
-                            print ( "WARNING: clustering particle masses %.2f and %.2f. hope its ok. check it." % ( m, mana )  )
+                            print ( f"WARNING: clustering particle masses {m:.2f} and {mana:.2f}. hope its ok. check it."  )
                         keys.append ( mana )
                         dm1 = 30. ## gap to first ana id
                         if self.drawdecays:
@@ -311,16 +311,16 @@ class RulerPlot:
                                head_length=15, head_width=.05 )
                     label = self.namer.texName(idNotBSM,addDollars=True) 
                     if br < 0.95:
-                        label += ": %s" % br
+                        label += f": {br}"
                     plt.text ( xavg + .05, mlow + 30., label, color="grey" )
         for frmat,runthis in self.formats.items():
             if not runthis:
                 continue
             of = self.outputfile + "." + frmat
-            self.logger.info ( "saving to %s" % of )
+            self.logger.info ( f"saving to {of}" )
             plt.savefig ( of )
             if frmat == "png" and self.trim:
-                cmd = "convert %s -trim %s" % ( of, of )
+                cmd = f"convert {of} -trim {of}"
                 subprocess.getoutput ( cmd )
 
         self.ax1 = ax1

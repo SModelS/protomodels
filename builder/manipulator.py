@@ -139,7 +139,7 @@ class Manipulator ( LoggerBase ):
             with open ( fname, "rt" ) as f:
                 dicts = eval ( f.read() )
         except (EOFError,SyntaxError,NameError) as e:
-            self.pprint ( "when trying to teleport, found %s. cancel teleportation." % e )
+            self.pprint ( f"when trying to teleport, found {e}. cancel teleportation." )
             # can happen if it is just being written. in this case dont teleport
             return
         ith = 0
@@ -149,7 +149,7 @@ class Manipulator ( LoggerBase ):
             choices += [i]*f
             f=f*2
         ith = int(np.random.choice ( choices ))
-        self.log ( "teleporting, we have %d dicts" % len(dicts) )
+        self.log ( f"teleporting, we have {len(dicts)} dicts" )
         self.log ( "choosing the %dth entry, it has a K of %.2f" % \
                       ( ith, dicts[ith]["K"] ) )
         step = self.M.step
@@ -157,7 +157,7 @@ class Manipulator ( LoggerBase ):
         longforms = { 1: "first", 2: "second", 3: "third" }
         if ith in longforms:
             nth = longforms[ith]
-        self.record ( "teleporting to %s hiscore" % nth )
+        self.record ( f"teleporting to {nth} hiscore" )
         self.initFromDict ( dicts[ith], initTestStats=True )
         self.M.step = step ## continue counting!
         self.M.bestCombo = None
@@ -811,11 +811,11 @@ class Manipulator ( LoggerBase ):
         """
         sK, sTL = str(self.M.K), str(self.M.TL)
         try:
-            sK="%1.2f" % self.M.K
+            sK=f"{self.M.K:1.2f}"
         except:
             pass
         try:
-            sTL="%1.2f" % self.M.TL
+            sTL=f"{self.M.TL:1.2f}"
         except:
             pass
         print( f'\nK = {sK}, TL = {sTL}, muhat = {self.M.muhat:1.2f}, mumax={self.M.mumax:1.3g}' )
@@ -827,7 +827,7 @@ class Manipulator ( LoggerBase ):
             dt = tp.dataType( short=True )
             fullId = anaId+":"+dt
             if hasattr ( tp, "expectedUL" ) and type(tp.expectedUL) != type(None):
-                eUL = "UL_exp=%1.2f" % tp.expectedUL.asNumber(fb)
+                eUL = f"UL_exp={tp.expectedUL.asNumber(fb):1.2f}"
             if dt in [ "comb", "combined" ]:
                 eUL = f"{tp.getUpperLimit ( expected=True ).asNumber(fb):1.2g}*fb"
             if dt in [ "em", "efficiencyMap" ]:

@@ -76,7 +76,7 @@ def main():
     f=open ( anaid+".py", "wt" )
     f.write ( "{" )
     for label,values in entries.items():
-        f.write ( "'%s': %s,\n" % ( label, str(values) ) )
+        f.write ( f"'{label}': {str(values)},\n" )
     f.write ( "}\n" )
     f.close()
     print ( f"{len(alld)} entries" )

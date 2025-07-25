@@ -37,7 +37,7 @@ def collect():
                 if (S < -1.8 or S > 3.5) and ct<3:
                 # if S > 10. and ct<3:
                     print ( )
-                    print ( "S=%.2f for ul=%s, eul=%s sigma=%s" % ( S, ul, eul, sigma ) )
+                    print ( f"S={S:.2f} for ul={ul}, eul={eul} sigma={sigma}" )
                     print ( "  at ", er.globalInfo.id, txn.txName, m, "rul", rul )
                     ct += 1
                 allSs.append ( S )

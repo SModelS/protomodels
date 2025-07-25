@@ -41,7 +41,7 @@ def run():
         if anaid == "ATLAS-CONF-2013-062:SL2m":
             txns = "txnames are all zero"
             skip = True
-        print ( "p=%.3f, id=%s, txnames=%s" % ( k, anaid, txns ) )
+        print ( f"p={k:.3f}, id={anaid}, txnames={txns}" )
         if skip:
             continue
         p1 = anaid.find(":")
@@ -53,7 +53,7 @@ def run():
         if len(ptxns)>dsmax:
             ptxns = txns[:dsmax-4]+"..."
         ds = ds.replace("_","\\_" )
-        line = "%.3f & %s & %s & %s \\\\\n" % ( k, ana, ds, ptxns )
+        line = f"{k:.3f} & {ana} & {ds} & {ptxns} \\\\\n"
         f.write ( line )
     f.write ( "\\end{tabular}\n" )
     f.write ( "\\end{table}\n" )

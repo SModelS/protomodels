@@ -116,10 +116,10 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
                           ( rundir, k, k+1 ) )
         g.close()
         os.chmod ( "submit.sh", 0o755 )
-        cmd = "cp submit.sh %s" % os.environ["HOME"]
+        cmd = f"cp submit.sh {os.environ['HOME']}"
         subprocess.getoutput ( cmd )
         if doSubmit:
-            cmd = "cd %s; ./submit.sh; cd -" % os.environ["HOME"]
+            cmd = f"cd {os.environ['HOME']}; ./submit.sh; cd -"
             a = subprocess.getoutput ( cmd )
             print ( a )
     return tots,steps

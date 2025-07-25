@@ -54,7 +54,7 @@ def getInfoFromAnaId ( anaId : str, results ) -> Info:
             ret = i.globalInfo
             break
     if type(ret) == type(None):
-        print ( "[analysisCombiner] supplied an analysis id string (%s), but couldnt find such an analysis in the database!" % anaId )
+        print ( f"[analysisCombiner] supplied an analysis id string ({anaId}), but couldnt find such an analysis in the database!" )
     return ret
 
 def canCombine ( predA, predB, results = None ):
@@ -165,7 +165,7 @@ def getSummary( dbpath : str = "official" ):
     ana1 = "CMS-SUS-16-042"
     ana2 = "CMS-SUS-16-033"
     canC = canCombine ( ana1, ana2, results )
-    print ( "[analysisCombiner] can combine %s with %s: %s" % ( ana1, ana2, str(canC) ) )
+    print ( f"[analysisCombiner] can combine {ana1} with {ana2}: {str(canC)}" )
     ctr,combinable=0,0
     for x,e in enumerate(results):
         for y,f in enumerate(results):
@@ -197,7 +197,7 @@ def checkOneAnalysis():
             type=str, default="CMS-SUS-19-006" )
     args = argparser.parse_args()
     from smodels.experiment.databaseObj import Database
-    print ( "[analysisCombiner] checking %s" % args.dbpath )
+    print ( f"[analysisCombiner] checking {args.dbpath}" )
     db = Database ( args.dbpath )
     results = db.getExpResults()
     info = getInfoFromAnaId ( args.analysis, results )
@@ -207,9 +207,9 @@ def checkOneAnalysis():
     if hasattr ( info, "prettyName" ):
         prettyName = info.prettyName
     if args.analysis in moreComments:
-        prettyName += " (%s)" % moreComments[args.analysis]
+        prettyName += f" ({moreComments[args.analysis]})"
     # IPython.embed()
-    print ( "combinabilities for %s: %s" % (  args.analysis, prettyName ) )
+    print ( f"combinabilities for {args.analysis}: {prettyName}" )
     combs, nocombs = set(), set()
     pnames = {}
     for er in results:
@@ -225,7 +225,7 @@ def checkOneAnalysis():
         if hasattr ( er.globalInfo, "prettyName" ):
             pname = er.globalInfo.prettyName
         if Id in moreComments:
-            pname += " (%s)" % moreComments[Id]
+            pname += f" ({moreComments[Id]})"
         pnames[Id]=pname
         cc = canCombine ( info, er.globalInfo )
         if cc:
@@ -237,13 +237,13 @@ def checkOneAnalysis():
     combs.sort()
     for Id in combs:
         pname = pnames[Id]
-        print ( " `- %s: %s" % ( Id, pname ) )
+        print ( f" `- {Id}: {pname}" )
     print ( f"{green}cannot combine with:{reset} " )
     nocombs = list ( nocombs )
     nocombs.sort()
     for Id in nocombs:
         pname = pnames[Id]
-        print ( " `- %s: %s" % ( Id, pname ) )
+        print ( f" `- {Id}: {pname}" )
 
 if __name__ == "__main__":
     checkOneAnalysis()

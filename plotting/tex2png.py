@@ -64,8 +64,7 @@ class Latex(object):
 
     try:
       # Generate the DVI file
-      cmd = 'latex -halt-on-error -output-directory %s %s'\
-              % (workdir, infile)
+      cmd = f'latex -halt-on-error -output-directory {workdir} {infile}'
 
       p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       sout, serr = p.communicate()
@@ -111,7 +110,7 @@ def tex2png(eq, **kwargs):
 
 if __name__ == '__main__':
   src = sys.argv[1]
-  print ( 'Equation is: %s' % src )
+  print ( f'Equation is: {src}' )
   p = Latex(src,600).write()
   f= open ( "out.png", "wb" )
   f.write ( p[0] )

@@ -64,11 +64,11 @@ def main():
                 nold += v
         line = "%16s: %5d" % ( d, n )
         if n == 50000:
-            line = "%s%s%s" % ( colorama.Fore.GREEN, line, colorama.Fore.RESET )
+            line = f"{colorama.Fore.GREEN}{line}{colorama.Fore.RESET}"
         if n < 50000 and nold == n and dt > 1200:
-            line = "%s%s%s" % ( colorama.Fore.RED, line, colorama.Fore.RESET )
+            line = f"{colorama.Fore.RED}{line}{colorama.Fore.RESET}"
         if n < 50000 and nold == n and dt <= 1200:
-            line = "%s%s%s" % ( colorama.Fore.YELLOW, line, colorama.Fore.RESET )
+            line = f"{colorama.Fore.YELLOW}{line}{colorama.Fore.RESET}"
         if nold != None:
             line += " (was %5d)" % nold
         print ( line )
@@ -83,6 +83,6 @@ def main():
     Dicts["t"]=time.time()
     if dt > 1800: ## older than 30 minutes?
         with open ( oldfile, "wt" ) as f:
-            f.write ( "%s\n" % Dicts )
+            f.write ( f"{Dicts}\n" )
             f.close()
 main()

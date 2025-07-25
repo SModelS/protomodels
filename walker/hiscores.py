@@ -383,7 +383,7 @@ class Hiscores ( LoggerBase ):
             manipulator.M.TL = 0.0
             self.predictor.predict( manipulator.M )
             if manipulator.M.K is None:
-                self.pprint ( "when removing %s, K could not longer be computed. Setting to zero"% ( self.namer.asciiName(pid)))
+                self.pprint ( f"when removing {self.namer.asciiName(pid)}, K could not longer be computed. Setting to zero")
                 manipulator.M.K = 0.0
                 manipulator.M.TL = 0.0
             if oldK <= 0:
@@ -402,7 +402,7 @@ class Hiscores ( LoggerBase ):
             manipulator.M.particleContributions = particleContributions
             #manipulator.M.particleContributionsTL = particleContributionsTL
 
-        self.pprint ( "stored %d particle contributions" % len(manipulator.M.particleContributions) )
+        self.pprint ( f"stored {len(manipulator.M.particleContributions)} particle contributions" )
 
     def computeAnalysisContributions( self, manipulator ):
         """ compute the contributions to TL of the individual analyses
@@ -439,9 +439,9 @@ class Hiscores ( LoggerBase ):
                 # self.pprint ( "contributionsK of %s reads %s" % ( k, v ) )
                 contrsWithNames [ manipulator.M.bestCombo[k].analysisId() ] = v
             manipulator.M.analysisContributions = contrsWithNames
-            self.pprint ( "stored %d analyses contributions" % len(manipulator.M.analysisContributions) )
+            self.pprint ( f"stored {len(manipulator.M.analysisContributions)} analyses contributions" )
         except Exception as e:
-            self.pprint ( "in computeAnalysisContributions caught %s" % str(e) )
+            self.pprint ( f"in computeAnalysisContributions caught {str(e)}" )
 
     def demote ( self, i ):
         """ demote everything from i+1 on,

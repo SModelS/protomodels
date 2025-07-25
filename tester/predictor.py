@@ -504,7 +504,7 @@ if __name__ == "__main__":
     oldK = hi.K
 
     hi.K=-3 # make sure it gets recomputed
-    print ( "to be sure i reset K to %.2f" % hi.K )
+    print ( f"to be sure i reset K to {hi.K:.2f}" )
 
     predictions = p.predict ( hi )
 

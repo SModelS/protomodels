@@ -46,8 +46,7 @@ def writeTex ( D ):
             # particles = ", ".join ( map ( namer.texName, pids ) )
             particles = namer.texName ( pids, addDollars=True )
             # print ( "p", particles )
-            f.write ( "\\#%s & %.2f & %s \\\\\n" % \
-                       ( key, v["K"], particles ) )
+            f.write ( f"\\#{key} & {v['K']:.2f} & {particles} \\\\\n" )
             ### \#1 & 7.64 & $X_{t}, X_{c}, X^1_Z$ \\
         f.write ( "\\end{tabular}\n" )
         f.close()

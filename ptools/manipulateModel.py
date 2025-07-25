@@ -30,14 +30,14 @@ class ModelManipulator ( LoggerBase ):
 
     def write ( self ):
         with open ( self.outputfile, "wt" ) as h:
-            h.write ( "%s\n" % self.model )
+            h.write ( f"{self.model}\n" )
             h.close()
 
     def multiply ( self, factor ):
         """ multiply ssms with <factor> """
         for pids, v in self.model["ssmultipliers"].items():
             self.model["ssmultipliers"][pids]=v*factor
-        comment = "multiplied with %.2f" % factor
+        comment = f"multiplied with {factor:.2f}"
         if "comment" in self.model:
             comment = self.model["comment"] + ", " + comment
         self.model["comment"] = comment

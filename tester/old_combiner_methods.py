@@ -140,7 +140,7 @@ def getSignificance ( self, combo, expected=False, mumax=None ):
     if muhat is None:
         return 0.,0.
     if muhat > mumax:
-        self.debug ( "muhat(%.2f) > mumax(%.2f). use mumax" % ( muhat, mumax ) )
+        self.debug ( f"muhat({muhat:.2f}) > mumax({mumax:.2f}). use mumax" )
         muhat = mumax
     l0 = numpy.array ( [ c.likelihood(0.,expected=expected) for c in combo ], dtype=object )
     LH0 = numpy.prod ( l0[l0!=None] )
@@ -178,7 +178,7 @@ def _findLargestZ ( self, combinations, expected=False, mumax=None ):
         doProgress = False
     if doProgress:
         pb = progressbar.ProgressBar(widgets=["combination #",progressbar.Counter(),
-              "/%d " % len(combinations),
+              f"/{len(combinations)} ",
               progressbar.Percentage(),
               progressbar.Bar( marker=progressbar.RotatingMarker() ),
               progressbar.AdaptiveETA()])
@@ -326,7 +326,7 @@ def findMuHat ( self, combination ):
         # print ( "findMuHat combo %s start=%f, ret=%s" % ( combination, start, ret.fun ) )
         if ret.status==0:
             return ret.x[0]
-    self.pprint ( "%serror finding mu hat for %s%s" % (Fore.RED, self.getLetterCode(combination), Fore.RESET ) )
+    self.pprint ( f"{Fore.RED}error finding mu hat for {self.getLetterCode(combination)}{Fore.RESET}" )
     return None
 
 
@@ -384,8 +384,7 @@ def removeDataType ( self, predictions, dataType ):
         if pred.dataType() == dataType:
             continue
         tmp.append ( pred )
-    self.pprint ( "removed %s, %d/%d remain" % \
-                 ( dataType, len(tmp), len(predictions) ) )
+    self.pprint ( f"removed {dataType}, {len(tmp)}/{len(predictions)} remain" )
     return tmp
 
 
@@ -410,7 +409,7 @@ def getEventsFromLimits(self, upperLimit, expectedUpperLimit, maxdiff = 0.4 ):
 
     dr = ( expectedUpperLimit - upperLimit ) / ( expectedUpperLimit + upperLimit )
     if abs(dr)>maxdiff:
-        self.pprint ("asking for likelihood from limit but difference between oUL(%.2f) and eUL(%.2f) is too large (dr=%.2f)" % ( upperLimit, expectedUpperLimit, dr ) )
+        self.pprint (f"asking for likelihood from limit but difference between oUL({upperLimit:.2f}) and eUL({expectedUpperLimit:.2f}) is too large (dr={dr:.2f})" )
         return None
 
     sigma_exp = expectedUpperLimit / 1.96 # the expected scale, eq 3.24 in arXiv:1202.3415
@@ -455,4 +454,4 @@ def findHighestSignificance ( self, predictions : List[TheoryPrediction], expect
         llhd = stats.norm.pdf(Z)
     else:
         llhd = None
-    print ( "bestCombo %s, %s, %s " % ( Z, llhd, muhat ) )
+    print ( f"bestCombo {Z}, {llhd}, {muhat} " )

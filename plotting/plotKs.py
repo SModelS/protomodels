@@ -101,7 +101,7 @@ def plot( opts: dict ):
         p = kde.integrate_box_1d ( Krealmean, float("inf") )
         pmin = kde.integrate_box_1d ( min(Kreal), float("inf") )
         pmax = kde.integrate_box_1d ( max(Kreal), float("inf") )
-        print ( "p(real)=%.3f, [%.3f,%.3f]" % ( p, pmin, pmax ) )
+        print ( f"p(real)={p:.3f}, [{pmin:.3f},{pmax:.3f}]" )
         fromMean = np.arange ( Krealmean, fmax*maxKs+1e-5, (fmax*maxKs-Krealmean)/npoints)
         yFromMean = kde.evaluate ( fromMean )
         plt.plot ( [ Krealmean, Krealmean ], [ yrealmean, 0. ], c="g", label="$\\bar{\\mathrm{K}}_\mathrm{obs}$" )

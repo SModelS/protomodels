@@ -757,7 +757,7 @@ class LlhdPlot ( LoggerBase ):
         s=""
         ax.scatter( [ self.mx ], [ self.my ], marker="*", s=200, color="white", zorder=20 )
         c = ax.scatter( [ self.mx ], [ self.my ], marker="*", s=160, color="black", 
-                      label="proto-model%s" % s, zorder=20 )
+                      label=f"proto-model{s}", zorder=20 )
         handles.append ( c )
         if sr == None:
             sr = "UL"

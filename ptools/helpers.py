@@ -322,7 +322,7 @@ def countSSMultipliers ():
                 modes.add( sortMe(p,-q) )
             if model.hasAntiParticle(p) and model.hasAntiParticle(q):
                 modes.add ( sortMe(-p,-q) )
-    print ( "We have %d production modes" % len(modes) )
+    print ( f"We have {len(modes)} production modes" )
     return modes
 
 def countDecays( templatefile = "../builder/templates/template1g.slha" ):
@@ -330,7 +330,7 @@ def countDecays( templatefile = "../builder/templates/template1g.slha" ):
     if not os.path.exists ( templatefile ):
         templatefile = templatefile.replace("../","./" )
         if not os.path.exists ( templatefile ):
-            print ( "Could not find template file %s" % templatefile )
+            print ( f"Could not find template file {templatefile}" )
             return 0
     with open( templatefile ) as f:
        lines=f.readlines()
@@ -353,7 +353,7 @@ def countDecays( templatefile = "../builder/templates/template1g.slha" ):
         ids = tokens[0].split("_")
         ids = tuple ( map ( int , ids ) )
         count.append ( ids )
-    print ("I count %d decay channels" % len(count) )
+    print (f"I count {len(count)} decay channels" )
     return count
 
 def seedRandomNumbers ( seed ):
@@ -410,35 +410,35 @@ def simplifyList ( modes ):
             try:
                 ret.remove ( combo[0] )
                 ret.remove ( combo[1] )
-                ret.append ( ( combo[0][0], "+-%s" % abs(combo[1][1]) ) )
+                ret.append ( ( combo[0][0], f"+-{abs(combo[1][1])}" ) )
             except ValueError:
                 pass
         if combo[0][0] == combo[1][1] and combo[0][1] == -combo[1][0]:
             try:
                 ret.remove ( combo[0] )
                 ret.remove ( combo[1] )
-                ret.append ( ( combo[0][0], "+-%s" % abs(combo[1][0]) ) )
+                ret.append ( ( combo[0][0], f"+-{abs(combo[1][0])}" ) )
             except ValueError:
                 pass
         if combo[0][1] == combo[1][1] and combo[0][0] == -combo[1][0]:
             try:
                 ret.remove ( combo[0] )
                 ret.remove ( combo[1] )
-                ret.append ( ( combo[0][1], "+-%s" % abs(combo[1][0]) ) )
+                ret.append ( ( combo[0][1], f"+-{abs(combo[1][0])}" ) )
             except ValueError:
                 pass
         if combo[0][0] == -combo[1][0] and combo[0][1] == -combo[1][1]:
             try:
                 ret.remove ( combo[0] )
                 ret.remove ( combo[1] )
-                ret.append ( ( "+-%s" % abs(combo[0][0]), "+-%s" % abs(combo[1][0]) ) )
+                ret.append ( ( f"+-{abs(combo[0][0])}", f"+-{abs(combo[1][0])}" ) )
             except ValueError:
                 pass
         if combo[0][0] == -combo[1][1] and combo[0][1] == -combo[1][0]:
             try:
                 ret.remove ( combo[0] )
                 ret.remove ( combo[1] )
-                ret.append ( ( "+-%s" % abs(combo[0][0]), "+-%s" % abs(combo[1][0]) ) )
+                ret.append ( ( f"+-{abs(combo[0][0])}", f"+-{abs(combo[1][0])}" ) )
             except ValueError:
                 pass
     modes = copy.deepcopy ( ret )
@@ -449,16 +449,16 @@ def simplifyList ( modes ):
                 try:
                     ret.remove ( combo[0] )
                     ret.remove ( combo[1] )
-                    ret.append ( ( "+-%s" % abs(combo[0][0]), combo[0][1] ) )
+                    ret.append ( ( f"+-{abs(combo[0][0])}", combo[0][1] ) )
                 except ValueError as e:
                     pass
         if type(combo[0][0])==int and type(combo[1][1])==str:
             c00 = abs(combo[0][0])
-            if combo[0] == (-c00, -c00) and combo[1] == (c00, '+-%s' % c00 ):
+            if combo[0] == (-c00, -c00) and combo[1] == (c00, f'+-{c00}' ):
                 try:
                     ret.remove ( combo[0] )
                     ret.remove ( combo[1] )
-                    ret.append ( ( "+-%s" % abs(combo[0][0]), combo[1][1] ) )
+                    ret.append ( ( f"+-{abs(combo[0][0])}", combo[1][1] ) )
                 except ValueError as e:
                     pass
             if type(combo[0][1])==str and c00 == combo[1][0] and \

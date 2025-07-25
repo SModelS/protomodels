@@ -92,7 +92,7 @@ class RefXSecComputer:
         """
         nFile = self.absPath(inputFile)
         if not os.path.exists(nFile):
-            raise IOError("file %s does not exist" % nFile)
+            raise IOError(f"file {nFile} does not exist")
         return nFile
 
     def dictToXSection ( self, D ):
@@ -193,7 +193,7 @@ class RefXSecComputer:
         if comment:
             header += " # " + str(comment)  # Comment
         entry = "  0  " + str(xsec.info.order) + "  0  0  0  0  " + \
-                str( "%16.8E" % (xsec.value / xsecUnit) ) + " SModelSv" + \
+                str( f"{float(xsec.value / xsecUnit):16.8E}" ) + " SModelSv" + \
                      smodelsinstallation.version()
 
         return "\n" + header + "\n" + entry
@@ -242,7 +242,7 @@ class RefXSecComputer:
             self.addCommentToFile ( comment, inputFile )
             self.cleanSLHAFile ( inputFile )
         else:
-            logger.info("Computing SLHA cross section from %s." % inputFile )
+            logger.info(f"Computing SLHA cross section from {inputFile}." )
             print()
             print( "     Cross sections:" )
             print( "=======================" )
@@ -279,7 +279,7 @@ class RefXSecComputer:
     def computeForBunch ( self, sqrtses, inputFiles, tofile, ssmultipliers=None ):
         """ compute xsecs for a bunch of slha files """
         for inputFile in inputFiles:
-            logger.debug ( "computing xsec for %s" % inputFile )
+            logger.debug ( f"computing xsec for {inputFile}" )
             self.computeForOneFile ( sqrtses, inputFile, tofile,
                                      ssmultipliers = ssmultipliers )
 
@@ -288,10 +288,10 @@ class RefXSecComputer:
         if comment in [ None, "" ]:
             return
         if not os.path.isfile(slhaFile ):
-            logger.error("SLHA file %s not found." % slhaFile )
+            logger.error(f"SLHA file {slhaFile} not found." )
             raise SModelSError()
         outfile = open(slhaFile, 'a')
-        outfile.write ( "\n# %s\n" % comment )
+        outfile.write ( f"\n# {comment}\n" )
         outfile.close()
 
     def addMultipliersToFile ( self, ssmultipliers, slhaFile ):
@@ -299,11 +299,11 @@ class RefXSecComputer:
         if ssmultipliers in [ None, {} ]:
             return
         if not os.path.isfile(slhaFile ):
-            logger.error("SLHA file %s not found." % slhaFile )
+            logger.error(f"SLHA file {slhaFile} not found." )
             raise SModelSError()
         tokens = []
         for k,v in ssmultipliers.items():
-            tokens.append ( "%s:%.4g" % ( k, v ) )
+            tokens.append ( f"{k}:{v:.4g}" )
         newline = "# Signal strength multipliers: " + ", ".join ( tokens )
         with open(slhaFile, 'r' ) as r:
             lines = r.readlines()
@@ -624,9 +624,9 @@ class RefXSecComputer:
         """
         ret = {}
         if not os.path.exists ( path ):
-            logger.info ( "could not find %s" % path )
+            logger.info ( f"could not find {path}" )
             return ret
-        logger.info ( "getting xsecs from %s" % path )
+        logger.info ( f"getting xsecs from {path}" )
         f = open ( path, "rt" )
         lines=f.readlines()
         f.close()

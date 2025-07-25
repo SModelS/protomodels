@@ -162,7 +162,7 @@ def findLargestExcess ( db ):
                     ( k, ds.globalInfo.id, str(ds.dataInfo.dataId), obsN, eBG ) )
 
     pprint ( excesses )
-    print ( "[helpers.findLargestExcess] found %d eff maps" % len(results) )
+    print ( f"[helpers.findLargestExcess] found {len(results)} eff maps" )
     return excesses
 
 if __name__ == "__main__":

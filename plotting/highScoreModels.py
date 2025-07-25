@@ -148,7 +148,7 @@ for run in sorted(protomodelsDict.keys()):
     
 Kavg = np.array([p.K for p in protomodelsDict.values()]).mean()
 Kstd = np.array([p.K for p in protomodelsDict.values()]).std()
-print('K (avg) = %1.2f +- %1.2f' %(Kavg,Kstd))
+print(f'K (avg) = {Kavg:1.2f} +- {Kstd:1.2f}')
 
 
 # In[ ]:

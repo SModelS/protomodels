@@ -519,7 +519,7 @@ class HiscorePlotter ( LoggerBase ):
         for rv in rvalues[:5]:
             srv="N/A"
             if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
-                srv="%.2f" % rv['rexp']
+                srv=f"{rv['rexp']:.2f}"
             else:
                 srv=str(rv['rexp'])
             anaId = rv['tp'].analysisId()
@@ -551,7 +551,7 @@ class HiscorePlotter ( LoggerBase ):
             sigmapred = rv['tp'].xsection.asNumber(fb)
             sigmaexp = "--"
             if type(rv['tp'].getUpperLimit ( expected = True )) != type(None):
-                sigmaexp = "%.2f" % rv['tp'].getUpperLimit ( expected=True ).asNumber(fb)
+                sigmaexp = f"{rv['tp'].getUpperLimit(expected=True).asNumber(fb):.2f}"
             sigmaobs = rv['tp'].getUpperLimit().asNumber(fb)
             g.write ( f"{prettyName}~\\cite{{{ref}}} & {prod} & {sigmapred:.2f} & {sigmaobs:.2f} & {sigmaexp} \\\\\n" )#& {rv['obs']:.2f}
         g.write ( "\\end{tabular}\n" )
@@ -810,7 +810,7 @@ class HiscorePlotter ( LoggerBase ):
                 continue
             O = subprocess.getoutput ( f"cp {f} ../../smodels.github.io/protomodels/" )
             if len(O)>0:
-                print ( "[plotHiscore.py] when copying files: %s" % O )
+                print ( f"[plotHiscore.py] when copying files: {O}" )
 
     def getPIDsOfTPred ( self, tpred, ret, integrateDataType=True, integrateSRs=True ):
         """ get the list of PIDs that the theory prediction should be assigned to
@@ -857,7 +857,7 @@ class HiscorePlotter ( LoggerBase ):
             if pid in self.protomodel.masses:
                 resultsFor[ self.protomodel.masses[pid] ] = values
             else:
-                print ( "[plotHiscore] why is pid %s not in mass dict %s?" % ( pid, str(protomodel.masses) ) )
+                print ( f"[plotHiscore] why is pid {pid} not in mass dict {str(protomodel.masses)}?" )
 
         if verbosity == "debug":
             print ( f'[plotHiscore] ../smodels-utils/smodels_utils/plotting/rulerPlotter.py -o ruler.png --hasResultsFor "{str(resultsFor)}" {self.protomodel.currentSLHA}'  )
@@ -1006,7 +1006,7 @@ def runPlotting ( args ):
                 cmd = f"{cmd} {f} {dest}"
                 a = subprocess.getoutput ( cmd )
                 if a != "":
-                    print ( "error: %s" % a )
+                    print ( f"error: {a}" )
                     sys.exit()
                 first = False
         print ( "." )

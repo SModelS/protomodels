@@ -50,8 +50,7 @@ class VariancePlotter ( LoggerBase ):
                 D=eval( txt )
                 Kvalues[walkerid]=D
             except Exception as e:
-                print ( "[drawVarianceOfWalk] could not read %s: %s. skipping" % \
-                        ( f, e ) )
+                print ( f"[drawVarianceOfWalk] could not read {f}: {e}. skipping" )
             h.close()
         self.data = Kvalues
 
@@ -159,11 +158,11 @@ class VariancePlotter ( LoggerBase ):
         if drawMax:
             plt.plot ( keys, maxs, c="red" )
         plt.plot ( keys, avgedmeans, c="black" )
-        plt.title ( "evolution of $K$, for %d walkers" % len(self.data) )
+        plt.title ( f"evolution of $K$, for {len(self.data)} walkers" )
         plt.xlabel ( "step" )
         varname = var
         if varname.startswith ( "m" ):
-            varname = "m(%s) [GeV]" % ( SParticleNames().texName( int(var[1:] ), addDollars=True ) )
+            varname = f"m({SParticleNames().texName(int(var[1:]), addDollars=True)}) [GeV]"
         plt.ylabel ( varname )
         # plt.plot ( keys, nvalues, c="orange" )
         # outputfile = "var.png"

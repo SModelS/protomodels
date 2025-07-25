@@ -86,7 +86,7 @@ class SParticleNames:
         """
         if type(pid)==str:
             if not pid in self.names:
-                print ( "[sparticleNames.texColor] %s not in names" % name )
+                print ( f"[sparticleNames.texColor] {name} not in names" )
                 sys.exit(-1)
             pid = self.names[pid]
         pid = abs(pid)
@@ -382,7 +382,7 @@ class SParticleNames:
 
     def tilde ( self, text ):
         """ put a tilde over text """
-        return "<math display='inline'><mover><mi>%s</mi><mo stretchy='true'>~</mo></mover></math>" % text
+        return f"<math display='inline'><mover><mi>{text}</mi><mo stretchy='true'>~</mo></mover></math>"
 
     def sub ( self, text ):
         return "<sub>"+text+"</sub>"

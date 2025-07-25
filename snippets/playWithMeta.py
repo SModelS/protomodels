@@ -78,7 +78,7 @@ def main():
     mn,st = np.mean(pvs),np.std(pvs)
     print ( "ps=",mn,"+-",st )
     plt.hist ( pvs )
-    plt.title ( "p-values: %.2f+-%.2f" % ( mn,st)  )
+    plt.title ( f"p-values: {mn:.2f}+-{st:.2f}"  )
     plt.xlabel ( "p-values" )
     plt.savefig ( "ps.png" )
 

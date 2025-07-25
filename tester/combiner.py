@@ -57,7 +57,7 @@ class Combiner ( LoggerBase ):
         keys.sort()
         for k in keys:
             v=llhds[k]
-            self.pprint ( "%.2f: %.3g" % ( k, v ) )
+            self.pprint ( f"{k:.2f}: {v:.3g}" )
 
     def getLetters( self, predictions ):
         '''assign a letter to every prediction. for debugging'''
@@ -78,7 +78,7 @@ class Combiner ( LoggerBase ):
 
     def getComboDescription ( self, combination ):
         def describe ( x ):
-            return "%s(%s)" % ( x.analysisId(), x.dataType().replace("upperLimit", "ul" ).replace ( "efficiencyMap", "em" ).replace ( "combined", "comb" ) )
+            return f"{x.analysisId()}({x.dataType().replace('upperLimit', 'ul').replace('efficiencyMap', 'em').replace('combined', 'comb')})"
         return ",".join( [ describe(x) for x in combination ] )
 
     def getLetterCode ( self, combination ):
@@ -198,8 +198,8 @@ class Combiner ( LoggerBase ):
         nssms = len( cssms )+pun1
         ret = self.priorForNDF ( nUnfrozen, nbr, nssms, name, verbose )
         if verbose:
-            ssmstring = [ "%.2f" % x for x in cssms.keys() ]
-            self.log ( "           `- the unique ssms are: %s" % ", ".join ( ssmstring ) )
+            ssmstring = [ f"{x:.2f}" for x in cssms.keys() ]
+            self.log ( f"           `- the unique ssms are: {', '.join(ssmstring)}" )
         if nll:
             return - math.log ( ret )
         return ret
@@ -477,7 +477,7 @@ class Combiner ( LoggerBase ):
     def removeDataFromTheoryPred ( self, tp ):
         """ remove unnecessary stuff from a theoryprediction object.
             for storage. """
-        self.debug ( "removing data from theory pred %s" % tp.analysisId() )
+        self.debug ( f"removing data from theory pred {tp.analysisId()}" )
         theorypred = copy.deepcopy( tp )
         if hasattr ( theorypred, "elements" ):
             del theorypred.elements
@@ -508,7 +508,7 @@ def normalizePrior():
                             ( nparticles, nbr, nssms, t ) )
                     nmod=nmod*2
                 S += t
-    print ( "The constant for normalizing the prior is %.8f" % (1./S) )
+    print ( f"The constant for normalizing the prior is {1.0 / S:.8f}" )
     print ( "With the current normalization we get", control )
     return 1./S
 
@@ -574,11 +574,11 @@ if __name__ == "__main__":
 
     preds = theoryPredictionsFor ( db, smses )
     combo,globalTL, muhat = combiner.findHighestSignificance ( preds, expected=args.expected )
-    print ( "[combiner] global TL is %.2f: %s (muhat=%.2f)" % (globalTL, combiner.getComboDescription(combo),muhat ) )
+    print ( f"[combiner] global TL is {globalTL:.2f}: {combiner.getComboDescription(combo)} (muhat={muhat:.2f})" )
 
     for pred in preds:
         pred.computeStatistics()
         tpe = pred.dataType(True)
         tpe += ":" + ",".join ( map ( str, pred.txnames ) )
-        print ( "  `- llhd [%s] SM=%.3g BSM=%.3g" % ( tpe, pred.likelihood(0.,expected=args.expected), pred.likelihood(1.,expected=args.expected) ) )
+        print ( f"  `- llhd [{tpe}] SM={pred.likelihood(0.0, expected=args.expected):.3g} BSM={pred.likelihood(1.0, expected=args.expected):.3g}" )
     comb = Combiner()
