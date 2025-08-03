@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from smodels.statistics.basicStats import observed, apriori, aposteriori
 import pickle, os, sys, subprocess, time, glob, colorama, math, scipy
 import numpy as np
 sys.path.insert(0,"../../")
@@ -221,9 +222,9 @@ class HiscorePlotter ( LoggerBase ):
                 f.write ( f'<td style="text-align:right">{sig}</td>' )
         if dtype == "combined":
             S = "?"
-            llhd = tp.likelihood( expected=False, return_nll=True )
-            eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
-            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
+            llhd = tp.likelihood( evaluationType = observed, return_nll=True )
+            eUL = tp.getUpperLimit ( evaluationType = aposteriori ).asNumber(fb)
+            oUL = tp.getUpperLimit ( evaluationType = observed ).asNumber(fb)
             if Z != None:
                 S = f"{Z:.1f} &sigma;"
             f.write ( f'<td>-</td><td>{topos}</td>' ) 
@@ -362,9 +363,9 @@ class HiscorePlotter ( LoggerBase ):
             f.write ( f"{did} & {obs} & {eBG} $\\pm$ {bgErr} & {S} & {particles} & {sigmapred} \\\\ \n" )
         if dtype in [ "upperLimit", "combined" ]:
             S = "?"
-            llhd = tp.likelihood ( expected=False, return_nll = True )
-            eUL = tp.getUpperLimit ( expected = True ).asNumber(fb)
-            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
+            llhd = tp.likelihood ( evaluationType = observed, return_nll = True )
+            eUL = tp.getUpperLimit ( evaluationType = aposteriori ).asNumber(fb)
+            oUL = tp.getUpperLimit ( evaluationType = observed ).asNumber(fb)
             sigma_exp = eUL / 1.96 # the expected scale, sigma
             if Z is not None:
                 S = f"{Z:.1f} $\\sigma$"
