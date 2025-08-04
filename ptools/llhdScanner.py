@@ -95,7 +95,7 @@ class LlhdThread ( LoggerBase ):
 
     def lockPickleFile ( self ):
         """ make sure we write sequentially """
-        lockfile = self.picklefile+".lock"
+        lockfile = f"{self.picklefile}.lock"
         ctr = 0
         while os.path.exists ( lockfile ):
             ctr+=1
@@ -107,7 +107,7 @@ class LlhdThread ( LoggerBase ):
         Path ( lockfile ).touch()
 
     def unlockPickleFile ( self ):
-        lockfile = self.picklefile+".lock"
+        lockfile = f"{self.picklefile}.lock"
         if os.path.exists ( lockfile ):
             try:                                                                      
                 os.unlink ( lockfile )

@@ -82,8 +82,7 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
                     p = rundir.rfind("/")
                     rundir = rundir[p+1:]
                     g.write ( f"rm -rf {os.environ['HOME']}/{rundir}/H{nr}.hi\n" )
-                    g.write ( "./slurm.py -R %s -n %d -N %d -M 1000\n" % \
-                              ( rundir, nr, nr+1 ) )
+                    g.write ( f"./slurm.py -R {rundir} -n {int(nr)} -N {int(nr + 1)} -M 1000\n" )
                     if slurmfile != "":
                         g.write ( f"rm -rf {slurmfile}\n" )
                 break
@@ -94,12 +93,11 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
     for k in keys:
         tots += steps[k]
         if printout and steps[k] < 1000:
-            print ( "walker %d: %d" % ( k, steps[k] ) )
+            print ( f"walker {int(k)}: {int(steps[k])}" )
         if steps[k] == 1000:
             finished.append ( k )
     if printout and len(finished)>0:
-        print ( "%d walkers finished: %s" % \
-                (len(finished), ",".join( list(map(str,finished ) ) ) ) )
+        print ( f"{len(finished)} walkers finished: {','.join(list(map(str, finished)))}" )
     if printout:
         print ( f"we have {len(keys)} entries, total of {tots} steps." )
     if writeSubmitFile:
@@ -112,8 +110,7 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
                     rundir=rundir[:-1]
                 p = rundir.rfind("/")
                 rundir = rundir[p+1:]
-                g.write ( "./slurm.py -R %s -n %d -N %d -M 1000\n" % \
-                          ( rundir, k, k+1 ) )
+                g.write ( f"./slurm.py -R {rundir} -n {int(k)} -N {int(k + 1)} -M 1000\n" )
         g.close()
         os.chmod ( "submit.sh", 0o755 )
         cmd = f"cp submit.sh {os.environ['HOME']}"

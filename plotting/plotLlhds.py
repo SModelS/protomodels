@@ -405,7 +405,7 @@ class LlhdPlot ( LoggerBase ):
 
     def setup ( self, xvariable, yvariable ):
         """ setup rundir, picklefile path and hiscore file path """
-        self.hiscorefile = self.rundir + "/hiscores.dict"
+        self.hiscorefile = f"{self.rundir}/hiscores.dict"
         if not os.path.exists ( self.hiscorefile ):
             self.pprint ( f"could not find hiscore file {self.hiscorefile}" )
  
@@ -489,12 +489,12 @@ class LlhdPlot ( LoggerBase ):
         name = tpred.analysisId()
         if not integrateSRs:
             SR = tpred.dataId()
-            name = name + ":" + str(SR)
+            name = f"{name}:{SR!s}"
         elif not integrateDataType:
             dType = "em"
             if tpred.dataId() in [ "None", None ]:
                 dType = "ul"
-            name = name + ":" + dType
+            name = f"{name}:{dType}"
         pids = getAllPidsOfTheoryPred ( tpred )
         for pid in pids:
             if pid == LSP:

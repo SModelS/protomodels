@@ -192,7 +192,7 @@ Just filter the database:
         self.info ( "extracting stats" )
         picklefile = self.dbpath
         if not "/" in self.dbpath and not self.dbpath in [ "official" ]:
-            picklefile = os.path.abspath ( self.rundir + "/" + self.dbpath )
+            picklefile = os.path.abspath ( f"{self.rundir}/{self.dbpath}" )
         if self.rundir in self.dbpath:
             picklefile = self.dbpath
         self.pprint ( f"Extracting stats from {picklefile}" )
@@ -211,7 +211,7 @@ Just filter the database:
                 dId = dataset.dataInfo.dataId
                 if dId == None:
                     dId = "ul"
-                label = dataset.globalInfo.id + ":" + dId
+                label = f"{dataset.globalInfo.id}:{dId}"
                 D={}
                 info = dataset.dataInfo
                 dt = info.dataType
@@ -303,7 +303,7 @@ Just filter the database:
                 self.log ( f"WARNING seems like I am having a hard time getting all "\
                         "values of {globalInfo.id} positive." )
 
-        label = globalInfo.id + ":ul:" + txname.txName
+        label = f"{globalInfo.id}:ul:{txname.txName}"
         D["fudge"]=self.fudge
         if self.timestamps:
             D["timestamp"]=globalInfo.lastUpdate
@@ -329,7 +329,7 @@ Just filter the database:
         for i in sys.argv:
             if " " in i or "," in i:
                 i = f'"{i}"'
-            args += i + " "
+            args += f"{i} "
         f.write ( f"[expResModifier.py-{time.strftime('%H:%M:%S')}] {args.strip()}\n")
         f.close()
 
@@ -358,7 +358,7 @@ Just filter the database:
         if not os.path.exists ( filename ):
             self.pprint ( f"When trying to construct protomodel, {filename} does not exist" )
             return None
-        shutil.copyfile ( filename, self.rundir+"/my.signal" )
+        shutil.copyfile ( filename, f"{self.rundir}/my.signal" )
         walkerid = 0
         expected = False
         select = "all"
@@ -522,7 +522,7 @@ Just filter the database:
         D["toterr"]=toterr
         ## origN stores the n_observed of the original database
         dataset.dataInfo.origN = orig
-        label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
+        label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
         if len ( txnames ) == 0:
@@ -576,7 +576,7 @@ Just filter the database:
         txns = list ( map ( str, tpred.txnames ) )
         txns.sort()
         self.log ( f"add EM matching tpred {tpred.analysisId()}/{tpred.dataId()} {','.join(txns)}: {tpred.xsection.asNumber(fb):.2g} fb" )
-        label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
+        label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
         orig = dataset.dataInfo.observedN
         sigLambda = float ( tpred.xsection * lumi )
         D={}
@@ -706,7 +706,7 @@ Just filter the database:
         txns = values["txns"]
         ## so we simply add the theory predicted cross section to the limit
         sigmaN = values["sigmaN"] # tpred.xsection.asNumber(fb)
-        label = dataset.globalInfo.id + ":ul:" + txns
+        label = f"{dataset.globalInfo.id}:ul:{txns}"
         D={}
         D["sigmaN"]=sigmaN
         D["pids"]=values["pids"]
@@ -794,7 +794,7 @@ Just filter the database:
         self.log ( f"add UL matching tpred {tpred.analysisId()}: <{tpred.xsection.asNumber(fb):.2g}> fb {tpred.smsList} {','.join(txns)}" )
         ## so we simply add the theory predicted cross section to the limit
         sigmaN = tpred.xsection.asNumber(fb)
-        label = tpred.analysisId() + ":ul:" + ",".join(txns)
+        label = f"{tpred.analysisId()}:ul:{','.join(txns)}"
         D={}
         D["sigmaN"]=sigmaN
         D["pids"]=self.getPIDVector ( tpred )
@@ -876,7 +876,7 @@ Just filter the database:
         self.pprint ( f"saving stats to {filename}" )
         self.addSupersededFlags()
         with open ( filename,"wt" ) as f:
-            f.write ( str(meta)+"\n" )
+            f.write ( f"{meta!s}\n" )
             f.write ( f"# this file was created with {' '.join(sys.argv)}\n" )
             if len(self.comments)>0:
                 f.write ( "# explanations on the used variables:\n" )
@@ -912,7 +912,7 @@ Just filter the database:
         for topo in self.topos:
             for sms in self.topos[topo]:
                 ctr+= 1
-                els += str(sms)+", "
+                els += f"{sms!s}, "
             #for el in topo.elementList:
             #    ctr+=1
             #    els += str(el) + ", "
@@ -1057,7 +1057,7 @@ Just filter the database:
             D["type"]=tpe
             self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
             expRes.datasets[i].dataInfo.observedN = obs
-            label = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
+            label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
             self.addToStats ( label, D, dataset.globalInfo )
 
 
@@ -1179,7 +1179,7 @@ Just filter the database:
                     D["new_p"]=float(p)
                     newZ = computeZFromP ( p )
                     D["new_Z"]=float(newZ)
-                label = anaId + ":" + dataset.dataInfo.dataId
+                label = f"{anaId}:{dataset.dataInfo.dataId}"
                 self.addToStats ( label, D, dataset.globalInfo )
                 ## as the very last measure, we replace the observation with
                 ## the fake observation
@@ -1381,9 +1381,9 @@ Just filter the database:
             self.playbackOneItem ( anaids, values )
         self.db.expResultList = self.lExpRes
         self.db.dbpath = self.outfile
-        self.dbversion = self.dbversion + ".playedback"
-        self.db.txt_meta.databaseVersion = self.db.databaseVersion + ".playedback"
-        self.db.pcl_meta.databaseVersion = self.db.databaseVersion + ".playedback"
+        self.dbversion = f"{self.dbversion}.playedback"
+        self.db.txt_meta.databaseVersion = f"{self.db.databaseVersion}.playedback"
+        self.db.pcl_meta.databaseVersion = f"{self.db.databaseVersion}.playedback"
         self.createBinaryFile()
 
     def playbackOneItem ( self, anaids : str, values : dict ):
@@ -1437,7 +1437,7 @@ Just filter the database:
         import filecmp
         # cmd = f"cp {args.outfile} ./modifier.log {self.rundir}"
         for f in [ args.outfile, self.logfile ]:
-            if not filecmp.cmp ( f, self.rundir+"/"+os.path.basename ( f ) ):
+            if not filecmp.cmp ( f, f"{self.rundir}/{os.path.basename(f)}" ):
                 cmd = f"cp {f} {self.rundir}"
                 a = subprocess.getoutput ( cmd )
                 print ( "[expResModifier]", cmd, a )
@@ -1499,10 +1499,10 @@ Just filter the database:
         if type(self.rundir)==str and not "/" in self.rundir and \
                 not self.rundir.startswith("."):
             self.rundir = f"{os.environ['HOME']}/{self.rundir}"
-        statsname = self.suffix + ".dict"
+        statsname = f"{self.suffix}.dict"
         if self.outfile is not None:
             if self.outfile == "":
-                self.outfile = self.suffix+".pcl"
+                self.outfile = f"{self.suffix}.pcl"
             if self.playback not in [ None, "" ]:
                 self.playback ( self.playback, self.outfile )
                 statsname = "playback.dict"

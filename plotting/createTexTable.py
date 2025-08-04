@@ -75,8 +75,7 @@ class Table:
             if True:
                 label = label.replace("signal", "fake" )
             prtcles = self.namer.texName ( pids, addDollars=True )
-            line = "%s \\#%d & %.3f & %s \\\\ \n" % \
-                   ( label, nr, K, prtcles )  
+            line = f"{label} \\#{int(nr)} & {K:.3f} & {prtcles} \\\\ \n"  
             outh.write ( line )
         outh.close()
 

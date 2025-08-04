@@ -75,7 +75,7 @@ class Latex(object):
       # Convert the DVI file to PNG's
       dvifile = infile.replace('.tex', '.dvi')
       pngfile = os.path.join(workdir, infile.replace('.tex', '.png'))
-      cmd = "dvipng -T tight --depth -D %i -z 9 -bg White -o %s %s" % (self.dpi, pngfile, dvifile)
+      cmd = f"dvipng -T tight --depth -D {int(self.dpi)} -z 9 -bg White -o {pngfile} {dvifile}"
       #cmd = "dvipng -T tight --depth -D %i -z 9 -bg Transparent -o %s %s" % (self.dpi, pngfile, dvifile)
       p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 

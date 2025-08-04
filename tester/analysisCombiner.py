@@ -174,7 +174,7 @@ def getSummary( dbpath : str = "official" ):
             ctr += 1
             isUn = canCombine ( e.globalInfo, f.globalInfo )
             combinable+=isUn
-    print ( "[analysisCombiner] can combine %d/%d pairs of results" % ( combinable, ctr ) )
+    print ( f"[analysisCombiner] can combine {int(combinable)}/{int(ctr)} pairs of results" )
 
 def checkOneAnalysis():
     import argparse

@@ -44,9 +44,9 @@ class VariancePlotter ( LoggerBase ):
                 txt = txt.replace("nan",'"nan"')
                 # print ( "txt >>%s<< {{%s}}" % ( txt[-5:], txt[-1] ) )
                 if txt[-2]==",":
-                    txt = txt[:-2]+"]\n"
+                    txt = f"{txt[:-2]}]\n"
                 if "history recording" in txt[-80:]:
-                    txt = txt[:-10]+"\n]\n"
+                    txt = f"{txt[:-10]}\n]\n"
                 D=eval( txt )
                 Kvalues[walkerid]=D
             except Exception as e:

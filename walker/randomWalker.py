@@ -401,15 +401,12 @@ class RandomWalker ( LoggerBase ):
             return
 
         if len(self.manipulator.M.rvalues) > 1:
-            self.log ( "Top r values are: %.2f, %.2f" % \
-                       ( self.manipulator.M.rvalues[0], self.manipulator.M.rvalues[1] ) )
+            self.log ( f"Top r values are: {self.manipulator.M.rvalues[0]:.2f}, {self.manipulator.M.rvalues[1]:.2f}" )
 
-        self.log ( "Step %d: found highest TL: %.2f" % \
-                   ( self.protomodel.step, self.protomodel.TL ) )
+        self.log ( f"Step {int(self.protomodel.step)}: found highest TL: {self.protomodel.TL:.2f}" )
 
         nUnfrozen = len ( self.protomodel.unFrozenParticles() )
-        self.log ( "Best combo is %s: %s: [K=%.2f, TL=%.2f, %d unfrozen]" % \
-            ( self.protomodel.letters, self.protomodel.description, self.protomodel.K, self.protomodel.TL, nUnfrozen ) )
+        self.log ( f"Best combo is {self.protomodel.letters}: {self.protomodel.description}: [K={self.protomodel.K:.2f}, TL={self.protomodel.TL:.2f}, {int(nUnfrozen)} unfrozen]" )
 
         #For low scoring models, teleport to a high score model:
         if self.checkIfToTeleport( pmax=0.5, norm = 10.0 ):
@@ -429,8 +426,7 @@ class RandomWalker ( LoggerBase ):
         :param norm: Normalization for K distance.
         """
         if self.protomodel.step > self.stopTeleportationAfter:
-            self.log ( "teleportation is turned off after step #%d" % \
-                       self.stopTeleportationAfter )
+            self.log ( f"teleportation is turned off after step #{int(self.stopTeleportationAfter)}" )
             return False
         #self.log ( "teleportation turned off" )
         #return False
@@ -453,8 +449,7 @@ class RandomWalker ( LoggerBase ):
         sDoTP = "a>p: dont teleport."
         if doTP:
             sDoTP = "a<p: do teleport."
-        self.log ( "check if to teleport, Kmax=%.2f, ours is=%.2f, p=%.2f, a=%.2f, %s" % \
-                   ( bestK, ourK, prob, a, sDoTP ) )
+        self.log ( f"check if to teleport, Kmax={bestK:.2f}, ours is={ourK:.2f}, p={prob:.2f}, a={a:.2f}, {sDoTP}" )
         if doTP:
             self.manipulator.teleportToHiscore()
         return doTP
@@ -612,8 +607,7 @@ class RandomWalker ( LoggerBase ):
                     self.onestep()
                 except Exception as e:
                     # https://bioinfoexpert.com/2016/01/18/tracing-exceptions-in-multiprocessing-in-python/
-                    self.pprint ( "taking a step resulted in exception: %s, %s" % \
-                                  (type(e), e ) )
+                    self.pprint ( f"taking a step resulted in exception: {type(e)}, {e}" )
                     import traceback
                     traceback.print_stack( limit=None )
                     except_type, except_class, tb = sys.exc_info()

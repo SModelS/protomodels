@@ -13,7 +13,7 @@ def addPValue ( pvalues : List, v : Dict, verbose : bool , min_expected : float 
         if verbose:
             s3rd=""
             if "thirdMoment" in v:
-                s3rd = ";"+str(v["thirdMoment"])
+                s3rd = f";{v['thirdMoment']!s}"
             print ( f"expectedBG={expectedBG}+-{bgError}{s3rd} newObs={v['newObs']} p={v['new_p']}" )
         if expectedBG > min_expected:
             pvalues.append ( v["new_p"] )

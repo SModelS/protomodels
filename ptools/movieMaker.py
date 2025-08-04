@@ -88,7 +88,7 @@ for line in lines:
     #line = line.replace("'nan''",'"nan"\'')
     line = line.replace("nan","-300.") ## FIXME
     line = line.replace("'nan''","-300.'") ## ugly!!
-    txt+=line+"\n"
+    txt+=f"{line}\n"
 if "[" in txt[-3:]:
     txt=txt[:-3]
 if not "]" in txt[-3:]:
@@ -249,7 +249,7 @@ def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K
         data = df[firststep:laststep+1:nsteps]
         datamax = df[stepatmax:stepatmax+1]
         datacur = df[firststep+currentstep:firststep+currentstep+1]
-        tName = r'$%s$' % namer.texName(pid)
+        tName = rf'${namer.texName(pid)}$'
         c = colorDict[pid]
         #if ctentries>9:
         #        tName=""
@@ -351,7 +351,7 @@ if args.start>0:
 
 for firststep in range ( args.start, maxstep ):
     if firststep % 10 == 0:
-        print ( "step %d: %s" % ( firststep, time.asctime() ) )
+        print ( f"step {int(firststep)}: {time.asctime()}" )
     lastingHS = 0 ## the "hiscore!" label should last a bit
     
     laststep=firststep+20

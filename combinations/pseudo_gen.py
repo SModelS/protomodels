@@ -151,7 +151,7 @@ def selectMostSignificantSRs(predictions: list[TheoryPrediction], percent_bound:
     """
     sortByAnaId = {}
     for pred in predictions:
-        Id = pred.analysisId() + ":" + pred.dataType(short=True)
+        Id = f"{pred.analysisId()}:{pred.dataType(short=True)}"
         if Id not in sortByAnaId:
             sortByAnaId[Id] = []
         sortByAnaId[Id].append(pred)

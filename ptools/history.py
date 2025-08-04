@@ -33,13 +33,13 @@ class History ( LoggerBase ):
                 dI = tp.dataId()
                 if dI == None:
                     dI="ul"
-                bc.append ( tp.analysisId()+":"+dI )
+                bc.append ( f"{tp.analysisId()}:{dI}" )
         D["bestCombo"]=bc
         if len(ma.recording)>0:
             D["actions"]=ma.recording
             ma.recording=[]
         self.pprint ( f"adding protomodel to {self.outfile}." )
-        self.handle.write ( str(D)+",\n" )
+        self.handle.write ( f"{D!s},\n" )
         self.handle.flush()
 
     def save ( self ):

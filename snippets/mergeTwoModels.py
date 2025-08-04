@@ -10,7 +10,7 @@ def merge( models : Tuple ):
     f=open("merged.dict","wt")
     f.write ( "# this model is due to a merge of the ewkino and the hadrons models\n" )
     f.write ( f"# created {time.asctime()}\n" )
-    f.write ( str(model)+"\n" )
+    f.write ( f"{model!s}\n" )
     f.close()
 
 if __name__ == "__main__":

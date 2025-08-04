@@ -7,7 +7,7 @@ import os, sys
 def getDBPath ( dbpath, rundir ):
     """ obtain the database path, resolve <rundir> """
     if "<rundir>" in dbpath:
-        dbpath = dbpath.replace("<rundir>",rundir+"/")
+        dbpath = dbpath.replace("<rundir>",f"{rundir}/")
     dbpath = dbpath.replace("//","/")
     return dbpath
 

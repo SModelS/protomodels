@@ -149,7 +149,7 @@ def draw( args : dict ):
         analysisIds = args["analyses"].split(",")
     exps = [ "CMS", "ATLAS" ]
     if args["experiment"] in [ "CMS", "ATLAS" ]:
-        analysisIds = [ args["experiment"]+"*" ]
+        analysisIds = [ f"{args['experiment']}*" ]
         exps = [ args["experiment"] ]
     dataTypes = [ "all" ]
     if args["effmaps_only"]:

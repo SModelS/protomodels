@@ -36,8 +36,7 @@ def discuss ( protomodel, name ):
 def discussBest ( protomodel, detailed ):
     """ a detailed discussion of number 1 """
     p = 2. * ( 1. - stats.norm.cdf ( protomodel.TL ) ) ## two times because one-sided
-    print ( "Current      best K=%.3f, TL=%.3f, p=%.2g [%d/%d particles, %d predictions] (walker #%d)" % \
-            ( protomodel.K, protomodel.TL, p, len(protomodel.unFrozenParticles()),len(protomodel.masses.keys()),len(protomodel.bestCombo), protomodel.walkerid ) )
+    print ( f"Current      best K={protomodel.K:.3f}, TL={protomodel.TL:.3f}, p={p:.2g} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{int(protomodel.walkerid)})" )
     if detailed:
         print ( f"Solution was found in step #{protomodel.step}" )
         for i in protomodel.bestCombo:
@@ -50,7 +49,7 @@ def printProtoModels ( protomodels, detailed, nmax=10 ):
             break
         if protomodel == None:
             break
-        sc = "%dth" % (c+1)
+        sc = f"{int(c + 1)}th"
         if c in names.keys():
             sc = names[c]
         if c==0:
@@ -62,7 +61,7 @@ def pprintEvs ( protomodel ):
     """ pretty print number of events """
     if protomodel.nevents > 1000:
         return f"{protomodel.nevents/1000}K evts"
-    return str(protomodel.nevents)+ " evts"
+    return f"{protomodel.nevents!s} evts"
 
 def obtainHiscore ( number : int,
         hiscorefile : PathLike = "hiscores_global.dict" ) -> ProtoModel:

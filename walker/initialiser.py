@@ -90,7 +90,7 @@ class Initialiser ( LoggerBase ):
                     pids[x].add ( int(tokens[0]) )
                     line = line.replace ( f"M{x}", "100" )
                     line = line.replace ( f"m{x}", "100" )
-            tmpfile.write ( line+ "\n" )
+            tmpfile.write ( f"{line}\n" )
         tmpfile.close()
         flatpids = set()
         for k,v in pids.items():

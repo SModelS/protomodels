@@ -13,7 +13,7 @@ def getData ():
     Dir = os.getcwd()
     Dir = Dir.replace("/protomodels/plotting","")
     Dir = Dir.replace("/py-roughviz","")
-    Dir = Dir + "/protomodels/data"
+    Dir = f"{Dir}/protomodels/data"
     files = glob.glob ( f"{Dir}/real*dict" )
     for f in files:
         h = open ( f, "rt" )
@@ -37,7 +37,7 @@ scatter.set_ylabel("XZ [GeV]", fontsize=2 )
 scatter.show()
 
 with open ( "bla.html", "wt" ) as f:
-    f.write ( scatter.output+"\n" )
+    f.write ( f"{scatter.output}\n" )
 with open ( "blu.html", "wt" ) as f:
     more = scatter.output
     print ( "tp", type(more) )

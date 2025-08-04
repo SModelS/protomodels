@@ -10,7 +10,7 @@ def shortYVarName ( yvariable ):
     drop entirely for X1Z """
     from ptools.sparticleNames import SParticleNames
     namer = SParticleNames ( False )
-    syv = "_"+namer.asciiName(yvariable)
+    syv = f"_{namer.asciiName(yvariable)}"
     syv = syv.replace(",","").replace(" ","").replace("~","m")
     if syv == "_X1Z":
         syv = ""
@@ -73,10 +73,10 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
 
     shorts, description = { }, {}
     shorts["gauginos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
-    shorts["gauginos_offshell"]=shorts["gauginos"]+",TChiWZoff,TChiWWoff"
+    shorts["gauginos_offshell"]=f"{shorts['gauginos']},TChiWZoff,TChiWWoff"
     shorts["electroweakinos_onshell"]='TChiH,TChiChipmSlepStau,TChipChimSlepSnu,TChiHH,TChiWW,TChiWZ,TChipChimSlepSlep,TChipChimStauSnu,TChiZH,TChiWH,TChipChimgg,TChiZZ,TChiChipmStauStau,TChiChipmSlepSlep,TChiChipmSlepL,TChiChipmStauL'
     shorts["electroweakinos_offshell"]="TChiWZoff,TChiWWoff,TChiISR,TChiWISRll,TChiZISRll,TChiZISRqq"
-    shorts["electroweakinos"]=shorts["electroweakinos_onshell"]+","+shorts["electroweakinos_offshell"]
+    shorts["electroweakinos"]=f"{shorts['electroweakinos_onshell']},{shorts['electroweakinos_offshell']}"
     shorts["stops"]="T2tt,T2ttoff,T2bbffff,T2bbWW,T2bbWWoff,T6bbWW,T6bbWWoff"
     shorts["gluinos"]="T1,T3W,T5,T5tttt,T5bbbb,T5WW,T5ZZ,T5WWoff,T5tctc,T5tbtt,T5tbtb,T5bbbt,T5tbtt,T5tbtb,T5HH,T5HZ,T5AAT5bbbbZg,T5ttttZg,T5ttbbWWoff,T5ttofftt,T5gg,T5WZh"
     shorts["sbottoms"]="T2bb,T6ttWW,T6ttWWoff"
@@ -158,8 +158,7 @@ def findLargestExcess ( db ):
             ds = ds[0]
             obsN = ds.dataInfo.observedN
             eBG = ds.dataInfo.expectedBG
-            print ( "Z=%.2f: %15s, %s: %d/%.2f" % \
-                    ( k, ds.globalInfo.id, str(ds.dataInfo.dataId), obsN, eBG ) )
+            print ( f"Z={k:.2f}: {ds.globalInfo.id:>15}, {ds.dataInfo.dataId!s}: {int(obsN)}/{eBG:.2f}" )
 
     pprint ( excesses )
     print ( f"[helpers.findLargestExcess] found {len(results)} eff maps" )

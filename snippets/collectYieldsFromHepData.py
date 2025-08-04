@@ -50,7 +50,7 @@ def parseFile ( fname ):
 
 def read():
     anaid = "CMS-SUS-19-006"
-    f=open(anaid+".py","rt" )
+    f=open(f"{anaid}.py","rt" )
     D=eval(f.read())
     ps= []
     for anaid,values in D.items():
@@ -69,11 +69,11 @@ def main():
     entries = {}
     anaid = "CMS-SUS-19-006"
     for binnr,values in alld.items():
-        label = anaid+":SR"+str(binnr)
+        label = f"{anaid}:SR{binnr!s}"
         values["lumi"]=137.
         values["fudge"]=1.
         entries[label]=values
-    f=open ( anaid+".py", "wt" )
+    f=open ( f"{anaid}.py", "wt" )
     f.write ( "{" )
     for label,values in entries.items():
         f.write ( f"'{label}': {str(values)},\n" )

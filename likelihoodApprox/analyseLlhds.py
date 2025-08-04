@@ -67,8 +67,7 @@ def run ( nobs, nExp, nExpErr, nsig ):
 
     ULexp = computer.ulSigma ( data, expected=True, marginalize=marginalize )
 
-    print(r'Nobs = %1.2f, Nbg = %1.2f +- %1.2f, Nsig < %1.2f, Nsig (expected) < %1.2f'
-         %(nobs,nExp,nExpErr,ULobs,ULexp))
+    print(rf'Nobs = {nobs:1.2f}, Nbg = {nExp:1.2f} +- {nExpErr:1.2f}, Nsig < {ULobs:1.2f}, Nsig (expected) < {ULexp:1.2f}')
 
     sigma = ULexp/1.96
     mu0 = 0

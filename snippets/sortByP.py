@@ -49,9 +49,9 @@ def run():
         ptxns = txns
         dsmax = 40
         if len ( ds ) > dsmax:
-            ds = ds[:dsmax-4]+"..."
+            ds = f"{ds[:dsmax - 4]}..."
         if len(ptxns)>dsmax:
-            ptxns = txns[:dsmax-4]+"..."
+            ptxns = f"{txns[:dsmax - 4]}..."
         ds = ds.replace("_","\\_" )
         line = f"{k:.3f} & {ana} & {ds} & {ptxns} \\\\\n"
         f.write ( line )

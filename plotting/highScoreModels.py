@@ -199,7 +199,7 @@ axarr[0].set_ylabel(r'$K$')
 axarr[0].set_ylim(1.0,15.0)
 axarr[0].set_yticks([])
 for i,row in df.iterrows():
-    axarr[0].annotate(r'$%1.2f$' %row['K'],(row['run']-0.2,row['K']+0.8),fontsize=13)
+    axarr[0].annotate(rf"${row['K']:1.2f}$",(row['run']-0.2,row['K']+0.8),fontsize=13)
 
 axarr[0].vlines(x=0,ymin=2,ymax=15,linestyle='--',color='gray')
 
@@ -208,14 +208,14 @@ for pid in masses.keys():
         continue
     data = df
     sns.scatterplot(x=data['run'],y=data[pid], size=1000,sizes=(1500,1500),marker='_',
-                    label=r'$%s$' %(namer.texName(pid,addOnes=True)), legend=False,
+                    label=rf'${namer.texName(pid, addOnes=True)}$', legend=False,
                     color=[colorDict[pid]],ax=axarr[1])
     for i,m in enumerate(masses[pid]):
         if m < 0: continue
         if 'b' in namer.texName(pid):
-            axarr[1].annotate(r'$%s$' %(namer.texName(pid,addOnes=True)),(runs[i]-0.3,m+25.),fontsize=15)
+            axarr[1].annotate(rf'${namer.texName(pid, addOnes=True)}$',(runs[i]-0.3,m+25.),fontsize=15)
         else:
-            axarr[1].annotate(r'$%s$' %(namer.texName(pid,addOnes=True)),(runs[i],m+25.),fontsize=15)
+            axarr[1].annotate(rf'${namer.texName(pid, addOnes=True)}$',(runs[i],m+25.),fontsize=15)
 axarr[1].set_ylim(0.,1500.0)
 axarr[1].set_xlabel('run (BSM)', fontsize=23)
 axarr[1].set_ylabel('Mass [GeV]', fontsize=23)

@@ -41,7 +41,7 @@ class Analyzer ( LoggerBase ):
                 self.topos.add ( k.strip() )
         for pname in pathname:
             if os.path.isdir ( pname ):
-                pname = pname + "/db*dict"
+                pname = f"{pname}/db*dict"
             self.filenames += glob.glob ( pname )
         self.pvalues = { 8:[], 13:[] }
         self.Zvalues = { 8:[], 13:[] }
@@ -56,7 +56,7 @@ class Analyzer ( LoggerBase ):
         self.latexfile.write ( f"\n" )
         lformat = "{|l|l|l|l|r|r|}"
         if self.enum:
-            lformat = lformat[:2]+"l|"+lformat[3:]
+            lformat = f"{lformat[:2]}l|{lformat[3:]}"
         # self.latexfile.write ( r"\resizebox{\textwidth}{!}{" )
         self.latexfile.write ( r"\begin{tabular}"+lformat )
         self.latexfile.write ( "\n" )
@@ -157,7 +157,7 @@ class Analyzer ( LoggerBase ):
                 for i in range(15,5,-1):
                     if ret[i]==",":
                         break
-                ret=ret[:i+1]+" ..."
+                ret=f"{ret[:i + 1]} ..."
             if ret == "":
                 print ( f"empty txns in {ana}? >>{values['txns']}<<" )
             return ret

@@ -8,7 +8,7 @@ from smodels_utils.helper.sparticleNames import SParticleNames
 def getDicts():
     basedir = os.environ['CODEDIR']
     Tp = "rundir.real"
-    files = glob.glob ( basedir + Tp + "*/states.dict" )
+    files = glob.glob ( f"{basedir}{Tp}*/states.dict" )
     Dicts = {}
     for File in files:
         nr = File.replace( basedir, "" ).replace ( "/states.dict", "" )

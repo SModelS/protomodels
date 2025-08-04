@@ -8,8 +8,8 @@ def parse( inputfile = "../ptools/history.list" ):
     g=open("end.list","wt")
     ntxt=txt
     if not "]" in txt[-3:]:
-        ntxt = txt[:-1] +"]"
-    g.write ( ntxt+ "\n" )
+        ntxt = f"{txt[:-1]}]"
+    g.write ( f"{ntxt}\n" )
     g.close()
 
     f=open("end.list","rt")

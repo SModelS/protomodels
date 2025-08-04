@@ -150,10 +150,9 @@ class Manipulator ( LoggerBase ):
             f=f*2
         ith = int(np.random.choice ( choices ))
         self.log ( f"teleporting, we have {len(dicts)} dicts" )
-        self.log ( "choosing the %dth entry, it has a K of %.2f" % \
-                      ( ith, dicts[ith]["K"] ) )
+        self.log ( f"choosing the {int(ith)}th entry, it has a K of {dicts[ith]['K']:.2f}" )
         step = self.M.step
-        nth = "%dth" % ith
+        nth = f"{int(ith)}th"
         longforms = { 1: "first", 2: "second", 3: "third" }
         if ith in longforms:
             nth = longforms[ith]
@@ -456,11 +455,11 @@ class Manipulator ( LoggerBase ):
         """
         scom = ""
         if "comment" in D:
-                scom = ": " + D["comment"]
+                scom = f": {D['comment']}"
         if filename == "":
             line = "initializing from dictionary: "
             for k,v in D["masses"].items():
-                line += self.namer.asciiName(k)+ ", "
+                line += f"{self.namer.asciiName(k)}, "
             line = line[:-2]
             self.pprint ( line )
         else:
@@ -533,7 +532,7 @@ class Manipulator ( LoggerBase ):
         """ check protomodel for NaNs, for debugging only """
         for pid,m in self.M.masses.items():
             if np.isnan ( m ):
-                self.pprint ( "Checking for nans: mass of %d is nan" % pid )
+                self.pprint ( f"Checking for nans: mass of {int(pid)} is nan" )
 
     def get ( self ):
         """ since the shallowcopy business does not work as expected,
@@ -593,7 +592,7 @@ class Manipulator ( LoggerBase ):
             for pid in allpids[:2]:
                 pidline += f" {self.namer.asciiName(pid)}"
             if len(pidline) > 80:
-                pidline=pidline[:76]+" ..."
+                pidline=f"{pidline[:76]} ..."
             if len(allpids)>3:
                           pidline += f" ..."
             print ( pidline )
@@ -621,7 +620,7 @@ class Manipulator ( LoggerBase ):
             for pid in allpids[:2]:
                 pidline += f" {self.namer.asciiName(pid)}"
                 if len(pidline) > 80:
-                    pidline=pidline[:76]+" ..."
+                    pidline=f"{pidline[:76]} ..."
             if len(allpids)>3:
                 pidline += ( " ..." )
             print ( pidline )
@@ -825,7 +824,7 @@ class Manipulator ( LoggerBase ):
             eUL = "no ULexp"
             anaId = tp.expResult.globalInfo.id
             dt = tp.dataType( short=True )
-            fullId = anaId+":"+dt
+            fullId = f"{anaId}:{dt}"
             if hasattr ( tp, "expectedUL" ) and type(tp.expectedUL) != type(None):
                 eUL = f"UL_exp={tp.expectedUL.asNumber(fb):1.2f}"
             if dt in [ "comb", "combined" ]:
@@ -833,7 +832,7 @@ class Manipulator ( LoggerBase ):
             if dt in [ "em", "efficiencyMap" ]:
                 dI = tp.dataset.dataInfo
                 pred = f"{float ( (tp.xsection.value * tp.dataset.globalInfo.lumi).asNumber() ):1.2g}"
-                fullId = anaId+":"+tp.dataset.dataInfo.dataId
+                fullId = f"{anaId}:{tp.dataset.dataInfo.dataId}"
                 print(f'     - {fullId} [{txns}] obsN={dI.observedN} expBG={dI.expectedBG}+/-{dI.bgError} pred={pred}' )
             else:
                 pred=f"{tp.xsection.value.asNumber(fb):.2g}*fb"
@@ -850,7 +849,7 @@ class Manipulator ( LoggerBase ):
             eUL = ""
             # eUL = ", no ULexp"
             anaId = tp[2].expResult.globalInfo.id
-            anaId+=":"+tp[2].dataType()
+            anaId+=f":{tp[2].dataType()}"
             dt = tp[2].dataType( short=True )
             if hasattr ( tp[2], "expectedUL" ) and type(tp[2].expectedUL) != type(None):
                 eUL = f", UL_exp={tp[2].expectedUL.asNumber(fb):1.2g}*fb"
@@ -1151,7 +1150,7 @@ class Manipulator ( LoggerBase ):
             return 0
         p = int(np.random.choice ( unfrozenparticles ))
         if not p in self.M.decays.keys():
-            self.highlight ( "error", "why is %d not in decays?? %s" % ( p, self.M.decays.keys() ) )
+            self.highlight ( "error", f"why is {int(p)} not in decays?? {self.M.decays.keys()}" )
             # we dont know about this decay? we initialize with the default!
 
         return self.randomlyChangeBranchingOfPid ( p, protomodel, zeroBRprob, singleBRprob, addBRprob)
@@ -1385,10 +1384,8 @@ class Manipulator ( LoggerBase ):
             if newSSM > 100.: newSSM = 100.
             protomodel.ssmultipliers[pair] = newSSM
             #self.changeSSM(pair,newSSM)
-            self.log ( "Changing signal strength multiplier of %s,%s: %.2f." % \
-                       ( self.namer.asciiName(pair[0]), self.namer.asciiName(pair[1]), newSSM ) )
-            self.record ( "change ssm of %s,%s to %.2f." % \
-                        ( self.namer.texName(pair[0]), self.namer.texName(pair[1]), newSSM ) )
+            self.log ( f"Changing signal strength multiplier of {self.namer.asciiName(pair[0])},{self.namer.asciiName(pair[1])}: {newSSM:.2f}." )
+            self.record ( f"change ssm of {self.namer.texName(pair[0])},{self.namer.texName(pair[1])} to {newSSM:.2f}." )
         return 1
 
     def randomlyChangeSSOfOneParticle ( self, pid = None, protomodel=None, ssmSigma=1.0 ):
@@ -1945,7 +1942,7 @@ class Manipulator ( LoggerBase ):
 
         if pidA is not None:
             if self.M.masses[pidA] > self.M.masses[pidB]:
-                self.pprint("can not merge particles with wrong mass hierarchy (%d > %d)" %(pidA,pidB))
+                self.pprint(f"can not merge particles with wrong mass hierarchy ({int(pidA)} > {int(pidB)})")
                 return False
             if pidA in [ 1000006, 2000006 ] and pidB in [ 1000006, 2000006 ]:
                 ## merging stops. check if we would end up in corridor.
@@ -2030,8 +2027,7 @@ class Manipulator ( LoggerBase ):
                     continue
                 #Print log message for non-negligible BRs:s
                 if br > 0.0001:
-                    self.log ( "redirecting decay of %d from %s to %s: br=%.2f" % \
-                               ( mpid, dpids, newpids, br ) )
+                    self.log ( f"redirecting decay of {int(mpid)} from {dpids} to {newpids}: br={br:.2f}" )
 
                 #If new channel was already present, simply add to BR:
                 if newpids in protomodel.decays[mpid]:

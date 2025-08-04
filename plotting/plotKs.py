@@ -21,10 +21,10 @@ def read( which : str ="fake", datadir : str ="./" ) -> List:
         "realf": [ "realf*dict" ], "signal": [ "signal?.dict" ], 
         "signalf": [ "signal*f.dict" ] }
     if not which in pattern:
-        pattern[which]=which+"*.dict"
+        pattern[which]=f"{which}*.dict"
     files = []
     for wh in pattern[which]:
-        files += list ( glob.glob( datadir + "/" + wh ) )
+        files += list ( glob.glob( f"{datadir}/{wh}" ) )
     Ks=[]
     for f in files:
         h=open(f,"rt")
@@ -72,8 +72,7 @@ def plot( opts: dict ):
     ys = [ x + .001 for x in ys ]
     if opts["fakes"]:
         plt.plot ( Ks, ys, "ro", label="$K_\mathrm{fake}$" )
-        print ( "K(bg)=%.3f, [%.3f,%.3f] %d entries" % \
-                ( np.mean(Ks), min(Ks), max(Ks), len(Ks) ) )
+        print ( f"K(bg)={np.mean(Ks):.3f}, [{min(Ks):.3f},{max(Ks):.3f}] {len(Ks)} entries" )
     if opts["signals"] and len(Ksig)>0:
         ysig = kde.evaluate( Ksig )
         ysig = [ x - .001 for x in ysig ]
@@ -82,21 +81,18 @@ def plot( opts: dict ):
         marker_style = dict(color='tab:red', linestyle='', marker='o',
                       markersize=8, fillstyle="none" )
         plt.plot ( Ksig, ysig, label="$K_\mathrm{signal}$", **marker_style )
-        print ( "K(signal)=%.3f, [%.3f,%.3f] %d entries" % \
-                ( np.mean(Ksig), min(Ksig), max(Ksig), len(Ksig) ) )
+        print ( f"K(signal)={np.mean(Ksig):.3f}, [{min(Ksig):.3f},{max(Ksig):.3f}] {len(Ksig)} entries" )
     if opts["fastlim"]:
         ysigf = kde.evaluate( Ksigf )
         ysigf = [ x - .002 for x in ysigf ]
         plt.plot ( Ksigf, ysigf, "m*", ms=8, label="K$_\mathrm{signal}^\mathrm{f=0.8}$" )
-        print ( "K(realf)=%.3f, [%.3f,%.3f] %d entries" % \
-                ( np.mean(Ksigf), min(Ksigf), max(Ksigf), len(Ksigf) ) )
+        print ( f"K(realf)={np.mean(Ksigf):.3f}, [{min(Ksigf):.3f},{max(Ksigf):.3f}] {len(Ksigf)} entries" )
     if opts["real"]:
         yreal = kde.evaluate( Kreal )
         yreal = [ x - .001 for x in yreal ]
         plt.plot ( Kreal, yreal, "g*", ms=8, label="$K_\mathrm{obs}$" )
         Krealmean = np.mean(Kreal)
-        print ( "K(real)=%.3f, [%.3f,%.3f] %d entries" % \
-                ( Krealmean, min(Kreal), max(Kreal), len(Kreal) ) )
+        print ( f"K(real)={Krealmean:.3f}, [{min(Kreal):.3f},{max(Kreal):.3f}] {len(Kreal)} entries" )
         yrealmean = kde.evaluate ( Krealmean )[0]
         p = kde.integrate_box_1d ( Krealmean, float("inf") )
         pmin = kde.integrate_box_1d ( min(Kreal), float("inf") )

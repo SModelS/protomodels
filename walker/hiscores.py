@@ -371,9 +371,7 @@ class Hiscores ( LoggerBase ):
         pidsnmasses = [ (x,manipulator.M.masses[x]) for x in unfrozen ]
         pidsnmasses.sort ( key=lambda x: x[1], reverse=True )
         for cpid,(pid,mass) in enumerate(pidsnmasses):
-            self.pprint ( "computing contribution of %s (%.1f): [%d/%d]" % \
-                   ( self.namer.asciiName(pid),
-                     manipulator.M.masses[pid],(cpid+1),len(unfrozen) ) )
+            self.pprint ( f"computing contribution of {self.namer.asciiName(pid)} ({manipulator.M.masses[pid]:.1f}): [{int(cpid + 1)}/{len(unfrozen)}]" )
 
             #Remove particle and recompute SLHA file:
             manipulator.freezeParticle(pid, force=True )
@@ -491,7 +489,7 @@ class Hiscores ( LoggerBase ):
         # except OSError or BlockingIOError or EOFError or pickle.UnpicklingError or TypeError as e:
             self.fileAttempts+=1
             if self.fileAttempts<20: # try again
-                self.pprint ( "Exception[X] %s: type(%s), Waiting for %s file, %d" % (str(e),type(e),self.pickleFile,self.fileAttempts) )
+                self.pprint ( f"Exception[X] {e!s}: type({type(e)}), Waiting for {self.pickleFile} file, {int(self.fileAttempts)}" )
                 time.sleep ( (.2 + np.random.uniform(0.,1.))*self.fileAttempts )
                 self.updateListFromPickle()
                 self.pprint ( "Loading hiscores worked this time" )
@@ -517,7 +515,7 @@ class Hiscores ( LoggerBase ):
         if dictFile==None:
             dictFile = self.pickleFile
         if dictFile.endswith(".cache"):
-            dictFile = dictFile[:-6]+".dict"
+            dictFile = f"{dictFile[:-6]}.dict"
         f=open(dictFile,"wt")
         f.write("[")
         f.close()

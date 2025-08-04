@@ -62,7 +62,7 @@ def main():
             nold = 0
             for i,v in oldDict[d].items():
                 nold += v
-        line = "%16s: %5d" % ( d, n )
+        line = f"{d:>16}: {int(n):5}"
         if n == 50000:
             line = f"{colorama.Fore.GREEN}{line}{colorama.Fore.RESET}"
         if n < 50000 and nold == n and dt > 1200:
@@ -70,14 +70,12 @@ def main():
         if n < 50000 and nold == n and dt <= 1200:
             line = f"{colorama.Fore.YELLOW}{line}{colorama.Fore.RESET}"
         if nold != None:
-            line += " (was %5d)" % nold
+            line += f" (was {int(nold):5})"
         print ( line )
         os.chdir ( os.environ['HOME'] )
     if len(Ks)==0:
         Ks=[0.]
-    print ( "The current %d Ks are at [%.2f,%.2f+/-%.2f,%.2f], best found in %s" % \
-            ( len(Ks), min(Ks), np.mean(Ks), np.std(Ks), \
-              K, dfound.replace("rundir.","").replace("/","") ) )
+    print ( f"The current {len(Ks)} Ks are at [{min(Ks):.2f},{np.mean(Ks):.2f}+/-{np.std(Ks):.2f},{K:.2f}], best found in {dfound.replace('rundir.', '').replace('/', '')}" )
     print ( "total %d/%d jobs finished: %d%s" % ( nfinishedjobs, njobs, (nfinishedjobs*100/njobs), "%" ) )
     print ( "total %dk/%dk: %d%s" % ( ntot/1000, assumed/1000, ntot/assumed*100, "%" ) )
     Dicts["t"]=time.time()

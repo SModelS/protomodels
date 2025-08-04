@@ -143,7 +143,7 @@ class Plotter ( LoggerBase ):
                 pathname = pathname.split(",")
             for pname in pathname:
                 if os.path.isdir ( pname ):
-                    pname = pname + "/*dict"
+                    pname = f"{pname}/*dict"
                     self.filenames += glob.glob ( pname )
                 else:
                     self.filenames.append ( pname )
@@ -521,7 +521,7 @@ class Plotter ( LoggerBase ):
         if outfile is None:
             return "tmp.png"
         origt = self.origtopos.replace(" ","").replace(",","_")
-        flt = "_"+origt+"_not".join(self.negativetopos)
+        flt = f"_{origt}{'_not'.join(self.negativetopos)}"
         flt += "_".join(self.analyses) # 
         if len(self.negativeanalyses)>0:
             flt += "_not"
@@ -595,7 +595,7 @@ class Plotter ( LoggerBase ):
         if len (self.negativetopos )>0:
             stopos = ""
             for i,t in enumerate(self.negativetopos):
-                stopos += "^"+prettyDescriptions.prettyTxname( t, False, "latex" )
+                stopos += f"^{prettyDescriptions.prettyTxname(t, False, 'latex')}"
                 if i < len(self.topologies)-1:
                     stopos += ";"
             title += f", {selecting}{stopos}"

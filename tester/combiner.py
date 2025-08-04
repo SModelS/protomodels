@@ -153,8 +153,7 @@ class Combiner ( LoggerBase ):
         pun1 = 0. # punishment for ssm=1, we prefer zeroes!
         xsecs = protomodel.getXsecs()
         if len(xsecs)==0:
-            self.pprint( "could not get xsecs for protomodel with masses %s" % \
-                         str(protomodel.masses) )
+            self.pprint( f"could not get xsecs for protomodel with masses {protomodel.masses!s}" )
             if nll:
                 return -float("inf")
             return 0.
@@ -341,8 +340,7 @@ class Combiner ( LoggerBase ):
         """ construct a unique id of a prediction from the analysis ID,
             pids (v2) or smsList (v3), data set name """
         # FIXME check that smsList works
-        return "%s:%s:%s" % ( prediction.analysisId(), str(prediction.dataId()),
-                              "; ".join(map(str,prediction.smsList) ) )
+        return f"{prediction.analysisId()}:{prediction.dataId()!s}:{'; '.join(map(str, prediction.smsList))}"
         # v2
         #return "%s:%s:%s" % ( prediction.analysisId(), str(prediction.dataId()),
         #                      "; ".join(map(str,prediction.PIDs) ) )
@@ -504,8 +502,7 @@ def normalizePrior():
                 ctr+=1
                 control += c.priorForNDF ( nparticles, nbr, nssms, None )
                 if ctr % nmod == 0:
-                    print ( "nparticles %d, nbr %d, nssms %d, improper prior %.5f" % \
-                            ( nparticles, nbr, nssms, t ) )
+                    print ( f"nparticles {int(nparticles)}, nbr {int(nbr)}, nssms {int(nssms)}, improper prior {t:.5f}" )
                     nmod=nmod*2
                 S += t
     print ( f"The constant for normalizing the prior is {1.0 / S:.8f}" )
@@ -579,6 +576,6 @@ if __name__ == "__main__":
     for pred in preds:
         pred.computeStatistics()
         tpe = pred.dataType(True)
-        tpe += ":" + ",".join ( map ( str, pred.txnames ) )
+        tpe += f":{','.join(map(str, pred.txnames))}"
         print ( f"  `- llhd [{tpe}] SM={pred.likelihood(0.0, expected=args.expected):.3g} BSM={pred.likelihood(1.0, expected=args.expected):.3g}" )
     comb = Combiner()

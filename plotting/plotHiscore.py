@@ -172,7 +172,7 @@ class HiscorePlotter ( LoggerBase ):
             maxLen=9
             maxLen=18
             if len(did)>maxLen:
-                did=did[:maxLen-3]+" ..."
+                did=f"{did[:maxLen - 3]} ..."
             eBG = dI.expectedBG
             if eBG == int(eBG):
                 eBG=int(eBG)
@@ -338,7 +338,7 @@ class HiscorePlotter ( LoggerBase ):
             print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError}" )
             did = dI.dataId.replace("_",r"\_")
             if len(did)>9:
-                did=did[:6]+" ..."
+                did=f"{did[:6]} ..."
             eBG = dI.expectedBG
             if eBG == int(eBG):
                 eBG=int(eBG)
@@ -440,7 +440,7 @@ class HiscorePlotter ( LoggerBase ):
             keys = list ( tok.keys() )
             keys.sort()
             for v in keys:
-                particleContributionList+= tok[v] + ", "
+                particleContributionList+= f"{tok[v]}, "
             if len(keys)>0:
                 particleContributionList = particleContributionList[:-2]
             #particleContributionList+= ", ".join ( tok )
@@ -457,7 +457,7 @@ class HiscorePlotter ( LoggerBase ):
         src += particleContributionList
         if keep_tex:
             with open("texdoc.tex","wt") as f:
-                f.write ( src+"\n" )
+                f.write ( f"{src}\n" )
                 f.close()
             print ( f"[plotHiscore] wrote {os.getcwd()}/texdoc.tex" )
         try:
@@ -639,7 +639,7 @@ class HiscorePlotter ( LoggerBase ):
             height += 32
         contrs = texdoc.replace(":"," are " ).replace("S","The s").replace(";",", " )
         contrs = contrs.replace( "\\\\\\\\Contr", "; the contr" )
-        f.write ( contrs + "\n" )
+        f.write ( f"{contrs}\n" )
         f.close()
         print ( "[plotHiscore] Wrote index.tex" )
 
@@ -826,12 +826,12 @@ class HiscorePlotter ( LoggerBase ):
         name = tpred.analysisId()
         if not integrateSRs:
             SR = tpred.dataId()
-            name = name + ":" + str(SR)
+            name = f"{name}:{SR!s}"
         elif not integrateDataType:
             dType = "em"
             if tpred.dataId() in [ "None", None ]:
                 dType = "ul"
-            name = name + ":" + dType
+            name = f"{name}:{dType}"
         pids = getAllPidsOfTheoryPred ( tpred )
         for pid in pids:
             if pid == LSP:
@@ -1002,7 +1002,7 @@ def runPlotting ( args ):
             if os.path.exists ( f ):
                 if not first:
                     print ( ",", end="" )
-                print ( " "+f, end="" )
+                print ( f" {f}", end="" )
                 cmd = "cp"
                 cmd = f"{cmd} {f} {dest}"
                 a = subprocess.getoutput ( cmd )

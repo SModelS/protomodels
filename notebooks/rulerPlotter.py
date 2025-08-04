@@ -116,7 +116,7 @@ class RulerPlot:
             minvalue=self.range[0]
         if self.range[1] != None and self.range[1] >=0.:
             maxvalue=self.range[1]
-        self.logger.info ( "range is [%d,%d]" % ( minvalue, maxvalue ) )
+        self.logger.info ( f"range is [{int(minvalue)},{int(maxvalue)}]" )
         self.minmass = minvalue
         self.maxmass = maxvalue
 
@@ -316,7 +316,7 @@ class RulerPlot:
         for frmat,runthis in self.formats.items():
             if not runthis:
                 continue
-            of = self.outputfile + "." + frmat
+            of = f"{self.outputfile}.{frmat}"
             self.logger.info ( f"saving to {of}" )
             plt.savefig ( of )
             if frmat == "png" and self.trim:
@@ -369,7 +369,7 @@ if __name__ == "__main__":
                                         SModelSUtils.installDirectory() )
     import logging.config
     logging.config.fileConfig (
-            SModelSUtils.installDirectory()+"/etc/commandline.conf" )
+            f"{SModelSUtils.installDirectory()}/etc/commandline.conf" )
     logger=logging.getLogger(__name__)
     setLogLevel ( logger, args.verbosity.lower() )
     hasResultsFor = None

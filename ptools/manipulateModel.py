@@ -39,7 +39,7 @@ class ModelManipulator ( LoggerBase ):
             self.model["ssmultipliers"][pids]=v*factor
         comment = f"multiplied with {factor:.2f}"
         if "comment" in self.model:
-            comment = self.model["comment"] + ", " + comment
+            comment = f"{self.model['comment']}, {comment}"
         self.model["comment"] = comment
 
 if __name__ == "__main__":

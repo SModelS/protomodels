@@ -338,7 +338,7 @@ def selectMostSignificantSR ( self, predictions : List ) -> List:
     """
     sortByAnaId = {}                            # first sort all by ana id + data Type
     for pred in predictions:
-        Id = pred.analysisId()+":"+pred.dataType(True)
+        Id = f"{pred.analysisId()}:{pred.dataType(True)}"
         if not Id in sortByAnaId:
             sortByAnaId[Id]=[]
         sortByAnaId[Id].append ( pred )         #keep all em-type ds of one analysis under one key
@@ -367,7 +367,7 @@ def selectMostSignificantSR ( self, predictions : List ) -> List:
             r=float("nan")
             if type(eul) != type(None) and eul.asNumber(fb) > 0.:
                 r = ( ul / eul ).asNumber()
-            didwhat = Fore.RED + "discarded"
+            didwhat = f"{Fore.RED}discarded"
             pId = self.getPredictionID( i )
             if pId in keptThese:
                 didwhat = "kept     "
@@ -399,8 +399,7 @@ def discussCombinations ( self, combinables ):
     npred = 0
     if 1 in count.keys():
         npred = count[1]
-    self.debug ( "%d combinations from %d predictions" % \
-                 (len(combinables),npred) )
+    self.debug ( f"{len(combinables)} combinations from {int(npred)} predictions" )
                  
 def getEventsFromLimits(self, upperLimit, expectedUpperLimit, maxdiff = 0.4 ):
     """Using the gaussian limit, extract the (normalized) number of expected BG events,

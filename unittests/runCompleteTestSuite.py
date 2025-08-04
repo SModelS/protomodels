@@ -44,7 +44,7 @@ def verbose_run( flter ):
                 if flter and (not flter in str(t)):
                     continue
                 n_tests += 1
-                print ( "[#%3d] %s ... " % ( n_tests, t.id() ), end="" )
+                print ( f"[#{int(n_tests):3}] {t.id()} ... ", end="" )
                 sys.stdout.flush()
                 try:
                     a=t.debug()
@@ -56,7 +56,7 @@ def verbose_run( flter ):
 
                 #a=t.run() ## python3
                 # print ( "a=",a )
-    print( "[runCompleteTestSuite] %d/%d tests failed." % ( n_failed, n_tests ))
+    print( f"[runCompleteTestSuite] {int(n_failed)}/{int(n_tests)} tests failed.")
 
 def parallel_run ( verbose ):
     if verbose:

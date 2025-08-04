@@ -28,7 +28,7 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction], bound: float
     """
     sortByAnaId = {}                             # first sort all by ana id + data Type
     for pred in predictions:
-        Id = pred.analysisId()+":"+pred.dataType(True)
+        Id = f"{pred.analysisId()}:{pred.dataType(True)}"
         if not Id in sortByAnaId:
             sortByAnaId[Id]=[]
         sortByAnaId[Id].append ( pred )         #keep all em-type ds of one analysis under one key

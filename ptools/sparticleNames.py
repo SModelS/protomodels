@@ -197,14 +197,14 @@ class SParticleNames:
             if m == None:
                 break
             repl = html[m.start()+2:m.end()-1]
-            html = html[:m.start()]+"<sub>"+repl+"</sub>"+html[m.end():]
+            html = f"{html[:m.start()]}<sub>{repl}</sub>{html[m.end():]}"
 
         while True:
             m = re.search ( r"\^{[0-9&;A-Za-z-+]*}", html)
             if m == None:
                 break
             repl = html[m.start()+2:m.end()-1]
-            html = html[:m.start()]+"<sup>"+repl+"</sup>"+html[m.end():]
+            html = f"{html[:m.start()]}<sup>{repl}</sup>{html[m.end():]}"
 
         if addBrackets:
             html = f"({html})"
@@ -245,9 +245,9 @@ class SParticleNames:
         else:
             n = n.replace("^{-}","").replace("^{+}","")
         if addDollars:
-            n = "$" + n + "$"
+            n = f"${n}$"
         if addBrackets:
-            n = "(" + n + ")"
+            n = f"({n})"
         return n
 
     def name ( self, pid, addSign=False, addOnes=False, 
@@ -272,11 +272,11 @@ class SParticleNames:
 
         if abs(pid) in [ 1000005, 1000006 ] and addOnes:
             ret = self.name ( pid, addSign, addOnes=False )
-            return ret+"1"
+            return f"{ret}1"
 
         if type(pid) == str and pid.startswith("+-"):
             n = self.name(int(pid[2:]))
-            return "+-"+n
+            return f"+-{n}"
 
         if not pid in self.ids and not abs(pid) in self.ids:
             return str(pid)
@@ -385,10 +385,10 @@ class SParticleNames:
         return f"<math display='inline'><mover><mi>{text}</mi><mo stretchy='true'>~</mo></mover></math>"
 
     def sub ( self, text ):
-        return "<sub>"+text+"</sub>"
+        return f"<sub>{text}</sub>"
 
     def sup ( self, text ):
-        return "<sup>"+text+"</sup>"
+        return f"<sup>{text}</sup>"
 
     """
     def toHtml ( self, name ):

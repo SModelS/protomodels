@@ -124,7 +124,7 @@ def prettyPrint ( value : Union[None,float,numpy.float64],
         return ret
     if type(value) == dict:
         ret = ', '.join(f'{k}: {prettyPrint(v,ndecimals)}' for k,v in value.items())
-        return "{ "+ret+" }"
+        return f"{{ {ret} }}"
     return str(value)
 
 def nround ( value : Union[None,float], ndecimals : int ) -> Union[None,float]:
@@ -134,7 +134,7 @@ def nround ( value : Union[None,float], ndecimals : int ) -> Union[None,float]:
 
 def simplifyUnixPath ( path : str ) -> str:
     """ simple code to simplify file paths in printouts """
-    path = path.replace( os.getcwd()+"/", "./" )
+    path = path.replace( f"{os.getcwd()}/", "./" )
     if path.startswith ( os.environ["HOME" ] ):
         path = path.replace( os.environ["HOME"], "~" )
     while "//" in path:
@@ -368,9 +368,9 @@ def cpPythia8 ( ):
     """ as a very ugly workaround for now, if something goes wrong with
         cross sections, cp the pythia8 install. """
     libdir = f"{os.environ['HOME']}/git/smodels/smodels/lib"
-    if os.path.exists ( libdir + "/pythia8/pythia8226/share/Pythia8/xmldoc/Welcome.xml" ):
+    if os.path.exists ( f"{libdir}/pythia8/pythia8226/share/Pythia8/xmldoc/Welcome.xml" ):
         return
-    lockfile = libdir+"/lock"
+    lockfile = f"{libdir}/lock"
     ctr = 0
     while os.path.exists ( lockfile ):
         time.sleep ( np.random.uniform ( 1, 3 ) )

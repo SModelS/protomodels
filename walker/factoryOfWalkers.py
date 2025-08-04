@@ -81,7 +81,7 @@ def writeMetaInfo ( rundir : str, meta : Dict ):
                     print ( f"[factoryOfWalkers] run's meta info changed: {k} was {v} not {meta[k]}" )
     else:
         with open ( dictfile, "wt" ) as f:
-            f.write ( str(meta)+"\n" )
+            f.write ( f"{meta!s}\n" )
             f.close()
 
 def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,

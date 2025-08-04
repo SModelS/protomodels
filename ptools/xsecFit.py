@@ -55,7 +55,7 @@ class XSecFitter():
                 line = line.replace("\t","").replace("GeV",",")
                 if '±' in line: index = line.rfind('±')
                 elif '+' in line: index = line.rfind('+')
-                line = line[:index-1].replace(" ","") + "\n"
+                line = f"{line[:index - 1].replace(' ', '')}\n"
                 out.write(line)
                 
 
@@ -84,7 +84,7 @@ class XSecFitter():
                     "chargino-neutralino": [1000023], "chargino-chargino": [1000024]}
         
         pname = [key for key,value in prod_name.items() if self.pid[1] in value]
-        plot_title = pname[0]+"_"+str(self.sqrt)
+        plot_title = f"{pname[0]}_{self.sqrt!s}"
         #if self.pid == 1000006: plot_title = "stop"
         #elif self.pid == 1000021: plot_title = "gluino"
         
