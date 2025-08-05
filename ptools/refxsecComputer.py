@@ -466,7 +466,8 @@ class RefXSecComputer:
                     pythia.pythiacard = None
                     logger.debug (f'PYTHIA8 CROSS SECTION: {xsec}')
                 except Exception as e:
-                    os.unlink(pythia.pythiacard)
+                    if pythia.pythiacard != None:
+                        os.unlink(pythia.pythiacard)
                     pythia.pythiacard = None
                     logger.debug (f'PYTHIA COMPUTATION FAILED: {e}')
             if xsec == None:
