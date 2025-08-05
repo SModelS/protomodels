@@ -1576,12 +1576,16 @@ class Manipulator ( LoggerBase ):
         self.removeIllegalBRs(rescaleSSMs=True, protomodel=protomodel)
         return pid
 
-    def unFreezeParticle (self, pid, force = False, protomodel = None):
-        """ unfreeze particle pid, assign masses, BRs and signal strength multipliers.
+    def unFreezeParticle (self, pid : int, force : bool = False, protomodel = None):
+        """ unfreeze particle pid, assign masses, BRs and signal strength
+        multipliers.
 
         :param pid: PID to be unfrozen
-        :param force: If False, will only unfreeze the particle if it does not violate
-                      the canonical order (e.g. will not unfreeze stop2 if stop1 is frozen).
+        :param force: If False, will only unfreeze the particle if it does not
+        violate the canonical order (e.g. will not unfreeze stop2 if stop1 is
+        frozen).
+        :param protomodel: if given, then unFreeze for that protomodel, not for
+        your protomodel
         """
 
         if protomodel is None:

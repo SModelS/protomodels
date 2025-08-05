@@ -208,7 +208,7 @@ class Predictor ( LoggerBase ):
     #     return ret
 
     def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb, mingap = 10*GeV, mingapISR = 1*GeV,
-                  strategy : str = "aggressive",keep_predictions : bool = False, keep_slhafile : bool = False, run_mcmc=False ) -> bool:
+                  strategy : str = "aggressive",keep_predictions : bool = False, keep_slhafile : bool = False, run_mcmc : bool = False ) -> bool:
         """ Compute the predictions and statistical variables, for a
             protomodel.
 

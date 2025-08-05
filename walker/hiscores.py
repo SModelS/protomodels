@@ -564,13 +564,13 @@ class Hiscores ( LoggerBase ):
                 pickle.dump ( time.asctime(), f )
                 fcntl.flock ( f, fcntl.LOCK_UN )
                 f.close()
-            self.mtime = os.stat ( self.pickleFile ).st_mtime
+            self.mtime = os.stat ( pickleFile ).st_mtime
             self.fileAttempts=0
             return True
         except OSError or BlockingIOError as e:
             self.fileAttempts+=1
             if self.fileAttempts>2:
-                self.pprint ( f"error when writing ({self.fileAttempts}th attempt) pickle file {self.pickleFile} ({shortname}): {e}" )
+                self.pprint ( f"error when writing ({self.fileAttempts}th attempt) pickle file {pickleFile} ({shortname}): {e}" )
             if self.fileAttempts<5: # try again
                 time.sleep ( .2 )
                 self.writeListToPickle( pickleFile, check )
