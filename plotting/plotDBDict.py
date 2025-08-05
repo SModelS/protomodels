@@ -300,7 +300,7 @@ class Plotter ( LoggerBase ):
                             newdata[i]=v
                         else:
                             if self.verbose > 2:
-                                self.pprint ( f"[plotDBDict] removing {basename}:{i} (is an UL)" )
+                                self.pprint ( f"[plotDBDict] removing {i} (is an UL)" )
                     else:
                         eBG,bgerr=None,None
                         if "expectedBG" in v:
@@ -474,6 +474,9 @@ class Plotter ( LoggerBase ):
                                     self.skippedAgg.add ( nonaggid )
                                     self.pprint ( f"skipping {len(self.srCounts[anaid])} SRs in {anaid}: we also have non-aggregated results for this analysis" )
                                 continue
+                    if self.verbose > 5:
+                        nds = sum ( [len(x) for x in  P.values() ] )
+                        print ( f"[plotDBDict] adding #{nds+1}: {k}" )
                     P[sqrts].append( p )
                     weights[sqrts].append ( w )
 
@@ -838,6 +841,9 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-b', '--before',
             help='plot only entries before a certain date, like 2017/2/27',
             type=str, default=None )
+    argparser.add_argument ( '-v', '--verbose',
+            help='verbosity level [1]',
+            type=int, default=1 )
     argparser.add_argument ( '-S', '--signalmodel',
             help='use the signal+bg model for computing likelihoods', action='store_true' )
     argparser.add_argument ( '-l', '--likelihood', nargs='?',
