@@ -197,6 +197,7 @@ class Plotter ( LoggerBase ):
         self.Zmax = None
         self.before = None
         self.nosuperseded = False # yes superseded
+        self.use_aggregated = False # yes add non-aggregated
         self.nofastlim = False # yes fastlim
         self.show = False
         self.pvalues = False # if False, then p-values if true then significances
@@ -458,14 +459,21 @@ class Plotter ( LoggerBase ):
                         if self.likelihood == "lognormal+poisson":
                             lognormal = True
                         p = computeP ( obs, vexp, bgErr )
-                    if "-agg" in anaid:
-                        nonaggid = anaid.replace("-agg","")
-                        checkIfNonAgg = nonaggid in hasEffMaps
-                        if checkIfNonAgg:
-                            if not nonaggid in self.skippedAgg:
-                                self.skippedAgg.add ( nonaggid )
-                                self.pprint ( f"skipping {len(self.srCounts[anaid])} SRs in {anaid}: we also have non-aggregated results for this analysis" )
+                    if self.use_aggregated:
+                        if anaid+"-agg" in hasEffMaps:
+                            if not anaid in self.skippedAgg:
+                                self.skippedAgg.add ( anaid )
+                                self.pprint ( f"skipping {len(self.srCounts[anaid])} SRs in {anaid}: we also have aggregated results for this analysis" )
                             continue
+                    else:
+                        if "-agg" in anaid:
+                            nonaggid = anaid.replace("-agg","")
+                            checkIfNonAgg = nonaggid in hasEffMaps
+                            if checkIfNonAgg:
+                                if not nonaggid in self.skippedAgg:
+                                    self.skippedAgg.add ( nonaggid )
+                                    self.pprint ( f"skipping {len(self.srCounts[anaid])} SRs in {anaid}: we also have non-aggregated results for this analysis" )
+                                continue
                     P[sqrts].append( p )
                     weights[sqrts].append ( w )
 
@@ -814,6 +822,9 @@ def getArgs( cmdline = None ):
             help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
     argparser.add_argument ( '--nosuperseded',
             help='ignore entries in the .dict file that are marked as superseded',
+            action='store_true' )
+    argparser.add_argument ( '--use_aggregated',
+            help='instead of the non-aggregated signal regions, add the aggregated ones of a given result',
             action='store_true' )
     argparser.add_argument ( '--nofastlim',
             help='ignore entries in the .dict file that are marked as fastlim',
