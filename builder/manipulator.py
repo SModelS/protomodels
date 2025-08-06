@@ -2250,7 +2250,7 @@ class Manipulator ( LoggerBase ):
         xs = 0. * fb
         modelXSecs = self.M.getXsecs()[0]
         for xsec in modelXSecs:
-            if xsec.info.order != order:
+            if xsec.info.order < order:
                 continue
             if abs ( ( xsec.info.sqrts - sqrts ).asNumber(TeV) ) > .1:
                 continue
