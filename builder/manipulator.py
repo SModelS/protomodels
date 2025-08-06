@@ -2391,8 +2391,11 @@ class Manipulator ( LoggerBase ):
         if hasattr ( self.M, "llhd_critic" ): self._backup["llhd_critic"]=self.M.llhd_critic
                          
 
-    def restoreModel ( self, reportReversion=False ):
-        """ restore from the backup """
+    def restoreModel ( self, reportReversion : bool = False ):
+        """ restore from the backup
+
+        :param reportReversion: if true, then call "self.record"
+        """
         if not hasattr ( self, "_backup" ):
             raise Exception ( "no backup available" )
         if reportReversion:
@@ -2405,6 +2408,14 @@ class Manipulator ( LoggerBase ):
         # if all and hasattr ( self, "_backup" ):
         if hasattr ( self, "_backup" ):
             del self._backup
+
+    def __getattr__(self, name : str ):
+        """ delegate everything else to the protomodel you own """
+        return getattr(self.M, name )
+
+    def __dir__(self):
+        """ for delegation, to make tab completion and introspection work """
+        return list(set(super().__dir__() + dir(self.M)))
 
 if __name__ == "__main__":
     import pickle

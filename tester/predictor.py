@@ -66,7 +66,7 @@ class Predictor ( LoggerBase ):
         combinationsmatrix, status = getYamlMatrix()
         if not combinationsmatrix or status != 0:
             sys.exit("Combination matrix not loaded correctly when instantiating Predictor class.")
-        
+
         self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
         if 'official' not in dbpath:
             self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
@@ -207,8 +207,10 @@ class Predictor ( LoggerBase ):
     #         ret.append ( p )
     #     return ret
 
-    def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb, mingap = 10*GeV, mingapISR = 1*GeV,
-                  strategy : str = "aggressive",keep_predictions : bool = False, keep_slhafile : bool = False, run_mcmc : bool = False ) -> bool:
+    def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb,
+                  mingap = 10*GeV, mingapISR = 1*GeV,
+                  strategy : str = "aggressive",keep_predictions : bool = False,
+                  keep_slhafile : bool = False, run_mcmc : bool = False ) -> bool:
         """ Compute the predictions and statistical variables, for a
             protomodel.
 
@@ -220,7 +222,8 @@ class Predictor ( LoggerBase ):
         predictor(self).critic_preds.
         :param keep_slhafile: if True, then keep the temporary slha file,
         print out its name
-        :param run_mcmc: if True, run a mcmc without changing dimesnions (keep TL = log(L1))
+        :param run_mcmc: if True, run a mcmc without changing dimensions
+        (keep TL = log(L1))
         :returns: False, if no combinations could be found, else True
         """
 
@@ -419,7 +422,7 @@ class Predictor ( LoggerBase ):
 
         protomodel.muhat = muhat
         protomodel.TL = TL
-        
+
         if TL is None: # TL is None when no combination was found
             protomodel.K = None
         if muhat is None or muhat == {}:
@@ -427,7 +430,7 @@ class Predictor ( LoggerBase ):
             protomodel.muhat = None
             self.highlight("warning", "No muhat found")
             return
-        
+
         if abs(muhat - 1.0) < 1e-02:
             prior = self.combiner.computePrior ( protomodel )
             ## temporary hack: penalize for missing experiment
@@ -445,7 +448,7 @@ class Predictor ( LoggerBase ):
                 protomodel.K = None
             else:
                 protomodel.K = float(self.combiner.computeK ( TL, prior ))
-            
+
             #FIXME!
             '''
             if protomodel.bestCombo:
@@ -469,8 +472,8 @@ class Predictor ( LoggerBase ):
                     else:
                         protomodel.K = K
             '''
-            
-            
+
+
             if test_param_space:
                 protomodel.K = 1.0
             #protomodel.llhd = llhd
