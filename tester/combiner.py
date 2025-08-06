@@ -30,7 +30,7 @@ class Combiner ( LoggerBase ):
         for theoryPred in combo:
             pids = pids.union ( getAllPidsOfTheoryPred ( theoryPred ) )
         return pids
-    
+
     def getAllSSMsOfCombo ( self, combo : List[TheoryPrediction] ) -> Set:
         """ get all production modes (PID1, PID2) that make it into one combo """
         prod_modes = set()
@@ -414,7 +414,7 @@ class Combiner ( LoggerBase ):
         else:
             from tester.alternate_pf import getBestComb
             most_sensitive_comb_dict = getBestComb(predictions, expected=True)
-            
+
         comb_lbl, weight = most_sensitive_comb_dict['best'], most_sensitive_comb_dict['weight']
 
         #convert best labels to theorypreds
@@ -429,12 +429,13 @@ class Combiner ( LoggerBase ):
         tpredcomb = TheoryPredictionsCombiner(predictions)
         return tpredcomb.muhat()
 
-    def findHighestSignificance ( self, predictions : List[TheoryPrediction], expected : bool =False ) -> Tuple:
+    def findHighestSignificance ( self, predictions : List[TheoryPrediction],
+            expected : bool =False ) -> Tuple:
         """ for the given list of predictions find the combination with highest significance
 
         :param predictions: list of theory predictions
         :param expected: find the highest expected significance, not observed
-        :returns: most significant combination (msc), TL of msc (-2log(L0/L1)), muhat of msc
+        :returns: tuple with most significant combination (msc), TL of msc (-2log(L0/L1)), muhat of msc
         """
 
         #filter for most significant SRs
