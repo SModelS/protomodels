@@ -87,6 +87,9 @@ class Manipulator ( LoggerBase ):
         self.strategy = strategy
         self.verbose = verbose
         
+        #need the below attribute to be defined here, in case of using hiscoreCLI to manipulate the protomodel
+        self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
+        
         #Store a canonical order for the masses. So the ordering in each tuple is enforced
         #consider Xu and Xs as an extension of Xd, Xc not considered since charm-tagging results exist
         self.canonicalOrder =  [( 1000001, 1000002 ),(1000001, 1000003),( 1000005, 2000005 ),( 1000006, 2000006 ),
@@ -957,11 +960,11 @@ class Manipulator ( LoggerBase ):
         
         return prob_12, prob_21
     
-    def proposal_density(self, move, force_unfreeze=False):         #shift prior from combiner here or vice versa
+    def proposal_density(self, move, force_move=False):         #shift prior from combiner here or vice versa
         """ Define the proposal density for changing the model
         :param move: specify which move we are making
         """
-        
+        if force_move: return True
         prob_12, prob_21 = self.z_model(self.M, self.propose_model)
 
         if self.M.TL > 0.0: prob = min(1.0, prob_12/np.sqrt(self.M.TL))
@@ -995,7 +998,7 @@ class Manipulator ( LoggerBase ):
             self.log(f"Log of total proposal ratio after {move}: {np.log(self.proposal_ratio['q_total']):.2f}")
             return True
 
-    def randomlyChangeModel(self,force_unfreeze : bool = False, probBR : float = 0.2,
+    def randomlyChangeModel(self,force_move : bool = False, probBR : float = 0.2,
             probSS : float = 0.25, probSSingle : float = 0.8, ssmSigma : float = 1.0,
             probMerge : float = 0.05, sigmaFreeze : float = 0.5,
             probMassive : float = 0.3, probMass : float = 0.05, run_mcmc= False):
@@ -1025,13 +1028,13 @@ class Manipulator ( LoggerBase ):
             probSS = 1.0
             probBR = 1.0
             probMass = 1.0
-            force_unfreeze = True
+            force_move = True
             #do we want to not freeze particles? -> not freezing if less than or equal to 3 particles
         
         if not self.run_mcmc:
             recentlyUnfrozen = self.randomlyUnfreezeParticle()
             if recentlyUnfrozen:
-                accept_move = self.proposal_density(move='add_par', force_unfreeze=force_unfreeze)
+                accept_move = self.proposal_density(move='add_par', force_move=force_move)
                 if accept_move:
                     nChanges += 1
                     self.log(f"Accept unfreezing of {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
@@ -1042,7 +1045,7 @@ class Manipulator ( LoggerBase ):
 
             frozenParticle = self.randomlyFreezeParticle(recentlyUnfrozen=recentlyUnfrozen)
             if frozenParticle:
-                accept_move = self.proposal_density(move='rem_par')
+                accept_move = self.proposal_density(move='rem_par', force_move=force_move)
                 if accept_move:
                     nChanges += 1
                     self.log(f"Accept freezing of {frozenParticle} ({self.namer.asciiName(frozenParticle)})")
@@ -1052,7 +1055,7 @@ class Manipulator ( LoggerBase ):
             
             changes = self.randomlyChangeBranchings(protomodel=self.propose_model, prob=probBR)
             if changes > 0:
-                accept_move = self.proposal_density(move='br')
+                accept_move = self.proposal_density(move='br', force_move=force_move)
                 if accept_move :
                     nChanges += 1          #;print(f"Protomodel after: {self.M.decays}")
                     self.log("Accept changes in branchings")
@@ -1060,7 +1063,7 @@ class Manipulator ( LoggerBase ):
             
             changes = self.randomlyChangeSignalStrengths(protomodel=self.propose_model, prob = probSS, probSingle = probSSingle, ssmSigma = ssmSigma)
             if changes > 0:
-                accept_move = self.proposal_density(move='ssm')
+                accept_move = self.proposal_density(move='ssm', force_move=force_move)
                 if accept_move:
                     nChanges += 1       #; print(f"Protomodel after: {self.M.ssmultipliers}")
                     self.log("Accept changes in ssm")
