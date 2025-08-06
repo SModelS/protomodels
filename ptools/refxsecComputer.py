@@ -496,8 +496,8 @@ class RefXSecComputer:
             
         # print ( "xdding", xsecs, hasattr ( xsecs[0], "comment" ) )
         self.xsecs = xsecs
-        if len(self.xsecs)>0:
-            self.xsecs[0].comment = comment
+        #if len(self.xsecs)>0:
+        #    self.xsecs[0].comment = comment
         # print ( "xdding", self.xsecs, hasattr ( self.xsecs[0], "comment" ) )
 
     def findOpenChannels ( self, slhafile ):
