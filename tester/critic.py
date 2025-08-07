@@ -262,7 +262,7 @@ class Critic ( LoggerBase ):
                                  protomodel(self).predictions. Store the predictions for the critic in protomodel(self).critic_preds.
         :param keep_slhafile: if True, then keep the temporary slha file, print out its name
 
-        :returns: False, if no combinations could be found, else True
+        :returns: False, if the critic failed, true if passed
         """
         # Create SLHA file (for running SModelS)
         slhafile = protomodel.createSLHAFile()

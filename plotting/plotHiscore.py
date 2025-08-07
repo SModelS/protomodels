@@ -711,7 +711,8 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( "<body>\n" )
         f.write ( "<center>\n" )
         f.write ( f"<table><td><h1>" )
-        f.write ( f"Current best protomodel: <i>K</i>={self.protomodel.K:.2f}" )
+        sK = "None" if self.protomodel.K is None else f"{self.protomodel.K:.2f}"
+        f.write ( f"Current best protomodel: <i>K</i>={sK}" )
         f.write ( f", <i>TL</i>={self.protomodel.TL:.2f}" )
         f.write ( f"</h1><td>" )
         f.write ( f"<img height=60px src={self.url}/protomodels/logos/protomodel_lego.png>" )
