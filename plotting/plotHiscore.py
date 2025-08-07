@@ -789,7 +789,7 @@ class HiscorePlotter ( LoggerBase ):
             height += 32
         t0 = int(time.time())
         f.write ( f"<td><img width=600px src=./texdoc.png?{t0}>\n" )
-        f.write ( f"<br><font size=-1>Last updated: {time.asctime()}</font>\n" )
+        f.write ( f"<br><span style='font-size: smaller; color: darkred;'>Last updated: {time.asctime()}</span>\n" )
         f.write ( "</table>" )
         f.write ( '<table style="width:80%">\n' )
         f.write ( "<td width=45%>" )
