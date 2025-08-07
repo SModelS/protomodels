@@ -2238,14 +2238,15 @@ class Manipulator ( LoggerBase ):
         ret.sort( key = lambda x: x[1], reverse = True )
         return ret
 
+    """
     def xsecsFor ( self, pids : Tuple , sqrts=13*TeV, min_order=LO ) -> Tuple:
-        """ return the cross sections for pids.
+        # return the cross sections for pids.
 
         :param pids: tuple of two pids
         :param min_order: report only if order is above or equal min_order
         :returns: cross section (that had the SSM applied),
         and SSM that *was* applied.
-        """
+        #  
 
         ssm = 1.
         if pids[1] < pids[0]:
@@ -2267,6 +2268,7 @@ class Manipulator ( LoggerBase ):
                 xs = xsec.value
                 order = xsec.info.order
         return xs,ssm
+    """
 
     def simplifySSMs ( self, removeOnes=False, removeZeroes=False,
                        threshold=0.001*fb, store = False ):

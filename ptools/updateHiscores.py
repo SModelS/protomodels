@@ -10,10 +10,11 @@ from os import PathLike
 from typing import Union, Dict
 
 def setup( rundir = None ):
-    codedir = os.environ['CODEDIR']
-    sys.path.insert(0,f"{codedir}smodels/" )
-    sys.path.insert(0,f"{codedir}smodels-utils/" )
-    sys.path.insert(0,f"{codedir}/protomodels/" )
+    if "CODEDIR" in os.environ:
+        codedir = os.environ['CODEDIR']
+        sys.path.insert(0,f"{codedir}smodels/" )
+        sys.path.insert(0,f"{codedir}smodels-utils/" )
+        sys.path.insert(0,f"{codedir}/protomodels/" )
     if rundir != None:
         rundir = rundir.replace ( "~", os.environ["HOME"] )
         os.chdir ( rundir )
