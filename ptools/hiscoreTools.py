@@ -9,6 +9,7 @@ import pickle, subprocess, sys, os, time
 import numpy as np
 from colorama import Fore as ansi
 from scipy import stats
+sys.path.insert(0,"../")
 sys.path.insert(0,"../../")
 from protomodels.csetup import setup
 setup()
@@ -112,11 +113,20 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
         if pentry == None or pentry.K == None: ## picklefile is not working
             # so, update!
             return True
-        newV = dentry["K"] + dentry["TL"] + sum(dentry["masses"].values()) + \
+        if not "K" in dentry or "TL" in dentry:
+            return True
+        newV = sum(dentry["masses"].values()) + \
                sum(dentry["ssmultipliers"].values())
 
-        oldV = pentry.K + pentry.TL + sum(pentry.masses.values()) + \
+        oldV = sum(pentry.masses.values()) + \
                sum(pentry.ssmultipliers.values())
+
+        if "K" in dentry and dentry["K"] is not None:
+            newV += dentry["K"]
+            oldV += pentry.K
+        if "TL" in dentry and dentry["TL"] is not None:
+            newV += dentry["TL"]
+            oldV += pentry.TL
         if 2. * abs( newV - oldV ) / ( newV + oldV ) > 1e-4:
             # print ( f"[hiscoreTools] top V value changed {newV:.3f}..{oldV:.3f}" )
             return True

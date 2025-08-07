@@ -139,7 +139,8 @@ def updateHiscores( rundir : Union[None,PathLike] = None,
     return D
 
 def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
-          dbpath : str = "official", verbose : bool = False ):
+          dbpath : str = "official", verbose : bool = False,
+          dictfile : str = "{rundir}/hiscores_global.dict" ):
     """ create all hiscore plots
 
     :param upload: the "label" of the upload. determines the directory name at
@@ -148,6 +149,7 @@ def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
     :param dbpath: path to database, look for default.pcl in rundir by default
     :param verbose: be verbose, if true
     """
+    dictfile = dictfile.replace("{rundir}",rundir)
     from plotting import plotHiscore
     from argparse import Namespace
     args = Namespace()
@@ -156,7 +158,7 @@ def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
     args.verbose = verbose
     args.detailed = False
     args.destinations = False
-    args.hiscorefile = f"{rundir}/hiscores_global.dict"
+    args.hiscorefile = dictfile
     args.dbpath = dbpath.replace("@rundir@",rundir )
     # args.dbpath = f"{rundir}/default.pcl"
     args.rundir = rundir
@@ -233,7 +235,8 @@ def loop( rundir : Union[None,os.PathLike] = None,
             TLold = TL
             Kold = K
         if createPlots:
-            plot ( TL, K, rundir, uploadTo, dbpath, verbose )
+            plot ( TL, K, rundir, uploadTo, dbpath, verbose,
+                   dictfile = dictfile )
         else:
             print ( "[updateHiscores] was not asked to create plots" )
         time.sleep(60.)
