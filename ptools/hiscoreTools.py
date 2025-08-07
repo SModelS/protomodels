@@ -73,16 +73,19 @@ def obtainHiscore ( number : int,
     print ( f"@@0 hiscorefile {hiscorefile} hi.hiscores {hi.hiscores}" )
     TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K
-    print ( f"[hiscoreTools] obtaining #{number}: K={K:.3f}" )
+    sK = "K=None" if K==None else f"K={K:.3f}"
+    print ( f"[hiscoreTools] obtaining #{number}: K={sK}" )
     ret = hi.hiscores[ number ]
     return ret
 
 def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
                            picklefile : str = "hiscores_global.cache",
-                           entrynr : Union[None,int] = 0 ) -> bool:
+                           entrynr : Union[None,int] = 0,
+                           walkerid : int = 0 ) -> bool:
     """ is hiscores_global.cache behind hiscores_global.dict, so it needs an update?
     :param entrynr: check for for this entry, 0 is first.
     If None, check all
+    :param walkerid: log everything as walker #walkerid
 
     :returns: true if update is needed
     """
@@ -102,7 +105,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
             return False
         f.close()
     from walker.hiscores import Hiscores
-    hi = Hiscores ( 0, False, picklefile )
+    hi = Hiscores ( walkerid, False, picklefile )
     def compare ( dentry, pentry ) -> bool:
         ## compare one dictentry with one pickleentry,
         ## true, if things are different
@@ -136,13 +139,15 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
 
 def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
                        picklefile : Union[None,str] = None,
-                       dbpath : str = "official" ) -> Hiscores:
+                       dbpath : str = "official",
+                       walkerid : int = 0 ) -> Hiscores:
     """ create Hiscores object from hiscores_global.cache file.
     update hiscores_global.cache file before, if needed.
 
     :param dictfile: dictionary to update hiscores_global.cache from, if needed.
     :param picklefile: the cached hiscore pickle file. if None,
     then dictfile but replace hiscores_global.dict with hiscores_global.cache
+    :param walkerid: log everything as walker #walkerid
 
     :returns: hiscore object
     """
@@ -150,11 +155,11 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
         picklefile = dictfile.replace(".dict",".cache" )
     from ptools import helpers
     shortname = helpers.simplifyUnixPath ( picklefile )
-    if not hiscoreHiNeedsUpdate ( dictfile, picklefile, 0 ):
+    if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=walkerid ):
         print ( f"[hiscoreTools] can reuse cache: {shortname}" )
         return Hiscores ( 0, False, picklefile )
     print ( f"[hiscoreTools] updating cache: {shortname}" )
-    hi = Hiscores.fromDictionaryFile ( dictfile, dbpath=dbpath )
+    hi = Hiscores.fromDictionaryFile ( dictfile, dbpath=dbpath, walkerid = walkerid )
     hi.writeListToPickle ( picklefile )
     return hi
 

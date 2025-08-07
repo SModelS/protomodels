@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" 
+"""
 .. module:: hiscoreCLI
    :synposis: a command line interface to hiscore lists. to browser, interact,
     experiment.
@@ -9,9 +9,16 @@
 
 """
 
-def cli( infile : str = "hiscores_global.dict", 
-         dbpath : str = "official", do_srcombine : bool= True ):
+def cli( infile : str = "hiscores_global.dict",
+         dbpath : str = "official", do_srcombine : bool= True,
+         walkerid : int = 0 ):
     """ fire up the interactive shell, preconfigured!
+
+    :param infile: read hiscore from infile, can contain a single hiscore as a dictionary,
+    or a list of hiscores.
+    :param dbpath: path to database
+    :param do_srcombine: if true, do sr-combinations (when would you not?)
+    :param walkerid: log as walker #walkerid
 
     Example usage (at the interactive shell)
 
@@ -48,22 +55,23 @@ def cli( infile : str = "hiscores_global.dict",
     from smodels.experiment.databaseObj import Database
     print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database," )
     print ( f"                             SParticleNames{ansi.RESET}" )
-    hi = fetchHiscoresObj ( infile, None, dbpath )
+    hi = fetchHiscoresObj ( infile, None, dbpath, walkerid = walkerid )
     print ( f"[hiscoreCLI] {ansi.RED}hi = fetchHiscoresObj ('{infile}', ... ) # Hiscore {ansi.RESET}" )
     namer = SParticleNames()
     from importlib import reload
     print ( f"[hiscoreCLI] {ansi.RED}namer = SParticleNames(){ansi.RESET}" )
     protomodel = hi.hiscores[0]
+    protomodel.walkerid = walkerid
     print ( f"[hiscoreCLI] {ansi.RED}protomodel = hi.hiscores[0]{ansi.RESET}" )
     ma = Manipulator ( protomodel )
     print ( f"[hiscoreCLI] {ansi.RED}ma = Manipulator ( protomodel ){ansi.RESET}" )
     ma.M.createNewSLHAFileName()
     print ( f"[hiscoreCLI] {ansi.RED}co = Combiner ( protomodel ){ansi.RESET}" )
-    co = Combiner() # instantiate for convenience
+    co = Combiner( walkerid ) # instantiate for convenience
     print ( f"[hiscoreCLI] {ansi.RED}pr = Predictor ( ){ansi.RESET}" )
-    pr = Predictor( 0, do_srcombine=do_srcombine, dbpath=dbpath ) # instantiate for convenience
+    pr = Predictor( walkerid, do_srcombine=do_srcombine, dbpath=dbpath ) # instantiate for convenience
     print ( f"[hiscoreCLI] {ansi.RED}cr = Critic ( ){ansi.RESET}" )
-    cr = Critic ( 0, do_srcombine=do_srcombine, dbpath=dbpath )
+    cr = Critic ( walkerid, do_srcombine=do_srcombine, dbpath=dbpath )
 
     # print ( f"[hiscoreCLI] Instantiations: {ansi.RED}ma, co, hi, pr{ansi.RESET}" )
 
@@ -84,6 +92,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-f', '--infile',
             help='Hiscore file. [hiscores_global.dict]',
             type=str, default="hiscores_global.dict" )
+    argparser.add_argument ( '-i', '--walkerid',
+            help='walker id [0]',
+            type=int, default=0 )
     argparser.add_argument ( '-d', '--dbpath',
             help='Database path. [official]',
             type=str, default="official" )
@@ -115,4 +126,4 @@ if __name__ == "__main__":
             d = eval(txt)
             if "do_srcombine" in d:
                 do_srcombine = d["do_srcombine"]
-    cli ( args.infile, args.dbpath, do_srcombine )
+    cli ( args.infile, args.dbpath, do_srcombine, args.walkerid )

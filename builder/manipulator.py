@@ -43,7 +43,7 @@ class Manipulator ( LoggerBase ):
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike],
             strategy: str = "aggressive", verbose : bool = False,
             do_record : bool = False, seed : Union[bool,int] = None,
-            nth : int = 0 ):
+            nth : int = 0, walkerid : Union[None,int] = None ):
         """
         :param protomodel: is either a protomodel, or a hiscore dictionary,
         or a path to a protomodel
@@ -53,6 +53,8 @@ class Manipulator ( LoggerBase ):
         :param seed: random seed
         :param nth: if initialisation from hiscores dict file, initialise
         from nth entry in that dict file
+        :param walkerid: usually taken from protomodel (None), but can
+        also specify
 
         Example usage:
 
@@ -67,7 +69,7 @@ class Manipulator ( LoggerBase ):
             >>> # best combination, most constraining analyses, etc
             >>> m.describe()
         """
-        super(Manipulator, self).__init__ ( 0 )
+        super(Manipulator, self).__init__ ( walkerid if walkerid is not None else 0 )
         if type ( protomodel ) == ProtoModel:
             ## make sure we log correctly asap
             self.walkerid = protomodel.walkerid
@@ -470,6 +472,8 @@ class Manipulator ( LoggerBase ):
             if "K" in D:
                 sK = f"[K={D['K']:.1f}] "
             self.highlight ( "info", f"starting with {sK}{os.getcwd()}/{filename}{scom}" )
+        if self.walkerid != None:
+            self.M.walkerid = self.walkerid
         #Reset all model attributes:
         self.M.initializeModel()
         #Set attributes to dictionary values:

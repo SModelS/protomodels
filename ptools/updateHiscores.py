@@ -124,11 +124,13 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
 
 def updateHiscores( rundir : Union[None,PathLike] = None,
                     dbpath : Union[None,PathLike] = None,
-                    do_srcombine : bool = False ) -> Dict:
+                    do_srcombine : bool = False,
+                    walkerid : int = 0 ) -> Dict:
+    """ update the hiscores FIXME """
     dictfile = f"{rundir}/hiscores_global.dict"
     cachefile = f"{rundir}/hiscores_global.cache"
     from ptools import hiscoreTools
-    hi = hiscoreTools.fetchHiscoresObj ( dictfile, cachefile, dbpath )
+    hi = hiscoreTools.fetchHiscoresObj ( dictfile, cachefile, dbpath, walkerid = walkerid )
     from builder.manipulator import Manipulator
     D = Manipulator ( hi.hiscores[0] ).writeDictFile ( None )
     D["model"]=hi.hiscores[0]
@@ -165,14 +167,15 @@ def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
     args.tex = False
     args.keep = False
     args.commit = False
-    if K > 4.0:
+    if K is not None and K > 4.0:
         args.commit = True
     plotHiscore.runPlotting ( args )
 
 def loop( rundir : Union[None,os.PathLike] = None,
           maxruns : Union[None,int] = 3, createPlots : bool=True,
           uploadTo : str = "temp", dbpath : str = "official",
-          verbose : bool = False, do_srcombine : bool = False ):
+          verbose : bool = False, do_srcombine : bool = False,
+          walkerid : int = 0 ):
     """ loop (maxruns times) that updates hiscores_global.cache
 
     :param maxruns: maximally iterate that many times, if None then loop endlessly
@@ -182,6 +185,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
     :param verbose: verbosity
     :param do_srcombine: if we need to reconstruct .hi file, reconstruct the proper
     way.
+    :param walkerid: log everything as walker #walkerid
     """
     rundir = setup( rundir )
     i = 0
@@ -198,7 +202,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
         i+=1
         if maxruns != None and i > maxruns:
             break
-        D = updateHiscores( rundir, dbpath, do_srcombine )
+        D = updateHiscores( rundir, dbpath, do_srcombine, walkerid=walkerid )
         TL, step, K = float("nan"),0,float("nan")
         model = D["model"]
         if "TL" in D:

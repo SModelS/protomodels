@@ -153,21 +153,24 @@ class Hiscores ( LoggerBase ):
     @classmethod
     def fromDictionaryFile ( cls, path : PathLike,
            firstn : Union[None,int] = 0, 
-           dbpath : PathLike = "official" ):
+           dbpath : PathLike = "official",
+           walkerid : int = 0 ):
         """ initialise from a dictionary file
 
         :param path: filename of .dict file
         :param firstn: initialise only first n entries
         :param dbpath: path to database
+        :param walkerid: log everything as walker #walkerid
         :returns: Hiscores object
         """
         assert firstn == 0, "firstn != 0 not yet working"
         from tester.predictor import Predictor
-        predictor = Predictor(0, do_srcombine=True, dbpath = dbpath )
+        predictor = Predictor(walkerid, do_srcombine=True, dbpath = dbpath )
         hiscores = []
         c = 0
         while True:
             m = Manipulator( path, nth = c )
+            m.M.walkerid = walkerid
             predictor.predict ( m, keep_predictions=True )
             hiscores.append ( m.M )
             c+=1
