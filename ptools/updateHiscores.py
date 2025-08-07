@@ -123,12 +123,14 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
     return tots,steps
 
 def updateHiscores( rundir : Union[None,PathLike] = None,
-                    dbpath : Union[None,PathLike] = None,
-                    do_srcombine : bool = False,
-                    walkerid : int = 0 ) -> Dict:
+                dictfile : os.PathLike = "{rundir}/hiscores_global.dict",
+                cachefile : os.PathLike = "{rundir}/hiscores_global.cache",
+                dbpath : Union[None,PathLike] = None,
+                do_srcombine : bool = False,
+                walkerid : int = 0 ) -> Dict:
     """ update the hiscores FIXME """
-    dictfile = f"{rundir}/hiscores_global.dict"
-    cachefile = f"{rundir}/hiscores_global.cache"
+    dictfile = dictfile.replace("{rundir}",rundir)
+    cachefile = cachefile.replace("{rundir}",rundir)
     from ptools import hiscoreTools
     hi = hiscoreTools.fetchHiscoresObj ( dictfile, cachefile, dbpath, walkerid = walkerid )
     from builder.manipulator import Manipulator
@@ -175,6 +177,8 @@ def loop( rundir : Union[None,os.PathLike] = None,
           maxruns : Union[None,int] = 3, createPlots : bool=True,
           uploadTo : str = "temp", dbpath : str = "official",
           verbose : bool = False, do_srcombine : bool = False,
+          dictfile = "{rundir}/hiscores_global.dict",
+          cachefile = "{rundir}/hiscores_global.cache",
           walkerid : int = 0 ):
     """ loop (maxruns times) that updates hiscores_global.cache
 
@@ -202,7 +206,8 @@ def loop( rundir : Union[None,os.PathLike] = None,
         i+=1
         if maxruns != None and i > maxruns:
             break
-        D = updateHiscores( rundir, dbpath, do_srcombine, walkerid=walkerid )
+        D = updateHiscores( rundir, dictfile, cachefile, dbpath, do_srcombine,
+                walkerid=walkerid )
         TL, step, K = float("nan"),0,float("nan")
         model = D["model"]
         if "TL" in D:
