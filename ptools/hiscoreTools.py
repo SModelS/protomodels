@@ -65,13 +65,15 @@ def pprintEvs ( protomodel ):
     return f"{protomodel.nevents!s} evts"
 
 def obtainHiscore ( number : int,
-        hiscorefile : PathLike = "hiscores_global.dict" ) -> ProtoModel:
-    """ obtain hiscore number <number> from >hiscorefile>
+        hiscorefile : PathLike = "hiscores_global.dict",
+        walkerid : int = 0 ) -> ProtoModel:
+    """ obtain hiscore number <number> from <hiscorefile>
+
+    :param walkerid: log everything as walker #walkerid
 
     :returns: protomodel object
     """
-    hi = fetchHiscoresObj ( hiscorefile )
-    print ( f"@@0 hiscorefile {hiscorefile} hi.hiscores {hi.hiscores}" )
+    hi = fetchHiscoresObj ( hiscorefile, walkerid = walkerid )
     TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K
     sK = "K=None" if K==None else f"K={K:.3f}"

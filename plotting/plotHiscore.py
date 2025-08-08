@@ -34,8 +34,8 @@ bibtex = BibtexWriter()
 # runtime._experimental = True
 
 class HiscorePlotter ( LoggerBase ):
-    def __init__ ( self ):
-        super ( HiscorePlotter, self ).__init__ ( 0 )
+    def __init__ ( self, walkerid : int = 0 ):
+        super ( HiscorePlotter, self ).__init__ ( walkerid  )
         self.url = "https://smodels.github.io/"
 
     def gitCommit ( self, dest, upload, wanted : bool ):
@@ -745,7 +745,7 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( "<table width=80%>\n<tr><td>\n" )
         if len(self.protomodel.ul_critic_tpList) == 0:
             from tester.critic import Critic
-            cr = Critic(0,do_srcombine=True)
+            cr = Critic(self.protomodel.walkerid,do_srcombine=True)
             cr.predict_critic( self.protomodel, keep_predictions=True )
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
@@ -909,7 +909,7 @@ class HiscorePlotter ( LoggerBase ):
         :param walkerid: log with walkerid #walkerid
         """
 
-        pm = hiscoreTools.obtainHiscore ( number, hiscorefile )
+        pm = hiscoreTools.obtainHiscore ( number, hiscorefile, walkerid=walkerid )
         pm.walkerid = walkerid
         self.protomodel = pm
         self.combiner = Combiner ( self.protomodel.walkerid )
@@ -980,7 +980,7 @@ def runPlotting ( args ):
                 "keep": args.keep, "tex": args.tex,
                 "horizontal": args.horizontal }
 
-    hiplt = HiscorePlotter()
+    hiplt = HiscorePlotter( args.walkerid )
     hiplt.plot ( args.number, args.verbosity, args.hiscorefile, options,
                    args.dbpath, walkerid = args.walkerid )
     if upload is None:

@@ -169,14 +169,15 @@ class Hiscores ( LoggerBase ):
         hiscores = []
         c = 0
         while True:
-            m = Manipulator( path, nth = c )
+            m = Manipulator( path, nth = c, walkerid = walkerid )
             m.M.walkerid = walkerid
             predictor.predict ( m, keep_predictions=True )
             hiscores.append ( m.M )
             c+=1
             if type(firstn) == int and c > firstn:
                 break
-        return cls ( hiscores= hiscores, predictor = predictor )
+        return cls ( hiscores= hiscores, predictor = predictor,
+                     walkerid = walkerid )
 
         # assert False, "implement me"
     
@@ -486,7 +487,6 @@ class Hiscores ( LoggerBase ):
                     nhs += 1
             pfname = helpers.simplifyUnixPath ( self.pickleFile )
             self.pprint ( f"loaded {nhs} hiscores from {pfname}" )
-            # assert ( len(self.hiscores) == self.nkeep )
             self.fileAttempts=0
         except Exception as e:
         # except OSError or BlockingIOError or EOFError or pickle.UnpicklingError or TypeError as e:
