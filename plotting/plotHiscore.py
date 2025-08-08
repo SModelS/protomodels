@@ -27,7 +27,7 @@ from typing import Union, Dict, TextIO, List
 from ptools.helpers import computeP, computeZFromP, getAllPidsOfTheoryPred
 from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
 from base.loggerbase import LoggerBase
-        
+
 namer = SParticleNames ( susy = False )
 bibtex = BibtexWriter()
 
@@ -106,7 +106,7 @@ class HiscorePlotter ( LoggerBase ):
         return "did not", False
 
     def significanceOfTP ( self, tp : TheoryPrediction ) -> Union[None,float]:
-        """ compute the significance of one theory prediction 
+        """ compute the significance of one theory prediction
 
         :param tp: the theory prediction to compute the significance for
         :returns: significance of theory prediction, None if unsuccessful
@@ -181,18 +181,18 @@ class HiscorePlotter ( LoggerBase ):
                 bgErr=int(bgErr)
             S = "N/A"
             if Z != None:
-                S = f"{Z:.1f} &sigma;" 
+                S = f"{Z:.1f} &sigma;"
             obsN = dI.observedN
             if ( obsN - int(obsN) ) < 1e-6:
                 obsN=int(obsN)
             sobsN = str(obsN)
             if type(obsN) == float:
-                sobsN = f"{obsN:.2f}" 
+                sobsN = f"{obsN:.2f}"
             f.write ( f'<td>{did}</td><td>{topos}</td><td>{sobsN}</td><td>{eBG:.2f} +/- {bgErr:.2f}</td><td style="text-align:right">{S}</td><td style="text-align:right">{particles}</td>' )
             if hassigs:
                 sig = "-"
                 if hasattr ( dI, "sigN" ):
-                    sig = f"{dI.sigN}" 
+                    sig = f"{dI.sigN}"
                     if type(dI.sigN) in [ float, np.float64 ]:
                         sig = f"{dI.sigN:.2f}"
                 f.write ( f'<td style="text-align:right">{sig}</td>' )
@@ -208,9 +208,9 @@ class HiscorePlotter ( LoggerBase ):
             if type(eUL)!=type(None):
                 eUL = eUL.asNumber(fb)
                 seUL = f"{eUL:.1g} fb"
-            f.write ( f'<td>-</td><td>{topos}</td>' ) 
+            f.write ( f'<td>-</td><td>{topos}</td>' )
             f.write ( f'<td> {oUL:.1g} fb</td>' )
-            f.write ( f'<td> {seUL}</td>' ) 
+            f.write ( f'<td> {seUL}</td>' )
             f.write ( f'<td style="text-align:right">{S}</td>' )
             f.write ( f'<td style="text-align:right">{particles}</td>'  )
             if hassigs:
@@ -227,9 +227,9 @@ class HiscorePlotter ( LoggerBase ):
             oUL = tp.getUpperLimit ( evaluationType = observed ).asNumber(fb)
             if Z != None:
                 S = f"{Z:.1f} &sigma;"
-            f.write ( f'<td>-</td><td>{topos}</td>' ) 
+            f.write ( f'<td>-</td><td>{topos}</td>' )
             f.write ( f'<td> {oUL:.1g} fb </td><td> {eUL:.1g} fb</td>' )
-            f.write ( f'<td style="text-align:right">{S}</td>' ) 
+            f.write ( f'<td style="text-align:right">{S}</td>' )
             f.write ( f'<td style="text-align:right">{particles}</td>')
             if hassigs:
                 sig = "-"
@@ -241,7 +241,7 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( '</tr>\n' )
         return f"{anaId}:{dtype}"
 
-    def createTpDictionaryWithZs ( self, 
+    def createTpDictionaryWithZs ( self,
             predictions : List[TheoryPrediction] ) -> Dict:
         """ create a dictionary with significances as keys,
         and predictions as values """
@@ -469,7 +469,7 @@ class HiscorePlotter ( LoggerBase ):
             print ( f"[plotHiscore] Exception when latexing: {e}" )
         return src
 
-    def anaNameAndUrl ( self, ana : Union[str,TheoryPrediction], 
+    def anaNameAndUrl ( self, ana : Union[str,TheoryPrediction],
             forPdf : bool = False ) -> str:
         """ given analysis, return analysis name and URL,
         as html code or pdf hyperref
@@ -682,7 +682,7 @@ class HiscorePlotter ( LoggerBase ):
             line = f" <a href={aFile}?{dt}>{fname}</a>"
             handle.write ( line )
         handle.write ( "\n" )
-            
+
 
     def addSPlots ( self, handle : TextIO ):
         """ add links to the teststatistic plots """
@@ -902,8 +902,10 @@ class HiscorePlotter ( LoggerBase ):
                             verbosity = verbosity,
                             ssmultipliers = self.protomodel.ssmultipliers )
 
-    def plot ( self, number, verbosity, hiscorefile, options, dbpath ):
-        ## plot hiscore number "number"
+    def plot ( self, number : int , verbosity,
+            hiscorefile : os.PathLike, options : dict, dbpath : str ):
+        """ plot hiscore number "number" """
+
         pm = hiscoreTools.obtainHiscore ( number, hiscorefile )
         self.protomodel = pm
         self.combiner = Combiner ( self.protomodel.walkerid )
