@@ -208,6 +208,8 @@ def loop( rundir : Union[None,os.PathLike] = None,
         with open ( Kfile, "rt" ) as f:
             Kold = float ( f.read().strip() )
     while True:
+        if i>0:
+            time.sleep(60.)
         i+=1
         if maxruns != None and i > maxruns:
             break
@@ -243,7 +245,6 @@ def loop( rundir : Union[None,os.PathLike] = None,
                    git_commit = git_commit )
         else:
             print ( "[updateHiscores] was not asked to create plots" )
-        time.sleep(60.)
         if os.path.exists ( Kfile ): ## so we can meddle from outside
             with open ( Kfile, "rt" ) as f:
                 Kold = float ( f.read().strip() )
