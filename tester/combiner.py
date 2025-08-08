@@ -390,7 +390,7 @@ class Combiner ( LoggerBase ):
         comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
 
         #Removing Jamie's penalty for now
-        if len(comb_lbl)>1:
+        if False and len(comb_lbl)>1:
             weight = weight / math.sqrt(len(comb_lbl) - 1) # Rescale to have all the combinations on the same footing
 
         #convert best labels to theorypreds
