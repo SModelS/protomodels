@@ -9,6 +9,8 @@
 
 """
 
+from typing import Union
+
 def cli( infile : str = "hiscores_global.dict",
          dbpath : str = "official", do_srcombine : bool= True,
          walkerid : Union[str,int] = 0 ):
