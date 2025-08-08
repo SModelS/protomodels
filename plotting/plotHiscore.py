@@ -903,19 +903,23 @@ class HiscorePlotter ( LoggerBase ):
                             ssmultipliers = self.protomodel.ssmultipliers )
 
     def plot ( self, number : int , verbosity,
-            hiscorefile : os.PathLike, options : dict, dbpath : str ):
-        """ plot hiscore number "number" """
+            hiscorefile : os.PathLike, options : dict, dbpath : str,
+            walkerid : int = 0 ):
+        """ plot hiscore number "number"
+        :param walkerid: log with walkerid #walkerid
+        """
 
         pm = hiscoreTools.obtainHiscore ( number, hiscorefile )
+        pm.walkerid = walkerid
         self.protomodel = pm
         self.combiner = Combiner ( self.protomodel.walkerid )
-        self.predictor = Predictor ( 0, dbpath, do_srcombine = True )
-        self.critic = Critic ( 0, dbpath, do_srcombine = True )
+        self.predictor = Predictor ( pm.walkerid, dbpath, do_srcombine = True )
+        self.critic = Critic ( pm.walkerid, dbpath, do_srcombine = True )
 
         protoslha = self.protomodel.createSLHAFile ()
         subprocess.getoutput ( f"cp {protoslha} hiscore.slha" )
         m = Manipulator ( self.protomodel )
-        print ( "[plotHiscore] now write pmodel.dict" )
+        print ( f"[plotHiscore:{m.walkerid}] now write pmodel.dict" )
         m.writeDictFile()
         opts = [ "ruler", "decays", "predictions", "copy", "html" ]
         for i in opts:
@@ -978,7 +982,7 @@ def runPlotting ( args ):
 
     hiplt = HiscorePlotter()
     hiplt.plot ( args.number, args.verbosity, args.hiscorefile, options,
-                   args.dbpath )
+                   args.dbpath, walkerid = args.walkerid )
     if upload is None:
         return
     F = "decays.png ruler.png texdoc.png pmodel.dict hiscore.slha index.html rawnumbers.html"
@@ -1100,6 +1104,7 @@ def main ():
         args.tex = True
     if args.hiscorefile == "default":
         args.hiscorefile = f"{rundir}/hiscores_global.cache"
+    args.walkerid = 0
     runPlotting ( args )
     if args.test:
         compileTestText()

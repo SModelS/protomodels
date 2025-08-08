@@ -75,7 +75,7 @@ def obtainHiscore ( number : int,
     TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K
     sK = "K=None" if K==None else f"K={K:.3f}"
-    print ( f"[hiscoreTools] obtaining #{number}: K={sK}" )
+    print ( f"[hiscoreTools] obtaining #{number}: {sK}" )
     ret = hi.hiscores[ number ]
     return ret
 
