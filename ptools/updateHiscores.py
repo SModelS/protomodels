@@ -142,7 +142,8 @@ def updateHiscores( rundir : Union[None,PathLike] = None,
 def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
           dbpath : str = "official", verbose : bool = False,
           dictfile : str = "{rundir}/hiscores_global.dict",
-          walkerid : Union[str,int] = 0 ):
+          walkerid : Union[str,int] = 0,
+          git_commit : bool = False ):
     """ create all hiscore plots
 
     :param upload: the "label" of the upload. determines the directory name at
@@ -172,10 +173,8 @@ def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
     args.predictions = True
     args.tex = False
     args.keep = False
-    args.commit = False
+    args.commit = git_commit
     args.walkerid = walkerid
-    if K is not None and K > 4.0:
-        args.commit = True
     plotHiscore.runPlotting ( args )
 
 def loop( rundir : Union[None,os.PathLike] = None,
@@ -184,7 +183,8 @@ def loop( rundir : Union[None,os.PathLike] = None,
           verbose : bool = False, do_srcombine : bool = False,
           dictfile = "{rundir}/hiscores_global.dict",
           cachefile = "{rundir}/hiscores_global.cache",
-          walkerid : Union[str,int] = 0 ):
+          walkerid : Union[str,int] = 0,
+          git_commit : bool = True  ):
     """ loop (maxruns times) that updates hiscores_global.cache
 
     :param maxruns: maximally iterate that many times, if None then loop endlessly
@@ -239,7 +239,8 @@ def loop( rundir : Union[None,os.PathLike] = None,
             Kold = K
         if createPlots:
             plot ( TL, K, rundir, uploadTo, dbpath, verbose,
-                   dictfile = dictfile, walkerid = walkerid )
+                   dictfile = dictfile, walkerid = walkerid,
+                   git_commit = git_commit )
         else:
             print ( "[updateHiscores] was not asked to create plots" )
         time.sleep(60.)
