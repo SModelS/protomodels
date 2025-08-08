@@ -499,8 +499,8 @@ class TeststatScanner ( LoggerBase ):
         rsarea[-1]=0.
         if len(rs) == len(x) and plotrmax:
             ax2 = ax1.twinx()
-            ax1.plot ([], [], label="$r_\mathrm{max}$", c="tab:red", zorder=1 )
-            ax2.plot ( x, rs, label="$r_\mathrm{max}$", c="tab:red", zorder=2 )
+            ax1.plot ([], [], label=r"$r_\mathrm{max}$", c="tab:red", zorder=1 )
+            ax2.plot ( x, rs, label=r"$r_\mathrm{max}$", c="tab:red", zorder=2 )
             ax2.tick_params ( axis="y", labelcolor="tab:red", labelsize=12 )
             #ax2.set_ylim ( bottom=min(rs)*.7, top = 1.9 )
             bottom = 0.
@@ -509,7 +509,7 @@ class TeststatScanner ( LoggerBase ):
             nbins = int ( np.ceil ( ( top - bottom ) / 0.5 ) )
             # tick only every 0.5
             ax2.locator_params(nbins = nbins )
-            ax2.set_ylabel ( "$r_\mathrm{max}$", c="tab:red", fontsize=16 )
+            ax2.set_ylabel ( r"$r_\mathrm{max}$", c="tab:red", fontsize=16 )
         if len(rsarea) == len(x) and plotrmax:
             # ax3 = ax1.twinx()
             ax2.fill ( x, rsarea, lw=0, edgecolor="white", alpha=.2, 
@@ -565,8 +565,8 @@ class TeststatScanner ( LoggerBase ):
         if not self.args["notimestamp"]:
             plt.text ( .72, -.14, timestamp, c="gray", transform = ax1.transAxes )
         if isSSMPlot():
-            plt.xlabel ( f"$\\hat\\mu\\kappa({pname})$", fontsize=17 )
-            ax1.set_xlabel ( f"$\\hat\\mu\\kappa({pname})$", fontsize=17 )
+            plt.xlabel ( rf"$\hat\mu\kappa({pname})$", fontsize=17 )
+            ax1.set_xlabel ( rf"$\hat\mu\kappa({pname})$", fontsize=17 )
             ax1.legend( fontsize = 12, loc= "lower left" )
         else:
             ax1.legend( fontsize = 12 )

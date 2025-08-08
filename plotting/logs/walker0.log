@@ -1,0 +1,17 @@
+[Plotter-13:16:55] skipping ATLAS-SUSY-2015-02:SR1: does not pass txname filter
+[Plotter-13:16:55] skipping ATLAS-SUSY-2015-02:SR2: does not pass txname filter
+[Plotter-13:16:55] skipping ATLAS-SUSY-2015-02:SR3: does not pass txname filter
+[Plotter-13:16:55] (quenching 'does not pass filter' msgs)
+[Plotter-13:16:55] skipping ATLAS-SUSY-2018-05-ewk per request
+[Plotter-13:16:55] skipping ATLAS-SUSY-2018-16-hino per request
+[Plotter-13:16:55] skipping ATLAS-SUSY-2018-22-multibin per request
+[Plotter-13:16:55] skipping CMS-EXO-19-001 per request
+[Plotter-13:16:55] (quenching more msgs re skipping)
+[Plotter-13:16:55] skipping 11 SRs in CMS-SUS-16-039-agg: we also have non-aggregated results for this analysis
+[Plotter-13:16:55] we selected TChiH,TChiChipmSlepStau,TChipChimSlepSnu,TChiHH,TChiWW,TChiWZ,TChipChimSlepSlep,TChipChimStauSnu,TChiZH,TChiWH,TChipChimgg,TChiZZ,TChiChipmStauStau,TChiChipmSlepSlep,TChiChipmSlepL,TChiChipmStauL,TChiWZoff,TChiWWoff,TRV1,TRS1
+[Plotter-13:16:55] real Ps: 440 entries at 0.446 +/- 0.27
+[Plotter-13:16:55] fake Ps: 440 entries at 0.500 +/- 0.26
+[Plotter-13:16:55] real Ps, 8: 53 entries at 0.576 +/- 0.04
+[Plotter-13:16:55] real Ps, 13_lt: 81 entries at 0.442 +/- 0.03
+[Plotter-13:16:55] real Ps, 13_gt: 306 entries at 0.432 +/- 0.02
+[Plotter-13:16:55] plotting metastats_ewkinos.png

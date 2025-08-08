@@ -3,7 +3,7 @@
 """ create tex table for the particle contents of protomodel runs 
 one entry may look like this:
 name     & K     & particle_content \\
-fake \#0 & 4.799 & $X_{d}, X_{u}, X_{Z}^{2}$ \\
+fake #0 & 4.799 & $X_{d}, X_{u}, X_{Z}^{2}$ \\
 """
 
 __all__ = [ "Table" ]

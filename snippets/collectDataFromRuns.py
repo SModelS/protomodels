@@ -192,9 +192,7 @@ def analyzeStats ( globber ):
     if len(Ks)>0:
         maxK = max(Ks.keys())
         print ( f"winner is {Ks[ maxK ]} with K={maxK:.2f}" )
-        print ( "%d Ks were between %.2f, %.2f+/-%.2f, %.2f" % \
-                ( len(Ks), min(Ks.keys()), np.mean(list(Ks.keys())),
-                np.std(list(Ks.keys())), maxK ) )
+        print ( f"{len(Ks)} Ks were between {min(Ks.keys()):.2f}, {np.mean(list(Ks.keys())):.2f}+/-{np.std(list(Ks.keys())):.2f}, {maxK:.2f}" )
     print ( "particles that are in", pids )
     collectors = { 1000001: (1000003, 1000004 ) }
     hasTreated = []
@@ -203,7 +201,7 @@ def analyzeStats ( globber ):
             continue
         sig = ""
         if pid in signal["masses"]:
-            sig = " truth is at %.2f" % signal["masses"][pid]
+            sig = f" truth is at {signal['masses'][pid]:.2f}"
         if pid in collectors:
             for cpid in collectors[pid]:
                 hasTreated.append ( cpid )
@@ -262,7 +260,7 @@ def defineModel1 ( ):
     cmd = "./expResModifier.py"
     args = "--remove_orig --nofastlim --onlyvalidated --nosuperseded --dontsample"
     dbpath = "official"
-    print ( f"S=signal; for i in `seq 1 19`; do {cmd} -R {rundir}.${S}${i} -d {dbpath} -s ${S}${i} -P {rundir}/pmodel1.dict; {cmd} -R {rundir}.${S}${i} -d {dbpath} {args} -s ${S}${i} --symlink -o {rundir}.${S}${i}/filtered${i}.pcl; done"
+    print ( f"S=signal; for i in `seq 1 19`; do {cmd} -R {rundir}.${S}${i} -d {dbpath} -s ${S}${i} -P {rundir}/pmodel1.dict; {cmd} -R {rundir}.${S}${i} -d {dbpath} {args} -s ${S}${i} --symlink -o {rundir}.${S}${i}/filtered${i}.pcl; done" )
     print ( )
 
 if __name__ == "__main__":

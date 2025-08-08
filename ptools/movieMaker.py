@@ -278,7 +278,7 @@ def onePic ( firststep, offs, maxK, masses, pids, lastingHS, stepatmax, imgnr, K
         sns.scatterplot(x=datamax['step'],y=datamax[pid], s=smax, sizes = (80,400),
                         label= tName , color=c, legend=False, ax=ax1, zorder=10)
     plt.ylim(0.,2500.0)
-    title='$K_{current}=%.1f\;\,$   $\;$ $\;\;\;\;\;\,$ $\;$ $\;$ $\;$ ' % ( K )
+    title=r'$K_{current}=%.1f\;\,$   $\;$ $\;\;\;\;\;\,$ $\;$ $\;$ $\;$ ' % ( K )
     if K < -50.:
         title=""
     ax2.set_title ( title, fontsize=18, pad=15., horizontalalignment="center" )

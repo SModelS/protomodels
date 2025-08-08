@@ -38,7 +38,7 @@ class Latex(object):
     self.dpi = dpi
 
   def write(self):
-    inline = bool(re.match('^\$[^$]*\$$', self.doc))
+    inline = bool(re.match(r'^\$[^$]*\$$', self.doc))
     if inline:
       TEX = self.INLINE
     else:
