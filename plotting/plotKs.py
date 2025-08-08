@@ -67,11 +67,11 @@ def plot( opts: dict ):
     # print ( "maxK", maxKs, "fmax", fmax, "product", fmax*maxKs )
     arange = np.arange ( fmin*minKs, fmax*maxKs, (maxKs-minKs)/npoints )
     values = kde.evaluate ( arange )
-    plt.plot ( arange, values, c="tab:orange", label="KDE of $K_\mathrm{fake}$" )
+    plt.plot ( arange, values, c="tab:orange", label=r"KDE of $K_\mathrm{fake}$" )
     ys = kde.evaluate ( Ks )
     ys = [ x + .001 for x in ys ]
     if opts["fakes"]:
-        plt.plot ( Ks, ys, "ro", label="$K_\mathrm{fake}$" )
+        plt.plot ( Ks, ys, "ro", label=r"$K_\mathrm{fake}$" )
         print ( f"K(bg)={np.mean(Ks):.3f}, [{min(Ks):.3f},{max(Ks):.3f}] {len(Ks)} entries" )
     if opts["signals"] and len(Ksig)>0:
         ysig = kde.evaluate( Ksig )
@@ -80,17 +80,17 @@ def plot( opts: dict ):
         # marker="ro"
         marker_style = dict(color='tab:red', linestyle='', marker='o',
                       markersize=8, fillstyle="none" )
-        plt.plot ( Ksig, ysig, label="$K_\mathrm{signal}$", **marker_style )
+        plt.plot ( Ksig, ysig, label=r"$K_\mathrm{signal}$", **marker_style )
         print ( f"K(signal)={np.mean(Ksig):.3f}, [{min(Ksig):.3f},{max(Ksig):.3f}] {len(Ksig)} entries" )
     if opts["fastlim"]:
         ysigf = kde.evaluate( Ksigf )
         ysigf = [ x - .002 for x in ysigf ]
-        plt.plot ( Ksigf, ysigf, "m*", ms=8, label="K$_\mathrm{signal}^\mathrm{f=0.8}$" )
+        plt.plot ( Ksigf, ysigf, "m*", ms=8, label=r"K$_\mathrm{signal}^\mathrm{f=0.8}$" )
         print ( f"K(realf)={np.mean(Ksigf):.3f}, [{min(Ksigf):.3f},{max(Ksigf):.3f}] {len(Ksigf)} entries" )
     if opts["real"]:
         yreal = kde.evaluate( Kreal )
         yreal = [ x - .001 for x in yreal ]
-        plt.plot ( Kreal, yreal, "g*", ms=8, label="$K_\mathrm{obs}$" )
+        plt.plot ( Kreal, yreal, "g*", ms=8, label=r"$K_\mathrm{obs}$" )
         Krealmean = np.mean(Kreal)
         print ( f"K(real)={Krealmean:.3f}, [{min(Kreal):.3f},{max(Kreal):.3f}] {len(Kreal)} entries" )
         yrealmean = kde.evaluate ( Krealmean )[0]
@@ -100,17 +100,17 @@ def plot( opts: dict ):
         print ( f"p(real)={p:.3f}, [{pmin:.3f},{pmax:.3f}]" )
         fromMean = np.arange ( Krealmean, fmax*maxKs+1e-5, (fmax*maxKs-Krealmean)/npoints)
         yFromMean = kde.evaluate ( fromMean )
-        plt.plot ( [ Krealmean, Krealmean ], [ yrealmean, 0. ], c="g", label="$\\bar{\\mathrm{K}}_\mathrm{obs}$" )
+        plt.plot ( [ Krealmean, Krealmean ], [ yrealmean, 0. ], c="g", label=r"$\bar{\mathrm{K}}_\mathrm{obs}$" )
     # fromMean = [ Krealmean ] + fromMean + [ 1.1*maxKs ]
     # yFromMean = [ 0] + yFromMean + [0]
     # plt.plot ( fromMean, yFromMean, linewidth=.3, c="tab:orange", label="p", zorder=5 )
         plt.fill_between ( fromMean, yFromMean, 0, linewidth=.3, label="$p$",
                            facecolor="tab:green", alpha=.5, zorder=-1 )
-        plt.title ( "Determination of $p(\\mathrm{global}) \\approx %.2f$" % p  )
+        plt.title ( r"Determination of $p(\mathrm{global}) \approx %.2f$" % p  )
     else:
-        plt.title ( "Determination of the Density of $K_\\mathrm{fake}$" )
+        plt.title ( r"Determination of the Density of $K_\mathrm{fake}$" )
 
-    plt.ylabel ( "$\\rho(K)$" )
+    plt.ylabel ( r"$\rho(K)$" )
     plt.xlabel ( "$K$" )
     plt.legend ()
     print ( f"[plotKs] saving to {outputfile}." )
