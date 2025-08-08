@@ -154,7 +154,7 @@ class Hiscores ( LoggerBase ):
     def fromDictionaryFile ( cls, path : PathLike,
            firstn : Union[None,int] = 0, 
            dbpath : PathLike = "official",
-           walkerid : int = 0 ):
+           walkerid : Union[str,int] = 0 ):
         """ initialise from a dictionary file
 
         :param path: filename of .dict file

@@ -31,7 +31,7 @@ except:
     from combiner import Combiner
 
 class Predictor ( LoggerBase ):
-    def __init__ ( self, walkerid : int, dbpath : PathLike = "official",
+    def __init__ ( self, walkerid : Union[str,int], dbpath : PathLike = "official",
                    expected : bool = False, select : str = "all",
                    do_srcombine : bool = True ):
         """

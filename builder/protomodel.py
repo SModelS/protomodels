@@ -32,7 +32,7 @@ class ProtoModel ( LoggerBase ):
     SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
     #SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
 
-    def __init__ ( self, walkerid : int = 0, keep_meta : bool = True, dbversion : str = "????" ):
+    def __init__ ( self, walkerid : Union[str,int] = 0, keep_meta : bool = True, dbversion : str = "????" ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
                           this a heavyweight object)

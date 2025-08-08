@@ -127,7 +127,7 @@ def updateHiscores( rundir : Union[None,PathLike] = None,
                 cachefile : os.PathLike = "{rundir}/hiscores_global.cache",
                 dbpath : Union[None,PathLike] = None,
                 do_srcombine : bool = False,
-                walkerid : int = 0 ) -> Dict:
+                walkerid : Union[str,int] = 0 ) -> Dict:
     """ update the hiscores FIXME """
     dictfile = dictfile.replace("{rundir}",rundir)
     cachefile = cachefile.replace("{rundir}",rundir)
@@ -142,7 +142,7 @@ def updateHiscores( rundir : Union[None,PathLike] = None,
 def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
           dbpath : str = "official", verbose : bool = False,
           dictfile : str = "{rundir}/hiscores_global.dict",
-          walkerid : int = 0 ):
+          walkerid : Union[str,int] = 0 ):
     """ create all hiscore plots
 
     :param upload: the "label" of the upload. determines the directory name at
@@ -184,7 +184,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
           verbose : bool = False, do_srcombine : bool = False,
           dictfile = "{rundir}/hiscores_global.dict",
           cachefile = "{rundir}/hiscores_global.cache",
-          walkerid : int = 0 ):
+          walkerid : Union[str,int] = 0 ):
     """ loop (maxruns times) that updates hiscores_global.cache
 
     :param maxruns: maximally iterate that many times, if None then loop endlessly

@@ -4,13 +4,14 @@
 
 from colorama import Fore as ansi
 import time, os
+from typing import Union
 
 __all__ = [ "LoggerBase" ]
 
 class LoggerBase:
     __slots__ = [ "walkerid", "module", "logdir" ]
 
-    def __init__ ( self, walkerid : int = 0 ):
+    def __init__ ( self, walkerid : Union[str,int] = 0 ):
         """ instantiate the logger class with a walkerid """
         self.walkerid = walkerid
         self.logdir = "logs/"

@@ -31,7 +31,7 @@ except Exception as e:
     pass
 
 class Critic ( LoggerBase ):
-    def __init__ ( self, walkerid : int, dbpath : PathLike = "official", expected : bool = False, select : str = "all", do_srcombine : bool = False ):
+    def __init__ ( self, walkerid : Union[str,int], dbpath : PathLike = "official", expected : bool = False, select : str = "all", do_srcombine : bool = False ):
         #call the super class of the critic i.e Loggerbase
         super ( Critic, self ).__init__ ( walkerid )
         self.walkerid = walkerid

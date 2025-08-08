@@ -51,7 +51,7 @@ def __cleanDirectory ():
     subprocess.getoutput ( "mv exceptions.log tmp/" )
 
 class RandomWalker ( LoggerBase ):
-    def __init__ ( self, walkerid : int = 0, nsteps : int = 10000,
+    def __init__ ( self, walkerid : Union[str,int] = 0, nsteps : int = 10000,
             strategy : str = "aggressive",
             cheatcode : Union[str,int] = "no_cheat", dbpath : PathLike = "./database.pcl",
             expected : bool = False, select : str = "all",

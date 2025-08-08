@@ -11,7 +11,7 @@
 
 def cli( infile : str = "hiscores_global.dict",
          dbpath : str = "official", do_srcombine : bool= True,
-         walkerid : int = 0 ):
+         walkerid : Union[str,int] = 0 ):
     """ fire up the interactive shell, preconfigured!
 
     :param infile: read hiscore from infile, can contain a single hiscore as a dictionary,

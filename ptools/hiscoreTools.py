@@ -66,7 +66,7 @@ def pprintEvs ( protomodel ):
 
 def obtainHiscore ( number : int,
         hiscorefile : PathLike = "hiscores_global.dict",
-        walkerid : int = 0 ) -> ProtoModel:
+        walkerid : Union[str,int] = 0 ) -> ProtoModel:
     """ obtain hiscore number <number> from <hiscorefile>
 
     :param walkerid: log everything as walker #walkerid
@@ -84,7 +84,7 @@ def obtainHiscore ( number : int,
 def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
                            picklefile : str = "hiscores_global.cache",
                            entrynr : Union[None,int] = 0,
-                           walkerid : int = 0 ) -> bool:
+                           walkerid : Union[str,int] = 0 ) -> bool:
     """ is hiscores_global.cache behind hiscores_global.dict, so it needs an update?
     :param entrynr: check for for this entry, 0 is first.
     If None, check all
@@ -152,7 +152,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
 def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
                        picklefile : Union[None,str] = None,
                        dbpath : str = "official",
-                       walkerid : int = 0 ) -> Hiscores:
+                       walkerid : Union[str,int] = 0 ) -> Hiscores:
     """ create Hiscores object from hiscores_global.cache file.
     update hiscores_global.cache file before, if needed.
 

@@ -34,7 +34,7 @@ bibtex = BibtexWriter()
 # runtime._experimental = True
 
 class HiscorePlotter ( LoggerBase ):
-    def __init__ ( self, walkerid : int = 0 ):
+    def __init__ ( self, walkerid : Union[str,int] = 0 ):
         super ( HiscorePlotter, self ).__init__ ( walkerid  )
         self.url = "https://smodels.github.io/"
 
@@ -904,7 +904,7 @@ class HiscorePlotter ( LoggerBase ):
 
     def plot ( self, number : int , verbosity,
             hiscorefile : os.PathLike, options : dict, dbpath : str,
-            walkerid : int = 0 ):
+            walkerid : Union[str,int] = 0 ):
         """ plot hiscore number "number"
         :param walkerid: log with walkerid #walkerid
         """
