@@ -56,7 +56,8 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             print ( f"       `---: step {step}" )
             print ( )
         else:
-            print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET}; TL={TL:.3f}; {sparticles} {timestamp}" )
+            sK = "None" if K == None else f"{K:.3f}"
+            print ( f"#{i}({wid:3d}): K={ansi.GREEN}{sK}{ansi.RESET}; TL={TL:.3f}; {sparticles} {timestamp}" )
 
 
 if __name__ == "__main__":

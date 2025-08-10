@@ -100,6 +100,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
         return True
     with open ( dictfile, "rt" ) as f:
         txt = f.read()
+        txt = txt.replace ( "null","float('nan')" )
         dictcontent = eval(txt)
         if type(dictcontent)==dict: # make it work with single models also
             dictcontent = [ dictcontent ]

@@ -388,6 +388,7 @@ class Manipulator ( LoggerBase ):
             import json
             d = json.dumps ( stringifyTuples ( D ), indent=4 )
             d = d.replace('"(','(').replace(')":','):') # because we stringified
+            d = d.replace("null","None") # json has "null" it seems
             if appendMode: # indent for a list of models
                 d = "    " + d.replace("\n","\n    ")
             f.write ( f"{d}{comma}" )
@@ -417,7 +418,9 @@ class Manipulator ( LoggerBase ):
             self.pprint ( f"filename {filename} does not exist!" )
             return False
         with open ( filename, "rt" ) as f:
-            D = eval ( f.read() )
+            txt=f.read()
+            txt = txt.replace( "null", "float('nan')" ) # json has 'null'
+            D = eval ( txt )
         if type(D) == list:
             if len(D)<nth+1:
                 self.pprint ( f"asking for {nth}th entry, but we only have {len(D)}" )

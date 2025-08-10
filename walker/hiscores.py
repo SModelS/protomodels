@@ -114,9 +114,18 @@ class Hiscores ( LoggerBase ):
             f.close()
         return ret
 
-    def similarDicts ( self, a : dict, b : dict ):
-        """ are models a and b similar? """
-        dK = abs ( a["K"] - b["K"] )
+    def similarDicts ( self, a : dict, b : dict ) -> bool:
+        """ are models a and b similar? 
+        
+        :returns: True if similar
+        """
+        dK = 0.
+        if a["K"] is None and b["K"] is not None:
+            return False
+        if b["K"] is None and a["K"] is not None:
+            return False
+        if a["K"] is not None and b["K"] is not None:
+            dK = abs ( a["K"] - b["K"] )
         if dK > 1e-5:
             return False
         dTL = abs ( a["TL"] - b["TL"] )
@@ -138,7 +147,7 @@ class Hiscores ( LoggerBase ):
                 ## already exists in list? skip insertion
                 self.log("Protomodel already exists in hiscore file. Skip")
                 return L, False
-            if oldhi["K"]>= K:
+            if K is not None and oldhi["K"]>= K:
                 ret.append ( oldhi )
             else:
                 break
@@ -199,6 +208,7 @@ class Hiscores ( LoggerBase ):
                 try:
                     with open ( hiscorefile, "rt" ) as h:
                         txt = h.read()
+                        txt = txt.replace("inf","float('inf')" )
                         oldhiscores = eval( txt )
                         h.close()
                         success=True
@@ -207,14 +217,17 @@ class Hiscores ( LoggerBase ):
         D=m.writeDictFile ( None, cleanOut = False, ndecimals = 6 )
         newlist, added = self.insertHiscore ( oldhiscores, D )
         self.log (f"Write model to {hiscorefile}" )
+        self.writeListToDictFile ( hiscorefile, newlist )
+        """
         with open ( hiscorefile, "wt" ) as f:
             f.write ( "[\n" )
             for ctr,l in enumerate(newlist):
                 f.write ( f"{l}" )
-                if ctr < len(newlist)-1:
-                    f.write ( ",\n" % ( l ) )
-            f.write ( "]\n" )
+                #if ctr < len(newlist)-1:
+                #    f.write ( ",\n" % ( l ) )
+            f.write ( "\n]\n" )
             f.close()
+        """
         with open ( "Kold.conf", "wt" ) as f:
             f.write ( f"{m.M.K}\n" )
             f.close()
@@ -253,6 +266,8 @@ class Hiscores ( LoggerBase ):
         
         newlist = sorted(hiscore_top, key=lambda val:val['K'], reverse=True)
         self.log(f"Updating  {hiscorefile}" )
+        self.writeListToDictFile ( hiscorefile, newlist )
+        """
         with open ( hiscorefile, "wt" ) as f:
             f.write ( "[" )
             for ctr,l in enumerate(newlist):
@@ -261,6 +276,7 @@ class Hiscores ( LoggerBase ):
                     f.write ( ",\n" % ( l ) )
             f.write ( "]\n" )
             f.close()
+        """
         return True
         
     def updateHiscoreFile ( self, m : Manipulator,
@@ -510,23 +526,28 @@ class Hiscores ( LoggerBase ):
                 m.M.cleanBestCombo ()
                 self.hiscores[ctr+1]=m.M
 
-    def writeListToDictFile ( self, dictFile : Union[None,str] = None ):
+    def writeListToDictFile ( self, dictFile : Union[None,str] = None,
+           listofhiscores : Union[None,list]  = None ):
         """ write the models in append mode in a single dictFile.
         :param dictFile: write to dictFile. If None, then self.pickleFile
-                         is used, but with ".dict" as extension.
+        is used, but with ".dict" as extension.
+        :param listofhiscores: either explicit list or None, in which case
+        we use self.hiscores
         """
         if dictFile==None:
             dictFile = self.pickleFile
         if dictFile.endswith(".cache"):
             dictFile = f"{dictFile[:-6]}.dict"
         f=open(dictFile,"wt")
-        f.write("[")
+        f.write("[\n")
         f.close()
-        for protomodel in self.hiscores:
+        if listofhiscores == None:
+            listofhiscores = self.hiscores
+        for protomodel in listofhiscores:
             ma = Manipulator ( protomodel )
             ma.writeDictFile ( outfile = dictFile, cleanOut=False,appendMode=True )
         f=open(dictFile,"at")
-        f.write("]\n")
+        f.write("\n]\n")
         f.close()
 
     def writeListToPickle ( self, pickleFile : Union[None,str]=None,
