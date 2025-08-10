@@ -362,8 +362,7 @@ class Manipulator ( LoggerBase ):
         if appendMode:
             mode,comma = "at",","
 
-
-        def stringifyTuples(obj : dict ) -> dict:
+        def stringifyTuples( obj ):
             """
             Recursively convert all dictionary keys that are tuples into strings.
             Works for nested dictionaries and lists.
