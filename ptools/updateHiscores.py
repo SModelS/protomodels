@@ -208,11 +208,11 @@ def loop( rundir : Union[None,os.PathLike] = None,
         with open ( Kfile, "rt" ) as f:
             Kold = float ( f.read().strip() )
     while True:
-        if i>0:
-            time.sleep(60.)
         i+=1
         if maxruns != None and i > maxruns:
             break
+        if i>1:
+            time.sleep(60.)
         D = updateHiscores( rundir, dictfile, cachefile, dbpath, do_srcombine,
                 walkerid=walkerid )
         TL, step, K = float("nan"),0,float("nan")
