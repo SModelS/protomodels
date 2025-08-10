@@ -20,7 +20,9 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
         return
     f=open( dictfile, "rt" )
     import numpy as np
-    D=eval(f.read() )
+    txt=f.read().replace("inf","float('inf')").replace("nan","float('nan')")
+    print ( txt )
+    D=eval(txt)
     f.close()
     if nmax == None:
         nmax = 10
