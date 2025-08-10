@@ -361,8 +361,38 @@ class Manipulator ( LoggerBase ):
         mode,comma = "wt",""
         if appendMode:
             mode,comma = "at",","
+
+
+        def stringifyTuples(obj : dict ) -> dict:
+            """
+            Recursively convert all dictionary keys that are tuples into strings.
+            Works for nested dictionaries and lists.
+            """
+            if isinstance(obj, dict):
+                new_dict = {}
+                for k, v in obj.items():
+                    # Convert tuple keys to string
+                    if isinstance(k, tuple):
+                        new_key = str(k)
+                    else:
+                        new_key = k
+                    # Recursively process the value
+                    new_dict[new_key] = stringifyTuples(v)
+                return new_dict
+            elif isinstance(obj, list):
+                return [stringifyTuples(item) for item in obj]
+            else:
+                return obj
+
         with open ( fname, mode ) as f:
-            f.write ( f"{D}{comma}\n" )
+            # f.write ( "{" )
+            import json
+            d = json.dumps ( stringifyTuples ( D ), indent=4 )
+            d = d.replace('"(','(').replace(')"',')') # because we stringified
+            if appendMode: # indent for a list of models
+                d = "    " + d.replace("\n","\n    ")
+            f.write ( f"{d}{comma}\n" )
+           #  f.write ( f"{D}{comma}\n" )
             f.close()
         return D
 
