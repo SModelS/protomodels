@@ -217,8 +217,7 @@ class Hiscores ( LoggerBase ):
         D=m.writeDictFile ( None, cleanOut = False, ndecimals = 6 )
         newlist, added = self.insertHiscore ( oldhiscores, D )
         self.log (f"Write model to {hiscorefile}" )
-        self.writeListToDictFile ( hiscorefile, newlist )
-        """
+        # self.writeListToDictFile ( hiscorefile, newlist ) #FIXME use this
         with open ( hiscorefile, "wt" ) as f:
             f.write ( "[\n" )
             for ctr,l in enumerate(newlist):
@@ -227,7 +226,6 @@ class Hiscores ( LoggerBase ):
                 #    f.write ( ",\n" % ( l ) )
             f.write ( "\n]\n" )
             f.close()
-        """
         with open ( "Kold.conf", "wt" ) as f:
             f.write ( f"{m.M.K}\n" )
             f.close()
@@ -266,8 +264,7 @@ class Hiscores ( LoggerBase ):
         
         newlist = sorted(hiscore_top, key=lambda val:val['K'], reverse=True)
         self.log(f"Updating  {hiscorefile}" )
-        self.writeListToDictFile ( hiscorefile, newlist )
-        """
+        # self.writeListToDictFile ( hiscorefile, newlist ) # FIXME use this
         with open ( hiscorefile, "wt" ) as f:
             f.write ( "[" )
             for ctr,l in enumerate(newlist):
@@ -276,7 +273,6 @@ class Hiscores ( LoggerBase ):
                     f.write ( ",\n" % ( l ) )
             f.write ( "]\n" )
             f.close()
-        """
         return True
         
     def updateHiscoreFile ( self, m : Manipulator,
