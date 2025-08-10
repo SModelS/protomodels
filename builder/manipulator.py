@@ -387,10 +387,12 @@ class Manipulator ( LoggerBase ):
             # f.write ( "{" )
             import json
             d = json.dumps ( stringifyTuples ( D ), indent=4 )
-            d = d.replace('"(','(').replace(')"',')') # because we stringified
+            d = d.replace('"(','(').replace(')":','):') # because we stringified
             if appendMode: # indent for a list of models
                 d = "    " + d.replace("\n","\n    ")
-            f.write ( f"{d}{comma}\n" )
+            f.write ( f"{d}{comma}" )
+            if not appendMode:
+                f.write ( "\n" )
            #  f.write ( f"{D}{comma}\n" )
             f.close()
         return D

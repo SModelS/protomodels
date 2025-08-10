@@ -208,7 +208,7 @@ class Hiscores ( LoggerBase ):
         newlist, added = self.insertHiscore ( oldhiscores, D )
         self.log (f"Write model to {hiscorefile}" )
         with open ( hiscorefile, "wt" ) as f:
-            f.write ( "[" )
+            f.write ( "[\n" )
             for ctr,l in enumerate(newlist):
                 f.write ( f"{l}" )
                 if ctr < len(newlist)-1:
