@@ -313,14 +313,20 @@ class Manipulator ( LoggerBase ):
 
         :returns: True if worked
         """
+        ds = []
+        for obj in objs:
+            d = py_dumps ( obj, level = 1 )
+            d = " "*4 + d
+            ds.append ( d )
         with open ( filename, "wt" ) as f:
             f.write("[\n")
-            f.close()
-            for obj in obs:
-                d = py_dumps ( obj, level = 1 )
-                d = " "*4 + d
-                f.write ( f"{d}{comma}\n" )
-            f.write("]\n")
+            first = True
+            for d in ds:
+                if not first:
+                    f.write ( ",\n" )
+                f.write ( f"{d}" )
+                first = False
+            f.write("\n]\n")
             f.close()
         return True
         
