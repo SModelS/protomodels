@@ -172,11 +172,13 @@ class Plotter ( LoggerBase ):
             if i > 0:
                 cmd += " "
             if "select_t" in prev or "--ti" in prev or "--op" in prev or prev in [ "-O", "-T" ]:
-                a = f"'{a}'"
+                a = f'"{a}"'
             cmd += a
             prev = a
         cmd += "\n"
         with open ( "plotDBDict.log", "at" ) as f:
+            import time
+            f.write ( f"\n# {time.asctime()}\n" )
             f.write ( cmd )
             f.close()
 
