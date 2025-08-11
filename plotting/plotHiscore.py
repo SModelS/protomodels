@@ -751,6 +751,10 @@ class HiscorePlotter ( LoggerBase ):
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
         f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
+        c_in, c_out =  "" , ""
+        if not c_result:
+            c_in = '<p style="color: red;">'
+            c_out = '</p>'
         for rv in rvalues[:4]:
             srv="N/A"
             if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
@@ -760,10 +764,6 @@ class HiscorePlotter ( LoggerBase ):
             dataId = rv['tp'].dataId()
             if dataId in [ None, "None" ]:
                 dataId = "ul"
-            c_in, c_out =  "" , ""
-            if not c_result: ## FIXME should be based on critic
-                c_in = '<p style="color: red;">'
-                c_out = '</p>'
             f.write ( f"<li>{c_in}{self.anaNameAndUrl ( rv['tp'] )}:{dataId}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>{c_out}\n" )
         f.write("</ul>\n")
         # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
