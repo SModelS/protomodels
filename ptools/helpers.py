@@ -19,6 +19,15 @@ from typing import Union, Set
 #from base.loggerbase import LoggerBase
 import numpy as np
 
+def mkdir ( dirname : os.PathLike ):
+    """ make a directory, gracefully """
+    if os.path.exists ( dirname ):
+        return
+    try:
+        os.mkdir ( dirname )
+    except FileExistsError as e:
+        pass
+
 def getJsonFileName(dset: DataSet) -> str:
     "get file name of json used by the combined dataset dset"
 

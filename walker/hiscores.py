@@ -293,8 +293,7 @@ class Hiscores ( LoggerBase ):
         :returns: true, if successful
         """
         oldhiscores=[]
-        if not os.path.isdir("all_hiscores"):
-            os.mkdir("all_hiscores")
+        helpers.mkdir ( "all_hiscores" )
         if os.path.exists ( f"all_hiscores/{hiscorefile}" ):
             tryRead=0
             success=False

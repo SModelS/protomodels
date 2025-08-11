@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import subprocess, os
+from ptools import helpers
 
 def isFudged ( f ):
     return abs(f-1.0)>1e-5
@@ -15,11 +16,7 @@ def create ( nmin = 1, nmax = 100, f = 1.0, overwrite = False,
     directory = "dicts"
     if isFudged(f):
         directory = f"dictsf{int(f*100)}"
-    if not os.path.exists ( directory ):
-        try:
-            os.mkdir ( directory )
-        except FileExistsError as e:
-            pass
+    helpers.mkdir ( directory )
     for i in range(nmin,nmax+1):
         out = f"{i:03d}"
         if os.path.exists ( f"{directory}/{out}.dict" ) and not overwrite:

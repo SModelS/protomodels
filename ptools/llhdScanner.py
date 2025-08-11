@@ -23,7 +23,7 @@ from tester.critic import Critic
 from plotting import plotLlhds
 from typing import Dict, Tuple, Union, List
 from ptools.sparticleNames import SParticleNames
-from ptools import moreHelpers
+from ptools import moreHelpers, helpers
 from base.loggerbase import LoggerBase
 
 namer = SParticleNames ( False )
@@ -68,7 +68,7 @@ class LlhdThread ( LoggerBase ):
         self.nevents = obj.nevents
         self.predictor = obj.predictor
         self.critic = obj.critic
-        self.mkResultsDir()
+        helpers.mkdir ( self.resultsdir )
 
     def getDefaultDictionary ( self ):
         """ initialise the dictionary for the pickle file """
@@ -121,14 +121,6 @@ class LlhdThread ( LoggerBase ):
         if abs(dx)<1e-10 and abs(dy)<1e-10:
             return True
         return False
-
-    def mkResultsDir ( self ):
-        """ make a results dir if it doesnt exist """
-        self.pprint ( f"results will go to {self.resultsdir.replace(self.rundir,'.')}" ) 
-        if os.path.exists ( self.resultsdir ):
-            return
-        os.mkdir ( self.resultsdir )
-
 
     def writeRunMeta ( self ):
         with open ( f"{self.resultsdir}/run.meta", "wt" ) as f:

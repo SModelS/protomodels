@@ -751,11 +751,12 @@ class HiscorePlotter ( LoggerBase ):
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
         f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
-        c_in, c_out =  "" , ""
-        if not c_result:
-            c_in = '<p style="color: red;">'
-            c_out = '</p>'
         for rv in rvalues[:4]:
+            c_in, c_out =  "" , ""
+            if not c_result and rv["robs"] in [ float, np.float64, np.float32 ] \
+                    and rv["robs"]>1.0:
+                c_in = '<p style="color: red;">'
+                c_out = '</p>'
             srv="N/A"
             if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
                 srv= f"{rv['rexp']:.2f}"

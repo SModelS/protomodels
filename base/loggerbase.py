@@ -5,6 +5,7 @@
 from colorama import Fore as ansi
 import time, os
 from typing import Union
+from ptools import helpers
 
 __all__ = [ "LoggerBase" ]
 
@@ -22,15 +23,7 @@ class LoggerBase:
             self.module = module[p1+1:p2]
         else:
             self.module = module[p1+1:]
-        self.mkLogDir()
-
-    def mkLogDir ( self ):
-        """ create the log directory if it does not exist yet """
-        if not os.path.exists ( self.logdir ):
-            try:
-                os.mkdir ( self.logdir )
-            except FileExistsError as e:
-                pass
+        helpers.mkdir ( self.logdir )
 
     def error ( self, *args ):
         self.highlight ( "error", *args )
@@ -69,7 +62,7 @@ class LoggerBase:
 
     def log ( self, *args ):
         """ logging to file """
-        self.mkLogDir ()
+        helpers.mkdir ( self.logdir )
         ctr = 0
         while True:
             try:

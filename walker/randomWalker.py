@@ -31,6 +31,7 @@ from smodels.base.smodelsLogging import logger
 from typing import Callable, Dict, Union
 from os import PathLike
 from base.loggerbase import LoggerBase
+from ptools import helpers
 from ptools.helpers import prettyPrint
 
 try:
@@ -43,12 +44,14 @@ except ImportError as e:
 
 logger.setLevel("ERROR")
 
+"""
 def __cleanDirectory ():
     ## is this used?
     subprocess.getoutput ( "mkdir -p tmp" )
     subprocess.getoutput ( "mv .cur*slha tmp/" )
     subprocess.getoutput ( "mv walker*.log tmp/" )
     subprocess.getoutput ( "mv exceptions.log tmp/" )
+"""
 
 class RandomWalker ( LoggerBase ):
     def __init__ ( self, walkerid : Union[str,int] = 0, nsteps : int = 10000,
@@ -92,10 +95,9 @@ class RandomWalker ( LoggerBase ):
         self.test_param_space = test_param_space
         if seed is not None:
             self.random_seed = seed
-            from ptools import helpers
             helpers.seedRandomNumbers(self.random_seed + walkerid )
             self.pprint ( f"setting random seed to {self.random_seed}" )
-        if not os.path.isdir("dictfiles"): os.mkdir("dictfiles")
+        helpers.mkdir ( "dictfiles" )
         self.dictfile = f"dictfiles/pmodel_{walkerid}.dict"
         #Initialize Predictor
         self.predictor =  Predictor( self.walkerid, dbpath=dbpath,
@@ -586,7 +588,7 @@ class RandomWalker ( LoggerBase ):
             """Handles both SLURM termination signals and manual interruptions."""
             self.highlight("info", f"Saving current protomodel to pmodel{self.walkerid}.dict")
             self.manipulator.restoreModel( reportReversion=True )
-            if not os.path.isdir("Pmodels"): os.mkdir("Pmodels")
+            helpers.mkdir ( "Pmodels" )
             self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict", step=self.manipulator.M.step - 1)
             sys.exit(0)
         # Register signal handlers for graceful shutdown
@@ -621,7 +623,7 @@ class RandomWalker ( LoggerBase ):
                         f.write ( f"traceback: {str(traceback.format_exc())}\n" )
                     self.highlight("info", f"Saving last protomodel to pmodel{self.walkerid}.dict")
                     self.manipulator.restoreModel( reportReversion=True )
-                    if not os.path.isdir("Pmodels"): os.mkdir("Pmodels")
+                    helpers.mkdir ( "Pmodels" )
                     self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict", step=self.manipulator.M.step - 1)
                     sys.exit(-1)
 
@@ -642,7 +644,7 @@ class RandomWalker ( LoggerBase ):
         self.manipulator.M.delCurrentSLHA()
         self.pprint ( f"Was asked to stop after {self.maxsteps} steps" )
         self.pprint(f"Writing last protomodel to pmodel{self.walkerid}.dict")
-        if not os.path.isdir("Pmodels"): os.mkdir("Pmodels")
+        helpers.mkdir ( "Pmodels" )
         self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict")
 
 if __name__ == "__main__":

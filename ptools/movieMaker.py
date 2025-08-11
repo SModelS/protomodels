@@ -17,6 +17,7 @@ import matplotlib.patches as patches
 import seaborn as sns
 # from names import particleLabels
 from ptools.sparticleNames import SParticleNames
+from ptools import helpers
 import pandas as pd
 # sns.set() #Set style
 # sns.set_style('ticks')
@@ -57,8 +58,7 @@ if args.fetch:
     subprocess.getoutput ( cmd )
 # prefix = args.outfile.replace(".mp4","").replace(".webm","")
 tempdir = "temp"
-if not os.path.exists ( tempdir ):
-    os.mkdir ( tempdir )
+helpers.mkdir ( tempdir )
 
 intermediateSteps = True ## do 10 rendering steps per one random walk step
 

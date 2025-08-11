@@ -22,6 +22,7 @@ from ptools.hiscoreTools import fetchHiscoresObj
 from walker.hiscores import Hiscores
 from typing import Union, List, Dict
 from base.loggerbase import LoggerBase
+from ptools import helpers
         
 namer = SParticleNames ( susy = False )
 
@@ -35,7 +36,7 @@ class TeststatScanner ( LoggerBase ):
         self.rthreshold = 1.56
         self.rundir = setup ( self.args["rundir"] )
         self.resultsdir = f"{self.rundir}/M{namer.asciiName(args.pid)}"
-        self.mkResultDir()
+        helpers.mkdir ( self.resultsdir )
         self.nproc = args.nproc
         if self.nproc < 1:
             self.nproc = nCPUs() + self.nproc
@@ -289,11 +290,6 @@ class TeststatScanner ( LoggerBase ):
         with open ( f"scanM{namer.asciiName(self.pid1)}.pcl", "wb" ) as f:
             pickle.dump ( mdict, f )
             f.close()
-
-    def mkResultDir ( self ):
-        """ create results dir if it doesnt exist """
-        if not os.path.exists ( self.resultsdir ):
-            os.mkdir ( self.resultsdir )
 
     def produceSSMs( self, pid1, pid2 ):
         """ produce pickle files for ssm scan, for (pid1,pid2)
