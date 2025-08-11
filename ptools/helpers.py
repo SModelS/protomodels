@@ -19,6 +19,30 @@ from typing import Union, Set
 #from base.loggerbase import LoggerBase
 import numpy as np
 
+def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
+    """ equivalent to json.dumps but tuples are allowed as keys.
+    """
+    sp = ' ' * (level * indent)
+    sp_next = ' ' * ((level + 1) * indent)
+
+    if isinstance(obj, dict):
+        if not obj:
+            return '{}'
+        items = []
+        for k, v in obj.items():
+            items.append(f"{sp_next}{repr(k)}: {py_dumps(v, indent, level + 1)}")
+        return '{\n' + ',\n'.join(items) + '\n' + sp + '}'
+
+    elif isinstance(obj, list):
+        if not obj:
+            return '[]'
+        items = [f"{sp_next}{py_dumps(i, indent, level + 1)}" for i in obj]
+        return '[\n' + ',\n'.join(items) + '\n' + sp + ']'
+
+    else:
+        return repr(obj)
+
+
 def mkdir ( dirname : os.PathLike ):
     """ make a directory, gracefully """
     if os.path.exists ( dirname ):

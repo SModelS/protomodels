@@ -9,7 +9,7 @@ __all__ = [ "Manipulator" ]
 
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
-from ptools.helpers import nround, getAllPidsOfTheoryPred
+from ptools.helpers import nround, getAllPidsOfTheoryPred, py_dumps
 from smodels.base.physicsUnits import fb, TeV, GeV
 from smodels.base.crossSection import LO
 from smodels.matching.theoryPrediction import TheoryPrediction
@@ -23,29 +23,6 @@ from base.loggerbase import LoggerBase
 from os import PathLike
 import tempfile
 from scipy.stats import norm, lognorm, uniform
-
-def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
-    """ equivalent to json.dumps but tuples are allowed as keys.
-    """
-    sp = ' ' * (level * indent)
-    sp_next = ' ' * ((level + 1) * indent)
-
-    if isinstance(obj, dict):
-        if not obj:
-            return '{}'
-        items = []
-        for k, v in obj.items():
-            items.append(f"{sp_next}{repr(k)}: {py_dumps(v, indent, level + 1)}")
-        return '{\n' + ',\n'.join(items) + '\n' + sp + '}'
-
-    elif isinstance(obj, list):
-        if not obj:
-            return '[]'
-        items = [f"{sp_next}{py_dumps(i, indent, level + 1)}" for i in obj]
-        return '[\n' + ',\n'.join(items) + '\n' + sp + ']'
-
-    else:
-        return repr(obj)
 
 class Manipulator ( LoggerBase ):
     """ contains the protomodel manipulation algorithms. """
