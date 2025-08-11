@@ -25,6 +25,7 @@ from base.loggerbase import LoggerBase
 from tester.combiner import Combiner
 from tester.combinationsmatrix import getYamlMatrix
 from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
+import numpy as np
 try:
     from smodels.statistics.basicStats import apriori
 except Exception as e:
@@ -150,10 +151,12 @@ class Critic ( LoggerBase ):
         critic_description = {}
         for tp in tpList[:3]:
             rtype = tp['tp'].dataType(short=True)
-            robs = f"{tp['robs']:.2f}"
+            # robs = f"{tp['robs']:.2f}"
+            robs = np.round ( tp['robs'], 3 )
             rexp = None
             if tp['rexp'] is not None:
-                rexp = f"{tp['rexp']:.2f}"
+                # rexp = f"{tp['rexp']:.2f}"
+                rexp = np.round ( tp['exp'], 3 )
             tmp = {f'{tp["tp"].analysisId()}({rtype})': {'robs': robs, 'rexp': rexp}}
             critic_description.update(tmp)
         if len(tpList)>3:
