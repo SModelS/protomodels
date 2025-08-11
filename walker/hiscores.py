@@ -147,9 +147,11 @@ class Hiscores ( LoggerBase ):
                 ## already exists in list? skip insertion
                 self.log("Protomodel already exists in hiscore file. Skip")
                 return L, False
-            if K is not None and oldhi["K"]>= K:
+            if K is None: # if K is None, append them all
                 ret.append ( oldhi )
-            else:
+            elif oldhi["K"] is not None and oldhi["K"] >= K:
+                ret.append ( oldhi ) # K is not None, oldK is greater
+            else: # oldK is None or oldK < K
                 break
         ## now the new hiscore
         ret.append ( hi )
@@ -216,8 +218,9 @@ class Hiscores ( LoggerBase ):
                     time.sleep( .1+3*tryRead )
         D=m.writeDictFile ( None, cleanOut = False, ndecimals = 6 )
         newlist, added = self.insertHiscore ( oldhiscores, D )
+        self.writeListToDictFile ( hiscorefile, newlist )
+        """ ## old version
         self.log (f"Write model to {hiscorefile}" )
-        # self.writeListToDictFile ( hiscorefile, newlist ) #FIXME use this
         with open ( hiscorefile, "wt" ) as f:
             f.write ( "[\n" )
             for ctr,l in enumerate(newlist):
@@ -226,6 +229,7 @@ class Hiscores ( LoggerBase ):
                 #    f.write ( ",\n" % ( l ) )
             f.write ( "\n]\n" )
             f.close()
+        """
         with open ( "Kold.conf", "wt" ) as f:
             f.write ( f"{m.M.K}\n" )
             f.close()
@@ -260,9 +264,13 @@ class Hiscores ( LoggerBase ):
                             h.close()
                             success=True
                     except SyntaxError as e:
+                        if tryRead > 10:
+                            raise e
                         time.sleep( .1+3*tryRead )
         
         newlist = sorted(hiscore_top, key=lambda val:val['K'], reverse=True)
+        self.writeListToDictFile ( hiscorefile, newlist )
+        """
         self.log(f"Updating  {hiscorefile}" )
         # self.writeListToDictFile ( hiscorefile, newlist ) # FIXME use this
         with open ( hiscorefile, "wt" ) as f:
@@ -273,6 +281,7 @@ class Hiscores ( LoggerBase ):
                     f.write ( ",\n" % ( l ) )
             f.write ( "]\n" )
             f.close()
+        """
         return True
         
     def updateHiscoreFile ( self, m : Manipulator,
@@ -530,6 +539,7 @@ class Hiscores ( LoggerBase ):
         :param listofhiscores: either explicit list or None, in which case
         we use self.hiscores
         """
+        self.log (f"Writing model to {dictFile}" )
         if dictFile==None:
             dictFile = self.pickleFile
         if dictFile.endswith(".cache"):
@@ -540,8 +550,10 @@ class Hiscores ( LoggerBase ):
         if listofhiscores == None:
             listofhiscores = self.hiscores
         for protomodel in listofhiscores:
-            ma = Manipulator ( protomodel )
-            ma.writeDictFile ( outfile = dictFile, cleanOut=False,appendMode=True )
+# ma = Manipulator ( protomodel, initTestStats = True )
+#            ma.writeDictFile ( outfile = dictFile, cleanOut=False,appendMode=True )
+            Manipulator.writeDictionaryToFile ( dictFile, protomodel,
+                                                appendMode=True )
         f=open(dictFile,"at")
         f.write("\n]\n")
         f.close()

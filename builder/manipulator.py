@@ -43,7 +43,8 @@ class Manipulator ( LoggerBase ):
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike],
             strategy: str = "aggressive", verbose : bool = False,
             do_record : bool = False, seed : Union[bool,int] = None,
-            nth : int = 0, walkerid : Union[None,int] = None ):
+            nth : int = 0, walkerid : Union[None,int] = None,
+            initTestStats : bool = False ):
         """
         :param protomodel: is either a protomodel, or a hiscore dictionary,
         or a path to a protomodel
@@ -55,6 +56,7 @@ class Manipulator ( LoggerBase ):
         from nth entry in that dict file
         :param walkerid: usually taken from protomodel (None), but can
         also specify
+        :param initTestStats: if True, set also test statistics K and TL
 
         Example usage:
 
@@ -79,7 +81,7 @@ class Manipulator ( LoggerBase ):
         
         if type(protomodel) == dict:
             self.M = ProtoModel ( )
-            self.initFromDict ( protomodel )
+            self.initFromDict ( protomodel, initTestStats = initTestStats )
         if type(protomodel) == str:
             self.M = ProtoModel ( )
             if protomodel.endswith ( ".dict" ):
@@ -279,6 +281,59 @@ class Manipulator ( LoggerBase ):
         proto_dict['TL'] = self.M.TL
         
         return proto_dict
+        
+    @classmethod
+    def writeDictionaryToFile ( cls, filename : os.PathLike,
+           obj : dict, appendMode : bool = False ) -> dict:
+        """ class method, write the dictionary d in a formatted manner to file
+        filename
+
+        :param appendMode: if true, assume it is one of a list of dictionaries.
+        intent.
+        :returns: dictionary that was written out
+        """
+        if not appendMode:
+            cls.pprint ( f"writing model to {filename}" )
+        mode,comma = "wt",""
+        if appendMode:
+            mode,comma = "at",","
+
+        def stringifyTuples( obj ):
+            """
+            Recursively convert all dictionary keys that are tuples into strings.
+            Works for nested dictionaries and lists.
+            """
+            if isinstance(obj, dict):
+                new_dict = {}
+                for k, v in obj.items():
+                    # Convert tuple keys to string
+                    if isinstance(k, tuple):
+                        new_key = str(k)
+                    else:
+                        new_key = k
+                    # Recursively process the value
+                    new_dict[new_key] = stringifyTuples(v)
+                return new_dict
+            elif isinstance(obj, list):
+                return [stringifyTuples(item) for item in obj]
+            else:
+                return obj
+
+        with open ( filename, mode ) as f:
+            # f.write ( "{" )
+            import json
+            d = json.dumps ( stringifyTuples ( obj ), indent=4 )
+            d = d.replace('"(','(').replace(')":','):') # because we stringified
+            d = d.replace("null","None") # json has "null" it seems
+            if appendMode: # indent for a list of models
+                d = "    " + d.replace("\n","\n    ")
+            f.write ( f"{d}{comma}" )
+            if not appendMode:
+                f.write ( "\n" )
+           #  f.write ( f"{D}{comma}\n" )
+            f.close()
+        return d
+
     
     def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict", step=None,
             cleanOut : bool = True, comment : str = "", appendMode : bool = False,
@@ -356,47 +411,7 @@ class Manipulator ( LoggerBase ):
             return D
         import time
         fname = outfile.replace("%t", str(int(time.time())) )
-        if not appendMode:
-            self.pprint ( f"writing model to {fname}" )
-        mode,comma = "wt",""
-        if appendMode:
-            mode,comma = "at",","
-
-        def stringifyTuples( obj ):
-            """
-            Recursively convert all dictionary keys that are tuples into strings.
-            Works for nested dictionaries and lists.
-            """
-            if isinstance(obj, dict):
-                new_dict = {}
-                for k, v in obj.items():
-                    # Convert tuple keys to string
-                    if isinstance(k, tuple):
-                        new_key = str(k)
-                    else:
-                        new_key = k
-                    # Recursively process the value
-                    new_dict[new_key] = stringifyTuples(v)
-                return new_dict
-            elif isinstance(obj, list):
-                return [stringifyTuples(item) for item in obj]
-            else:
-                return obj
-
-        with open ( fname, mode ) as f:
-            # f.write ( "{" )
-            import json
-            d = json.dumps ( stringifyTuples ( D ), indent=4 )
-            d = d.replace('"(','(').replace(')":','):') # because we stringified
-            d = d.replace("null","None") # json has "null" it seems
-            if appendMode: # indent for a list of models
-                d = "    " + d.replace("\n","\n    ")
-            f.write ( f"{d}{comma}" )
-            if not appendMode:
-                f.write ( "\n" )
-           #  f.write ( f"{D}{comma}\n" )
-            f.close()
-        return D
+        self.writeDictionaryToFile ( fname, D, appendMode )
 
     def pidInList ( self, pid, lst, signed ):
         """ is pid in lst """
@@ -529,6 +544,8 @@ class Manipulator ( LoggerBase ):
                 self.M.TL = D["TL"]
             if "K" in D:
                 self.M.K = D["K"]
+            if "dbver" in D:
+                self.M.dbver = D["dbver"]
         if "xsecs[fb]" in D:
             tmp = D["xsecs[fb]"]
             xsecs = []
