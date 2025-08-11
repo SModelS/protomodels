@@ -743,10 +743,11 @@ class HiscorePlotter ( LoggerBase ):
         self.addSPlots ( f )
         f.write ( "<br>\n" )
         f.write ( "<table width=80%>\n<tr><td>\n" )
+        c_result = True
         if len(self.protomodel.ul_critic_tpList) == 0:
             from tester.critic import Critic
             cr = Critic(self.protomodel.walkerid,do_srcombine=True)
-            cr.predict_critic( self.protomodel, keep_predictions=True )
+            c_result = cr.predict_critic( self.protomodel, keep_predictions=True )
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
         f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
@@ -756,8 +757,16 @@ class HiscorePlotter ( LoggerBase ):
                 srv= f"{rv['rexp']:.2f}"
             elif type(rv['rexp']) != type(None):
                 srv=str(rv['rexp'])
-            f.write ( f"<li>{self.anaNameAndUrl ( rv['tp'] )}:{rv['tp'].dataType(short=True)}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>\n" )
+            dataId = rv['tp'].dataId()
+            if dataId in [ None, "None" ]:
+                dataId = "ul"
+            c_in, c_out =  "" , ""
+            if not c_result: ## FIXME should be based on critic
+                c_in = '<p style="color: red;">'
+                c_out = '</p>'
+            f.write ( f"<li>{c_in}{self.anaNameAndUrl ( rv['tp'] )}:{dataId}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>{c_out}\n" )
         f.write("</ul>\n")
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
         if hasattr ( self.protomodel, "analysisContributions" ):
             print ( "[plotHiscore] contributions-per-analysis are defined" )

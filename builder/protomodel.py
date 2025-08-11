@@ -537,6 +537,13 @@ class ProtoModel ( LoggerBase ):
                 #Only write line if it is not empty
                 if l:
                     outF.write(l)
+            frozen = self.frozenParticles()
+            # now make the frozen particles stable (to quench smodels warnings,
+            # nothing else)
+            outF.write ( "\n" )
+            for fpid in frozen:
+                line = f"DECAY   {fpid}    {0E+00}\n\n"
+                outF.write ( line )
             outF.close()
 
     def createSLHAFile ( self, outputSLHA : Union[str,None] = None,

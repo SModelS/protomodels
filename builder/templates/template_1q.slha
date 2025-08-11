@@ -267,20 +267,20 @@ DECAY   1000005     1.34903869E+01   # sbottom1 decays
      D1000005_1000037_6    2    -1000037         6   # BR(~b_1 -> ~chi_2- t )
 #
 #         PDG            Width
-DECAY   2000005     1.0              # sbottom2 decays
-DECAY   2000006     1.0              # stop2 decays
-DECAY   1000002     1.0              # sup_L decays
-DECAY   2000001     1.0              # sdown_R decays
-DECAY   2000002     1.0              # sup_R decays
-DECAY   1000004     1.0              # scharm_L decays
-DECAY   2000004     1.0              # scharm_R decays
-DECAY   1000003     1.0              # sstrange_L decays
-DECAY   2000003     1.0              # sstrange_R decays
-DECAY   2000011     1.0              # selectron_R decays
-DECAY   2000013     1.0              # smuon_R decays
-DECAY   2000015     1.0              # stau_2 decays
+DECAY   2000005     0.0              # sbottom2 decays
+DECAY   2000006     0.0              # stop2 decays
+DECAY   1000002     0.0              # sup_L decays
+DECAY   2000001     0.0              # sdown_R decays
+DECAY   2000002     0.0              # sup_R decays
+DECAY   1000004     0.0              # scharm_L decays
+DECAY   2000004     0.0              # scharm_R decays
+DECAY   1000003     0.0              # sstrange_L decays
+DECAY   2000003     0.0              # sstrange_R decays
+DECAY   2000011     0.0              # selectron_R decays
+DECAY   2000013     0.0              # smuon_R decays
+DECAY   2000015     0.0              # stau_2 decays
 DECAY   1000022     0.0              # neutralino1 decays
-DECAY   1000035     1.0              # neutralino4 decays
+DECAY   1000035     0.0              # neutralino4 decays
 
 #         PDG            Width
 DECAY   1000001     1.48506929E+01   # sdown_L decays
