@@ -292,8 +292,8 @@ class Manipulator ( LoggerBase ):
         intent.
         :returns: dictionary that was written out
         """
-        if not appendMode:
-            cls.pprint ( f"writing model to {filename}" )
+        #if not appendMode:
+        #    cls.pprint ( f"writing model to {filename}" )
         mode,comma = "wt",""
         if appendMode:
             mode,comma = "at",","
