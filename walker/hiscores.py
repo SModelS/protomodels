@@ -555,7 +555,7 @@ class Hiscores ( LoggerBase ):
             Manipulator.writeDictionaryToFile ( dictFile, protomodel,
                                                 appendMode=True )
         f=open(dictFile,"at")
-        f.write("\n]\n")
+        f.write("]\n")
         f.close()
 
     def writeListToPickle ( self, pickleFile : Union[None,str]=None,

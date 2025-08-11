@@ -21,7 +21,11 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
     f=open( dictfile, "rt" )
     import numpy as np
     txt=f.read().replace("inf","float('inf')").replace("nan","float('nan')")
-    D=eval(txt)
+    try:
+        D=eval(txt)
+    except SyntaxError as e:
+        print ( f"could not read {dictfile}: {e}" )
+        sys.exit()
     f.close()
     if nmax == None:
         nmax = 10

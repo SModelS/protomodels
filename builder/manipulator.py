@@ -292,48 +292,43 @@ class Manipulator ( LoggerBase ):
         intent.
         :returns: dictionary that was written out
         """
-        #if not appendMode:
-        #    cls.pprint ( f"writing model to {filename}" )
+
+        def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
+            """ equivalent to json.dumps but tuples are allowed as keys.
+            """
+            sp = ' ' * (level * indent)
+            sp_next = ' ' * ((level + 1) * indent)
+
+            if isinstance(obj, dict):
+                if not obj:
+                    return '{}'
+                items = []
+                for k, v in obj.items():
+                    items.append(f"{sp_next}{repr(k)}: {py_dumps(v, indent, level + 1)}")
+                return '{\n' + ',\n'.join(items) + '\n' + sp + '}'
+
+            elif isinstance(obj, list):
+                if not obj:
+                    return '[]'
+                items = [f"{sp_next}{py_dumps(i, indent, level + 1)}" for i in obj]
+                return '[\n' + ',\n'.join(items) + '\n' + sp + ']'
+
+            else:
+                return repr(obj)
+
         mode,comma = "wt",""
         if appendMode:
             mode,comma = "at",","
-
-        def stringifyTuples( obj ):
-            """
-            Recursively convert all dictionary keys that are tuples into strings.
-            Works for nested dictionaries and lists.
-            """
-            if isinstance(obj, dict):
-                new_dict = {}
-                for k, v in obj.items():
-                    # Convert tuple keys to string
-                    if isinstance(k, tuple):
-                        new_key = str(k)
-                    else:
-                        new_key = k
-                    # Recursively process the value
-                    new_dict[new_key] = stringifyTuples(v)
-                return new_dict
-            elif isinstance(obj, list):
-                return [stringifyTuples(item) for item in obj]
-            else:
-                return obj
-
+        level = 1 if appendMode else 0
         with open ( filename, mode ) as f:
-            # f.write ( "{" )
-            import json
-            d = json.dumps ( stringifyTuples ( obj ), indent=4 )
-            d = d.replace('"(','(').replace(')":','):') # because we stringified
-            d = d.replace("null","None") # json has "null" it seems
-            if appendMode: # indent for a list of models
-                d = "    " + d.replace("\n","\n    ")
-            f.write ( f"{d}{comma}" )
-            if not appendMode:
-                f.write ( "\n" )
-           #  f.write ( f"{D}{comma}\n" )
+            d = py_dumps ( obj, level = level )
+            if appendMode:
+                d = " "*4 + d
+            f.write ( f"{d}{comma}\n" )
+            #if not appendMode:
+            #    f.write ( "\n" )
             f.close()
         return d
-
     
     def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict", step=None,
             cleanOut : bool = True, comment : str = "", appendMode : bool = False,
