@@ -25,7 +25,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
         D=eval(txt)
     except SyntaxError as e:
         print ( f"could not read {dictfile}: {e}" )
-        sys.exit()
+        import sys; sys.exit()
     f.close()
     if nmax == None:
         nmax = 10
