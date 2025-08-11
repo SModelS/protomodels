@@ -253,14 +253,19 @@ class Critic ( LoggerBase ):
 
         return predictions
 
-    def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, mingap = 10*GeV, mingapISR = 1*GeV,
-                        keep_predictions : bool = True, keep_slhafile : bool = False ):
-        """ Compute the critic predictions and statistical variables, for a protomodel.
+    def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, 
+            mingap = 10*GeV, mingapISR = 1*GeV, keep_predictions : bool = True, 
+            keep_slhafile : bool = False ) -> bool:
+        """ Compute the critic predictions and statistical variables, 
+        for a protomodel. Exposes the model to _both_ critics!
 
         :param sigmacut: weight cut on the predict xsecs for theoryPredictions
-        :param keep_predictions: if True, then keep *all* predictions -- not just the one that make it into the combination, store them as
-                                 protomodel(self).predictions. Store the predictions for the critic in protomodel(self).critic_preds.
-        :param keep_slhafile: if True, then keep the temporary slha file, print out its name
+        :param keep_predictions: if True, then keep *all* predictions -- 
+        not just the one that make it into the combination, store them as
+        protomodel(self).predictions. Store the predictions for the critic in 
+        protomodel(self).critic_preds.
+        :param keep_slhafile: if True, then keep the temporary slha file, 
+        print out its name
 
         :returns: False, if the critic failed, true if passed
         """
@@ -312,9 +317,8 @@ class Critic ( LoggerBase ):
                 return False
             self.log(f"Model passed llhd-based critic with critic robs = {robsComb}.")
             return True
-        else:
-            self.info(f"Model failed llhd-based critic with critic robs = {robsComb}.")
-            return False
+        self.info(f"Model failed llhd-based critic with critic robs = {robsComb}.")
+        return False
 
 
     def merge_preds(self, pred_list_1, pred_list_2):
