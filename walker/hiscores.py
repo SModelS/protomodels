@@ -543,19 +543,14 @@ class Hiscores ( LoggerBase ):
             dictFile = self.pickleFile
         if dictFile.endswith(".cache"):
             dictFile = f"{dictFile[:-6]}.dict"
-        f=open(dictFile,"wt")
-        f.write("[\n")
-        f.close()
         if listofhiscores == None:
             listofhiscores = self.hiscores
-        for protomodel in listofhiscores:
+        Manipulator.writeDictionariesToFile ( dictFile, listofhiscores )
+        # for protomodel in listofhiscores:
 # ma = Manipulator ( protomodel, initTestStats = True )
 #            ma.writeDictFile ( outfile = dictFile, cleanOut=False,appendMode=True )
-            Manipulator.writeDictionaryToFile ( dictFile, protomodel,
-                                                appendMode=True )
-        f=open(dictFile,"at")
-        f.write("]\n")
-        f.close()
+        #    Manipulator.writeDictionaryToFile ( dictFile, protomodel,
+        #                                        appendMode=True )
 
     def writeListToPickle ( self, pickleFile : Union[None,str]=None,
             check : bool = True ):

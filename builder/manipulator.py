@@ -24,6 +24,29 @@ from os import PathLike
 import tempfile
 from scipy.stats import norm, lognorm, uniform
 
+def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
+    """ equivalent to json.dumps but tuples are allowed as keys.
+    """
+    sp = ' ' * (level * indent)
+    sp_next = ' ' * ((level + 1) * indent)
+
+    if isinstance(obj, dict):
+        if not obj:
+            return '{}'
+        items = []
+        for k, v in obj.items():
+            items.append(f"{sp_next}{repr(k)}: {py_dumps(v, indent, level + 1)}")
+        return '{\n' + ',\n'.join(items) + '\n' + sp + '}'
+
+    elif isinstance(obj, list):
+        if not obj:
+            return '[]'
+        items = [f"{sp_next}{py_dumps(i, indent, level + 1)}" for i in obj]
+        return '[\n' + ',\n'.join(items) + '\n' + sp + ']'
+
+    else:
+        return repr(obj)
+
 class Manipulator ( LoggerBase ):
     """ contains the protomodel manipulation algorithms. """
 
@@ -281,6 +304,25 @@ class Manipulator ( LoggerBase ):
         proto_dict['TL'] = self.M.TL
         
         return proto_dict
+
+    @classmethod
+    def writeDictionariesToFile ( cls, filename : os.PathLike,
+           objs : list ) -> bool:
+        """ class method, write the dictionaries d in a formatted manner to file
+        filename
+
+        :returns: True if worked
+        """
+        with open ( filename, "wt" ) as f:
+            f.write("[\n")
+            f.close()
+            for obj in obs:
+                d = py_dumps ( obj, level = 1 )
+                d = " "*4 + d
+                f.write ( f"{d}{comma}\n" )
+            f.write("]\n")
+            f.close()
+        return True
         
     @classmethod
     def writeDictionaryToFile ( cls, filename : os.PathLike,
@@ -293,28 +335,6 @@ class Manipulator ( LoggerBase ):
         :returns: dictionary that was written out
         """
 
-        def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
-            """ equivalent to json.dumps but tuples are allowed as keys.
-            """
-            sp = ' ' * (level * indent)
-            sp_next = ' ' * ((level + 1) * indent)
-
-            if isinstance(obj, dict):
-                if not obj:
-                    return '{}'
-                items = []
-                for k, v in obj.items():
-                    items.append(f"{sp_next}{repr(k)}: {py_dumps(v, indent, level + 1)}")
-                return '{\n' + ',\n'.join(items) + '\n' + sp + '}'
-
-            elif isinstance(obj, list):
-                if not obj:
-                    return '[]'
-                items = [f"{sp_next}{py_dumps(i, indent, level + 1)}" for i in obj]
-                return '[\n' + ',\n'.join(items) + '\n' + sp + ']'
-
-            else:
-                return repr(obj)
 
         mode,comma = "wt",""
         if appendMode:
