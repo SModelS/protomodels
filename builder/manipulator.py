@@ -373,6 +373,7 @@ class Manipulator ( LoggerBase ):
             D["codever"]=self.M.codeversion
             D["smodelsver"]=smodels.installation.version()
             D["dbver"]=self.M.dbversion
+            D["templateSLHA"]=self.M.templateName
         D["description"]=self.M.description
         if hasattr ( self.M, "ul_critic" ):
             D["ul_critic"]=self.M.ul_critic
@@ -508,6 +509,9 @@ class Manipulator ( LoggerBase ):
                 self.M.decays[mpid]={}
             for dpid,v in decays.items():
                 self.M.decays[mpid][dpid]=v
+        if "templateSLHA" in D:
+            self.M.templateName = D["templateSLHA"]
+            self.M.getParticleContent()
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
         #if "walkerid" in D:

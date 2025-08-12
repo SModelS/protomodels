@@ -52,12 +52,15 @@ class ProtoModel ( LoggerBase ):
         self.dbversion = dbversion ## keep track of the database version
         if templateSLHA.startswith ( "templates/" ):
             templateSLHA = templateSLHA.replace("templates/","")
-        self.templateSLHA = f"templates/{templateSLHA}"
-        self.templateSLHA = os.path.join ( os.path.dirname ( __file__ ), self.templateSLHA )
+        self.templateName = templateSLHA
         self.getParticleContent()
         self.computer = RefXSecComputer()
         self.codeversion = "2.0"
         self.initializeModel()
+
+    @property
+    def templateSLHA(self):
+        return os.path.join ( os.path.dirname ( __file__ ), "templates", self.templateName )
 
     def getParticleContent ( self ):
         """ for self.templateSLHA, get its particle content as a list.
@@ -492,7 +495,7 @@ class ProtoModel ( LoggerBase ):
             if "/mnt/hephy/" in self.templateSLHA:
                 trySLHA = self.templateSLHA.replace(f"{os.environ['CODEDIR']}/smodels-utils/protomodels/","./" )
                 if os.path.exists ( trySLHA ):
-                    self.templateSLHA = trySLHA
+                    self.templateName = trySLHA
                     return
 
     def writeSLHAFile ( self, outputSLHA : str ):
@@ -666,7 +669,7 @@ class ProtoModel ( LoggerBase ):
         newmodel.dbversion = self.dbversion
         newmodel.codeversion = self.codeversion
         newmodel.particles = self.particles[:]
-        newmodel.templateSLHA = self.templateSLHA[:]
+        newmodel.templateName = self.templateName[:]
         newmodel.possibledecays = dict([[key,val] for key,val in self.possibledecays.items()])
         decayDict = {}
         for pid,dec in self.decays.items():

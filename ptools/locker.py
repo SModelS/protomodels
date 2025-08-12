@@ -14,7 +14,7 @@ def signal_handler(sig, frame):
         cmd = "rm -f %s" % l
         subprocess.getoutput ( cmd )
         print ( cmd )
-    sys.exit(0)
+    import sys; sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
 
