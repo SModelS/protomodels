@@ -32,8 +32,8 @@ class ProtoModel ( LoggerBase ):
     SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
     #SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
 
-    def __init__ ( self, walkerid : Union[str,int] = 0, 
-            keep_meta : bool = True, dbversion : str = "????", 
+    def __init__ ( self, walkerid : Union[str,int] = 0,
+            keep_meta : bool = True, dbversion : str = "????",
             templateSLHA : os.PathLike = "template1g.slha"  ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
@@ -67,6 +67,7 @@ class ProtoModel ( LoggerBase ):
         save the content in self.particles """
         assert os.path.exists ( self.templateSLHA ), f"{self.templateSLHA} does not exist"
         particles = set()
+        mass_params = set()
         slha = ""
         with open ( self.templateSLHA, "rt" ) as f:
             lines = f.readlines()
@@ -81,8 +82,10 @@ class ProtoModel ( LoggerBase ):
         masses = f.blocks["MASS"]
         for pid,mass in masses.items():
             if type(mass) in [ str ] and mass.startswith("M"):
+                mass_params.add ( int ( mass.replace("M","") ) )
                 particles.add ( pid )
-        self.particles = list ( particles )
+        self.particles = list ( particles ) # thats the particles
+        self.mass_params = list ( mass_params ) # thats the mass parameters
 
     def initializeModel(self):
         """Use the template SLHA file to store possible decays and initialize the LSP"""
