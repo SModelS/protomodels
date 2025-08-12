@@ -575,7 +575,7 @@ class RandomWalker ( LoggerBase ):
             
             unfrozenParticle = self.manipulator.randomlyUnfreezeParticle()
             self.manipulator.run_mcmc = False
-            self.manipulator.proposal_density( move='add_par', force_unfreeze=True)
+            self.manipulator.proposal_density( move='add_par', force_move=True)
             self.manipulator.backupModel()
         
         
