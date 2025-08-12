@@ -643,7 +643,7 @@ class RandomWalker ( LoggerBase ):
         self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict")
 
 if __name__ == "__main__":
-    masses = {1000022: 46.514732, 1000023: 300 }
+    masses = {1000022: 46.514732, 1000023: 300, 1000024: 350 }
     
     ssms = {(1000022, 1000022): 0.191043, (1000023, 1000023): 0.204701, 
         (1000022, 1000023): 0.0, (1000024, 1000024): 1.829998, 
