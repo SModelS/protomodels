@@ -62,6 +62,8 @@ class Hiscores ( LoggerBase ):
             d = py_dumps ( obj, level = 1 )
             d = " "*4 + d
             ds.append ( d )
+        from ptools.locker import lock, unlock
+        lock ( filename )
         with open ( filename, "wt" ) as f:
             f.write("[\n")
             first = True
@@ -72,6 +74,7 @@ class Hiscores ( LoggerBase ):
                 first = False
             f.write("\n]\n")
             f.close()
+        unlock ( filename )
         return True
         
     def currentMinTL ( self ):
