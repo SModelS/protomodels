@@ -32,12 +32,16 @@ class ProtoModel ( LoggerBase ):
     SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
     #SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
 
-    def __init__ ( self, walkerid : Union[str,int] = 0, keep_meta : bool = True, dbversion : str = "????" ):
+    def __init__ ( self, walkerid : Union[str,int] = 0, 
+            keep_meta : bool = True, dbversion : str = "????", 
+            templateSLHA : os.PathLike = "template1g.slha"  ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
-                          this a heavyweight object)
+        this a heavyweight object)
         :param walkerid: id of current walker
         :param dbversion: the version of the database, to track provenance
+        :param templateSLHA: which slha file to use as template, as they
+        appear in the builder/templates/ folder
         """
         super(ProtoModel,self).__init__ ( walkerid )
         self.walkerid = walkerid
@@ -46,40 +50,36 @@ class ProtoModel ( LoggerBase ):
         self.maxMass = 2400. ## maximum masses we consider
         self.step = 0 ## count the steps
         self.dbversion = dbversion ## keep track of the database version
-        self.particles = [ 1000001, 2000001, 1000002, 2000002, 1000003, 2000003,
-                  1000004, 2000004, 1000005, 2000005, 1000006, 2000006, 1000011,
-                  2000011, 1000012, 1000013, 2000013, 1000014, 1000015, 2000015,
-                  1000016, 1000021, 1000022, 1000023, 1000025, 1000035, 1000024,
-                  1000037 ]
-        self.onesquark = False ## only one light squark
-        self.twosquark = False ## a few squarks, but not all
-        self.manysquark = True ## many squarks
-        if self.onesquark:
-            self.particles = [ 1000001, 1000005, 1000006, 1000011, 1000012,
-                      1000013, 1000014, 1000015,  1000016, 1000021, 1000022,
-                      1000023, 1000025, 1000024, 1000037 ]
-            self.templateSLHA = "templates/template_1q.slha"
-        if self.twosquark:
-            self.particles = [ 1000001, 1000002, 1000004, 1000005, 1000006, 1000011,
-                      1000012, 1000013, 1000014, 1000015, 1000016, 1000021, 1000022,
-                      1000023, 1000025, 1000024, 1000037 ]
-            self.templateSLHA = "templates/template_2q.slha"
-        if self.manysquark:
-            self.particles = [ 1000001, 1000002, 1000003, 1000004, 1000005, 1000006,
-                      2000005, 2000006, 1000011, 1000012, 1000013, 1000014, 1000015,
-                      1000016, 1000021, 1000022, 1000023, 1000025, 1000024, 1000037 ]
-            # self.particles.append ( 35 ) ## for the new scalar
-            # self.particles.append ( 55 ) ## for the new vector boson
-            self.templateSLHA = "templates/template1g.slha"
-            if False:
-                self.particles.append ( 2000021 )
-                self.particles.append ( 3000006 )
-                self.templateSLHA = "templates/template2g.slha"
-            # self.templateSLHA = "templates/template_many.slha"
+        if templateSLHA.startswith ( "templates/" ):
+            templateSLHA = templateSLHA.replace("templates/","")
+        self.templateSLHA = f"templates/{templateSLHA}"
         self.templateSLHA = os.path.join ( os.path.dirname ( __file__ ), self.templateSLHA )
+        self.getParticleContent()
         self.computer = RefXSecComputer()
         self.codeversion = "2.0"
         self.initializeModel()
+
+    def getParticleContent ( self ):
+        """ for self.templateSLHA, get its particle content as a list.
+        save the content in self.particles """
+        assert os.path.exists ( self.templateSLHA ), f"{self.templateSLHA} does not exist"
+        particles = set()
+        slha = ""
+        with open ( self.templateSLHA, "rt" ) as f:
+            lines = f.readlines()
+            for line in lines:
+                # stop at the decays
+                if line.startswith ( "DECAY" ):
+                    break
+                slha += line
+        # print ( "slha", slha )
+        import pyslha
+        f = pyslha.readSLHA ( slha )
+        masses = f.blocks["MASS"]
+        for pid,mass in masses.items():
+            if type(mass) in [ str ] and mass.startswith("M"):
+                particles.add ( pid )
+        self.particles = list ( particles )
 
     def initializeModel(self):
         """Use the template SLHA file to store possible decays and initialize the LSP"""
@@ -666,9 +666,6 @@ class ProtoModel ( LoggerBase ):
         newmodel.dbversion = self.dbversion
         newmodel.codeversion = self.codeversion
         newmodel.particles = self.particles[:]
-        newmodel.onesquark = self.onesquark ## only one light squark
-        newmodel.twosquark = self.twosquark  ## a few squarks, but not all
-        newmodel.manysquark = self.manysquark ## many squarks
         newmodel.templateSLHA = self.templateSLHA[:]
         newmodel.possibledecays = dict([[key,val] for key,val in self.possibledecays.items()])
         decayDict = {}
