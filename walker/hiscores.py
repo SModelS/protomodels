@@ -14,6 +14,7 @@ from builder.manipulator import Manipulator
 from tester.combiner import Combiner
 from ptools import helpers
 from ptools import sparticleNames
+from ptools.helpers import py_dumps
 from typing import Union
 from os import PathLike
 from base.loggerbase import LoggerBase
@@ -48,6 +49,31 @@ class Hiscores ( LoggerBase ):
             self.hiscores = hiscores
             self.mtime = time.time()
 
+    @classmethod
+    def writeDictionariesToFile ( cls, filename : os.PathLike,
+           objs : list ) -> bool:
+        """ class method, write the dictionaries objs in a 
+        formatted manner to file filename
+
+        :returns: True if worked
+        """
+        ds = []
+        for obj in objs:
+            d = py_dumps ( obj, level = 1 )
+            d = " "*4 + d
+            ds.append ( d )
+        with open ( filename, "wt" ) as f:
+            f.write("[\n")
+            first = True
+            for d in ds:
+                if not first:
+                    f.write ( ",\n" )
+                f.write ( f"{d}" )
+                first = False
+            f.write("\n]\n")
+            f.close()
+        return True
+        
     def currentMinTL ( self ):
         """ the current minimum TL to make it into the list. """
         if self.hiscores[-1] == None:
@@ -545,7 +571,7 @@ class Hiscores ( LoggerBase ):
             dictFile = f"{dictFile[:-6]}.dict"
         if listofhiscores == None:
             listofhiscores = self.hiscores
-        Manipulator.writeDictionariesToFile ( dictFile, listofhiscores )
+        self.writeDictionariesToFile ( dictFile, listofhiscores )
         # for protomodel in listofhiscores:
 # ma = Manipulator ( protomodel, initTestStats = True )
 #            ma.writeDictFile ( outfile = dictFile, cleanOut=False,appendMode=True )

@@ -16,11 +16,14 @@ from smodels.matching.theoryPrediction import TheoryPrediction
 import scipy.stats
 from os import PathLike
 from typing import Union, Set
-#from base.loggerbase import LoggerBase
 import numpy as np
 
 def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
-    """ equivalent to json.dumps but tuples are allowed as keys.
+    """ equivalent to json.dumps (ie it pretty prints a given nested structure)  
+    but tuples are allowed as keys.
+
+    :param indent: number of spaces used for an indentation
+    :param level: how many indentations are we in?
     """
     sp = ' ' * (level * indent)
     sp_next = ' ' * ((level + 1) * indent)
@@ -39,9 +42,7 @@ def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
         items = [f"{sp_next}{py_dumps(i, indent, level + 1)}" for i in obj]
         return '[\n' + ',\n'.join(items) + '\n' + sp + ']'
 
-    else:
-        return repr(obj)
-
+    return repr(obj)
 
 def mkdir ( dirname : os.PathLike ):
     """ make a directory, gracefully """

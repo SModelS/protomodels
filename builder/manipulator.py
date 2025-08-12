@@ -283,31 +283,6 @@ class Manipulator ( LoggerBase ):
         return proto_dict
 
     @classmethod
-    def writeDictionariesToFile ( cls, filename : os.PathLike,
-           objs : list ) -> bool:
-        """ class method, write the dictionaries d in a formatted manner to file
-        filename
-
-        :returns: True if worked
-        """
-        ds = []
-        for obj in objs:
-            d = py_dumps ( obj, level = 1 )
-            d = " "*4 + d
-            ds.append ( d )
-        with open ( filename, "wt" ) as f:
-            f.write("[\n")
-            first = True
-            for d in ds:
-                if not first:
-                    f.write ( ",\n" )
-                f.write ( f"{d}" )
-                first = False
-            f.write("\n]\n")
-            f.close()
-        return True
-        
-    @classmethod
     def writeDictionaryToFile ( cls, filename : os.PathLike,
            obj : dict, appendMode : bool = False ) -> dict:
         """ class method, write the dictionary d in a formatted manner to file
