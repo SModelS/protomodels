@@ -44,15 +44,6 @@ except ImportError as e:
 
 logger.setLevel("ERROR")
 
-"""
-def __cleanDirectory ():
-    ## is this used?
-    subprocess.getoutput ( "mkdir -p tmp" )
-    subprocess.getoutput ( "mv .cur*slha tmp/" )
-    subprocess.getoutput ( "mv walker*.log tmp/" )
-    subprocess.getoutput ( "mv exceptions.log tmp/" )
-"""
-
 class RandomWalker ( LoggerBase ):
     def __init__ ( self, walkerid : Union[str,int] = 0, nsteps : int = 10000,
             strategy : str = "aggressive",
@@ -61,7 +52,8 @@ class RandomWalker ( LoggerBase ):
             catch_exceptions : bool = True, rundir : Union[PathLike,None] = None,
             do_srcombine : bool = False, test_param_space = False, run_mcmc = False,
             record_history : bool = False, seed : Union[int,None] = None,
-            stopTeleportationAfter : int = -1 ):
+            stopTeleportationAfter : int = -1,
+            templateSLHA : os.PathLike = "template1g.slha" ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 or "no_cheat" is no cheating, else
@@ -79,6 +71,7 @@ class RandomWalker ( LoggerBase ):
         :param seed: random seed, int or None
         :param stopTeleportationAfter: int or None. we stop teleportation after
                 this step nr.  If negative or None, we dont teleport at all
+        :param templateSLHA: the template file that is used
         """
 
         #call the super class of the random walker i.e Loggerbase
@@ -88,6 +81,7 @@ class RandomWalker ( LoggerBase ):
             self.pprint ( f"Wrong call of constructor: {walkerid}, {nsteps}, {strategy}" )
             sys.exit(-2)
         self.walkerid = walkerid ## walker id, for parallel runs
+        self.templateSLHA = templateSLHA
         self.rundir = rundir
         if rundir == None:
             self.rundir = "./"
@@ -114,7 +108,8 @@ class RandomWalker ( LoggerBase ):
 
         #Initialize ProtoModel and Manipulator:
         protomodel = ProtoModel( self.walkerid, keep_meta = True,
-                dbversion = self.predictor.database.databaseVersion )
+                dbversion = self.predictor.database.databaseVersion,
+                templateSLHA = templateSLHA )
 
         self.manipulator = Manipulator ( protomodel, strategy,
                         do_record = record_history, seed = self.random_seed )

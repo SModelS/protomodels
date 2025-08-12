@@ -91,7 +91,8 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
           catch_exceptions : bool = True, select : str = "all",
           do_srcombine : bool = False, record_history : bool = False, 
           update_hiscores : bool = False, stopTeleportationAfter : int = -1,
-          forbiddenparticles : List[int|str] = [] ):
+          forbiddenparticles : List[int|str] = [],
+          templateSLHA : os.PathLike = "template1g.slha" ):
     """ a worker node to set up to run walkers
 
     :param nmin: the walker id of the first walker
@@ -118,9 +119,10 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
     been reached. -1 or None means, dont run teleportation at all.
     :param forbiddenparticles: an optional list of particles we wont touch in this
     run
+    :param templateSLHA: the template file that is used
     """
     meta = { "dbpath": dbpath, "select": select, "do_srcombine": do_srcombine,
-             "forbidden": forbiddenparticles }
+             "forbidden": forbiddenparticles, "templateSLHA": templateSLHA  }
     from builder.manipulator import Manipulator
     from ptools.moreHelpers import namesForSetsOfPids
     Manipulator.forbiddenparticles = namesForSetsOfPids ( forbiddenparticles )
