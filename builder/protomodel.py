@@ -112,7 +112,8 @@ class ProtoModel ( LoggerBase ):
         ## Inititiaze LSP
         self.masses[ProtoModel.LSP] = float(np.random.uniform(100,500))
         self.decays[ProtoModel.LSP]= {}
-        pids = [(self.LSP,self.LSP)]                   #No (LSP,LSP) pair production
+        #pids = [(self.LSP,self.LSP)]                   #No (LSP,LSP) pair production
+        pids = []
         if self.hasAntiParticle(self.LSP):
             pids += [(self.LSP,-self.LSP),(-self.LSP,-self.LSP)]
         for pidpair in pids:
