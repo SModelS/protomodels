@@ -64,11 +64,18 @@ class RefXSecComputer:
                 ( 1000021, 2000005 ), ( 1000006, 1000021 ), ( 1000021, 2000006),
                 ( -1000012, 1000011), ( -1000014, 1000013), (-1000016, 1000015),
                 ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016),             #removing charge for charginos in chargino-neutralino prod as doesnt matter
-                ( 1000022, 1000023 ), ( 1000022, 1000024 ),                                     #( -1000024, 1000022),
-                ( 1000023, 1000024 ), ( 1000023, 1000025 ),                                     #( -1000024, 1000023 ),
-                ( 1000023, 1000037 ), ( 1000024, 1000025 ), ( -1000024, 1000037 ),
-                ( -1000037, 1000024 ), ( 1000025, 1000037 ) )                                    #, ( -1000037, 1000023 ),
+                ( 1000022, 1000023 ), ( 1000023, 1000025 ),
+                # ( 1000022, 1000024 ),                                     #( -1000024, 1000022),
+                # ( 1000023, 1000024 ),  #( -1000024, 1000023 ),
+                #( 1000023, 1000037 ), ( 1000024, 1000025 ), ( -1000024, 1000037 ),
+                #( -1000037, 1000024 ), ( 1000025, 1000037 ) )                                    #, ( -1000037, 1000023 ),
                                                                                                     #( -1000024, 1000025 ), ( -1000037, 1000025 )
+
+        ## these are productions where we explicitly disallow the negative sign versions,
+        ## e.g. C1+,N2 ## this is based on the assumption that our database of chargino results
+        ## is entirely charge symmetrical!! this might change with e.g. protomodels v3
+        self.associatesamesignproduction = ( ( 1000022, 1000024 ), ( 1000023, 1000024 ), ( 1000024, 1000025 ), 
+                                             ( 1000022, 1000037 ), ( 1000023, 1000037 ), ( 1000025, 1000037 ) )
                  
         # self.schannel = ( 35, 55, )
         self.schannel = tuple()
@@ -536,7 +543,8 @@ class RefXSecComputer:
                     channels.append ( { "pids": (pid,-jpid), "masses": (mass, jmass ) } )
                 if -jpid < pid and (-jpid,pid) in self.associateproduction:
                     channels.append ( { "pids": (-jpid,pid), "masses": (jmass, mass ) } )
-
+                if (abs(pid),abs(jpid)) in self.associatesamesignproduction:
+                    channels.append ( { "pids": (abs(pid),abs(jpid)), "masses": (mass, jmass ) } )
 
         if len(channels)==0:
             print ( f"[refxsecComputer] found no open channels for {slhafile}" )
