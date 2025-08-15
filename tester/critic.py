@@ -152,11 +152,11 @@ class Critic ( LoggerBase ):
         for tp in tpList[:3]:
             rtype = tp['tp'].dataType(short=True)
             # robs = f"{tp['robs']:.2f}"
-            robs = np.round ( tp['robs'], 3 )
+            robs = float ( np.round ( tp['robs'], 3 ) )
             rexp = None
             if tp['rexp'] is not None:
                 # rexp = f"{tp['rexp']:.2f}"
-                rexp = np.round ( tp['rexp'], 3 )
+                rexp = float ( np.round ( tp['rexp'], 3 ) )
             tmp = {f'{tp["tp"].analysisId()}({rtype})': {'robs': robs, 'rexp': rexp}}
             critic_description.update(tmp)
         if len(tpList)>3:
