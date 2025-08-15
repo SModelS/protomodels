@@ -1273,7 +1273,10 @@ class Manipulator ( LoggerBase ):
                     for dpid in decay_chan:
                         self.record ( f"Removed decay {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} with br {oldbr:.2f}." )
                         self.log ( f"Removed decay {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} with br {oldbr:.2f}." )
-                        protomodel.decays[pid].pop(dpid)
+                        if dpid in protomodel.decays[pid]:
+                            protomodel.decays[pid].pop(dpid)
+                        else:
+                            self.debug ( f"{dpid} not in protomodel.decays[{pid}]{protomodel.decays[pid]}, decay_keys are {protomodel.decay_keys[pid]}" )
                     continue
 
                 #Randomly change BR around old value
