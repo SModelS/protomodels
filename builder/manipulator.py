@@ -816,7 +816,7 @@ class Manipulator ( LoggerBase ):
         
         return True
 
-    def initSSMFor(self, pid, protomodel=None, ssmSigma=1.0):
+    def initSSMFor(self, pid, protomodel=None, ssmSigma=1.0, cap_ssm=100.):
         """ Initialize SSM multipliers (for pair production of particle/anti-particle):
             new ssm = lognorm.rvs(1.0, ssmSigma)
         """
@@ -835,7 +835,7 @@ class Manipulator ( LoggerBase ):
             if abs(ppair[0]) in unfrozen and abs(ppair[1]) in unfrozen:
                 if abs(ppair[0]) == pid or abs(ppair[1]) == pid:
                     ssm = float(lognorm.rvs(s = ssmSigma, scale = 1.0))   #center ssm around 1.0, better to have log scale
-                    if ssm > 100.: ssm = 100.
+                    if ssm > cap_ssm: ssm = cap_ssm
                     protomodel.ssmultipliers[ppair] = ssm
             
 
@@ -893,7 +893,7 @@ class Manipulator ( LoggerBase ):
             UL=f"{tp[2].upperLimit.asNumber(fb):1.2g}*fb"
             print( f'     - r={tp[2].getRValue():1.2f} {anaId} [{txns}] pred={tp[2].xsection.value.asNumber(fb):1.2g}*fb, UL={UL}{eUL}' )
 
-    def rescaleSignalBy ( self, s : float ):
+    def rescaleSignalBy ( self, s : float, cap_ssm=100. ):
         """ multiply the signal strength multipliers with s """
 
         if s == 0.:
@@ -901,12 +901,13 @@ class Manipulator ( LoggerBase ):
             return
         if abs ( s - 1.0 ) < 1e-5:
             return
+        if s > cap_ssm: s = cap_ssm                                 #Do not rescale ssms by more than 100 (?)
         self.log ( f"rescaling signal by muhat of {s:.2f}" )
         self.M.rvalues = [r*s for r in self.M.rvalues[:]]
         self.M.muhat *= 1./s
         if self.M.mumax: self.M.mumax*= 1./s
         excl_prod_modes = self.getSSMsNotInBestCombo()
-        self.M.rescaleXSecsBy(s, excl=excl_prod_modes)
+        self.M.rescaleXSecsBy(s, excl=excl_prod_modes, cap_ssm=cap_ssm)
 
         if hasattr(self.M,'ul_critic_tpList') and self.M.ul_critic_tpList is not None:
             for i,tp in enumerate(self.M.ul_critic_tpList[:]):
@@ -1033,7 +1034,7 @@ class Manipulator ( LoggerBase ):
     def randomlyChangeModel(self,force_move : bool = False, probBR : float = 0.2,
             probSS : float = 0.25, probSSingle : float = 0.8, ssmSigma : float = 1.0,
             probMerge : float = 0.05, sigmaFreeze : float = 0.5,
-            probMassive : float = 0.3, probMass : float = 0.05, run_mcmc= False):
+            probMassive : float = 0.3, probMass : float = 0.05, run_mcmc= False, cap_ssm=100):
         """Randomly modify the proto-model following the steps:
 
         1) A random particle can be unfrozen with a probability
@@ -1064,7 +1065,7 @@ class Manipulator ( LoggerBase ):
             #do we want to not freeze particles? -> not freezing if less than or equal to 3 particles
         
         if not self.run_mcmc:
-            recentlyUnfrozen = self.randomlyUnfreezeParticle()
+            recentlyUnfrozen = self.randomlyUnfreezeParticle(cap_ssm=cap_ssm)
             if recentlyUnfrozen:
                 accept_move = self.proposal_density(move='add_par', force_move=force_move)
                 if accept_move:
@@ -1093,7 +1094,7 @@ class Manipulator ( LoggerBase ):
                     self.log("Accept changes in branchings")
                 else: self.log(f"Reject changing branchings")
             
-            changes = self.randomlyChangeSignalStrengths(protomodel=self.propose_model, prob = probSS, probSingle = probSSingle, ssmSigma = ssmSigma)
+            changes = self.randomlyChangeSignalStrengths(protomodel=self.propose_model, prob = probSS, probSingle = probSSingle, ssmSigma = ssmSigma, cap_ssm=cap_ssm)
             if changes > 0:
                 accept_move = self.proposal_density(move='ssm', force_move=force_move)
                 if accept_move:
@@ -1125,7 +1126,7 @@ class Manipulator ( LoggerBase ):
         #Update cross-sections (if needed)
         self.M.getXsecs()
 
-    def randomlyUnfreezeParticle ( self ) -> int:
+    def randomlyUnfreezeParticle ( self, cap_ssm=100. ) -> int:
         """ Unfreezes a (random) frozen particle according to gaussian distribution
             with a width of <sigma>.
 
@@ -1162,7 +1163,7 @@ class Manipulator ( LoggerBase ):
 
         self.log ( f"Propose unfreezing pid: {pid}({self.namer.asciiName(pid)})" )
         #print(f"Propose unfreezing {self.namer.asciiName(pid)}" )
-        return self.unFreezeParticle(pid, protomodel = self.propose_model)
+        return self.unFreezeParticle(pid, protomodel = self.propose_model, cap_ssm=cap_ssm)
 
     def randomlyChangeBranchings ( self, protomodel = None, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05, addBRprob = 0.1 ):
         """ randomly change the branchings of a single particle
@@ -1322,7 +1323,7 @@ class Manipulator ( LoggerBase ):
         #print(f"Prob to add {self.proposal_ratio['br']['add']}")
         return 1
 
-    def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25, probSingle : float =0.8, ssmSigma=1.0 ) -> int:
+    def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25, probSingle : float =0.8, ssmSigma=1.0, cap_ssm=100. ) -> int:
         """ randomly change one of the signal strengths according to a gaussian
         distribution centered around the original SSM.
 
@@ -1342,7 +1343,7 @@ class Manipulator ( LoggerBase ):
             protmodel = self.M
             
         if np.random.uniform(0,1) < probSingle:
-            return self.randomlyChangeSSOfOneParticle(protomodel = protomodel,ssmSigma=ssmSigma)
+            return self.randomlyChangeSSOfOneParticle(protomodel = protomodel,ssmSigma=ssmSigma, cap_ssm=cap_ssm)
         
         unfrozenparticles = self.M.unFrozenParticles( withLSP=False )
         if len(unfrozenparticles)<2:
@@ -1403,7 +1404,7 @@ class Manipulator ( LoggerBase ):
         newSSM = 1.0
         if not pair in protomodel.ssmultipliers:
             newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0)) #center ssm around 1.0, better to have log scale
-            if newSSM > 100.: newSSM = 100.
+            if newSSM > cap_ssm: newSSM = cap_ssm
             protomodel.ssmultipliers[pair] = newSSM
             #get proposal ratio
             #proposal ratio for add ssm = p(i+1 -> i)/ p(i->i+1) = p(rem)/p(add)
@@ -1416,14 +1417,14 @@ class Manipulator ( LoggerBase ):
             self.log( f"Add new prod mode {self.namer.texName(pair,addDollars=True)} with ssm {newSSM}" )
         else:
             newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
-            if newSSM > 100.: newSSM = 100.
+            if newSSM > cap_ssm: newSSM = cap_ssm
             protomodel.ssmultipliers[pair] = newSSM
             #self.changeSSM(pair,newSSM)
             self.log ( f"Changing signal strength multiplier of {self.namer.asciiName(pair[0])},{self.namer.asciiName(pair[1])}: {newSSM:.2f}." )
             self.record ( f"change ssm of {self.namer.texName(pair[0])},{self.namer.texName(pair[1])} to {newSSM:.2f}." )
         return 1
 
-    def randomlyChangeSSOfOneParticle ( self, pid = None, protomodel=None, ssmSigma=1.0 ):
+    def randomlyChangeSSOfOneParticle ( self, pid = None, protomodel=None, ssmSigma=1.0, cap_ssm=100. ):
         """ randomly change the SS's consistently for one pid
         :param pid: change for this pid. If None, change of a random pid.
         """
@@ -1443,7 +1444,7 @@ class Manipulator ( LoggerBase ):
         for dpd,v in protomodel.ssmultipliers.items():
             if p in dpd or -p in dpd:
                 newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
-                if newSSM > 100.: newSSM = 100.
+                if newSSM > cap_ssm: newSSM = cap_ssm
                 protomodel.ssmultipliers[dpd]= newSSM
                 #self.changeSSM ( dpd, newssm )
                 ssms.append ( newSSM )
@@ -1458,7 +1459,7 @@ class Manipulator ( LoggerBase ):
         return pids in self.M.ssmultipliers.keys()
 
     def changeSSM ( self, pids : Tuple, newssm, recursive : bool = True,
-                    verbose : bool = True ):
+                    verbose : bool = True, cap_ssm=100. ):
         """ change the signal strength multiplier of pids to newssm,
             if we have stored xsecs, we correct them, also
 
@@ -1481,8 +1482,8 @@ class Manipulator ( LoggerBase ):
             self.highlight ( "warn", f"when changing SSMs, cannot find {str(pids)}. not changing anything." )
             return
         oldssm = self.M.ssmultipliers[pids]
-        if newssm > 100.:
-            newssm = 100.
+        if newssm > cap_ssm:
+            newssm = cap_ssm
         if verbose:
             self.record ( f"change ssm of {self.namer.texName(pids,addDollars=True)} to {newssm:.2f}" )
         self.M.ssmultipliers[pids]=newssm
@@ -1611,7 +1612,7 @@ class Manipulator ( LoggerBase ):
         self.removeIllegalBRs(rescaleSSMs=True, protomodel=protomodel)
         return pid
 
-    def unFreezeParticle (self, pid : int, force : bool = False, protomodel = None):
+    def unFreezeParticle (self, pid : int, force : bool = False, protomodel = None, cap_ssm=100.):
         """ unfreeze particle pid, assign masses, BRs and signal strength
         multipliers.
 
@@ -1713,7 +1714,7 @@ class Manipulator ( LoggerBase ):
         
         #Add pid pair production and associated production to protomodel.ssmultipliers:
         self.log(f"Initializing Production Modes for {pid}")
-        self.initSSMFor(pid, protomodel=protomodel)
+        self.initSSMFor(pid, protomodel=protomodel, cap_ssm=cap_ssm)
 
         return pid
 

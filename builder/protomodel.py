@@ -112,7 +112,8 @@ class ProtoModel ( LoggerBase ):
         ## Inititiaze LSP
         self.masses[ProtoModel.LSP] = float(np.random.uniform(100,500))
         self.decays[ProtoModel.LSP]= {}
-        pids = [(self.LSP,self.LSP)]                   #No (LSP,LSP) pair production
+        #pids = [(self.LSP,self.LSP)]                   #No (LSP,LSP) pair production
+        pids = []
         if self.hasAntiParticle(self.LSP):
             pids += [(self.LSP,-self.LSP),(-self.LSP,-self.LSP)]
         for pidpair in pids:
@@ -460,20 +461,29 @@ class ProtoModel ( LoggerBase ):
         if keep_slha:
             self.createSLHAFile( self.currentSLHA, addXsecs = True )
 
-    def rescaleXSecsBy(self, s : float, excl : list = []):
+    def rescaleXSecsBy(self, s : float, excl : list = [], cap_ssm = 100):
         """
         Rescale the stored cross-sections by a factor s
         :param excl: do not rescale xsecs/ssms of the prod modes in the list
         """
-
+        #
+        #if s > 100: return
+        
         #Before rescaling, make sure we get the latest cross-sections:
         x = self.getXsecs()
         xsecs = x[0]
         comment = x[1]
-        for xsec in xsecs:
-            if xsec.pid not in excl: xsec.value *= s
+        force_ssm = {}
         for k,v in self.ssmultipliers.items():
-            if k not in excl: self.ssmultipliers[k] = v * s
+            if k not in excl:
+                if v*s > cap_ssm:
+                    force_ssm.update({k:v})
+                    self.ssmultipliers[k] = cap_ssm       #do not let ssm > 100(?)
+                else: self.ssmultipliers[k] = v * s
+        for xsec in xsecs:
+            if xsec.pid not in excl:
+                if xsec.pid in force_ssm.keys(): xsec.value *= cap_ssm/force_ssm[xsec.pid]
+                else: xsec.value *= s
         self._stored_xsecs = (xsecs,comment)
         self._xsecSSMs = dict([[pid,ssm] for pid,ssm in self.ssmultipliers.items()])
 

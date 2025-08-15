@@ -87,7 +87,7 @@ def writeMetaInfo ( rundir : str, meta : Dict ):
 def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
           dbpath : PathLike = "official", cheatcode : Union[int,str] = "no_cheat", 
           rundir : Union[None,str] = None, maxsteps : int = 10000,
-          seed : Union[None,int] = None, test_param_space = False, run_mcmc=False,
+          seed : Union[None,int] = None, test_param_space = False, run_mcmc=False, cap_ssm=100.,
           catch_exceptions : bool = True, select : str = "all",
           do_srcombine : bool = False, record_history : bool = False, 
           update_hiscores : bool = False, stopTeleportationAfter : int = -1,
@@ -109,7 +109,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
     maps only, ul for upper limits only, alternatively select for txnames via
     e.g. "txnames:T1,T2", short names are recognized, e.g.
     "txnames:electroweakinos_offshell,T1"
-
+    :param cap_ssm: set the maximum value for all signal strength multipliers (default=100)
     :param do_srcombine: if true, then also perform combinations, either via
                        simplified likelihoods or via pyhf
     :param record_history: if True, then use history recorders
@@ -161,7 +161,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             hostname = socket.gethostname().replace(".cbe.vbc.ac.at","")
             print ( f"[factoryOfWalkers:{hostname};{time.strftime('%H:%M:%S')}] starting {i} @ {rundir} with cheatcode {cheatcode}" )
             w = RandomWalker( walkerid=i, nsteps = maxsteps,
-                              dbpath=dbpath, cheatcode=cheatcode, select=select,
+                              dbpath=dbpath, cheatcode=cheatcode, select=select, cap_ssm=cap_ssm,
                               rundir=rundir, do_srcombine = do_srcombine, test_param_space = test_param_space, run_mcmc=run_mcmc,
                               record_history=record_history, seed=seed,
                               stopTeleportationAfter = stopTeleportationAfter )
@@ -172,7 +172,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             print ( f"[factoryOfWalkers] fromModel {i}: loading {ctr}/{nstates}" )
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
                     walkerid = i, nsteps = maxsteps,
-                    expected = False, select = select, dbpath = dbpath,
+                    expected = False, select = select, dbpath = dbpath,cap_ssm=cap_ssm,
                     rundir = rundir, do_srcombine = do_srcombine, test_param_space = test_param_space,run_mcmc=run_mcmc,
                     seed = seed,stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )
@@ -182,7 +182,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             print ( f"[factoryOfWalkers] fromDict {i}: loading {ctr}/{nstates}" )
             w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
                     strategy = "aggressive", walkerid = i, dbpath = dbpath, 
-                    expected = False, select = select, rundir = rundir, 
+                    expected = False, select = select, rundir = rundir, cap_ssm=cap_ssm,
                     do_srcombine = do_srcombine, test_param_space = test_param_space,run_mcmc=run_mcmc,
                     seed = seed, stopTeleportationAfter = stopTeleportationAfter )
             walkers.append ( w )

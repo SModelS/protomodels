@@ -48,7 +48,7 @@ class RandomWalker ( LoggerBase ):
     def __init__ ( self, walkerid : Union[str,int] = 0, nsteps : int = 10000,
             strategy : str = "aggressive",
             cheatcode : Union[str,int] = "no_cheat", dbpath : PathLike = "./database.pcl",
-            expected : bool = False, select : str = "all",
+            expected : bool = False, select : str = "all", cap_ssm = 100,
             catch_exceptions : bool = True, rundir : Union[PathLike,None] = None,
             do_srcombine : bool = False, test_param_space = False, run_mcmc = False,
             record_history : bool = False, seed : Union[int,None] = None,
@@ -62,6 +62,7 @@ class RandomWalker ( LoggerBase ):
         :param select: select only subset of results (all for all, em for
                 efficiency maps only, ul for upper limits only, alternatively
                 select for txnames via e.g. "txnames:T1,T2"
+        :param cap_ssm: set the maximum value for all signal strength multipliers (default=100)
         :param catch_exceptions: should we catch exceptions
         :param do_srcombine: if true, then also perform combinations, either via
                            simplified likelihoods or via pyhf
@@ -83,6 +84,7 @@ class RandomWalker ( LoggerBase ):
         self.walkerid = walkerid ## walker id, for parallel runs
         self.templateSLHA = templateSLHA
         self.rundir = rundir
+        self.cap_ssm = cap_ssm
         if rundir == None:
             self.rundir = "./"
         self.random_seed = np.random.seed()
@@ -293,7 +295,7 @@ class RandomWalker ( LoggerBase ):
                     break
                 previousMuhat = model.muhat
                 if model.muhat == 0.0: break
-                manipulator.rescaleSignalBy(model.muhat) #?
+                manipulator.rescaleSignalBy(model.muhat, cap_ssm = self.cap_ssm) #?
             else:
                 break # Rescale signal by a significant number?
 
@@ -332,7 +334,7 @@ class RandomWalker ( LoggerBase ):
 
         #Take a step in the model space:
         self.log("Randomly change model")
-        self.manipulator.randomlyChangeModel(run_mcmc = self.run_mcmc)
+        self.manipulator.randomlyChangeModel(run_mcmc = self.run_mcmc, cap_ssm = self.cap_ssm)
         self.manipulator.reassignPID()
         # self.printStats( substep=13 )
 
