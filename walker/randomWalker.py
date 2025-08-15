@@ -517,7 +517,8 @@ class RandomWalker ( LoggerBase ):
         if acceptance_ratio > 1:
             self.highlight ( "info", f"Acceptance ratio > 1.0. K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )
 
-            if self.critic.predict_critic(self.protomodel, keep_predictions=True):
+            cr, _ = self.critic.predict_critic(self.protomodel, keep_predictions=True):
+            if cr:
                 self.highlight ( "info", "Passed both critics, taking the step." )
                 proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=True)
                 self.log(f"Protomodel: {proto_dict}")
@@ -544,7 +545,8 @@ class RandomWalker ( LoggerBase ):
             else:
                 self.highlight ( "info", f"u={u:.2f} <= {acceptance_ratio:.2f};K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )   #SN: <+ and not > right?
 
-                if self.critic.predict_critic(self.protomodel, keep_predictions=True):
+                cr, _ = self.critic.predict_critic(self.protomodel, keep_predictions=True):
+                if cr:
                     self.log ( "Passed both critics, taking the step." )
                     proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=True)
                     self.log(f"Protomodel: {proto_dict}")

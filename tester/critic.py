@@ -19,7 +19,7 @@ from smodels.experiment.databaseObj import Database
 from smodels.base.model import Model
 from smodels.base.exceptions import SModelSBaseError as SModelSError
 from os import PathLike
-from typing import List, Union
+from typing import List, Union, Text, Tuple
 #from smodels.base.smodelsLogging import logger
 from base.loggerbase import LoggerBase
 from tester.combiner import Combiner
@@ -258,7 +258,7 @@ class Critic ( LoggerBase ):
 
     def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, 
             mingap = 10*GeV, mingapISR = 1*GeV, keep_predictions : bool = True, 
-            keep_slhafile : bool = False ) -> bool:
+            keep_slhafile : bool = False ) -> Tuple[bool,Text]:
         """ Compute the critic predictions and statistical variables, 
         for a protomodel. Exposes the model to _both_ critics!
 
@@ -270,7 +270,8 @@ class Critic ( LoggerBase ):
         :param keep_slhafile: if True, then keep the temporary slha file, 
         print out its name
 
-        :returns: False, if the critic failed, true if passed
+        :returns: Tuple[bool, Text]: bool is False, if the critic failed, true if passed
+        Text is explanation.
         """
         # Create SLHA file (for running SModelS)
         slhafile = protomodel.createSLHAFile()
@@ -293,7 +294,7 @@ class Critic ( LoggerBase ):
                 self.info( f"Keeping {protomodel.currentSLHA}, as requested" )
             else:
                 protomodel.delCurrentSLHA()
-            return False
+            return False, "failed UL-based critic"
 
         self.info("Model allowed by UL-based critic. Starting llhd-based critic.")
 
@@ -317,11 +318,11 @@ class Critic ( LoggerBase ):
         if allowed_by_llhd_critic:
             if num_preds == 0:  # No constraints for the model, it is excluded
                 self.log("Model has no UL critic preds or Llhd based critic preds. Excluding Model")
-                return False
+                return False, "no predictions for model"
             self.log(f"Model passed llhd-based critic with critic robs = {robsComb}.")
-            return True
+            return True, "passed both critics"
         self.info(f"Model failed llhd-based critic with critic robs = {robsComb}.")
-        return False
+        return False, "failed llhd-based critic"
 
 
     def merge_preds(self, pred_list_1, pred_list_2):

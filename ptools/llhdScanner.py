@@ -204,7 +204,7 @@ class LlhdThread ( LoggerBase ):
         if hasattr ( self.predictor, "predictions" ):
             del self.predictor.predictions
         worked = self.predictor.predict ( self.M, keep_predictions = True )
-        cr = self.critic.predict_critic ( self.M, keep_predictions = True )
+        cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
         print("worked ", worked)
         if not worked:
             return { "llhd": None, "critic": None, "oul": None, "eul": None }

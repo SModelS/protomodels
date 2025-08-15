@@ -590,7 +590,7 @@ class HiscorePlotter ( LoggerBase ):
         if len(self.protomodel.ul_critic_tpList) == 0:
             from tester.critic import Critic
             cr = Critic(0,do_srcombine=True)
-            cr.predict_critic( self.protomodel, keep_predictions=True )
+            cri, _ = cr.predict_critic( self.protomodel, keep_predictions=True )
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
         self.writeRValuesTex( rvalues )
@@ -747,7 +747,7 @@ class HiscorePlotter ( LoggerBase ):
         if len(self.protomodel.ul_critic_tpList) == 0:
             from tester.critic import Critic
             cr = Critic(self.protomodel.walkerid,do_srcombine=True)
-            c_result = cr.predict_critic( self.protomodel, keep_predictions=True )
+            c_result, _ = cr.predict_critic( self.protomodel, keep_predictions=True )
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
         f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
@@ -955,7 +955,7 @@ class HiscorePlotter ( LoggerBase ):
             if options["tex"]:
                 self.writeIndexTex( texdoc )
         self.predictor.predict ( m, keep_predictions = True )
-        self.critic.predict_critic ( self.protomodel )
+        cr, _ = self.critic.predict_critic ( self.protomodel )
         self.writeRawNumbersLatex ( )
         self.writeRawNumbersHtml ( )
         if options["keep"]:
