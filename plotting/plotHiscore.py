@@ -16,7 +16,6 @@ from builder.protomodel import ProtoModel
 from smodels.base.physicsUnits import fb, TeV
 from smodels.matching.theoryPrediction import TheoryPrediction
 from smodels.base import runtime
-from smodels_utils.plotting import rulerPlotter, decayPlotter
 from smodels_utils.helper.bibtexTools import BibtexWriter
 from ptools.sparticleNames import SParticleNames
 from smodels.base.smodelsLogging import logger
@@ -873,7 +872,7 @@ class HiscorePlotter ( LoggerBase ):
 
         if verbosity == "debug":
             print ( f'[plotHiscore] ../smodels-utils/smodels_utils/plotting/rulerPlotter.py -o ruler.png --hasResultsFor "{str(resultsFor)}" {self.protomodel.currentSLHA}'  )
-
+        from smodels_utils.plotting import rulerPlotter
         plotter = rulerPlotter.RulerPlot ( self.protomodel.currentSLHA, fname,
                                            Range=(None, None), mergesquark = False,
                                            drawdecays = False,
@@ -885,7 +884,8 @@ class HiscorePlotter ( LoggerBase ):
         else:
             plotter.drawVertical()
 
-    def plotDecays ( self, verbosity : str, outfile : str = "decays.png" ):
+    def plotDecays ( self, verbosity : str, outfile : str = "decays.png",
+                     keep : bool = True ):
         try:
             import pygraphviz
         except ModuleNotFoundError as e:
@@ -908,9 +908,9 @@ class HiscorePlotter ( LoggerBase ):
             ssms = ma.simplifySSMs()
             # soptions+=' --ssmultipliers "%s"' % ssms
             print ( f"{Fore.GREEN}../smodels-utils/smodels_utils/plotting/decayPlotter.py -f {self.protomodel.currentSLHA} -o {outfile} {soptions}{Fore.RESET}" )
+        from smodels_utils.plotting import decayPlotter
         decayPlotter.draw ( self.protomodel.currentSLHA, outfile, options,
-                            verbosity = verbosity,
-                            ssmultipliers = self.protomodel.ssmultipliers )
+                            verbosity = verbosity )
 
     def plot ( self, number : int , verbosity,
             hiscorefile : os.PathLike, options : dict, dbpath : str,
@@ -1028,8 +1028,8 @@ def runPlotting ( args ):
                     sys.exit()
                 first = False
         print ( "." )
-        cleanUp = True ## clean up after moving
-        if cleanUp:
+        # cleanUp = True ## clean up after moving
+        if not args.keep:
             toClean = [ "decays.tex", "decays.log", "decays.aux", "decays.pdf",
                         "rawnumbers.tex", "decays.dot", "decays.svg" ]
             for f in toClean:
