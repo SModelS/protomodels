@@ -742,20 +742,21 @@ class HiscorePlotter ( LoggerBase ):
         self.addSPlots ( f )
         f.write ( "<br>\n" )
         f.write ( "<table width=80%>\n<tr><td>\n" )
-        c_result = True
+        c_result, c_reason = True, "??"
         if len(self.protomodel.ul_critic_tpList) == 0:
             from tester.critic import Critic
             cr = Critic(self.protomodel.walkerid,do_srcombine=True)
-            c_result, _ = cr.predict_critic( self.protomodel, keep_predictions=True )
+            c_result, c_reason = cr.predict_critic( self.protomodel, keep_predictions=True )
+        f.write ( f"<br><b>Critics:</b> {c_reason}<br>\n" )
         if hasattr ( self.protomodel, "llhd_critic" ):
             sdatasets = ", ".join ( self.protomodel.llhd_critic["datasets"] )
             robs = self.protomodel.llhd_critic['robs']
             col, endcol = "<span style='color: darkgreen;'>", "</span>"
             if robs>1.0:
                 col = "<span style='color: darkred;'>"
-            f.write ( f"<br><b>Critic:</b> {sdatasets}:: {col}robs={robs}{endcol}<br>\n" )
+            f.write ( f"<br><b>LLHD Critic:</b> {sdatasets}:: {col}robs={robs}{endcol}<br>\n" )
         else:
-            f.write ( f"<br><b>No llhd-based critic results!!</b><br>" )
+            f.write ( f"<br><b>No LLHD Critic results!!</b><br>" )
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
         f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
