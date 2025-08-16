@@ -752,7 +752,7 @@ class HiscorePlotter ( LoggerBase ):
         col, endcol = "<span style='color: darkgreen;'>", "</span>"
         if robs>1.0:
             col = "<span style='color: darkred;'>"
-        f.write ( f"<br>llhd-based critic: {sdatasets}:: {col}robs={robs}{endcol}" )
+        f.write ( f"<br><b>Critic:</b> {sdatasets}:: {col}robs={robs}{endcol}<br>\n" )
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
         f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
