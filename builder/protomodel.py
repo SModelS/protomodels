@@ -530,7 +530,9 @@ class ProtoModel ( LoggerBase ):
                     #Get information for particle
                     if pid in unfrozen:
                         mass = self.masses[pid]
-                        decays = self.decays[pid]
+                        decays = {}
+                        if pid in self.decays:
+                            decays = self.decays[pid]
                     else:
                         mass = 1e6 #decoupled mass
                         decays = {} #no decays for frozen particles

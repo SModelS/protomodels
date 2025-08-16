@@ -782,9 +782,10 @@ class Manipulator ( LoggerBase ):
         BRtot = sum(protomodel.decays[pid].values())
         if BRtot == 0:
             if pid != protomodel.LSP:
+                return True
                 #print(f"decay of {pid}: {protomodel.decays[pid]}")
                 self.log(f"decay of {pid}: {protomodel.decays[pid]}")
-                protomodel.pprint ( f"When attempting to normalize: total BR ({pid}) is zero. we need to take out {pid}." )
+                protomodel.pprint ( f"When attempting to normalize: total BR of ({pid}) is zero. we need to take out {pid}." )
                 ## we need to freeze also <pid> now
                 ## (since we have no sensible channels anymore)
                 self.freezeParticle ( pid, force=True, protomodel=protomodel )
@@ -2425,10 +2426,12 @@ class Manipulator ( LoggerBase ):
                          "K": self.M.K, "muhat": self.M.muhat,
                          "description": self.M.description,
                          "ul_critic_tpList": copy.deepcopy(self.M.ul_critic_tpList),
+                         "llhd_critic": copy.deepcopy(self.M.llhd_critic),
                          "bestCombo": copy.deepcopy(self.M.bestCombo),
                          "masses": copy.deepcopy(self.M.masses),
                          "ssmultipliers": copy.deepcopy(self.M.ssmultipliers),
                          "decays": copy.deepcopy(self.M.decays),
+                         "templateName": copy.deepcopy(self.M.templateName),
                          "rvalues": copy.deepcopy(self.M.rvalues),
                          "_stored_xsecs" : copy.deepcopy(self.M._stored_xsecs),
                          "_xsecMasses" : copy.deepcopy(self.M._xsecMasses),
