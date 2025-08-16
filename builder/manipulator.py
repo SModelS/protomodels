@@ -2426,7 +2426,6 @@ class Manipulator ( LoggerBase ):
                          "K": self.M.K, "muhat": self.M.muhat,
                          "description": self.M.description,
                          "ul_critic_tpList": copy.deepcopy(self.M.ul_critic_tpList),
-                         "llhd_critic": copy.deepcopy(self.M.llhd_critic),
                          "bestCombo": copy.deepcopy(self.M.bestCombo),
                          "masses": copy.deepcopy(self.M.masses),
                          "ssmultipliers": copy.deepcopy(self.M.ssmultipliers),
