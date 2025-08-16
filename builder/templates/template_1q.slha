@@ -1,3 +1,5 @@
+# template_1q.slha
+
 BLOCK DCINFO  # Decay Program information
      1   SDECAY/HDECAY # decay calculator
      2   1.3b  /3.4    # version number
