@@ -30,7 +30,7 @@ class PredictionsTest(unittest.TestCase):
         protomodel.dbversion = None
         protomodel.codeversion = None
         pNew = protomodel.copy()
-        pNew.templateSLHA = os.path.abspath('../builder/templates/template1g.slha')
+        pNew.templateSLHA = os.path.abspath('../builder/templates/template_default.slha')
         pNew.Z = None
         pNew.llhd = None
         pNew.bestCombo = None

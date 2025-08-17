@@ -53,7 +53,7 @@ class RandomWalker ( LoggerBase ):
             do_srcombine : bool = False, test_param_space = False, run_mcmc = False,
             record_history : bool = False, seed : Union[int,None] = None,
             stopTeleportationAfter : int = -1,
-            templateSLHA : os.PathLike = "template1g.slha" ):
+            templateSLHA : os.PathLike = "template_default.slha" ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 or "no_cheat" is no cheating, else

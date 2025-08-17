@@ -34,7 +34,7 @@ class ProtoModel ( LoggerBase ):
 
     def __init__ ( self, walkerid : Union[str,int] = 0,
             keep_meta : bool = True, dbversion : str = "????",
-            templateSLHA : os.PathLike = "template1g.slha"  ):
+            templateSLHA : os.PathLike = "template_default.slha"  ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
         this a heavyweight object)

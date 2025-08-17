@@ -359,7 +359,7 @@ def countSSMultipliers ():
     print ( f"We have {len(modes)} production modes" )
     return modes
 
-def countDecays( templatefile = "../builder/templates/template1g.slha" ):
+def countDecays( templatefile = "../builder/templates/template_default.slha" ):
     """ count the number of decays in a template file """
     if not os.path.exists ( templatefile ):
         templatefile = templatefile.replace("../","./" )

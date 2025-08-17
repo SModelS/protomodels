@@ -493,7 +493,7 @@ class Manipulator ( LoggerBase ):
         else:
             sK=""
             if "K" in D:
-                sK = f"[K={D['K']:.1f}] "
+                sK = f"[K={D['K']:.1f}] " if D["K"] is not None else "None"
             self.highlight ( "info", f"starting with {sK}{os.getcwd()}/{filename}{scom}" )
         if self.walkerid != None:
             self.M.walkerid = self.walkerid
@@ -1166,13 +1166,16 @@ class Manipulator ( LoggerBase ):
         #print(f"Propose unfreezing {self.namer.asciiName(pid)}" )
         return self.unFreezeParticle(pid, protomodel = self.propose_model, cap_ssm=cap_ssm)
 
-    def randomlyChangeBranchings ( self, protomodel = None, prob=0.2, zeroBRprob = 0.05, singleBRprob = 0.05, addBRprob = 0.1 ):
+    def randomlyChangeBranchings ( self, protomodel = None, prob : float =0.2, 
+            zeroBRprob : float = 0.05, singleBRprob : float = 0.05, 
+            addBRprob : float = 0.1 ) -> int:
         """ randomly change the branchings of a single particle
 
         :param prob: Probability for changing a branching ratio
         :param zeroBRprob: With zeroBRprob probability, close decay channel
         :param singleBRprob: With probability singleBRprob, keep only one decay channel
         :param addBRprob: With probability addBRprob, add a new decay channel for the pid
+        :returns: number of changes
         """
         if protomodel is None:
             protomodel = self.M
@@ -1187,6 +1190,8 @@ class Manipulator ( LoggerBase ):
             return 0
         p = int(np.random.choice ( unfrozenparticles ))
         if not p in self.M.decays.keys():
+            # this is now allowed to happen
+            return 0
             self.highlight ( "error", f"why is {int(p)} not in decays?? {self.M.decays.keys()}" )
             # we dont know about this decay? we initialize with the default!
 

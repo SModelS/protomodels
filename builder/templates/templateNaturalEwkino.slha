@@ -86,7 +86,7 @@ BLOCK MASS  # Mass Spectrum
    1000023     M1000023         # ~chi_20
    1000025     M1000025         # ~chi_30
    1000035     1E+06            # ~chi_40
-   1000024     M1000024         # ~chi_1+
+   1000024     M1000023         # ~chi_1+
    1000037     M1000037         # ~chi_2+
 #
 BLOCK NMIX  # Neutralino Mixing Matrix

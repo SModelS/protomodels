@@ -92,7 +92,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
           do_srcombine : bool = False, record_history : bool = False, 
           update_hiscores : bool = False, stopTeleportationAfter : int = -1,
           forbiddenparticles : List[int|str] = [],
-          templateSLHA : os.PathLike = "template1g.slha" ):
+          templateSLHA : os.PathLike = "template_default.slha" ):
     """ a worker node to set up to run walkers
 
     :param nmin: the walker id of the first walker
