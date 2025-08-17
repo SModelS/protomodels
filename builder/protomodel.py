@@ -54,7 +54,7 @@ class ProtoModel ( LoggerBase ):
             templateSLHA = templateSLHA.replace("templates/","")
         self.templateName = templateSLHA
         self.getParticleContent()
-        self.computer = RefXSecComputer()
+        self.computer = RefXSecComputer( verbose = False, allowN1N1Prod = False )
         self.codeversion = "2.0"
         self.initializeModel()
 

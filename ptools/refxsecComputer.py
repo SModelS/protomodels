@@ -36,11 +36,13 @@ class RefXSecComputer:
     version = "1.0" ## make sure we can trace changes in the tables
     hasWarned = { "omitted": 0 }
 
-    def __init__( self, verbose = False ):
+    def __init__( self, verbose : bool = False, allowN1N1Prod : bool = False ):
         """
         :param verbose: turn on verbose mode, for debugging
+        :param allowN1N1Prod: if true, then allow also N1 N1 production
         """
         self.verbose = verbose
+        self.allowN1N1Prod = allowN1N1Prod
         if verbose:
             setLogLevel ( "info" )
         codedir = "../"
@@ -51,7 +53,10 @@ class RefXSecComputer:
             pass
         self.shareDir = f"{codedir}/ptools/xsecTables/"
         # productions of same-sign-pid pairs when the particle is within reach
-        self.samesignmodes = ( 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 )
+        samesignmodes = [ 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 ]
+        if allowN1N1Prod:
+            samesignmodes.append ( 1000022 )
+        self.samesignmodes = tuple ( samesignmodes )
         # production of opposite-sign-pid pairs when the particle is within reach
         self.oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 
                 2000005, 1000006, 2000006, 1000011, 1000013, 1000015, 1000024, 
@@ -63,20 +68,23 @@ class RefXSecComputer:
                 ( 1000003, 1000021 ), ( 1000004, 1000021 ), ( 1000005, 1000021),
                 ( 1000021, 2000005 ), ( 1000006, 1000021 ), ( 1000021, 2000006),
                 ( -1000012, 1000011), ( -1000014, 1000013), (-1000016, 1000015),
-                ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016),             #removing charge for charginos in chargino-neutralino prod as doesnt matter
+                ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016),             
+                #removing charge for charginos in chargino-neutralino prod as doesnt matter
                 ( 1000022, 1000023 ), ( 1000023, 1000025 ),
-                # ( 1000022, 1000024 ),                                     #( -1000024, 1000022),
+                # ( 1000022, 1000024 ), #( -1000024, 1000022),
                 # ( 1000023, 1000024 ),  #( -1000024, 1000023 ),
                 #( 1000023, 1000037 ), ( 1000024, 1000025 ), ( -1000024, 1000037 ),
-                #( -1000037, 1000024 ), ( 1000025, 1000037 ) )                                    #, ( -1000037, 1000023 ),
+                #( -1000037, 1000024 ), ( 1000025, 1000037 ) ) #, ( -1000037, 1000023 ),
                 )
-                                                                                                    #( -1000024, 1000025 ), ( -1000037, 1000025 )
+                #( -1000024, 1000025 ), ( -1000037, 1000025 )
 
         ## these are productions where we explicitly disallow the negative sign versions,
         ## e.g. C1+,N2 ## this is based on the assumption that our database of chargino results
         ## is entirely charge symmetrical!! this might change with e.g. protomodels v3
-        self.associatesamesignproduction = ( ( 1000022, 1000024 ), ( 1000023, 1000024 ), ( 1000024, 1000025 ), 
-                                             ( 1000022, 1000037 ), ( 1000023, 1000037 ), ( 1000025, 1000037 ) )
+        self.associatesamesignproduction = ( ( 1000022, 1000024 ), 
+                ( 1000023, 1000024 ), ( 1000024, 1000025 ), 
+                ( 1000022, 1000037 ), ( 1000023, 1000037 ), 
+                ( 1000025, 1000037 ) )
                  
         # self.schannel = ( 35, 55, )
         self.schannel = tuple()
@@ -788,7 +796,7 @@ if __name__ == "__main__":
     if sqrts == None:
         sqrts = [ 8, 13 ]
     setLogLevel ( "debug" )
-    tool = RefXSecComputer( args.verbose )
+    tool = RefXSecComputer( args.verbose, allowN1N1Prod = False )
     slhapaths = args.inputfile
     ssmultipliers = { (1000021,1000021):2. }
     ssmultipliers = None

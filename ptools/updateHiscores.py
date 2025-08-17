@@ -206,7 +206,10 @@ def loop( rundir : Union[None,os.PathLike] = None,
     Kfile = f"{rundir}/Kold.conf"
     if os.path.exists ( Kfile ):
         with open ( Kfile, "rt" ) as f:
-            Kold = float ( f.read().strip() )
+            try:
+                Kold = float ( f.read().strip() )
+            except ValueError as e:
+                pass
     while True:
         i+=1
         if maxruns != None and i > maxruns:
