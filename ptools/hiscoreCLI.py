@@ -98,8 +98,8 @@ if __name__ == "__main__":
             help='walker id [0]',
             type=int, default=0 )
     argparser.add_argument ( '-d', '--dbpath',
-            help='Database path. [official]',
-            type=str, default="official" )
+            help='Database path. If auto, get from run.dict. [auto]',
+            type=str, default=None )
     argparser.add_argument ( '-n', '--nointeractive',
             help='Dont start interactive shell',
             action = "store_true" )
@@ -128,4 +128,7 @@ if __name__ == "__main__":
             d = eval(txt)
             if "do_srcombine" in d:
                 do_srcombine = d["do_srcombine"]
+            if args.dbpath in [ "auto", None ] and "dbpath" in d:
+                print ( f"[hiscoreCLI] setting dbpath to {d['dbpath']}" )
+                args.dbpath = d['dbpath']
     cli ( args.infile, args.dbpath, do_srcombine, args.walkerid )
