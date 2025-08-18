@@ -250,7 +250,10 @@ def loop( rundir : Union[None,os.PathLike] = None,
             print ( "[updateHiscores] was not asked to create plots" )
         if os.path.exists ( Kfile ): ## so we can meddle from outside
             with open ( Kfile, "rt" ) as f:
-                Kold = float ( f.read().strip() )
+                try:
+                    Kold = float ( f.read().strip() )
+                except ValueError as e:
+                    Kold = -90.
 
 if __name__ == "__main__":
     loop()
