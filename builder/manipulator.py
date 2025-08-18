@@ -105,6 +105,18 @@ class Manipulator ( LoggerBase ):
         self.do_record = do_record ## if True, then record changes
         self.recording = [] ## just in case
 
+    def forcedMassDegeneratePids ( self, pid : int ) -> List:
+        """ determine which pids are forced mass degenerate to ours
+        
+        :returns: list of all mass degenerate pids 
+        """
+        for pids in self.M.forced_degeneracy:
+            if pid in pids:
+                ret = list(pids)
+                # ret.pop(pid)
+                return ret
+        return [pid]
+
     def getClosestPair ( self, pids ):
         """ of <n> PIDs, identify the two that are closest in mass """
         if len(pids)<2:
@@ -1559,7 +1571,7 @@ class Manipulator ( LoggerBase ):
         protomodel = self.freezeParticle ( pid, protomodel = protomodel)
         return 1
 
-    def freezeParticle ( self, pid, force = False, protomodel = None, merge=False):
+    def freezeParticle ( self, pid, force = False, protomodel = None, merge=False) -> int:
         """ freeze particle pid, take care of offshell removal, and
             branching normalization
 
@@ -1567,7 +1579,7 @@ class Manipulator ( LoggerBase ):
         :param force: If False, will only freeze the particle if it does not violate
                       the canonical order (e.g. will not freeze stop1 if stop2 is unfrozen)
                       and the model contains at least 3 particles.
-        :returns: 1 if freezing succesful, 0 if not
+        :returns: number of particles that have been frozen
         """
 
         if protomodel is None:
@@ -1575,53 +1587,57 @@ class Manipulator ( LoggerBase ):
 
         #Check for canonical ordering.
         unfrozen = protomodel.unFrozenParticles( withLSP=False )
+        allpids = self.forcedMassDegeneratePids ( pid )
         if not force:
             if len(unfrozen) < 2:
                 self.log("Not freezing: Only 2 particles present.")
-                return None
+                return 0
             #If pid matches the lighter state and the heavier state is unfrozen,
             #do not freeze the particle
             for pids in self.canonicalOrder:
-                if pid == pids[0] and pids[1] in unfrozen:
-                    self.log(f"Not freezing: Tried to freeze {pids[0]} but {pids[1]} is unfrozen")
-                    return None
-        #protomodel.log ( f"Freezing {self.namer.asciiName(pid)}" )
-        #self.record ( f"freeze {self.namer.texName(pid,addDollars=True)}" )
-        #Remove pid from masses, decays and signal multipliers:
-        if not force: self.log(f"Propose freezing pid: {pid}({self.namer.asciiName(pid)})")
-        else: self.log(f"Freezing pid: {pid}({self.namer.asciiName(pid)})")
-        #print(f"Propose freezing pid: {pid}")
-        
-        #get total num of frozen and unfrozen par for proposal ratio
-        num_unfrozen = len(unfrozen)
-        num_frozen = len(protomodel.frozenParticles())
-        for pids in self.canonicalOrder:
-            if pids[0] in self.forbiddenparticles and pids[1] in self.forbiddenparticles: continue
-            if pids[0] in unfrozen and pids[1] in unfrozen:
-                num_unfrozen -= 1       #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
-            if pids[0] in protomodel.frozenParticles() and pids[1] in protomodel.frozenParticles():
-                num_frozen -= 1         #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
-        
-        if self.forbiddenparticles != [] : 
-            num_frozen -= len(self.forbiddenparticles)
-            if num_frozen < 0: self.log(f"NUm frozen {num_frozen} <0 !"); num_frozen = 1
-        #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(add pid from frozen)/p(rem pid from unfrozen) = (1/(n_fr+1))/(1/n_un)
-        if merge: self.proposal_ratio['merge']['q'] *= len(unfrozen)/(num_frozen + 1)
-        if not force: self.proposal_ratio['rem_par']['q'] *= len(unfrozen)/(num_frozen + 1)
-        #print(f"Prob to freeze = {self.proposal_ratio['rem_par']['q']}")
-        
-        if  pid in protomodel.masses: protomodel.masses.pop(pid)
-        if  pid in protomodel.decays: protomodel.decays.pop(pid)
-        
-        removeSSM = [pids for pids in protomodel.ssmultipliers if (pid in pids or -pid in pids)]
-        for pids in removeSSM:
-            protomodel.ssmultipliers.pop(pids)
+                for ipid in allpids:
+                    if ipid == pids[0] and pids[1] in unfrozen:
+                        self.log(f"Not freezing: Tried to freeze {pids[0]} but {pids[1]} is unfrozen")
+                        allpids.pop ( ipid )
+        frozen = []
+        for ipid in allpids:
+            if not force: self.log(f"Propose freezing pid: {ipid}({self.namer.asciiName(ipid)})")
+            else: self.log(f"Freezing pid: {ipid}({self.namer.asciiName(ipid)})")
+            
+            #get total num of frozen and unfrozen par for proposal ratio
+            num_unfrozen = len(unfrozen)
+            num_frozen = len(protomodel.frozenParticles())
+            for pids in self.canonicalOrder:
+                if pids[0] in self.forbiddenparticles and pids[1] in self.forbiddenparticles: continue
+                if pids[0] in unfrozen and pids[1] in unfrozen:
+                    num_unfrozen -= 1       #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
+                if pids[0] in protomodel.frozenParticles() and pids[1] in protomodel.frozenParticles():
+                    num_frozen -= 1         #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
+            
+            if self.forbiddenparticles != [] : 
+                num_frozen -= len(self.forbiddenparticles)
+                if num_frozen < 0: self.log(f"Num frozen {num_frozen} <0 !"); num_frozen = 1
+            #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(add pid from frozen)/p(rem pid from unfrozen) = (1/(n_fr+1))/(1/n_un)
+            if merge: self.proposal_ratio['merge']['q'] *= len(unfrozen)/(num_frozen + 1)
+            if not force: self.proposal_ratio['rem_par']['q'] *= len(unfrozen)/(num_frozen + 1)
+            #print(f"Prob to freeze = {self.proposal_ratio['rem_par']['q']}")
+            
+            if ipid in protomodel.masses: 
+                protomodel.masses.pop(ipid)
+                frozen.append ( ipid )
+            if ipid in protomodel.decays: protomodel.decays.pop(ipid)
+            
+            removeSSM = [pids for pids in protomodel.ssmultipliers if (ipid in pids or -pid in pids)]
+            for pids in removeSSM:
+                protomodel.ssmultipliers.pop(pids)
 
-        #Fix branching ratios and rescale signal strengths, so other channels are not affected
+        # Fix branching ratios and rescale signal strengths, so other
+        # channels are not affected
         self.removeIllegalBRs(rescaleSSMs=True, protomodel=protomodel)
-        return pid
+        return frozen
 
-    def unFreezeParticle (self, pid : int, force : bool = False, protomodel = None, cap_ssm=100.):
+    def unFreezeParticle (self, pid : int, force : bool = False, 
+            protomodel = None, cap_ssm : float = 100.) -> list:
         """ unfreeze particle pid, assign masses, BRs and signal strength
         multipliers.
 
@@ -1631,6 +1647,8 @@ class Manipulator ( LoggerBase ):
         frozen).
         :param protomodel: if given, then unFreeze for that protomodel, not for
         your protomodel
+
+        :returns: list of particles that got unfrozen
         """
 
         if protomodel is None:
@@ -1640,13 +1658,20 @@ class Manipulator ( LoggerBase ):
         frozen = protomodel.frozenParticles()
         n_frozen = len(frozen)
         num_unfrozen = len(protomodel.unFrozenParticles( withLSP=False ))
-        
+
+        nallpids = self.forcedMassDegeneratePids ( pid )
+
+        unfrozen = []
+        allpids = []
         if not force:
             #If pid matches the heavier state and the lighter state is frozen,
             #do not unfreeze the particle
             for pids in self.canonicalOrder:
-                if pid == pids[1] and pids[0] in frozen:
-                    return None
+                for ipid in allpids:
+                    if ipid == pids[1] and pids[0] in frozen:
+                        pass
+                    else:
+                        allpids.append ( ipid )
         
         #get total num of frozen and unfrozen par for proposal ratio
         for pids in self.canonicalOrder:
@@ -1706,26 +1731,26 @@ class Manipulator ( LoggerBase ):
                 if pid == 1000006:
                     maxMass = mstop2 + 20.
         
-        protomodel.masses[pid] = tmpMass
-        
-        self.record ( f"Unfreeze mass of {self.namer.texName(pid,addDollars=True)} to {tmpMass:.1f}" )
-        self.log ( f"Unfreeze mass of {self.namer.asciiName(pid)} to {protomodel.masses[pid]:.1f}" )
+        allpids = self.forcedMassDegeneratePids ( pid )
+        for opid in allpids:
+            protomodel.masses[opid] = tmpMass
+            self.record ( f"Unfreeze mass of {self.namer.texName(opid,addDollars=True)} to {tmpMass:.1f}" )
+            self.log ( f"Unfreeze mass of {self.namer.asciiName(opid)} to {protomodel.masses[opid]:.1f}" )
 
+            # Set branchings
+            self.log(f"Initializing Branchings for {opid}")
+            initialized = self.initBranchings(opid, protomodel=protomodel)
+            if not initialized:
+                self.log(f"No decays for {opid}")
+                self.proposal_ratio['add_par']['q'] = 1.
+                self.freezeParticle ( opid, force=True, protomodel=protomodel )
+                return None
+            
+            #Add pid pair production and associated production to protomodel.ssmultipliers:
+            self.log(f"Initializing Production Modes for {opid}")
+            self.initSSMFor(opid, protomodel=protomodel, cap_ssm=cap_ssm)
 
-        # Set branchings
-        self.log(f"Initializing Branchings for {pid}")
-        initialized = self.initBranchings(pid, protomodel=protomodel)
-        if not initialized:
-            self.log(f"No decays for {pid}")
-            self.proposal_ratio['add_par']['q'] = 1.
-            self.freezeParticle ( pid, force=True, protomodel=protomodel )
-            return None
-        
-        #Add pid pair production and associated production to protomodel.ssmultipliers:
-        self.log(f"Initializing Production Modes for {pid}")
-        self.initSSMFor(pid, protomodel=protomodel, cap_ssm=cap_ssm)
-
-        return pid
+        return allpids
 
     def randomlyChangeMasses ( self, prob = 0.05, dx = 200.0 ):
         """ take a random step in mass space for a single unfrozen particle

@@ -64,11 +64,15 @@ class ProtoModel ( LoggerBase ):
 
     def getParticleContent ( self ):
         """ for self.templateSLHA, get its particle content as a list.
-        save the content in self.particles """
+        save the content in self.particles.
+        also, define potential forced_degeneracies
+        """
         assert os.path.exists ( self.templateSLHA ), f"{self.templateSLHA} does not exist"
         particles = set()
         mass_params = set()
         slha = ""
+        ## this is a list of force degeneracies
+        self.forced_degeneracy = []
         with open ( self.templateSLHA, "rt" ) as f:
             lines = f.readlines()
             for line in lines:
@@ -76,16 +80,30 @@ class ProtoModel ( LoggerBase ):
                 if line.startswith ( "DECAY" ):
                     break
                 slha += line
+            for line in lines:
+                if "DEGENERACY:" in line:
+                    p1 = line.find("DEGENERACY:" )
+                    token = line[p1+11:]
+                    p2 = token.find("#")
+                    if p2 > -1:
+                        token = token[:p2]
+                    token = token.strip()
+                    try:
+                        parsed = eval(token)
+                        self.forced_degeneracy.append(parsed)
+                    except (SyntaxError,ValueError) as e:
+                        self.error ( f"cannot parse {token}: {e}" )
+
         # print ( "slha", slha )
         import pyslha
         f = pyslha.readSLHA ( slha )
         masses = f.blocks["MASS"]
         for pid,mass in masses.items():
             if type(mass) in [ str ] and mass.startswith("M"):
-                mass_params.add ( int ( mass.replace("M","") ) )
+                mass_param = int ( mass.replace("M","") )
                 particles.add ( pid )
+                assert mass_param == pid, f"we assume that the mass parameter {mass} has the same number as the particle {pid}"
         self.particles = list ( particles ) # thats the particles
-        self.mass_params = list ( mass_params ) # thats the mass parameters
 
     def initializeModel(self):
         """Use the template SLHA file to store possible decays and initialize the LSP"""
