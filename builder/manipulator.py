@@ -1603,7 +1603,7 @@ class Manipulator ( LoggerBase ):
                 for ipid in allpids:
                     if ipid == pids[0] and pids[1] in unfrozen:
                         self.log(f"Not freezing: Tried to freeze {pids[0]} but {pids[1]} is unfrozen")
-                        allpids.pop ( ipid )
+                        allpids.remove ( ipid )
         frozen = []
         for ipid in allpids:
             if not force: self.log(f"Propose freezing pid: {ipid}({self.namer.asciiName(ipid)})")
