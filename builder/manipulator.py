@@ -36,9 +36,9 @@ class Manipulator ( LoggerBase ):
     forbiddenparticles = []
 
     mass_W = 80.377
-    mwidth_W = 0.012
+    mwidth_W = 2.14
     mass_Z = 91.1876
-    mwidth_Z = 0.0021
+    mwidth_Z = 2.5
 
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike],
             strategy: str = "aggressive", verbose : bool = False,
@@ -76,6 +76,7 @@ class Manipulator ( LoggerBase ):
             ## make sure we log correctly asap
             self.walkerid = protomodel.walkerid
         self.namer = SParticleNames ( False )
+        self.run_mcmc = False
         self.M = protomodel
         self.propose_model = None
         
@@ -386,6 +387,7 @@ class Manipulator ( LoggerBase ):
             D["smodelsver"]=smodels.installation.version()
             D["dbver"]=self.M.dbversion
             D["templateSLHA"]=self.M.templateName
+            D["allowN1N1Prod"]=self.M.allowN1N1Prod
         D["description"]=self.M.description
         if hasattr ( self.M, "ul_critic" ):
             D["ul_critic"]=self.M.ul_critic
@@ -524,6 +526,9 @@ class Manipulator ( LoggerBase ):
         if "templateSLHA" in D:
             self.M.templateName = D["templateSLHA"]
             self.M.getParticleContent()
+        if "allowN1N1Prod" in D:
+            self.M.computer = RefXSecComputer( verbose = False,
+                    allowN1N1Prod = allowN1N1Prod )
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
         #if "walkerid" in D:
@@ -1848,11 +1853,11 @@ class Manipulator ( LoggerBase ):
         :param maxMass: maximum allowed mass for the particle.
                         If not defined, use the protomodel maxMass.
 
-        :returns: 1 for success
+        :returns: number of masses that were changed
         """
         denom = 1.0
         
-        if self.M.TL > 0:                           #short term fix -> discuss with Wg!
+        if self.M.TL > 0: #short term fix -> discuss with Wg!
             denom = np.sqrt(self.M.TL) + 1.0
         
         step_size = 100 if self.M.masses[pid]<1000 else 500
@@ -1917,25 +1922,29 @@ class Manipulator ( LoggerBase ):
             self.shiftAllMassesBy(delta_mass, LSP=False)
             return 1
             
+        allpids = self.forcedMassDegeneratePids(pid)
+        nchanges = 0
 
-        if pid in [ 1000023, 1000024 ]:
-            if pid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
-            if pid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
-            if was_offshell != is_offshell:     #initialize branchings
-                if self.run_mcmc:
-                    self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {pid}.")
-                    return 0
-                self.log ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
-                self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
-                self.M.masses[pid]=tmpmass
-                self.initBranchings(pid)
-                return 1
+        for ipid in allpids:
+            if ipid in [ 1000023, 1000024 ]:
+                if ipid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
+                if ipid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
+                if was_offshell != is_offshell:     #initialize branchings
+                    if self.run_mcmc:
+                        self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {ipid}.")
+                    else:
+                        self.log ( f"randomly changing mass of {self.namer.asciiName ( ipid )} to {tmpmass:.1f}" )
+                        self.record ( f"change mass of {self.namer.texName(ipid,addDollars=True)} to {tmpmass:.1f}" )
+                        self.M.masses[ipid]=tmpmass
+                        self.initBranchings(ipid)
+                        nchanges += 1
+            else:
+                self.log ( f"randomly changing mass of {self.namer.asciiName ( ipid )} to {tmpmass:.1f}" )
+                self.record ( f"change mass of {self.namer.texName(ipid,addDollars=True)} to {tmpmass:.1f}" )
+                self.M.masses[ipid]=tmpmass
+                nchanges += 1
 
-        self.log ( f"randomly changing mass of {self.namer.asciiName ( pid )} to {tmpmass:.1f}" )
-        self.record ( f"change mass of {self.namer.texName(pid,addDollars=True)} to {tmpmass:.1f}" )
-        self.M.masses[pid]=tmpmass
-
-        return 1
+        return nchanges
 
     def reassignPID(self):
         """Check if a heavier mass eigenstate is present when the lighter one is not. If so, reassign the heavier eigenstate to the lighter one."""

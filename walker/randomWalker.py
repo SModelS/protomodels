@@ -53,7 +53,8 @@ class RandomWalker ( LoggerBase ):
             do_srcombine : bool = False, test_param_space = False, run_mcmc = False,
             record_history : bool = False, seed : Union[int,None] = None,
             stopTeleportationAfter : int = -1,
-            templateSLHA : os.PathLike = "template_default.slha" ):
+            templateSLHA : os.PathLike = "template_default.slha",
+            allowN1N1Prod : bool = False ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 or "no_cheat" is no cheating, else
@@ -73,6 +74,7 @@ class RandomWalker ( LoggerBase ):
         :param stopTeleportationAfter: int or None. we stop teleportation after
                 this step nr.  If negative or None, we dont teleport at all
         :param templateSLHA: the template file that is used
+        :param allowN1N1Prod: allow N1 N1 production mode
         """
 
         #call the super class of the random walker i.e Loggerbase

@@ -34,7 +34,8 @@ class ProtoModel ( LoggerBase ):
 
     def __init__ ( self, walkerid : Union[str,int] = 0,
             keep_meta : bool = True, dbversion : str = "????",
-            templateSLHA : os.PathLike = "template_default.slha"  ):
+            templateSLHA : os.PathLike = "template_default.slha",
+            allowN1N1Prod : bool = False ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
         this a heavyweight object)
@@ -42,6 +43,7 @@ class ProtoModel ( LoggerBase ):
         :param dbversion: the version of the database, to track provenance
         :param templateSLHA: which slha file to use as template, as they
         appear in the builder/templates/ folder
+        :param allowN1N1Prod: do we allow the N1 N1 production mode?
         """
         super(ProtoModel,self).__init__ ( walkerid )
         self.walkerid = walkerid
@@ -54,9 +56,14 @@ class ProtoModel ( LoggerBase ):
             templateSLHA = templateSLHA.replace("templates/","")
         self.templateName = templateSLHA
         self.getParticleContent()
-        self.computer = RefXSecComputer( verbose = False, allowN1N1Prod = False )
+        self.computer = RefXSecComputer( verbose = False, 
+                                         allowN1N1Prod = allowN1N1Prod )
         self.codeversion = "2.0"
         self.initializeModel()
+
+    @property ## convenience
+    def allowN1N1Prod(self):
+        return self.computer.allowN1N1Prod
 
     @property
     def templateSLHA(self):
