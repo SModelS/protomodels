@@ -130,7 +130,7 @@ class RandomWalker ( LoggerBase ):
         jobid = "unknown"
         if "SLURM_JOBID" in os.environ:
             jobid = os.environ["SLURM_JOBID"]
-        self.pprint ( f"Ramping up with slurm jobid {jobid}" )
+        self.pprint ( f"Ramping up with slurm jobid {jobid} using template {templateSLHA} allowN1N1 {allowN1N1Prod}" )
         
         #keep track of log llhd ratio
         self.trace_logllhdratio = []

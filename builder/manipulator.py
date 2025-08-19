@@ -1096,15 +1096,15 @@ class Manipulator ( LoggerBase ):
                     self.log(f"Reject unfreezing {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
                     recentlyUnfrozen = None
 
-            frozenParticle = self.randomlyFreezeParticle(recentlyUnfrozen=recentlyUnfrozen)
-            if frozenParticle:
+            frozenParticles = self.randomlyFreezeParticle(recentlyUnfrozen=recentlyUnfrozen)
+            if frozenParticles:
                 accept_move = self.proposal_density(move='rem_par', force_move=force_move)
                 if accept_move:
                     nChanges += 1
-                    self.log(f"Accept freezing of {frozenParticle} ({self.namer.asciiName(frozenParticle)})")
+                    self.log(f"Accept freezing of {', '.join(frozenParticles)} ({self.namer.asciiName(frozenParticles)})")
                     #print(f"Protomodel now: {self.M.unFrozenParticles()}")
                 else:
-                    self.log(f"Reject freezing of {frozenParticle} ({self.namer.asciiName(frozenParticle)})")
+                    self.log(f"Reject freezing of {', '.join(frozenParticles)} ({self.namer.asciiName(frozenParticles)})")
             
             changes = self.randomlyChangeBranchings(protomodel=self.propose_model, prob=probBR)
             if changes > 0:
@@ -1531,9 +1531,11 @@ class Manipulator ( LoggerBase ):
             self.changeSSM ( (-pids[0],- pids[1]), newssm, recursive=False, verbose=False )
 
 
-    def randomlyFreezeParticle ( self, recentlyUnfrozen = None ):
+    def randomlyFreezeParticle ( self, recentlyUnfrozen = None ) -> list:
         """ freezes a random unfrozen particle according to gaussian distribution with width sigma.
         :param recentlyUnfrozen: do not freeze recently unfrozen particle if not None
+
+        :returns: list of pids that got frozen
         """
 
         nUnfrozen = len( self.M.unFrozenParticles() )
@@ -1553,10 +1555,12 @@ class Manipulator ( LoggerBase ):
             return None
         
         pid = int(np.random.choice ( unfrozen ))
-
-        pid = self.freezeParticle ( pid, protomodel=self.propose_model )
-        
-        return pid
+        allpids = self.forcedMassDegeneratePids ( pid )
+        frozen = []
+        for opid in allpids:
+            fpid = self.freezeParticle ( opid, protomodel=self.propose_model )
+            frozen.append ( fpid )
+        return frozen
 
     def freezeMostMassiveParticle ( self, protomodel=None):
         """ freezes the most massive unfrozen particle """
