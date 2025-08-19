@@ -113,7 +113,7 @@ class RandomWalker ( LoggerBase ):
         #Initialize ProtoModel and Manipulator:
         protomodel = ProtoModel( self.walkerid, keep_meta = True,
                 dbversion = self.predictor.database.databaseVersion,
-                templateSLHA = templateSLHA )
+                templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod )
 
         self.manipulator = Manipulator ( protomodel, strategy,
                         do_record = record_history, seed = self.random_seed )

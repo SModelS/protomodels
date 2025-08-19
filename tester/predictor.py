@@ -395,8 +395,15 @@ class Predictor ( LoggerBase ):
                 print ( f" - {p.analysisId()}:{dataId}: {txns}" )
 
 
-    def computeSignificance(self, protomodel, manipulator, predictions, strategy, test_param_space=False, run_mcmc=False):
-        """ compute the K and TL values, and attach them to the protomodel """
+    def computeSignificance(self, protomodel, manipulator, 
+            predictions : list, strategy : str, 
+            test_param_space : bool = False, run_mcmc : bool = False ):
+        """ compute the K and TL values, and attach them to the protomodel 
+            
+        Modifies:
+            protomodel.K: updates the K test statistic
+            protomodel.TL: updates the TL test statistic
+        """
         if len ( predictions ) == 0:
             protomodel.K = None
             protomodel.TL = None
