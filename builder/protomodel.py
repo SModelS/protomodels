@@ -139,7 +139,7 @@ class ProtoModel ( LoggerBase ):
         self._xsecSSMs = {} #Store the signal strenght multiplier used for computing the cross-sections
         self.ssmultipliers = {} ## signal strength multipliers
         ## Inititiaze LSP
-        if self.allowN1N1Prod:
+        if False and self.allowN1N1Prod:
             ## if we allow this, we might also start with this
             self.ssmultipliers[(self.LSP,self.LSP)]=1
             self.log ( f"we start with LSP,LSP production" )
