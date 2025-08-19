@@ -2,22 +2,24 @@
 
 """ summarize the data in hiscores.dict to have an overview """
 
-import os
+import os, time
 from os import PathLike
 from ptools.sparticleNames import SParticleNames 
 from colorama import Fore as ansi
 from typing import Union
 
 def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
-    extended : bool = False, nmax : Union[None,int] = None ):
+    extended : bool = False, nmax : Union[None,int] = None ) -> int:
     """ summarize the content of the dict file 
 
     :param dictfile: path to dictionary file
     :param extended: extended output, add description timestamp
     """
+    nlines = 0
     if not os.path.exists ( dictfile ):
         print ( f"[printSimpleHiscoreList] {dictfile} does not exist" )
-        return
+        nlines += 1
+        return nlines
     f=open( dictfile, "rt" )
     import numpy as np
     txt=f.read().replace("inf","float('inf')").replace("nan","float('nan')")
@@ -25,7 +27,8 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
         D=eval(txt)
     except SyntaxError as e:
         print ( f"could not read {dictfile}: {e}" )
-        import sys; sys.exit()
+        nlines += 1
+        return nlines
     f.close()
     if nmax == None:
         nmax = 10
@@ -59,21 +62,25 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             print ( f"       `---:{timestamp}" )
             print ( f"       `---: step {step}" )
             print ( )
+            nlines += 5
         else:
             sK = "None" if K == None else f"{K:.3f}"
             print ( f"#{i}({wid:3d}): K={ansi.GREEN}{sK}{ansi.RESET}; TL={TL:.3f}; {sparticles} {timestamp}" )
+            nlines += 1
+    return nlines
 
-def runSlurmWalk():
+def runSlurmWalk() -> int:
     cmd = "slurm_walk.py -q"
     import subprocess
     o = subprocess.getoutput ( cmd )
-    print ( "Running Stats" )
-    print ( "=============" )
+    print ( f"{ansi.RED}Running Status:{ansi.RESET} {time.asctime()}" )
+    print ( "=========================================" )
     print ( o )
     print ( )
+    return 4
 
 if __name__ == "__main__":
-    import argparse 
+    import argparse
     argparser = argparse.ArgumentParser(
         description='summarize the data in hiscores.dict to have an overview' )
     argparser.add_argument ( '-H', '--hiscores', type=str,
@@ -81,8 +88,17 @@ if __name__ == "__main__":
         default="./hiscores_global.dict" )
     argparser.add_argument ( '-x', '--extended', action="store_true",
         help="extended info" )
+    argparser.add_argument ( '-l', '--loop', action="store_true",
+        help="loop" )
     argparser.add_argument ( '-n', '--nmax', type=int, default=None,
         help="print maximally this number of entries [None]" )
     args = argparser.parse_args()
-    runSlurmWalk()
-    summarizeHiscores ( args.hiscores, args.extended, args.nmax )
+    import colorama
+    colorama.init()
+    while True:
+        nlines = runSlurmWalk()
+        nlines += summarizeHiscores ( args.hiscores, args.extended, args.nmax )
+        if not args.loop:
+            break
+        time.sleep(10.)
+        print( colorama.Cursor.UP()*(nlines+2) )
