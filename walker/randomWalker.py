@@ -266,13 +266,17 @@ class RandomWalker ( LoggerBase ):
                     
             else: dicts = []
             dicts.append(proto_dict)
- 
+            helpers.mkdir ( os.path.basename ( self.dictfile ) )
             with open (self.dictfile, "wt" ) as f:
                 f.write (f"{dicts}")
 
 
-    def predict ( self, manipulator : Manipulator):
-        """ Calls predictor.predict to get the theory predictions for model. Loops for 5 times till model.muhat is close to 1.0 """
+    def predict ( self, manipulator : Manipulator) -> bool:
+        """ Calls predictor.predict to get the theory predictions for model. 
+        Loops for 5 times till model.muhat is close to 1.0 
+        
+        :returns: true if worked
+        """
         #print(f"Adress of manip : {id(manipulator)}")
         model = manipulator.M
         if self.test_param_space:

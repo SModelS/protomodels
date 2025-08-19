@@ -427,7 +427,7 @@ class Hiscores ( LoggerBase ):
             self.pprint ( f"computing contribution of {self.namer.asciiName(pid)} ({manipulator.M.masses[pid]:.1f}): [{int(cpid + 1)}/{len(unfrozen)}]" )
 
             #Remove particle and recompute SLHA file:
-            manipulator.freezeParticle(pid, force=True )
+            manipulator.freezeParticles(pid, force=True )
             #Recompute cross-secions:
             manipulator.M.getXsecs()
             manipulator.M.K = 0.0

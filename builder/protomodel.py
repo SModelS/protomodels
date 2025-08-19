@@ -58,7 +58,7 @@ class ProtoModel ( LoggerBase ):
         self.getParticleContent()
         self.computer = RefXSecComputer( verbose = False, 
                                          allowN1N1Prod = allowN1N1Prod )
-        self.codeversion = "2.0"
+        self.protomodels_version = "2.0"
         self.initializeModel()
 
     @property ## convenience
@@ -83,7 +83,7 @@ class ProtoModel ( LoggerBase ):
         mass_params = set()
         slha = ""
         ## this is a list of force degeneracies
-        self.forced_degeneracy = []
+        self.forced_degeneracies = []
         with open ( self.templateSLHA, "rt" ) as f:
             lines = f.readlines()
             for line in lines:
@@ -101,7 +101,7 @@ class ProtoModel ( LoggerBase ):
                     token = token.strip()
                     try:
                         parsed = eval(token)
-                        self.forced_degeneracy.append(parsed)
+                        self.forced_degeneracies.append(parsed)
                     except (SyntaxError,ValueError) as e:
                         self.error ( f"cannot parse {token}: {e}" )
 
@@ -717,7 +717,8 @@ class ProtoModel ( LoggerBase ):
         newmodel.maxMass = self.maxMass
         newmodel.step = self.step
         newmodel.dbversion = self.dbversion
-        newmodel.codeversion = self.codeversion
+        newmodel.protomodels_version = self.protomodels_version
+        newmodel.forced_degeneracies = self.forced_degeneracies
         newmodel.particles = self.particles[:]
         newmodel.templateName = self.templateName[:]
         newmodel.possibledecays = dict([[key,val] for key,val in self.possibledecays.items()])

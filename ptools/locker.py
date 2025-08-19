@@ -25,6 +25,7 @@ def lockfile ( basefile : os.PathLike ) -> os.PathLike:
 def lock ( filename : os.PathLike ) -> bool:
     """ lock the file filename, to make sure processes dont
     overwrite each other
+
     :returns: True if there is already a lock on it
     """
     import time, socket, random
@@ -33,8 +34,14 @@ def lock ( filename : os.PathLike ) -> bool:
     lock_file = lockfile ( filename )
 
     __locks__.add ( lock_file )
+    ## a lock file exists already? wait!
+    ctr = 0
     if os.path.exists ( lock_file ):
-        return True
+        while ( os.path.exists ( lock_file ) ):
+            time.sleep ( 2.*ctr + .2 )
+            ctr += 1
+        if ctr > 10: # we force an unlock after some time
+            unlock ( filename )
     for i in range(5):
         try:
             with open ( lock_file, "wt" ) as f:

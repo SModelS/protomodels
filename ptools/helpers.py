@@ -44,14 +44,18 @@ def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
 
     return repr(obj)
 
-def mkdir ( dirname : os.PathLike ):
+def mkdir ( dirname : os.PathLike ) -> bool:
     """ make a directory, gracefully """
+    if dirname == "": 
+        return False
     if os.path.exists ( dirname ):
-        return
+        return False
     try:
         os.mkdir ( dirname )
+        return True
     except FileExistsError as e:
         pass
+    return False
 
 def getJsonFileName(dset: DataSet) -> str:
     "get file name of json used by the combined dataset dset"
