@@ -1016,12 +1016,14 @@ class Manipulator ( LoggerBase ):
         """ Define the proposal density for changing the model
         :param move: specify which move we are making
         """
-        if force_move: return True
+        if force_move:
+            self.M = self.propose_model
+            self.propose_model = self.M.copy()
+            return True
         prob_12, prob_21 = self.z_model(self.M, self.propose_model)
 
         if self.M.TL > 0.0: prob = min(1.0, prob_12/np.sqrt(self.M.TL))
         else: prob = min(1.0, prob_12)
-        #print(f"Probability to accept change {prob}")
 
         u = np.random.uniform(0,1)
         if u > prob:
@@ -1090,7 +1092,6 @@ class Manipulator ( LoggerBase ):
                 if accept_move:
                     nChanges += 1
                     self.log(f"Accept unfreezing of {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
-                    #print(f"Protomodel now: {self.M.unFrozenParticles()}")
                 else:
                     self.log(f"Reject unfreezing {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
                     recentlyUnfrozen = None
