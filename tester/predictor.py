@@ -300,10 +300,10 @@ class Predictor ( LoggerBase ):
                 # okay, everything under control, we just return empty list
                 # of theory predictions
                 self.log(f"No cross-sections found for protomodel point: {e}")
-                self.log(f" `inputFile {inputFile}" )
-                with open ( inputFile, "rt" ) as f:
-                    self.log ( f.read() )
-                self.log("^^^")
+                #self.log(f" `inputFile {inputFile}" )
+                #with open ( inputFile, "rt" ) as f:
+                #    self.log ( f.read() )
+                #self.log("^^^")
                 return []
             else:
                 # no idea what that is. pass it on.
