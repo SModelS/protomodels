@@ -65,6 +65,10 @@ class ProtoModel ( LoggerBase ):
     def allowN1N1Prod(self):
         return self.computer.allowN1N1Prod
 
+    @allowN1N1Prod.setter ## convenience
+    def allowN1N1Prod(self,flag : bool ):
+        self.computer.allowN1N1Prod = flag
+
     @property
     def templateSLHA(self):
         return os.path.join ( os.path.dirname ( __file__ ), "templates", self.templateName )
@@ -436,6 +440,7 @@ class ProtoModel ( LoggerBase ):
          The results are stored in self._stored_xsecs and should be accessed through getXsecs.
         :param keep_slha: if true, then keep slha file at the end
 
+        :returns: current slha file, if slha file is kept, else none
         """
 
         hasComputed = False
@@ -485,6 +490,7 @@ class ProtoModel ( LoggerBase ):
 
         if keep_slha:
             self.createSLHAFile( self.currentSLHA, addXsecs = True )
+            return self.currentSLHA
 
     def rescaleXSecsBy(self, s : float, excl : list = [], cap_ssm = 100):
         """

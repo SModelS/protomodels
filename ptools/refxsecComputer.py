@@ -42,7 +42,7 @@ class RefXSecComputer:
         :param allowN1N1Prod: if true, then allow also N1 N1 production
         """
         self.verbose = verbose
-        self.allowN1N1Prod = allowN1N1Prod
+        self._allowN1N1Prod = allowN1N1Prod
         if verbose:
             setLogLevel ( "info" )
         codedir = "../"
@@ -53,10 +53,8 @@ class RefXSecComputer:
             pass
         self.shareDir = f"{codedir}/ptools/xsecTables/"
         # productions of same-sign-pid pairs when the particle is within reach
-        samesignmodes = [ 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 ]
-        if allowN1N1Prod:
-            samesignmodes.append ( 1000022 )
-        self.samesignmodes = tuple ( samesignmodes )
+        self.samesignmodes = [ 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 ]
+        self.addN1N1ProdMode()
         # production of opposite-sign-pid pairs when the particle is within reach
         self.oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 
                 2000005, 1000006, 2000006, 1000011, 1000013, 1000015, 1000024, 
@@ -88,6 +86,21 @@ class RefXSecComputer:
                  
         # self.schannel = ( 35, 55, )
         self.schannel = tuple()
+
+    @property
+    def allowN1N1Prod(self):
+        return self._allowN1N1Prod
+
+    @allowN1N1Prod.setter ## convenience
+    def allowN1N1Prod(self,flag : bool ):
+        self._allowN1N1Prod = flag
+        self.addN1N1ProdMode()
+
+    def addN1N1ProdMode ( self ):
+        """ if allowN1N1Prod, add the mode """
+        if not self.allowN1N1Prod:
+            return
+        self.samesignmodes = tuple ( list ( self.samesignmodes ) + [ 1000022 ] )
 
     def warn ( self, *txt ):
         stxt=str(*txt)
@@ -435,6 +448,7 @@ class RefXSecComputer:
                 given as dictionary of the tuple of the mothers' pids as keys and
                 multipliers as values, e.g { (1000001,1000021):1.1 }.
         :param ignore_pids: ignore pids for production
+        :param ewk: 
         :returns: List of cross sections to be added
         """
         channels = self.findOpenChannels ( slhafile )
@@ -743,7 +757,12 @@ class RefXSecComputer:
             #         pb = True
             #     else:
             #         logger.info ( f"Asking for ({pid1,pid2}) production but masses differ ({masses[0],masses[1]}) at {sqrts} TeV. We only have for mass-degenerate case. Will use it." )
-        if pid1 in [ 1000022, 1000023, 1000025 ] and pid2 in [ 1000023, 1000025 ]: # Neutralinos pair production
+        N1N2N3 = ( 1000022, 1000023, 1000025 )
+        N2N3 = ( 1000023, 1000025 )
+        neutralinos = N2N3
+        if self.allowN1N1Prod:
+            neutralinos = N1N2N3
+        if pid1 in N1N2N3 and pid2 in neutralinos: # Neutralinos pair production
             if masses[1]+masses[0] == 0.:
                 logger.info ( f"Asking for massless {(pid1,pid2)} production. Will return None." )
                 return None, None, None

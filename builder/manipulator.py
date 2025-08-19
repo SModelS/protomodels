@@ -527,8 +527,9 @@ class Manipulator ( LoggerBase ):
             self.M.templateName = D["templateSLHA"]
             self.M.getParticleContent()
         if "allowN1N1Prod" in D:
+            from ptools.refxsecComputer import RefXSecComputer
             self.M.computer = RefXSecComputer( verbose = False,
-                    allowN1N1Prod = allowN1N1Prod )
+                    allowN1N1Prod = D["allowN1N1Prod"] )
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
         #if "walkerid" in D:
