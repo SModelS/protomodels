@@ -519,7 +519,7 @@ class RandomWalker ( LoggerBase ):
         if acceptance_ratio > 1:
             self.highlight ( "info", f"Acceptance ratio > 1.0. K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )
 
-            cr, _ = self.critic.predict_critic(self.protomodel, keep_predictions=True)
+            cr, cr_answer = self.critic.predict_critic(self.protomodel, keep_predictions=True)
             if cr:
                 self.highlight ( "info", "Passed both critics, taking the step." )
                 proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=True)
@@ -527,7 +527,7 @@ class RandomWalker ( LoggerBase ):
                 self.writeToDictFile(proto_dict)
                 self.takeStep()
             else:
-                self.highlight ( "info", "Failed at least one critic, the step is reverted." )
+                self.highlight ( "info", f"Failed critic: {cr_answer}; the step is reverted." )
                 proto_dict = self.manipulator.getPmodelDict(acc=True, critic_acc=False)
                 self.log(f"Protomodel: {proto_dict}")
                 self.writeToDictFile(proto_dict)
