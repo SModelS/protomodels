@@ -183,17 +183,24 @@ class Manipulator ( LoggerBase ):
         self.M.step = step ## continue counting!
         self.M.bestCombo = None
 
-    def shiftAllMassesBy ( self, dm : float, LSP=False ):
+    def shiftAllMassesBy ( self, dm : float, LSP : bool = False ) -> list:
         """ shift the masses of all unfrozen particles by dm [GeV]
         (simple covenience function)
 
         :param dm: the shift of all masses, in GeV
+
+        :returns: list of all pids that got shifted
         """
         self.log(f"Shifting all other masses by {dm:.2f}")
+        shifted = set()
         for pid,m in self.M.masses.items():
-            if pid is self.M.LSP and not LSP: continue
+            if pid is self.M.LSP and not LSP: 
+                continue
             self.M.masses[pid]=m+dm
-            if self.M.masses[pid] > self.M.maxMass: self.M.masses[pid] = self.M.maxMass
+            shifted.add ( pid )
+            if self.M.masses[pid] > self.M.maxMass: 
+                self.M.masses[pid] = self.M.maxMass
+        return shifted
 
     def changeMassAccToSSM(self, pid_pair: Tuple, new_ssm: Union[int, float], sqrts:Union[int,float,Unum] = 13):
         """
@@ -313,7 +320,7 @@ class Manipulator ( LoggerBase ):
         if appendMode:
             mode,comma = "at",","
         level = 1 if appendMode else 0
-        mkdir ( os.path.basename ( filename ) )
+        # mkdir ( os.path.dirname ( filename ) )
         with open ( filename, mode ) as f:
             d = py_dumps ( obj, level = level )
             if appendMode:
@@ -1638,7 +1645,7 @@ class Manipulator ( LoggerBase ):
         #self.record ( f"freeze {self.namer.texName(pid,addDollars=True)}" )
         #Remove pid from masses, decays and signal multipliers:
         if not force: self.log(f"Propose freezing pid: {pid}({self.namer.asciiName(pid)})")
-        else: self.log(f"Freezing pid: {pid}({self.namer.asciiName(pid)})")
+        else: self.log(f"Freezing pid: {self.namer.asciiName(pid)}({pid})")
         #print(f"Propose freezing pid: {pid}")
         
         #get total num of frozen and unfrozen par for proposal ratio
@@ -1798,7 +1805,7 @@ class Manipulator ( LoggerBase ):
         self.log ( f"Unfreeze mass of {self.namer.asciiName(pid)} to {protomodel.masses[pid]:.1f}" )
 
         # Set branchings
-        self.log(f"Initializing Branchings for {pid}({self.namer.asciiName(pid)})")
+        self.log(f"Initializing Branchings for {self.namer.asciiName(pid)}({pid})")
         initialized = self.initBranchings(pid, protomodel=protomodel)
         if not initialized:
             self.log(f"No decays for {pid}")
@@ -1807,7 +1814,7 @@ class Manipulator ( LoggerBase ):
             return None
             
         #Add pid pair production and associated production to protomodel.ssmultipliers:
-        self.log(f"Initializing Production Modes for {pid}({self.namer.asciiName(pid)})")
+        self.log(f"Initializing Production Modes for {self.namer.asciiName(pid)}({pid})")
         self.initSSMFor(pid, protomodel=protomodel, cap_ssm=cap_ssm)
 
         return tmpMass
@@ -1920,7 +1927,7 @@ class Manipulator ( LoggerBase ):
         if dx < 0.:
             self.highlight ( "info", f"dx={dx}<0. this should not happen. pid={pid} mass={self.M.masses[pid]} denom={denom}" )
         
-        self.log(f"Current mass of {self.namer.asciiName(pid)}({pid}) = {self.M.masses[pid]:.3f} GeV, dx = {dx}")
+        self.log(f"Current mass of {self.namer.asciiName(pid)}({pid}) = {self.M.masses[pid]:.3f} GeV, dx = {dx:.3f} GeV")
 
         if not minMass:
             minMass = self.M.masses[self.M.LSP]
@@ -1974,13 +1981,15 @@ class Manipulator ( LoggerBase ):
             delta_mass = tmpmass - self.M.masses[self.M.LSP]
             self.M.masses[pid] = tmpmass
             self.log(f"Randomly changing LSP mass to {tmpmass:.1f}.")
-            self.shiftAllMassesBy(delta_mass, LSP=False)
-            return 1
+            shifted=self.shiftAllMassesBy(delta_mass, LSP=False)
+            return len(shifted)
             
         allpids = self.forcedMassDegeneratePids(pid)
         nchanges = 0
+        self.log(f"Now randomly changing {pid}->{allpids}: masses {self.M.masses[pid]}->{tmpmass}" )
 
         for ipid in allpids:
+            self.M.masses[ipid]=tmpmass
             if ipid in [ 1000023, 1000024 ]:
                 if ipid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
                 if ipid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
@@ -1988,15 +1997,13 @@ class Manipulator ( LoggerBase ):
                     if self.run_mcmc:
                         self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {ipid}.")
                     else:
-                        self.log ( f"randomly changing mass of {self.namer.asciiName ( ipid )} to {tmpmass:.1f}" )
+                        self.log ( f"randomly changing mass of {self.namer.asciiName ( ipid )}({ipid}) to {tmpmass:.1f}" )
                         self.record ( f"change mass of {self.namer.texName(ipid,addDollars=True)} to {tmpmass:.1f}" )
-                        self.M.masses[ipid]=tmpmass
                         self.initBranchings(ipid)
                         nchanges += 1
             else:
-                self.log ( f"randomly changing mass of {self.namer.asciiName ( ipid )} to {tmpmass:.1f}" )
+                self.log ( f"randomly changing mass of {self.namer.asciiName(ipid)}({ipid}) to {tmpmass:.1f}" )
                 self.record ( f"change mass of {self.namer.texName(ipid,addDollars=True)} to {tmpmass:.1f}" )
-                self.M.masses[ipid]=tmpmass
                 nchanges += 1
 
         return nchanges

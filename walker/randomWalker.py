@@ -266,7 +266,7 @@ class RandomWalker ( LoggerBase ):
                     
             else: dicts = []
             dicts.append(proto_dict)
-            helpers.mkdir ( os.path.basename ( self.dictfile ) )
+            # helpers.mkdir ( os.path.dirname ( self.dictfile ) )
             with open (self.dictfile, "wt" ) as f:
                 f.write (f"{dicts}")
 
