@@ -1101,10 +1101,10 @@ class Manipulator ( LoggerBase ):
                 accept_move = self.proposal_density(move='rem_par', force_move=force_move)
                 if accept_move:
                     nChanges += 1
-                    self.log(f"Accept freezing of {', '.join(frozenParticles)} ({self.namer.asciiName(frozenParticles)})")
+                    self.log(f"Accept freezing of {', '.join(map(str,frozenParticles))} ({self.namer.asciiName(frozenParticles)})")
                     #print(f"Protomodel now: {self.M.unFrozenParticles()}")
                 else:
-                    self.log(f"Reject freezing of {', '.join(frozenParticles)} ({self.namer.asciiName(frozenParticles)})")
+                    self.log(f"Reject freezing of {', '.join(map(str,frozenParticles))} ({self.namer.asciiName(frozenParticles)})")
             
             changes = self.randomlyChangeBranchings(protomodel=self.propose_model, prob=probBR)
             if changes > 0:
@@ -1146,12 +1146,12 @@ class Manipulator ( LoggerBase ):
         #Update cross-sections (if needed)
         self.M.getXsecs()
 
-    def randomlyUnfreezeParticle ( self, cap_ssm=100. ) -> int:
+    def randomlyUnfreezeParticle ( self, cap_ssm : float = 100. ) -> int:
         """ Unfreezes a (random) frozen particle according to gaussian distribution
             with a width of <sigma>.
 
-        :param sigma: Width of the gaussian distribution
-        :param force: If True force the unfreezing.
+        :param cap_ssm: allow a maximum change in signal strength multipliers
+        by a factor of cap_ssm
 
         :returns: 1 if a particle got unfrozen, 0 if not.
         """
@@ -1183,7 +1183,12 @@ class Manipulator ( LoggerBase ):
 
         self.log ( f"Propose unfreezing pid: {pid}({self.namer.asciiName(pid)})" )
         #print(f"Propose unfreezing {self.namer.asciiName(pid)}" )
-        return self.unFreezeParticle(pid, protomodel = self.propose_model, cap_ssm=cap_ssm)
+        allpids = self.forcedMassDegeneratePids ( pid )
+        unfrozen = []
+        for opid in allpids:
+            upids = self.unFreezeParticle( opid, protomodel = self.propose_model, cap_ssm=cap_ssm)
+            unfrozen += upids
+        return unfrozen
 
     def randomlyChangeBranchings ( self, protomodel = None, prob : float =0.2, 
             zeroBRprob : float = 0.05, singleBRprob : float = 0.05, 
@@ -1659,7 +1664,7 @@ class Manipulator ( LoggerBase ):
         :param protomodel: if given, then unFreeze for that protomodel, not for
         your protomodel
 
-        :returns: list of particles that got unfrozen
+        :returns: list of particles that really got unfrozen
         """
 
         if protomodel is None:
@@ -1670,19 +1675,12 @@ class Manipulator ( LoggerBase ):
         n_frozen = len(frozen)
         num_unfrozen = len(protomodel.unFrozenParticles( withLSP=False ))
 
-        nallpids = self.forcedMassDegeneratePids ( pid )
-
-        unfrozen = []
-        allpids = []
         if not force:
             #If pid matches the heavier state and the lighter state is frozen,
             #do not unfreeze the particle
             for pids in self.canonicalOrder:
-                for ipid in allpids:
-                    if ipid == pids[1] and pids[0] in frozen:
-                        pass
-                    else:
-                        allpids.append ( ipid )
+                if pid == pids[1] and pids[0] in frozen:
+                    return []
         
         #get total num of frozen and unfrozen par for proposal ratio
         for pids in self.canonicalOrder:
@@ -1742,26 +1740,25 @@ class Manipulator ( LoggerBase ):
                 if pid == 1000006:
                     maxMass = mstop2 + 20.
         
-        allpids = self.forcedMassDegeneratePids ( pid )
-        for opid in allpids:
-            protomodel.masses[opid] = tmpMass
-            self.record ( f"Unfreeze mass of {self.namer.texName(opid,addDollars=True)} to {tmpMass:.1f}" )
-            self.log ( f"Unfreeze mass of {self.namer.asciiName(opid)} to {protomodel.masses[opid]:.1f}" )
+        protomodel.masses[pid] = tmpMass
 
-            # Set branchings
-            self.log(f"Initializing Branchings for {opid}")
-            initialized = self.initBranchings(opid, protomodel=protomodel)
-            if not initialized:
-                self.log(f"No decays for {opid}")
-                self.proposal_ratio['add_par']['q'] = 1.
-                self.freezeParticle ( opid, force=True, protomodel=protomodel )
-                return None
+        self.record ( f"Unfreeze mass of {self.namer.texName(pid,addDollars=True)} to {tmpMass:.1f}" )
+        self.log ( f"Unfreeze mass of {self.namer.asciiName(pid)} to {protomodel.masses[pid]:.1f}" )
+
+        # Set branchings
+        self.log(f"Initializing Branchings for {pid}")
+        initialized = self.initBranchings(pid, protomodel=protomodel)
+        if not initialized:
+            self.log(f"No decays for {pid}")
+            self.proposal_ratio['add_par']['q'] = 1.
+            self.freezeParticle ( pid, force=True, protomodel=protomodel )
+            return []
             
-            #Add pid pair production and associated production to protomodel.ssmultipliers:
-            self.log(f"Initializing Production Modes for {opid}")
-            self.initSSMFor(opid, protomodel=protomodel, cap_ssm=cap_ssm)
+        #Add pid pair production and associated production to protomodel.ssmultipliers:
+        self.log(f"Initializing Production Modes for {pid}")
+        self.initSSMFor(pid, protomodel=protomodel, cap_ssm=cap_ssm)
 
-        return allpids
+        return [ pid ]
 
     def randomlyChangeMasses ( self, prob = 0.05, dx = 200.0 ):
         """ take a random step in mass space for a single unfrozen particle

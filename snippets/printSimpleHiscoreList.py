@@ -63,6 +63,14 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             sK = "None" if K == None else f"{K:.3f}"
             print ( f"#{i}({wid:3d}): K={ansi.GREEN}{sK}{ansi.RESET}; TL={TL:.3f}; {sparticles} {timestamp}" )
 
+def runSlurmWalk():
+    cmd = "slurm_walk.py -q"
+    import subprocess
+    o = subprocess.getoutput ( cmd )
+    print ( "Running Stats" )
+    print ( "=============" )
+    print ( o )
+    print ( )
 
 if __name__ == "__main__":
     import argparse 
@@ -76,4 +84,5 @@ if __name__ == "__main__":
     argparser.add_argument ( '-n', '--nmax', type=int, default=None,
         help="print maximally this number of entries [None]" )
     args = argparser.parse_args()
+    runSlurmWalk()
     summarizeHiscores ( args.hiscores, args.extended, args.nmax )
