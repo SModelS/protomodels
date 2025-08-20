@@ -26,42 +26,55 @@ def lock ( filename : os.PathLike ) -> bool:
     """ lock the file filename, to make sure processes dont
     overwrite each other
 
-    :returns: True if there is already a lock on it
+    :returns: True if it was able to lock
     """
     import time, socket, random
     if ignore_locks:
         return False
+    if not os.path.exists ( filename ):
+        # dont lock non-existing file
+        return False
     lock_file = lockfile ( filename )
 
-    __locks__.add ( lock_file )
     ## a lock file exists already? wait!
     ctr = 0
     if os.path.exists ( lock_file ):
         while ( os.path.exists ( lock_file ) ):
-            time.sleep ( 2.*ctr + .2 )
+            time.sleep ( .5*ctr + .2 )
             ctr += 1
-        if ctr > 10: # we force an unlock after some time
-            unlock ( filename )
+            if ctr > 6: # we force an unlock after some time
+                unlock ( filename )
     for i in range(5):
         try:
             with open ( lock_file, "wt" ) as f:
-                f.write ( time.asctime()+","+socket.gethostname()+"\n" )
+                f.write ( f"{{ 'time': '{time.asctime()}', 'host': '{socket.gethostname()}', 't': {time.time()} }}\n" )
                 f.close()
-            return False
+            __locks__.add ( lock_file )
+            return True
         except FileNotFoundError as e:
             t0 = random.uniform(2.,4.*i)
             print ( f"[locker] FileNotFoundError #{i} {e}. Sleep for {t0:.1f}s" )
             time.sleep( t0 )
+    __locks__.add ( lock_file )
     return True ## pretend there is a lock
 
 def unlock ( filename : os.PathLike ) -> bool:
-    """ unlock for topo and masses, to make sure processes dont
-        overwrite each other """
-    if ignore_locks:
-        return
+    """ unlock filename, to make sure processes dont
+        overwrite each other 
+
+    :returns: true if there really was a lock 
+    """
+    #if ignore_locks:
+    #    return
     lock_file = lockfile( filename )
     if lock_file in __locks__:
         __locks__.remove ( lock_file )
     if os.path.exists ( lock_file ):
-        cmd = f"rm -f {lock_file}"
-        subprocess.getoutput ( cmd )
+        try:
+            os.unlink ( lock_file )
+            return True
+        except FileNotFoundError as e:
+            pass
+        #cmd = f"rm -f {lock_file}"
+        #subprocess.getoutput ( cmd )
+    return False
