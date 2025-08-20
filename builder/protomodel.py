@@ -721,6 +721,7 @@ class ProtoModel ( LoggerBase ):
         newmodel.forced_degeneracies = self.forced_degeneracies
         newmodel.particles = self.particles[:]
         newmodel.templateName = self.templateName[:]
+        newmodel.allowN1N1Prod = self.allowN1N1Prod
         newmodel.possibledecays = dict([[key,val] for key,val in self.possibledecays.items()])
         decayDict = {}
         for pid,dec in self.decays.items():
