@@ -346,7 +346,7 @@ class Critic ( LoggerBase ):
         return predictions
 
 
-    def ul_critic(self, protomodel, predictions):
+    def ul_critic(self, protomodel, predictions : List ):
         """ UL-based critic (can also use best SR results if no UL-type result available for a given analysis).
 
         :param predictions: list of theory predictions (UL-type and EM-type)

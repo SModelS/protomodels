@@ -248,17 +248,6 @@ class Hiscores ( LoggerBase ):
         D=m.writeDictFile ( None, cleanOut = False, ndecimals = 6 )
         newlist, added = self.insertHiscore ( oldhiscores, D )
         self.writeListToDictFile ( hiscorefile, newlist )
-        """ ## old version
-        self.log (f"Write model to {hiscorefile}" )
-        with open ( hiscorefile, "wt" ) as f:
-            f.write ( "[\n" )
-            for ctr,l in enumerate(newlist):
-                f.write ( f"{l}" )
-                #if ctr < len(newlist)-1:
-                #    f.write ( ",\n" % ( l ) )
-            f.write ( "\n]\n" )
-            f.close()
-        """
         with open ( "Kold.conf", "wt" ) as f:
             f.write ( f"{m.M.K}\n" )
             f.close()
@@ -352,8 +341,9 @@ class Hiscores ( LoggerBase ):
             return True
         return False
 
-    def addResult ( self, ma ):
+    def addResult ( self, ma : Manipulator ) -> bool:
         """ add a result to the list
+
         :param ma: the manipulator object
         :returns: true, if result was added
         """
@@ -370,6 +360,20 @@ class Hiscores ( LoggerBase ):
         ## FIXME we should only write into this file in the first maxstep/3 steps
         #if ma.M.K > Kmin:              #FIXME!
         # self.pprint ( "WARNING we shouldnt write into hiscore file afte maxstep/3 steps!!" )
+
+        ## add only if passed critics
+        if hasattr ( ma.M, "ul_critic" ):
+            # if there is no ul_critic result, we assume we're fine
+            passes = ma.M.ul_critic["passes"]
+            if passes == False:
+                return False
+        if hasattr ( ma.M, "llhd_critic" ):
+            # if there is no ul_critic result, we assume we're fine
+            passes = ma.M.llhd_critic["robs"]<1.0
+            if passes == False:
+                return False
+
+
         added = self.updateHiscoreFile( ma, hiscorefile = f"hiscores{self.walkerid}.dict")
         if added:
             self.updateGlobalHiscoreFile( ma)
@@ -632,8 +636,9 @@ class Hiscores ( LoggerBase ):
             return False
         return False
 
-    def newResult ( self, ma ):
+    def newResult ( self, ma : Manipulator ) -> bool:
         """ see if new result makes it into hiscore list. If yes, then add.
+
         :param ma: the manipulator object
         :returns: true, if it entered the hiscore list
         """
