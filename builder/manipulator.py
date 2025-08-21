@@ -41,7 +41,7 @@ class Manipulator ( LoggerBase ):
     # ( so they dont have any free parameters)
     # This happens eg when using templateNaturalEwkino.slha 
     # FIXME might have to make this smarter later on
-    decaylessParticles = [ protomodel.LSP, 1000023, 1000024 ]
+    decaylessParticles = [ ProtoModel.LSP, 1000023, 1000024 ]
 
     mass_W = 80.377
     mwidth_W = 2.14
@@ -1370,7 +1370,8 @@ class Manipulator ( LoggerBase ):
         #print(f"Prob to add {self.proposal_ratio['br']['add']}")
         return 1
 
-    def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25, probSingle : float =0.8, ssmSigma=1.0, cap_ssm=100. ) -> int:
+    def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25, 
+            probSingle : float =0.8, ssmSigma : float = 1.0, cap_ssm : float =100. ) -> int:
         """ randomly change one of the signal strengths according to a gaussian
         distribution centered around the original SSM.
 

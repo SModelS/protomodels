@@ -270,9 +270,9 @@ class ProtoModel ( LoggerBase ):
         tmpSLHA = tempfile.mktemp( prefix=f".{self.walkerid}_xsecfile", suffix=".slha",dir=self.SLHATEMPDIR )
         slhafile = self.createSLHAFile(tmpSLHA, addXsecs=False)
 
-        from ptools.refxsecComputer import RefXSecComputer
-        comp = RefXSecComputer()
-        channels = comp.findOpenChannels(slhafile)
+        #from ptools.refxsecComputer import RefXSecComputer
+        #comp = RefXSecComputer( allowN1N1Prod = self.allowN1N1Prod )
+        channels = self.computer.findOpenChannels(slhafile)
 
         if return_mass: return channels
 
