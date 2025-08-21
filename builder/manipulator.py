@@ -35,6 +35,13 @@ class Manipulator ( LoggerBase ):
     ## forbiddenparticles are particle ids that we do not touch in this run
     forbiddenparticles = []
 
+    # decayless particles: list of particles that is allowed to not
+    # have any decay modes. LSP, because it is the DMC,
+    # N2 and C1 because they may have natural offshell boson decays defined,
+    # eg when using templateNaturalEwkino.slha 
+    # FIXME might have to make this smarter later on
+    decaylessParticles = [ protomodel.LSP, 1000023, 1000024 ]
+
     mass_W = 80.377
     mwidth_W = 2.14
     mass_Z = 91.1876
@@ -183,18 +190,19 @@ class Manipulator ( LoggerBase ):
         self.M.step = step ## continue counting!
         self.M.bestCombo = None
 
-    def shiftAllMassesBy ( self, dm : float, LSP : bool = False ) -> list:
+    def shiftAllMassesBy ( self, dm : float, lsp : bool = False ) -> list:
         """ shift the masses of all unfrozen particles by dm [GeV]
         (simple covenience function)
 
         :param dm: the shift of all masses, in GeV
+        :param lsp: if true, then shift also the lsp
 
         :returns: list of all pids that got shifted
         """
         self.log(f"Shifting all other masses by {dm:.2f}")
         shifted = set()
         for pid,m in self.M.masses.items():
-            if pid is self.M.LSP and not LSP: 
+            if pid is self.M.LSP and not lsp: 
                 continue
             self.M.masses[pid]=m+dm
             shifted.add ( pid )
@@ -809,11 +817,10 @@ class Manipulator ( LoggerBase ):
 
         BRtot = sum(protomodel.decays[pid].values())
         if BRtot == 0:
-            if pid != protomodel.LSP:
-                return True
+            if pid not in self.decaylessParticles:
                 #print(f"decay of {pid}: {protomodel.decays[pid]}")
                 self.log(f"decay of {pid}: {protomodel.decays[pid]}")
-                protomodel.pprint ( f"When attempting to normalize: total BR of ({pid}) is zero. we need to take out {pid}." )
+                protomodel.pprint ( f"When attempting to normalize: total BR of ({pid}) is zero, and it is not in decaylessParticles. we need to take out {pid}." )
                 ## we need to freeze also <pid> now
                 ## (since we have no sensible channels anymore)
                 self.freezeParticles ( pid, force=True, protomodel=protomodel )
