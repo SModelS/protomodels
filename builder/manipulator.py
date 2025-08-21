@@ -35,10 +35,11 @@ class Manipulator ( LoggerBase ):
     ## forbiddenparticles are particle ids that we do not touch in this run
     forbiddenparticles = []
 
-    # decayless particles: list of particles that is allowed to not
-    # have any decay modes. LSP, because it is the DMC,
+    # decayless particles: list of particles that are allowed to not
+    # have any branching ratio parameters defined. LSP, because it is the DMC,
     # N2 and C1 because they may have natural offshell boson decays defined,
-    # eg when using templateNaturalEwkino.slha 
+    # ( so they dont have any free parameters)
+    # This happens eg when using templateNaturalEwkino.slha 
     # FIXME might have to make this smarter later on
     decaylessParticles = [ protomodel.LSP, 1000023, 1000024 ]
 
