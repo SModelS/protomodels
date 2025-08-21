@@ -1990,7 +1990,7 @@ class Manipulator ( LoggerBase ):
             delta_mass = tmpmass - self.M.masses[self.M.LSP]
             self.M.masses[pid] = tmpmass
             self.log(f"Randomly changing LSP mass to {tmpmass:.1f}.")
-            shifted=self.shiftAllMassesBy(delta_mass, LSP=False)
+            shifted=self.shiftAllMassesBy(delta_mass, lsp=False)
             return len(shifted)
             
         allpids = self.forcedMassDegeneratePids(pid)
