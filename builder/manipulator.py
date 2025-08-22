@@ -1371,12 +1371,14 @@ class Manipulator ( LoggerBase ):
         return 1
 
     def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25, 
-            probSingle : float =0.8, ssmSigma : float = 1.0, cap_ssm : float =100. ) -> int:
+            probSingle : float =0.8, ssmSigma : float = 1.0, 
+            cap_ssm : float =100. ) -> int:
         """ randomly change one of the signal strengths according to a gaussian
         distribution centered around the original SSM.
 
         :param prob: Probability for changing the signal strengths
-        :param probSingle: Probability for changing the signal strength of a single particle
+        :param probSingle: Probability for changing the signal strength of a 
+        single particle
         :param ssmSigma: Width for the gaussian, put to 1.0?
 
         :returns: 1 if something got changed, else 0
@@ -1391,11 +1393,13 @@ class Manipulator ( LoggerBase ):
             protmodel = self.M
             
         if np.random.uniform(0,1) < probSingle:
-            return self.randomlyChangeSSOfOneParticle(protomodel = protomodel,ssmSigma=ssmSigma, cap_ssm=cap_ssm)
+            return self.randomlyChangeSSOfOneParticle(protomodel = protomodel,
+                    ssmSigma=ssmSigma, cap_ssm=cap_ssm)
         
-        unfrozenparticles = self.M.unFrozenParticles( withLSP=False )
+        unfrozenparticles = self.M.unFrozenParticles( withLSP=self.M.allowN1N1Prod )
+
         if len(unfrozenparticles)<2:
-            self.log ( "Not enough unfrozen particles to change random signal strength" )
+            self.log ( "Not enough unfrozen particles to change random ssm" )
             return 0
         
         #first get allowed production modes
@@ -1468,7 +1472,7 @@ class Manipulator ( LoggerBase ):
             if newSSM > cap_ssm: newSSM = cap_ssm
             protomodel.ssmultipliers[pair] = newSSM
             #self.changeSSM(pair,newSSM)
-            self.log ( f"Changing signal strength multiplier of {self.namer.asciiName(pair[0])},{self.namer.asciiName(pair[1])}: {newSSM:.2f}." )
+            self.log ( f"Changing ssm of {self.namer.asciiName(pair[0])},{self.namer.asciiName(pair[1])}: {newSSM:.2f}." )
             self.record ( f"change ssm of {self.namer.texName(pair[0])},{self.namer.texName(pair[1])} to {newSSM:.2f}." )
         return 1
 
@@ -1479,14 +1483,15 @@ class Manipulator ( LoggerBase ):
         if protomodel is None:
             protomodel = self.M
         
-        unfrozenparticles = self.M.unFrozenParticles( withLSP=False )
+        unfrozenparticles = self.M.unFrozenParticles( withLSP=self.M.allowN1N1Prod )
 
         if len(unfrozenparticles)<2:
-            self.log ( "Not enough unfrozen particles to change random signal strength" )   #why? we are changing only for 1 particle?
+            self.log ( "Not enough unfrozen particles to change random ssm" )   #why? we are changing only for 1 particle?
             return 0
         
         p = int(np.random.choice ( unfrozenparticles ))
         if pid != None: p = pid
+        self.log (f"Changing all ssms of {p}({self.namer.asciiName(p)})" )
         
         ssms = []
         for dpd,v in protomodel.ssmultipliers.items():
@@ -1494,10 +1499,10 @@ class Manipulator ( LoggerBase ):
                 newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
                 if newSSM > cap_ssm: newSSM = cap_ssm
                 protomodel.ssmultipliers[dpd]= newSSM
+                self.log (f"Changing ssm of {dpd}({self.namer.asciiName(dpd)}) to newSSM" )
                 #self.changeSSM ( dpd, newssm )
                 ssms.append ( newSSM )
         
-        self.log (f"Changing all ssms of {p}({self.namer.asciiName(p)})" )
         return 1
 
     def pidPairIsInSSMs ( self, pids : Tuple ) -> bool:
