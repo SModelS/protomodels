@@ -745,8 +745,8 @@ class HiscorePlotter ( LoggerBase ):
         c_result, c_reason = True, "??"
         if len(self.protomodel.ul_critic_tpList) == 0:
             from tester.critic import Critic
-            cr = Critic(self.protomodel.walkerid,do_srcombine=True)
-            c_result, c_reason = cr.predict_critic( self.protomodel, keep_predictions=True )
+            # cr = Critic(self.protomodel.walkerid,do_srcombine=True, dbpath = xxx )
+            c_result, c_reason = self.critic.predict_critic( self.protomodel, keep_predictions=True )
         f.write ( f"<br><b>Critics:</b> {c_reason}<br>\n" )
         if hasattr ( self.protomodel, "llhd_critic" ):
             sdatasets = ", ".join ( self.protomodel.llhd_critic["datasets"] )
@@ -821,6 +821,8 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( "</html>\n" )
         f.close()
         print ( "[plotHiscore] Wrote index.html" )
+        if False:
+            import sys, IPython; IPython.embed( colors = "neutral" )
 
     def copyFilesToGithub( self ):
         files = [ "hiscore.slha", "index.html", "decays.png",
@@ -932,6 +934,7 @@ class HiscorePlotter ( LoggerBase ):
         pm = hiscoreTools.obtainHiscore ( number, hiscorefile, walkerid=walkerid,
                dbpath = dbpath )
         pm.walkerid = walkerid
+        self.dbpath = dbpath
         self.protomodel = pm
         self.combiner = Combiner ( self.protomodel.walkerid )
         self.predictor = Predictor ( pm.walkerid, dbpath, do_srcombine = True )
