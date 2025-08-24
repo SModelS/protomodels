@@ -751,10 +751,11 @@ class HiscorePlotter ( LoggerBase ):
         if hasattr ( self.protomodel, "llhd_critic" ):
             sdatasets = ", ".join ( self.protomodel.llhd_critic["datasets"] )
             robs = self.protomodel.llhd_critic['robs']
+            rexp = self.protomodel.llhd_critic['rexp']
             col, endcol = "<span style='color: darkgreen;'>", "</span>"
             if robs>1.0:
                 col = "<span style='color: darkred;'>"
-            f.write ( f"<br><b>LLHD Critic:</b> {sdatasets}:: {col}robs={robs}{endcol}<br>\n" )
+            f.write ( f"<br><b>LLHD Critic:</b> {sdatasets}:: {col}robs={robs}, rexp={rexp}{endcol}<br>\n" )
         else:
             f.write ( f"<br><b>No LLHD Critic results!!</b><br>" )
         rvalues=self.protomodel.ul_critic_tpList
@@ -776,7 +777,6 @@ class HiscorePlotter ( LoggerBase ):
                 dataId = "ul"
             f.write ( f"<li>{c_in}{self.anaNameAndUrl ( rv['tp'] )}:{dataId}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>{c_out}\n" )
         f.write("</ul>\n")
-        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
         if hasattr ( self.protomodel, "analysisContributions" ):
             print ( "[plotHiscore] contributions-per-analysis are defined" )
@@ -929,7 +929,8 @@ class HiscorePlotter ( LoggerBase ):
         :param walkerid: log with walkerid #walkerid
         """
 
-        pm = hiscoreTools.obtainHiscore ( number, hiscorefile, walkerid=walkerid )
+        pm = hiscoreTools.obtainHiscore ( number, hiscorefile, walkerid=walkerid,
+               dbpath = dbpath )
         pm.walkerid = walkerid
         self.protomodel = pm
         self.combiner = Combiner ( self.protomodel.walkerid )

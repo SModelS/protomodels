@@ -66,14 +66,16 @@ def pprintEvs ( protomodel ):
 
 def obtainHiscore ( number : int,
         hiscorefile : PathLike = "hiscores_global.dict",
-        walkerid : Union[str,int] = 0 ) -> ProtoModel:
+        walkerid : Union[str,int] = 0,
+        dbpath : PathLike = "official" ) -> ProtoModel:
     """ obtain hiscore number <number> from <hiscorefile>
 
     :param walkerid: log everything as walker #walkerid
 
     :returns: protomodel object
     """
-    hi = fetchHiscoresObj ( hiscorefile, walkerid = walkerid )
+    hi = fetchHiscoresObj ( hiscorefile, walkerid = walkerid,
+           dbpath = dbpath )
     TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K
     sK = "K=None" if K==None else f"K={K:.3f}"
