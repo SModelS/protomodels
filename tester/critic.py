@@ -27,7 +27,7 @@ from tester.combinationsmatrix import getYamlMatrix
 from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
 import numpy as np
 try:
-    from smodels.statistics.basicStats import apriori
+    from smodels.statistics.basicStats import observed, apriori, aposteriori
 except Exception as e:
     pass
 
@@ -166,12 +166,14 @@ class Critic ( LoggerBase ):
         return
 
 
-    def updateModelPredictionsWithCombinedPreds(self, protomodel, mostSensiComb, robsComb):
+    def updateModelPredictionsWithCombinedPreds(self, 
+            protomodel, mostSensiComb, robsComb : float, rexpComb : float ):
         """ Extract information from list of theory predictions and store r_obs from
             the most sensitive combination of analyses in the protomodel.
 
             :param mostSensiComb: list of theory predictions making the most sensitive combination
             :param robsComb: r_obs of the most sensitive combination
+            :param rexpComb: r_exp of the most sensitive combination
         """
         from ptools.helpers import experimentalId
 
@@ -180,9 +182,7 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.llhd_critic = {'datasets': [experimentalId(comb) for comb in mostSensiComb], 'robs': round(robsComb,2)}
-
-        return
+            protomodel.llhd_critic = {'datasets': [experimentalId(comb) for comb in mostSensiComb], 'robs': round(robsComb,2), 'rexp': round(rexpComb,2)}
 
 
     def runSModelS(self, inputFile : PathLike, combineSRs : bool, ULpreds: bool, sigmacut : float, mingap:float,
@@ -287,7 +287,8 @@ class Critic ( LoggerBase ):
         allowed_by_ul_critic, n_sensitive = self.ul_critic(protomodel, predictions)
         if n_sensitive: num_preds = n_sensitive
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictionsWithULPreds(protomodel, predictions, keep_predictions)
+        self.updateModelPredictionsWithULPreds(protomodel, predictions, 
+                keep_predictions)
 
         if not allowed_by_ul_critic:
             if keep_slhafile:
@@ -301,10 +302,11 @@ class Critic ( LoggerBase ):
         # --- llhd-based critic ---
 
         predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut, mingap=mingap, mingapISR=mingapISR )
-        allowed_by_llhd_critic, mostSensiComb, robsComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
+        allowed_by_llhd_critic, mostSensiComb, robsComb, rexpComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
         if mostSensiComb: num_preds += len(predictions)
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictionsWithCombinedPreds(protomodel, mostSensiComb, robsComb)
+        self.updateModelPredictionsWithCombinedPreds(protomodel, 
+                mostSensiComb, robsComb, rexpComb)
 
         if keep_slhafile:
             self.info(f"Keeping {protomodel.currentSLHA}, as requested" )
@@ -366,8 +368,8 @@ class Critic ( LoggerBase ):
                 robs = pred.getRValue (expected=False)
                 rexp = pred.getRValue (expected=True)
             except Exception as e:
-                robs = pred.getRValue (evaluationType=False)
-                rexp = pred.getRValue (evaluationType=True)
+                robs = pred.getRValue (evaluationType=observed)
+                rexp = pred.getRValue (evaluationType=apriori)
 
             if rexp is None:
                 rexp = robs
@@ -388,7 +390,8 @@ class Critic ( LoggerBase ):
         return max_allowed >= n_excluding, n_sensitive
 
 
-    def llhd_critic(self, predictions, cut=0, keep_predictions=False):
+    def llhd_critic(self, predictions, cut : float =0, 
+            keep_predictions : bool = False) -> Tuple:
         """ llhd-based critic.
 
         :param predictions: list of theory predictions (EM-type only). Combined dataset when available, best SR otherwise.
@@ -433,7 +436,8 @@ class Critic ( LoggerBase ):
             try:
                 import time
                 start_time = time.time()
-                r = tpCombiner.getRValue(expected=False)
+                r = tpCombiner.getRValue(evaluationType=observed)
+                rexp = tpCombiner.getRValue(evaluationType=apriori)
                 end_time = time.time()
                 time_taken = end_time - start_time
                 self.log(f"Computed robs, taken {time_taken:.3f} seconds.")
@@ -457,4 +461,4 @@ class Critic ( LoggerBase ):
             self.highlight("warning","The computation of the observed r-value of the most sensitive combination gave None.")
             return False, best_comb, None
 
-        return r < 1, best_comb, r              #change r threshold?
+        return r < 1, best_comb, r, rexp    #change r threshold?
