@@ -527,7 +527,7 @@ class Manipulator ( LoggerBase ):
             sK=""
             if "K" in D:
                 sK = f"[K={D['K']:.1f}] " if D["K"] is not None else "None"
-            self.highlight ( "info", f"starting with {sK}{os.getcwd()}/{filename}{scom}" )
+            self.highlight ( "info", f"starting with {sK}{filename}{scom}" )
         if self.walkerid != None:
             self.M.walkerid = self.walkerid
         #Reset all model attributes:
