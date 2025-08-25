@@ -744,7 +744,7 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( "<table width=80%>\n<tr><td>\n" )
         c_result, c_reason = True, "??"
         if len(self.protomodel.ul_critic_tpList) == 0:
-            from tester.critic import Critic
+            # from tester.critic import Critic
             # cr = Critic(self.protomodel.walkerid,do_srcombine=True, dbpath = xxx )
             c_result, c_reason = self.critic.predict_critic( self.protomodel, keep_predictions=True )
         f.write ( f"<br><b>Critics:</b> {c_reason}<br>\n" )

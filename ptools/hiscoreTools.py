@@ -16,7 +16,7 @@ setup()
 from builder.manipulator import Manipulator
 from builder.protomodel import ProtoModel
 from walker.hiscores import Hiscores
-from typing import Union, Dict, List, Set
+from typing import Union, Dict, List, Set, Tuple
 from argparse import Namespace
 from os import PathLike
 
@@ -112,14 +112,22 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
         f.close()
     from walker.hiscores import Hiscores
     hi = Hiscores ( walkerid, False, picklefile )
-    def compare ( dentry, pentry ) -> bool:
+
+    def compare ( dentry, pentry ) -> Tuple[bool,str]:
+        """ compare dentry with pentry
+
+        :returns: Tuple[bool,str] bool is true, if different!
+        str gives explanation
+        """
         ## compare one dictentry with one pickleentry,
         ## true, if things are different
-        if pentry == None or pentry.K == None: ## picklefile is not working
+        if pentry == None:
+            return True
+        if pentry.K == None: ## picklefile is not working
             # so, update!
-            return True
-        if not "K" in dentry or "TL" in dentry:
-            return True
+            return True, "pentry.K is None"
+        if not "K" in dentry or not "TL" in dentry:
+            return True, "no K or TL in dentry"
         newV = sum(dentry["masses"].values()) + \
                sum(dentry["ssmultipliers"].values())
 
@@ -132,17 +140,19 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
         if "TL" in dentry and dentry["TL"] is not None:
             newV += dentry["TL"]
             oldV += pentry.TL
-        if 2. * abs( newV - oldV ) / ( newV + oldV ) > 1e-4:
+        delta = 2. * abs( newV - oldV ) / ( newV + oldV ) 
+        if delta > 1e-4:
             # print ( f"[hiscoreTools] top V value changed {newV:.3f}..{oldV:.3f}" )
-            return True
-        return False
+            return True, "Vs are different by {delta}"
+        return False, "entries are the same"
 
     if type(entrynr) == int:
         if entrynr >= len(hi.hiscores):
             return True
         dictentry = dictcontent[entrynr]
         pickleentry = hi.hiscores[entrynr]
-        return compare ( dictentry, pickleentry )
+        ret, reason = compare ( dictentry, pickleentry )
+        return ret
     # entrynr is None, check all!
     if len(dictcontent)!=len(hi.hiscores):
         return True
@@ -173,9 +183,10 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
     if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=walkerid ):
         print ( f"[hiscoreTools] can reuse cache: {shortname}" )
         return Hiscores ( 0, False, picklefile )
-    print ( f"[hiscoreTools] updating cache: {shortname}" )
+    print ( f"[hiscoreTools] updating cache: {shortname} ... ", end = "" )
     hi = Hiscores.fromDictionaryFile ( dictfile, dbpath=dbpath, walkerid = walkerid )
     hi.writeListToPickle ( picklefile )
+    print ( f"done!" )
     return hi
 
 def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
