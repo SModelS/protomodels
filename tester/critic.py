@@ -32,7 +32,14 @@ except Exception as e:
     pass
 
 class Critic ( LoggerBase ):
-    def __init__ ( self, walkerid : Union[str,int], dbpath : PathLike = "official", expected : bool = False, select : str = "all", do_srcombine : bool = False ):
+    def __init__ ( self, walkerid : Union[str,int], 
+            dbpath : Union[PathLike,Database] = "official", 
+            expected : bool = False, select : str = "all", 
+            do_srcombine : bool = False ):
+        """
+        :param dbpath: either the path to a database, or the database object
+        itself
+        """
         #call the super class of the critic i.e Loggerbase
         super ( Critic, self ).__init__ ( walkerid )
         self.walkerid = walkerid
@@ -42,17 +49,20 @@ class Critic ( LoggerBase ):
         self.verbose = 1
         self.select = select
         
-        force_load = None
-        if dbpath.endswith ( ".pcl" ):
-            force_load = "pcl"
+        if type(dbpath) == Database:
+            self.database = dbpath
+        else:
+            force_load = None
+            if dbpath.endswith ( ".pcl" ):
+                force_load = "pcl"
 
-        combinationsmatrix, status = getYamlMatrix()
-        if not combinationsmatrix or status != 0:
-            sys.exit("Combination matrix not loaded correctly when instantiating Critic class.")
+            combinationsmatrix, status = getYamlMatrix()
+            if not combinationsmatrix or status != 0:
+                sys.exit("Combination matrix not loaded correctly when instantiating Critic class.")
 
-        self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
-        if 'official' not in dbpath:
-            self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
+            self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
+            if 'official' not in dbpath:
+                self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
         self.fetchResults()
         self.combiner = Combiner(self.walkerid)
 

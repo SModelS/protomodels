@@ -24,8 +24,11 @@ from os import PathLike
 from colorama import Fore
 from typing import Union, Dict, TextIO, List
 from ptools.helpers import computeP, computeZFromP, getAllPidsOfTheoryPred
+from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
 from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
 from base.loggerbase import LoggerBase
+from tester.combinationsmatrix import getYamlMatrix
+from smodels.experiment.databaseObj import Database
 
 namer = SParticleNames ( susy = False )
 bibtex = BibtexWriter()
@@ -930,15 +933,27 @@ class HiscorePlotter ( LoggerBase ):
         """ plot hiscore number "number"
         :param walkerid: log with walkerid #walkerid
         """
+        print ( f"[plotHiscore] plot #{number}" )
 
         pm = hiscoreTools.obtainHiscore ( number, hiscorefile, walkerid=walkerid,
                dbpath = dbpath )
         pm.walkerid = walkerid
         self.dbpath = dbpath
+        combinationsmatrix, status = getYamlMatrix()
+        if not combinationsmatrix or status != 0:
+            sys.exit("Combination matrix not loaded correctly when instantiating Predictor class.")
+        self.combinationsmatrix = combinationsmatrix
+        force_load = None
+        if dbpath.endswith ( ".pcl" ):
+            force_load = "pcl"
+        self.database=Database( dbpath, force_load = force_load,
+                combinationsmatrix = combinationsmatrix )
+        if 'official' not in dbpath:
+            self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
         self.protomodel = pm
         self.combiner = Combiner ( self.protomodel.walkerid )
-        self.predictor = Predictor ( pm.walkerid, dbpath, do_srcombine = True )
-        self.critic = Critic ( pm.walkerid, dbpath, do_srcombine = True )
+        self.predictor = Predictor ( pm.walkerid, self.database, do_srcombine = True )
+        self.critic = Critic ( pm.walkerid, self.database, do_srcombine = True )
 
         protoslha = self.protomodel.createSLHAFile ()
         subprocess.getoutput ( f"cp {protoslha} hiscore.slha" )

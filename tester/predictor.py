@@ -31,12 +31,17 @@ except:
     from combiner import Combiner
 
 class Predictor ( LoggerBase ):
-    def __init__ ( self, walkerid : Union[str,int], dbpath : PathLike = "official",
-                   expected : bool = False, select : str = "all",
-                   do_srcombine : bool = True ):
+    def __init__ ( self, walkerid : Union[str,int], 
+            dbpath : Union[Database,PathLike] = "official",
+            expected : bool = False, select : str = "all",
+            do_srcombine : bool = True ):
         """
         the predictor class, i.e. the class that computes the predictions,
         finds the best combinations, and computes the final test statistics
+
+        :param walkerid: walkerid to run this as
+        :param dbpath: either the path to a database, or the database object
+        itself
 
         :param do_srcombine: if True, then also use combined results,
                            both via simplified likelihoods and pyhf.
@@ -51,25 +56,27 @@ class Predictor ( LoggerBase ):
         if expected:
             from expResModifier import ExpResModifier
             self.modifier = ExpResModifier()
-        force_load = None
-        if dbpath.endswith ( ".pcl" ):
-            force_load = "pcl"
-        if "/" in dbpath:
-            ntries = 0
-            while not os.path.exists ( dbpath ):
-                ## give it a few tries
-                ntries += 1
-                time.sleep ( ntries * 5 )
-                if ntries > 5:
-                    break
 
-        combinationsmatrix, status = getYamlMatrix()
-        if not combinationsmatrix or status != 0:
-            sys.exit("Combination matrix not loaded correctly when instantiating Predictor class.")
-
-        self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
-        if 'official' not in dbpath:
-            self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
+        if type ( dbpath ) == Database:
+            self.database = dbpath
+        else:
+            force_load = None
+            if dbpath.endswith ( ".pcl" ):
+                force_load = "pcl"
+            if "/" in dbpath:
+                ntries = 0
+                while not os.path.exists ( dbpath ):
+                    ## give it a few tries
+                    ntries += 1
+                    time.sleep ( ntries * 5 )
+                    if ntries > 5:
+                        break
+            combinationsmatrix, status = getYamlMatrix()
+            if not combinationsmatrix or status != 0:
+                sys.exit("Combination matrix not loaded correctly when instantiating Predictor class.")
+            self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
+            if 'official' not in dbpath:
+                self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
         self.fetchResults()
         self.combiner = Combiner(self.walkerid)
 
