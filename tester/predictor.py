@@ -198,21 +198,35 @@ class Predictor ( LoggerBase ):
                 f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
             f.close()
 
-    # def removeRedundantULResults ( self,
-    #         predictions : List[TheoryPrediction] ) -> List[TheoryPrediction]:
-    #     """ from the given predictions, return UL results, if there is
-    #     also a combined result """
-    #     ret = []
-    #     hasCombined = set()
-    #     for p in predictions:
-    #         if str(p.dataId()) == "(combined)":
-    #             hasCombined.add ( p.analysisId() )
-    #     for p in predictions:
-    #         if p.dataType() == "upperLimit":
-    #             if p.analysisId() in hasCombined:
-    #                 continue
-    #         ret.append ( p )
-    #     return ret
+    def obtainPredictions ( self, manipulator : Manipulator, sigmacut = 0.02*fb,
+            mingap = 10*GeV, mingapISR = 1*GeV, 
+            keep_predictions : bool = False ) -> List:
+        """ obtain all predictions.
+
+        :param sigmacut: weight cut on the predict xsecs for theoryPredictions
+        :param mingap: min mass gap for compression, a smodels feature
+        :param mingapISR: min mass gap for ISR compression, a smodels feature
+        :param keep_predictions: if True, then keep *all* predictions --
+
+        :returns: list of all predictions
+        """
+
+        protomodel = manipulator.M
+        if hasattr ( self, "predictions" ):
+            del self.predictions ## make sure we dont accidentally use old preds
+        self.walkerid = protomodel.walkerid ## set the walker ids, for debugging
+        self.combiner.walkerid = protomodel.walkerid
+
+        # Create SLHA file (for running SModelS)
+        slhafile = protomodel.createSLHAFile()
+
+        # now use all prediction with likelihood values to compute the TL of the model
+        predictions = self.runSModelS( slhafile, sigmacut, mingap, mingapISR, 
+                                       allpreds=True, ULpreds=False )
+        if keep_predictions:
+            self.predictions = predictions
+
+        return predictions
 
     def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb,
                   mingap = 10*GeV, mingapISR = 1*GeV,
@@ -233,22 +247,10 @@ class Predictor ( LoggerBase ):
         (keep TL = log(L1))
         :returns: False, if no combinations could be found, else True
         """
-
-        protomodel = manipulator.M
-        if hasattr ( self, "predictions" ):
-            del self.predictions ## make sure we dont accidentally use old preds
-        self.walkerid = protomodel.walkerid ## set the walker ids, for debugging
-        self.combiner.walkerid = protomodel.walkerid
-
-        # Create SLHA file (for running SModelS)
-        slhafile = protomodel.createSLHAFile()
-
-        # now use all prediction with likelihood values to compute the TL of the model
-        predictions = self.runSModelS( slhafile, sigmacut, mingap, mingapISR, allpreds=True, ULpreds=False )
+        predictions = self.obtainPredictions ( manipulator, sigmacut, mingap,
+                mingapISR, keep_predictions )
         if not predictions: return False
 
-        if keep_predictions:
-            self.predictions = predictions
 
         # Compute significance and store in the model:
         self.computeSignificance( protomodel, manipulator, predictions, strategy, run_mcmc=run_mcmc)
@@ -420,6 +422,7 @@ class Predictor ( LoggerBase ):
         ## find highest observed significance
         #(set mumax just slightly below its value, so muhat is always below)
         # mumax = protomodel.mumax
+
         bestCombo,TL,muhat = self.combiner.findHighestSignificance ( predictions, expected=False )
         if run_mcmc:
             tpredcomb = TheoryPredictionsCombiner(bestCombo)
