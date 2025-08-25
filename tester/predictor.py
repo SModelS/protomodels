@@ -251,6 +251,7 @@ class Predictor ( LoggerBase ):
                 mingapISR, keep_predictions )
         if not predictions: return False
 
+        protomodel = manipulator.M
 
         # Compute significance and store in the model:
         self.computeSignificance( protomodel, manipulator, predictions, strategy, run_mcmc=run_mcmc)
