@@ -183,10 +183,10 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
     if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=walkerid ):
         print ( f"[hiscoreTools] can reuse cache: {shortname}" )
         return Hiscores ( 0, False, picklefile )
-    print ( f"[hiscoreTools] updating cache: {shortname} ... ", end = "" )
+    print ( f"[hiscoreTools] updating cache: {shortname} ... " )
     hi = Hiscores.fromDictionaryFile ( dictfile, dbpath=dbpath, walkerid = walkerid )
     hi.writeListToPickle ( picklefile )
-    print ( f"done!" )
+    print ( f"[hiscoreTools] cache {shortname} updated!" )
     return hi
 
 def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:

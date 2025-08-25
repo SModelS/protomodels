@@ -825,7 +825,7 @@ class HiscorePlotter ( LoggerBase ):
         f.close()
         print ( "[plotHiscore] Wrote index.html" )
 
-    def interact ( self ):
+    def interactiveShell ( self ):
         import sys, IPython; IPython.embed( colors = "neutral" )
 
     def copyFilesToGithub( self ):
@@ -995,8 +995,8 @@ class HiscorePlotter ( LoggerBase ):
             print ( f"[plotHiscore] keeping {self.protomodel.currentSLHA}" )
         else:
             self.protomodel.delCurrentSLHA()
-        if interactive:
-            self.interact()
+        if interact:
+            self.interactiveShell()
 
     def compileTestText( self ):
         subprocess.getoutput ( "pdflatex test.tex" )
