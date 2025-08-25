@@ -824,8 +824,9 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( "</html>\n" )
         f.close()
         print ( "[plotHiscore] Wrote index.html" )
-        if False:
-            import sys, IPython; IPython.embed( colors = "neutral" )
+
+    def interact ( self ):
+        import sys, IPython; IPython.embed( colors = "neutral" )
 
     def copyFilesToGithub( self ):
         files = [ "hiscore.slha", "index.html", "decays.png",
@@ -929,9 +930,12 @@ class HiscorePlotter ( LoggerBase ):
 
     def plot ( self, number : int , verbosity,
             hiscorefile : os.PathLike, options : dict, dbpath : str,
-            walkerid : Union[str,int] = 0 ):
+            walkerid : Union[str,int] = 0,
+            interact : bool = False ):
         """ plot hiscore number "number"
         :param walkerid: log with walkerid #walkerid
+        :param dbpath: path to database
+        :param interact: if true, start interactive shell at the end
         """
         print ( f"[plotHiscore] plot #{number}" )
 
@@ -991,6 +995,8 @@ class HiscorePlotter ( LoggerBase ):
             print ( f"[plotHiscore] keeping {self.protomodel.currentSLHA}" )
         else:
             self.protomodel.delCurrentSLHA()
+        if interactive:
+            self.interact()
 
     def compileTestText( self ):
         subprocess.getoutput ( "pdflatex test.tex" )
