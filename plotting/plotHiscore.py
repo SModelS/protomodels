@@ -39,6 +39,7 @@ class HiscorePlotter ( LoggerBase ):
     def __init__ ( self, walkerid : Union[str,int] = 0 ):
         super ( HiscorePlotter, self ).__init__ ( walkerid  )
         self.url = "https://smodels.github.io/"
+        self.readRunDict()
 
     def gitCommit ( self, dest, upload, wanted : bool ):
         """ if wanted, then git commit and git push to smodels.githuib.io
@@ -699,13 +700,20 @@ class HiscorePlotter ( LoggerBase ):
             handle.write ( line )
         handle.write ( "\n" )
 
+    def readRunDict ( self ):
+        with open ( "run.dict", "rt" ) as f:
+            self.rundict = eval ( f.read() )
+        if not "allowN1N1Prod" in self.rundict:
+            self.rundict["allowN1N1Prod"]=False
+
     def writeIndexHtml ( self ):
         """ write the index.html file, see e.g.
             https://smodels.github.io/protomodels/
         """
         ssm = []
         frozen = self.protomodel.frozenParticles()
-        ssms = self.getUnfrozenSSMs ( frozen, includeOnes=True )
+        ssms = self.getUnfrozenSSMs ( frozen, includeOnes=True,
+               dropLSPLSP = not self.rundict["allowN1N1Prod"] )
         for k,v in ssms.items():
             ssm.append ( f"{namer.htmlName(k,addSign=True) }: {v:.2g}" )
         f=open("index.html","w")
