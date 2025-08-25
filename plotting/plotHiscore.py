@@ -403,7 +403,8 @@ class HiscorePlotter ( LoggerBase ):
         cpids = {}
         frozen = self.protomodel.frozenParticles()
         xsecs = self.protomodel.getXsecs()[0]
-        ssms = self.getUnfrozenSSMs ( frozen, includeOnes=True )
+        ssms = self.getUnfrozenSSMs ( frozen, includeOnes=True,
+               dropLSPLSP = not self.rundict["allowN1N1Prod"] )
         for pids,v in ssms.items():
             xsec = self.findXSecOfPids ( xsecs, pids )
             if xsec < 0.001 * fb: ## only for xsecs we care about
