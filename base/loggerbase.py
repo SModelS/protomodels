@@ -16,6 +16,7 @@ class LoggerBase:
         """ instantiate the logger class with a walkerid """
         self.walkerid = walkerid
         self.logdir = "logs/"
+        # self.printHigherThan = "critical"
         module = str(type(self)).replace("<class '","").replace("'>","")
         p1 = module.find(".")
         if module.count(".")==2:
@@ -68,7 +69,10 @@ class LoggerBase:
             try:
                 with open( f"{self.logdir}/walker{self.walkerid}.log", "a" ) as f:
                     f.write ( f'[{self.module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
-                    return
+                if False:
+                    print ( f'[{self.module}-{msgType}] {" ".join(map(str,args))}' )
+
+                return
             except OSError as e:
                 # lets try a few times, we are using network file systems,
                 # the network might be acting out
