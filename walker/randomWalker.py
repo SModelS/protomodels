@@ -590,14 +590,27 @@ class RandomWalker ( LoggerBase ):
             self.manipulator.proposal_density( move='add_par', force_move=True)
             self.manipulator.backupModel()
         
+        old_handler = signal.getsignal(signal.SIGTERM)
         
         def handle_termination(signum=None, frame=None):
             """Handles both SLURM termination signals and manual interruptions."""
-            self.highlight("info", f"Saving current protomodel to pmodel{self.walkerid}.dict")
-            self.manipulator.restoreModel( reportReversion=True )
-            helpers.mkdir ( "Pmodels" )
-            self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict", step=self.manipulator.M.step - 1)
-            sys.exit(0)
+            if signum in [ signal.SIGTERM, signal.SIGINT ]:
+                self.highlight("info", f"Saving current protomodel to pmodel{self.walkerid}.dict")
+                self.manipulator.restoreModel( reportReversion=True )
+                helpers.mkdir ( "Pmodels" )
+                self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict", step=self.manipulator.M.step - 1)
+            if old_handler is signal.SIG_DFL:
+                # Default behavior for SIGINT is to raise KeyboardInterrupt,
+                # which usually exits with code 130.
+                print("Exiting gracefully...")
+                sys.exit(130)
+            elif old_handler is signal.SIG_IGN:
+                print("Old handler ignored SIGINT, continuing.")
+            else:
+                # Call previous custom handler
+                old_handler(signum, frame)
+            # os.kill ( os.getpid(), signal.SIGKILL )
+            # sys.exit(0)
         # Register signal handlers for graceful shutdown
         signal.signal(signal.SIGTERM, handle_termination)  # SLURM termination signal
         signal.signal(signal.SIGINT, handle_termination)   # Manual interruption (Ctrl+C)
@@ -654,7 +667,7 @@ class RandomWalker ( LoggerBase ):
         helpers.mkdir ( "Pmodels" )
         self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict")
 
-if __name__ == "__main__":
+def model1():
     masses = {1000022: 46.514732, 1000023: 350, 1000024: 350 }
     
     ssms = {(1000022, 1000022): 0.191043, (1000023, 1000023): 0.204701, 
@@ -666,10 +679,45 @@ if __name__ == "__main__":
     decays = {1000022: {}, 1000023: {(1000022, 25): 1.0}, 1000024: {(1000022, 24): 1.0}, 1000037: {(1000022, 24): 1.0}}
     
     D = {'masses': masses, 'ssmultipliers': ssms, 'decays': decays }
+    return D
+
+def model2():
+    D={
+        'masses': {
+            1000022: 35.00333930498704,
+            1000023: 67.46989452437126,
+            1000024: 86.39134410603818,
+            1000006: 466.77198888781453
+        },
+        'ssmultipliers': {
+            (1000022, 1000022): 3.076810727833559,
+            (1000022, 1000023): 0.45615298790558134,
+            (1000022, 1000024): 0.2420703888833409,
+            (1000023, 1000024): 13.70830463164829,
+            (1000023, 1000023): 0.2420703888833409,
+            (-1000006, 1000006): 0.7140157447902225
+        },
+        'decays': {
+            1000022: {},
+            1000023: {},
+            1000006: {
+                (1000022, 6): 0.17524601220007244,
+                (1000023, 6): 0.35964987901179013,
+                (1000024, 5): 0.4651041087881375
+            }
+        },
+        'templateSLHA': 'naturalEwkino_nodegeneracy.slha',
+        'allowN1N1Prod': True,
+        'susy_mode': True,
+    }
+    return D
+
+if __name__ == "__main__":
     dbpath = "../../smodels-database/"
     dbpath = "official"
     select = "txnames:electroweakinos,electroweakinos_offshell"
     select = "all"
+    D = model2()
     #walker = RandomWalker( walkerid=0, nsteps = 1000,
     #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
     walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,

@@ -7,14 +7,27 @@ import os, signal, subprocess
 
 ignore_locks = False
 __locks__ = set()
+    
+old_handler = signal.getsignal(signal.SIGINT)
 
 def signal_handler(sig, frame):
-    print('You pressed Ctrl+C, remove all locks!')
-    for l in __locks__:
-        cmd = "rm -f %s" % l
+		if sig == signal.SIGINT:
+	    print( f'You pressed Ctrl+C, remove all locks! {sig}')
+    for l in __locks__: ## remove always
+        cmd = f"rm -f {l}"
         subprocess.getoutput ( cmd )
         print ( cmd )
-    import sys; sys.exit(0)
+    # os.kill ( os.getpid(), sig )
+    if old_handler is signal.SIG_DFL:
+        # Default behavior for SIGINT is to raise KeyboardInterrupt,
+        # which usually exits with code 130.
+        print("[locker] Exiting gracefully...")
+        sys.exit(130)
+    elif old_handler is signal.SIG_IGN:
+        print("[locker] Old handler ignored SIGINT, continuing.")
+    else:
+        # Call previous custom handler
+        old_handler(signum, frame)
 
 signal.signal(signal.SIGINT, signal_handler)
 
