@@ -19,13 +19,12 @@ from smodels.statistics.basicStats import apriori, observed
 __all__ = [ "selectMostSignificantSRs", "bamAndWeights", "find_best_comb"  ]
 
 def selectMostSignificantSRs ( predictions: list[TheoryPrediction],
-        bound: float = 0.05 ) -> List:
+        min_rel_weight: float = 0.05 ) -> List:
     """
     Given the predictions, return the "x" most significant SRs per analysis.
 
     :param predictions: all predictions of all SRs
-    :param bound: a lower bound on the ratio of likelihood ratios (weights) of
-    SRs per analysis
+    :param min_rel_weight: the minimum relative weight (so ratio of likelihoods divided by maximum of ratios of likelihoods) of the SRs, per analysis
     :returns: list of predictions of "x" most significant SRs of each analysis
     """
     # first sort all by ana id + data Type
@@ -58,7 +57,7 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction],
                 maxRatio = ratio
 
         ratioList = {k:v for k,v in sorted(ratioList.items(), key=lambda item:item[1], reverse=True)}
-        signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= bound ]
+        signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= min_rel_weight ]
 
         if len(signPreds) == 0:
             pred = list(ratioList.keys())[0]

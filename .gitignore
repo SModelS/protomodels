@@ -7,3 +7,7 @@ walker/Kold.conf
 walker/logs/
 walker/Pmodels/
 walker/dictfiles/
+walker/all_hiscores/
+walker/hiscores_global.dict
+walker/hiscores_top.dict
+plotDBDict.log
