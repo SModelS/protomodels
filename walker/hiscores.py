@@ -475,7 +475,7 @@ class Hiscores ( LoggerBase ):
             dTLtot, dKtot = 0., 0.
             bestCombo = copy.deepcopy ( manipulator.M.bestCombo )
             #self.pprint ( "we have %d entries in best combo" % len(bestCombo) )
-            prior = combiner.computePrior ( manipulator.M )
+            prior = combiner.computePrior ( manipulator.M, nll = False )
             #self.pprint ( "the prior is %s" % prior )
             for ctr,pred in enumerate(bestCombo):
                 #self.pprint ( "Now starting to compute for %d" % ctr )

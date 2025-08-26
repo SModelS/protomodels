@@ -407,6 +407,7 @@ class Manipulator ( LoggerBase ):
             D["database_version"]=self.M.dbversion
             D["templateSLHA"]=self.M.templateName
             D["allowN1N1Prod"]=self.M.allowN1N1Prod
+            D["susy_mode"]=self.M.susy_mode
         D["description"]=self.M.description
         if hasattr ( self.M, "ul_critic" ):
             D["ul_critic"]=self.M.ul_critic
@@ -551,6 +552,8 @@ class Manipulator ( LoggerBase ):
                     allowN1N1Prod = D["allowN1N1Prod"] )
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
+        if "susy_mode" in D:
+            self.M.susy_mode = D["susy_mode"]
         #if "walkerid" in D:
         #    self.M.walkerid = D["walkerid"]
         if initTestStats:

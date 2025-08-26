@@ -93,7 +93,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
           update_hiscores : bool = False, stopTeleportationAfter : int = -1,
           forbiddenparticles : List[int|str] = [],
           templateSLHA : os.PathLike = "template_default.slha",
-          allowN1N1Prod : bool = False ):
+          allowN1N1Prod : bool = False, susy_mode : bool = False ):
     """ a worker node to set up to run walkers
 
     :param nmin: the walker id of the first walker
@@ -122,10 +122,11 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
     run
     :param templateSLHA: the template file that is used
     :param allowN1N1Prod: allow N1 N1 production mode
+    :param susy_mode: susy mode, dont touch ssms
     """
     meta = { "dbpath": dbpath, "select": select, "do_srcombine": do_srcombine,
              "forbidden": forbiddenparticles, "templateSLHA": templateSLHA,
-             "allowN1N1Prod": allowN1N1Prod  }
+             "allowN1N1Prod": allowN1N1Prod, "susy_mode": susy_mode  }
     from builder.manipulator import Manipulator
     from ptools.moreHelpers import namesForSetsOfPids
     Manipulator.forbiddenparticles = namesForSetsOfPids ( forbiddenparticles )
@@ -169,7 +170,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
                               record_history=record_history, seed=seed,
                               stopTeleportationAfter = stopTeleportationAfter,
                               templateSLHA = templateSLHA, 
-                              allowN1N1Prod = allowN1N1Prod )
+                              allowN1N1Prod = allowN1N1Prod, susy_mode = susy_mode )
             walkers.append ( w )
         elif pfile.endswith(".hi") or pfile.endswith(".pcl"):
             nstates = len(states )
@@ -180,7 +181,8 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
                     expected = False, select = select, dbpath = dbpath,cap_ssm=cap_ssm,
                     rundir = rundir, do_srcombine = do_srcombine, test_param_space = test_param_space,run_mcmc=run_mcmc,
                     seed = seed,stopTeleportationAfter = stopTeleportationAfter,
-                    templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod )
+                    templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod,
+                    susy_mode = susy_mode )
             walkers.append ( w )
         else:
             nstates = len(states )

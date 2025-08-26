@@ -454,7 +454,7 @@ class Predictor ( LoggerBase ):
             return
 
         if abs(muhat - 1.0) < 1e-02:
-            prior = self.combiner.computePrior ( protomodel )
+            prior = self.combiner.computePrior ( protomodel, nll = False )
             ## temporary hack: penalize for missing experiment
             missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )
             extremeSSMs = self.combiner.penaltyForExtremeSSMs ( protomodel )
@@ -481,7 +481,7 @@ class Predictor ( LoggerBase ):
                 #self.highlight ("info", f"Froze {nfrozen_ssm} ssms not in best combo")
                 #nfrozen += nfrozen_ssm
                 if nfrozen > 0:     #compute prior for reduced model
-                    prior = self.combiner.computePrior ( protomodel )
+                    prior = self.combiner.computePrior ( protomodel, nll = False )
                     ## temporary hack: penalize for missing experiment
                     missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )
                     extremeSSMs = self.combiner.penaltyForExtremeSSMs ( protomodel )

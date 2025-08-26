@@ -35,7 +35,7 @@ class ProtoModel ( LoggerBase ):
     def __init__ ( self, walkerid : Union[str,int] = 0,
             keep_meta : bool = True, dbversion : str = "????",
             templateSLHA : os.PathLike = "template_default.slha",
-            allowN1N1Prod : bool = False ):
+            allowN1N1Prod : bool = False, susy_mode : bool = False ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
         this a heavyweight object)
@@ -44,12 +44,14 @@ class ProtoModel ( LoggerBase ):
         :param templateSLHA: which slha file to use as template, as they
         appear in the builder/templates/ folder
         :param allowN1N1Prod: do we allow the N1 N1 production mode?
+        :param susy_mode: susy mode (penalty for ssms away from unity)
         """
         super(ProtoModel,self).__init__ ( walkerid )
         self.walkerid = walkerid
         self.keep_meta = keep_meta ## keep all meta info? big!
         self.version = 1 ## version of this class
         self.maxMass = 2400. ## maximum masses we consider
+        self.susy_mode = susy_mode
         self.step = 0 ## count the steps
         self.dbversion = dbversion ## keep track of the database version
         if templateSLHA.startswith ( "templates/" ):
@@ -269,9 +271,6 @@ class ProtoModel ( LoggerBase ):
 
         tmpSLHA = tempfile.mktemp( prefix=f".{self.walkerid}_xsecfile", suffix=".slha",dir=self.SLHATEMPDIR )
         slhafile = self.createSLHAFile(tmpSLHA, addXsecs=False)
-
-        #from ptools.refxsecComputer import RefXSecComputer
-        #comp = RefXSecComputer( allowN1N1Prod = self.allowN1N1Prod )
         channels = self.computer.findOpenChannels(slhafile)
 
         if return_mass: return channels
@@ -722,6 +721,7 @@ class ProtoModel ( LoggerBase ):
         newmodel.particles = self.particles[:]
         newmodel.templateName = self.templateName[:]
         newmodel.allowN1N1Prod = self.allowN1N1Prod
+        newmodel.susy_mode = self.susy_mode
         newmodel.possibledecays = dict([[key,val] for key,val in self.possibledecays.items()])
         decayDict = {}
         for pid,dec in self.decays.items():

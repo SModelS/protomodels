@@ -54,7 +54,7 @@ class RandomWalker ( LoggerBase ):
             record_history : bool = False, seed : Union[int,None] = None,
             stopTeleportationAfter : int = -1,
             templateSLHA : os.PathLike = "template_default.slha",
-            allowN1N1Prod : bool = False ):
+            allowN1N1Prod : bool = False, susy_mode : bool = False ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 or "no_cheat" is no cheating, else
@@ -75,6 +75,7 @@ class RandomWalker ( LoggerBase ):
                 this step nr.  If negative or None, we dont teleport at all
         :param templateSLHA: the template file that is used
         :param allowN1N1Prod: allow N1 N1 production mode
+        :param susy_mode: susy mode (penalty for ssms away from unity)
         """
 
         #call the super class of the random walker i.e Loggerbase
@@ -113,7 +114,8 @@ class RandomWalker ( LoggerBase ):
         #Initialize ProtoModel and Manipulator:
         protomodel = ProtoModel( self.walkerid, keep_meta = True,
                 dbversion = self.predictor.database.databaseVersion,
-                templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod )
+                templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod,
+                susy_mode = susy_mode )
 
         self.manipulator = Manipulator ( protomodel, strategy,
                         do_record = record_history, seed = self.random_seed )
@@ -130,7 +132,7 @@ class RandomWalker ( LoggerBase ):
         jobid = "unknown"
         if "SLURM_JOBID" in os.environ:
             jobid = os.environ["SLURM_JOBID"]
-        self.pprint ( f"Ramping up with slurm jobid {jobid} using template {templateSLHA} allowN1N1 {allowN1N1Prod}" )
+        self.pprint ( f"Ramping up with slurm jobid {jobid} using template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
         
         #keep track of log llhd ratio
         self.trace_logllhdratio = []
@@ -672,5 +674,5 @@ if __name__ == "__main__":
     #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
     walker = RandomWalker.fromDictionary ( D, walkerid = 0, dbpath = dbpath,
             do_srcombine = True, select = select, templateSLHA="templateNaturalEwkino.slha",
-            allowN1N1Prod=True )
+            allowN1N1Prod=True, susy_mode = False )
     walker.walk()

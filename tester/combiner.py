@@ -123,7 +123,8 @@ class Combiner ( LoggerBase ):
                 return False
         return True
 
-    def computePrior ( self, protomodel, nll : bool =False, verbose : bool =False, name : str ="expo1" ) -> float:
+    def computePrior ( self, protomodel, nll : bool =False, verbose : bool =False, 
+                       name : str ="expo1" ) -> float:
         """ compute the prior for protomodel, used to introduce regularization,
             i.e. penalizing for non-zero parameters, imposing sparsity.
 
@@ -200,8 +201,21 @@ class Combiner ( LoggerBase ):
             ssmstring = [ f"{x:.2f}" for x in cssms.keys() ]
             self.log ( f"           `- the unique ssms are: {', '.join(ssmstring)}" )
         if nll:
-            return - math.log ( ret )
-        return ret
+            ret = - math.log ( ret )
+
+        ## susy_mode!
+        if protomodel.susy_mode == True:
+            nll_penalty = 0.
+            for pids, ssm in protomodel.ssmultipliers.items():
+                dnll = .5*float(abs(ssm-1.))
+                nll_penalty += dnll
+            if nll:
+                ret += nll_penalty
+            else:
+                ret *= numpy.exp ( - nll_penalty )
+            # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+
+        return float(ret)
 
     def penaltyForMissingResults ( self, predictions : List[TheoryPrediction] ) -> float:
         """ very simple hack for now, penalize if predictions are all from the same experiment
