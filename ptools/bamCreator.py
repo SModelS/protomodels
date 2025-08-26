@@ -18,20 +18,24 @@ from smodels.statistics.basicStats import apriori, observed
 
 __all__ = [ "selectMostSignificantSRs", "bamAndWeights", "find_best_comb"  ]
 
-def selectMostSignificantSRs ( predictions: list[TheoryPrediction], bound: float = 5 ) -> List:
+def selectMostSignificantSRs ( predictions: list[TheoryPrediction],
+        bound: float = 0.05 ) -> List:
     """
     Given the predictions, return the "x" most significant SRs per analysis.
 
     :param predictions: all predictions of all SRs
-    :param bound: an upper bound on the percentage of ratios of weights of SRs per analysis
+    :param bound: a lower bound on the ratio of likelihood ratios (weights) of
+    SRs per analysis
     :returns: list of predictions of "x" most significant SRs of each analysis
     """
-    sortByAnaId = {}                             # first sort all by ana id + data Type
+    # first sort all by ana id + data Type
+    sortByAnaId = {}
     for pred in predictions:
         Id = f"{pred.analysisId()}:{pred.dataType(True)}"
         if not Id in sortByAnaId:
             sortByAnaId[Id]=[]
-        sortByAnaId[Id].append ( pred )         #keep all em-type ds of one analysis under one key
+        #keep all em-type ds of one analysis under one key
+        sortByAnaId[Id].append ( pred )
 
     ret = []
     #keptThese = [] ## log the ana ids that we kept, for debugging only.
@@ -54,8 +58,8 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction], bound: float
                 maxRatio = ratio
 
         ratioList = {k:v for k,v in sorted(ratioList.items(), key=lambda item:item[1], reverse=True)}
-        signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= (bound/100.) ]
-        
+        signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= bound ]
+
         if len(signPreds) == 0:
             pred = list(ratioList.keys())[0]
             signPreds.append(pred)
@@ -137,13 +141,13 @@ def get_bam_weight(over: Dict, weight: Dict) -> Dict[str, NDArray]:
             for j in range(len(columns_labels)):
                 if bam[i,j] != bam[j,i]:
                     logger.info(f"Not symmetric: {columns_labels[i]}, {columns_labels[j]}, {bam[i,j]}, {bam[j,i]}")
-    
+
     # bam |= np.triu(bam).T            # Not symmetric
     bam |= bam.T                       #ensure matrix is symmetric
 
     weight_array = np.array([item for _, item in weight.items()])
     order = np.argsort(weight_array)[::-1]
-    
+
     return {'bam': bam[order, :][:, order],
             'weights': weight_array[order],
             'labels': [columns_labels[i] for i in order]}
@@ -172,7 +176,7 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     results = {}
     if sort_bam:
         results['order'] = bam.sort_bam_by_weight()
-        
+
     whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
     whdfs.find_paths(verbose=False, runs=50)
 

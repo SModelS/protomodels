@@ -453,10 +453,11 @@ class Combiner ( LoggerBase ):
         """
 
         #filter for most significant SRs
-        filtered_preds = selectMostSignificantSRs(predictions)
+        bound = 0.10
+        filtered_preds = selectMostSignificantSRs(predictions,bound=bound)
         self.letters = self.getLetters ( filtered_preds )
 
-        self.log(f"Filtered predictions from {len(predictions)} to {len(filtered_preds)}")
+        self.log(f"Filtered predictions from {len(predictions)} to {len(filtered_preds)} (min_weight {bound:.2f})")
 
         most_significant_comb, weight = self.getMostSignificantCombination(filtered_preds)
         import time

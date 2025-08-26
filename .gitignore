@@ -2,3 +2,8 @@ builder/__pycache__/
 tester/__pycache__/
 walker/__pycache__/
 __pycache__/
+walker/Kmin.conf
+walker/Kold.conf
+walker/logs/
+walker/Pmodels/
+walker/dictfiles/
