@@ -454,7 +454,7 @@ class Combiner ( LoggerBase ):
 
         #filter for most significant SRs
         # min_rel_weight = 0.05 ## default
-        min_rel_weight = 0.20
+        min_rel_weight = 0.10
         filtered_preds = selectMostSignificantSRs(predictions,
 				        min_rel_weight=min_rel_weight)
         self.letters = self.getLetters ( filtered_preds )
