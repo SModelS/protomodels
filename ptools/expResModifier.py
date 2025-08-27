@@ -84,7 +84,7 @@ Fake SM-only database:
 
 Database with a fake signal:
 ----------------------------
-./expResModifier.py -R $RUNDIR -d original.pcl -s signal1 -P pmodel9.dict
+./expResModifier.py -R $RUNDIR -d original.pcl -s signal1 -P pmodel.dict
 
 Playback the modifications described in playback file "db.dict":
 ----------------------------------------------------------------
