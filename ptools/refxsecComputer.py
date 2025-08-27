@@ -425,7 +425,7 @@ class RefXSecComputer:
         except ImportError as e:
             pass
         originalConfig = f"{codedir}/ptools/pythia8.cfg"
-        temporaryConfig = tempfile.mktemp( prefix=f"pyhtia8_", suffix=".cfg", dir="/tmp/" )
+        temporaryConfig = tempfile.mktemp( prefix=f"pythia8_", suffix=".cfg", dir="/tmp/" )
         with open(originalConfig,'r') as file:
             lines = file.readlines()
         for i,line in enumerate(lines):
