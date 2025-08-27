@@ -34,6 +34,7 @@ from smodels.experiment.databaseObj import Database
 from base.loggerbase import LoggerBase
 from tester.combinationsmatrix import getYamlMatrix
 from typing import Dict, List, Text
+import json
 # from icecream import ic
 
 logger.setLevel("ERROR")
@@ -51,15 +52,18 @@ def readDictFile ( filename : str = "default.dict" ) -> Dict:
     with open( filename,"rt") as f:
         tmp=f.readlines()
     lines = []
-    for line in tmp:
+    firstcommentline=None
+    for i,line in enumerate(tmp):
         if line.startswith("#"):
+            if firstcommentline == None:
+                firstcommentline = i
             continue
         lines.append ( line )
     basename = os.path.basename ( filename ).replace(".dict","")
-    meta = eval(lines[0])
+    meta = eval(lines[:firstcommentline])
     nan=float("nan")
     inf=float("inf")
-    data = eval("\n".join(lines[1:]))
+    data = eval("\n".join(lines[firstcommentline:]))
     newdata = {}
     for i,v in data.items():
         if "expectedBG" in v and v["expectedBG"]>=0.:
@@ -875,8 +879,12 @@ Just filter the database:
             meta["_experimental"]=runtime._experimental
         self.pprint ( f"saving stats to {filename}" )
         self.addSupersededFlags()
-        with open ( filename,"wt" ) as f:
-            f.write ( f"{meta!s}\n" )
+        with open ( filename, "wt" ) as f:
+            ds = json.dumps ( meta, indent = 4 )
+            ds = ds.replace( "false", "False" ).replace ( "true", "True" )
+            ds = ds.replace( r'"\"None\""', 'None')
+            f.write ( ds + "\n"  )
+            # f.write ( f"{meta!s}\n" )
             f.write ( f"# this file was created with {' '.join(sys.argv)}\n" )
             if len(self.comments)>0:
                 f.write ( "# explanations on the used variables:\n" )
@@ -885,12 +893,16 @@ Just filter the database:
                 f.write ( "# no explanations for variables have been given\n" )
             for k,v in self.comments.items():
                 f.write ( f"# {k}: {v}\n" )
+            ds = json.dumps ( self.stats, indent=4 )
+            f.write ( ds )
+            """
             f.write ( '{' )
             for ctr,(k,v) in enumerate(self.stats.items()):
                 f.write ( f"'{k}': {v}" )
                 if ctr != len(self.stats)-1:
                     f.write ( ",\n" )
             f.write ( '}\n' )
+            """
             f.close()
 
     def produceTopoList ( self ):
