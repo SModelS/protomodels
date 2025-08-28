@@ -31,7 +31,7 @@ except:
     from combiner import Combiner
 
 class Predictor ( LoggerBase ):
-    def __init__ ( self, walkerid : Union[str,int], 
+    def __init__ ( self, walkerid : Union[str,int],
             dbpath : Union[Database,PathLike] = "official",
             expected : bool = False, select : str = "all",
             do_srcombine : bool = True ):
@@ -199,7 +199,7 @@ class Predictor ( LoggerBase ):
             f.close()
 
     def obtainPredictions ( self, manipulator : Manipulator, sigmacut = 0.02*fb,
-            mingap = 10*GeV, mingapISR = 1*GeV, 
+            mingap = 10*GeV, mingapISR = 1*GeV,
             keep_predictions : bool = False ) -> List:
         """ obtain all predictions.
 
@@ -221,7 +221,7 @@ class Predictor ( LoggerBase ):
         slhafile = protomodel.createSLHAFile()
 
         # now use all prediction with likelihood values to compute the TL of the model
-        predictions = self.runSModelS( slhafile, sigmacut, mingap, mingapISR, 
+        predictions = self.runSModelS( slhafile, sigmacut, mingap, mingapISR,
                                        allpreds=True, ULpreds=False )
         if keep_predictions:
             self.predictions = predictions
@@ -231,7 +231,8 @@ class Predictor ( LoggerBase ):
     def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb,
                   mingap = 10*GeV, mingapISR = 1*GeV,
                   strategy : str = "aggressive",keep_predictions : bool = False,
-                  keep_slhafile : bool = False, run_mcmc : bool = False ) -> bool:
+                  keep_slhafile : bool = False, run_mcmc : bool = False,
+                  force_computation_K : bool = False ) -> bool:
         """ Compute the predictions and statistical variables, for a
             protomodel.
 
@@ -244,6 +245,7 @@ class Predictor ( LoggerBase ):
         :param keep_slhafile: if True, then keep the temporary slha file,
         print out its name
         :param run_mcmc: if True, run a mcmc without changing dimensions
+        :param force_computation_K: if true, the force computation of prior and
         (keep TL = log(L1))
         :returns: False, if no combinations could be found, else True
         """
@@ -254,7 +256,9 @@ class Predictor ( LoggerBase ):
         protomodel = manipulator.M
 
         # Compute significance and store in the model:
-        self.computeSignificance( protomodel, manipulator, predictions, strategy, run_mcmc=run_mcmc)
+        self.computeSignificance( protomodel, manipulator, predictions,
+            strategy, run_mcmc=run_mcmc,
+            force_computation_K = force_computation_K )
 
         if protomodel.TL is None:
             self.log ( f"done with prediction. Could not find combinations (TL={protomodel.TL})" )
@@ -405,11 +409,16 @@ class Predictor ( LoggerBase ):
                 print ( f" - {p.analysisId()}:{dataId}: {txns}" )
 
 
-    def computeSignificance(self, protomodel, manipulator, 
-            predictions : list, strategy : str, 
-            test_param_space : bool = False, run_mcmc : bool = False ):
-        """ compute the K and TL values, and attach them to the protomodel 
-            
+    def computeSignificance(self, protomodel, manipulator,
+            predictions : list, strategy : str,
+            test_param_space : bool = False, run_mcmc : bool = False,
+            force_computation_K : bool = False ):
+        """ compute the K and TL values, and attach them to the protomodel
+        :param run_mcmc: run in mcmc mode
+        :param test_param_space: make test statistics constant
+        :param force_computation_K: if true, the force computation of prior and
+        K, else do it only if muhat \approx 1.0
+
         Modifies:
             protomodel.K: updates the K test statistic
             protomodel.TL: updates the TL test statistic
@@ -453,7 +462,7 @@ class Predictor ( LoggerBase ):
             self.highlight("warning", "No muhat found")
             return
 
-        if abs(muhat - 1.0) < 1e-02:
+        if abs(muhat - 1.0) < 1e-02 or force_computation_K:
             prior = self.combiner.computePrior ( protomodel, nll = False )
             ## temporary hack: penalize for missing experiment
             missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )
