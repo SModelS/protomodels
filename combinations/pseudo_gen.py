@@ -4,7 +4,7 @@ import numpy as np
 from typing import Optional, Union, List, Dict
 from pathlib import Path
 from builder.manipulator import Manipulator
-from ptools.expResModifier import ExpResModifier
+from multiverse.expResModifier import ExpResModifier
 from smodels.experiment.databaseObj import Database
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionsCombiner
 from smodels.base.physicsUnits import GeV, fb

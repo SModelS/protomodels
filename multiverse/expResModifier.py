@@ -25,8 +25,10 @@ from smodels.base.model import Model
 from smodels.share.models.SMparticles import SMList
 from share.model_spec import BSMList
 from smodels.matching.theoryPrediction import theoryPredictionsFor
-from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer
-# from smodels.statistics.basicStats import NllEvalType
+from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer, \
+         LikelihoodComputer
+from smodels.statistics.basicStats import observed, apriori, \
+         aposteriori, NllEvalType
 from smodels.base.physicsUnits import fb, GeV
 from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
@@ -34,6 +36,7 @@ from smodels.experiment.databaseObj import Database
 from base.loggerbase import LoggerBase
 from tester.combinationsmatrix import getYamlMatrix
 from typing import Dict, List, Text
+import json
 # from icecream import ic
 
 logger.setLevel("ERROR")
@@ -51,15 +54,18 @@ def readDictFile ( filename : str = "default.dict" ) -> Dict:
     with open( filename,"rt") as f:
         tmp=f.readlines()
     lines = []
-    for line in tmp:
+    firstcommentline=None
+    for i,line in enumerate(tmp):
         if line.startswith("#"):
+            if firstcommentline == None:
+                firstcommentline = i
             continue
         lines.append ( line )
     basename = os.path.basename ( filename ).replace(".dict","")
-    meta = eval(lines[0])
+    meta = eval(lines[:firstcommentline])
     nan=float("nan")
     inf=float("inf")
-    data = eval("\n".join(lines[1:]))
+    data = eval("\n".join(lines[firstcommentline:]))
     newdata = {}
     for i,v in data.items():
         if "expectedBG" in v and v["expectedBG"]>=0.:
@@ -84,7 +90,7 @@ Fake SM-only database:
 
 Database with a fake signal:
 ----------------------------
-./expResModifier.py -R $RUNDIR -d original.pcl -s signal1 -P pmodel9.dict
+./expResModifier.py -R $RUNDIR -d original.pcl -s signal1 -P pmodel.dict
 
 Playback the modifications described in playback file "db.dict":
 ----------------------------------------------------------------
@@ -368,7 +374,12 @@ Just filter the database:
         M.createNewSLHAFileName ( prefix="erm" )
         ma = Manipulator ( M )
         with open ( filename, "rt" ) as f:
-            m = eval ( f.read() )
+            try:
+                m = eval ( f.read() )
+            except (SyntaxError,TypeError) as e:
+                print ( f"[expResModifier] error parsing {filename}: {e}" )
+                print ( f"[expResModifier] is this a protomodel with 'masses', etc defined?" )
+                sys.exit()
         ma.initFromDict ( m, initTestStats=True )
         ma.M.computeXSecs( keep_slha = True )
         self.log ( f"xsecs produced {ma.M.currentSLHA}" )
@@ -628,17 +639,16 @@ Just filter the database:
         D["Z"]=Z
         self.comments["Z"]="the significance of the observation, taking into account the signal"
         ## now recompute the limits!!
-        alpha = .05
         if orig == 0.0:
             orig = 0.00001
-        computer = UpperLimitComputer(cl=1.-alpha )
         m = Data( orig+sigN, orig, err**2, nsignal = 1. )
+        computer = UpperLimitComputer( LikelihoodComputer ( m ) )
         lumi = dataset.globalInfo.lumi# .asNumber(1./fb)
-        maxSignalXsec = computer.getUpperLimitOnMu (m ) / lumi
+        maxSignalXsec = computer.getUpperLimitOnMu ( ) / lumi
         dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
         dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
         dataset.dataInfo.upperLimit = maxSignalXsec
-        maxSignalXsec = computer.getUpperLimitOnMu( m, expected=True ) / lumi #  NllEvalType.apriori ) #/ lumi
+        maxSignalXsec = computer.getUpperLimitOnMu( evaluationType=apriori ) / lumi #  NllEvalType.apriori ) #/ lumi
         dataset.dataInfo.expectedUpperLimit = maxSignalXsec
         self.addToStats ( label, D, dataset.globalInfo )
         return dataset
@@ -875,8 +885,12 @@ Just filter the database:
             meta["_experimental"]=runtime._experimental
         self.pprint ( f"saving stats to {filename}" )
         self.addSupersededFlags()
-        with open ( filename,"wt" ) as f:
-            f.write ( f"{meta!s}\n" )
+        with open ( filename, "wt" ) as f:
+            ds = json.dumps ( meta, indent = 4 )
+            ds = ds.replace( "false", "False" ).replace ( "true", "True" )
+            ds = ds.replace( r'"\"None\""', 'None')
+            f.write ( ds + "\n"  )
+            # f.write ( f"{meta!s}\n" )
             f.write ( f"# this file was created with {' '.join(sys.argv)}\n" )
             if len(self.comments)>0:
                 f.write ( "# explanations on the used variables:\n" )
@@ -885,12 +899,16 @@ Just filter the database:
                 f.write ( "# no explanations for variables have been given\n" )
             for k,v in self.comments.items():
                 f.write ( f"# {k}: {v}\n" )
+            ds = json.dumps ( self.stats, indent=4 )
+            f.write ( ds )
+            """
             f.write ( '{' )
             for ctr,(k,v) in enumerate(self.stats.items()):
                 f.write ( f"'{k}': {v}" )
                 if ctr != len(self.stats)-1:
                     f.write ( ",\n" )
             f.write ( '}\n' )
+            """
             f.close()
 
     def produceTopoList ( self ):

@@ -191,6 +191,21 @@ class Hiscores ( LoggerBase ):
         return ret, True
 
     @classmethod
+    def dbpathExists ( cls, dbpath : PathLike ):
+        """ determine if dbpath seems legit """
+        from smodels.installation import __dblabels__
+        if dbpath is None:
+            return False
+        if dbpath in __dblabels__: # a labeled database
+            return True
+        if dbpath.startswith ( "http" ):
+            ## FIXME we can also check existence here
+            return True 
+        if os.path.exists ( dbpath ):
+            return True ## ok its local
+        return False
+
+    @classmethod
     def fromDictionaryFile ( cls, path : PathLike,
            firstn : Union[None,int] = 0, 
            dbpath : PathLike = "official",
@@ -203,6 +218,9 @@ class Hiscores ( LoggerBase ):
         :param walkerid: log everything as walker #walkerid
         :returns: Hiscores object
         """
+        if not cls.dbpathExists ( dbpath ):
+            print ( f"[hiscores] database path {dbpath} does not exist" )
+            import sys; sys.exit()
         assert firstn == 0, "firstn != 0 not yet working"
         from tester.predictor import Predictor
         predictor = Predictor(walkerid, do_srcombine=True, dbpath = dbpath )

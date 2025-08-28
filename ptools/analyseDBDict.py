@@ -113,7 +113,7 @@ class Analyzer ( LoggerBase ):
             self.analyzeFile ( filename, nlargest, nsmallest )
 
     def read ( self, fname ):
-        from ptools.expResModifier import readDictFile 
+        from multiverse.expResModifier import readDictFile 
         d = readDictFile ( fname )
         return ( d["meta"], d["data"] )
 
