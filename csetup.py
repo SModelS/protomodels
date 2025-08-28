@@ -2,9 +2,10 @@
 
 """ setup rundir, pythonpaths. Mostly for CLIP. """
 
+from typing import Union
 import os, sys
 
-def getDBPath ( dbpath, rundir ):
+def getDBPath ( dbpath : os.PathLike, rundir : os.PathLike ):
     """ obtain the database path, resolve <rundir> """
     if "<rundir>" in dbpath:
         dbpath = dbpath.replace("<rundir>",f"{rundir}/")
@@ -22,6 +23,8 @@ def setup( rundir = None, codedir = None ):
     sys.path.insert(0, f"{codedir}/smodels/" )
     sys.path.insert(0, f"{codedir}/protomodels/" )
     if rundir != None:
+        if rundir.startswith ( "." ):
+            rundir = os.path.abspath ( rundir )
         if not "/" in rundir[:-1]:
             rundir = f"{os.environ['HOME']}/{rundir}"
         if not rundir.endswith("/"):

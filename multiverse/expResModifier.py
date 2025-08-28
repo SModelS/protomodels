@@ -25,7 +25,8 @@ from smodels.base.model import Model
 from smodels.share.models.SMparticles import SMList
 from share.model_spec import BSMList
 from smodels.matching.theoryPrediction import theoryPredictionsFor
-from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer
+from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer, \
+         LikelihoodComputer
 from smodels.statistics.basicStats import observed, apriori, \
          aposteriori, NllEvalType
 from smodels.base.physicsUnits import fb, GeV
@@ -373,7 +374,12 @@ Just filter the database:
         M.createNewSLHAFileName ( prefix="erm" )
         ma = Manipulator ( M )
         with open ( filename, "rt" ) as f:
-            m = eval ( f.read() )
+            try:
+                m = eval ( f.read() )
+            except (SyntaxError,TypeError) as e:
+                print ( f"[expResModifier] error parsing {filename}: {e}" )
+                print ( f"[expResModifier] is this a protomodel with 'masses', etc defined?" )
+                sys.exit()
         ma.initFromDict ( m, initTestStats=True )
         ma.M.computeXSecs( keep_slha = True )
         self.log ( f"xsecs produced {ma.M.currentSLHA}" )
@@ -633,17 +639,16 @@ Just filter the database:
         D["Z"]=Z
         self.comments["Z"]="the significance of the observation, taking into account the signal"
         ## now recompute the limits!!
-        alpha = .05
         if orig == 0.0:
             orig = 0.00001
-        computer = UpperLimitComputer(cl=1.-alpha )
         m = Data( orig+sigN, orig, err**2, nsignal = 1. )
+        computer = UpperLimitComputer( LikelihoodComputer ( m ) )
         lumi = dataset.globalInfo.lumi# .asNumber(1./fb)
-        maxSignalXsec = computer.getUpperLimitOnMu (m ) / lumi
+        maxSignalXsec = computer.getUpperLimitOnMu ( ) / lumi
         dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
         dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
         dataset.dataInfo.upperLimit = maxSignalXsec
-        maxSignalXsec = computer.getUpperLimitOnMu( m, evaluationType=apriori ) / lumi #  NllEvalType.apriori ) #/ lumi
+        maxSignalXsec = computer.getUpperLimitOnMu( evaluationType=apriori ) / lumi #  NllEvalType.apriori ) #/ lumi
         dataset.dataInfo.expectedUpperLimit = maxSignalXsec
         self.addToStats ( label, D, dataset.globalInfo )
         return dataset
