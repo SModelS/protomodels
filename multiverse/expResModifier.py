@@ -26,7 +26,8 @@ from smodels.share.models.SMparticles import SMList
 from share.model_spec import BSMList
 from smodels.matching.theoryPrediction import theoryPredictionsFor
 from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer
-# from smodels.statistics.basicStats import NllEvalType
+from smodels.statistics.basicStats import observed, apriori, \
+         aposteriori, NllEvalType
 from smodels.base.physicsUnits import fb, GeV
 from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
@@ -642,7 +643,7 @@ Just filter the database:
         dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
         dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
         dataset.dataInfo.upperLimit = maxSignalXsec
-        maxSignalXsec = computer.getUpperLimitOnMu( m, expected=True ) / lumi #  NllEvalType.apriori ) #/ lumi
+        maxSignalXsec = computer.getUpperLimitOnMu( m, evaluationType=apriori ) / lumi #  NllEvalType.apriori ) #/ lumi
         dataset.dataInfo.expectedUpperLimit = maxSignalXsec
         self.addToStats ( label, D, dataset.globalInfo )
         return dataset
