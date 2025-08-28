@@ -30,7 +30,7 @@ class Initialiser ( LoggerBase ):
         super ( Initialiser, self ).__init__ ( 0 )
         dictfile = os.path.expanduser ( dictfile )
         self.dictfile = dictfile
-        from ptools.expResModifier import readDictFile
+        from multiverse.expResModifier import readDictFile
         d = readDictFile ( dictfile )
         self.tempslha = "/dev/shm/temp.slha"
         self.cachefile = "pids.cache"
