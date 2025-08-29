@@ -1121,6 +1121,22 @@ Just filter the database:
                                 data["lo_data"][idd] = center - delta * self.fudge
                                 # print ( f"@@9 new hi {computer.likelihoodComputer.workspaces[iws]['channels'][ich]['samples'][ism]['modifiers'][im]['data']['hi_data'][idd]}" )
 
+    def replaceObservation ( self, expRes, sr, newObs, ws_i ):
+        jsonEntries = expRes.globalInfo.jsons[ ws_i ]["observations"]
+        for i,jsonEntry in enumerate(jsonEntries):
+            idx = 0
+            pyhfbasename = sr["pyhf"]
+            data = jsonEntry["data"]
+            if len(data)>1:
+                p1 = sr["pyhf"].find("[")
+                pyhfbasename = sr["pyhf"][:p1]
+                idx = int ( sr["pyhf"][p1+1:-1] )
+            oldE = data[idx]
+            if jsonEntry["name"]==pyhfbasename:
+                # print ( f"[expResModifier] replacing {oldE} with {newObs} in {jsonEntry}" )
+                expRes.globalInfo.jsons[ ws_i ]["observations"][i]["data"][idx]=newObs
+                continue
+
     def fakeBackgroundsForPyhf ( self, expRes ):
         """ synthesize fake observations by sampling a pyhf model
         :param expRes: the experimental result to do this for
@@ -1203,8 +1219,10 @@ Just filter the database:
                 ## as the very last measure, we replace the observation with
                 ## the fake observation
                 dataset.dataInfo.observedN = newObs
+                self.replaceObservation ( expRes, sr, newObs, ws_i )
+
         #if anaId == "ATLAS-SUSY-2018-31":
-        #    import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 
     def fakeBackgrounds ( self, listOfExpRes ):
