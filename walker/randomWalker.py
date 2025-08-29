@@ -382,7 +382,7 @@ class RandomWalker ( LoggerBase ):
                 if False:
                     import tempfile
                     f = tempfile.mktemp ( suffix=".slha", prefix="failed", dir="./" )
-                    self.manipulator.M.writeSLHAFile ( f )
+                    self.manipulator.M._writeSLHAFile ( f )
                 self.manipulator.restoreModel()
                 self.manipulator.M.step -= 1 # we dont count that step.
                 import traceback ## FIXME print to file!!

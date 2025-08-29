@@ -545,9 +545,11 @@ class ProtoModel ( LoggerBase ):
                     self.templateName = trySLHA
                     return
 
-    def writeSLHAFile ( self, outputSLHA : str ):
+    def _writeSLHAFile ( self, outputSLHA : os.PathLike ):
         """ write the slha file, plug in protomodel params. this method does
         however not add the xsecs, for this look at createSLHAFile.
+
+        :param outputSLHA: name of slha file to write
         """
         #Get template data:
         with open( self.templateSLHA ) as f:
@@ -619,7 +621,7 @@ class ProtoModel ( LoggerBase ):
         self.checkTemplateSLHA()
 
         #Replace masses and decays with values for the unFrozenParticles:
-        self.writeSLHAFile ( outputSLHA )
+        self._writeSLHAFile ( outputSLHA )
 
         ctAttempts = 0
         hasXSecs = False
@@ -633,7 +635,7 @@ class ProtoModel ( LoggerBase ):
                 #    print ( "[protomodel] adding xsec", str(xsec) )
                 if len(xsecs)>0:
                     if not os.path.exists ( outputSLHA ):
-                        self.writeSLHAFile ( outputSLHA )
+                        self._writeSLHAFile ( outputSLHA )
                     self.computer.addXSecToFile( xsecs[0], outputSLHA )
                     self.computer.addMultipliersToFile ( self.ssmultipliers, outputSLHA )
                     self.computer.addCommentToFile ( xsecs[1], outputSLHA )

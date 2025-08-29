@@ -1518,7 +1518,7 @@ Just filter the database:
         if type(self.rundir)==str and not "/" in self.rundir and \
                 not self.rundir.startswith("."):
             self.rundir = f"{os.environ['HOME']}/{self.rundir}"
-        statsname = f"{self.suffix}.dict"
+        statsname = f"{self.suffix}_database.dict"
         if self.outfile is not None:
             if self.outfile == "":
                 self.outfile = f"{self.suffix}.pcl"

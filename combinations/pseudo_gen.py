@@ -262,7 +262,7 @@ def createSLHAFileFromDict(dictionary: Dict, muhat: float, slhafilename: str = "
     ma.rescaleSignalBy(muhat)
     ma.M.currentSLHA = slhafilename
     ma.M.computeXSecs(keep_slha=True)
-    # ma.M.writeSLHAFile(slhafilename)
+    # ma.M._writeSLHAFile(slhafilename)
     return ma.M.dict()
 
 
