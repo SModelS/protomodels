@@ -11,8 +11,8 @@ from tester.critic import Critic
 from smodels.experiment.databaseObj import Database
 
 def predictForTruth():
-    signal_model = "./model_stop.dict"
-    dbpath = "./stop1.pcl"
+    signal_model = "./signal_model.dict"
+    dbpath = "./signal1.pcl"
     print ( f"[predictForTruth] instantiate database {dbpath}" )
     db = Database ( dbpath )
     # protomodel = Protomodel()

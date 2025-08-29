@@ -404,14 +404,18 @@ class Critic ( LoggerBase ):
             keep_predictions : bool = False) -> Tuple:
         """ llhd-based critic.
 
-        :param predictions: list of theory predictions (EM-type only). Combined dataset when available, best SR otherwise.
-        :param cut: theory predictions giving an r_exp below this cut will not enter the combination
+        :param predictions: list of theory predictions (EM-type only). 
+        Combined dataset when available, best SR otherwise.
+        :param cut: theory predictions giving an r_exp below this cut will 
+        not enter the combination
 
-        :returns: False if the critic excludes the model, else True.
+        :returns: tuple of: final decision(bool), most sensitive combination, 
+        robs_comb, rexp_comb.
+        final decision: False if the critic excludes the model, else True.
         """
 
-        if not predictions:          # If empty list
-            return True, None, None
+        if not predictions: # If empty list
+            return True, None, None, None
 
         EMpreds = []
         rexp_max = 0.
@@ -437,7 +441,8 @@ class Critic ( LoggerBase ):
         if len(EMpreds) == 0:
             num_non_sen_res = len(predictions)
             self.log(f"There are {num_non_sen_res} llhd-based critic predicitions, but none of them passed the rexp cut of {cut}. Highest rexp is {rexp_max}")
-            return True, None, None          # the model is not excluded, SN: should we allow for the best llhd based critic though?
+            # the model is not excluded, SN: should we allow for the best llhd based critic though?
+            return True, None, None, None
 
         r = None
         best_comb, _ = self.combiner.getMostSensitiveCombination(EMpreds)
@@ -469,6 +474,6 @@ class Critic ( LoggerBase ):
 
         if r is None:
             self.highlight("warning","The computation of the observed r-value of the most sensitive combination gave None.")
-            return False, best_comb, None
+            return False, best_comb, None, None
 
         return r < 1, best_comb, r, rexp    #change r threshold?

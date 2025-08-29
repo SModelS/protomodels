@@ -875,7 +875,8 @@ Just filter the database:
         self.log ( f"saving stats to {filename}" )
         meta = { "dbpath": self.dbpath, "Zmax": self.max,
                  "database": self.dbversion, "fudge": self.fudge,
-                 "protomodel": f'"{self.protomodel}"', "timestamp": time.asctime(),
+                 "protomodel": f'{str(self.protomodel)}', 
+                 "timestamp": time.asctime(),
                  "lognormal": self.lognormal, "maxmassdist": self.maxmassdist,
                  "fixedsignals": self.fixedsignals,
                  "fixedbackgrounds": self.fixedbackgrounds }
