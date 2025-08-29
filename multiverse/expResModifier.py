@@ -599,7 +599,7 @@ Just filter the database:
             for obs in json["observations"]:
                 if obs["name"] == pyhfname:
                     oldBG = obs["data"][0]
-                    print ( f"[expResModifier] adding {sigN} to {oldBG} in {pyhfname}" )
+                    # print ( f"[expResModifier] adding {sigN} to {oldBG} in {pyhfname}" )
                     if len(obs["data"])>1:
                         print ( f"@@ERROR XY more than one bin!!! {obs['data']}" )
                         import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
@@ -612,6 +612,9 @@ Just filter the database:
         txns.sort()
         self.log ( f"add EM matching tpred {tpred.analysisId()}/{tpred.dataId()} {','.join(txns)}: {tpred.xsection.asNumber(fb):.2g} fb" )
         label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
+        if not label in self.stats:
+            print ( f"[expResModifier] {label} not found in stats! (dunno if that is a problem" )
+            return dataset
         orig = dataset.dataInfo.observedN
         sigLambda = float ( tpred.xsection * lumi )
         D={}
