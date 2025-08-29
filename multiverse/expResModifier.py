@@ -423,7 +423,7 @@ Just filter the database:
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
-            print ( f"[expResModifier] loading database {self.dbpath} [0]" )
+            print ( f"[expResModifier] loading database {self.dbpath}" )
             self.db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
             print ( f"[expResModifier] loaded db v{self.db.databaseVersion}" )
         self.dbversion = self.db.databaseVersion
@@ -581,6 +581,30 @@ Just filter the database:
             D["timestamp"]=dataset.globalInfo.lastUpdate
         return D
 
+    def getPyhfname ( self, dataset ):
+        for jsonfile, SRs in dataset.globalInfo.jsonFiles.items():
+            for sr in SRs:
+                if sr["smodels"] == dataset.dataInfo.dataId:
+                    return sr["pyhf"]
+        return None
+
+    def addSignalToJson ( self, dataset, sigN ):
+        """ add sigN to the json file in dataset.globalInfo.jsons """
+        pyhfname = self.getPyhfname ( dataset )
+        # print ( f"@@XX pyhfname {pyhfname} {dataset}" )
+        if pyhfname == None:
+            print ( f"ERROR no pyhfname!!!!" )
+            import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        for i,json in enumerate(dataset.globalInfo.jsons):
+            for obs in json["observations"]:
+                if obs["name"] == pyhfname:
+                    oldBG = obs["data"][0]
+                    print ( f"[expResModifier] adding {sigN} to {oldBG} in {pyhfname}" )
+                    if len(obs["data"])>1:
+                        print ( f"@@ERROR XY more than one bin!!! {obs['data']}" )
+                        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+                    obs["data"][0]+=sigN
+
     def addSignalForEfficiencyMap ( self, dataset, tpred, lumi ):
         """ add a signal to this efficiency map. background sampling is
             already taken care of """
@@ -629,6 +653,9 @@ Just filter the database:
         self.log ( f" `- effmap adding sigN={sigN} to obsN={orig} -> newObs={orig+sigN}" )
         dataset.dataInfo.trueBG = orig ## keep track of true bg
         dataset.dataInfo.observedN = orig + sigN
+        if hasattr ( dataset.globalInfo, "jsons" ):
+            self.addSignalToJson ( dataset, sigN )
+
         D["newObs"]=dataset.dataInfo.observedN
         exp = dataset.dataInfo.expectedBG
         err = dataset.dataInfo.bgError * self.fudge
@@ -1133,7 +1160,7 @@ Just filter the database:
                 idx = int ( sr["pyhf"][p1+1:-1] )
             oldE = data[idx]
             if jsonEntry["name"]==pyhfbasename:
-                # print ( f"[expResModifier] replacing {oldE} with {newObs} in {jsonEntry}" )
+                # print ( f"[expResModifier] replacing {oldE} with {newObs} in {jsonEntry} {expRes.globalInfo.id}" )
                 expRes.globalInfo.jsons[ ws_i ]["observations"][i]["data"][idx]=newObs
                 continue
 
@@ -1220,6 +1247,7 @@ Just filter the database:
                 ## the fake observation
                 dataset.dataInfo.observedN = newObs
                 self.replaceObservation ( expRes, sr, newObs, ws_i )
+                # this replaces the observation in the json with the new bg
 
         #if anaId == "ATLAS-SUSY-2018-31":
         # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()

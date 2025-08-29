@@ -54,12 +54,15 @@ def analyseCombined ( orig_db, new_db, analysis : str, slhafile : str ):
     dT = ["all"] 
     orig_ers = orig_db.getExpResults ( analysisIDs = [analysis], txnames=["all"],
                                       dataTypes=dT)
+    orig_er = orig_ers[0]
+    
     allPredictions = theoryPredictionsFor(orig_db, topDict, combinedResults=True)
     print ( "original" )
     for p in allPredictions:
         print ( p )
     new_ers = new_db.getExpResults ( analysisIDs = [analysis], txnames=["all"],
                                     dataTypes=dT)
+    new_er = new_ers[0]
     newPredictions = theoryPredictionsFor(new_db, topDict, combinedResults=True)
     print ( "new" )
     for p in newPredictions:
