@@ -57,16 +57,16 @@ def analyseCombined ( orig_db, new_db, analysis : str, slhafile : str ):
     orig_er = orig_ers[0]
     
     allPredictions = theoryPredictionsFor(orig_db, topDict, combinedResults=True)
-    print ( "original" )
+    print ( f"original {orig_db.databaseVersion}" )
     for p in allPredictions:
-        print ( p )
+        print ( p.getUpperLimit() )
     new_ers = new_db.getExpResults ( analysisIDs = [analysis], txnames=["all"],
                                     dataTypes=dT)
     new_er = new_ers[0]
     newPredictions = theoryPredictionsFor(new_db, topDict, combinedResults=True)
-    print ( "new" )
+    print ( f"new {orig_db.databaseVersion}" )
     for p in newPredictions:
-        print ( p )
+        print ( p.getUpperLimit() )
     import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 
