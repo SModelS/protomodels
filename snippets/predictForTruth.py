@@ -10,7 +10,7 @@ from tester.predictor import Predictor
 from tester.critic import Critic
 from smodels.experiment.databaseObj import Database
 
-def predictForTruth():
+def predictForTruth ( interactive : bool = False ):
     signal_model = "./signal_model.dict"
     dbpath = "./signal.pcl"
     print ( f"[predictForTruth] instantiate database {dbpath}" )
@@ -25,7 +25,14 @@ def predictForTruth():
     print ( f"[predictForTruth] critic: {cr}, {response}" )
     predictor.predict ( ma, keep_predictions = True, force_computation_K = True )
     print ( f"[predictForTruth] predict K={ma.M.K} TL={ma.M.TL}" )
-    import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+    with open ( "my.truth", "wt" ) as f:
+        d = { "K": ma.M.K, "TL": ma.M.TL, "llhd_critic": ma.M.llhd_critic }
+        import json
+        ds = json.dumps ( d, indent = 4 )
+        f.write ( ds + "\n" )
+    print ( f"[predictForTruth] wrote truth into my.truth" )
+    if interactive:
+        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 if __name__ == "__main__":
-    predictForTruth()
+    predictForTruth( interactive = False )

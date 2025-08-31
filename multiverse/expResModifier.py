@@ -931,15 +931,7 @@ Just filter the database:
             for k,v in self.comments.items():
                 f.write ( f"# {k}: {v}\n" )
             ds = json.dumps ( self.stats, indent=4 )
-            f.write ( ds )
-            """
-            f.write ( '{' )
-            for ctr,(k,v) in enumerate(self.stats.items()):
-                f.write ( f"'{k}': {v}" )
-                if ctr != len(self.stats)-1:
-                    f.write ( ",\n" )
-            f.write ( '}\n' )
-            """
+            f.write ( ds+ "\n" )
             f.close()
 
     def produceTopoList ( self ):
