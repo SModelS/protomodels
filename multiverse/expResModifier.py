@@ -17,7 +17,8 @@ setup()
 from scipy import stats
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
-from ptools.helpers import computeP, computeZFromP, computePForDataSet, computePSLv2
+from ptools.helpers import computeP, computeZFromP, computePForDataSet, \
+         computePSLv2, py_dumps
 from smodels.base import runtime
 if False:
     runtime._experimental = True
@@ -36,7 +37,6 @@ from smodels.experiment.databaseObj import Database
 from base.loggerbase import LoggerBase
 from tester.combinationsmatrix import getYamlMatrix
 from typing import Dict, List, Text
-import json
 # from icecream import ic
 
 logger.setLevel("ERROR")
@@ -917,7 +917,7 @@ Just filter the database:
         self.pprint ( f"saving stats to {filename}" )
         self.addSupersededFlags()
         with open ( filename, "wt" ) as f:
-            ds = json.dumps ( meta, indent = 4 )
+            ds = py_dumps ( meta, indent = 4 )
             ds = ds.replace( "false", "False" ).replace ( "true", "True" )
             ds = ds.replace( r'"\"None\""', 'None')
             f.write ( ds + "\n"  )
@@ -930,7 +930,7 @@ Just filter the database:
                 f.write ( "# no explanations for variables have been given\n" )
             for k,v in self.comments.items():
                 f.write ( f"# {k}: {v}\n" )
-            ds = json.dumps ( self.stats, indent=4 )
+            ds = py_dumps ( self.stats, indent=4 )
             f.write ( ds+ "\n" )
             f.close()
 

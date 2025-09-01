@@ -81,10 +81,10 @@ def writeMetaInfo ( rundir : str, meta : Dict ):
                     print ( f"[factoryOfWalkers] run's meta info changed: {k} was {v} not {meta[k]}" )
     else:
         with open ( dictfile, "wt" ) as f:
-            import json
-            ds = json.dumps ( meta, indent = 4 )
-            ds = ds.replace ( "false", "False" )
-            ds = ds.replace ( "true", "True" )
+            from ptools.helpers import py_dumps
+            ds = py_dumps ( meta, indent = 4 )
+            #ds = ds.replace ( "false", "False" )
+            #ds = ds.replace ( "true", "True" )
             f.write ( ds + "\n" )
             # f.write ( f"{meta!s}\n" )
             f.close()
