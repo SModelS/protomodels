@@ -257,7 +257,10 @@ class Hiscores ( LoggerBase ):
                 try:
                     with open ( hiscorefile, "rt" ) as h:
                         txt = h.read()
-                        txt = txt.replace("inf","float('inf')" )
+                        txt = txt.replace('"inf"',"float('inf')" )
+                        txt = txt.replace("'inf'",'float("inf")' )
+                        txt = txt.replace('"nan"',"float('nan')" )
+                        txt = txt.replace("'nan'",'float("nan")' )
                         oldhiscores = eval( txt )
                         h.close()
                         success=True

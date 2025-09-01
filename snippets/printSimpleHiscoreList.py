@@ -7,6 +7,7 @@ from os import PathLike
 from ptools.sparticleNames import SParticleNames 
 from colorama import Fore as ansi
 from typing import Union
+import numpy as np
 
 def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
     extended : bool = False, nmax : Union[None,int] = None ) -> int:
@@ -20,16 +21,20 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
         print ( f"[printSimpleHiscoreList] {dictfile} does not exist" )
         nlines += 1
         return nlines
-    f=open( dictfile, "rt" )
-    import numpy as np
-    txt=f.read().replace("inf","float('inf')").replace("nan","float('nan')")
-    try:
-        D=eval(txt)
-    except SyntaxError as e:
-        print ( f"could not read {dictfile}: {e}" )
-        nlines += 1
-        return nlines
-    f.close()
+    with open( dictfile, "rt" ) as f:
+        txt=f.read().replace('"inf"',"float('inf')").replace('"nan"',"float('nan')")
+        txt=txt.replace("'inf'",'float("inf")').replace("'nan'",'float("nan")')
+        f.close()
+        try:
+            D=eval(txt)
+        except SyntaxError as e:
+            print ( f"[printSimpleHiscoreList.summarizeHiscores] could not read {dictfile}: {e}" )
+            print ( f"  message {e.msg}" )
+            print ( f"  line number {e.lineno}" )
+            print ( f"  offset {e.offset}" )
+            print ( f"  text {e.text}" )
+            nlines += 1
+            return nlines
     if nmax == None:
         nmax = 10
         if extended:
