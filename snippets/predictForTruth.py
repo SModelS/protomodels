@@ -25,10 +25,11 @@ def predictForTruth ( interactive : bool = False ):
     print ( f"[predictForTruth] critic: {cr}, {response}" )
     predictor.predict ( ma, keep_predictions = True, force_computation_K = True )
     print ( f"[predictForTruth] predict K={ma.M.K} TL={ma.M.TL}" )
+    with open ( signal_model, "rt" ) as f:
+        txt = f.read()
+        d = eval( txt )
+        f.close()
     with open ( "my.truth", "wt" ) as f:
-        with open ( signal_model, "rt" ) as f:
-            txt = f.read()
-            d = eval( txt )
         d.update( { "K": ma.M.K, "TL": ma.M.TL, "llhd_critic": ma.M.llhd_critic })
         from ptools.helpers import py_dumps
         ds = py_dumps ( d, indent = 4 )
