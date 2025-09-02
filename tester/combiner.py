@@ -302,7 +302,8 @@ class Combiner ( LoggerBase ):
 
             if lep_br != []:
                 delta_br = numpy.max( [numpy.max(lep_br)-numpy.mean(lep_br), numpy.mean(lep_br)-numpy.min(lep_br)] )
-                if abs(delta_br - 0) > 1e-05: self.highlight("warning", f"Undemocratic lep flavor decay for {pid}, delta_br = {delta_br}, br = {lep_br}")
+                if abs(delta_br - 0) > 1e-03: 
+                    self.highlight("warning", f"Undemocratic lep flavor decay for {pid}, delta_br = {delta_br}, br = {lep_br}")
                 l = 1. - delta_br / 3.
                 ret *= l
 

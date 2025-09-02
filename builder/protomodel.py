@@ -58,7 +58,7 @@ class ProtoModel ( LoggerBase ):
             templateSLHA = templateSLHA.replace("templates/","")
         self.templateName = templateSLHA
         self.getParticleContent()
-        self.computer = RefXSecComputer( verbose = False, 
+        self.computer = RefXSecComputer( verbose = False,
                                          allowN1N1Prod = allowN1N1Prod )
         self.protomodels_version = "2.0"
         self.initializeModel()
@@ -511,7 +511,7 @@ class ProtoModel ( LoggerBase ):
         """
         #
         #if s > 100: return
-        
+
         #Before rescaling, make sure we get the latest cross-sections:
         x = self.getXsecs()
         xsecs = x[0]

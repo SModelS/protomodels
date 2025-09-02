@@ -359,7 +359,7 @@ class LlhdThread ( LoggerBase ):
                 for mu,llhd in llhds.items():
                     nllhds+=len(llhd)
 
-                self.pprint ( f"{i1}/{nxvariables}: m({namer.asciiName(self.xvariable)})={m1:.1f}, m2({namer.asciiName(self.yvariable)})={m2:.1g}, {len(llhds)} mu's, {nllhds} llhds." )
+                self.pprint ( f"{i1}/{nxvariables}: m({namer.asciiName(self.xvariable)})={m1:.1f}, m2({namer.asciiName(self.yvariable)})={m2:.1f}, {len(llhds)} mu's, {nllhds} llhds." )
                 point["mx"] = m1 
                 point["my"] = m2
                 masspoints.append ( point )

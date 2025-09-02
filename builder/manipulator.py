@@ -1821,9 +1821,12 @@ class Manipulator ( LoggerBase ):
         self.log(f"Initializing Branchings for {self.namer.asciiName(pid)}({pid})")
         initialized = self.initBranchings(pid, protomodel=protomodel)
         if not initialized:
-            self.log(f"No decays for {pid}")
             self.proposal_ratio['add_par']['q'] = 1.
-            self.freezeParticles ( pid, force=True, protomodel=protomodel )
+            if pid in self.M.decaylessParticles:
+                self.log(f"No decays for {self.namer.asciiName(pid)}({pid}) -- but it's marked as decayless")
+            else:
+                self.log(f"No decays for {self.namer.asciiName(pid)}({pid})")
+                self.freezeParticles ( pid, force=True, protomodel=protomodel )
             return None
             
         #Add pid pair production and associated production to protomodel.ssmultipliers:
