@@ -23,6 +23,7 @@ def createMyFile ( signal_model : str = "signal_model.dict",
     print ( f"[predictForTruth] critic: {cr}, {response}" )
     predictor.predict ( ma, keep_predictions = True, force_computation_K = True )
     print ( f"[predictForTruth] predict K={ma.M.K} TL={ma.M.TL}" )
+    """
     with open ( signal_model, "rt" ) as f:
         txt = f.read()
         d = eval( txt )
@@ -33,7 +34,9 @@ def createMyFile ( signal_model : str = "signal_model.dict",
         from ptools.helpers import py_dumps
         ds = py_dumps ( d, indent = 4 )
         f.write ( ds + "\n" )
-    print ( f"[predictForTruth] wrote truth into my.truth" )
+    """
+    ma.writeDictFile( outfile )
+    print ( f"[predictForTruth] wrote truth into {outfile}" )
     if interactive:
         import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
