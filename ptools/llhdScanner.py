@@ -609,7 +609,7 @@ def main ():
             help='number of events [50000]',
             type=int, default=50000 )
     argparser.add_argument ( '-H', '--hiscores',
-            help='hiscore file to draw from [<rundir>/hiscores.dict]',
+            help='hiscore file to draw from [<rundir>/hiscores_global.dict]',
             type=str, default="default" )
     argparser.add_argument ( '-D', '--draw',
             help='also perform the plotting, ie call plotLlhds',
@@ -645,7 +645,7 @@ def main ():
     if nproc < 1:
         nproc = nCPUs() + nproc
     if args.hiscores == "default":
-        args.hiscores = f"{rundir}/hiscores.dict"
+        args.hiscores = f"{rundir}/hiscores_global.dict"
     from ptools.hiscoreTools import fetchHiscoresObj
     hi = fetchHiscoresObj ( args.hiscores, None, args.dbpath )
     protomodel = hi.hiscores[0]
