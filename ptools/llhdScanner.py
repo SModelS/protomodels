@@ -25,6 +25,8 @@ from typing import Dict, Tuple, Union, List
 from ptools.sparticleNames import SParticleNames
 from ptools import moreHelpers, helpers
 from base.loggerbase import LoggerBase
+from smodels.statistics.basicStats import observed, apriori, aposteriori,\
+         NllEvalType
 
 namer = SParticleNames ( False )
 
@@ -217,11 +219,12 @@ class LlhdThread ( LoggerBase ):
         ## get for the others FIXME should adapt to ssm?
         for mu in numpy.arange(.4,1.8,.05):
             llhds[float(mu)] = self.getLikelihoods ( self.predictor.predictions, mu=mu )
-        ouls = self.getLimits ( self.predictor.predictions, False )
-        euls = self.getLimits ( self.predictor.predictions, True )
+        ouls = self.getLimits ( self.predictor.predictions, observed )
+        euls = self.getLimits ( self.predictor.predictions, apriori )
         del self.predictor.predictions
         self.M.delCurrentSLHA()
-        critics={}
+        critics={ "llhd": self.M.llhd_critic, "ul": self.M.ul_critic }
+        """
         print("critic desc ", self.M.critic_description)
         num_of_critics = len(self.M.critic_description.split(';'))
         ul_critic = self.M.critic_description.split(';')[0] #, llhd_critic, self.M.critic_description.split(';')[1]
@@ -239,14 +242,16 @@ class LlhdThread ( LoggerBase ):
             datasets = llhd_critic[p1+9:p2-1]
             comb_r = float(llhd_critic[p2+7:])
             critics[datasets] = comb_r
+        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        """
         
         return { "llhd": llhds, "critic": critics, "oul": ouls, "eul": euls }
 
     def getLimits ( self, predictions : List[TheoryPrediction], 
-                    expected : bool ) -> Dict:
+                    evaluationType : NllEvalType ) -> Dict:
         """ get the limits for all predictions 
 
-        :param expected: if true, get expected limits on mu, else observed
+        :param evaluationType: one of: observed, apriori, aposteriori
         """
         limits = {}
         for tp in predictions:
@@ -255,7 +260,8 @@ class LlhdThread ( LoggerBase ):
             if dId == "(combined)":
                 dId = "(comb)"
             name = f"{tp.analysisId()}:{dId}:{txname}"
-            limits[ name ] = tp.getUpperLimitOnMu ( expected = expected )
+            limits[ name ] = tp.getUpperLimitOnMu ( 
+                    evaluationType = evaluationType )
         return limits
 
     def getLikelihoods ( self, predictions, mu = 1. ) -> Dict:

@@ -23,6 +23,7 @@ from base.loggerbase import LoggerBase
 from os import PathLike
 import tempfile
 from scipy.stats import norm, lognorm, uniform
+from base.constants import mass_W, mwidth_W, mass_Z, mwidth_Z
 
 class Manipulator ( LoggerBase ):
     """ contains the protomodel manipulation algorithms. """
@@ -41,11 +42,6 @@ class Manipulator ( LoggerBase ):
     # ( so they dont have any free parameters)
     # This happens eg when using templateNaturalEwkino.slha 
     # FIXME might have to make this smarter later on
-
-    mass_W = 80.377
-    mwidth_W = 2.14
-    mass_Z = 91.1876
-    mwidth_Z = 2.5
 
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike],
             strategy: str = "aggressive", verbose : bool = False,
@@ -735,7 +731,7 @@ class Manipulator ( LoggerBase ):
             protomodel = self.M
 
         #Do not modify the LSP decays
-        if pid == protomodel.LSP:
+        if pid in self.decaylessParticles:
             return
 
         #Erase BRs (if any has been stored) for offshell too?

@@ -296,7 +296,7 @@ class ProtoModel ( LoggerBase ):
             print("huh? we have 0 prod modes? We have {len(channels)} channels.")
         return prodModes
 
-    def getOpenChannels(self,pid : int ):
+    def getOpenChannels(self, pid : int ):
         """get the list of open decay channels for particle pid. Open channels are
         the decays to unfrozen particles and to lighter particles.
 
@@ -308,17 +308,12 @@ class ProtoModel ( LoggerBase ):
         #Get list of possible decay channels:
         openChannels = set()
         unfrozen = self.unFrozenParticles()
-        smMasses = {  6: 173., 24: 80.377, 23: 91.1876, 25: 125.,
-                         15: 1.77, 4: 1.2, 5: 5.0 }
+        from base.constants import mass_W, mwidth_W, mass_Z, mwidth_Z, smMasses
         #Get all relevant masses
         allMasses = dict([[pid,mass] for pid,mass in self.masses.items()])
         allMasses.update(smMasses)
 
         offshell = False
-        mass_W = 80.377
-        mwidth_W = 0.012
-        mass_Z = 91.1876
-        mwidth_Z = 0.0021
         if pid == 1000023 and (self.masses[pid] - self.masses[self.LSP]) < (mass_Z + mwidth_Z): offshell = True
         elif pid == 1000024 and (self.masses[pid] - self.masses[self.LSP]) < (mass_W + mwidth_W):offshell = True
         else: offshell = False
