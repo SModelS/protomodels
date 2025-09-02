@@ -198,7 +198,7 @@ class Predictor ( LoggerBase ):
                 f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
             f.close()
 
-    def obtainPredictions ( self, manipulator : Manipulator, sigmacut = 0.02*fb,
+    def obtainPredictions ( self, protomodel : ProtoModel, sigmacut = 0.02*fb,
             mingap = 10*GeV, mingapISR = 1*GeV,
             keep_predictions : bool = False ) -> List:
         """ obtain all predictions.
@@ -211,7 +211,6 @@ class Predictor ( LoggerBase ):
         :returns: list of all predictions
         """
 
-        protomodel = manipulator.M
         if hasattr ( self, "predictions" ):
             del self.predictions ## make sure we dont accidentally use old preds
         self.walkerid = protomodel.walkerid ## set the walker ids, for debugging
@@ -249,14 +248,14 @@ class Predictor ( LoggerBase ):
         (keep TL = log(L1))
         :returns: False, if no combinations could be found, else True
         """
-        predictions = self.obtainPredictions ( manipulator, sigmacut, mingap,
+        protomodel = manipulator.M
+        predictions = self.obtainPredictions ( protomodel, sigmacut, mingap,
                 mingapISR, keep_predictions )
         if not predictions: return False
 
-        protomodel = manipulator.M
 
         # Compute significance and store in the model:
-        self.computeSignificance( protomodel, manipulator, predictions,
+        self.computeSignificance( protomodel, predictions,
             strategy, run_mcmc=run_mcmc,
             force_computation_K = force_computation_K )
 
@@ -409,7 +408,7 @@ class Predictor ( LoggerBase ):
                 print ( f" - {p.analysisId()}:{dataId}: {txns}" )
 
 
-    def computeSignificance(self, protomodel, manipulator,
+    def computeSignificance(self, protomodel, # manipulator,
             predictions : list, strategy : str,
             test_param_space : bool = False, run_mcmc : bool = False,
             force_computation_K : bool = False ):

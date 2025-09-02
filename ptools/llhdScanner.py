@@ -203,7 +203,9 @@ class LlhdThread ( LoggerBase ):
         ## first get rmax
         if hasattr ( self.predictor, "predictions" ):
             del self.predictor.predictions
-        worked = self.predictor.predict ( self.M, keep_predictions = True )
+        from builder.manipulator import Manipulator
+        manipulator = Manipulator ( self.M )
+        worked = self.predictor.predict ( manipulator, keep_predictions = True )
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
         print("worked ", worked)
         if not worked:
