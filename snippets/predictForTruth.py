@@ -30,7 +30,8 @@ def predictForTruth ( interactive : bool = False ):
         d = eval( txt )
         f.close()
     with open ( "my.truth", "wt" ) as f:
-        d.update( { "K": ma.M.K, "TL": ma.M.TL, "llhd_critic": ma.M.llhd_critic })
+        d.update( { "K": ma.M.K, "TL": ma.M.TL, "llhd_critic": ma.M.llhd_critic,
+                    "ul_critic": ma.M.ul_critic })
         from ptools.helpers import py_dumps
         ds = py_dumps ( d, indent = 4 )
         f.write ( ds + "\n" )
