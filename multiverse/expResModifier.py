@@ -170,6 +170,7 @@ Just filter the database:
         self.seed = None
         self.nproc = 1
         self.pmodel = ""
+        self.allowN1N1Prod = True
         self.playback = ""
         self.verbose = 0
         self.interactive = False
@@ -353,10 +354,12 @@ Just filter the database:
                 type(self.protomodel) != str:
             self.protomodel.delCurrentSLHA()
 
-    def produceProtoModel ( self, filename, dbversion ):
+    def produceProtoModel ( self, filename : str, dbversion : str,
+           allowN1N1Prod : bool = True ):
         """ try to produce a protomodel from pmodel
         :param filename: filename of pmodel dictionary
         :param dbversion: version of database, for tracking
+        :param allowN1N1Prod: if bool, then have also N1N1 production
         :returns: none if not succesful, else protomodel object
         """
         if filename == "":
@@ -370,7 +373,8 @@ Just filter the database:
         select = "all"
         keep_meta = True
         # M = ProtoModel ( walkerid, self.dbpath, expected, select, keep_meta )
-        M = ProtoModel ( walkerid, keep_meta, dbversion = dbversion )
+        M = ProtoModel ( walkerid, keep_meta, dbversion = dbversion,
+                         allowN1N1Prod = allowN1N1Prod )
         M.createNewSLHAFileName ( prefix="erm" )
         ma = Manipulator ( M )
         with open ( filename, "rt" ) as f:
@@ -428,7 +432,8 @@ Just filter the database:
             print ( f"[expResModifier] loaded db v{self.db.databaseVersion}" )
         self.dbversion = self.db.databaseVersion
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
-        self.produceProtoModel ( self.pmodel, self.db.databaseVersion )
+        self.produceProtoModel ( self.pmodel, self.db.databaseVersion,
+                                 self.allowN1N1Prod )
         # print ( "pm produced", os.path.exists ( self.protomodel.currentSLHA ) )
         self.log ( f"{len(listOfExpRes)} results before faking bgs" )
         updatedListOfExpRes = self.fakeBackgrounds ( listOfExpRes )
