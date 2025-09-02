@@ -145,8 +145,8 @@ class Manipulator ( LoggerBase ):
             protomodel = self.M
         offshell = False
         if 1000023 in protomodel.unFrozenParticles() or 1000024 in protomodel.unFrozenParticles():
-            if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_Z + self.mwidth_Z): offshell = True
-            elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (self.mass_W + self.mwidth_W): offshell = True
+            if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (mass_Z + mwidth_Z): offshell = True
+            elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (mass_W + mwidth_W): offshell = True
             else: offshell = False
         else: offshell = False
 
@@ -1791,8 +1791,8 @@ class Manipulator ( LoggerBase ):
             if p < 0.1:
                 offshell = True
                 self.log ( f"Unfreezing {self.namer.asciiName(pid)}, randomly chose to restrict to offshell mass!" )
-                if pid == 1000023: maxMass = minMass + self.mass_Z + self.mwidth_Z
-                else: maxMass = minMass + self.mass_W + self.mwidth_W
+                if pid == 1000023: maxMass = minMass + mass_Z + mwidth_Z
+                else: maxMass = minMass + mass_W + mwidth_W
         
         m_random = float(np.random.uniform ( 0., 1. ))
         tmpMass = minMass + (maxMass-minMass)*m_random
@@ -1958,8 +1958,8 @@ class Manipulator ( LoggerBase ):
             if p < 0.1:
                 offshell = True
                 self.log ( f"randomly chose {self.namer.asciiName(pid)} to restrict to offshell mass!" )
-                if pid == 1000023: maxMax = minMass + self.mass_Z + self.mwidth_Z
-                else: maxMax = minMass + self.mass_W + self.mwidth_W
+                if pid == 1000023: maxMax = minMass + mass_Z + mwidth_Z
+                else: maxMax = minMass + mass_W + mwidth_W
 
         massIsLegal = False
         ctIterations = 0
@@ -2007,8 +2007,8 @@ class Manipulator ( LoggerBase ):
         for ipid in allpids:
             self.M.masses[ipid]=tmpmass
             if ipid in [ 1000023, 1000024 ]:
-                if ipid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_Z + self.mwidth_Z)
-                if ipid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (self.mass_W + self.mwidth_W)
+                if ipid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (mass_Z + mwidth_Z)
+                if ipid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (mass_W + mwidth_W)
                 if was_offshell != is_offshell:     #initialize branchings
                     if self.run_mcmc:
                         self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {ipid}.")
