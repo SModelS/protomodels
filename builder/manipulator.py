@@ -41,7 +41,6 @@ class Manipulator ( LoggerBase ):
     # ( so they dont have any free parameters)
     # This happens eg when using templateNaturalEwkino.slha 
     # FIXME might have to make this smarter later on
-    decaylessParticles = [ ProtoModel.LSP, 1000023, 1000024 ]
 
     mass_W = 80.377
     mwidth_W = 2.14
@@ -821,7 +820,8 @@ class Manipulator ( LoggerBase ):
 
         BRtot = sum(protomodel.decays[pid].values())
         if BRtot == 0:
-            if pid not in self.decaylessParticles:
+            print ( f"decaylessP {self.M.decaylessParticles}" )
+            if pid not in self.M.decaylessParticles:
                 #print(f"decay of {pid}: {protomodel.decays[pid]}")
                 self.log(f"decay of {pid}: {protomodel.decays[pid]}")
                 protomodel.pprint ( f"When attempting to normalize: total BR of ({pid}) is zero, and it is not in decaylessParticles. we need to take out {pid}." )

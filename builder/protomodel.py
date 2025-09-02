@@ -86,6 +86,8 @@ class ProtoModel ( LoggerBase ):
         slha = ""
         ## this is a list of force degeneracies
         self.forced_degeneracies = []
+        self.decaylessParticles = ( ProtoModel.LSP, )
+        # decaylessParticles = [ ProtoModel.LSP, 1000023, 1000024 ]
         with open ( self.templateSLHA, "rt" ) as f:
             lines = f.readlines()
             for line in lines:
@@ -104,6 +106,18 @@ class ProtoModel ( LoggerBase ):
                     try:
                         parsed = eval(token)
                         self.forced_degeneracies.append(parsed)
+                    except (SyntaxError,ValueError) as e:
+                        self.error ( f"cannot parse {token}: {e}" )
+                if "DECAYLESSPARTICLES:" in line:
+                    p1 = line.find("DECAYLESSPARTICLES:" )
+                    token = line[p1+19:]
+                    p2 = token.find("#")
+                    if p2 > -1:
+                        token = token[:p2]
+                    token = token.strip()
+                    try:
+                        parsed = eval(token)
+                        self.decaylessParticles=parsed
                     except (SyntaxError,ValueError) as e:
                         self.error ( f"cannot parse {token}: {e}" )
 
@@ -720,6 +734,7 @@ class ProtoModel ( LoggerBase ):
         newmodel.dbversion = self.dbversion
         newmodel.protomodels_version = self.protomodels_version
         newmodel.forced_degeneracies = self.forced_degeneracies
+        newmodel.decaylessParticles = self.decaylessParticles
         newmodel.particles = self.particles[:]
         newmodel.templateName = self.templateName[:]
         newmodel.allowN1N1Prod = self.allowN1N1Prod
