@@ -1,6 +1,7 @@
 # templateNaturalEwkino.slha
 
 # DEGENERACY: (1000023,1000024) ## for C1 and N2 to be of same mass
+# DECAYLESSPARTICLES: (1000022,1000023,1000024)
 
 BLOCK DCINFO  # Decay Program information
      1   SDECAY/HDECAY # decay calculator
