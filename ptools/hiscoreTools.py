@@ -255,7 +255,7 @@ def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
         for model in models:
             if pid in model["masses"]:
                 masses.append ( model["masses"][pid] )
-        return np.mean ( masses )
+        return float ( np.mean ( masses ) )
 
     def computeAverageDecaysForPid ( pid : int, models : List[Dict] ) -> Dict:
         decays = {}
