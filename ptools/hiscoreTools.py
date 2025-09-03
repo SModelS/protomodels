@@ -241,7 +241,7 @@ def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
     if len(models)==1: # trivial merge
         models[0]["timestamp"] = time.asctime()
         return models[0]
-    ret = { "masses": {}, "decays": {}, "ssms": {} }
+    ret = { "masses": {}, "decays": {}, "ssmultipliers": {} }
 
     def collectPids ( models : List[Dict] ) -> Set:
         """ collect all pids in all models """

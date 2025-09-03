@@ -255,14 +255,16 @@ class Initialiser ( LoggerBase ):
         """ sample random mass values for the given txname """
         pidsdict = copy.deepcopy ( self.pidsForTxnames[txname] )            
         masses = {}
+        # masses[ProtoModel.LSP]=self.lspmass
         pid = ProtoModel.LSP
         lspmass = float(np.random.uniform ( *self.massRanges[pid] ))
-        self.pprint ( f"setting mass of {namer.asciiName(pid)} to {lspmass:.1f}" )
         masses[pid]=lspmass
-        leftsquarks = [ 1000001, 1000002, 1000003, 1000004 ]
-        rightsquarks = [ 2000001, 2000002, 2000003, 2000004 ]
-        squarks = leftsquarks + rightsquarks
+        #leftsquarks = [ 1000001, 1000002, 1000003, 1000004 ]
+        #rightsquarks = [ 2000001, 2000002, 2000003, 2000004 ]
+        #squarks = leftsquarks + rightsquarks
+        squarks = [ 1000001 ]
         mylightsquark = int(np.random.choice ( leftsquarks ))
+        offshell = txname.endswith ( "off" )
 
         for position,pids in pidsdict.items():
             if mylightsquark in pids:
@@ -283,8 +285,14 @@ class Initialiser ( LoggerBase ):
                     self.error ( f"we dont have mass ranges for pid={pid}({namer.asciiName(pid)})" )
                     sys.exit()
                 mass = -1.
-                while mass < lspmass:
-                    mass = float(np.random.uniform ( *self.massRanges[pid] ))
+                massRanges = self.massRanges[pid]
+                # print ( f"orig massranges {massRanges}" )
+                if lspmass > massRanges[0]:
+                    massRanges[0] = lspmass
+                if offshell:
+                    massRanges[1] = float ( massRanges[0]+90. )
+                # print ( f"massranges {massRanges}" )
+                mass = float(np.random.uniform ( *massRanges ))
                 ## for C1 and N2: with a certain change we set them to the same
                 ## value
                 masses[pid]=mass
@@ -346,9 +354,19 @@ class Initialiser ( LoggerBase ):
         submodel = self.getRandomSubmodelForTxname ( txn )
         return submodel
 
+    """
+    def getRandomMassForLSP ( self ):
+        # random mass for LSP we do separately
+        pid = ProtoModel.LSP
+        lspmass = float(np.random.uniform ( *self.massRanges[pid] ))
+        self.pprint ( f"random mass for LSP: {lspmass}" )
+        self.lspmass = lspmass
+    """
+
     def propose ( self ):
         """ propose a random initial model. """
         # choose a random txn
+        # self.getRandomMassForLSP()
         submodels = []
         nmodels = np.random.choice ( [1,2,3] )
         self.pprint ( f"proposed model will consist of {nmodels} submodels." )
