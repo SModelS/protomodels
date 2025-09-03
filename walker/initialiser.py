@@ -27,7 +27,7 @@ class Initialiser ( LoggerBase ):
 
         :param dictfile: path to the database dict file we will base this on
         """
-        super ( Initialiser, self ).__init__ ( 0 )
+        super ( Initialiser, self ).__init__ ( "ini" )
         dictfile = os.path.expanduser ( dictfile )
         self.dictfile = dictfile
         from multiverse.expResModifier import readDictFile
@@ -36,7 +36,8 @@ class Initialiser ( LoggerBase ):
         self.cachefile = "pids.cache"
         self.meta = d["meta"]
         self.data = d["data"]
-        self.TLmax = 1. # disregard all results below this
+        # self.TLmax = 1. # disregard all results below this
+        self.pmax = 0.25 # disregard all results above this
         self.computePDict()
         self.setMassRanges()
         re = self.readInitialData()
@@ -61,6 +62,7 @@ class Initialiser ( LoggerBase ):
         """ get pids, decays for slha template <filename>
         :param filename: e.g. ..../T1.template
         """
+        self.log ( f"getTxParamsFor {filename}" )
         txname = filename.replace(".template","")
         pr = txname.rfind("/")
         txname = txname[pr+1:]
@@ -167,10 +169,16 @@ class Initialiser ( LoggerBase ):
         """ get particle ids from template files in 
         smodels-utils/slha/templates/ """
         pathname = "../../smodels-utils/slha/templates/"
+        altpathname = "~/git/smodels-utils/slha/templates/"
+        altpathname = os.path.expanduser ( altpathname )
         self.pidsForTxnames = {}
         self.decaysForTxnames = {}
         self.ssmsForTxnames = {}
         files = glob.glob ( f"{pathname}/T*.template" )
+        files += glob.glob ( f"{altpathname}/T*.template" )
+        if len(files)==0:
+            self.error ( f"could not find template files!" )
+            sys.exit()
         for f in files:
             self.getTxParamsFor ( f )
 
@@ -180,15 +188,20 @@ class Initialiser ( LoggerBase ):
         prels = {}
         ptot = 0.
         for anaAndSRName,stats in self.data.items():
-            if not "TL" in stats:
-                continue
-            TL = stats["TL"] # make sure we have unique TLs
-            if TL < self.TLmax: # we dont look at underfluctuations, or small TLs
+            #if not "TL" in stats:
+            #    continue
+            #TL = stats["TL"] # make sure we have unique TLs
+            #if TL < self.TLmax: # we dont look at underfluctuations, or small TLs
+            #    continue
+            # Z = stats["new_Z"] # significance of the fake data (incl signal)
+            p = stats["new_p"] # p-value of the fake data (incl signal)
+            if p > self.pmax:
                 continue
             ## FIXME for now we shoose by exp(Z), maybe
             ## we do sth better motivated
             # prel = np.exp ( Z )
-            prel = 1. / ( 1. - scipy.stats.norm.cdf ( np.sqrt(TL) ) )
+            # prel = 1. / ( 1. - scipy.stats.norm.cdf ( np.sqrt(TL) ) )
+            prel = 1. / p
             while prel in prels:
                 prel+=1e-10
             value = stats
@@ -315,7 +328,7 @@ class Initialiser ( LoggerBase ):
     def getRandomSubmodelForTxname ( self, txname : str ) -> Dict:
         """ given a txname, create a random submodel. """
         if not txname in self.pidsForTxnames:
-            self.pprint ( "we dont seem to have pids for {txname}" )
+            self.pprint ( f"we dont seem to have pids for {txname}" )
             return None
         masses = self.getRandomMassesForTxname ( txname )
         decays = self.getDecaysForTxname ( txname )
@@ -340,7 +353,11 @@ class Initialiser ( LoggerBase ):
         nmodels = np.random.choice ( [1,2,3] )
         self.pprint ( f"proposed model will consist of {nmodels} submodels." )
         for i in range(nmodels):
-            submodels.append ( self.createRandomSubmodel() )
+            submodel = self.createRandomSubmodel()
+            if submodel == None:
+                self.error ( f"got none as random submodel" )
+                continue
+            submodels.append ( submodel )
         self.submodels = submodels
         from ptools.hiscoreTools import mergeNModels
         model = mergeNModels ( submodels )
