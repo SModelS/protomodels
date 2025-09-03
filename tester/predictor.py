@@ -422,9 +422,9 @@ class Predictor ( LoggerBase ):
             protomodel.K: updates the K test statistic
             protomodel.TL: updates the TL test statistic
         """
+        protomodel.K = None # reset them to avoid confusion
+        protomodel.TL = None
         if len ( predictions ) == 0:
-            protomodel.K = None
-            protomodel.TL = None
             return
 
         self.log ( f"now find combo with highest TL given {len(predictions)} predictions" )
@@ -460,8 +460,11 @@ class Predictor ( LoggerBase ):
             protomodel.muhat = None
             self.highlight("warning", "No muhat found")
             return
+        if force_computation_K and abs(muhat - 1.0) > 1e-2:
+            ma = Manipulator ( protomodel )
+            ma.rescaleSignalBy ( s = None ) # rescale by muhat ("None")
 
-        if abs(muhat - 1.0) < 1e-02 or force_computation_K:
+        if abs(muhat - 1.0) <= 1e-2:
             prior = self.combiner.computePrior ( protomodel, nll = False )
             ## temporary hack: penalize for missing experiment
             missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )

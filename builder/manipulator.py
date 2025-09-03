@@ -40,7 +40,7 @@ class Manipulator ( LoggerBase ):
     # have any branching ratio parameters defined. LSP, because it is the DMC,
     # N2 and C1 because they may have natural offshell boson decays defined,
     # ( so they dont have any free parameters)
-    # This happens eg when using templateNaturalEwkino.slha 
+    # This happens eg when using templateNaturalEwkino.slha
     # FIXME might have to make this smarter later on
 
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike],
@@ -82,7 +82,7 @@ class Manipulator ( LoggerBase ):
         self.run_mcmc = False
         self.M = protomodel
         self.propose_model = None
-        
+
         if type(protomodel) == dict:
             self.M = ProtoModel ( )
             self.initFromDict ( protomodel, initTestStats = initTestStats )
@@ -94,26 +94,26 @@ class Manipulator ( LoggerBase ):
         self.seed = seed
         self.strategy = strategy
         self.verbose = verbose
-        
+
         #need the below attribute to be defined here, in case of using hiscoreCLI to manipulate the protomodel
         self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
-        
+
         #Store a canonical order for the masses. So the ordering in each tuple is enforced
         #consider Xu and Xs as an extension of Xd, Xc not considered since charm-tagging results exist
         self.canonicalOrder =  [( 1000001, 1000002 ),(1000001, 1000003),( 1000005, 2000005 ),( 1000006, 2000006 ),
                           ( 1000023, 1000025 ), ( 1000024, 1000037 ),( 1000025, 1000035 )]
-        
+
         #Define groups of particles to be merged if their mass difference is below a given mass gap
         self.mergerCandidates =   [(1000001, 1000002, 1000003), ( 1000005, 2000005 ), (1000006, 2000006),
                                     ( 1000024, 1000037 ), ( 1000023, 1000025 )]
         self.do_record = do_record ## if True, then record changes
         self.recording = [] ## just in case
 
-    def forcedMassDegeneratePids ( self, pid : int, 
+    def forcedMassDegeneratePids ( self, pid : int,
            include_self : bool = True ) -> List:
         """ determine which pids are forced mass degenerate to ours
-        
-        :returns: list of all mass degenerate pids 
+
+        :returns: list of all mass degenerate pids
         """
         for pids in self.M.forced_degeneracies:
             if pid in pids:
@@ -198,11 +198,11 @@ class Manipulator ( LoggerBase ):
         self.log(f"Shifting all other masses by {dm:.2f}")
         shifted = set()
         for pid,m in self.M.masses.items():
-            if pid is self.M.LSP and not lsp: 
+            if pid is self.M.LSP and not lsp:
                 continue
             self.M.masses[pid]=m+dm
             shifted.add ( pid )
-            if self.M.masses[pid] > self.M.maxMass: 
+            if self.M.masses[pid] > self.M.maxMass:
                 self.M.masses[pid] = self.M.maxMass
         return shifted
 
@@ -220,14 +220,14 @@ class Manipulator ( LoggerBase ):
         model_xs = 0.
         model_mass = 0.
         change = False
-        
+
         if type(sqrts) == Unum: sqrts = sqrts.asNumber(TeV)
         #print("here")
         for xsec in model_xsecs:
             if (xsec.pid == pid_pair) and abs(xsec.info.sqrts.asNumber(TeV) - sqrts) <= 1e-07:  #get the protomodel xsec at pid_pair and sqrts
                 model_xs = xsec.value.asNumber(fb)
                 change = True
-    
+
         if not change: return
 
 
@@ -295,17 +295,17 @@ class Manipulator ( LoggerBase ):
             ## there is nothing to write
             self.log("No protomodel")
             return
-        
+
         proto_dict = self.M.dict(sort_dict=True)
         if not get_xsecs and 'xsecs[fb]' in proto_dict.keys(): del proto_dict['xsecs[fb]']
-        
+
         if acc and critic_acc: proto_dict['Accepted'] = 0
         elif acc and not critic_acc: proto_dict['Accepted'] = 1
         else: proto_dict['Accepted'] = 2
-        
+
         proto_dict['K'] = self.M.K
         proto_dict['TL'] = self.M.TL
-        
+
         return proto_dict
 
     @classmethod
@@ -334,7 +334,7 @@ class Manipulator ( LoggerBase ):
             #    f.write ( "\n" )
             f.close()
         return d
-    
+
     def writeDictFile ( self, outfile : Union[str,None] = "pmodel.dict", step=None,
             cleanOut : bool = True, comment : str = "", appendMode : bool = False,
             ndecimals : int = 6 ) -> Dict:
@@ -493,10 +493,10 @@ class Manipulator ( LoggerBase ):
 
     '''
     def initModel(self):
-        
+
         self.propose_model = self.manipulator.M.copy()
         self.manipulator.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
-        
+
         unfrozenParticle = self.manipulator.randomlyUnfreezeParticle()
 
         self.manipulator.proposal_density( move='add_par', force_unfreeze=True)
@@ -829,7 +829,7 @@ class Manipulator ( LoggerBase ):
         if abs(BRtot-1.0) < 1e-4:
             #BRs are already normalized.
             return True
-        
+
         self.log ( f"normalized branchings of {self.namer.asciiName(pid)} by {BRtot:.2f}" )
 
         for dpid in protomodel.decays[pid]:
@@ -839,7 +839,7 @@ class Manipulator ( LoggerBase ):
         ## as it was
         if not rescaleSSMs:
             return True
-        
+
         #rescaling ssms?
         for pidpair,ssm in protomodel.ssmultipliers.items():
             if pidpair in [ (pid,pid),(-pid,-pid),(-pid,pid),(pid,-pid) ]:
@@ -849,7 +849,7 @@ class Manipulator ( LoggerBase ):
             else:
                 continue
             protomodel.ssmultipliers[pidpair]=newssm
-        
+
         return True
 
     def initSSMFor(self, pid, protomodel=None, ssmSigma=1.0, cap_ssm=100.):
@@ -857,10 +857,10 @@ class Manipulator ( LoggerBase ):
             new ssm = lognorm.rvs(1.0, ssmSigma)
         """
         self.log ( f"initSSMFor {pid}({self.namer.asciiName(pid)}) with ssmSigma={ssmSigma:.1} cap_ssm={cap_ssm:.1f}" )
-        
+
         if protomodel is None:
             protomodel = self.M
-        
+
         unfrozen = protomodel.unFrozenParticles()
         pidpair = protomodel.getAllowedProdModes()
 
@@ -875,7 +875,7 @@ class Manipulator ( LoggerBase ):
                     if ssm > cap_ssm: ssm = cap_ssm
                     protomodel.ssmultipliers[ppair] = ssm
                     self.log ( f"setting ssm of {ppair}({self.namer.asciiName(ppair)}) to {ssm:.2f}" )
-            
+
 
     def describe ( self, allTheoryPredictions : bool = False ):
         """ lengthy description of protomodel
@@ -931,9 +931,14 @@ class Manipulator ( LoggerBase ):
             UL=f"{tp[2].upperLimit.asNumber(fb):1.2g}*fb"
             print( f'     - r={tp[2].getRValue():1.2f} {anaId} [{txns}] pred={tp[2].xsection.value.asNumber(fb):1.2g}*fb, UL={UL}{eUL}' )
 
-    def rescaleSignalBy ( self, s : float, cap_ssm=100. ):
-        """ multiply the signal strength multipliers with s """
-
+    def rescaleSignalBy ( self, s : Union[float,None], cap_ssm : float = 100. ):
+        """ multiply the signal strength multipliers with s
+        :param s: rescale all signal strength multipliers with s.
+        if None, rescale with self.M.muhat
+        :param cap_ssm: allow only ssms < cap_ssm
+        """
+        if s == None:
+            s = self.M.muhat
         if s == 0.:
             self.log ( "Rescaling by zero? Ignore." )
             return
@@ -970,24 +975,24 @@ class Manipulator ( LoggerBase ):
                 #    del tp.likelihood
                 #if hasattr(tp,'chi2'):
                 #    del tp.chi2
-        
+
     def z_model(self, model_current, model_propose, force_move=False):
-        
+
         a,b,c = 2,4,8
         shift_parameter = 8
         #print(f"Move {move}")
         #total number of particles
         n_par_current = len(model_current.unFrozenParticles() )
         n_par_propose = len(model_propose.unFrozenParticles())
-        
+
         #total number of non-trivial br
         n_decays_current = sum([len(dc.keys())- 1 for par, dc in model_current.decays.items() if par != 1000022])
         n_decays_propose = sum([len(dc.keys())- 1 for par, dc in model_propose.decays.items() if par != 1000022])
-        
+
         #total number of production modes
         n_ssms_current = len([ssm for ssm in model_current.ssmultipliers.values() if ssm > 1e-04])
         n_ssms_propose = len([ssm for ssm in model_propose.ssmultipliers.values() if ssm > 1e-04])
-        
+
         deg_prop = n_par_propose + n_decays_propose + n_ssms_propose
         deg_current = n_par_current + n_decays_current + n_ssms_current
         if self.run_mcmc:
@@ -1005,11 +1010,11 @@ class Manipulator ( LoggerBase ):
             return True
         #print(f"Current deg: {deg_current}")
         #print(f"Proposed deg: {deg_prop}")
-        
+
         z_current = (n_par_current - shift_parameter)/a + n_decays_current/b + n_ssms_current/c
         z_propose = (n_par_propose - shift_parameter)/a + n_decays_propose/b + n_ssms_propose/c
         prob_12, prob_21 = 1.0, 1.0
-        
+
         if z_propose > z_current:
             #print(f"z_propose {z_propose} > z_current {z_current}")
             prob_12 = (1 + np.exp(z_current))/(1 + np.exp(z_propose))            #Adding new degrees of freedom, i->i+1
@@ -1025,12 +1030,12 @@ class Manipulator ( LoggerBase ):
         else:
             #print(f"z_propose {z_propose} = z_current {z_current}")     #No change in degrees of freedom
             prob_12, prob_21 = 1.0, 1.0
-        
+
         if prob_12 > 1.0 or prob_21 > 1.0:
             self.highlight("error", f"Proposal probabilities greater than 1.0 while changing the dimensions: {prob_12},{prob_21}.")
-        
+
         return prob_12, prob_21
-    
+
     def proposal_density(self, move, force_move=False):         #shift prior from combiner here or vice versa
         """ Define the proposal density for changing the model
         :param move: specify which move we are making
@@ -1088,14 +1093,14 @@ class Manipulator ( LoggerBase ):
         6) A random mass can be changed by a maximum value of dx
         with probability of probMass
         """
-        
+
         self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
         self.run_mcmc = run_mcmc
         if self.run_mcmc: old_model = self.M.copy()
         else: self.propose_model = self.M.copy()
         changeDesc = {}
         nChanges = 0
-        
+
         # If TL < = 0, try to drastically change model, else will be stuck in a model with low TL for many steps
         if self.M.TL <=0 :
             probSS = 1.0
@@ -1103,7 +1108,7 @@ class Manipulator ( LoggerBase ):
             probMass = 1.0
             force_move = True
             #do we want to not freeze particles? -> not freezing if less than or equal to 3 particles
-        
+
         if not self.run_mcmc:
             recentlyUnfrozen = self.randomlyUnfreezeParticle(cap_ssm=cap_ssm)
             if recentlyUnfrozen:
@@ -1124,7 +1129,7 @@ class Manipulator ( LoggerBase ):
                     #print(f"Protomodel now: {self.M.unFrozenParticles()}")
                 else:
                     self.log(f"Reject freezing of {', '.join(map(str,frozenParticles))} ({self.namer.asciiName(frozenParticles)})")
-            
+
             changes = self.randomlyChangeBranchings(protomodel=self.propose_model, prob=probBR)
             if changes > 0:
                 accept_move = self.proposal_density(move='br', force_move=force_move)
@@ -1132,7 +1137,7 @@ class Manipulator ( LoggerBase ):
                     nChanges += 1          #;print(f"Protomodel after: {self.M.decays}")
                     self.log("Accept changes in branchings")
                 else: self.log(f"Reject changing branchings")
-            
+
             changes = self.randomlyChangeSignalStrengths(protomodel=self.propose_model, prob = probSS, probSingle = probSSingle, ssmSigma = ssmSigma, cap_ssm=cap_ssm)
             if changes > 0:
                 accept_move = self.proposal_density(move='ssm', force_move=force_move)
@@ -1141,7 +1146,7 @@ class Manipulator ( LoggerBase ):
                     self.log("Accept changes in ssm")
                 else: self.log("Reject changes in ssm")
 
-        
+
         else:
             changes = self.randomlyChangeBranchings(protomodel = self.M, prob=0.4, zeroBRprob = 0., singleBRprob = 0., addBRprob = 0.)
             nChanges += changes
@@ -1155,7 +1160,7 @@ class Manipulator ( LoggerBase ):
         else: #Change masses with 5% probability
             if self.run_mcmc: self.randomlyChangeMasses(prob = 0.7)
             else: self.randomlyChangeMasses(prob = probMass)
-        
+
         if self.run_mcmc:
             check_dim_change = self.z_model(old_model, self.M)
             if not check_dim_change:
@@ -1205,8 +1210,8 @@ class Manipulator ( LoggerBase ):
         unfrozen = self.unFreezeParticles( pid, protomodel = self.propose_model, cap_ssm=cap_ssm)
         return unfrozen
 
-    def randomlyChangeBranchings ( self, protomodel = None, prob : float =0.2, 
-            zeroBRprob : float = 0.05, singleBRprob : float = 0.05, 
+    def randomlyChangeBranchings ( self, protomodel = None, prob : float =0.2,
+            zeroBRprob : float = 0.05, singleBRprob : float = 0.05,
             addBRprob : float = 0.1 ) -> int:
         """ randomly change the branchings of a single particle
 
@@ -1222,7 +1227,7 @@ class Manipulator ( LoggerBase ):
         if uBranch < (1-prob):
             self.log("Not changing branchings")
             return 0
-            
+
         unfrozenparticles = self.M.unFrozenParticles( withLSP=False )
         if len(unfrozenparticles)<2:
             self.log( "Not enough unfrozen particles to change random branching" )
@@ -1249,10 +1254,10 @@ class Manipulator ( LoggerBase ):
 
     def randomlyChangeBranchingOfPid ( self, pid, protomodel = None, zeroBRprob = 0.05, singleBRprob = 0.05, addBRprob = 0.1):
         """ randomly change the branching a particle pid """
-        
+
         if protomodel is None:
             protomodel = self.M
-        
+
         openChannels = protomodel.getOpenChannels(pid)
         dkeys = set()
         for dpid in openChannels:
@@ -1265,10 +1270,10 @@ class Manipulator ( LoggerBase ):
             self.log( f"Number of open channels of {pid} is {len(openChannels)}. Cannot change branchings." )
             # not enough channels open to tamper with branchings!
             return 0
-        
+
         self.proposal_ratio['br']['rem'] = 1.0
         self.proposal_ratio['br']['add'] = 1.0
-        
+
         dx = 0.1/np.sqrt(len(openChannels)) ## maximum change per channel??
 
         #Keep only one channel (with probability singleBRprob)
@@ -1286,14 +1291,14 @@ class Manipulator ( LoggerBase ):
             prob_add = addBRprob
             prob_rem = singleBRprob * (1.0 - 1/len(dkeys))
             self.proposal_ratio['br']['rem'] *= prob_add/prob_rem
-            
+
             protomodel.decays[pid] = {}
             br = 1.0/len(decay_chan)
             for dpid in decay_chan:
                 self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                 self.log ( f"changed decay of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
                 protomodel.decays[pid].update({dpid: br})
-            
+
             #print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
             return 1
 
@@ -1305,7 +1310,7 @@ class Manipulator ( LoggerBase ):
             decay_chan = [key for key,value in protomodel.decay_keys[pid].items() if value == dk]
             if decay_chan[0] in protomodel.decays[pid]:
                 oldbr = self.M.decays[pid][decay_chan[0]]
-            
+
             if oldbr > 0:
                 #Close channel(s) (with zeroBRprob probability)
                 uZero = np.random.uniform( 0., 1. )
@@ -1333,7 +1338,7 @@ class Manipulator ( LoggerBase ):
                     protomodel.decays[pid][dpid] = br
                     self.record ( f"Change branchings of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                     self.log ( f"Changed  branchings of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
-            
+
             else:
                 #Add channel(s) (with addBRprob probability)
                 uAdd = np.random.uniform( 0., 1. )
@@ -1350,7 +1355,7 @@ class Manipulator ( LoggerBase ):
                     for dpid in decay_chan:
                         protomodel.decays[pid][dpid] = br
                         self.log ( f"Added decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} with br {br:.2f}" )
-                        
+
 
         #Make sure there is at least one open channel:
         BRtot = sum(protomodel.decays[pid].values())
@@ -1371,38 +1376,38 @@ class Manipulator ( LoggerBase ):
         #print(f"Prob to add {self.proposal_ratio['br']['add']}")
         return 1
 
-    def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25, 
-            probSingle : float =0.8, ssmSigma : float = 1.0, 
+    def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25,
+            probSingle : float =0.8, ssmSigma : float = 1.0,
             cap_ssm : float =100. ) -> int:
         """ randomly change one of the signal strengths according to a gaussian
         distribution centered around the original SSM.
 
         :param prob: Probability for changing the signal strengths
-        :param probSingle: Probability for changing the signal strength of a 
+        :param probSingle: Probability for changing the signal strength of a
         single particle
         :param ssmSigma: Width for the gaussian, put to 1.0?
 
         :returns: 1 if something got changed, else 0
         """
-    
+
         uSSM = np.random.uniform(0,1)
         if uSSM < (1-prob):
             self.log("Not changing ssm")
             return 0
-        
+
         if protomodel is None:
             protmodel = self.M
-            
+
         if np.random.uniform(0,1) < probSingle:
             return self.randomlyChangeSSOfOneParticle(protomodel = protomodel,
                     ssmSigma=ssmSigma, cap_ssm=cap_ssm)
-        
+
         unfrozenparticles = self.M.unFrozenParticles( withLSP=self.M.allowN1N1Prod )
 
         if len(unfrozenparticles)<2:
             self.log ( "Not enough unfrozen particles to change random ssm" )
             return 0
-        
+
         #first get allowed production modes
         prodModes = protomodel.getAllowedProdModes()
         #filter the production modes which have the unfrozen particles
@@ -1412,7 +1417,7 @@ class Manipulator ( LoggerBase ):
                 pidpair.add(ppair)
 
         pidpair = list(pidpair)
-                
+
         #Do random moves
         a = np.random.uniform ( 0., 1. )
         if a > .9: ## sometimes, just knock out a random SSM
@@ -1448,12 +1453,12 @@ class Manipulator ( LoggerBase ):
             self.log ( f"Change ssm of {self.namer.texName(randomProd,addDollars=True)} to {v:.2f}" )
             protomodel.ssmultipliers[randomProd]= float(v)
             return 1
-        
+
         #Else either add new ssm or change existing ssm of pair
         #Randomly choose which process pids to change:
         random_ind = int(np.random.choice(len(pidpair)))
         pair = pidpair[random_ind]
-        
+
         newSSM = 1.0
         if not pair in protomodel.ssmultipliers:
             newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0)) #center ssm around 1.0, better to have log scale
@@ -1483,17 +1488,17 @@ class Manipulator ( LoggerBase ):
         """
         if protomodel is None:
             protomodel = self.M
-        
+
         unfrozenparticles = self.M.unFrozenParticles( withLSP=self.M.allowN1N1Prod )
 
         if len(unfrozenparticles)<2:
             self.log ( "Not enough unfrozen particles to change random ssm" )   #why? we are changing only for 1 particle?
             return 0
-        
+
         p = int(np.random.choice ( unfrozenparticles ))
         if pid != None: p = pid
         self.log (f"Changing all ssms of {p}({self.namer.asciiName(p)})" )
-        
+
         ssms = []
         for dpd,v in protomodel.ssmultipliers.items():
             if p in dpd or -p in dpd:
@@ -1503,7 +1508,7 @@ class Manipulator ( LoggerBase ):
                 self.log (f"Changing ssm of {dpd}({self.namer.asciiName(dpd)}) to newSSM" )
                 #self.changeSSM ( dpd, newssm )
                 ssms.append ( newSSM )
-        
+
         return 1
 
     def pidPairIsInSSMs ( self, pids : Tuple ) -> bool:
@@ -1569,17 +1574,17 @@ class Manipulator ( LoggerBase ):
         if nUnfrozen <= 2:
             self.log("Not freezing: Only 2 particles present.")
             return None
-        
+
         if nUnfrozen <=3 and self.M.TL <=0 :
             self.log(f"Not freezing: Only {nUnfrozen} particles and low TL {self.M.TL}.")
             return None
-            
+
         unfrozen = [pid for pid in self.M.unFrozenParticles( withLSP = False ) if pid != recentlyUnfrozen]
-        
+
         if len(unfrozen) == 0:
             self.log("Not freezing: Cannot freeze recently unfrozen particle {recentlyUnfrozen}.")
             return None
-        
+
         pid = int(np.random.choice ( unfrozen ))
         allpids = self.forcedMassDegeneratePids ( pid )
         self.log ( f"randomly freezing particle {pid}->{allpids} {self.M.forced_degeneracies} {self.M.templateName}" )
@@ -1587,7 +1592,7 @@ class Manipulator ( LoggerBase ):
         return frozen
 
     def freezeMostMassiveParticle ( self, protomodel=None) -> list:
-        """ freezes the most massive unfrozen particle 
+        """ freezes the most massive unfrozen particle
 
         :returns: list of pids of particles that have been frozen
         """
@@ -1599,7 +1604,7 @@ class Manipulator ( LoggerBase ):
         unfrozen = protomodel.unFrozenParticles( withLSP=False )
         if len(unfrozen)<2:
             return 0                               #freeze only if at least 3 unfrozen particles exist
-        
+
         pid,minmass=0,0
         for i in unfrozen:
             if self.M.masses[i]>minmass:           #check always with the current model self.M while trying to freeze massive particle?
@@ -1610,7 +1615,7 @@ class Manipulator ( LoggerBase ):
         frozen = self.freezeParticles ( pid, protomodel = protomodel)
         return frozen
 
-    def freezeParticles ( self, pid : int, force : bool = False, 
+    def freezeParticles ( self, pid : int, force : bool = False,
             protomodel = None, merge : bool = False) -> list:
         """ freeze particle pid, and all its forced mass degenerate
         siblings
@@ -1628,7 +1633,7 @@ class Manipulator ( LoggerBase ):
         return frozen
 
 
-    def freezeParticle ( self, pid : int, force : bool = False, 
+    def freezeParticle ( self, pid : int, force : bool = False,
             protomodel = None, merge : bool = False) -> list:
         """ freeze particle pid, take care of offshell removal, and
             branching normalization
@@ -1662,7 +1667,7 @@ class Manipulator ( LoggerBase ):
         if not force: self.log(f"Propose freezing pid: {pid}({self.namer.asciiName(pid)})")
         else: self.log(f"Freezing pid: {self.namer.asciiName(pid)}({pid})")
         #print(f"Propose freezing pid: {pid}")
-        
+
         #get total num of frozen and unfrozen par for proposal ratio
         num_unfrozen = len(unfrozen)
         num_frozen = len(protomodel.frozenParticles())
@@ -1672,18 +1677,18 @@ class Manipulator ( LoggerBase ):
                 num_unfrozen -= 1       #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
             if pids[0] in protomodel.frozenParticles() and pids[1] in protomodel.frozenParticles():
                 num_frozen -= 1         #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
-        
-        if self.forbiddenparticles != [] : 
+
+        if self.forbiddenparticles != [] :
             num_frozen -= len(self.forbiddenparticles)
             if num_frozen < 0: self.log(f"NUm frozen {num_frozen} <0 !"); num_frozen = 1
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(add pid from frozen)/p(rem pid from unfrozen) = (1/(n_fr+1))/(1/n_un)
         if merge: self.proposal_ratio['merge']['q'] *= len(unfrozen)/(num_frozen + 1)
         if not force: self.proposal_ratio['rem_par']['q'] *= len(unfrozen)/(num_frozen + 1)
         #print(f"Prob to freeze = {self.proposal_ratio['rem_par']['q']}")
-        
+
         if  pid in protomodel.masses: protomodel.masses.pop(pid)
         if  pid in protomodel.decays: protomodel.decays.pop(pid)
-        
+
         removeSSM = [pids for pids in protomodel.ssmultipliers if (pid in pids or -pid in pids)]
         for pids in removeSSM:
             protomodel.ssmultipliers.pop(pids)
@@ -1692,11 +1697,11 @@ class Manipulator ( LoggerBase ):
         self.removeIllegalBRs(rescaleSSMs=True, protomodel=protomodel)
         return [ pid ]
 
-    def unFreezeParticles (self, pid : int, force : bool = False, 
+    def unFreezeParticles (self, pid : int, force : bool = False,
             protomodel = None, cap_ssm : float = 100.,
             mass : Union[None,float] = None ) -> list:
         """ unfreeze particle pid, assign masses, BRs and signal strength
-        multipliers. but also unfreeze sibling particles that are 
+        multipliers. but also unfreeze sibling particles that are
         forced to be mass degenerate
 
         :param pid: PID to be unfrozen
@@ -1721,8 +1726,8 @@ class Manipulator ( LoggerBase ):
             if x is not None:
                 unfrozen += [ ipid ]
         return unfrozen
-        
-    def unFreezeParticle (self, pid : int, force : bool = False, 
+
+    def unFreezeParticle (self, pid : int, force : bool = False,
             protomodel = None, cap_ssm : float = 100.,
             mass : Union[None,float] = None ) -> float:
         """ unfreeze particle pid, assign masses, BRs and signal strength
@@ -1753,7 +1758,7 @@ class Manipulator ( LoggerBase ):
             for pids in self.canonicalOrder:
                 if pid == pids[1] and pids[0] in frozen:
                     return None
-        
+
         #get total num of frozen and unfrozen par for proposal ratio
         for pids in self.canonicalOrder:
             if pids[0] in self.forbiddenparticles and pids[1] in self.forbiddenparticles: continue
@@ -1761,14 +1766,14 @@ class Manipulator ( LoggerBase ):
                 n_frozen -= 1                   #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
             if pids[0] in protomodel.unFrozenParticles() and pids[1] in protomodel.unFrozenParticles():
                 num_unfrozen -= 1               #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
-        
-        if self.forbiddenparticles != []: 
+
+        if self.forbiddenparticles != []:
             n_frozen -= len(self.forbiddenparticles)
             if n_frozen < 0: self.log(f"Num frozen {n_frozen} < 0! "); n_frozen = 1
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(rem pid)/p(add pid) = (1/(n_un+1))/(1/n_fr)
         self.proposal_ratio['add_par']['q'] *= n_frozen/(num_unfrozen + 1)
         #print(f"Prob to unfreeze = {self.proposal_ratio['add_par']['q']}")
-        
+
         #Absolute mass range:
         maxMass = protomodel.maxMass    #2400 GeV
         minMass = protomodel.masses[protomodel.LSP]
@@ -1795,7 +1800,7 @@ class Manipulator ( LoggerBase ):
                 self.log ( f"Unfreezing {self.namer.asciiName(pid)}, randomly chose to restrict to offshell mass!" )
                 if pid == 1000023: maxMass = minMass + mass_Z + mwidth_Z
                 else: maxMass = minMass + mass_W + mwidth_W
-        
+
         m_random = float(np.random.uniform ( 0., 1. ))
         tmpMass = minMass + (maxMass-minMass)*m_random
 
@@ -1811,7 +1816,7 @@ class Manipulator ( LoggerBase ):
                     protomodel.masses[2000006] = mstop2 + 20.
                 if pid == 1000006:
                     maxMass = mstop2 + 20.
-        
+
         if mass is not None:
             tmpMass = mass
         protomodel.masses[pid] = tmpMass
@@ -1830,7 +1835,7 @@ class Manipulator ( LoggerBase ):
                 self.log(f"No decays for {self.namer.asciiName(pid)}({pid})")
                 self.freezeParticles ( pid, force=True, protomodel=protomodel )
             return None
-            
+
         #Add pid pair production and associated production to protomodel.ssmultipliers:
         self.log(f"Initializing Production Modes for {self.namer.asciiName(pid)}({pid})")
         self.initSSMFor(pid, protomodel=protomodel, cap_ssm=cap_ssm)
@@ -1902,7 +1907,7 @@ class Manipulator ( LoggerBase ):
                     initialized = self.initBranchings(otherpid)
                     if initialized: self.initSSMFor(otherpid)
                 #if otherpid was not offshell before but now is offshell and vice versa, initialize branchings
-                else: 
+                else:
                     if self.checkIfOffshell(otherpid) != was_offshell: self.initBranchings(otherpid)
                 if otherpid in self.M.unFrozenParticles(): #added check since sometimes after initBranchings, total br is 0 and particle is removed
                     self.record ( f"change mass of {self.namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
@@ -1936,15 +1941,15 @@ class Manipulator ( LoggerBase ):
         :returns: number of masses that were changed
         """
         denom = 1.0
-        
+
         if self.M.TL > 0: #short term fix -> discuss with Wg!
             denom = np.sqrt(self.M.TL) + 1.0
-        
+
         step_size = 100 if self.M.masses[pid]<1000 else 500
         dx = (step_size)/denom
         if dx < 0.:
             self.highlight ( "info", f"dx={dx}<0. this should not happen. pid={pid} mass={self.M.masses[pid]} denom={denom}" )
-        
+
         self.log(f"Current mass of {self.namer.asciiName(pid)}({pid}) = {self.M.masses[pid]:.3f} GeV, dx = {dx:.3f} GeV")
 
         if not minMass:
@@ -2001,7 +2006,7 @@ class Manipulator ( LoggerBase ):
             self.log(f"Randomly changing LSP mass to {tmpmass:.1f}.")
             shifted=self.shiftAllMassesBy(delta_mass, lsp=False)
             return len(shifted)
-            
+
         allpids = self.forcedMassDegeneratePids(pid)
         nchanges = 0
         self.log(f"Now randomly changing {pid}->{allpids}: masses {self.M.masses[pid]}->{tmpmass}" )
@@ -2037,7 +2042,7 @@ class Manipulator ( LoggerBase ):
                 self.M.masses.pop(pids[1])
                 self.M.decays[pids[0]] = self.M.decays[pids[1]]
                 self.M.decays.pop(pids[1])
-                
+
                 newssms = {}
                 oldssms = self.M.ssmultipliers
                 lightpid = int(abs(pids[0])*abs(pids[1])/pids[1])    #get the charge right
@@ -2047,7 +2052,7 @@ class Manipulator ( LoggerBase ):
                     newssms[newpidpair] = ssm
                 self.M.ssmultipliers  = newssms
                 self.removeIllegalBRs(rescaleSSMs=True)
-        
+
     def simplifyModel ( self, dm= 200. ):
         """ Try to simplify model, merging pair of candidate particles with similar masses.
         :param dm: Maximum mass difference for merging
@@ -2129,7 +2134,7 @@ class Manipulator ( LoggerBase ):
 
         if not protomodel:
             protomodel = self.M
-        
+
         n_par_old = len(protomodel.unFrozenParticles())
         n_par_new = n_par_old - 1
         n_decays_old = sum([len(dc.keys())- 1 for par, dc in protomodel.decays.items() if par != 1000022])
@@ -2202,22 +2207,22 @@ class Manipulator ( LoggerBase ):
                 protomodel.decays[mpid][newpids]=br
 
         n_decays_new = sum([len(dc.keys())- 1 for par, dc in protomodel.decays.items() if par != 1000022])
-        
+
         if oldxsecs != None:
             ## merge the signal strength multipliers:
             n_ssms_old, n_ssms_new = self.mergeSSMs( pair, oldXsecs = oldxsecs, protomodel=protomodel )
-        
+
         #Get proposal ratio for merge move
         a,b,c = 2,4,8
         shift_parameter = 10
         z_old = (n_par_old - shift_parameter)/a + n_decays_old/b + n_ssms_old/c
         z_new = (n_par_new - shift_parameter)/a + n_decays_new/b + n_ssms_new/c
-        
+
         prob_rem = 1.0          #Removing degrees of freedom
         prob_add = (1 + np.exp(z_new))/(1 + np.exp(z_old))
         self.proposal_ratio['merge'] = {'q':prob_add}
         #print(f"prob  merge = {prob_add}")
-        
+
         ## finally freeze p2:
         self.freezeParticles(p2,protomodel=protomodel,merge=True)
 
@@ -2304,7 +2309,7 @@ class Manipulator ( LoggerBase ):
         #Now replace the SSMs in protomodel:
         for pid,ssm in newSSMs.items():
            protomodel.ssmultipliers[pid] = ssm
-        
+
         n_ssm_old, n_ssm_new = len(oldxsecDict.keys()), len(newSSMs.keys())
         return n_ssm_old, n_ssm_new
 
@@ -2356,7 +2361,7 @@ class Manipulator ( LoggerBase ):
     def simplifyDecays ( self, protomodel=None):
         """ return the decays only of the unfrozen particles,
             only != 0 """
-        
+
         if protomodel is None:
             protomodel = self.M
         ret ={}
@@ -2402,7 +2407,7 @@ class Manipulator ( LoggerBase ):
         :param min_order: report only if order is above or equal min_order
         :returns: cross section (that had the SSM applied),
         and SSM that *was* applied.
-        #  
+        #
 
         ssm = 1.
         if pids[1] < pids[0]:
@@ -2469,12 +2474,12 @@ class Manipulator ( LoggerBase ):
         if store:
             self.M.ssmultipliers = ret
         return ret
-    
+
     def getSSMsNotInBestCombo ( self ):
         """Freeze Production Modes which do not contribute to the best combination"""
         if not self.M.bestCombo: #no combination
             return None
-        
+
         nfrozen = 0
         prod_modes = []
         from tester.combiner import Combiner
@@ -2496,7 +2501,7 @@ class Manipulator ( LoggerBase ):
                 self.proposal_ratio['q_total'] *= q_mov
                 nfrozen += 1
                 '''
-        
+
         return prod_modes
 
     def getAllPidsOfBestCombo ( self ) -> Set:
@@ -2535,7 +2540,7 @@ class Manipulator ( LoggerBase ):
                     old_protomodel = self.M.copy()
                     frozen_pids = self.freezeParticles ( pid, force=True )
                     if frozen_pids: nfrozen += len(frozen_pids)
-        
+
         return nfrozen
 
     def backupModel ( self ):
@@ -2557,7 +2562,7 @@ class Manipulator ( LoggerBase ):
                         }
         if hasattr ( self.M, "ul_critic" ): self._backup["ul_critic"]=self.M.ul_critic
         if hasattr ( self.M, "llhd_critic" ): self._backup["llhd_critic"]=self.M.llhd_critic
-                         
+
 
     def restoreModel ( self, reportReversion : bool = False ):
         """ restore from the backup
