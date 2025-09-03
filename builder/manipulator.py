@@ -856,6 +856,7 @@ class Manipulator ( LoggerBase ):
         """ Initialize SSM multipliers (for pair production of particle/anti-particle):
             new ssm = lognorm.rvs(1.0, ssmSigma)
         """
+        self.log ( f"initSSMFor {pid}({self.namer.asciiName(pid)}) with ssmSigma={ssmSigma:.1} cap_ssm={cap_ssm:.1f}" )
         
         if protomodel is None:
             protomodel = self.M
@@ -873,6 +874,7 @@ class Manipulator ( LoggerBase ):
                     ssm = float(lognorm.rvs(s = ssmSigma, scale = 1.0))   #center ssm around 1.0, better to have log scale
                     if ssm > cap_ssm: ssm = cap_ssm
                     protomodel.ssmultipliers[ppair] = ssm
+                    self.log ( f"setting ssm of {ppair}({self.namer.asciiName(ppair)}) to {ssm:.2f}" )
             
 
     def describe ( self, allTheoryPredictions : bool = False ):
@@ -1820,7 +1822,7 @@ class Manipulator ( LoggerBase ):
         # Set branchings
         self.log(f"Initializing Branchings for {self.namer.asciiName(pid)}({pid})")
         initialized = self.initBranchings(pid, protomodel=protomodel)
-        if not initialized:
+        if not initialized and not pid in self.decaylessParticles:
             self.proposal_ratio['add_par']['q'] = 1.
             if pid in self.M.decaylessParticles:
                 self.log(f"No decays for {self.namer.asciiName(pid)}({pid}) -- but it's marked as decayless")
