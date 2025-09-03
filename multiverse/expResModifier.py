@@ -46,7 +46,8 @@ hasWarned = { "noupperlimits": 0 }
 def readDictFile ( filename : str = "default.dict" ) -> Dict:
     """ read in content of filename
     :param filename: the filename of the database dictionary.
-    often it is <dbversion>.dict
+    often it is <dbversion>.dict or *_database.dict or
+    signal_database.dict.
 
     :returns: a dictionary with 'meta' and 'data' as keys
     """
@@ -62,7 +63,7 @@ def readDictFile ( filename : str = "default.dict" ) -> Dict:
             continue
         lines.append ( line )
     basename = os.path.basename ( filename ).replace(".dict","")
-    meta = eval(lines[:firstcommentline])
+    meta = eval('\n'.join(lines[:firstcommentline]))
     nan=float("nan")
     inf=float("inf")
     data = eval("\n".join(lines[firstcommentline:]))
@@ -120,7 +121,6 @@ Just filter the database:
         :param seed: if int and not None, set random number seed
         :param maxmassdist: maximum distance (in GeV) for the euclidean space in masses,
                             for a signal to populate an UL map
-        :param compute_ps: compute p-values for all SRs
         """
         super ( ExpResModifier, self ).__init__ ( 0 )
         self.superseded = set() ## take note of everything superseded
@@ -176,7 +176,7 @@ Just filter the database:
         self.interactive = False
         self.build = False
         self.check = False
-        self.compute_ps = False
+        self.compute_ps = True
         self.extract_stats = False
         self.upload = False
         self.symlink = False
@@ -1680,8 +1680,9 @@ if __name__ == "__main__":
             help='build the original pickle file with all relevant info, then exit (use --dbpath to specify path)', action='store_true' )
     argparser.add_argument ( '-c', '--check',
             help='check the pickle file <outfile>', action='store_true' )
-    argparser.add_argument ( '-C', '--compute_ps',
-            help='compute p-values for all SRs', action='store_true' )
+    ## turn this on always
+    #argparser.add_argument ( '-C', '--compute_ps',
+    #        help='compute p-values for all SRs', action='store_true' )
     argparser.add_argument ( '-t', '--timestamps',
             help='add time-stamps (only to be used with -C)', action='store_true' )
     argparser.add_argument ( '-x', '--extract_stats',

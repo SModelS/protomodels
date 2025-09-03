@@ -175,7 +175,8 @@ class Initialiser ( LoggerBase ):
             self.getTxParamsFor ( f )
 
     def computePDict ( self ):
-        """ compute the probabilities with which we choose a result """
+        """ compute the probabilities with which we choose a result 
+        """
         prels = {}
         ptot = 0.
         for anaAndSRName,stats in self.data.items():
@@ -194,6 +195,8 @@ class Initialiser ( LoggerBase ):
             value["id"]=anaAndSRName
             prels[ prel ] = value
             ptot += prel
+        if len(prels)==0:
+            self.error ( "computePDict: no results returned" )
         self.probs = dict( [ (k/ptot,v) for k,v in prels.items() ] )
         probkeys = list ( self.probs.keys() )
         probkeys.sort (reverse = True )
@@ -357,6 +360,13 @@ class Initialiser ( LoggerBase ):
         IPython.embed( colors = "neutral" )
 
 if __name__ == "__main__":
-    dictfile = "../300.dict"
-    ini = Initialiser( dictfile )
+    import argparse
+    argparser = argparse.ArgumentParser(
+            description='CLI of initialiser' )
+    argparser.add_argument ( '-d', '--dictfile',
+            help='input database dict file ["signal_database.dict"]',
+            type=str, default="signal_database.dict" )
+    ## 310.dict is also a good default, for the actual observations
+    args = argparser.parse_args()
+    ini = Initialiser( args.dictfile )
     ini.interact()
