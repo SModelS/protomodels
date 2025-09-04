@@ -532,6 +532,7 @@ Just filter the database:
                 self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( obs, exp, err, thirdMoment )
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
+            self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
             D["new_p"]=float(p)
         D["obsBg"]=obs
         self.comments["obsBg"]="the new fake observation, background component"
@@ -1099,6 +1100,7 @@ Just filter the database:
                 self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
                 D["new_p"]=float(p)
                 newZ = computeZFromP ( p )
+                self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
                 D["new_Z"]=float(newZ)
             D["type"]=tpe
             self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
@@ -1240,6 +1242,7 @@ Just filter the database:
                     self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
                     D["new_p"]=float(p)
                     newZ = computeZFromP ( p )
+                    self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
                     D["new_Z"]=float(newZ)
                 label = f"{anaId}:{dataset.dataInfo.dataId}"
                 self.addToStats ( label, D, dataset.globalInfo )
