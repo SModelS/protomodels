@@ -1044,7 +1044,10 @@ class Manipulator ( LoggerBase ):
             return True
         prob_12, prob_21 = self.z_model(self.M, self.propose_model)
 
-        if self.M.TL > 0.0: prob = min(1.0, prob_12/np.sqrt(self.M.TL))
+        ## cap TL here or else you freeze in particle content for injected signals
+        TL = self.M.TL if self.M.TL < 36 else 36
+
+        if TL > 0.0: prob = min(1.0, prob_12/np.sqrt(TL))
         else: prob = min(1.0, prob_12)
 
         u = np.random.uniform(0,1)
