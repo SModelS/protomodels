@@ -98,7 +98,8 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
           update_hiscores : bool = False, stopTeleportationAfter : int = -1,
           forbiddenparticles : List[int|str] = [],
           templateSLHA : os.PathLike = "template_default.slha",
-          allowN1N1Prod : bool = False, susy_mode : bool = False ):
+          allowN1N1Prod : bool = False, susy_mode : bool = False,
+          use_initialiser : Union[str,bool] = False ):
     """ a worker node to set up to run walkers
 
     :param nmin: the walker id of the first walker
@@ -128,10 +129,12 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
     :param templateSLHA: the template file that is used
     :param allowN1N1Prod: allow N1 N1 production mode
     :param susy_mode: susy mode, dont touch ssms
+    :param use_initialiser: if string, then interpret it as path to database
     """
     meta = { "dbpath": dbpath, "select": select, "do_srcombine": do_srcombine,
              "forbidden": forbiddenparticles, "templateSLHA": templateSLHA,
-             "allowN1N1Prod": allowN1N1Prod, "susy_mode": susy_mode  }
+             "allowN1N1Prod": allowN1N1Prod, "susy_mode": susy_mode,
+             "use_initialiser": use_initialiser }
     from builder.manipulator import Manipulator
     from ptools.moreHelpers import namesForSetsOfPids
     Manipulator.forbiddenparticles = namesForSetsOfPids ( forbiddenparticles )
@@ -168,26 +171,30 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             import time
             import socket
             hostname = socket.gethostname().replace(".cbe.vbc.ac.at","")
-            print ( f"[factoryOfWalkers:{hostname};{time.strftime('%H:%M:%S')}] starting {i} @ {rundir} with cheatcode {cheatcode}" )
-            w = RandomWalker( walkerid=i, nsteps = maxsteps,
-                              dbpath=dbpath, cheatcode=cheatcode, select=select, cap_ssm=cap_ssm,
-                              rundir=rundir, do_srcombine = do_srcombine, test_param_space = test_param_space, run_mcmc=run_mcmc,
-                              record_history=record_history, seed=seed,
-                              stopTeleportationAfter = stopTeleportationAfter,
-                              templateSLHA = templateSLHA, 
-                              allowN1N1Prod = allowN1N1Prod, susy_mode = susy_mode )
+            atime = time.strftime('%H:%M:%S')
+            label = f"[factoryOfWalkers:{hostname};{atime}]"
+            print ( f"{label} starting {i} @ {rundir} with cheatcode {cheatcode}" )
+            w = RandomWalker( walkerid=i, nsteps = maxsteps, dbpath=dbpath, 
+                cheatcode=cheatcode, select=select, cap_ssm=cap_ssm,
+                rundir=rundir, do_srcombine = do_srcombine, 
+                test_param_space = test_param_space, run_mcmc=run_mcmc,
+                record_history=record_history, seed=seed,
+                stopTeleportationAfter = stopTeleportationAfter,
+                templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod, 
+                susy_mode = susy_mode, use_initialiser = use_initialiser )
             walkers.append ( w )
         elif pfile.endswith(".hi") or pfile.endswith(".pcl"):
             nstates = len(states )
             ctr = i % nstates
             print ( f"[factoryOfWalkers] fromModel {i}: loading {ctr}/{nstates}" )
             w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
-                    walkerid = i, nsteps = maxsteps,
-                    expected = False, select = select, dbpath = dbpath,cap_ssm=cap_ssm,
-                    rundir = rundir, do_srcombine = do_srcombine, test_param_space = test_param_space,run_mcmc=run_mcmc,
-                    seed = seed,stopTeleportationAfter = stopTeleportationAfter,
-                    templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod,
-                    susy_mode = susy_mode )
+                walkerid = i, nsteps = maxsteps, expected = False, select = select, 
+                dbpath = dbpath,cap_ssm=cap_ssm, rundir = rundir, 
+                do_srcombine = do_srcombine, test_param_space = test_param_space,
+                run_mcmc=run_mcmc, seed = seed,
+                stopTeleportationAfter = stopTeleportationAfter,
+                templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod,
+                susy_mode = susy_mode, use_initialiser = use_initialiser )
             walkers.append ( w )
         else:
             nstates = len(states )

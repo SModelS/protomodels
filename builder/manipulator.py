@@ -491,17 +491,15 @@ class Manipulator ( LoggerBase ):
 
         return ret
 
-    '''
-    def initModel(self):
+    #def initModel(self):
 
-        self.propose_model = self.manipulator.M.copy()
-        self.manipulator.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
+    #    self.propose_model = self.manipulator.M.copy()
+    #    self.manipulator.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
 
-        unfrozenParticle = self.manipulator.randomlyUnfreezeParticle()
+    #    unfrozenParticle = self.manipulator.randomlyUnfreezeParticle()
 
-        self.manipulator.proposal_density( move='add_par', force_unfreeze=True)
-        self.manipulator.backupModel()
-    '''
+    #    self.manipulator.proposal_density( move='add_par', force_unfreeze=True)
+    #    self.manipulator.backupModel()
 
     def initFromDict ( self, D : Dict, filename : str = "",
             initTestStats : bool = False ):

@@ -54,7 +54,8 @@ class RandomWalker ( LoggerBase ):
             record_history : bool = False, seed : Union[int,None] = None,
             stopTeleportationAfter : int = -1,
             templateSLHA : os.PathLike = "template_default.slha",
-            allowN1N1Prod : bool = False, susy_mode : bool = False ):
+            allowN1N1Prod : bool = False, susy_mode : bool = False,
+            use_initialiser : Union[str,bool] = False ):
         """ initialise the walker
         :param nsteps: maximum number of steps to perform, negative is infinity
         :param cheatcode: cheat mode. 0 or "no_cheat" is no cheating, else
@@ -76,6 +77,9 @@ class RandomWalker ( LoggerBase ):
         :param templateSLHA: the template file that is used
         :param allowN1N1Prod: allow N1 N1 production mode
         :param susy_mode: susy mode (penalty for ssms away from unity)
+        :param use_initialiser: if string, then interpret it as path to database
+        dictionary file that we use for the initialiser. only works if
+        not using cheatcode. if false, then dont use initialiser.
         """
 
         #call the super class of the random walker i.e Loggerbase
@@ -132,11 +136,22 @@ class RandomWalker ( LoggerBase ):
         jobid = "unknown"
         if "SLURM_JOBID" in os.environ:
             jobid = os.environ["SLURM_JOBID"]
-        self.pprint ( f"Ramping up with slurm jobid {jobid} using template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
+        # self.pprint ( f"Ramping up with slurm jobid {jobid} using template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
+        self.pprint ( f"Ramping up with slurm jobid {jobid}" )
+        self.pprint ( f"template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
         
         #keep track of log llhd ratio
         self.trace_logllhdratio = []
         self.run_mcmc = run_mcmc
+        self.use_initialiser = use_initialiser
+        self.initialiser = None
+        if self.use_initialiser not in [ False, None ]:
+            if cheatcode not in [ "no_cheat", "", "none", None, 0 ]:
+                logger.error ( f"use_initialiser {use_initialiser} specified, but also cheatcode {cheatcode} defined" )
+                sys.exit(-1)
+            from walker.initialiser import Initialiser
+            self.initialiser  = Initialiser ( self.walkerid, self.use_initialiser )
+            self.manipulator.initFromDict ( self.initialiser.propose() )
         if self.run_mcmc: self.highlight("info", "Running MCMC walk")
         if cheatcode in [ "no_cheat", "", "none", None, 0 ]:
             self.takeStep() # the first step should be considered as "taken"

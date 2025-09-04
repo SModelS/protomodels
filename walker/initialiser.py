@@ -22,10 +22,11 @@ class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
 
-    def __init__ ( self, dictfile : str ):
+    def __init__ ( self, walkerid : Union[str,int] = 0, dictfile : str = "signal_database.dict" ):
         """ constructor.
 
-        :param dictfile: path to the database dict file we will base this on
+        :param dictfile: path to the database dict file we will base this on.
+        dictfile is usally sth like signal_database.dict, *_database.dict, <dbver>.dict.
         """
         super ( Initialiser, self ).__init__ ( "ini" )
         dictfile = os.path.expanduser ( dictfile )
@@ -260,11 +261,12 @@ class Initialiser ( LoggerBase ):
         lspmass = float(np.random.uniform ( *self.massRanges[pid] ))
         masses[pid]=lspmass
         #leftsquarks = [ 1000001, 1000002, 1000003, 1000004 ]
+        leftsquarks = [ 1000001 ]
         #rightsquarks = [ 2000001, 2000002, 2000003, 2000004 ]
-        #squarks = leftsquarks + rightsquarks
-        squarks = [ 1000001 ]
+        rightsquarks = [  ]
+        squarks = leftsquarks + rightsquarks
         mylightsquark = int(np.random.choice ( leftsquarks ))
-        offshell = txname.endswith ( "off" )
+        offshell = txname.endswith ( "off" ) or "ISR" in txname
 
         for position,pids in pidsdict.items():
             if mylightsquark in pids:
@@ -354,15 +356,6 @@ class Initialiser ( LoggerBase ):
         submodel = self.getRandomSubmodelForTxname ( txn )
         return submodel
 
-    """
-    def getRandomMassForLSP ( self ):
-        # random mass for LSP we do separately
-        pid = ProtoModel.LSP
-        lspmass = float(np.random.uniform ( *self.massRanges[pid] ))
-        self.pprint ( f"random mass for LSP: {lspmass}" )
-        self.lspmass = lspmass
-    """
-
     def propose ( self ):
         """ propose a random initial model. """
         # choose a random txn
@@ -379,6 +372,7 @@ class Initialiser ( LoggerBase ):
         self.submodels = submodels
         from ptools.hiscoreTools import mergeNModels
         model = mergeNModels ( submodels )
+        self.log ( f"initialiser.propose proposes {model}" )
         return model
 
     def create ( self ) -> Manipulator:
@@ -403,5 +397,5 @@ if __name__ == "__main__":
             type=str, default="signal_database.dict" )
     ## 310.dict is also a good default, for the actual observations
     args = argparser.parse_args()
-    ini = Initialiser( args.dictfile )
+    ini = Initialiser( "ini", args.dictfile )
     ini.interact()
