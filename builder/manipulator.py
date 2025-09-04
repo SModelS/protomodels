@@ -814,7 +814,7 @@ class Manipulator ( LoggerBase ):
 
         BRtot = sum(protomodel.decays[pid].values())
         if BRtot == 0:
-            print ( f"decaylessP {self.M.decaylessParticles}" )
+            self.log ( f"the decayless particles are {self.M.decaylessParticles}" )
             if pid not in self.M.decaylessParticles:
                 #print(f"decay of {pid}: {protomodel.decays[pid]}")
                 self.log(f"decay of {pid}: {protomodel.decays[pid]}")
