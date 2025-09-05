@@ -89,7 +89,7 @@ def writeMetaInfo ( rundir : str, meta : Dict ):
             # f.write ( f"{meta!s}\n" )
             f.close()
 
-def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
+def createWalkersOld( nmin : int , nmax : int, continueFrom : PathLike,
           dbpath : PathLike = "official", cheatcode : Union[int,str] = "no_cheat", 
           rundir : Union[None,str] = None, maxsteps : int = 10000,
           seed : Union[None,int] = None, test_param_space = False, run_mcmc=False, cap_ssm=100.,
@@ -233,7 +233,7 @@ def createWalkers( nmin : int , nmax : int, continueFrom : PathLike,
             print ( f"[factoryOfWalkers] tried more {ctAttempts} times. stop trying." )
 
 
-def createWalkersNew ( rvars: dict ):
+def createWalkers ( rvars: dict ):
     """ a worker node to set up to run walkers
 
     rvars ( dict ):
@@ -248,9 +248,9 @@ def createWalkersNew ( rvars: dict ):
       - run_mcmc: if true, run mcmc walk without changing dimensions
       - catch_exceptions: If True will catch the exceptions and exit.
       - select: select only subset of results (all for all, em for efficiency 
-    maps only, ul for upper limits only, alternatively select for txnames via
-    e.g. "txnames:T1,T2", short names are recognized, e.g.
-    "txnames:electroweakinos_offshell,T1"
+        maps only, ul for upper limits only, alternatively select for txnames via
+        e.g. "txnames:T1,T2", short names are recognized, e.g.
+        "txnames:electroweakinos_offshell,T1"
       - cap_ssm: set the maximum value for all signal strength multipliers (default=100)
       - do_srcombine: if true, then also perform combinations, either via
                        simplified likelihoods or via pyhf
@@ -258,9 +258,9 @@ def createWalkersNew ( rvars: dict ):
       - update_hiscores: if True, then finish your run and
                             after that run hiscore updater
       - stopTeleportationAfter: integer, stop teleportation after this step has 
-    been reached. -1 or None means, dont run teleportation at all.
+        been reached. -1 or None means, dont run teleportation at all.
       - forbiddenparticles: an optional list of particles we wont touch in this
-    run
+        run
       - templateSLHA: the template file that is used
       - allowN1N1Prod: allow N1 N1 production mode
       - susy_mode: susy mode, dont touch ssms
