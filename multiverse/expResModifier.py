@@ -628,7 +628,7 @@ Just filter the database:
         self.log ( f"add EM matching tpred {tpred.analysisId()}/{tpred.dataId()} {','.join(txns)}: {tpred.xsection.asNumber(fb):.2g} fb" )
         label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
         if not label in self.stats:
-            print ( f"[expResModifier] {label} not found in stats! (dunno if that is a problem" )
+            print ( f"[expResModifier] {label} not found in stats! (dunno if that is a problem)" )
             return dataset
         orig = dataset.dataInfo.observedN
         sigLambda = float ( tpred.xsection * lumi )

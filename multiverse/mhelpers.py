@@ -24,8 +24,10 @@ def createMyFile ( signal_model : str = "signal_model.dict",
     print ( f"[predictForTruth] critic: {cr}, {response}" )
     predictor.predict ( ma, keep_predictions = True, force_computation_K = True )
     print ( f"[predictForTruth] predict K={ma.M.K} TL={ma.M.TL}" )
+    K,TL = ma.M.K, ma.M.TL
     ma = Manipulator( signal_model, walkerid = "truth" )
     ma.M.dbpath = dbpath
+    ma.M.K, ma.M.TL = K, TL
     ma.writeDictFile( outfile )
     print ( f"[predictForTruth] wrote truth into {outfile}" )
     if interactive:

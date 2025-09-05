@@ -408,6 +408,8 @@ class Manipulator ( LoggerBase ):
             D["ul_critic"]=self.M.ul_critic
         if hasattr ( self.M, "llhd_critic" ):
             D["llhd_critic"]=self.M.llhd_critic
+        if hasattr ( self.M, "description" ) and D["description"]=="":
+            D.pop ( "description" )
         if len(comment)>0:
             D["comment"]=comment
         if outfile == None:
