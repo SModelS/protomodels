@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy
 import pandas as pd
 import glob
 import os
-from smodels.base.physicsUnits import pb,GeV
+from smodels.base.physicsUnits import pb, GeV
 
 class XSecFitter():
     
@@ -112,7 +113,7 @@ class XSecFitter():
 
     def getValueFromFit(self, input_value, inverse, show_plot=False):
         
-        from refxsecComputer import RefXSecComputer
+        from ptools.refxsecComputer import RefXSecComputer
         xsec_obj = RefXSecComputer()
         
         xsec_dict = xsec_obj.getXSecsFor(pid1 = self.pid[0], pid2 = self.pid[1], sqrts=self.sqrt, ewk=None, masses=[200.0, 300.0])[0]

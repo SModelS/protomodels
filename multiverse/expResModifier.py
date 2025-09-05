@@ -30,7 +30,7 @@ from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer, \
          LikelihoodComputer
 from smodels.statistics.basicStats import observed, apriori, \
          aposteriori, NllEvalType
-from smodels.base.physicsUnits import fb, GeV
+from smodels.base.physicsUnits import fb, GeV, TeV
 from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
@@ -119,10 +119,10 @@ Just filter the database:
         :param fixedbackgrounds: if True, then use the central value of theory prediction
                              as the background yield, dont draw from Poissonian
         :param seed: if int and not None, set random number seed
-        :param maxmassdist: maximum distance (in GeV) for the euclidean space in masses,
+        :param ulmassscale: maximum distance (in GeV) for the euclidean space in masses,
                             for a signal to populate an UL map
         """
-        super ( ExpResModifier, self ).__init__ ( 0 )
+        super ( ExpResModifier, self ).__init__ ( "erm" )
         self.superseded = set() ## take note of everything superseded
         self.fastlim = set() # take note of everything fastlim
         self.defaults()
@@ -166,7 +166,7 @@ Just filter the database:
         self.fixedsignals = False
         self.fixedbackgrounds = False
         self.max = 100
-        self.maxmassdist = 400
+        self.ulmassscale = 300
         self.seed = None
         self.nproc = 1
         self.pmodel = ""
@@ -368,7 +368,7 @@ Just filter the database:
             self.pprint ( f"When trying to construct protomodel, {filename} does not exist" )
             return None
         shutil.copyfile ( filename, f"{self.rundir}/my.signal" )
-        walkerid = 0
+        walkerid = "erm"
         expected = False
         select = "all"
         keep_meta = True
@@ -376,7 +376,7 @@ Just filter the database:
         M = ProtoModel ( walkerid, keep_meta, dbversion = dbversion,
                          allowN1N1Prod = allowN1N1Prod )
         M.createNewSLHAFileName ( prefix="erm" )
-        ma = Manipulator ( M, walkerid = "erm" )
+        ma = Manipulator ( M, walkerid = walkerid )
         with open ( filename, "rt" ) as f:
             try:
                 m = eval ( f.read() )
@@ -770,16 +770,21 @@ Just filter the database:
         masses = values["masses"]
         # coordsTpred = txnd.PCAtransf( masses ) # , txnd._V, txnd.delta_x ) ## coordinates of tpred
         minDist = float("inf") ## for the closest point we store the numbers
+        gaussAtMass = scipy.stats.norm.pdf ( 0, 0, self.ulmassscale ) * 1.2
         for yi,y in enumerate(txnd.y_values):
             pt = txnd.tri.points[yi] ## the point in the rotated coords
             pt_masses = txnd.inversePCAtransf ( pt )
             dist = self.distance ( masses, pt_masses )
             # dist = self.distance ( pt, coordsTpred )
-            if dist > self.maxmassdist: ## change y_values only in vicinity of protomodel
+            if dist > self.ulmassscale: ## change y_values only in vicinity of protomodel
                 continue
             oldv = txnd.y_values[yi]
             oldo = txnd.y_values[yi]
             hasExpected=False
+            sqrts = float ( dataset.globalInfo.sqrts.asNumber(TeV))
+            mysignal = self.computeXSecForMass ( sigmaN, masses, pt_masses,
+                                                 D["pids"], sqrts )
+            mysignal = mysignal * scipy.stats.norm.pdf ( dist, 0, self.ulmassscale ) / gaussAtMass
             if etxnd != None and len(txnd.y_values) == len(etxnd.y_values):
                 dt = ( ( txnd.delta_x - etxnd.delta_x )**2 ).sum()
                 if dt < 1e-2:
@@ -796,8 +801,8 @@ Just filter the database:
                     self.comments["yexp"]="expected y value (fb) closest to signal protomodel for UL map"
                 self.comments["yold"]="old y value (fb) closest to signal protomodel for UL map"
                 self.comments["ynew"]="new y value (fb) closest to signal protomodel for UL map"
-                D["ynew"]=oldv+sigmaN
-            txnd.y_values[yi]=oldv + sigmaN
+                D["ynew"]=oldv+mysignal
+            txnd.y_values[yi]=oldv + mysignal
             hasAdded += 1
             if hasAdded == 0:
                 self.pprint ( "warning: signal was not added in {tpred.analysisId()}:{txname.txName}" )
@@ -830,6 +835,25 @@ Just filter the database:
                     ret.append ( node.particle.pdg )
         return ret
 
+    def computeXSecForMass ( self, sigmaN, oldmasses, newmasses, pids, sqrts ):
+        """ given the cross section at mass oldmass,
+        compute a rough equivalent cross section at mass point newmass,
+        for pids, according to how reference cross sections scale """
+        from ptools.xsecFit import XSecFitter
+        mypids = pids[:2]
+        mypids.sort()
+        mypids = tuple ( mypids )
+        func = XSecFitter(mypids, sqrts)
+        oldmass = oldmasses[0]*GeV ## FIXME what about asymmetric?
+        oldxs = func.getValueFromFit ( oldmass, inverse=False )
+        newmass = newmasses[0]*GeV
+        newxs = func.getValueFromFit ( newmass, inverse=False )
+        if False: # newmass == 350*GeV:
+            self.pprint ( f"computeXSecForMass {oldmasses} {newmasses} {pids}" )
+            self.pprint ( f"           -- oldxs {oldxs} newxs {newxs}" )
+        if oldxs is None or newxs is None:
+            return float ( sigmaN )
+        return float ( sigmaN * newxs / oldxs )
 
     def addSignalForULMap ( self, dataset, tpred, lumi ):
         """ add a signal to this UL result. background sampling is
@@ -854,6 +878,7 @@ Just filter the database:
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
         ## sigmaN is the predicted production cross section of the signal,
         ## in fb
+        gaussAtMass = scipy.stats.norm.pdf ( 0, 0, self.ulmassscale ) * 1.2
         for i,txname in enumerate(dataset.txnameList):
             if not self.txNameIsIn ( txname, tpred ):
                 continue
@@ -872,10 +897,15 @@ Just filter the database:
                 if dist < minDist: ## just so we know how far away we are
                     minDist = dist
                     minPt = txnd.inversePCAtransf ( pt ) # , txnd._V, txnd.delta_x )
-                if dist > self.maxmassdist: ## change y_values only in vicinity of protomodel
-                    continue
+                # if we want to add it "binarically"
+                #if dist > self.ulmassscale: ## change y_values only in vicinity of protomodel
+                #    continue
                 oldv = txnd.y_values[yi]
                 oldo = txnd.y_values[yi]
+                mysignal = self.computeXSecForMass  ( sigmaN, masses, pt_masses,
+                   D["pids"], float(tpred.dataset.globalInfo.sqrts.asNumber(TeV)) )
+                # lets make it gaussian
+                mysignal = mysignal * scipy.stats.norm.pdf ( dist, 0, self.ulmassscale ) / gaussAtMass
                 hasExpected=False
                 if etxnd != None and len(txnd.y_values) == len(etxnd.y_values):
                     dt = ( ( txnd.delta_x - etxnd.delta_x )**2 ).sum()
@@ -892,8 +922,9 @@ Just filter the database:
                         self.comments["yexp"]="expected y value (fb) closest to signal protomodel for UL map"
                     self.comments["yold"]="old y value (fb) closest to signal protomodel for UL map"
                     self.comments["ynew"]="new y value (fb) closest to signal protomodel for UL map"
-                    D["ynew"]=oldv+sigmaN
-                txnd.y_values[yi]=oldv + sigmaN
+                    D["ynew"]=oldv+mysignal
+                # self.pprint ( f"adding {mysignal}*fb to {oldv}*fb in {pt_masses} for {txname}::{tpred.analysisId()}" )
+                txnd.y_values[yi]=oldv + mysignal
                 hasAdded += 1
             if hasAdded == 0:
                 self.pprint ( f"warning: no signal was added in {tpred.analysisId()}:{txname.txName}, closest was point {minPt} at d={minDist:.2f}" )
@@ -919,7 +950,7 @@ Just filter the database:
                  "database": self.dbversion, "fudge": self.fudge,
                  "protomodel": f'{str(self.protomodel)}', 
                  "timestamp": time.asctime(),
-                 "lognormal": self.lognormal, "maxmassdist": self.maxmassdist,
+                 "lognormal": self.lognormal, "ulmassscale": self.ulmassscale,
                  "fixedsignals": self.fixedsignals,
                  "fixedbackgrounds": self.fixedbackgrounds }
         if hasattr ( runtime, "_drmax" ):
@@ -1666,9 +1697,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-M', '--Zmax',
             help='upper limit on significance of individual excess [None]',
             type=float, default=None )
-    argparser.add_argument ( '--maxmassdist',
-            help='maximum euclidean distance in mass space to add the signal in the UL maps [400.]',
-            type=float, default=400. )
+    argparser.add_argument ( '--ulmassscale',
+            help='mass scale (GeV) for adding the signal in the UL maps [300.]',
+            type=float, default=300. )
     argparser.add_argument ( '--seed',
             help='set a random number seed [None]',
             type=int, default=None )
