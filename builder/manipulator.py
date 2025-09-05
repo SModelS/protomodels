@@ -2339,8 +2339,10 @@ class Manipulator ( LoggerBase ):
 
         return xsecs
 
-    def printXSecs ( self, fbmin=.001*fb ):
-        """ print the cross sections in a human-readable way """
+    def printXSecs ( self, fbmin=.001*fb, useParticleNames : bool = False ):
+        """ print the cross sections in a human-readable way 
+        :param useParticleNames: if true, use names for particles not pids
+        """
         xsecs = self.simplifyXSecs( fbmin )
         for sqrts in xsecs.keys():
             pidss = list ( xsecs[sqrts].keys() ) # list of list of pids
@@ -2350,6 +2352,10 @@ class Manipulator ( LoggerBase ):
                 mpids = tuple ( [ x for x in pids if x != None ] )
                 if len(mpids)==1:
                     mpids = mpids[0]
+                if useParticleNames:
+                    mpids = self.namer.asciiName ( mpids )
+                else:
+                    mpids = f"{str(mpids):>22s}"
                 xsec = xsecs[sqrts][pids]
                 label = ""
                 comment = ""
@@ -2357,7 +2363,7 @@ class Manipulator ( LoggerBase ):
                     comment = xsec.comment
                 if "dict" in xsec.info.label:
                     label = " (from dict)"
-                print ( f" {str(mpids):>22s}: {xsec.value.asNumber(fb):.2f} fb{label} {comment}" )
+                print ( f" {mpids}: {xsec.value.asNumber(fb):.2f} fb{label} {comment}" )
 
     def simplifyDecays ( self, protomodel=None):
         """ return the decays only of the unfrozen particles,
