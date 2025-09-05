@@ -14,27 +14,18 @@ def createMyFile ( signal_model : str = "signal_model.dict",
     print ( f"[predictForTruth] instantiate database {dbpath}" )
     db = Database ( dbpath )
     # protomodel = Protomodel()
-    ma = Manipulator( signal_model )
+    walkerid = "truth"
+    ma = Manipulator( signal_model, walkerid = "truth" )
     ma.M.dbpath = dbpath
     print ( f"[predictForTruth] starting" )
-    predictor = Predictor( 0, db, do_srcombine=True )
-    critic = Critic ( "critic", db, do_srcombine = True ) 
+    predictor = Predictor( "truth", db, do_srcombine=True )
+    critic = Critic ( "truth", db, do_srcombine = True ) 
     cr, response = critic.predict_critic ( ma.M )
     print ( f"[predictForTruth] critic: {cr}, {response}" )
     predictor.predict ( ma, keep_predictions = True, force_computation_K = True )
     print ( f"[predictForTruth] predict K={ma.M.K} TL={ma.M.TL}" )
-    """
-    with open ( signal_model, "rt" ) as f:
-        txt = f.read()
-        d = eval( txt )
-        f.close()
-    with open ( outfile, "wt" ) as f:
-        d.update( { "K": ma.M.K, "TL": ma.M.TL, "llhd_critic": ma.M.llhd_critic,
-                    "ul_critic": ma.M.ul_critic })
-        from ptools.helpers import py_dumps
-        ds = py_dumps ( d, indent = 4 )
-        f.write ( ds + "\n" )
-    """
+    ma = Manipulator( signal_model, walkerid = "truth" )
+    ma.M.dbpath = dbpath
     ma.writeDictFile( outfile )
     print ( f"[predictForTruth] wrote truth into {outfile}" )
     if interactive:

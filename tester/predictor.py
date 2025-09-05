@@ -272,15 +272,6 @@ class Predictor ( LoggerBase ):
 
         protomodel.cleanBestCombo()
 
-        #Recompute predictions with higher accuracy for high score models:
-        ## FIXME not a good idea! should probably remove!
-        if False and protomodel.TL > 4.1 and protomodel.nevents < 55000:
-            self.log ( f"TL {protomodel.TL:.2f}>2.7, repeat with higher stats!" )
-            protomodel.nevents = 100000
-            protomodel.computeXSecs()
-            self.predict(protomodel,sigmacut=sigmacut, strategy= strategy,
-                    keep_predictions = keep_predictions )
-
         if keep_slhafile:
             self.log ( f"keeping {protomodel.currentSLHA}, as requested" )
         else:
@@ -463,6 +454,7 @@ class Predictor ( LoggerBase ):
         if force_computation_K and abs(muhat - 1.0) > 1e-2:
             ma = Manipulator ( protomodel )
             ma.rescaleSignalBy ( s = None ) # rescale by muhat ("None")
+            muhat = ma.M.muhat
 
         if abs(muhat - 1.0) <= 1e-2:
             prior = self.combiner.computePrior ( protomodel, nll = False )

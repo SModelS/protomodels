@@ -67,7 +67,7 @@ class LoggerBase:
         ctr = 0
         while True:
             try:
-                with open( f"{self.logdir}/walker{self.walkerid}.log", "a" ) as f:
+                with open( f"{self.logdir}/walker_{self.walkerid}.log", "a" ) as f:
                     f.write ( f'[{self.module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
                 if False:
                     print ( f'[{self.module}-{msgType}] {" ".join(map(str,args))}' )
