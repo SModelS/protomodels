@@ -89,150 +89,6 @@ def writeMetaInfo ( rundir : str, meta : Dict ):
             # f.write ( f"{meta!s}\n" )
             f.close()
 
-def createWalkersOld( nmin : int , nmax : int, continueFrom : PathLike,
-          dbpath : PathLike = "official", cheatcode : Union[int,str] = "no_cheat", 
-          rundir : Union[None,str] = None, maxsteps : int = 10000,
-          seed : Union[None,int] = None, test_param_space = False, run_mcmc=False, cap_ssm=100.,
-          catch_exceptions : bool = True, select : str = "all",
-          do_srcombine : bool = False, record_history : bool = False, 
-          update_hiscores : bool = False, stopTeleportationAfter : int = -1,
-          forbiddenparticles : List[int|str] = [],
-          templateSLHA : os.PathLike = "template_default.slha",
-          allowN1N1Prod : bool = False, susy_mode : bool = False,
-          use_initialiser : Union[str,bool] = False ):
-    """ a worker node to set up to run walkers
-
-    :param nmin: the walker id of the first walker
-    :param nmax: the walker id + 1 of the last walker
-    :param continueFrom: start with protomodels given in the pickle file or hiscore dictionary file
-    :param cheatcode: in case this is not 0 or "no_cheat", we wish to start from a cheat model
-    :param rundir: overrride default rundir, if None use default
-    :param maxsteps: maximum number of steps to be taken
-    :param seed: random seed number (optional)
-    :param test_param_space: if true, run with constant K and TL (=1.0)
-    :param run_mcmc: if true, run mcmc walk without changing dimensions
-    :param catch_exceptions: If True will catch the exceptions and exit.
-    :param select: select only subset of results (all for all, em for efficiency 
-    maps only, ul for upper limits only, alternatively select for txnames via
-    e.g. "txnames:T1,T2", short names are recognized, e.g.
-    "txnames:electroweakinos_offshell,T1"
-    :param cap_ssm: set the maximum value for all signal strength multipliers (default=100)
-    :param do_srcombine: if true, then also perform combinations, either via
-                       simplified likelihoods or via pyhf
-    :param record_history: if True, then use history recorders
-    :param update_hiscores: if True, then finish your run and
-                            after that run hiscore updater
-    :param stopTeleportationAfter: integer, stop teleportation after this step has 
-    been reached. -1 or None means, dont run teleportation at all.
-    :param forbiddenparticles: an optional list of particles we wont touch in this
-    run
-    :param templateSLHA: the template file that is used
-    :param allowN1N1Prod: allow N1 N1 production mode
-    :param susy_mode: susy mode, dont touch ssms
-    :param use_initialiser: if string, then interpret it as path to database
-    """
-    meta = { "dbpath": dbpath, "select": select, "do_srcombine": do_srcombine,
-             "forbidden": forbiddenparticles, "templateSLHA": templateSLHA,
-             "allowN1N1Prod": allowN1N1Prod, "susy_mode": susy_mode,
-             "use_initialiser": use_initialiser }
-    from builder.manipulator import Manipulator
-    from ptools.moreHelpers import namesForSetsOfPids
-    Manipulator.forbiddenparticles = namesForSetsOfPids ( forbiddenparticles )
-    writeMetaInfo ( rundir, meta )
-
-    if rundir != None and "<rundir>" in dbpath:
-        dbpath=dbpath.replace("<rundir>", f"{rundir}/" )
-    pfile, states = None, None
-    if continueFrom == "default":
-        continueFrom = f"{rundir}/states.dict" 
-        if not os.path.exists ( continueFrom ):
-            continueFrom = "default"
-    if continueFrom.lower() not in [ "none", "" ]:
-        if not os.path.exists ( continueFrom ):
-            print ( f"[factoryOfWalkers] error: supplied a save states file ,,{continueFrom}'', but it doesnt exist" )
-        else:
-            import pickle
-            try:
-                if continueFrom.endswith ( ".dict" ):
-                    with open( continueFrom, "rt" ) as f:
-                        states = eval ( f.read() )
-                else:
-                    with open ( continueFrom, "rb" ) as f:
-                        states = pickle.load ( f )
-                pfile = continueFrom
-            except Exception as e:
-                print ( f"error when trying to load file {continueFrom}: {e}" )
-                pfile = None
-    walkers = []
-    #Set random seed
-    from walker.randomWalker import RandomWalker
-    for i in range(nmin,nmax):
-        if pfile is None:
-            import time
-            import socket
-            hostname = socket.gethostname().replace(".cbe.vbc.ac.at","")
-            atime = time.strftime('%H:%M:%S')
-            label = f"[factoryOfWalkers:{hostname};{atime}]"
-            print ( f"{label} starting {i} @ {rundir} with cheatcode {cheatcode}" )
-            w = RandomWalker( walkerid=i, nsteps = maxsteps, dbpath=dbpath, 
-                cheatcode=cheatcode, select=select, cap_ssm=cap_ssm,
-                rundir=rundir, do_srcombine = do_srcombine, 
-                test_param_space = test_param_space, run_mcmc=run_mcmc,
-                record_history=record_history, seed=seed,
-                stopTeleportationAfter = stopTeleportationAfter,
-                templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod, 
-                susy_mode = susy_mode, use_initialiser = use_initialiser )
-            walkers.append ( w )
-        elif pfile.endswith(".hi") or pfile.endswith(".pcl"):
-            nstates = len(states )
-            ctr = i % nstates
-            print ( f"[factoryOfWalkers] fromModel {i}: loading {ctr}/{nstates}" )
-            w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
-                walkerid = i, nsteps = maxsteps, expected = False, select = select, 
-                dbpath = dbpath,cap_ssm=cap_ssm, rundir = rundir, 
-                do_srcombine = do_srcombine, test_param_space = test_param_space,
-                run_mcmc=run_mcmc, seed = seed,
-                stopTeleportationAfter = stopTeleportationAfter,
-                templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod,
-                susy_mode = susy_mode, use_initialiser = use_initialiser )
-            walkers.append ( w )
-        else:
-            nstates = len(states )
-            ctr = i % nstates
-            print ( f"[factoryOfWalkers] fromDict {i}: loading {ctr}/{nstates}" )
-            w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
-                    strategy = "aggressive", walkerid = i, dbpath = dbpath, 
-                    expected = False, select = select, rundir = rundir, cap_ssm=cap_ssm,
-                    do_srcombine = do_srcombine, test_param_space = test_param_space,run_mcmc=run_mcmc,
-                    seed = seed, stopTeleportationAfter = stopTeleportationAfter )
-            walkers.append ( w )
-    #start running walkers
-    startWalkers ( walkers, catch_exceptions=catch_exceptions, seed=seed )
-    if update_hiscores:
-        import time
-        from ptools import updateHiscores
-        ctAttempts = 0 ## count how often we tried
-        succeeded = False
-        while ctAttempts < 7:
-            steps = updateHiscores.countSteps( writeSubmitFile = False )
-            if not type(steps)==tuple:
-                print ( f"[factoryOfWalkers] been asked to update hiscores, but dont understand steps {steps}" )
-                sys.exit(-1)
-            print ( f"[factoryOfWalkers] been asked to update hiscores: {steps[0]} == {nmax*maxsteps}" )
-            ctAttempts += 1
-            if steps[0] == nmax*maxsteps: ## are we last?
-                updateHiscores.loop ( rundir = rundir, maxruns=1,
-                                      doPlots=False, uploadTo="latest" )
-                succeeded = True
-                break
-            else:
-                time.sleep ( (ctAttempts**2+1)*180 )
-        if succeeded:
-            print ( "[factoryOfWalkers] ran updater successfully." )
-        else:
-            print ( f"[factoryOfWalkers] tried more {ctAttempts} times. stop trying." )
-
-
 def createWalkers ( rvars: dict ):
     """ a worker node to set up to run walkers
 
@@ -269,7 +125,7 @@ def createWalkers ( rvars: dict ):
     globals().update ( rvars ) # doesnt work for all
     dbpath = rvars["dbpath"]
     use_initialiser = rvars["use_initialiser"]
-    jmax = rvars["jmax"]
+    #jmax = rvars["jmax"]
     continueFrom = rvars["continueFrom"]
     cheatcode = rvars["cheatcode"]
     do_srcombine = rvars["do_srcombine"]
@@ -316,37 +172,22 @@ def createWalkers ( rvars: dict ):
             atime = time.strftime('%H:%M:%S')
             label = f"[factoryOfWalkers:{hostname};{atime}]"
             print ( f"{label} starting {i} @ {rundir} with cheatcode {cheatcode}" )
-            w = RandomWalker( walkerid=i, nsteps = maxsteps, dbpath=dbpath, 
-                cheatcode=cheatcode, select=select, cap_ssm=cap_ssm,
-                rundir=rundir, do_srcombine = do_srcombine, 
-                test_param_space = test_param_space, run_mcmc=run_mcmc,
-                record_history=record_history, seed=seed,
-                stopTeleportationAfter = stopTeleportationAfter,
-                templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod, 
-                susy_mode = susy_mode, use_initialiser = use_initialiser )
+            rvars["walkerid"]= i
+            w = RandomWalker( rvars )
             walkers.append ( w )
         elif pfile.endswith(".hi") or pfile.endswith(".pcl"):
             nstates = len(states )
             ctr = i % nstates
             print ( f"[factoryOfWalkers] fromModel {i}: loading {ctr}/{nstates}" )
-            w = RandomWalker.fromProtoModel ( states[ctr], strategy = "aggressive",
-                walkerid = i, nsteps = maxsteps, expected = False, select = select, 
-                dbpath = dbpath,cap_ssm=cap_ssm, rundir = rundir, 
-                do_srcombine = do_srcombine, test_param_space = test_param_space,
-                run_mcmc=run_mcmc, seed = seed,
-                stopTeleportationAfter = stopTeleportationAfter,
-                templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod,
-                susy_mode = susy_mode, use_initialiser = use_initialiser )
+            rvars["walkerid"]=i
+            w = RandomWalker.fromProtoModel ( states[ctr], rvars )
             walkers.append ( w )
         else:
             nstates = len(states )
             ctr = i % nstates
             print ( f"[factoryOfWalkers] fromDict {i}: loading {ctr}/{nstates}" )
-            w = RandomWalker.fromDictionary ( states[ctr], nsteps = maxsteps,
-                    strategy = "aggressive", walkerid = i, dbpath = dbpath, 
-                    expected = False, select = select, rundir = rundir, cap_ssm=cap_ssm,
-                    do_srcombine = do_srcombine, test_param_space = test_param_space,run_mcmc=run_mcmc,
-                    seed = seed, stopTeleportationAfter = stopTeleportationAfter )
+            rvars["walkerid"]=i
+            w = RandomWalker.fromDictionary ( states[ctr], rvars )
             walkers.append ( w )
     #start running walkers
     startWalkers ( walkers, catch_exceptions=catch_exceptions, seed=seed )

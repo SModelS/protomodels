@@ -199,10 +199,10 @@ class RandomWalker ( LoggerBase ):
         self.manipulator.setWalkerId ( Id )
 
     @classmethod
-    def fromProtoModel( cls, protomodel : ProtoModel, **args : Dict ):
+    def fromProtoModel( cls, protomodel : ProtoModel, args : Dict ):
         """ create a RandomWalker from a ProtoModel. Continue walking
             from that model """
-        ret = cls( **args )
+        ret = cls( args )
         ret.manipulator.M = protomodel
         if "walkerid" in args:
             ret.manipulator.setWalkerId ( args["walkerid"] )

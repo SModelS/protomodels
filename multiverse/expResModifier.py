@@ -108,19 +108,21 @@ Just filter the database:
 
 """
 
-    def __init__ ( self, args ):
-        """ args is a dictionary here,
-        :param database: path to database
-        :param max: upper limit on an individual excess
-        :param suffix: suffix to use, e.g. fake, signal, etc
-        :param lognormal: if True, use lognormal for nuisances, else Gaussian
-        :param fixedsignals: if True, then use the central value of theory prediction
-                             as the signal yield, dont draw from Poissonian
-        :param fixedbackgrounds: if True, then use the central value of theory prediction
-                             as the background yield, dont draw from Poissonian
-        :param seed: if int and not None, set random number seed
-        :param ulmassscale: maximum distance (in GeV) for the euclidean space in masses,
-                            for a signal to populate an UL map
+    def __init__ ( self, args : dict ):
+        """ constructor.
+            
+        args ( dict ):
+          - database: path to database
+          - max: upper limit on an individual excess
+          - suffix: suffix to use, e.g. fake, signal, etc
+          - lognormal: if True, use lognormal for nuisances, else Gaussian
+          - fixedsignals: if True, then use the central value of theory prediction
+          as the signal yield, dont draw from Poissonian
+          - fixedbackgrounds: if True, then use the central value of theory
+          prediction as the background yield, dont draw from Poissonian
+          - seed: if int and not None, set random number seed
+          - ulmassscale: maximum distance (in GeV) for the euclidean space in
+          masses, for a signal to populate an UL map
         """
         super ( ExpResModifier, self ).__init__ ( "erm" )
         self.superseded = set() ## take note of everything superseded
@@ -141,6 +143,12 @@ Just filter the database:
         if "seed" in args:
             self.setSeed ( args["seed"] )
         self.run()
+
+    def createMyTruth ( self ):
+        from multiverse.mhelpers import createMyFile
+        createMyFile ( signal_model = self.pmodel,
+            dbpath = self.outfile, outfile = "my.truth",
+            interactive = False )
 
     def defaults( self ):
         """ define the defaults """
@@ -346,13 +354,14 @@ Just filter the database:
         self.log ( f"arguments were {' '.join ( sys.argv )}" )
 
     def finalize ( self ):
-        """ finalize, for the moment its just deleting slha files """
+        """ finalize, delete files, create my.truth """
         # print ( "[expResModifier] finalize" )
         if self.keep:
             return
         if hasattr ( self, "protomodel" ) and self.protomodel is not None and \
                 type(self.protomodel) != str:
             self.protomodel.delCurrentSLHA()
+        self.createMyTruth()
 
     def produceProtoModel ( self, filename : str, dbversion : str,
            allowN1N1Prod : bool = True ):
