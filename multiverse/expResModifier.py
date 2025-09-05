@@ -376,7 +376,7 @@ Just filter the database:
         M = ProtoModel ( walkerid, keep_meta, dbversion = dbversion,
                          allowN1N1Prod = allowN1N1Prod )
         M.createNewSLHAFileName ( prefix="erm" )
-        ma = Manipulator ( M )
+        ma = Manipulator ( M, walkerid = "erm" )
         with open ( filename, "rt" ) as f:
             try:
                 m = eval ( f.read() )
@@ -388,7 +388,7 @@ Just filter the database:
         ma.M.computeXSecs( keep_slha = True )
         self.log ( f"xsecs produced {ma.M.currentSLHA}" )
         self.log ( f" `- does currentslha exist? {os.path.exists ( ma.M.currentSLHA )}" )
-        ma.printXSecs()
+        ma.printXSecs( useParticleNames = True )
         self.protomodel = ma.M
         return self.protomodel
 
@@ -767,11 +767,14 @@ Just filter the database:
         hasAdded = 0
         txnd = txname.txnameData
         etxnd = txname.txnameDataExp
-        coordsTpred = txnd.PCAtransf( values["masses"] ) # , txnd._V, txnd.delta_x ) ## coordinates of tpred
+        masses = values["masses"]
+        # coordsTpred = txnd.PCAtransf( masses ) # , txnd._V, txnd.delta_x ) ## coordinates of tpred
         minDist = float("inf") ## for the closest point we store the numbers
         for yi,y in enumerate(txnd.y_values):
             pt = txnd.tri.points[yi] ## the point in the rotated coords
-            dist = self.distance ( pt, coordsTpred )
+            pt_masses = txnd.inversePCAtransf ( pt )
+            dist = self.distance ( masses, pt_masses )
+            # dist = self.distance ( pt, coordsTpred )
             if dist > self.maxmassdist: ## change y_values only in vicinity of protomodel
                 continue
             oldv = txnd.y_values[yi]
@@ -858,11 +861,14 @@ Just filter the database:
             txnd = txname.txnameData
             etxnd = txname.txnameDataExp
             masses = self.getMassVector ( tpred )
-            coordsTpred = txnd.PCAtransf ( masses ) # , txnd._V, txnd.delta_x ) ## coordinates of tpred
+            # coordsTpred = txnd.PCAtransf ( masses ) # , txnd._V, txnd.delta_x ) ## coordinates of tpred
             minDist, minPt = float("inf"),None ## for the closest point we store the numbers
             for yi,y in enumerate(txnd.y_values):
                 pt = txnd.tri.points[yi] ## the point in the rotated coords
-                dist = self.distance ( pt, coordsTpred )
+                ## the masses in the original frame
+                pt_masses = txnd.inversePCAtransf ( pt )
+                dist = self.distance ( masses, pt_masses )
+                # rot_dist = self.distance ( pt, coordsTpred )
                 if dist < minDist: ## just so we know how far away we are
                     minDist = dist
                     minPt = txnd.inversePCAtransf ( pt ) # , txnd._V, txnd.delta_x )
