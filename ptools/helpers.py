@@ -18,12 +18,13 @@ from os import PathLike
 from typing import Union, Set
 import numpy as np
 
-def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
+def py_dumps(obj, indent : int = 4, level : int = 0, stop_at_level : int = -1 ) -> str:
     """ equivalent to json.dumps (ie it pretty prints a given nested structure)  
     but tuples are allowed as keys.
 
     :param indent: number of spaces used for an indentation
     :param level: how many indentations are we in?
+    :param stop_at_level: stop indentation at that level, if positive number
     """
     sp = ' ' * (level * indent)
     sp_next = ' ' * ((level + 1) * indent)
@@ -32,14 +33,20 @@ def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
         if not obj:
             return '{}'
         items = []
+        if stop_at_level > 0 and level >= stop_at_level:
+            for k, v in obj.items():
+                items.append(f"{repr(k)}: {py_dumps(v, indent, level + 1, stop_at_level)}")
+            return '{ ' + ', '.join(items) + ' }'
         for k, v in obj.items():
-            items.append(f"{sp_next}{repr(k)}: {py_dumps(v, indent, level + 1)}")
+            items.append(f"{sp_next}{repr(k)}: {py_dumps(v, indent, level + 1, stop_at_level)}")
         return '{\n' + ',\n'.join(items) + '\n' + sp + '}'
 
     elif isinstance(obj, list):
         if not obj:
             return '[]'
-        items = [f"{sp_next}{py_dumps(i, indent, level + 1)}" for i in obj]
+        items = [f"{sp_next}{py_dumps(i, indent, level + 1, stop_at_level )}" for i in obj]
+        if stop_at_level > 0 and level >= stop_at_level:
+            return '[ ' + ', '.join(items) + ' ]'
         return '[\n' + ',\n'.join(items) + '\n' + sp + ']'
 
     return repr(obj)
