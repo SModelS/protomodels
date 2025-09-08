@@ -18,35 +18,71 @@ from os import PathLike
 from typing import Union, Set
 import numpy as np
 
-def py_dumps(obj, indent : int = 4, level : int = 0) -> str:
-    """ equivalent to json.dumps (ie it pretty prints a given nested structure)  
+def repr_double_quotes(obj):
+    import json
+    if isinstance(obj, str):
+        # Use json.dumps to get a double-quoted string with escapes handled
+        return json.dumps(obj)
+    elif isinstance(obj, (list, tuple, set)):
+        # Preserve type and recursively format elements
+        open_bracket, close_bracket = {
+            list: ("[", "]"),
+            tuple: ("(", ")"),
+            set: ("{", "}")
+        }[type(obj)]
+        inner = ", ".join(repr_double_quotes(x) for x in obj)
+        if isinstance(obj, tuple) and len(obj) == 1:  # special case for (x,)
+            inner += ","
+        return f"{open_bracket}{inner}{close_bracket}"
+    elif isinstance(obj, dict):
+        items = (f"{repr_double_quotes(k)}: {repr_double_quotes(v)}" for k, v in obj.items())
+        return "{" + ", ".join(items) + "}"
+    else:
+        return repr(obj)
+
+def py_dumps( obj, indent : int = 4, level : int = 0, stop_at_level : int = -1, 
+              double_quotes : bool = False ) -> str:
+    """ equivalent to json.dumps (ie it pretty prints a given nested structure)
     but tuples are allowed as keys.
 
     :param indent: number of spaces used for an indentation
     :param level: how many indentations are we in?
+    :param stop_at_level: stop indentation at that level, if positive number
+    :param double_quotes: use double quotes, like json
     """
     sp = ' ' * (level * indent)
     sp_next = ' ' * ((level + 1) * indent)
+    mrepr = repr
+    if double_quotes:
+        mrepr = repr_double_quotes
 
     if isinstance(obj, dict):
         if not obj:
             return '{}'
         items = []
+        if stop_at_level > 0 and level >= stop_at_level:
+            for k, v in obj.items():
+                value = f"{py_dumps(v, indent, level + 1, stop_at_level, double_quotes )}"
+                items.append(f"{mrepr(k)}: {value}")
+            return '{ ' + ', '.join(items) + ' }'
         for k, v in obj.items():
-            items.append(f"{sp_next}{repr(k)}: {py_dumps(v, indent, level + 1)}")
+            value = f"{py_dumps(v, indent, level + 1, stop_at_level, double_quotes )}"
+            items.append(f"{sp_next}{mrepr(k)}: {value}")
         return '{\n' + ',\n'.join(items) + '\n' + sp + '}'
 
     elif isinstance(obj, list):
         if not obj:
             return '[]'
-        items = [f"{sp_next}{py_dumps(i, indent, level + 1)}" for i in obj]
+        items = [f"{sp_next}{py_dumps(i, indent, level + 1, stop_at_level, double_quotes )}" for i in obj]
+        if stop_at_level > 0 and level >= stop_at_level:
+            return '[ ' + ', '.join(items) + ' ]'
         return '[\n' + ',\n'.join(items) + '\n' + sp + ']'
 
-    return repr(obj)
+    return mrepr(obj)
 
 def mkdir ( dirname : os.PathLike ) -> bool:
     """ make a directory, gracefully """
-    if dirname == "": 
+    if dirname == "":
         return False
     if os.path.exists ( dirname ):
         return False
