@@ -250,12 +250,28 @@ def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
             for k in m["masses"].keys():
                 pids.add ( k )
         return pids
-    def computeAverageMassesForPid ( pid : int, models : List[Dict] ) -> Dict:
+    def computeAverageMassesForLSP ( pid : int, models : List[Dict] ) -> Dict:
+        """ for the lsp we really average """
         masses=[]
         for model in models:
             if pid in model["masses"]:
                 masses.append ( model["masses"][pid] )
         return float ( np.mean ( masses ) )
+
+    def computeAverageMassesForPid ( pid : int, models : List[Dict] ) -> Dict:
+        """ for the other particles we average over the distance to
+        the LSP """
+        masses=[]
+        LSP = ProtoModel.LSP
+        if pid == LSP:
+            return computeAverageMassesForLSP ( pid, models )
+        lspmasses = []
+        for model in models:
+            if pid in model["masses"]:
+                masses.append ( model["masses"][pid] - model["masses"][LSP] )
+                lspmasses.append ( model["masses"][LSP] )
+        avg_delta = float ( np.mean ( masses ) )
+        return float ( np.mean ( lspmasses ) ) + avg_delta
 
     def computeAverageDecaysForPid ( pid : int, models : List[Dict] ) -> Dict:
         decays = {}

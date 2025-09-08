@@ -260,6 +260,7 @@ class Initialiser ( LoggerBase ):
         pid = ProtoModel.LSP
         lspmass = float(np.random.uniform ( *self.massRanges[pid] ))
         masses[pid]=lspmass
+        self.pprint ( f"setting mass of {namer.asciiName(pid)} to {lspmass:.1f}" )
         #leftsquarks = [ 1000001, 1000002, 1000003, 1000004 ]
         leftsquarks = [ 1000001 ]
         #rightsquarks = [ 2000001, 2000002, 2000003, 2000004 ]
