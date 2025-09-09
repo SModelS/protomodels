@@ -224,9 +224,11 @@ class Initialiser ( LoggerBase ):
             choice = np.random.choice(list(self.probs.values()), 
                     1, p=list(self.probs.keys()) )
             result = choice[0]
-            txns = result["txns"].split(",")
+            txns = result["txns"] # .split(",")
             ## choose a random txname
-            txn  = str(np.random.choice ( txns ))
+            txn = txns
+            if type(txn) in [ list, tuple ]:
+                txn  = str(np.random.choice ( txns ))
         self.pprint ( f"choosing random txn from {result['id']}: {txn}" )
         return txn
 

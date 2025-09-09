@@ -553,10 +553,14 @@ Just filter the database:
         txnames.sort()
         if len ( txnames ) == 0:
             self.warning ( f"no txnames for {label}." )
-        D["txns"]=",".join(txnames )
+        D["txns"]=tuple(txnames )
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
         if self.timestamps:
             D["timestamp"]=dataset.globalInfo.lastUpdate
+        constraints = set()
+        for txni in dataset.txnameList:
+            constraints.add ( txni.constraint )
+        D["constraints"]=tuple( constraints )
         self.addToStats ( label, D, dataset.globalInfo )
         return dataset
 
@@ -764,7 +768,7 @@ Just filter the database:
         label = f"{dataset.globalInfo.id}:ul:{txns}"
         D={}
         D["sigmaN"]=sigmaN
-        D["pids"]=values["pids"]
+        D["pids"]=list(set(values["pids"]))
         D["masses"]=values["masses"]
         D["txns"]=txns
         self.comments["txns"]="list of txnames that populate this signal region / analysis"
@@ -835,14 +839,14 @@ Just filter the database:
     def getPIDVector ( self, tpred ):
         """ get the particle pdgs of a theory prediction """
         ## FIXME this will have to be smarter
-        ret = []
+        ret = set()
         if tpred is None:
             return ret
         for sms in tpred.smsList:
             for node in sms.nodes:
                 if type(node.particle.pdg) == int and node.particle.pdg > 99:
-                    ret.append ( node.particle.pdg )
-        return ret
+                    ret.add ( node.particle.pdg )
+        return list(ret)
 
     def computeXSecForMass ( self, sigmaN, oldmasses, newmasses, pids, sqrts ):
         """ given the cross section at mass oldmass,
