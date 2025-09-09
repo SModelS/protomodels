@@ -554,13 +554,14 @@ Just filter the database:
         if len ( txnames ) == 0:
             self.warning ( f"no txnames for {label}." )
         D["txns"]=tuple(txnames )
-        self.comments["txns"]="list of txnames that populate this signal region / analysis"
+        self.comments["txns"]="tuple of txnames that populate this signal region / analysis"
         if self.timestamps:
             D["timestamp"]=dataset.globalInfo.lastUpdate
         constraints = set()
         for txni in dataset.txnameList:
             constraints.add ( txni.constraint )
         D["constraints"]=tuple( constraints )
+        self.comments["constraints"]="tuple of the sms constraints"
         self.addToStats ( label, D, dataset.globalInfo )
         return dataset
 
@@ -594,8 +595,14 @@ Just filter the database:
         if len ( txnames ) == 0:
 
             self.warning ( f"no txnames for {label}." )
-        D["txns"]=",".join(txnames )
-        self.comments["txns"]="list of txnames that populate this signal region / analysis"
+        D["txns"]=tuple(txnames )
+        self.comments["txns"]="tuple of txnames that populate this signal region / analysis"
+        constraints = set()
+        for txni in dataset.txnameList:
+            constraints.add ( txni.constraint )
+        D["constraints"]=tuple( constraints )
+        self.comments["constraints"]="tuple of the sms constraints"
+        # D["txns"]=",".join(txnames )
         if self.timestamps:
             D["timestamp"]=dataset.globalInfo.lastUpdate
         return D
@@ -770,8 +777,8 @@ Just filter the database:
         D["sigmaN"]=sigmaN
         D["pids"]=list(set(values["pids"]))
         D["masses"]=values["masses"]
-        D["txns"]=txns
-        self.comments["txns"]="list of txnames that populate this signal region / analysis"
+        D["txns"]=tuple(txns)
+        self.comments["txns"]="tuple of txnames that populate this signal region / analysis"
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
         ## sigmaN is the predicted production cross section of the signal,
         ## in fb
@@ -886,8 +893,9 @@ Just filter the database:
         D["pids"]=self.getPIDVector ( tpred )
         # D["smsList"]=tpred.smsList
         D["masses"]=self.getMassVector ( tpred )
-        D["txns"]=",".join(txns)
-        self.comments["txns"]="list of txnames that populate this signal region / analysis"
+        D["txns"]=tuple(txns)
+        # D["txns"]=",".join(txns)
+        self.comments["txns"]="tuple of txnames that populate this signal region / analysis"
         self.comments["sigmaN"]="the added theory prediction (in fb), for UL maps"
         ## sigmaN is the predicted production cross section of the signal,
         ## in fb

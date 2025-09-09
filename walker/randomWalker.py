@@ -164,7 +164,9 @@ class RandomWalker ( LoggerBase ):
                 sys.exit(-1)
             from walker.initialiser import Initialiser
             self.initialiser  = Initialiser ( self.walkerid, self.use_initialiser )
-            self.manipulator.initFromDict ( self.initialiser.propose() )
+            init_model = self.initialiser.propose()
+            if init_model != None:
+                self.manipulator.initFromDict ( init_model )
         if self.run_mcmc: self.highlight("info", "Running MCMC walk")
         if cheatcode in [ "no_cheat", "", "none", None, 0 ]:
             self.takeStep() # the first step should be considered as "taken"
