@@ -334,7 +334,7 @@ class Critic ( LoggerBase ):
             self.log(f"Model passed llhd-based critic with critic robs = {robsComb}.")
             return True, "passed both critics"
         self.info(f"Model failed llhd-based critic with critic robs = {robsComb}.")
-        return False, "failed llhd-based critic"
+        return False, f"failed llhd-based critic (robs={robsComb})"
 
 
     def merge_preds(self, pred_list_1, pred_list_2):

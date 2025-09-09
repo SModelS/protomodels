@@ -178,6 +178,10 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
     """
     if picklefile is None:
         picklefile = dictfile.replace(".dict",".cache" )
+        if not picklefile.endswith ( ".cache" ):
+            # educated guess, replace any extension with .cache
+            fname, ext = os.path.splitext ( dictfile )
+            picklefile = fname + ".cache"
     from ptools import helpers
     shortname = helpers.simplifyUnixPath ( picklefile )
     if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=walkerid ):

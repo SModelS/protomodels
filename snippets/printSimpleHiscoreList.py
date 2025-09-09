@@ -75,7 +75,8 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
     return nlines
 
 def runSlurmWalk() -> int:
-    cmd = "slurm_walk.py -q"
+    rundir = os.getcwd()
+    cmd = f"slurm_walk.py -R {rundir} -q"
     import subprocess
     o = subprocess.getoutput ( cmd )
     print ( f"{ansi.RED}Running Status:{ansi.RESET} {time.asctime()}" )
