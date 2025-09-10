@@ -26,10 +26,10 @@ def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
     :returns: merged model
     """
     if not os.path.exists ( model1 ):
-        print ( f"[hiscoreTools] {model1} does not exist" )
+        print ( f"[initialiser] {model1} does not exist" )
         return None
     if not os.path.exists ( model2 ):
-        print ( f"[hiscoreTools] {model2} does not exist" )
+        print ( f"[initialiser] {model2} does not exist" )
         return None
     f=open ( model1, "rt" )
     txt=f.read()
@@ -57,18 +57,21 @@ def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
     ret["timestamp"] = time.asctime()
     return ret
 
-def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
+def mergeNModels ( models : List[Dict], add_timestamp : bool = True ) \
+        -> Union[None,Dict]:
     """ merge two models, add all particles from both models.
     If a particle appears in both models, its mass will be the average
     of the two, etc.
 
     :returns: merged model
     """
+    import time
     if len(models)== 0:
-        print ( f"[hiscoreTools] provided empty list of models" )
+        print ( f"[initialiser] provided empty list of models" )
         return None
     if len(models)==1: # trivial merge
-        models[0]["timestamp"] = time.asctime()
+        if add_timestamp:
+            models[0]["timestamp"] = time.asctime()
         return models[0]
     ret = { "masses": {}, "decays": {}, "ssmultipliers": {} }
 
@@ -79,6 +82,7 @@ def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
             for k in m["masses"].keys():
                 pids.add ( k )
         return pids
+
     def computeAverageMassesForLSP ( pid : int, models : List[Dict] ) -> Dict:
         """ for the lsp we really average """
         masses=[]
@@ -138,7 +142,9 @@ def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
     ret["masses"]=masses
     ret["decays"]=decays
     ret["ssmultipliers"]=ssms
-    ret["timestamp"] = time.asctime()
+    if add_timestamp:
+        ret["timestamp"] = time.asctime()
+    print ( f"[initialiser] merged {len(models)} models into:" )
     return ret
 
 
