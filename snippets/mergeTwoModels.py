@@ -4,7 +4,7 @@ from typing import Tuple
 
 def merge( models : Tuple ):
     import time
-    from ptools.hiscoreTools import mergeTwoModels
+    from walker.initialiser import mergeTwoModels
     model = mergeTwoModels ( *models )
     print ( "model", model )
     f=open("merged.dict","wt")

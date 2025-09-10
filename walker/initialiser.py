@@ -18,6 +18,130 @@ from builder.manipulator import Manipulator
 
 namer = SParticleNames ( susy = False )
 
+def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
+    """ merge two models, add all particles from both models.
+    If a particle appears in both models, its mass will be the average
+    of the two, etc.
+
+    :returns: merged model
+    """
+    if not os.path.exists ( model1 ):
+        print ( f"[hiscoreTools] {model1} does not exist" )
+        return None
+    if not os.path.exists ( model2 ):
+        print ( f"[hiscoreTools] {model2} does not exist" )
+        return None
+    f=open ( model1, "rt" )
+    txt=f.read()
+    f.close()
+    dict1 = eval(txt)
+    f=open ( model2, "rt" )
+    txt=f.read()
+    f.close()
+    dict2 = eval(txt)
+    import copy
+    ret = copy.deepcopy(dict1)
+    for pid,m in dict2["masses"].items():
+        if not pid in ret["masses"]:
+            # ok, we just copy <pid> from dict2
+            ret["masses"][pid]=m
+            ret["decays"][pid]=dict2["decays"][pid]
+            for pidpair,ssms in dict2["ssmultipliers"].items():
+                if pid in pidpair or -pid in pidpair:
+                    ret["ssmultipliers"][pidpair]=ssms
+        else:
+            ret["masses"][pid]=.5*m + .5*ret["masses"][pid]
+    for drop in [ "K", "TL", "xsecs[fb]", "walkerid", "step" ]:
+        if drop in ret:
+            ret.pop( drop )
+    ret["timestamp"] = time.asctime()
+    return ret
+
+def mergeNModels ( models : List[Dict] ) -> Union[None,Dict]:
+    """ merge two models, add all particles from both models.
+    If a particle appears in both models, its mass will be the average
+    of the two, etc.
+
+    :returns: merged model
+    """
+    if len(models)== 0:
+        print ( f"[hiscoreTools] provided empty list of models" )
+        return None
+    if len(models)==1: # trivial merge
+        models[0]["timestamp"] = time.asctime()
+        return models[0]
+    ret = { "masses": {}, "decays": {}, "ssmultipliers": {} }
+
+    def collectPids ( models : List[Dict] ) -> Set:
+        """ collect all pids in all models """
+        pids = set()
+        for m in models:
+            for k in m["masses"].keys():
+                pids.add ( k )
+        return pids
+    def computeAverageMassesForLSP ( pid : int, models : List[Dict] ) -> Dict:
+        """ for the lsp we really average """
+        masses=[]
+        for model in models:
+            if pid in model["masses"]:
+                masses.append ( model["masses"][pid] )
+        return float ( np.mean ( masses ) )
+
+    def computeAverageMassesForPid ( pid : int, models : List[Dict] ) -> Dict:
+        """ for the other particles we average over the distance to
+        the LSP """
+        masses=[]
+        LSP = ProtoModel.LSP
+        if pid == LSP:
+            return computeAverageMassesForLSP ( pid, models )
+        lspmasses = []
+        for model in models:
+            if pid in model["masses"]:
+                masses.append ( model["masses"][pid] - model["masses"][LSP] )
+                lspmasses.append ( model["masses"][LSP] )
+        avg_delta = float ( np.mean ( masses ) )
+        return float ( np.mean ( lspmasses ) ) + avg_delta
+
+    def computeAverageDecaysForPid ( pid : int, models : List[Dict] ) -> Dict:
+        decays = {}
+        Stot = 0.
+        for model in models:
+            if pid in model["decays"]:
+                mdecays = model["decays"][pid]
+                for daughterpids, br in mdecays.items():
+                    if not daughterpids in decays:
+                        decays[daughterpids] = 0.
+                    decays[daughterpids] += br
+                    Stot += br
+        for daughterpids, br in decays.items():
+            decays[daughterpids]/=Stot
+        return decays
+
+    def computeAverageSSMs ( models : List[Dict] ) -> Dict:
+        ssms = {}
+        for model in models:
+            mssms = model["ssmultipliers"]
+            for k,v in mssms.items():
+                ssms[k]=v # just bluntly take them over.
+        return ssms
+
+    # first, we collect all pids
+    pids = collectPids ( models )
+    # next we compute average masses
+    masses, decays, ssms = {}, {}, {}
+    for pid in pids:
+        mass = computeAverageMassesForPid ( pid, models )
+        masses[pid]=mass
+        piddecays = computeAverageDecaysForPid ( pid, models )
+        decays[pid] = piddecays
+    ssms = computeAverageSSMs ( models )
+    ret["masses"]=masses
+    ret["decays"]=decays
+    ret["ssmultipliers"]=ssms
+    ret["timestamp"] = time.asctime()
+    return ret
+
+
 class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
@@ -476,7 +600,6 @@ class Initialiser ( LoggerBase ):
                 continue
             submodels.append ( submodel )
         self.submodels = submodels
-        from ptools.hiscoreTools import mergeNModels
         model = mergeNModels ( submodels )
         self.log ( f"initialiser.propose proposes {model}" )
         return model
