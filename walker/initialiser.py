@@ -487,13 +487,22 @@ class Initialiser ( LoggerBase ):
         ma = Manipulator ( dct )
         return ma
 
-    def interact ( self ):
+    def interact ( self, dbpath : os.PathLike  ):
         """ interactive shell, for debugging and development """
         from tester.predictor import Predictor
-        dbpath = "official"
         pr = Predictor("ini", dbpath, do_srcombine = True )
         import IPython
         IPython.embed( colors = "neutral" )
+
+    def readDBPath ( self, dbpath ):
+        if dbpath != None:
+            return dbpath
+        if not os.path.exists ( "run.dict" ):
+            return "official"
+        with open ( "run.dict", "rt" ) as f:
+            txt = f.read()
+            d = eval ( txt )
+            return d["dbpath"]
 
 if __name__ == "__main__":
     import argparse
@@ -502,7 +511,11 @@ if __name__ == "__main__":
     argparser.add_argument ( '-d', '--dictfile',
             help='input database dict file ["signal_database.dict"]',
             type=str, default="signal_database.dict" )
+    argparser.add_argument ( '--dbpath',
+            help='path to database, if none then read from run.dict [none]',
+            type=str, default=None )
     ## 310.dict is also a good default, for the actual observations
     args = argparser.parse_args()
     ini = Initialiser( "ini", args.dictfile )
-    ini.interact()
+    dbpath = ini.readDBPath ( args.dbpath )
+    ini.interact( dbpath )
