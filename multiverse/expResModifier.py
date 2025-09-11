@@ -614,7 +614,7 @@ Just filter the database:
                     return sr["pyhf"]
         return None
 
-    def addSignalToJson ( self, dataset, sigN ):
+    def addSignalToPyhf ( self, dataset, sigN ):
         """ add sigN to the json file in dataset.globalInfo.jsons """
         pyhfname = self.getPyhfname ( dataset )
         # print ( f"@@XX pyhfname {pyhfname} {dataset}" )
@@ -683,7 +683,7 @@ Just filter the database:
         dataset.dataInfo.trueBG = orig ## keep track of true bg
         dataset.dataInfo.observedN = orig + sigN
         if hasattr ( dataset.globalInfo, "jsons" ):
-            self.addSignalToJson ( dataset, sigN )
+            self.addSignalToPyhf ( dataset, sigN )
 
         D["newObs"]=dataset.dataInfo.observedN
         exp = dataset.dataInfo.expectedBG
