@@ -27,7 +27,7 @@ def signal_handler(sig, frame):
         print("[locker] Old handler ignored SIGINT, continuing.")
     else:
         # Call previous custom handler
-        old_handler(signum, frame)
+        old_handler(sig, frame)
 
 signal.signal(signal.SIGINT, signal_handler)
 
