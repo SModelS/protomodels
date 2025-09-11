@@ -16,6 +16,8 @@ from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 
+LSP = ProtoModel.LSP
+
 namer = SParticleNames ( susy = False )
 
 def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
@@ -41,10 +43,12 @@ def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
     dict2 = eval(txt)
     import copy
     ret = copy.deepcopy(dict1)
+    lsp1 = dict1["masses"][LSP]
+    lsp2 = dict2["masses"][LSP]
     for pid,m in dict2["masses"].items():
         if not pid in ret["masses"]:
             # ok, we just copy <pid> from dict2
-            ret["masses"][pid]=m
+            ret["masses"][pid]=m-lsp2+lsp1
             ret["decays"][pid]=dict2["decays"][pid]
             for pidpair,ssms in dict2["ssmultipliers"].items():
                 if pid in pidpair or -pid in pidpair:
@@ -95,7 +99,6 @@ def mergeNModels ( models : List[Dict], add_timestamp : bool = True ) \
         """ for the other particles we average over the distance to
         the LSP """
         masses=[]
-        LSP = ProtoModel.LSP
         if pid == LSP:
             return computeAverageMassesForLSP ( pid, models )
         lspmasses = []
@@ -472,7 +475,7 @@ class Initialiser ( LoggerBase ):
                 massRanges = copy.deepcopy ( self.massRanges[pid] )
                 # print ( f"orig massranges {massRanges}" )
                 if lspmass > massRanges[0]:
-                    massRanges[0] = lspmass
+                    massRanges[0] = lspmass + .5 # at least .5 gev gap
                 if offshell:
                     massRanges[1] = float ( massRanges[0]+massgap )
                 if onshell:
