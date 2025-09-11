@@ -152,15 +152,20 @@ class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
 
-    def __init__ ( self, walkerid : Union[str,int] = 0, dictfile : str = "signal_database.dict" ):
+    def __init__ ( self, walkerid : Union[str,int] = 0, 
+            dictfile : str = "signal_database.dict",
+            allowN1N1Prod : bool = True ):
         """ constructor.
 
+        :param walkerid: the walkerid we run this under
         :param dictfile: path to the database dict file we will base this on.
         dictfile is usally sth like signal_database.dict, *_database.dict, <dbver>.dict.
+        :param allowN1N1Prod: do we allow N1 N1 production?
         """
         super ( Initialiser, self ).__init__ ( "ini" )
         dictfile = os.path.expanduser ( dictfile )
         self.dictfile = dictfile
+        self.allowN1N1Prod = allowN1N1Prod
         from multiverse.expResModifier import readDictFile
         d = readDictFile ( dictfile )
         self.tempslha = "/dev/shm/temp.slha"
@@ -183,10 +188,13 @@ class Initialiser ( LoggerBase ):
         self.massRanges = { 1000022: [ 50, 500 ] } # N1
         self.massRanges[1000023] = [60, 800 ] # N2
         self.massRanges[1000024] = [60, 800 ] # C1
-        self.massRanges[1000005] = [60, 1200 ] # ~b
-        self.massRanges[2000005] = [300, 1200 ] # ~b
-        self.massRanges[1000006] = [100, 1400 ] # ~t
-        self.massRanges[1000021] = [1000, 3000 ] # ~t
+        self.massRanges[1000005] = [60, 1500 ] # ~b1
+        self.massRanges[2000005] = [300, 1500 ] # ~b2
+        self.massRanges[1000006] = [100, 1800 ] # ~t
+        self.massRanges[1000021] = [500, 3500 ] # ~g
+        self.massRanges[1000011] = [100, 2000 ] # ~e
+        self.massRanges[1000013] = [100, 2000 ] # ~mu
+        self.massRanges[1000015] = [100, 2000 ] # ~tau
         squarkrange = [ 200, 1800 ]
         #squarks = [ 1000001, 2000001, 1000002, 2000002,
         #           1000003, 2000003, 1000004, 2000004 ]
@@ -300,12 +308,18 @@ class Initialiser ( LoggerBase ):
             f.close()
         tar.close()
         r = pyslha.readSLHAFile(self.tempslha)
-        xsecs = r.xsections
-        ssmpids = set()
-        for k,v in xsecs.items():
-            pids = tuple ( filter(lambda x: x not in [ 2212 ], k) )
-            ssmpids.add ( pids )
-        self.ssmsForTxnames[txname]=ssmpids
+        try:
+            xsecs = r.xsections
+            ssmpids = set()
+            ignore_pids = self.ignore_pids + [ -x for x in self.ignore_pids ] + [ 2212]
+            for k,v in xsecs.items():
+                # print ( "k=", k, "  v=", v, "type v", type(v) )
+                pids = tuple ( filter(lambda x: x not in ignore_pids, k) )
+                # print ( "pids", pids )
+                ssmpids.add ( pids )
+            self.ssmsForTxnames[txname]=ssmpids
+        except Exception as e:
+            self.error ( "caught {e}: will skip for now" )
 
     def getTxParamsFromTemplates ( self ):
         """ get particle ids from template files in 
@@ -410,7 +424,7 @@ class Initialiser ( LoggerBase ):
         pid = ProtoModel.LSP
         lspmass = float(np.random.uniform ( *self.massRanges[pid] ))
         masses[pid]=lspmass
-        self.pprint ( f"setting mass of {namer.asciiName(pid)} to {lspmass:.1f}" )
+        self.pprint ( f"setting mass of LSP/{namer.asciiName(pid)} to {lspmass:.1f} -- I chose from [{self.massRanges[pid][0]:.1f},{self.massRanges[pid][1]:.1f}]" )
         #leftsquarks = [ 1000001, 1000002, 1000003, 1000004 ]
         leftsquarks = [ 1000001 ]
         #rightsquarks = [ 2000001, 2000002, 2000003, 2000004 ]
@@ -465,11 +479,18 @@ class Initialiser ( LoggerBase ):
                 ## for C1 and N2: with a certain change we set them to the same
                 ## value
                 masses[pid]=mass
-                self.pprint ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f}" )
+                self.pprint ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f} -- I chose from [{self.massRanges[pid][0]:.1f},{self.massRanges[pid][1]:.1f}]" )
                 apid = self.tiePids ( pid, pids )
                 if apid != None:
                     self.pprint ( f"setting mass of {namer.asciiName(apid)} to {mass:.1f}" )
                     masses[apid]=mass
+        lspmass = masses[ProtoModel.LSP]
+        for pid,mass in masses.items():
+            if pid == ProtoModel.LSP:
+                continue
+            if mass < lspmass:
+                masses[ProtoModel.LSP]=mass
+                masses[pid]=lspmass
         return masses
 
     def getAllowedParticles ( self, constraints ):
@@ -477,7 +498,8 @@ class Initialiser ( LoggerBase ):
         test_particles = { "W(": (24,), "Z(": (23,), "e": (11,), 
             "mu": (13,), "tau": (15,), "l": (11,13), "L": (11,13,15), 
             "W+(": ( 24,), "W-(": ( 24, ), "t(": (6,), "t+(": (6,),
-            "t-(": (6,), "b": ( 5, ), "jet": ( 1,4 ), "q": ( 1,4 ) }
+            "t-(": (6,), "b": ( 5, ), "jet": ( 1,4 ), "q": ( 1,4 ),
+            "nu": (12,) }
         for constraint in constraints:
             for particle,pids in test_particles.items():
                 if particle in constraint:
@@ -490,6 +512,7 @@ class Initialiser ( LoggerBase ):
 
         :returns: true if pids are in the list
         """
+        # print ( f"@@X01checking pids {pids} against {allowed_particles}" )
         for pid in pids:
             if abs(pid) > 1000000: # throw out all BSM particles
                 continue
@@ -562,7 +585,12 @@ class Initialiser ( LoggerBase ):
         if not txname in self.ssmsForTxnames:
             return ssms
         for pids in self.ssmsForTxnames[txname]:
-            ssms[pids]=1.
+            if len(pids)<2:
+                ## we currently ignore
+                continue
+            # ssm = 1.
+            ssm = np.exp ( scipy.stats.norm.rvs() )
+            ssms[pids]= float ( ssm )
         return ssms
 
     def getRandomSubmodelForTxname ( self, txname : str, result : dict ) -> Dict:
@@ -607,6 +635,9 @@ class Initialiser ( LoggerBase ):
             submodels.append ( submodel )
         self.submodels = submodels
         model = mergeNModels ( submodels )
+        if self.allowN1N1Prod:
+            ssm = float ( np.exp ( scipy.stats.norm.rvs() ) )
+            model["ssmultipliers"][(1000022,1000022)]=ssm
         self.log ( f"initialiser.propose proposes {model}" )
         return model
 
