@@ -62,7 +62,7 @@ class Hiscores ( LoggerBase ):
             d = py_dumps ( obj, level = 1 )
             d = " "*4 + d
             ds.append ( d )
-        from ptools.locker import lock, unlock
+        from base.locker import lock, unlock
         lock ( filename )
         with open ( filename, "wt" ) as f:
             f.write("[\n")
