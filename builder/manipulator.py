@@ -1047,7 +1047,11 @@ class Manipulator ( LoggerBase ):
         prob_12, prob_21 = self.z_model(self.M, self.propose_model)
 
         ## cap TL here or else you freeze in particle content for injected signals
-        TL = self.M.TL if self.M.TL < 36 else 36
+        TL = self.M.TL
+        if TL > 49:
+            self.highlight("warning", f"TL {TL}>49. we cap at 49 for computing the probability of the proposal!" )
+            TL = 49
+        ### FIXME add warning if this upper limit gets triggered!
 
         if TL > 0.0: prob = min(1.0, prob_12/np.sqrt(TL))
         else: prob = min(1.0, prob_12)
@@ -2342,7 +2346,7 @@ class Manipulator ( LoggerBase ):
         return xsecs
 
     def printXSecs ( self, fbmin=.001*fb, useParticleNames : bool = False ):
-        """ print the cross sections in a human-readable way 
+        """ print the cross sections in a human-readable way
         :param useParticleNames: if true, use names for particles not pids
         """
         xsecs = self.simplifyXSecs( fbmin )
