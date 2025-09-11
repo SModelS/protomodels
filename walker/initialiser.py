@@ -16,6 +16,8 @@ from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 
+LSP = ProtoModel.LSP
+
 namer = SParticleNames ( susy = False )
 
 def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
@@ -41,10 +43,12 @@ def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
     dict2 = eval(txt)
     import copy
     ret = copy.deepcopy(dict1)
+    lsp1 = dict1["masses"][LSP]
+    lsp2 = dict2["masses"][LSP]
     for pid,m in dict2["masses"].items():
         if not pid in ret["masses"]:
             # ok, we just copy <pid> from dict2
-            ret["masses"][pid]=m
+            ret["masses"][pid]=m-lsp2+lsp1
             ret["decays"][pid]=dict2["decays"][pid]
             for pidpair,ssms in dict2["ssmultipliers"].items():
                 if pid in pidpair or -pid in pidpair:
@@ -95,7 +99,6 @@ def mergeNModels ( models : List[Dict], add_timestamp : bool = True ) \
         """ for the other particles we average over the distance to
         the LSP """
         masses=[]
-        LSP = ProtoModel.LSP
         if pid == LSP:
             return computeAverageMassesForLSP ( pid, models )
         lspmasses = []
@@ -152,15 +155,20 @@ class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
 
-    def __init__ ( self, walkerid : Union[str,int] = 0, dictfile : str = "signal_database.dict" ):
+    def __init__ ( self, walkerid : Union[str,int] = 0,
+            dictfile : str = "signal_database.dict",
+            allowN1N1Prod : bool = True ):
         """ constructor.
 
+        :param walkerid: the walkerid we run this under
         :param dictfile: path to the database dict file we will base this on.
         dictfile is usally sth like signal_database.dict, *_database.dict, <dbver>.dict.
+        :param allowN1N1Prod: do we allow N1 N1 production?
         """
         super ( Initialiser, self ).__init__ ( "ini" )
         dictfile = os.path.expanduser ( dictfile )
         self.dictfile = dictfile
+        self.allowN1N1Prod = allowN1N1Prod
         from multiverse.expResModifier import readDictFile
         d = readDictFile ( dictfile )
         self.tempslha = "/dev/shm/temp.slha"
@@ -171,22 +179,25 @@ class Initialiser ( LoggerBase ):
         self.pmax = 0.25 # disregard all results above this
         self.computePDict()
         self.setMassRanges()
-        self.ignore_pids = [ 1000002, 1000003, 1000004, 2000001, 
+        self.ignore_pids = [ 1000002, 1000003, 1000004, 2000001,
                              2000002, 2000003, 2000004 ]
         re = self.readInitialData()
         if not re:
             self.getTxParamsFromTemplates()
 
     def setMassRanges ( self ):
-        """ set the mass ranges to draw from. for now set by hand. 
+        """ set the mass ranges to draw from. for now set by hand.
         """
         self.massRanges = { 1000022: [ 50, 500 ] } # N1
         self.massRanges[1000023] = [60, 800 ] # N2
         self.massRanges[1000024] = [60, 800 ] # C1
-        self.massRanges[1000005] = [60, 1200 ] # ~b
-        self.massRanges[2000005] = [300, 1200 ] # ~b
-        self.massRanges[1000006] = [100, 1400 ] # ~t
-        self.massRanges[1000021] = [1000, 3000 ] # ~t
+        self.massRanges[1000005] = [60, 1500 ] # ~b1
+        self.massRanges[2000005] = [300, 1500 ] # ~b2
+        self.massRanges[1000006] = [100, 1800 ] # ~t
+        self.massRanges[1000021] = [500, 3500 ] # ~g
+        self.massRanges[1000011] = [100, 2000 ] # ~e
+        self.massRanges[1000013] = [100, 2000 ] # ~mu
+        self.massRanges[1000015] = [100, 2000 ] # ~tau
         squarkrange = [ 200, 1800 ]
         #squarks = [ 1000001, 2000001, 1000002, 2000002,
         #           1000003, 2000003, 1000004, 2000004 ]
@@ -256,20 +267,23 @@ class Initialiser ( LoggerBase ):
         self.getDefaultSSMs ( filename )
 
         if True:
+            from base.locker import lock, unlock
+            lock ( self.cachefile )
             with open ( self.cachefile, "wt" ) as f:
                 f.write ( f"{self.pidsForTxnames}\n" )
                 f.write ( f"{self.decaysForTxnames}\n" )
                 f.write ( f"{self.ssmsForTxnames}\n" )
                 f.close()
+            unlock ( self.cachefile )
 
     def readInitialData ( self ) -> bool:
-        """ read in all the data (pids,decays,ssms) from the slha files. 
+        """ read in all the data (pids,decays,ssms) from the slha files.
         :returns: False, if no cache file found.
         """
         if not os.path.exists ( self.cachefile ):
             self.error ( f"did not find {self.cachefile}" )
             return False
-        self.pprint ( f"reading in all initial data from {self.cachefile}" )
+        self.log ( f"reading in all initial data from {self.cachefile}" )
         with open ( self.cachefile, "rt" ) as f:
             lines = f.readlines()
             f.close()
@@ -289,26 +303,32 @@ class Initialiser ( LoggerBase ):
         if not os.path.exists ( tarball ):
             self.debug ( f"cannot find {tarball}, cannot get default productions." )
             return
-        self.pprint ( f"get first file in {tarball}" )
+        self.log ( f"get first file in {tarball}" )
         import tarfile
         tar = tarfile.open ( tarball, "r:gz" )
         files = tar.members
         fobj = tar.extractfile ( files[0].name )
-        txt = fobj.read() 
+        txt = fobj.read()
         with open ( self.tempslha, "wt" ) as f:
             f.write ( txt.decode("ascii") )
             f.close()
         tar.close()
         r = pyslha.readSLHAFile(self.tempslha)
-        xsecs = r.xsections
-        ssmpids = set()
-        for k,v in xsecs.items():
-            pids = tuple ( filter(lambda x: x not in [ 2212 ], k) )
-            ssmpids.add ( pids )
-        self.ssmsForTxnames[txname]=ssmpids
+        try:
+            xsecs = r.xsections
+            ssmpids = set()
+            ignore_pids = self.ignore_pids + [ -x for x in self.ignore_pids ] + [ 2212]
+            for k,v in xsecs.items():
+                # print ( "k=", k, "  v=", v, "type v", type(v) )
+                pids = tuple ( filter(lambda x: x not in ignore_pids, k) )
+                # print ( "pids", pids )
+                ssmpids.add ( pids )
+            self.ssmsForTxnames[txname]=ssmpids
+        except Exception as e:
+            self.error ( "caught {e}: will skip for now" )
 
     def getTxParamsFromTemplates ( self ):
-        """ get particle ids from template files in 
+        """ get particle ids from template files in
         smodels-utils/slha/templates/ """
         pathname = "../../smodels-utils/slha/templates/"
         altpathname = "~/git/smodels-utils/slha/templates/"
@@ -325,7 +345,7 @@ class Initialiser ( LoggerBase ):
             self.getTxParamsFor ( f )
 
     def computePDict ( self ):
-        """ compute the probabilities with which we choose a result 
+        """ compute the probabilities with which we choose a result
         """
         prels = {}
         ptot = 0.
@@ -358,16 +378,16 @@ class Initialiser ( LoggerBase ):
         self.probkeys = probkeys
 
     def randomlyChooseOneResult ( self ) -> Tuple[str,Dict]:
-        """ randomly choose one result from self.probs 
+        """ randomly choose one result from self.probs
 
         :returns: tuple(txname, result-dictionary)
-        result-dictionary is the whole result dictionary of the excess we are 
+        result-dictionary is the whole result dictionary of the excess we are
         exploiting
         """
         txn = "TRV1"
-        while txn in [ "TRV1", "TRS1" ]: 
+        while txn in [ "TRV1", "TRS1" ]:
             # dont yet know how to handle these
-            choice = np.random.choice(list(self.probs.values()), 
+            choice = np.random.choice(list(self.probs.values()),
                     1, p=list(self.probs.keys()) )
             result = choice[0]
             txns = result["txns"] # .split(",")
@@ -377,14 +397,14 @@ class Initialiser ( LoggerBase ):
             txn = txns
             if type(txn) in [ list, tuple ]:
                 txn  = str(np.random.choice ( txns ))
-        self.pprint ( f"choosing random txn from {result['id']}: {txn}" )
+        self.log ( f"choosing random txn from {result['id']}: {txn}" )
         return txn, result
 
     def tiePids ( self, pid : int, pids : List[int] ) -> Union[None,int]:
         """ determine if we tie this pid to another pid, meaning
         we set the mass of another pid to the value of this pid.
         :param pid: check for this pid
-        :param pids: these are all the pids that are there. if the 
+        :param pids: these are all the pids that are there. if the
         alternative pid is not in pids, dont tie
 
         :returns: None if we dont tie pids, pid of other particle if yes
@@ -404,13 +424,13 @@ class Initialiser ( LoggerBase ):
 
     def getRandomMassesForTxname ( self, txname : str ) -> Dict:
         """ sample random mass values for the given txname """
-        pidsdict = copy.deepcopy ( self.pidsForTxnames[txname] )            
+        pidsdict = copy.deepcopy ( self.pidsForTxnames[txname] )
         masses = {}
         # masses[ProtoModel.LSP]=self.lspmass
         pid = ProtoModel.LSP
         lspmass = float(np.random.uniform ( *self.massRanges[pid] ))
         masses[pid]=lspmass
-        self.pprint ( f"setting mass of {namer.asciiName(pid)} to {lspmass:.1f}" )
+        self.log ( f"setting mass of LSP/{namer.asciiName(pid)} to {lspmass:.1f} -- I chose from [{self.massRanges[pid][0]:.1f},{self.massRanges[pid][1]:.1f}]" )
         #leftsquarks = [ 1000001, 1000002, 1000003, 1000004 ]
         leftsquarks = [ 1000001 ]
         #rightsquarks = [ 2000001, 2000002, 2000003, 2000004 ]
@@ -440,7 +460,7 @@ class Initialiser ( LoggerBase ):
                     if rm == mylightsquark:
                         continue
                     if not hasWarned:
-                        self.pprint ( f"there are many light quark-partners, will keep only {namer.asciiName(mylightsquark)}" )
+                        self.log ( f"there are many light quark-partners, will keep only {namer.asciiName(mylightsquark)}" )
                         hasWarned =True
                     if rm in pids:
                         pids.remove(rm)
@@ -455,7 +475,7 @@ class Initialiser ( LoggerBase ):
                 massRanges = copy.deepcopy ( self.massRanges[pid] )
                 # print ( f"orig massranges {massRanges}" )
                 if lspmass > massRanges[0]:
-                    massRanges[0] = lspmass
+                    massRanges[0] = lspmass + .5 # at least .5 gev gap
                 if offshell:
                     massRanges[1] = float ( massRanges[0]+massgap )
                 if onshell:
@@ -465,19 +485,27 @@ class Initialiser ( LoggerBase ):
                 ## for C1 and N2: with a certain change we set them to the same
                 ## value
                 masses[pid]=mass
-                self.pprint ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f}" )
+                self.log ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f} -- I chose from [{self.massRanges[pid][0]:.1f},{self.massRanges[pid][1]:.1f}]" )
                 apid = self.tiePids ( pid, pids )
                 if apid != None:
-                    self.pprint ( f"setting mass of {namer.asciiName(apid)} to {mass:.1f}" )
+                    self.log ( f"setting mass of {namer.asciiName(apid)} to {mass:.1f}" )
                     masses[apid]=mass
+        lspmass = masses[ProtoModel.LSP]
+        for pid,mass in masses.items():
+            if pid == ProtoModel.LSP:
+                continue
+            if mass < lspmass:
+                masses[ProtoModel.LSP]=mass
+                masses[pid]=lspmass
         return masses
 
     def getAllowedParticles ( self, constraints ):
         allowed_particles = set()
-        test_particles = { "W(": (24,), "Z(": (23,), "e": (11,), 
-            "mu": (13,), "tau": (15,), "l": (11,13), "L": (11,13,15), 
+        test_particles = { "W(": (24,), "Z(": (23,), "e": (11,),
+            "mu": (13,), "tau": (15,), "l": (11,13), "L": (11,13,15),
             "W+(": ( 24,), "W-(": ( 24, ), "t(": (6,), "t+(": (6,),
-            "t-(": (6,), "b": ( 5, ), "jet": ( 1,4 ), "q": ( 1,4 ) }
+            "t-(": (6,), "b": ( 5, ), "jet": ( 1,4 ), "q": ( 1,4 ),
+            "nu": (12,) }
         for constraint in constraints:
             for particle,pids in test_particles.items():
                 if particle in constraint:
@@ -490,6 +518,7 @@ class Initialiser ( LoggerBase ):
 
         :returns: true if pids are in the list
         """
+        # print ( f"@@X01checking pids {pids} against {allowed_particles}" )
         for pid in pids:
             if abs(pid) > 1000000: # throw out all BSM particles
                 continue
@@ -505,7 +534,7 @@ class Initialiser ( LoggerBase ):
         see being open, for multiple particles """
         all_channels = self.decaysForTxnames[txname]
         allowed_particles = self.getAllowedParticles ( constraints )
-            
+
         good_channels = {}
         for mother,decays in all_channels.items():
             good_decays = decays
@@ -516,20 +545,20 @@ class Initialiser ( LoggerBase ):
                         good_decays.add ( pids )
             if len(good_decays)>0:
                 good_channels[mother]=good_decays
-        self.pprint ( f"for {txname}, {constraints}" )
-        self.pprint ( f"we started with {all_channels}" )
-        self.pprint ( f"we selected {good_channels}" )
+        self.log ( f"for {txname}, {constraints}" )
+        self.log ( f"we started with {all_channels}" )
+        self.log ( f"we selected {good_channels}" )
         return good_channels
 
     def getDecaysForTxname ( self, txname : str, result : Dict ) -> Dict:
         """ get some random decays starting points
-        :param result: the whole result dictionary of the excess we are 
+        :param result: the whole result dictionary of the excess we are
         """
         if not txname in self.decaysForTxnames:
             self.error ( f"we dont have any decays??" )
             sys.exit()
         decays = { ProtoModel.LSP: {} }
-        
+
         if not "constraints" in result:
             print ( f"@@22 no constraint:  {result}" )
         constraints = result["constraints"]
@@ -551,8 +580,8 @@ class Initialiser ( LoggerBase ):
                 nbr_tot += nbr
             for keys, nbr in decays[mother].items():
                 decays[mother][keys]= nbr / nbr_tot
-        self.pprint ( f"decays for {txname}: {decays}" )
-        # self.pprint ( f"constraints were {result['constraints']}" )
+        self.log ( f"decays for {txname}: {decays}" )
+        # self.log ( f"constraints were {result['constraints']}" )
         return decays
 
     def getSSMsForTxname ( self, txname : str ) -> Dict:
@@ -562,17 +591,22 @@ class Initialiser ( LoggerBase ):
         if not txname in self.ssmsForTxnames:
             return ssms
         for pids in self.ssmsForTxnames[txname]:
-            ssms[pids]=1.
+            if len(pids)<2:
+                ## we currently ignore
+                continue
+            # ssm = 1.
+            ssm = np.exp ( scipy.stats.norm.rvs() )
+            ssms[pids]= float ( ssm )
         return ssms
 
     def getRandomSubmodelForTxname ( self, txname : str, result : dict ) -> Dict:
-        """ given a txname, create a random submodel. 
+        """ given a txname, create a random submodel.
         :param txname: txname for which to create submodel
-        :param result: the whole result dictionary of the excess we are 
+        :param result: the whole result dictionary of the excess we are
         exploiting
         """
         if not txname in self.pidsForTxnames:
-            self.pprint ( f"we dont seem to have pids for {txname}" )
+            self.log ( f"we dont seem to have pids for {txname}" )
             return None
         masses = self.getRandomMassesForTxname ( txname )
         decays = self.getDecaysForTxname ( txname, result )
@@ -588,7 +622,7 @@ class Initialiser ( LoggerBase ):
         """
         ## choose a random txname
         txn, result = self.randomlyChooseOneResult()
-        self.pprint ( f"creating random submodel for {txn}" )
+        self.log ( f"creating random submodel for {txn}" )
         submodel = self.getRandomSubmodelForTxname ( txn, result )
         return submodel
 
@@ -598,15 +632,18 @@ class Initialiser ( LoggerBase ):
         # self.getRandomMassForLSP()
         submodels = []
         nmodels = np.random.choice ( [1,2,3] )
-        self.pprint ( f"proposed model will consist of {nmodels} submodels." )
+        self.log ( f"proposed model will consist of {nmodels} submodels." )
         for i in range(nmodels):
             submodel = self.createRandomSubmodel()
             if submodel == None:
-                self.error ( f"got none as random submodel" )
+                self.warn ( f"got none as random submodel" )
                 continue
             submodels.append ( submodel )
         self.submodels = submodels
         model = mergeNModels ( submodels )
+        if self.allowN1N1Prod and model is not None:
+            ssm = float ( np.exp ( scipy.stats.norm.rvs() ) )
+            model["ssmultipliers"][(1000022,1000022)]=ssm
         self.log ( f"initialiser.propose proposes {model}" )
         return model
 
