@@ -294,7 +294,7 @@ class Critic ( LoggerBase ):
 
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
-        allowed_by_ul_critic, n_sensitive = self.ul_critic(protomodel, predictions)
+        allowed_by_ul_critic, n_sensitive, n_excluding = self.ul_critic(protomodel, predictions)
         if n_sensitive: num_preds = n_sensitive
         # Extract the relevant prediction information and store in the protomodel:
         self.updateModelPredictionsWithULPreds(protomodel, predictions, 
@@ -305,7 +305,7 @@ class Critic ( LoggerBase ):
                 self.info( f"Keeping {protomodel.currentSLHA}, as requested" )
             else:
                 protomodel.delCurrentSLHA()
-            return False, "failed UL-based critic"
+            return False, "failed UL-based critic ({n_excluding}/{n_sensitive})"
 
         self.info("Model allowed by UL-based critic. Starting llhd-based critic.")
 
@@ -334,7 +334,7 @@ class Critic ( LoggerBase ):
             self.log(f"Model passed llhd-based critic with critic robs = {robsComb}.")
             return True, "passed both critics"
         self.info(f"Model failed llhd-based critic with critic robs = {robsComb}.")
-        return False, f"failed llhd-based critic (robs={robsComb})"
+        return False, f"failed llhd-based critic (robs={robsComb:.3f}, rexp={rexpComb:.3f})"
 
 
     def merge_preds(self, pred_list_1, pred_list_2):
@@ -371,6 +371,10 @@ class Critic ( LoggerBase ):
 
         from scipy.stats import binom
 
+        # n_sensitive: number of results that are in principle sensitive
+        # (i.e. rexp < sensitivy_threshold)
+        # n_excluding: number of results that do exclude the model
+        # (ie robs > r_threshold)
         n_sensitive, n_excluding = 0, 0
 
         for pred in predictions:
@@ -391,13 +395,14 @@ class Critic ( LoggerBase ):
                 n_excluding += 1
 
         max_allowed = 0
-        while binom.cdf(max_allowed,n_sensitive,0.05) <= 0.66:  #rewrite as max_allowed = binom.ppf(0.66, n_sensitive, 0.05)?
+        # rewrite as max_allowed = binom.ppf(0.66, n_sensitive, 0.05)?
+        while binom.cdf(max_allowed,n_sensitive,0.05) <= 0.66:
             max_allowed += 1
         
         protomodel.ul_critic = {'n_sen': n_sensitive, 'n_excl': n_excluding, 'max_all': max_allowed, 'passes': max_allowed >= n_excluding}
 
         self.log(f"UL-based critic: n_sen={n_sensitive}, n_excl={n_excluding}, max_all={max_allowed} => passes critic: {max_allowed >= n_excluding}")
-        return max_allowed >= n_excluding, n_sensitive
+        return max_allowed >= n_excluding, n_sensitive, n_excluding
 
 
     def llhd_critic(self, predictions, cut : float =0, 
