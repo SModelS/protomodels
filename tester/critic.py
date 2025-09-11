@@ -283,6 +283,10 @@ class Critic ( LoggerBase ):
         :returns: Tuple[bool, Text]: bool is False, if the critic failed, true if passed
         Text is explanation.
         """
+        if abs(protomodel.muhat-1.0)>1e-4:
+            # rescale signals by muhat, set muhat to 1.0
+            from builder.manipulator import Manipulator
+            Manipulator ( protomodel ).rescaleSignalBy ( )
         # Create SLHA file (for running SModelS)
         slhafile = protomodel.createSLHAFile()
         self.protomodel = protomodel
@@ -481,4 +485,5 @@ class Critic ( LoggerBase ):
             self.highlight("warning","The computation of the observed r-value of the most sensitive combination gave None.")
             return False, best_comb, None, None
 
-        return r < 1, best_comb, r, rexp    #change r threshold?
+        # change r threshold?
+        return r < 1.2 and r/rexp < 1, best_comb, r, rexp

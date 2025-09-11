@@ -617,7 +617,6 @@ Just filter the database:
     def addSignalToPyhf ( self, dataset, sigN ):
         """ add sigN to the json file in dataset.globalInfo.jsons """
         pyhfname = self.getPyhfname ( dataset )
-        # print ( f"@@XX pyhfname {pyhfname} {dataset}" )
         if pyhfname == None:
             print ( f"ERROR no pyhfname!!!!" )
             import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
@@ -1004,7 +1003,7 @@ Just filter the database:
         model = Model ( BSMList, SMList )
         model.updateParticles ( inputFile=self.protomodel.currentSLHA )
         mingap=10*GeV
-        sigmacut = 0.02*fb
+        sigmacut = 0.*fb
         self.topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap )
 
     def addSignalsSingleProc ( self, listOfExpRes : list ) -> list:
