@@ -180,7 +180,9 @@ class Initialiser ( LoggerBase ):
         self.computePDict()
         self.setMassRanges()
         self.ignore_pids = [ 1000002, 1000003, 1000004, 2000001,
-                             2000002, 2000003, 2000004 ]
+                             2000002, 2000003, 2000004, 2000011,
+                             2000013, 20000015, 1000014, 1000016, 
+                             2000012, 20000014, 2000016 ]
         re = self.readInitialData()
         if not re:
             self.getTxParamsFromTemplates()
@@ -196,6 +198,7 @@ class Initialiser ( LoggerBase ):
         self.massRanges[1000006] = [100, 1800 ] # ~t
         self.massRanges[1000021] = [500, 3500 ] # ~g
         self.massRanges[1000011] = [100, 2000 ] # ~e
+        self.massRanges[1000012] = [100, 2000 ] # ~nu_e
         self.massRanges[1000013] = [100, 2000 ] # ~mu
         self.massRanges[1000015] = [100, 2000 ] # ~tau
         squarkrange = [ 200, 1800 ]
@@ -469,8 +472,9 @@ class Initialiser ( LoggerBase ):
                 if pid == ProtoModel.LSP:
                     continue
                 if not pid in self.massRanges:
-                    self.error ( f"we dont have mass ranges for pid={pid}({namer.asciiName(pid)})" )
-                    sys.exit()
+                    self.error ( f"we dont have mass ranges for pid={pid}({namer.asciiName(pid)}). will skip." )
+                    continue
+                    # sys.exit()
                 mass = -1.
                 massRanges = copy.deepcopy ( self.massRanges[pid] )
                 # print ( f"orig massranges {massRanges}" )
@@ -490,6 +494,8 @@ class Initialiser ( LoggerBase ):
                 if apid != None:
                     self.log ( f"setting mass of {namer.asciiName(apid)} to {mass:.1f}" )
                     masses[apid]=mass
+
+        # make sure the LSP is the lowest
         lspmass = masses[ProtoModel.LSP]
         for pid,mass in masses.items():
             if pid == ProtoModel.LSP:
@@ -497,6 +503,13 @@ class Initialiser ( LoggerBase ):
             if mass < lspmass:
                 masses[ProtoModel.LSP]=mass
                 masses[pid]=lspmass
+
+        if 1000023  in masses and 1000024 in masses:
+            # with some probability we make them equal
+            if random.uniform(0.,1.)<.1:
+                masses[1000023] = masses[1000024]
+            if random.uniform(0.,1.)>.9:
+                masses[1000024] = masses[1000023]
         return masses
 
     def getAllowedParticles ( self, constraints ):
@@ -676,12 +689,20 @@ if __name__ == "__main__":
             description='CLI of initialiser' )
     argparser.add_argument ( '-d', '--dictfile',
             help='input database dict file ["signal_database.dict"]',
-            type=str, default="signal_database.dict" )
+            type=str, default="*_database.dict" )
     argparser.add_argument ( '--dbpath',
             help='path to database, if none then read from run.dict [none]',
             type=str, default=None )
     ## 310.dict is also a good default, for the actual observations
     args = argparser.parse_args()
+    if "*" in args.dictfile:
+        import glob
+        files = glob.glob ( args.dictfile )
+        if len(files)==1:
+            args.dictfile = files[0]
+        else:
+            print ( "dict files {args.dictfile}. specify!")
+            sys.exit(-1)
     ini = Initialiser( "ini", args.dictfile )
     dbpath = ini.readDBPath ( args.dbpath )
     ini.interact( dbpath )

@@ -286,7 +286,7 @@ class Critic ( LoggerBase ):
         if abs(protomodel.muhat-1.0)>1e-4:
             # rescale signals by muhat, set muhat to 1.0
             from builder.manipulator import Manipulator
-            Manipulator ( protomodel ).rescaleSignalBy ( )
+            Manipulator ( protomodel ).rescaleSignalBy ( None )
         # Create SLHA file (for running SModelS)
         slhafile = protomodel.createSLHAFile()
         self.protomodel = protomodel

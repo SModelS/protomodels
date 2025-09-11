@@ -163,7 +163,8 @@ class RandomWalker ( LoggerBase ):
                 logger.error ( f"use_initialiser {use_initialiser} specified, but also cheatcode {cheatcode} defined" )
                 sys.exit(-1)
             from walker.initialiser import Initialiser
-            self.initialiser  = Initialiser ( self.walkerid, self.use_initialiser )
+            self.initialiser  = Initialiser ( self.walkerid, self.use_initialiser,
+                   allowN1N1Prod = allowN1N1Prod )
             init_model = self.initialiser.propose()
             if init_model != None:
                 self.manipulator.initFromDict ( init_model )
