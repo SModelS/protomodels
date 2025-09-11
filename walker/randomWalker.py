@@ -562,6 +562,9 @@ class RandomWalker ( LoggerBase ):
         if log_llhdRatio_current >= 1.0 and log_llhdRatio_new < 1.0:
             #If current log likeihood ratio >= 1.0, but the new step has a log llhd ratio < 1.0, return to previous protomodel
             self.log(f"Previous TL: {log_llhdRatio_current} >= 1.0, New TL: {log_llhdRatio_new} < 1.0. Going back to previous model")
+            proto_dict = self.manipulator.getPmodelDict()
+            self.log(f"Protomodel: {proto_dict}")
+            self.writeToDictFile(proto_dict)
             self.manipulator.restoreModel( reportReversion=True )
             return
         #K = 2 log (L1/L0) + 2 log(prior)
