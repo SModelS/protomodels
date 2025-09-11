@@ -10,7 +10,7 @@
 
 import sys, os
 sys.path.insert(0,"../")
-from smodels.base.physicsUnits import GeV
+from smodels.base.physicsUnits import GeV, fb
 
 def analyseUL ( orig_db, new_db, analysis : str, txname : str, masses : list ):
     """ analyse this upper limit result """
@@ -58,16 +58,16 @@ def analyseCombined ( orig_db, new_db, analysis : str, slhafile : str ):
     orig_er = orig_ers[0]
     
     allPredictions = theoryPredictionsFor(orig_db, topDict, combinedResults=True)
-    print ( f"original {orig_db.databaseVersion}" )
+    print ( f"orig {orig_db.databaseVersion}" )
     for p in allPredictions:
-        print ( p.getUpperLimit() )
+        print ( f"orig ul {p.dataType()} {p.getUpperLimit().asNumber(fb):.3f} fb" )
     new_ers = new_db.getExpResults ( analysisIDs = [analysis], txnames=["all"],
                                     dataTypes=dT)
     new_er = new_ers[0]
     newPredictions = theoryPredictionsFor(new_db, topDict, combinedResults=True)
-    print ( f"new {orig_db.databaseVersion}" )
+    print ( f"new {new_db.databaseVersion}" )
     for p in newPredictions:
-        print ( p.getUpperLimit() )
+        print ( f"new ul {p.dataType()} {p.getUpperLimit().asNumber(fb):.3f} fb" )
     import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 
@@ -77,12 +77,13 @@ def checkSignal():
     # dbpath = f"{os.environ['HOME']}/git/smodels-database"  )
     dbpath = "./original.pcl"
     orig_db = Database ( dbpath )
-    print ( orig_db )
     # ./expResModifier.py -R ./ -d original.pcl -s stop1 -P model_stop.dict
     new_db = Database ( "./signal.pcl" )
     analysis = "ATLAS-SUSY-2018-05-ewk"
-    #slhafile = "TChiWZ_300_50.slha"
-    #analyseCombined ( orig_db, new_db, analysis, slhafile )
+    # slhafile = "TChiWZoff_195_150_195_150.slha"
+    slhafile = "TChiWZoff_210_172_210_172.slha"
+    analyseCombined ( orig_db, new_db, analysis, slhafile )
+    """
     analysis = "ATLAS-SUSY-2018-05"
     txname = "TChiWZ"
     masses = [[300*GeV, 100*GeV],[300*GeV, 100*GeV]]
@@ -91,8 +92,7 @@ def checkSignal():
     analyseUL ( orig_db, new_db, analysis, txname, masses )
     masses = [[1000*GeV, 400*GeV],[1000*GeV, 400*GeV]]
     analyseUL ( orig_db, new_db, analysis, txname, masses )
-
-
+    """
 
 if __name__ == "__main__":
     checkSignal()
