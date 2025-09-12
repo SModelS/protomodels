@@ -222,11 +222,11 @@ class Initialiser ( LoggerBase ):
             for ds in er.datasets:
                 obsN = ds.dataInfo.observedN
                 expBG = ds.dataInfo.expectedBG
-                if obsN < expBG: # not interesting
+                if False: # obsN < expBG: # not interesting
                     continue
                 bgErr = ds.dataInfo.bgError
                 p = computeP ( obsN, expBG, bgErr )
-                if p > 0.1:
+                if False: # p > 0.2:
                     # not interesting
                     continue
                 self.findHighestEfficienciesFor ( ds )
@@ -236,8 +236,6 @@ class Initialiser ( LoggerBase ):
             f.write ( f"{self.highestEfficiencies}\n" )
             f.close()
         unlock ( filename )
-
-        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
     def findHighestEfficienciesFor ( self, dataset ):
         """ search for highest efficiences in this dataset """
@@ -450,6 +448,35 @@ class Initialiser ( LoggerBase ):
         self.probkeys = probkeys
 
     def randomlyChooseOneResult ( self ) -> Tuple[str,Dict]:
+        """ randomly choose one result from self.probs
+
+        :returns: tuple(txname, result-dictionary)
+        result-dictionary is the whole result dictionary of the excess we are
+        exploiting
+        """
+        Id = "?"
+        while Id not in self.highestEfficiencies:
+            choice = np.random.choice(list(self.probs.values()),
+                    1, p=list(self.probs.keys()) )
+            result = choice[0]
+            Id = result["id"]
+        # txns = result["txns"] # .split(",")
+        hi_effs = self.highestEfficiencies[ Id ]
+        #tot_effs = sum(hi_effs.keys())
+        choose_pt = np.random.choice 
+
+        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        ## choose a random txname
+        ## FIXME this should be smarter:
+        ## we should choose the one
+        self.log ( f"randomly chosing among the txn {txn}" )
+        self.log ( f"FIXME make this smarter, choose by efficiency!" )
+        if type(txn) in [ list, tuple ]:
+            txn  = str(np.random.choice ( txns ))
+        self.log ( f"choosing random txn from {result['id']}: {txn}" )
+        return txn, result
+
+    def randomlyChooseOneResultOld ( self ) -> Tuple[str,Dict]:
         """ randomly choose one result from self.probs
 
         :returns: tuple(txname, result-dictionary)
