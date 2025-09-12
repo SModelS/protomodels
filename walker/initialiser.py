@@ -154,10 +154,11 @@ def mergeNModels ( models : List[Dict], add_timestamp : bool = True ) \
 class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
+    cachefile = "pids.cache"
 
     def __init__ ( self, walkerid : Union[str,int] = 0,
             dictfile : str = "signal_database.dict",
-            allowN1N1Prod : bool = True ):
+            allowN1N1Prod : bool = True, verbose : bool = False ):
         """ constructor.
 
         :param walkerid: the walkerid we run this under
@@ -166,6 +167,7 @@ class Initialiser ( LoggerBase ):
         :param allowN1N1Prod: do we allow N1 N1 production?
         """
         super ( Initialiser, self ).__init__ ( "ini" )
+        self.printLogMessages = verbose
         dictfile = os.path.expanduser ( dictfile )
         self.dictfile = dictfile
         self.allowN1N1Prod = allowN1N1Prod
@@ -173,7 +175,6 @@ class Initialiser ( LoggerBase ):
         self.log ( f"reading database dict {dictfile}" )
         d = readDictFile ( dictfile )
         self.tempslha = "/dev/shm/temp.slha"
-        self.cachefile = "pids.cache"
         self.meta = d["meta"]
         self.data = d["data"]
         # self.TLmax = 1. # disregard all results below this
@@ -334,6 +335,7 @@ class Initialiser ( LoggerBase ):
     def getTxParamsFromTemplates ( self ):
         """ get particle ids from template files in
         smodels-utils/slha/templates/ """
+        self.log ( f"recreate {self.cachefile}" )
         pathname = "../../smodels-utils/slha/templates/"
         altpathname = "~/git/smodels-utils/slha/templates/"
         altpathname = os.path.expanduser ( altpathname )
@@ -704,19 +706,26 @@ if __name__ == "__main__":
             type=str, default=None )
     argparser.add_argument ( '-v', '--verbose',
             help='verbose', action="store_true" )
+    argparser.add_argument ( '-r', '--recompute_cache',
+            help='verbose', action="store_true" )
     ## 310.dict is also a good default, for the actual observations
     args = argparser.parse_args()
+    if args.recompute_cache and os.path.exists ( Initialiser.cachefile ):
+        print ( f"[Initialiser] removing old cachefile" )
+        os.unlink ( Initialiser.cachefile )
     if "*" in args.dictfile:
         import glob
         files = glob.glob ( args.dictfile )
         if len(files)==1:
             args.dictfile = files[0]
+        elif len(files)==0:
+            print ( f"[initialiser] could not find dict files with {args.dictfile}. specify!" )
+            sys.exit(-1)
         else:
-            print ( "dict files {args.dictfile}. specify!")
+            print ( f"[initialiser] potential dict files are {files}. specify!")
             sys.exit(-1)
     allowN1N1Prod = True
-    ini = Initialiser( "ini", args.dictfile, allowN1N1Prod = allowN1N1Prod )
-    if args.verbose:
-        ini.printLogMessages = True
+    ini = Initialiser( "ini", args.dictfile, allowN1N1Prod = allowN1N1Prod,
+            verbose = args.verbose )
     dbpath = ini.readDBPath ( args.dbpath )
     ini.interact( dbpath )
