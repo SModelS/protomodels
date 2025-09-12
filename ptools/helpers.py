@@ -301,7 +301,7 @@ def computeP ( obs : float, bg : float, bgerr : float,
         n *= 5
         if n > 4000000:
             break
-    return ret
+    return float(ret)
 
 def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> float:
     """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2

@@ -20,6 +20,16 @@ LSP = ProtoModel.LSP
 
 namer = SParticleNames ( susy = False )
 
+class Top20Dict(dict):
+    """ a dictionary that only keeps the top 20 entries """
+    def __setitem__(self, key, value):
+        # insert the key-value pair
+        super().__setitem__(key, value)
+        # if we now have more than 10 entries, drop the smallest key
+        if len(self) > 10:
+            smallest_key = min(self.keys())
+            del self[smallest_key]
+
 def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
     """ merge two models, add all particles from both models.
     If a particle appears in both models, its mass will be the average
@@ -158,7 +168,8 @@ class Initialiser ( LoggerBase ):
 
     def __init__ ( self, walkerid : Union[str,int] = 0,
             dictfile : str = "signal_database.dict",
-            allowN1N1Prod : bool = True, verbose : bool = False ):
+            allowN1N1Prod : bool = True, verbose : bool = False,
+            dbpath : os.PathLike = "official" ):
         """ constructor.
 
         :param walkerid: the walkerid we run this under
@@ -170,6 +181,7 @@ class Initialiser ( LoggerBase ):
         self.printLogMessages = verbose
         dictfile = os.path.expanduser ( dictfile )
         self.dictfile = dictfile
+        self.dbpath = self.readDBPath ( dbpath )
         self.allowN1N1Prod = allowN1N1Prod
         from multiverse.expResModifier import readDictFile
         self.log ( f"reading database dict {dictfile}" )
@@ -183,11 +195,59 @@ class Initialiser ( LoggerBase ):
         self.setMassRanges()
         self.ignore_pids = [ 1000002, 1000003, 1000004, 2000001,
                              2000002, 2000003, 2000004, 2000011,
-                             2000013, 20000015, 1000014, 1000016, 
+                             2000013, 20000015, 1000014, 1000016,
                              2000012, 20000014, 2000016 ]
         re = self.readInitialData()
         if not re:
             self.getTxParamsFromTemplates()
+        self.getHighestEfficienciesFromDatabase()
+
+    def getHighestEfficienciesFromDatabase( self ):
+        """ we sift through the database, and note the points with the
+        highest efficiencies, write into a file """
+        filename = "effs.cache"
+        if os.path.exists ( filename ):
+            return
+        self.log ( f"now get the highest efficiencies for all results" )
+        self.highestEfficiencies = {}
+        from smodels.experiment.databaseObj import Database
+        from ptools.helpers import computeP
+        self.db = Database ( self.dbpath )
+        ers = self.db.getExpResults( dataTypes=["efficiencyMap"] )
+        for er in ers:
+            for ds in er.datasets:
+                obsN = ds.dataInfo.observedN
+                expBG = ds.dataInfo.expectedBG
+                if obsN < expBG: # not interesting
+                    continue
+                bgErr = ds.dataInfo.bgError
+                p = computeP ( obsN, expBG, bgErr )
+                if p > 0.1:
+                    # not interesting
+                    continue
+                self.findHighestEfficienciesFor ( ds )
+        from base.locker import lock, unlock
+        lock ( filename )
+        with open ( filename, "wt" ) as f:
+            f.write ( self.highestEfficiencies + "\n" )
+            f.close()
+        unlock ( filename )
+
+        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+
+    def findHighestEfficienciesFor ( self, dataset ):
+        """ search for highest efficiences in this dataset """
+        d = Top20Dict()
+        for txname in dataset.txnameList:
+            data = txname.txnameData
+            for pt,eff in zip(data.tri.points,data.y_values):
+                # in the mass plane
+                masses = data.inversePCAtransf(pt)
+                while eff in d: # make sure we dont overwrite
+                    eff += 1e-10
+                d[float(eff)]={ "masses": masses, "txn": txname.txname }
+        label = f"{dataset.globalInfo.id}:{dataset.getID()}"
+        self.highestEfficiencies[label]=d
 
     def setMassRanges ( self ):
         """ set the mass ranges to draw from. for now set by hand.
@@ -675,10 +735,10 @@ class Initialiser ( LoggerBase ):
         ma = Manipulator ( dct )
         return ma
 
-    def interact ( self, dbpath : os.PathLike  ):
+    def interact ( self ):
         """ interactive shell, for debugging and development """
         from tester.predictor import Predictor
-        pr = Predictor("ini", dbpath, do_srcombine = True )
+        pr = Predictor("ini", self.dbpath, do_srcombine = True )
         import IPython
         IPython.embed( colors = "neutral" )
 
@@ -726,6 +786,5 @@ if __name__ == "__main__":
             sys.exit(-1)
     allowN1N1Prod = True
     ini = Initialiser( "ini", args.dictfile, allowN1N1Prod = allowN1N1Prod,
-            verbose = args.verbose )
-    dbpath = ini.readDBPath ( args.dbpath )
-    ini.interact( dbpath )
+            verbose = args.verbose, dbpath = args.dbpath )
+    ini.interact()
