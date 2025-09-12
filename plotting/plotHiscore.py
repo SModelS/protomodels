@@ -14,6 +14,7 @@ from tester.combiner import Combiner
 from builder import protomodel
 from builder.protomodel import ProtoModel
 from smodels.base.physicsUnits import fb, TeV
+from unum import Unum
 from smodels.matching.theoryPrediction import TheoryPrediction
 from smodels.base import runtime
 from smodels_utils.helper.bibtexTools import BibtexWriter
@@ -380,20 +381,27 @@ class HiscorePlotter ( LoggerBase ):
             f.write ( f" & {oUL:.1f} fb & {eUL:.1f} fb & {S} & {particles} & {sigmapred} \\\\ \n" )
         return f"{anaId}:{dtype}"
 
-    def findXSecOfPids ( self, xsecs, pids ):
+    def findXSecOfPids ( self, xsecs : list, pids : tuple ) -> Unum:
         """ find the cross sections for pids
+
+        :param xsecs: list of all xsecs
+        :param pids: e.g. (1000022,1000022)
         :returns: xsec, as unum object
         """
+        highestOrder, orderedXsec = -1, 0.*fb
         for xsec in xsecs:
             sqrts = xsec.info.sqrts.asNumber(TeV)
             if sqrts < 10:
                 continue
             order = xsec.info.order
-            if order > 0:
+            if order <= highestOrder:
                 continue
+            #if order > 0:
+            #    continue
             if pids == xsec.pid:
-                return xsec
-        return 0.*fb
+                orderedXsec = xsec
+                highestOrder = order
+        return orderedXsec
 
     def writeTex ( self, keep_tex : bool ):
         """ write the comment about ss multipliers and particle contributions, in tex.
@@ -929,8 +937,8 @@ class HiscorePlotter ( LoggerBase ):
             for k,v in options.items():
                 if v==True:
                     soptions += f"--{k} "
-            ma = Manipulator ( self.protomodel )
-            ssms = ma.simplifySSMs()
+            #ma = Manipulator ( self.protomodel )
+            #ssms = ma.simplifySSMs()
             # soptions+=' --ssmultipliers "%s"' % ssms
             print ( f"{Fore.GREEN}../smodels-utils/smodels_utils/plotting/decayPlotter.py -f {self.protomodel.currentSLHA} -o {outfile} {soptions}{Fore.RESET}" )
         from smodels_utils.plotting import decayPlotter
