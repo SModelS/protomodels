@@ -50,7 +50,13 @@ class HiscorePlotter ( LoggerBase ):
         """
         if not wanted:
             return False
-        comment = f"automated update by plotHiscore.py to {upload}:\n    K={self.protomodel.K:.3f} TL={self.protomodel.TL:.2f} walkerid={self.protomodel.walkerid}"
+        sK = str(self.protomodel.K)
+        if self.protomodel.K is not None:
+            sK = f"{self.protomodel.K:.3f}"
+        sTL = str(self.protomodel.TL)
+        if self.protomodel.TL is not None:
+            sTL = f"{self.protomodel.TL:.2f}"
+        comment = f"automated update by plotHiscore.py to {upload}:\n    K={sK} TL={sTL} walkerid={self.protomodel.walkerid}"
         destdir = dest
         destdir = destdir.replace(upload,"")
         destdir = destdir.replace("//","")
