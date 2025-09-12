@@ -15,6 +15,7 @@ class LoggerBase:
     def __init__ ( self, walkerid : Union[str,int] = 0 ):
         """ instantiate the logger class with a walkerid """
         self.walkerid = walkerid
+        self.printLogMessages = False
         self.logdir = "logs/"
         # self.printHigherThan = "critical"
         module = str(type(self)).replace("<class '","").replace("'>","")
@@ -69,8 +70,8 @@ class LoggerBase:
             try:
                 with open( f"{self.logdir}/walker_{self.walkerid}.log", "a" ) as f:
                     f.write ( f'[{self.module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
-                if False:
-                    print ( f'[{self.module}-{msgType}] {" ".join(map(str,args))}' )
+                if self.printLogMessages:
+                    print ( f'[{self.module}-log] {" ".join(map(str,args))}' )
 
                 return
             except OSError as e:

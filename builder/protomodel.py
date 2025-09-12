@@ -332,7 +332,7 @@ class ProtoModel ( LoggerBase ):
             mdaughter = sum([allMasses[abs(p)] for p in dpid if abs(p) in allMasses])
 
             #Skip decays to heavier particles
-            if mdaughter >= self.masses[pid]:
+            if not pid in self.masses or mdaughter >= self.masses[pid]:
                 continue
 
             if not offshell and len(dpid) == 3 and pid in [1000023, 1000024]:       #turn off 3-body decays for onshell X^2_Z and X^1_W

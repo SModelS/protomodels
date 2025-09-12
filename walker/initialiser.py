@@ -170,6 +170,7 @@ class Initialiser ( LoggerBase ):
         self.dictfile = dictfile
         self.allowN1N1Prod = allowN1N1Prod
         from multiverse.expResModifier import readDictFile
+        self.log ( f"reading database dict {dictfile}" )
         d = readDictFile ( dictfile )
         self.tempslha = "/dev/shm/temp.slha"
         self.cachefile = "pids.cache"
@@ -352,6 +353,7 @@ class Initialiser ( LoggerBase ):
         """
         prels = {}
         ptot = 0.
+        self.pvalues = {}
         for anaAndSRName,stats in self.data.items():
             #if not "TL" in stats:
             #    continue
@@ -373,6 +375,7 @@ class Initialiser ( LoggerBase ):
             value["id"]=anaAndSRName
             prels[ prel ] = value
             ptot += prel
+            self.pvalues[anaAndSRName]={ "p": p }
         if len(prels)==0:
             self.error ( "computePDict: no results returned" )
         self.probs = dict( [ (k/ptot,v) for k,v in prels.items() ] )
@@ -398,6 +401,10 @@ class Initialiser ( LoggerBase ):
                 txns = txns.split(",")
             ## choose a random txname
             txn = txns
+            ## FIXME this should be smarter:
+            ## we should choose the one
+            self.log ( f"randomly chosing among the txn {txn}" )
+            self.log ( f"FIXME make this smarter, choose by efficiency!" )
             if type(txn) in [ list, tuple ]:
                 txn  = str(np.random.choice ( txns ))
         self.log ( f"choosing random txn from {result['id']}: {txn}" )
@@ -681,7 +688,9 @@ class Initialiser ( LoggerBase ):
         with open ( "run.dict", "rt" ) as f:
             txt = f.read()
             d = eval ( txt )
-            return d["dbpath"]
+            dbpath = d["dbpath"]
+            self.log ( f"extracted dbpath {dbpath} from run.dict" )
+            return dbpath
 
 if __name__ == "__main__":
     import argparse
@@ -693,6 +702,8 @@ if __name__ == "__main__":
     argparser.add_argument ( '--dbpath',
             help='path to database, if none then read from run.dict [none]',
             type=str, default=None )
+    argparser.add_argument ( '-v', '--verbose',
+            help='verbose', action="store_true" )
     ## 310.dict is also a good default, for the actual observations
     args = argparser.parse_args()
     if "*" in args.dictfile:
@@ -703,6 +714,9 @@ if __name__ == "__main__":
         else:
             print ( "dict files {args.dictfile}. specify!")
             sys.exit(-1)
-    ini = Initialiser( "ini", args.dictfile )
+    allowN1N1Prod = True
+    ini = Initialiser( "ini", args.dictfile, allowN1N1Prod = allowN1N1Prod )
+    if args.verbose:
+        ini.printLogMessages = True
     dbpath = ini.readDBPath ( args.dbpath )
     ini.interact( dbpath )
