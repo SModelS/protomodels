@@ -26,7 +26,7 @@ class Top20Dict(dict):
         # insert the key-value pair
         super().__setitem__(key, value)
         # if we now have more than 10 entries, drop the smallest key
-        if len(self) > 10:
+        if len(self) > 20:
             smallest_key = min(self.keys())
             del self[smallest_key]
 
@@ -207,6 +207,10 @@ class Initialiser ( LoggerBase ):
         highest efficiencies, write into a file """
         filename = "effs.cache"
         if os.path.exists ( filename ):
+            with open ( filename, "rt" ) as f:
+                txt = f.read()
+                self.highestEfficiencies = eval(txt)
+                f.close()
             return
         self.log ( f"now get the highest efficiencies for all results" )
         self.highestEfficiencies = {}
@@ -229,7 +233,7 @@ class Initialiser ( LoggerBase ):
         from base.locker import lock, unlock
         lock ( filename )
         with open ( filename, "wt" ) as f:
-            f.write ( self.highestEfficiencies + "\n" )
+            f.write ( f"{self.highestEfficiencies}\n" )
             f.close()
         unlock ( filename )
 
@@ -245,7 +249,7 @@ class Initialiser ( LoggerBase ):
                 masses = data.inversePCAtransf(pt)
                 while eff in d: # make sure we dont overwrite
                     eff += 1e-10
-                d[float(eff)]={ "masses": masses, "txn": txname.txname }
+                d[float(eff)]={ "masses": masses, "txn": txname.txName }
         label = f"{dataset.globalInfo.id}:{dataset.getID()}"
         self.highestEfficiencies[label]=d
 
