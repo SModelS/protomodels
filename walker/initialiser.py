@@ -486,13 +486,13 @@ class Initialiser ( LoggerBase ):
 
         :returns: result dictionary object
         """
-        Id = "?"
+        Id, result = "?", {}
         while Id not in self.highestEfficiencies:
-            choice = np.random.choice(list(self.probs.values()),
-                    1, p=list(self.probs.keys()) )
-            result = choice[0]
+            result = np.random.choice(list(self.probs.values()),
+                    p=list(self.probs.keys()) )
             Id = result["id"]
-        self.log ( f"we randomly choose {Id}" )
+        idx = list(self.probs.values()).index ( choice )
+        self.log ( f"we randomly choose {Id} (p={list(self.probs.keys())[idx]}) txns={result['txns']}" )
 
         # txns = result["txns"] # .split(",")
         hi_effs = self.highestEfficiencies[ Id ]
