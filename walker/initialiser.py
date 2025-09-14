@@ -105,19 +105,21 @@ def mergeNModels ( models : List[Dict], add_timestamp : bool = True ) \
                 masses.append ( model["masses"][pid] )
         return float ( np.mean ( masses ) )
 
-    def computeAverageMassesForPid ( pid : int, models : List[Dict] ) -> Dict:
+    def computeAverageMassesForPid ( pid : int, models : List[Dict], lspmass = None ) -> Dict:
         """ for the other particles we average over the distance to
         the LSP """
-        masses=[]
+        dm=[]
         if pid == LSP:
-            return computeAverageMassesForLSP ( pid, models )
+            return computeAverageMassesForLSP ( LSP, models )
         lspmasses = []
         for model in models:
             if pid in model["masses"]:
-                masses.append ( model["masses"][pid] - model["masses"][LSP] )
+                dm.append ( model["masses"][pid] - model["masses"][LSP] )
                 lspmasses.append ( model["masses"][LSP] )
-        avg_delta = float ( np.mean ( masses ) )
-        return float ( np.mean ( lspmasses ) ) + avg_delta
+        avg_delta = float ( np.mean ( dm ) )
+        if lspmass == None:
+            lspmass = float ( np.mean ( lspmasses ) )
+        return lspmass + avg_delta
 
     def computeAverageDecaysForPid ( pid : int, models : List[Dict] ) -> Dict:
         decays = {}
@@ -146,9 +148,14 @@ def mergeNModels ( models : List[Dict], add_timestamp : bool = True ) \
     pids = collectPids ( models )
     # next we compute average masses
     masses, decays, ssms = {}, {}, {}
+    lspmass = computeAverageMassesForLSP ( LSP, models )
+    print ( f"[mergeNModels] when merging, new lspmass: {lspmass:.1f}" )
+    masses[LSP] = lspmass
     for pid in pids:
-        mass = computeAverageMassesForPid ( pid, models )
-        masses[pid]=mass
+        if pid != LSP:
+            mass = computeAverageMassesForPid ( pid, models, lspmass )
+            print ( f"[mergeNModels] when merging mass for {pid}={mass:.1f}" )
+            masses[pid]=mass
         piddecays = computeAverageDecaysForPid ( pid, models )
         decays[pid] = piddecays
     ssms = computeAverageSSMs ( models )
@@ -157,7 +164,7 @@ def mergeNModels ( models : List[Dict], add_timestamp : bool = True ) \
     ret["ssmultipliers"]=ssms
     if add_timestamp:
         ret["timestamp"] = time.asctime()
-    print ( f"[initialiser] merged {len(models)} models into:" )
+    print ( f"[mergeNModels] we merged {len(models)} models" )
     return ret
 
 
@@ -495,7 +502,8 @@ class Initialiser ( LoggerBase ):
                     p=list(self.probs.keys()) )
             Id = result["id"]
         idx = list(self.probs.values()).index ( result )
-        self.log ( f"of {len(self.probs)} entries we randomly choose {Id} (p={list(self.probs.keys())[idx]:.2f}) txns={result['txns']}" )
+        p = list(self.probs.keys())[idx]
+        self.log ( f"of {len(self.probs)} entries we randomly choose dataset {Id} (p={p:.2f}) txns={result['txns']}" )
 
         # txns = result["txns"] # .split(",")
         hi_effs = self.highestEfficiencies[ Id ]
@@ -513,52 +521,16 @@ class Initialiser ( LoggerBase ):
             result["txn"]=txn
             masses=choose_pt["masses"] # FIXME smear them, and turn into dictionary
             result["masses"]=masses
-            self.log ( f"of {len(norm_effs)} entries for {Id} we randomly pick {txn} m={masses} (p={p:.1f})" )
+            self.log ( f"of {len(norm_effs)} entries for {Id} we randomly pick txn-masspoint {txn} m={masses} (p={p:.2f})" )
             if txn not in self.mapTxnames or self.mapTxnames[txn] is not None:
                 break
             ctr += 1
             if ctr > 10:
+                self.log ( f"couldnt escape the while-loop at initialiser.py:A" )
                 break
             # import sys, IPython; IPython.embed( colors = "neutral" )
         return result
-
-        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
-        ## choose a random txname
-        ## FIXME this should be smarter:
-        ## we should choose the one
-        # self.log ( f"randomly chosing among the txn {txn}" )
-        #self.log ( f"FIXME make this smarter, choose by efficiency!" )
-        #if type(txn) in [ list, tuple ]:
-        #    txn  = str(np.random.choice ( txns ))
-        # return txn, result
  
-    def randomlyChooseOneResultOld ( self ) -> Tuple[str,Dict]:
-        """ randomly choose one result from self.probs
-
-        :returns: tuple(txname, result-dictionary)
-        result-dictionary is the whole result dictionary of the excess we are
-        exploiting
-        """
-        txn = "TRV1"
-        while txn in [ "TRV1", "TRS1" ]:
-            # dont yet know how to handle these
-            choice = np.random.choice(list(self.probs.values()),
-                    1, p=list(self.probs.keys()) )
-            result = choice[0]
-            txns = result["txns"] # .split(",")
-            if "," in txns:
-                txns = txns.split(",")
-            ## choose a random txname
-            txn = txns
-            ## FIXME this should be smarter:
-            ## we should choose the one
-            self.log ( f"randomly chosing among the txn {txn}" )
-            self.log ( f"FIXME make this smarter, choose by efficiency!" )
-            if type(txn) in [ list, tuple ]:
-                txn  = str(np.random.choice ( txns ))
-        self.log ( f"choosing random txn from {result['id']}: {txn}" )
-        return txn, result
-
     def tiePids ( self, pid : int, pids : List[int] ) -> Union[None,int]:
         """ determine if we tie this pid to another pid, meaning
         we set the mass of another pid to the value of this pid.
