@@ -1010,7 +1010,11 @@ class HiscorePlotter ( LoggerBase ):
                 self.writeIndexHtml ( )
             if options["tex"]:
                 self.writeIndexTex( texdoc )
-        self.predictor.obtainPredictions ( m, keep_predictions = True )
+        if hasattr ( m.M, "K" ):
+            self.predictor.obtainPredictions ( m, keep_predictions = True )
+        else:
+            self.predictor.predict ( m, keep_predictions = True,
+                   force_computation_K = True )
         #cr, _ = self.critic.predict_critic ( self.protomodel )
         self.writeRawNumbersLatex ( )
         self.writeRawNumbersHtml ( )

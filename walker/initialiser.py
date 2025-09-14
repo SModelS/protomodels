@@ -247,10 +247,13 @@ class Initialiser ( LoggerBase ):
         masses as values
         """
         ret = {}
-        if not txname.txName in self.pidsForTxnames:
-            self.error ( f"txname {txname.txName} not in pidsForTxnames" )
+        txn = txname.txName
+        if txn in self.mapTxnames and self.mapTxnames[txn] is not None:
+            txn = self.mapTxnames[txn]
+        if not txn in self.pidsForTxnames:
+            self.error ( f"txname {txn} not in pidsForTxnames" )
             return ret
-        pidsD = self.pidsForTxnames[ txname.txName ]
+        pidsD = self.pidsForTxnames[ txn ]
         for idx,pids in pidsD.items():
             if len(pids)==0:
                 continue
