@@ -264,9 +264,9 @@ class Initialiser ( LoggerBase ):
         for idx,pids in pidsD.items():
             if len(pids)==0:
                 continue
-
-            pid = tuple(pids)[0] # FIXME
-            ret[pid] = masses[idx]
+            # pid = tuple(pids)[0] # FIXME
+            for pid in pids:
+                ret[pid] = masses[idx]
         return ret
 
     def findHighestEfficienciesFor ( self, dataset ):
@@ -521,7 +521,8 @@ class Initialiser ( LoggerBase ):
             result["txn"]=txn
             masses=choose_pt["masses"] # FIXME smear them, and turn into dictionary
             result["masses"]=masses
-            self.log ( f"of {len(norm_effs)} entries for {Id} we randomly pick txn-masspoint {txn} m={masses} (p={p:.2f})" )
+            sm = ", ".join ( [ f"{k}={v:.2f}" for k,v in m.items() ] )
+            self.log ( f"of {len(norm_effs)} entries for {Id} we randomly pick txn-masspoint {txn} m={sm} (p={p:.2f})" )
             if txn not in self.mapTxnames or self.mapTxnames[txn] is not None:
                 break
             ctr += 1
