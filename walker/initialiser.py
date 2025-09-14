@@ -494,8 +494,8 @@ class Initialiser ( LoggerBase ):
             result = np.random.choice(list(self.probs.values()),
                     p=list(self.probs.keys()) )
             Id = result["id"]
-        idx = list(self.probs.values()).index ( choice )
-        self.log ( f"we randomly choose {Id} (p={list(self.probs.keys())[idx]}) txns={result['txns']}" )
+        idx = list(self.probs.values()).index ( result )
+        self.log ( f"of {len(self.probs)} entries we randomly choose {Id} (p={list(self.probs.keys())[idx]:.2f}) txns={result['txns']}" )
 
         # txns = result["txns"] # .split(",")
         hi_effs = self.highestEfficiencies[ Id ]
@@ -507,11 +507,13 @@ class Initialiser ( LoggerBase ):
         ctr = 0
         while True:
             choose_pt = np.random.choice(list(norm_effs.values()),p=list(norm_effs.keys()))
+            idx = list(norm_effs.values()).index(choose_pt)
+            p = list(norm_effs.keys())[idx]
             txn = choose_pt["txn"]
             result["txn"]=txn
             masses=choose_pt["masses"] # FIXME smear them, and turn into dictionary
             result["masses"]=masses
-            self.log ( f"for {Id} we randomly pick {txn} m={masses}" )
+            self.log ( f"of {len(norm_effs)} entries for {Id} we randomly pick {txn} m={masses} (p={p:.1f})" )
             if txn not in self.mapTxnames or self.mapTxnames[txn] is not None:
                 break
             ctr += 1
