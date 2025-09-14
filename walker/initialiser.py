@@ -521,7 +521,7 @@ class Initialiser ( LoggerBase ):
             result["txn"]=txn
             masses=choose_pt["masses"] # FIXME smear them, and turn into dictionary
             result["masses"]=masses
-            sm = ", ".join ( [ f"{k}={v:.2f}" for k,v in m.items() ] )
+            sm = ", ".join ( [ f"{k}={v:.2f}" for k,v in masses.items() ] )
             self.log ( f"of {len(norm_effs)} entries for {Id} we randomly pick txn-masspoint {txn} m={sm} (p={p:.2f})" )
             if txn not in self.mapTxnames or self.mapTxnames[txn] is not None:
                 break
