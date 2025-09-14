@@ -197,16 +197,20 @@ class Initialiser ( LoggerBase ):
                              2000002, 2000003, 2000004, 2000011,
                              2000013, 20000015, 1000014, 1000016,
                              2000012, 20000014, 2000016 ]
+        self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWW",
+            "TRV1": None }
         re = self.readInitialData()
         if not re:
             self.getTxParamsFromTemplates()
         self.getHighestEfficienciesFromDatabase()
 
-    def getHighestEfficienciesFromDatabase( self ):
+    def getHighestEfficienciesFromDatabase( self, force_build : bool = False ):
         """ we sift through the database, and note the points with the
-        highest efficiencies, write into a file """
+        highest efficiencies, write into a file 
+        :param force_build: if true, then ignore cache
+        """
         filename = "effs.cache"
-        if os.path.exists ( filename ):
+        if os.path.exists ( filename ) and not force_build:
             with open ( filename, "rt" ) as f:
                 txt = f.read()
                 self.highestEfficiencies = eval(txt)
@@ -237,17 +241,43 @@ class Initialiser ( LoggerBase ):
             f.close()
         unlock ( filename )
 
+    def massVecToDict ( self, masses, txname ):
+        """ given a masses vector and the txname object,
+        translate into a dictionary with pids as keys and
+        masses as values
+        """
+        ret = {}
+        if not txname.txName in self.pidsForTxnames:
+            self.error ( f"txname {txname.txName} not in pidsForTxnames" )
+            return ret
+        pidsD = self.pidsForTxnames[ txname.txName ]
+        for idx,pids in pidsD.items():
+            if len(pids)==0:
+                continue
+
+            pid = tuple(pids)[0] # FIXME
+            ret[pid] = masses[idx]
+        return ret
+
     def findHighestEfficienciesFor ( self, dataset ):
         """ search for highest efficiences in this dataset """
         d = Top20Dict()
         for txname in dataset.txnameList:
+            txn = txname.txName
+            if txn in self.mapTxnames:
+                if self.mapTxnames[txn] is None: # like TRS1, skip 
+                    continue
+                txn =  self.mapTxnames[txn]
+            if not txn in self.pidsForTxnames: # skip this
+                self.log ( f"skipping {txn}: not in pidsForTxnames" )
+                continue # FIXME we sure?
             data = txname.txnameData
             for pt,eff in zip(data.tri.points,data.y_values):
                 # in the mass plane
-                masses = data.inversePCAtransf(pt)
+                masses = self.massVecToDict ( data.inversePCAtransf(pt), txname )
                 while eff in d: # make sure we dont overwrite
                     eff += 1e-10
-                d[float(eff)]={ "masses": masses, "txn": txname.txName }
+                d[float(eff)]={ "masses": masses, "txn": txn }
         label = f"{dataset.globalInfo.id}:{dataset.getID()}"
         self.highestEfficiencies[label]=d
 
@@ -447,12 +477,14 @@ class Initialiser ( LoggerBase ):
         probkeys.sort (reverse = True )
         self.probkeys = probkeys
 
-    def randomlyChooseOneResult ( self ) -> Tuple[str,Dict]:
+    def randomlyChooseOneResult ( self ) -> Dict:
         """ randomly choose one result from self.probs
 
         :returns: tuple(txname, result-dictionary)
         result-dictionary is the whole result dictionary of the excess we are
         exploiting
+
+        :returns: result dictionary object
         """
         Id = "?"
         while Id not in self.highestEfficiencies:
@@ -460,22 +492,41 @@ class Initialiser ( LoggerBase ):
                     1, p=list(self.probs.keys()) )
             result = choice[0]
             Id = result["id"]
+        self.log ( f"we randomly choose {Id}" )
+
         # txns = result["txns"] # .split(",")
         hi_effs = self.highestEfficiencies[ Id ]
-        #tot_effs = sum(hi_effs.keys())
-        choose_pt = np.random.choice 
+        tot_effs = sum(hi_effs.keys())
+        norm_effs = {} # normalized
+        #self.log ( f"choosing random txn from {result['id']}: {txn}" )
+        for p,pt in hi_effs.items():
+            norm_effs[p/tot_effs]=pt
+        ctr = 0
+        while True:
+            choose_pt = np.random.choice(list(norm_effs.values()),p=list(norm_effs.keys()))
+            txn = choose_pt["txn"]
+            result["txn"]=txn
+            masses=choose_pt["masses"] # FIXME smear them, and turn into dictionary
+            result["masses"]=masses
+            self.log ( f"for {Id} we randomly pick {txn} m={masses}" )
+            if txn not in self.mapTxnames or self.mapTxnames[txn] is not None:
+                break
+            ctr += 1
+            if ctr > 10:
+                break
+            # import sys, IPython; IPython.embed( colors = "neutral" )
+        return result
 
-        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         ## choose a random txname
         ## FIXME this should be smarter:
         ## we should choose the one
-        self.log ( f"randomly chosing among the txn {txn}" )
-        self.log ( f"FIXME make this smarter, choose by efficiency!" )
-        if type(txn) in [ list, tuple ]:
-            txn  = str(np.random.choice ( txns ))
-        self.log ( f"choosing random txn from {result['id']}: {txn}" )
-        return txn, result
-
+        # self.log ( f"randomly chosing among the txn {txn}" )
+        #self.log ( f"FIXME make this smarter, choose by efficiency!" )
+        #if type(txn) in [ list, tuple ]:
+        #    txn  = str(np.random.choice ( txns ))
+        # return txn, result
+ 
     def randomlyChooseOneResultOld ( self ) -> Tuple[str,Dict]:
         """ randomly choose one result from self.probs
 
@@ -525,8 +576,9 @@ class Initialiser ( LoggerBase ):
                 return None
         return None
 
-    def getRandomMassesForTxname ( self, txname : str ) -> Dict:
+    def getRandomMassesForTxname ( self, txname : str, masses : list ) -> Dict:
         """ sample random mass values for the given txname """
+        #return masses
         pidsdict = copy.deepcopy ( self.pidsForTxnames[txname] )
         masses = {}
         # masses[ProtoModel.LSP]=self.lspmass
@@ -659,14 +711,14 @@ class Initialiser ( LoggerBase ):
             if len(good_decays)>0:
                 good_channels[mother]=good_decays
         self.log ( f"for {txname}, {constraints}" )
-        self.log ( f"we started with {all_channels}" )
-        self.log ( f"we selected {good_channels}" )
+        self.log ( f"we filter the channels from {all_channels} to {good_channels}" )
         return good_channels
 
-    def getDecaysForTxname ( self, txname : str, result : Dict ) -> Dict:
+    def getDecaysForTxname ( self, result : Dict ) -> Dict:
         """ get some random decays starting points
         :param result: the whole result dictionary of the excess we are
         """
+        txname = result["txn"]
         if not txname in self.decaysForTxnames:
             self.error ( f"we dont have any decays??" )
             sys.exit()
@@ -693,7 +745,7 @@ class Initialiser ( LoggerBase ):
                 nbr_tot += nbr
             for keys, nbr in decays[mother].items():
                 decays[mother][keys]= nbr / nbr_tot
-        self.log ( f"decays for {txname}: {decays}" )
+        self.log ( f"we randomly choose the decays for {txname}: {decays}" )
         # self.log ( f"constraints were {result['constraints']}" )
         return decays
 
@@ -712,17 +764,41 @@ class Initialiser ( LoggerBase ):
             ssms[pids]= float ( ssm )
         return ssms
 
-    def getRandomSubmodelForTxname ( self, txname : str, result : dict ) -> Dict:
+    def smearMasses ( self, masses : Dict )-> Dict:
+        """ smear out the masses in dictionary """
+        newmasses = {}
+        oldlspmass = masses[LSP]
+        lspmass = float ( masses[LSP]*scipy.stats.norm.rvs ( loc = 1., scale =.2 ) )
+        self.log ( f"we randomly smear the mass of LSP/{LSP} from {masses[LSP]:.1f} to {lspmass:.1f}" )
+        newmasses[LSP]=lspmass
+        for pid,mass in masses.items():
+            if pid == LSP:
+                continue
+            nmass = -1. 
+            while nmass < lspmass:
+                deltam = mass - oldlspmass
+                nmass = lspmass + float ( deltam * scipy.stats.norm.rvs ( loc = 1., scale =.2 ) )
+            self.log ( f"we randomly smear the mass of {pid} from {mass:.1f} to {nmass:.1f}" )
+            newmasses[pid]=nmass
+        return newmasses
+
+    def getRandomSubmodelForTxname ( self, result : Dict ) -> Dict:
         """ given a txname, create a random submodel.
         :param txname: txname for which to create submodel
         :param result: the whole result dictionary of the excess we are
         exploiting
         """
-        if not txname in self.pidsForTxnames:
-            self.log ( f"we dont seem to have pids for {txname}" )
-            return None
-        masses = self.getRandomMassesForTxname ( txname )
-        decays = self.getDecaysForTxname ( txname, result )
+        txname = result["txn"]
+        if txname in self.mapTxnames:
+            txname = self.mapTxnames[txname]
+            self.log ( f"we switch txname from {result['txn']} to {txname}" )
+        # self.log ( f"creating random submodel for {txname}" )
+        #if not txname in self.pidsForTxnames:
+        #    self.log ( f"we dont seem to have pids for {txname}" )
+        #    return None
+        masses = self.smearMasses ( result["masses"] )
+        # masses = self.getRandomMassesForTxname ( txname, masses )
+        decays = self.getDecaysForTxname ( result )
         ssms = self.getSSMsForTxname ( txname )
         model = { "masses": masses, "decays": decays, "ssmultipliers": ssms }
         return model
@@ -734,9 +810,8 @@ class Initialiser ( LoggerBase ):
         :returns: model dict
         """
         ## choose a random txname
-        txn, result = self.randomlyChooseOneResult()
-        self.log ( f"creating random submodel for {txn}" )
-        submodel = self.getRandomSubmodelForTxname ( txn, result )
+        result = self.randomlyChooseOneResult()
+        submodel = self.getRandomSubmodelForTxname ( result )
         return submodel
 
     def propose ( self ):
@@ -757,7 +832,7 @@ class Initialiser ( LoggerBase ):
         if self.allowN1N1Prod and model is not None:
             ssm = float ( np.exp ( scipy.stats.norm.rvs() ) )
             model["ssmultipliers"][(1000022,1000022)]=ssm
-        self.log ( f"initialiser.propose proposes {model}" )
+        self.log ( f"we propose the model: {model}" )
         return model
 
     def create ( self ) -> Manipulator:
