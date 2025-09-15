@@ -543,6 +543,8 @@ Just filter the database:
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
             self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
             D["new_p"]=float(p)
+            newZ = computeZFromP ( p )
+            D["new_Z"]=float(newZ)
         D["obsBg"]=obs
         self.comments["obsBg"]="the new fake observation, background component"
         D["toterr"]=toterr
