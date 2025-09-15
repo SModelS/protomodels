@@ -247,7 +247,7 @@ def computeZFromP ( pvalue : float ) -> float:
     :param pvalue: the p-value
     :returns: the corresponding significance Z
     """
-    return - scipy.stats.norm.ppf ( pvalue )
+    return float ( - scipy.stats.norm.ppf ( pvalue ) )
 
 def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None ) -> float:
     """ given a dataset, compute p for SM hypothesis
