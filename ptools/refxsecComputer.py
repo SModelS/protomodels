@@ -733,30 +733,12 @@ class RefXSecComputer:
             isEWK = True
             if sqrts == 13:
                 pb = False
-            # smass = masses[0]+masses[1]
-            # if type(masses) == tuple and smass > 1e-6 and abs(masses[1]-masses[0])/smass > 1e-3:
-            #     if sqrts == 13:
-            #         filename = "xsecN2C1mnondegenp%d.txt" % sqrts
-            #         columns["mass"]=(0,1)
-            #         columns["xsec"]=3
-            #         pb = True
-            #     else:
-            #         logger.info ( f"Asking for ({pid1,pid2}) production but masses differ ({masses[0],masses[1]}) for {sqrts} TeV. We only have for mass-degenerate case. Will use it." )
         if (pid1 in [ 1000022, 1000023, 1000025 ] and pid2 in [ 1000024, 1000037 ]) or (pid1 == 1000024 and pid2 == 1000025): # Charginos(+) neutralinos productions -- 'or' condition because pid1 < pid2
             filename = f"xsecN2C1p{int(sqrts)}.txt"
             order = NLL
             if sqrts == 13:
                 pb = False
             isEWK = True
-            # smasses = masses[1]+masses[0]
-            # if type(masses) == tuple and smasses > 1e-6 and abs(masses[1]-masses[0])/smasses > 1e-3:
-            #     if sqrts == 13:
-            #         filename = "xsecN2C1pnondegenp%d.txt" % sqrts
-            #         columns["mass"]=(0,1)
-            #         columns["xsec"]=3
-            #         pb = True
-            #     else:
-            #         logger.info ( f"Asking for ({pid1,pid2}) production but masses differ ({masses[0],masses[1]}) at {sqrts} TeV. We only have for mass-degenerate case. Will use it." )
         N1N2N3 = ( 1000022, 1000023, 1000025 )
         N2N3 = ( 1000023, 1000025 )
         neutralinos = N2N3
@@ -766,9 +748,6 @@ class RefXSecComputer:
             if masses[1]+masses[0] == 0.:
                 logger.info ( f"Asking for massless {(pid1,pid2)} production. Will return None." )
                 return None, None, None
-            # dm = abs ( masses[1] - masses[0] ) / ( masses[1] + masses[0] )
-            # if dm > .01:
-            #     logger.info ( f"Asking for N2 N1 production but masses differ ({masses[0],masses[1]}). We only have for mass-degenerate case. Will use it." )
             logger.info ( f"Asking for {(pid1,pid2)} production. Will use C1 C1 xsecs (No N1 N2 cross sections at 8 TeV)." )
             filename = f"xsecC1C1{int(sqrts)}.txt"
             #filename = "xsecN2N1p%d.txt" % sqrts

@@ -16,6 +16,8 @@ from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from smodels_utils.helper.terminalcolors import *
+from ptools.refxsecComputer import RefXSecComputer
+from functools import lru_cache
 
 LSP = ProtoModel.LSP
 
@@ -76,7 +78,7 @@ class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
     cachefile = "pids.cache"
-    effscachefile = "effs.cache"
+    effscachefile = "xsecs.cache"
 
     def __init__ ( self, walkerid : Union[str,int] = 0,
             dictfile : str = "signal_database.dict",
@@ -96,6 +98,7 @@ class Initialiser ( LoggerBase ):
         self.dbpath = self.readDBPath ( dbpath )
         self.dsIdsInProposal = set()
         self.allowN1N1Prod = allowN1N1Prod
+        self.xsecComputer = RefXSecComputer( allowN1N1Prod = allowN1N1Prod )
         from multiverse.expResModifier import readDictFile
         self.log ( f"reading database dict {RED}{dictfile}{RESET}" )
         d = readDictFile ( dictfile )
@@ -106,7 +109,7 @@ class Initialiser ( LoggerBase ):
         self.pmax = 0.25 # disregard all results above this
         self.computePDict()
         self.setMassRanges()
-        self.ignore_pids = [ 1000002, 1000003, 1000004, 2000001,
+        self.ignore_pids = [ 1000003, 2000001,
                              2000002, 2000003, 2000004, 2000011,
                              2000013, 20000015, 1000014, 1000016,
                              2000012, 20000014, 2000016 ]
@@ -115,7 +118,7 @@ class Initialiser ( LoggerBase ):
         re = self.readInitialData()
         if not re:
             self.getTxParamsFromTemplates()
-        self.getHighestEfficienciesFromDatabase()
+        self.getHighestXSecsFromDatabase()
 
     def fmtP ( self, p : float ) -> str:
         return f"{YELLOW}(p={p:.3f}){RESET}"
@@ -216,7 +219,7 @@ class Initialiser ( LoggerBase ):
         self.log ( f"we merged {len(models)} models" )
         return ret
 
-    def getHighestEfficienciesFromDatabase( self, force_build : bool = False ):
+    def getHighestXSecsFromDatabase( self, force_build : bool = False ):
         """ we sift through the database, and note the points with the
         highest efficiencies, write into a file 
         :param force_build: if true, then ignore cache
@@ -224,16 +227,19 @@ class Initialiser ( LoggerBase ):
         if os.path.exists ( self.effscachefile ) and not force_build:
             with open ( self.effscachefile, "rt" ) as f:
                 txt = f.read()
-                self.highestEfficiencies = eval(txt)
+                self.highestXSecs = eval(txt)
                 f.close()
             return
-        self.log ( f"now get the highest efficiencies for all results" )
-        self.highestEfficiencies = {}
+        self.log ( f"now get the highest fiducial xsecs for all results" )
+        self.highestXSecs = {}
         from smodels.experiment.databaseObj import Database
         from ptools.helpers import computeP
         self.db = Database ( self.dbpath )
         ers = self.db.getExpResults( dataTypes=["efficiencyMap"] )
-        for er in ers:
+        ners = len(ers)
+        for i,er in enumerate(ers):
+            if True: # i % 10 == 0:
+                self.log ( f"computing xsecs for #{i}/{ners}: {er.globalInfo.id}" )
             for ds in er.datasets:
                 obsN = ds.dataInfo.observedN
                 expBG = ds.dataInfo.expectedBG
@@ -241,14 +247,14 @@ class Initialiser ( LoggerBase ):
                     continue
                 bgErr = ds.dataInfo.bgError
                 p = computeP ( obsN, expBG, bgErr )
-                if False: # p > 0.2:
+                if p > 0.3:
                     # not interesting
                     continue
-                self.findHighestEfficienciesFor ( ds )
+                self.findHighestXSecsFor ( ds )
         from base.locker import lock, unlock
         lock ( self.effscachefile )
         with open ( self.effscachefile, "wt" ) as f:
-            f.write ( f"{self.highestEfficiencies}\n" )
+            f.write ( f"{self.highestXSecs}\n" )
             f.close()
         unlock ( self.effscachefile )
 
@@ -273,8 +279,68 @@ class Initialiser ( LoggerBase ):
                 ret[pid] = masses[idx]
         return ret
 
-    def findHighestEfficienciesFor ( self, dataset ):
-        """ search for highest efficiences in this dataset """
+    @lru_cache
+    def getXSecDictFor ( self, pids : tuple ):
+        sqrts, ewk = 13, "wino"
+        massvec = [ 300, 100 ] # doesnt matter for us here
+        xsecall,order,comment = self.xsecComputer.getXSecsFor ( pids[0], pids[1],
+            sqrts, ewk, massvec )
+        if xsecall is None:
+            self.log ( f"didnt get xsecall for pids={pids}" )
+            # return None
+        return xsecall,order,comment
+
+    @lru_cache
+    def getRefXSecsFor ( self, txname, masses : tuple, pids : tuple ) -> \
+            Union[float,None]:
+        """ get the reference cross sections for the pt
+        :param txname: the txname object
+        :param massvec: a list of the masses
+
+        :returns: the cross sections in fb, or None
+        """
+        if len(pids)==0:
+            self.log ( f"pids length?? {pids} {txname} {masses}" )
+            return None
+            pids = [ 1000022, 1000022 ]
+        pids = list ( pids )
+        masses = dict (masses )
+        for i,p in enumerate(pids):
+            if p == 2000015:
+                pids[i]=1000015
+        if len(pids)==2 and pids[1]<pids[0]:
+            pids = [ pids[1], pids[0] ]
+        if len(pids)==1:
+            self.log ( f"pids length?? {pids} {txname} {masses}" )
+            pids = [ pids[0], None ]
+        if pids == [ 1000015, 1000015 ]:
+            pids = [ -1000015, 1000015 ]
+        if pids == [ 1000011, 1000013 ]:
+            # can use just e+ e-, good enough
+            pids = [ -1000011, 1000011 ]
+        massvec = []
+        for pid in pids: ## thats the order
+            massvec.append ( masses[abs(pid)] )
+        # self.log ( f"asking for xsecs for {txname} {massvec} {masses} {pids}" )
+        xsecall,order,comment = self.getXSecDictFor ( tuple(pids) )
+        if xsecall is None:
+            # self.log ( f"didnt get xsecall for {txname} m={masses} mv={massvec} pids={pids}" )
+            return None
+        # self.log ( f"xsecall is {len(xsecall)} order {order} comment {comment}" )
+        xsec = self.xsecComputer.interpolate ( massvec, xsecall )
+        # self.log ( f"xsecs for {massvec} are {xsec}" )
+        if xsec is None:
+            xsecmin, xsecmax = min(xsecall.keys()), max(xsecall.keys())
+            if massvec[0]< xsecmin:
+                xsec = self.xsecComputer.interpolate ( [ xsecmin, xsecmin ], xsecall )
+            if massvec[0]> xsecmax:
+                xsec = self.xsecComputer.interpolate ( [ xsecmax, xsecmax], xsecall ) * xsecmax / massvec[0] ## linearly decrease
+            if xsec is None:
+                self.log ( f"did not get xsec for {txname} {pids} {masses} {massvec}: xsecall were {xsecmin}: {xsecall[xsecmin]} ... {xsecmax}: {xsecall[xsecmax]}" )
+        return xsec
+
+    def findHighestXSecsFor ( self, dataset ):
+        """ search for highest xsecs in this dataset """
         d = Top20Dict()
         for txname in dataset.txnameList:
             txn = txname.txName
@@ -285,15 +351,31 @@ class Initialiser ( LoggerBase ):
             if not txn in self.pidsForTxnames: # skip this
                 self.log ( f"skipping {txn}: not in pidsForTxnames" )
                 continue # FIXME we sure?
+            pids = list (self.pidsForTxnames[txn][0]) ## the mother pids
+            pids.sort ( reverse = True )
+            #if len(pids)<2:
+            #    self.log ( f"for {txn} we have {pids}" )
+            if len(pids)==1:
+                if pids[0] in self.xsecComputer.samesignmodes:
+                    pids = [ pids[0], pids[0] ]
+                else:
+                    pids = [ -pids[0], pids[0] ]
             data = txname.txnameData
             for pt,eff in zip(data.tri.points,data.y_values):
                 # in the mass plane
-                masses = self.massVecToDict ( data.inversePCAtransf(pt), txname )
-                while eff in d: # make sure we dont overwrite
-                    eff += 1e-10
-                d[float(eff)]={ "masses": masses, "txn": txn }
+                massvec = data.inversePCAtransf(pt)
+                masses = self.massVecToDict ( massvec, txname )
+                refxsec = self.getRefXSecsFor ( 
+                        txname, tuple(masses.items()), tuple(pids) )
+                if refxsec is None:
+                    refxsec = 1e-6 # worst case we fall back to effs,
+                    # but multiply with 1e-6 so xsecs win out
+                xsec = float ( refxsec * eff )
+                while xsec in d: # make sure we dont overwrite
+                    xsec += 1e-10
+                d[xsec]={ "masses": masses, "txn": txn }
         label = f"{dataset.globalInfo.id}:{dataset.getID()}"
-        self.highestEfficiencies[label]=d
+        self.highestXSecs[label]=d
 
     def setMassRanges ( self ):
         """ set the mass ranges to draw from. for now set by hand.
@@ -379,6 +461,7 @@ class Initialiser ( LoggerBase ):
 
         if True:
             from base.locker import lock, unlock
+            self.fixPidsForTxnames()
             lock ( self.cachefile )
             with open ( self.cachefile, "wt" ) as f:
                 f.write ( f"{self.pidsForTxnames}\n" )
@@ -401,7 +484,13 @@ class Initialiser ( LoggerBase ):
             self.pidsForTxnames = eval(lines[0])
             self.decaysForTxnames = eval(lines[1])
             self.ssmsForTxnames = eval(lines[2])
+        self.fixPidsForTxnames()
         return True
+
+    def fixPidsForTxnames  ( self ):
+        # change manually for a few cases
+        self.pidsForTxnames["TChiQ"]={0:{1000002,1000022},1:{1000022}}
+        self.pidsForTxnames["TScharm"]={0:{1000004,1000022},1:{1000022}}
 
     def getDefaultSSMs ( self, templatename : str ):
         """ get default ssms for templatename
@@ -506,7 +595,7 @@ class Initialiser ( LoggerBase ):
         self.log ( f"  `- txns = {', '.join(result['txns'])}" )
 
         # txns = result["txns"] # .split(",")
-        hi_effs = self.highestEfficiencies[ Id ]
+        hi_effs = self.highestXSecs[ Id ]
         tot_effs = sum(hi_effs.keys())
         norm_effs = {} # normalized
         #self.log ( f"choosing random txn from {result['id']}: {txn}" )
@@ -544,7 +633,7 @@ class Initialiser ( LoggerBase ):
         :returns: result dictionary object
         """
         Id, result = "?", {}
-        while Id not in self.highestEfficiencies and Id not in self.dsIdsInProposal:
+        while Id not in self.highestXSecs and Id not in self.dsIdsInProposal:
             result = np.random.choice(list(self.probs.values()),
                     p=list(self.probs.keys()) )
             Id = result["id"]
@@ -783,7 +872,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '-v', '--verbose',
             help='verbose', action="store_true" )
     argparser.add_argument ( '-r', '--recompute_cache',
-            help='dont use pids.cache and effs.cache cache files', action="store_true" )
+            help='dont use pids.cache and xsecs.cache cache files', action="store_true" )
     ## 310.dict is also a good default, for the actual observations
     args = argparser.parse_args()
     if args.recompute_cache:
