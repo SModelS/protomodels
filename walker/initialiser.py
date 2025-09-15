@@ -854,10 +854,13 @@ if __name__ == "__main__":
             help='dont use pids.cache and effs.cache cache files', action="store_true" )
     ## 310.dict is also a good default, for the actual observations
     args = argparser.parse_args()
-    if args.recompute_cache and os.path.exists ( Initialiser.cachefile ):
-        print ( f"[Initialiser] deleting old {Initialiser.cachefile}, {Initialiser.effscachefile}" )
-        os.unlink ( Initialiser.cachefile )
-        os.unlink ( Initialiser.effscachefile )
+    if args.recompute_cache:
+        if os.path.exists ( Initialiser.cachefile ):
+            print ( f"[Initialiser] deleting old {Initialiser.cachefile}" )
+            os.unlink ( Initialiser.cachefile )
+        if os.path.exists ( Initialiser.effscachefile ):
+            print ( f"[Initialiser] deleting old {Initialiser.effscachefile}" )
+            os.unlink ( Initialiser.effscachefile )
     if "*" in args.dictfile:
         import glob
         files = glob.glob ( args.dictfile )
