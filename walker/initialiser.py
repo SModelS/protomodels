@@ -172,6 +172,7 @@ class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
     cachefile = "pids.cache"
+    effscachefile = "effs.cache"
 
     def __init__ ( self, walkerid : Union[str,int] = 0,
             dictfile : str = "signal_database.dict",
@@ -216,9 +217,8 @@ class Initialiser ( LoggerBase ):
         highest efficiencies, write into a file 
         :param force_build: if true, then ignore cache
         """
-        filename = "effs.cache"
-        if os.path.exists ( filename ) and not force_build:
-            with open ( filename, "rt" ) as f:
+        if os.path.exists ( self.effscachefile ) and not force_build:
+            with open ( self.effscachefile, "rt" ) as f:
                 txt = f.read()
                 self.highestEfficiencies = eval(txt)
                 f.close()
@@ -242,11 +242,11 @@ class Initialiser ( LoggerBase ):
                     continue
                 self.findHighestEfficienciesFor ( ds )
         from base.locker import lock, unlock
-        lock ( filename )
-        with open ( filename, "wt" ) as f:
+        lock ( self.effscachefile )
+        with open ( self.effscachefile, "wt" ) as f:
             f.write ( f"{self.highestEfficiencies}\n" )
             f.close()
-        unlock ( filename )
+        unlock ( self.effscachefile )
 
     def massVecToDict ( self, masses, txname ):
         """ given a masses vector and the txname object,
@@ -845,18 +845,19 @@ if __name__ == "__main__":
     argparser.add_argument ( '-d', '--dictfile',
             help='input database dict file ["signal_database.dict"]',
             type=str, default="*_database.dict" )
-    argparser.add_argument ( '--dbpath',
+    argparser.add_argument ( '-D', '--dbpath',
             help='path to database, if none then read from run.dict [none]',
             type=str, default=None )
     argparser.add_argument ( '-v', '--verbose',
             help='verbose', action="store_true" )
     argparser.add_argument ( '-r', '--recompute_cache',
-            help='verbose', action="store_true" )
+            help='dont use pids.cache and effs.cache cache files', action="store_true" )
     ## 310.dict is also a good default, for the actual observations
     args = argparser.parse_args()
     if args.recompute_cache and os.path.exists ( Initialiser.cachefile ):
-        print ( f"[Initialiser] removing old cachefile" )
+        print ( f"[Initialiser] deleting old {Initialiser.cachefile}, {Initialiser.effscachefile}" )
         os.unlink ( Initialiser.cachefile )
+        os.unlink ( Initialiser.effscachefile )
     if "*" in args.dictfile:
         import glob
         files = glob.glob ( args.dictfile )
