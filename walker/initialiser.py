@@ -656,8 +656,9 @@ class Initialiser ( LoggerBase ):
             for daughterpids in daughters:
                 keys = tuple ( set ( [ abs(dp) for dp in daughterpids ] ) )
                 nbr = random.uniform(0.,1.)
-                decays[mother][keys]=nbr
-                nbr_tot += nbr
+                if not keys in decays[mother]:
+                    decays[mother][keys]=nbr
+                    nbr_tot += nbr
             for keys, nbr in decays[mother].items():
                 decays[mother][keys]= nbr / nbr_tot
             # self.debug ( f"mother {mother} nbr_tot {nbr_tot} decays {decays}" )
