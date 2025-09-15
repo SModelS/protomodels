@@ -258,9 +258,9 @@ class Combiner ( LoggerBase ):
                 continue
             if not all( [ len(decay) == 3 for decay in decays.keys() ] ): # If both on- and off-shell decays, disallow
                 #from termcolor import colored
-                self.highlight("error", f"ERROR: pID {pid} of mass {protomodel.masses[pid]} has both on- AND off-shell decays: {decays}! Returning a prior of 0.")
+                self.highlight("error", f"ERROR: pID {pid} of mass {protomodel.masses[pid]} has both on- AND off-shell decays: {decays}! Returning a prior of 0.05")
                 from termcolor import colored
-                return 0
+                return 0.05
             if len ( decays ) == 1:
                 if list(decays.keys())[0] in [(1000022, 2, 1), (1000022, 2, 2), (1000022, 5, 5)]: # If the open channel is for light quarks or bb, allow
                     continue
@@ -284,8 +284,8 @@ class Combiner ( LoggerBase ):
                 if pid == 1000023:
                     continue
                 elif pid == 1000024 and not C1_has_lep:
-                    self.pprint(f"Chargino 1 has multiple open channels but no leptonic one: {decays}! Returning a prior of 0.")
-                    return 0
+                    self.pprint(f"Chargino 1 has multiple open channels but no leptonic one: {decays}! Returning a prior of 0.05")
+                    return 0.05
 
             # Penalise for each missing leptonic channel
             mtau = 1.78 # GeV
@@ -307,23 +307,6 @@ class Combiner ( LoggerBase ):
                 l = 1. - delta_br / 3.
                 ret *= l
 
-            # Old version
-            # ## is there an electron decay?
-            # if ( 1000022, 11 ) in decays and decays[(1000022,11)] not in [ 0., 1.]:
-            #     if (1000022, 13) in decays:
-            #         delta_br = abs ( decays[(1000022,11)]-decays[(1000022,13)] )
-            #         l = 1. - delta_br / 5.
-            #         ret *= l
-            #     if (1000022, 15) in decays:
-            #         delta_br = abs ( decays[(1000022,11)]-decays[(1000022,15)] )
-            #         l = 1. - delta_br / 20.
-            #         ret *= l
-            # elif ( 1000022, 13 ) in decays and decays[(1000022,13)] not in [ 0., 1.]:
-            #     # no electron, but muon and tau!
-            #     if (1000022, 15) in decays:
-            #         delta_br = abs ( decays[(1000022,13)]-decays[(1000022,15)] )
-            #         l = 1. - delta_br / 20.
-            #         ret *= l
         return ret
 
     def penaltyForExtremeSSMs ( self, protomodel ) -> float:
@@ -350,6 +333,7 @@ class Combiner ( LoggerBase ):
 
     def computeK ( self, TL : float, prior : float ) -> float:
         """ compute K from TL and prior (simple) """
+        prior = max ( 1e-200, prior ) # avoid infs
         return TL + 2* numpy.log ( prior )
 
     def getPredictionID ( self, prediction : TheoryPrediction ):

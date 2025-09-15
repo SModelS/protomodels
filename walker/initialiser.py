@@ -816,7 +816,7 @@ class Initialiser ( LoggerBase ):
         self.dsIdsInProposal = set()
         submodels = []
         nmodels = np.random.choice ( [1,2,3] )
-        self.log ( f"proposed model will consist of {GREEN}{nmodels} submodels{RESET}." )
+        self.log ( f"proposed model {self.dictfile} will consist of {GREEN}{nmodels} submodels{RESET}." )
         for i in range(nmodels):
             result = self.randomlyChooseOneResult()
             submodel = self.getRandomSubmodelForTxname ( result )
@@ -836,47 +836,36 @@ class Initialiser ( LoggerBase ):
             self.log ( f"\n{ds}" )
         return model
 
-    def create ( self ) -> Manipulator:
-        """ create the protomodel """
-        dct = self.propose()
-        ma = Manipulator ( dct )
-        return ma
-
     def predictForModel ( self, model : Union[dict,None] = None ) -> dict:
         """ call pr.predict for the given model """
         if model == None:
             model = self.propose()
-        pm = ProtoModel ( "ini" )
-        ma = Manipulator( pm )
-        ma.initFromDict(model)
+            self.log ( f"predictForModel {model}" )
+        ma = Manipulator( model )
         pr = Predictor("ini", self.dbpath, do_srcombine = True )
         cr = Critic("ini", self.dbpath, do_srcombine = True )
         pr.predict ( ma, keep_predictions = True, force_computation_K=True )
-        ret = { "ma": ma, "pm": pm, "pr": pr, "model": model, "cr": cr }
+        ret = { "ma": ma, "pr": pr, "model": model, "cr": cr }
+        ret["K"] = ma.M.K
+        ret["TL"] = ma.M.TL
         return ret
 
-    def bestOfFive ( self ):
-        """ get 5 initial contender models, return the best """
+    def bestOfN ( self, n : int = 5 ):
+        """ get <n> initial contender models, return the best """
         models = {}
-        for i in range(5):
-            d = self.propose()
-            d = self.predictForModel ( d )
-            d["TL"]=d["pr"].TL
-            d["K"]=d["pr"].K
-            models[d["pr"].K] = d
-        print ( "bestOfFive: {d}" )
+        for i in range(n):
+            ret = self.predictForModel ( None )
+            models[ ret["K"] ] = ret["model"]
+        # print ( "bestOfFive: {d}" )
         maxK = max( models.keys() )
         return models[maxK]
 
     def interact ( self ):
         """ interactive shell, for debugging and development """
-        from tester.predictor import Predictor
-        from ptools.helpers import py_dumps
-        d = self.propose()
-        ret = self.predictForModel ( d )
-        print ( f"d=self.propose()" )
-        print ( f'ret = self.predictForModel ( d )' )
-        globals().update ( ret )
+        print ( f"try e.g:" )
+        print ( f'ret = self.predictForModel ( )' )
+        print ( f'globals().update(ret)' )
+        print ( f"print ( K, model )" )
         import IPython
         IPython.embed( colors = "neutral" )
 

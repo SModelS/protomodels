@@ -127,6 +127,7 @@ Just filter the database:
         super ( ExpResModifier, self ).__init__ ( "erm" )
         self.superseded = set() ## take note of everything superseded
         self.fastlim = set() # take note of everything fastlim
+        self.nsigTotal = 0 # total number of injected signals
         self.defaults()
         if "max" in args and args["max"] == None:
             args["max"] = 100
@@ -527,12 +528,12 @@ Just filter the database:
             self.log ( f"WARNING!!! high em Z={Z:.2f}!!!!" )
         D["Zbg"]=float(Z)
         self.comments["Zbg"]="the significance of the observation, bg only"
-        D["Z"]=float(Z)
-        self.comments["Z"]="the significance of the observation, taking into account the signal"
+        #D["Z"]=float(Z)
+        #self.comments["Z"]="the significance of the observation, taking into account the signal"
         self.comments["lmbda"]="Poissonian lambda of the fake background"
         D["lmbda"]=float(lmbda)
         D["newObs"]=obs
-        self.comments["newObs"]="the new fake observation"
+        self.comments["newObs"]="the new fake observation (signal + background)"
         if self.compute_ps:
             if thirdMoment is None:
                 p = computeP ( obs, exp, err )
@@ -658,6 +659,7 @@ Just filter the database:
             ## they may be from multiple topologies
             D["sigN"]=self.stats[label]["sigN"]
         D["sigN"]=D["sigN"]+sigN
+        self.nsigTotal += sigN
         self.comments["sigN"]="the number of events from the added signal"
         txnsc = "_".join( txns )
         ## sigNT<x> denotes the contributions from the individual theory preds
@@ -689,12 +691,16 @@ Just filter the database:
         D["newObs"]=dataset.dataInfo.observedN
         exp = dataset.dataInfo.expectedBG
         err = dataset.dataInfo.bgError * self.fudge
-        toterr = math.sqrt ( err**2 + exp )
-        Z = 0.
-        if toterr > 0.:
-            Z = ( dataset.dataInfo.observedN - exp ) / toterr
-        D["Z"]=Z
-        self.comments["Z"]="the significance of the observation, taking into account the signal"
+        #toterr = math.sqrt ( err**2 + exp )
+        #Z = 0.
+        #if toterr > 0.:
+        #    Z = ( dataset.dataInfo.observedN - exp ) / toterr
+        #D["Z"]=Z
+        #self.comments["Z"]="the significance of the observation, taking into account the signal"
+        new_p = computeP ( dataset.dataInfo.observedN, exp, err )
+        new_Z = computeZFromP ( new_p )
+        D["new_p"] = new_p
+        D["new_Z"] = new_Z
         ## now recompute the limits!!
         if orig == 0.0:
             orig = 0.00001
@@ -981,6 +987,7 @@ Just filter the database:
             meta["_experimental"]=runtime._experimental
         self.pprint ( f"saving stats to {filename}" )
         self.addSupersededFlags()
+        meta["nsigTotal"] = self.nsigTotal
         with open ( filename, "wt" ) as f:
             ds = py_dumps ( meta, indent = 4 )
             ds = ds.replace( "false", "False" ).replace ( "true", "True" )
@@ -1147,15 +1154,15 @@ Just filter the database:
                 lmbda = data.A[i] + rvs[i] + data.C[i] * rvs[i]**2 / data.B[i]**2
                 # lmbda += dataset.dataInfo.thirdMoments / diag[i]**2 * rvs[i]**2
             lmbda = max ( 0., lmbda )
-            obs = scipy.stats.poisson.rvs ( lmbda )
+            newObs = scipy.stats.poisson.rvs ( lmbda )
             D = self.createEMStatsDict ( dataset )
             if self.fixedbackgrounds:
                 D["newObs"]=dataset.dataInfo.expectedBG
             else:
-                D["newObs"]=obs
+                D["newObs"]=newObs
                 D["lmbda"]=float(lmbda)
             if self.compute_ps:
-                p = computePForDataSet ( dataset, obs )
+                p = computePForDataSet ( dataset, newObs )
                 self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
                 D["new_p"]=float(p)
                 newZ = computeZFromP ( p )
@@ -1163,7 +1170,7 @@ Just filter the database:
                 D["new_Z"]=float(newZ)
             D["type"]=tpe
             self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
-            expRes.datasets[i].dataInfo.observedN = obs
+            expRes.datasets[i].dataInfo.observedN = newObs
             label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
             self.addToStats ( label, D, dataset.globalInfo )
 

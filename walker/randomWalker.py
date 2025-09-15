@@ -166,7 +166,8 @@ class RandomWalker ( LoggerBase ):
             self.initialiser  = Initialiser ( self.walkerid, self.use_initialiser,
                    allowN1N1Prod = allowN1N1Prod, verbose = False,
                    dbpath = dbpath )
-            init_model = self.initialiser.propose()
+            #init_model = self.initialiser.propose()
+            init_model = self.initialiser.bestOfN(5)
             if init_model != None:
                 self.manipulator.initFromDict ( init_model )
         if self.run_mcmc: self.highlight("info", "Running MCMC walk")
