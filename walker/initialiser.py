@@ -15,6 +15,8 @@ from typing import List, Set, Dict, Tuple, Union
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
+from tester.predictor import Predictor
+from tester.critic import Critic
 from smodels_utils.helper.terminalcolors import *
 from ptools.refxsecComputer import RefXSecComputer
 from functools import lru_cache
@@ -591,7 +593,8 @@ class Initialiser ( LoggerBase ):
         idx = list(self.probs.values()).index ( result )
         p = list(self.probs.keys())[idx]
         self.log ( f"of {len(self.probs)} entries we randomly choose #{len(self.probs)-idx-1}:" )
-        self.log ( f"  {GREEN}{Id}{RESET} {self.fmtP(p)}" )
+        newZ = result["new_Z"]
+        self.log ( f"  {GREEN}{Id}{RESET} {self.fmtP(p)} Z={newZ:.2f}" )
         self.log ( f"  `- txns = {', '.join(result['txns'])}" )
 
         # txns = result["txns"] # .split(",")
@@ -633,11 +636,11 @@ class Initialiser ( LoggerBase ):
         :returns: result dictionary object
         """
         Id, result = "?", {}
-        while Id not in self.highestXSecs and Id not in self.dsIdsInProposal:
+        while (Id not in self.highestXSecs) or (Id in self.dsIdsInProposal):
             result = np.random.choice(list(self.probs.values()),
                     p=list(self.probs.keys()) )
             Id = result["id"]
-            self.dsIdsInProposal.add ( Id )
+        self.dsIdsInProposal.add ( Id )
         result = self.randomlyChooseFromDataset ( result )
         return result
  
@@ -839,11 +842,41 @@ class Initialiser ( LoggerBase ):
         ma = Manipulator ( dct )
         return ma
 
+    def predictForModel ( self, model : Union[dict,None] = None ) -> dict:
+        """ call pr.predict for the given model """
+        if model == None:
+            model = self.propose()
+        pm = ProtoModel ( "ini" )
+        ma = Manipulator( pm )
+        ma.initFromDict(model)
+        pr = Predictor("ini", self.dbpath, do_srcombine = True )
+        cr = Critic("ini", self.dbpath, do_srcombine = True )
+        pr.predict ( ma, keep_predictions = True, force_computation_K=True )
+        ret = { "ma": ma, "pm": pm, "pr": pr, "model": model, "cr": cr }
+        return ret
+
+    def bestOfFive ( self ):
+        """ get 5 initial contender models, return the best """
+        models = {}
+        for i in range(5):
+            d = self.propose()
+            d = self.predictForModel ( d )
+            d["TL"]=d["pr"].TL
+            d["K"]=d["pr"].K
+            models[d["pr"].K] = d
+        print ( "bestOfFive: {d}" )
+        maxK = max( models.keys() )
+        return models[maxK]
+
     def interact ( self ):
         """ interactive shell, for debugging and development """
         from tester.predictor import Predictor
         from ptools.helpers import py_dumps
-        pr = Predictor("ini", self.dbpath, do_srcombine = True )
+        d = self.propose()
+        ret = self.predictForModel ( d )
+        print ( f"d=self.propose()" )
+        print ( f'ret = self.predictForModel ( d )' )
+        globals().update ( ret )
         import IPython
         IPython.embed( colors = "neutral" )
 
