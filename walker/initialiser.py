@@ -15,6 +15,7 @@ from typing import List, Set, Dict, Tuple, Union
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
+from smodels_utils.helper.terminalcolors import *
 
 LSP = ProtoModel.LSP
 
@@ -71,103 +72,6 @@ def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
     ret["timestamp"] = time.asctime()
     return ret
 
-def mergeNModels ( models : List[Dict], add_timestamp : bool = True ) \
-        -> Union[None,Dict]:
-    """ merge two models, add all particles from both models.
-    If a particle appears in both models, its mass will be the average
-    of the two, etc.
-
-    :returns: merged model
-    """
-    import time
-    if len(models)== 0:
-        print ( f"[initialiser] provided empty list of models" )
-        return None
-    if len(models)==1: # trivial merge
-        if add_timestamp:
-            models[0]["timestamp"] = time.asctime()
-        return models[0]
-    ret = { "masses": {}, "decays": {}, "ssmultipliers": {} }
-
-    def collectPids ( models : List[Dict] ) -> Set:
-        """ collect all pids in all models """
-        pids = set()
-        for m in models:
-            for k in m["masses"].keys():
-                pids.add ( k )
-        return pids
-
-    def computeAverageMassesForLSP ( pid : int, models : List[Dict] ) -> Dict:
-        """ for the lsp we really average """
-        masses=[]
-        for model in models:
-            if pid in model["masses"]:
-                masses.append ( model["masses"][pid] )
-        return float ( np.mean ( masses ) )
-
-    def computeAverageMassesForPid ( pid : int, models : List[Dict], lspmass = None ) -> Dict:
-        """ for the other particles we average over the distance to
-        the LSP """
-        dm=[]
-        if pid == LSP:
-            return computeAverageMassesForLSP ( LSP, models )
-        lspmasses = []
-        for model in models:
-            if pid in model["masses"]:
-                dm.append ( model["masses"][pid] - model["masses"][LSP] )
-                lspmasses.append ( model["masses"][LSP] )
-        avg_delta = float ( np.mean ( dm ) )
-        if lspmass == None:
-            lspmass = float ( np.mean ( lspmasses ) )
-        return lspmass + avg_delta
-
-    def computeAverageDecaysForPid ( pid : int, models : List[Dict] ) -> Dict:
-        decays = {}
-        Stot = 0.
-        for model in models:
-            if pid in model["decays"]:
-                mdecays = model["decays"][pid]
-                for daughterpids, br in mdecays.items():
-                    if not daughterpids in decays:
-                        decays[daughterpids] = 0.
-                    decays[daughterpids] += br
-                    Stot += br
-        for daughterpids, br in decays.items():
-            decays[daughterpids]/=Stot
-        return decays
-
-    def computeAverageSSMs ( models : List[Dict] ) -> Dict:
-        ssms = {}
-        for model in models:
-            mssms = model["ssmultipliers"]
-            for k,v in mssms.items():
-                ssms[k]=v # just bluntly take them over.
-        return ssms
-
-    # first, we collect all pids
-    pids = collectPids ( models )
-    # next we compute average masses
-    masses, decays, ssms = {}, {}, {}
-    lspmass = computeAverageMassesForLSP ( LSP, models )
-    print ( f"[mergeNModels] when merging, new lspmass: {lspmass:.1f}" )
-    masses[LSP] = lspmass
-    for pid in pids:
-        if pid != LSP:
-            mass = computeAverageMassesForPid ( pid, models, lspmass )
-            print ( f"[mergeNModels] when merging mass for {pid}={mass:.1f}" )
-            masses[pid]=mass
-        piddecays = computeAverageDecaysForPid ( pid, models )
-        decays[pid] = piddecays
-    ssms = computeAverageSSMs ( models )
-    ret["masses"]=masses
-    ret["decays"]=decays
-    ret["ssmultipliers"]=ssms
-    if add_timestamp:
-        ret["timestamp"] = time.asctime()
-    print ( f"[mergeNModels] we merged {len(models)} models" )
-    return ret
-
-
 class Initialiser ( LoggerBase ):
     """ class to come up with a sensible first guess of a protomodel,
     from data. """
@@ -190,9 +94,10 @@ class Initialiser ( LoggerBase ):
         dictfile = os.path.expanduser ( dictfile )
         self.dictfile = dictfile
         self.dbpath = self.readDBPath ( dbpath )
+        self.dsIdsInProposal = set()
         self.allowN1N1Prod = allowN1N1Prod
         from multiverse.expResModifier import readDictFile
-        self.log ( f"reading database dict {dictfile}" )
+        self.log ( f"reading database dict {RED}{dictfile}{RESET}" )
         d = readDictFile ( dictfile )
         self.tempslha = "/dev/shm/temp.slha"
         self.meta = d["meta"]
@@ -211,6 +116,105 @@ class Initialiser ( LoggerBase ):
         if not re:
             self.getTxParamsFromTemplates()
         self.getHighestEfficienciesFromDatabase()
+
+    def fmtP ( self, p : float ) -> str:
+        return f"{YELLOW}(p={p:.3f}){RESET}"
+
+    def mergeNModels ( self, models : List[Dict], add_timestamp : bool = True )\
+            -> Union[None,Dict]:
+        """ merge two models, add all particles from both models.
+        If a particle appears in both models, its mass will be the average
+        of the two, etc.
+
+        :returns: merged model
+        """
+        import time
+        if len(models)== 0:
+            self.log ( f"provided empty list of models" )
+            return None
+        if len(models)==1: # trivial merge
+            if add_timestamp:
+                models[0]["timestamp"] = time.asctime()
+            return models[0]
+        ret = { "masses": {}, "decays": {}, "ssmultipliers": {} }
+
+        def collectPids ( models : List[Dict] ) -> Set:
+            """ collect all pids in all models """
+            pids = set()
+            for m in models:
+                for k in m["masses"].keys():
+                    pids.add ( k )
+            return pids
+
+        def computeAverageMassesForLSP ( pid: int, models: List[Dict] ) -> Dict:
+            """ for the lsp we really average """
+            masses=[]
+            for model in models:
+                if pid in model["masses"]:
+                    masses.append ( model["masses"][pid] )
+            return float ( np.mean ( masses ) )
+
+        def computeAverageMassesForPid ( pid : int, models : List[Dict], lspmass = None ) -> Dict:
+            """ for the other particles we average over the distance to
+            the LSP """
+            dm=[]
+            if pid == LSP:
+                return computeAverageMassesForLSP ( LSP, models )
+            lspmasses = []
+            for model in models:
+                if pid in model["masses"]:
+                    dm.append ( model["masses"][pid] - model["masses"][LSP] )
+                    lspmasses.append ( model["masses"][LSP] )
+            avg_delta = float ( np.mean ( dm ) )
+            if lspmass == None:
+                lspmass = float ( np.mean ( lspmasses ) )
+            return lspmass + avg_delta
+
+        def computeAverageDecaysForPid ( pid : int, models : List[Dict] ) -> Dict:
+            decays = {}
+            Stot = 0.
+            for model in models:
+                if pid in model["decays"]:
+                    mdecays = model["decays"][pid]
+                    for daughterpids, br in mdecays.items():
+                        if not daughterpids in decays:
+                            decays[daughterpids] = 0.
+                        decays[daughterpids] += br
+                        Stot += br
+            for daughterpids, br in decays.items():
+                decays[daughterpids]/=Stot
+            return decays
+
+        def computeAverageSSMs ( models : List[Dict] ) -> Dict:
+            ssms = {}
+            for model in models:
+                mssms = model["ssmultipliers"]
+                for k,v in mssms.items():
+                    ssms[k]=v # just bluntly take them over.
+            return ssms
+
+        # first, we collect all pids
+        pids = collectPids ( models )
+        # next we compute average masses
+        masses, decays, ssms = {}, {}, {}
+        lspmass = computeAverageMassesForLSP ( LSP, models )
+        self.log ( f"when merging, new lspmass -> {lspmass:.1f}" )
+        masses[LSP] = lspmass
+        for pid in pids:
+            if pid != LSP:
+                mass = computeAverageMassesForPid ( pid, models, lspmass )
+                self.log ( f"when merging m({pid}) -> {mass:.1f}" )
+                masses[pid]=mass
+            piddecays = computeAverageDecaysForPid ( pid, models )
+            decays[pid] = piddecays
+        ssms = computeAverageSSMs ( models )
+        ret["masses"]=masses
+        ret["decays"]=decays
+        ret["ssmultipliers"]=ssms
+        if add_timestamp:
+            ret["timestamp"] = time.asctime()
+        self.log ( f"we merged {len(models)} models" )
+        return ret
 
     def getHighestEfficienciesFromDatabase( self, force_build : bool = False ):
         """ we sift through the database, and note the points with the
@@ -487,23 +491,19 @@ class Initialiser ( LoggerBase ):
         probkeys.sort (reverse = True )
         self.probkeys = probkeys
 
-    def randomlyChooseOneResult ( self ) -> Dict:
-        """ randomly choose one result from self.probs
+    def randomlyChooseFromDataset ( self, result : dict ) -> dict:
+        """ ok, we found a dataset, now we choose a random
+        txn and mass point 
 
-        :returns: tuple(txname, result-dictionary)
-        result-dictionary is the whole result dictionary of the excess we are
-        exploiting
-
-        :returns: result dictionary object
+        :returns: result dictionary but enriched with txn and mass point
         """
-        Id, result = "?", {}
-        while Id not in self.highestEfficiencies:
-            result = np.random.choice(list(self.probs.values()),
-                    p=list(self.probs.keys()) )
-            Id = result["id"]
+
+        Id = result["id"]
         idx = list(self.probs.values()).index ( result )
         p = list(self.probs.keys())[idx]
-        self.log ( f"of {len(self.probs)} entries we randomly choose dataset {Id} (p={p:.2f}) txns={result['txns']}" )
+        self.log ( f"of {len(self.probs)} entries we randomly choose #{len(self.probs)-idx-1}:" )
+        self.log ( f"  {GREEN}{Id}{RESET} {self.fmtP(p)}" )
+        self.log ( f"  `- txns = {', '.join(result['txns'])}" )
 
         # txns = result["txns"] # .split(",")
         hi_effs = self.highestEfficiencies[ Id ]
@@ -514,15 +514,17 @@ class Initialiser ( LoggerBase ):
             norm_effs[p/tot_effs]=pt
         ctr = 0
         while True:
-            choose_pt = np.random.choice(list(norm_effs.values()),p=list(norm_effs.keys()))
+            choose_pt = np.random.choice(list(norm_effs.values()),
+                                         p=list(norm_effs.keys()))
             idx = list(norm_effs.values()).index(choose_pt)
             p = list(norm_effs.keys())[idx]
             txn = choose_pt["txn"]
             result["txn"]=txn
             masses=choose_pt["masses"] # FIXME smear them, and turn into dictionary
             result["masses"]=masses
-            sm = ", ".join ( [ f"{k}={v:.2f}" for k,v in masses.items() ] )
-            self.log ( f"of {len(norm_effs)} entries for {Id} we randomly pick txn-masspoint {txn} m={sm} (p={p:.2f})" )
+            sm = ", ".join ( [ f"m({k})={v:.1f}" for k,v in masses.items() ] )
+            self.log ( f"for {Id} we randomly pick entry #{idx+1}/{len(norm_effs)}:" )
+            self.log ( f"  {GREEN}{txn}: {sm}{RESET} {self.fmtP(p)}" )
             if txn not in self.mapTxnames or self.mapTxnames[txn] is not None:
                 break
             ctr += 1
@@ -530,6 +532,24 @@ class Initialiser ( LoggerBase ):
                 self.log ( f"couldnt escape the while-loop at initialiser.py:A" )
                 break
             # import sys, IPython; IPython.embed( colors = "neutral" )
+        return result
+
+    def randomlyChooseOneResult ( self ) -> Dict:
+        """ randomly choose one result from self.probs
+
+        :returns: tuple(txname, result-dictionary)
+        result-dictionary is the whole result dictionary of the excess we are
+        exploiting
+
+        :returns: result dictionary object
+        """
+        Id, result = "?", {}
+        while Id not in self.highestEfficiencies and Id not in self.dsIdsInProposal:
+            result = np.random.choice(list(self.probs.values()),
+                    p=list(self.probs.keys()) )
+            Id = result["id"]
+            self.dsIdsInProposal.add ( Id )
+        result = self.randomlyChooseFromDataset ( result )
         return result
  
     def tiePids ( self, pid : int, pids : List[int] ) -> Union[None,int]:
@@ -554,100 +574,12 @@ class Initialiser ( LoggerBase ):
                 return None
         return None
 
-    def getRandomMassesForTxname ( self, txname : str, masses : list ) -> Dict:
-        """ sample random mass values for the given txname """
-        #return masses
-        pidsdict = copy.deepcopy ( self.pidsForTxnames[txname] )
-        masses = {}
-        # masses[ProtoModel.LSP]=self.lspmass
-        pid = ProtoModel.LSP
-        lspmass = float(np.random.uniform ( *self.massRanges[pid] ))
-        masses[pid]=lspmass
-        self.log ( f"setting mass of LSP/{namer.asciiName(pid)} to {lspmass:.1f} -- I chose from [{self.massRanges[pid][0]:.1f},{self.massRanges[pid][1]:.1f}]" )
-        #leftsquarks = [ 1000001, 1000002, 1000003, 1000004 ]
-        leftsquarks = [ 1000001 ]
-        #rightsquarks = [ 2000001, 2000002, 2000003, 2000004 ]
-        rightsquarks = [  ]
-        squarks = leftsquarks + rightsquarks
-        mylightsquark = int(np.random.choice ( leftsquarks ))
-        offshell = txname.endswith ( "off" ) or "ISR" in txname
-        onshell = False
-        if "tt" in txname and not "off" in txname:
-            onshell = True
-        if "W" in txname and not "off" in txname:
-            onshell = True
-        if "Z" in txname and not "off" in txname:
-            onshell = True
-        massgap = 0.
-        if "W" in txname:
-            massgap = 80.
-        if "Z" in txname:
-            massgap = 90.
-        if "t" in txname:
-            massgap = 170.
-
-        for position,pids in pidsdict.items():
-            if mylightsquark in pids:
-                hasWarned = False
-                for rm in squarks:
-                    if rm == mylightsquark:
-                        continue
-                    if not hasWarned:
-                        self.log ( f"there are many light quark-partners, will keep only {namer.asciiName(mylightsquark)}" )
-                        hasWarned =True
-                    if rm in pids:
-                        pids.remove(rm)
-        for position,pids in pidsdict.items():
-            for pid in pids:
-                if pid == ProtoModel.LSP:
-                    continue
-                if not pid in self.massRanges:
-                    self.error ( f"we dont have mass ranges for pid={pid}({namer.asciiName(pid)}). will skip." )
-                    continue
-                    # sys.exit()
-                mass = -1.
-                massRanges = copy.deepcopy ( self.massRanges[pid] )
-                # print ( f"orig massranges {massRanges}" )
-                if lspmass > massRanges[0]:
-                    massRanges[0] = lspmass + .5 # at least .5 gev gap
-                if offshell:
-                    massRanges[1] = float ( massRanges[0]+massgap )
-                if onshell:
-                    massRanges[0] = lspmass + massgap
-                # print ( f"massranges {massRanges}" )
-                mass = float(np.random.uniform ( *massRanges ))
-                ## for C1 and N2: with a certain change we set them to the same
-                ## value
-                masses[pid]=mass
-                self.log ( f"setting mass of {namer.asciiName(pid)} to {mass:.1f} -- I chose from [{self.massRanges[pid][0]:.1f},{self.massRanges[pid][1]:.1f}]" )
-                apid = self.tiePids ( pid, pids )
-                if apid != None:
-                    self.log ( f"setting mass of {namer.asciiName(apid)} to {mass:.1f}" )
-                    masses[apid]=mass
-
-        # make sure the LSP is the lowest
-        lspmass = masses[ProtoModel.LSP]
-        for pid,mass in masses.items():
-            if pid == ProtoModel.LSP:
-                continue
-            if mass < lspmass:
-                masses[ProtoModel.LSP]=mass
-                masses[pid]=lspmass
-
-        if 1000023  in masses and 1000024 in masses:
-            # with some probability we make them equal
-            if random.uniform(0.,1.)<.1:
-                masses[1000023] = masses[1000024]
-            if random.uniform(0.,1.)>.9:
-                masses[1000024] = masses[1000023]
-        return masses
-
     def getAllowedParticles ( self, constraints ):
         allowed_particles = set()
         test_particles = { "W(": (24,), "Z(": (23,), "e": (11,),
             "mu": (13,), "tau": (15,), "l": (11,13), "L": (11,13,15),
             "W+(": ( 24,), "W-(": ( 24, ), "t(": (6,), "t+(": (6,),
-            "t-(": (6,), "b": ( 5, ), "jet": ( 1,4 ), "q": ( 1,4 ),
+            "t-(": (6,), "b": ( 5, ), "jet": ( 1,2,3,4 ), "q": ( 1,2,3,4 ),
             "nu": (12,) }
         for constraint in constraints:
             for particle,pids in test_particles.items():
@@ -679,7 +611,10 @@ class Initialiser ( LoggerBase ):
         allowed_particles = self.getAllowedParticles ( constraints )
 
         good_channels = {}
+        self.log ( f"for {txname} we filter:" ) 
         for mother,decays in all_channels.items():
+            #if mother == 1000024:
+            #    self.log ( f"debug allowed {allowed_particles} constraints {constraints}" )
             good_decays = decays
             if len(decays)>1: # no choice for == 1
                 good_decays = set()
@@ -688,8 +623,14 @@ class Initialiser ( LoggerBase ):
                         good_decays.add ( pids )
             if len(good_decays)>0:
                 good_channels[mother]=good_decays
-        self.log ( f"for {txname}, {constraints}" )
-        self.log ( f"we filter the channels from {all_channels} to {good_channels}" )
+            if good_decays == decays:
+                self.log ( f"  `- {mother}: {decays} (same)" )
+            elif good_decays == set():
+                self.log ( f"  `- {mother}: {decays} -> empty" )
+            else:
+                self.log ( f"  `- {mother}: {decays} -> {good_decays}" )
+        # self.log ( f"for {txname}:" ) # , {constraints}:" )
+        #self.log ( f"  `- {all_channels} -> {good_channels}" )
         return good_channels
 
     def getDecaysForTxname ( self, result : Dict ) -> Dict:
@@ -700,30 +641,29 @@ class Initialiser ( LoggerBase ):
         if not txname in self.decaysForTxnames:
             self.error ( f"we dont have any decays??" )
             sys.exit()
-        decays = { ProtoModel.LSP: {} }
 
         if not "constraints" in result:
             print ( f"@@22 no constraint:  {result}" )
         constraints = result["constraints"]
         tmp = self.getPossibleChannelsFromConstraints ( txname, constraints )
+
+        decays = { ProtoModel.LSP: {} }
         for mother,daughters in tmp.items():
             nbr_tot = 0.
             ndaughters = len(daughters)
             if not mother in decays:
                 decays[mother]={}
             for daughterpids in daughters:
-                #keys = []
-                #for daughterpid in daughterpids:
-                #    if daughterpid > 0:
-                #        keys.append ( daughterpid )
                 keys = tuple ( set ( [ abs(dp) for dp in daughterpids ] ) )
-                # nbr = 1./ndaughters
                 nbr = random.uniform(0.,1.)
                 decays[mother][keys]=nbr
                 nbr_tot += nbr
             for keys, nbr in decays[mother].items():
                 decays[mother][keys]= nbr / nbr_tot
-        self.log ( f"we randomly choose the decays for {txname}: {decays}" )
+            # self.debug ( f"mother {mother} nbr_tot {nbr_tot} decays {decays}" )
+        self.log ( f"we randomly choose the decays for {txname}:" )
+        for mother, daughters in decays.items():
+            self.log ( f"  `- {mother}: {daughters}" )
         # self.log ( f"constraints were {result['constraints']}" )
         return decays
 
@@ -747,16 +687,16 @@ class Initialiser ( LoggerBase ):
         newmasses = {}
         oldlspmass = masses[LSP]
         lspmass = float ( masses[LSP]*scipy.stats.norm.rvs ( loc = 1., scale =.2 ) )
-        self.log ( f"we randomly smear the mass of LSP/{LSP} from {masses[LSP]:.1f} to {lspmass:.1f}" )
+        self.log ( f"we randomly smear m(LSP/{LSP}): {masses[LSP]:.1f} -> {lspmass:.1f}" )
         newmasses[LSP]=lspmass
         for pid,mass in masses.items():
             if pid == LSP:
                 continue
             nmass = -1. 
-            while nmass < lspmass:
-                deltam = mass - oldlspmass
+            while nmass < lspmass + 1: ## at least 1 gev distance to lsp
+                deltam = max ( 1., mass - oldlspmass )
                 nmass = lspmass + float ( deltam * scipy.stats.norm.rvs ( loc = 1., scale =.2 ) )
-            self.log ( f"we randomly smear the mass of {pid} from {mass:.1f} to {nmass:.1f}" )
+            self.log ( f"we randomly smear m({pid}): {mass:.1f} -> {nmass:.1f}" )
             newmasses[pid]=nmass
         return newmasses
 
@@ -770,47 +710,37 @@ class Initialiser ( LoggerBase ):
         if txname in self.mapTxnames:
             txname = self.mapTxnames[txname]
             self.log ( f"we switch txname from {result['txn']} to {txname}" )
-        # self.log ( f"creating random submodel for {txname}" )
-        #if not txname in self.pidsForTxnames:
-        #    self.log ( f"we dont seem to have pids for {txname}" )
-        #    return None
         masses = self.smearMasses ( result["masses"] )
-        # masses = self.getRandomMassesForTxname ( txname, masses )
         decays = self.getDecaysForTxname ( result )
         ssms = self.getSSMsForTxname ( txname )
         model = { "masses": masses, "decays": decays, "ssmultipliers": ssms }
         return model
 
-    def createRandomSubmodel ( self ) -> Dict:
-        """ create a random submodel for one txname.
-        we will merge later.
-
-        :returns: model dict
-        """
-        ## choose a random txname
-        result = self.randomlyChooseOneResult()
-        submodel = self.getRandomSubmodelForTxname ( result )
-        return submodel
-
     def propose ( self ):
         """ propose a random initial model. """
         # choose a random txn
         # self.getRandomMassForLSP()
+        self.dsIdsInProposal = set()
         submodels = []
         nmodels = np.random.choice ( [1,2,3] )
-        self.log ( f"proposed model will consist of {nmodels} submodels." )
+        self.log ( f"proposed model will consist of {GREEN}{nmodels} submodels{RESET}." )
         for i in range(nmodels):
-            submodel = self.createRandomSubmodel()
+            result = self.randomlyChooseOneResult()
+            submodel = self.getRandomSubmodelForTxname ( result )
             if submodel == None:
                 self.warn ( f"got none as random submodel" )
                 continue
             submodels.append ( submodel )
         self.submodels = submodels
-        model = mergeNModels ( submodels )
+        model = self.mergeNModels ( submodels )
         if self.allowN1N1Prod and model is not None:
             ssm = float ( np.exp ( scipy.stats.norm.rvs() ) )
             model["ssmultipliers"][(1000022,1000022)]=ssm
-        self.log ( f"we propose the model: {model}" )
+        if True:
+            from ptools.helpers import py_dumps
+            ds = py_dumps ( model )
+            self.log ( f"we propose the model:" )
+            self.log ( f"\n{ds}" )
         return model
 
     def create ( self ) -> Manipulator:
@@ -822,6 +752,7 @@ class Initialiser ( LoggerBase ):
     def interact ( self ):
         """ interactive shell, for debugging and development """
         from tester.predictor import Predictor
+        from ptools.helpers import py_dumps
         pr = Predictor("ini", self.dbpath, do_srcombine = True )
         import IPython
         IPython.embed( colors = "neutral" )
