@@ -314,8 +314,12 @@ class ProtoModel ( LoggerBase ):
         allMasses.update(smMasses)
 
         offshell = False
-        if pid == 1000023 and (self.masses[pid] - self.masses[self.LSP]) < (mass_Z + mwidth_Z): offshell = True
-        elif pid == 1000024 and (self.masses[pid] - self.masses[self.LSP]) < (mass_W + mwidth_W):offshell = True
+        if pid == 1000023 and pid in self.masses and self.LSP in self.masses and \
+                (self.masses[pid] - self.masses[self.LSP]) < (mass_Z + mwidth_Z): 
+            offshell = True
+        elif pid == 1000024 and pid in self.masses and self.LSP in self.masses and \
+                  (self.masses[pid] - self.masses[self.LSP]) < (mass_W + mwidth_W):
+            offshell = True
         else: offshell = False
 
         for dpid in self.possibledecays[pid]:
