@@ -355,8 +355,16 @@ class Initialiser ( LoggerBase ):
             xsecmin, xsecmax = min(xsecall.keys()), max(xsecall.keys())
             if massvec[0]< xsecmin:
                 xsec = self.xsecComputer.interpolate ( [ xsecmin, xsecmin ], xsecall )
-            if massvec[0]> xsecmax:
+            elif massvec[0]> xsecmax:
                 xsec = self.xsecComputer.interpolate ( [ xsecmax, xsecmax], xsecall ) * xsecmax / massvec[0] ## linearly decrease
+            else:
+                # just randomly try this
+                if massvec[1] < 500:
+                    massvec[1]+=1e-8
+                else:
+                    massvec[1]-=1e-8
+                xsec = self.xsecComputer.interpolate ( massvec, xsecall )
+
             if xsec is None:
                 self.log ( f"did not get xsec for {txname} {pids} {masses} {massvec}: xsecall were {xsecmin}: {xsecall[xsecmin]} ... {xsecmax}: {xsecall[xsecmax]}" )
         return xsec
