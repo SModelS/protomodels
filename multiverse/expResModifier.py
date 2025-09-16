@@ -127,7 +127,7 @@ Just filter the database:
         super ( ExpResModifier, self ).__init__ ( "erm" )
         self.superseded = set() ## take note of everything superseded
         self.fastlim = set() # take note of everything fastlim
-        self.nsigTotal = 0 # total number of injected signals
+        self.sigNTotal = { "total": 0 } # total numbers of injected signals
         self.defaults()
         if "max" in args and args["max"] == None:
             args["max"] = 100
@@ -663,11 +663,15 @@ Just filter the database:
             ## they may be from multiple topologies
             D["sigN"]=self.stats[label]["sigN"]
         D["sigN"]=D["sigN"]+sigN
-        self.nsigTotal += sigN
+        self.sigNTotal["total"] += sigN
         self.comments["sigN"]="the number of events from the added signal"
         txnsc = "_".join( txns )
         ## sigNT<x> denotes the contributions from the individual theory preds
-        D[ f"sigN{txnsc}" ] = sigN
+        sigNt = f"sigN{txnsc}"
+        D[ sigNt ] = sigN
+        if not sigNt in self.sigNTotal:
+            self.sigNTotal[sigNt]=0
+        self.sigNTotal[sigNt]+=sigN
         D["obsBg"]=self.stats[label]["newObs"]
         err = dataset.dataInfo.bgError * self.fudge
         dataset.dataInfo.sigN = sigN ## keep track of signal
@@ -992,7 +996,7 @@ Just filter the database:
             meta["_experimental"]=runtime._experimental
         self.pprint ( f"saving stats to {filename}" )
         self.addSupersededFlags()
-        meta["nsigTotal"] = self.nsigTotal
+        meta["sigNTotal"] = self.sigNTotal
         with open ( filename, "wt" ) as f:
             ds = py_dumps ( meta, indent = 4 )
             ds = ds.replace( "false", "False" ).replace ( "true", "True" )
@@ -1722,6 +1726,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '--disallowN1N1Prod',
             help='turn off N1N1 production',
             action='store_true' )
+    argparser.add_argument ( '--allowN1N1Prod',
+            help='explicitly turn on N1N1 production (on per default)',
+            action='store_true' )
     argparser.add_argument ( '-l', '--lognormal',
             help='use lognormal, not Gaussian for nuisances (1d regions only)',
             action='store_true' )
@@ -1773,6 +1780,9 @@ if __name__ == "__main__":
             help='keep temporary files (for debugging)', action='store_true' )
     args = argparser.parse_args()
     vargs = vars(args)
+    if vargs["allowN1N1Prod"] and vargs["disallowN1N1Prod"]:
+        print ( f"[expResModifier] you at the same time allow and disallow N1N1 prod. fix this." )
+        sys.exit()
     vargs["allowN1N1Prod"]= not vargs["disallowN1N1Prod" ]
     vargs.pop ( "disallowN1N1Prod" )
     modifier = ExpResModifier( vargs )
