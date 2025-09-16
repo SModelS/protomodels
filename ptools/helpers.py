@@ -358,7 +358,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> fl
         n *= 5
         if n > 4000000:
             break
-    return ret
+    return float ( ret )
 
 
 def stripUnits( container ):
