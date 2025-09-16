@@ -171,7 +171,7 @@ class Initialiser ( LoggerBase ):
             for model in models:
                 if pid in model["masses"]:
                     if not LSP in model["masses"]:
-                        dm.append ( model["masses"][pid )
+                        dm.append ( model["masses"][pid] )
                         lspmasses.append ( 0. )
                     else:
                         dm.append ( model["masses"][pid] - model["masses"][LSP] )
