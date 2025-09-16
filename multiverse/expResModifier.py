@@ -478,6 +478,8 @@ Just filter the database:
         if hasattr ( dataset.dataInfo, "thirdMoment" ):
             thirdMoment = dataset.dataInfo.thirdMoment * self.fudge**3
         err = 0.
+        if not self.fixedbackgrounds:
+            err = dataset.dataInfo.bgError * self.fudge
         D = { "origN": int(orig), "expectedBG": exp, "bgError": err, "fudge": self.fudge,
               "lumi": float(dataset.globalInfo.lumi * fb) }
         porig = computePForDataSet ( dataset )
@@ -487,15 +489,13 @@ Just filter the database:
         origZ = computeZFromP ( porig )
         D["orig_Z"]=origZ
         self.comments["orig_Z"]="the significance Z of the original observation (no fudge factor applied)"
-        """ I think this is not needed
-        if not self.fixedbackgrounds:
-            err = dataset.dataInfo.bgError * self.fudge
+        if thirdMoment is not None:
+            D["thirdMoment"]=thirdMoment
+            self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
         if self.compute_ps:
             if thirdMoment is None:
                 p = computeP ( orig, exp, err )
             else:
-                D["thirdMoment"]=thirdMoment
-                self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
             p = self.checkIfZero ( p, dataset )
             if abs(self.fudge-1.)>1e-10:
@@ -504,7 +504,6 @@ Just filter the database:
                 origZ = computeZFromP ( p )
                 D["orig_Z_fudged"]=origZ
                 self.comments["orig_Z_fudged"]="the significance Z of the original observation (with fudge factor applied -- is this useful?)"
-        """
         Z = float("inf")
         ct = 0
         while Z > self.max and ct < 10:
@@ -598,19 +597,26 @@ Just filter the database:
             err = dataset.dataInfo.bgError * self.fudge
         D = { "origN": int(orig), "expectedBG": exp, "bgError": err, "fudge": self.fudge,
               "lumi": float(dataset.globalInfo.lumi * fb) }
+        if thirdMoment is not None:
+            D["thirdMoment"]=thirdMoment
+            self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
         if self.compute_ps:
+            p = computePForDataSet ( dataset )
+            D["orig_p"]=p
+            self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation (no fudge factor applied)"
+            origZ = computeZFromP ( p )
+            self.comments["orig_Z"]="the significance Z of the original observation (no factor applied)"
+            D["orig_Z"]=origZ
             if thirdMoment is None:
                 p = computeP ( orig, exp, err )
             else:
-                D["thirdMoment"]=thirdMoment
-                self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
-            self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
+            self.comments["orig_p_fudged"]="p-value (Gaussian nuisance) of original observation (fudge factor applied)"
             p = self.checkIfZero ( p, dataset )
-            D["orig_p"]=p
+            D["orig_p_fudged"]=p
             origZ = computeZFromP ( p )
-            D["orig_Z"]=origZ
-            self.comments["orig_Z"]="the significance Z of the original observation"
+            D["orig_Z_fudged"]=origZ
+            self.comments["orig_Z_fudged"]="the significance Z of the original observation (fudge factor applied)"
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
         if len ( txnames ) == 0:

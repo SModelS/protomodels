@@ -243,11 +243,11 @@ class Plotter ( LoggerBase ):
         Zmax = 0.
         for dictfile,filecontent in self.data.items():
             for anaid,values in filecontent.items():
-                if not "orig_Z" in values:
+                if not "orig_Z_fudged" in values:
                     self.pprint ( "no orig_Z in dictionaries, did you forget the '-C' flag when calling expResModifier.py?" )
                     sys.exit(-1)
-                if values["orig_Z"] > Zmax and np.isfinite ( values["orig_Z"] ):
-                    Zmax = values["orig_Z"]
+                if values["orig_Z_fudged"] > Zmax and np.isfinite ( values["orig_Z_fudged"] ):
+                    Zmax = values["orig_Z_fudged"]
         self.Zmax = np.ceil ( Zmax * 4. ) / 4.
         # self.pprint ( f"Zmax is {Zmax:.2f}" )
 
@@ -464,8 +464,8 @@ class Plotter ( LoggerBase ):
                     if "sigN" in v:
                         sigN = v["sigN"]
                     # bgErr = v["bgError"]# /v["fudge"]
-                    if "orig_p" in v and self.likelihood == "gauss+poisson":
-                        p = v["orig_p"]
+                    if "orig_p_fudged" in v and self.likelihood == "gauss+poisson":
+                        p = v["orig_p_fudged"]
                     else:
                         if not hasComplained:
                             self.pprint ( "computing the p-values -- this might take a while, so consider doing this at expResModifier.py" )
