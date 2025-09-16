@@ -362,16 +362,17 @@ class Critic ( LoggerBase ):
         return predictions
 
 
-    def ul_critic(self, protomodel, predictions : List ):
+    def ul_critic(self, protomodel, predictions : List ) -> Tuple[bool,int,int]:
         """ UL-based critic (can also use best SR results if no UL-type result available for a given analysis).
 
         :param predictions: list of theory predictions (UL-type and EM-type)
 
-        :returns: False if the critic excludes the model, else True.
+        :returns: tuple[bool,int,int]: allowed, n_sensitive, n_excluding
+        bool is False if the critic excludes the model, else True.
         """
 
         if not predictions: # If empty list
-            return True, None     # the model is not excluded
+            return True, 0, 0 # the model is not excluded
 
         from scipy.stats import binom
 
