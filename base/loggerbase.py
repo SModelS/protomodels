@@ -15,6 +15,7 @@ class LoggerBase:
     def __init__ ( self, walkerid : Union[str,int] = 0 ):
         """ instantiate the logger class with a walkerid """
         self.walkerid = walkerid
+        self.countLogs = {}
         self.printLogMessages = False
         self.logdir = "logs/"
         # self.printHigherThan = "critical"
@@ -26,6 +27,18 @@ class LoggerBase:
         else:
             self.module = module[p1+1:]
         helpers.mkdir ( self.logdir )
+
+    def logThrice ( self, *args ):
+        """ a method for repetitive log msgs. issue them only three times
+        """
+        txt = " ".join(map(str,args))
+        if not txt in self.countLogs:
+            self.countLogs[txt]=0
+        if self.countLogs[txt]<3:
+            self.log (  *args )
+        if self.countLogs[txt]==3:
+            self.log ( "(quenching repeating log messages)" )
+        self.countLogs[txt]+=1
 
     def error ( self, *args ):
         self.highlight ( "error", *args )

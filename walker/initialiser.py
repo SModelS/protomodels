@@ -96,6 +96,7 @@ class Initialiser ( LoggerBase ):
         super ( Initialiser, self ).__init__ ( "ini" )
         self.printLogMessages = verbose
         dictfile = os.path.expanduser ( dictfile )
+        self.warnings= {}
         self.dictfile = dictfile
         self.dbpath = self.readDBPath ( dbpath )
         self.dsIdsInProposal = set()
@@ -288,7 +289,8 @@ class Initialiser ( LoggerBase ):
         xsecall,order,comment = self.xsecComputer.getXSecsFor ( pids[0], pids[1],
             sqrts, ewk, massvec )
         if xsecall is None:
-            self.log ( f"didnt get xsecall for pids={pids}" )
+            pass
+            # self.log ( f"didnt get xsecall for pids={pids}" )
             # return None
         return xsecall,order,comment
 
@@ -304,29 +306,47 @@ class Initialiser ( LoggerBase ):
         if len(pids)==0:
             self.log ( f"pids length?? {pids} {txname} {masses}" )
             return None
-            pids = [ 1000022, 1000022 ]
+            # pids = [ 1000022, 1000022 ]
         pids = list ( pids )
         masses = dict (masses )
         for i,p in enumerate(pids):
             if p == 2000015:
-                pids[i]=1000015
-        if len(pids)==2 and pids[1]<pids[0]:
-            pids = [ pids[1], pids[0] ]
+                pids[i]=-1000015
+            if p == 2000005:
+                pids[i]=-1000005
         if len(pids)==1:
             self.log ( f"pids length?? {pids} {txname} {masses}" )
             pids = [ pids[0], None ]
+        if pids == [ 1000021, 1000004, 1000002, 1000001 ]:
+            pids = [ 1000001, 1000021 ]
+        if pids == [ 1000004, 1000002, 1000001 ]:
+            pids = [ -1000001, 1000001 ]
+        if len(pids)>2 and 1000022 in pids:
+            pids.remove ( 1000022 )
         if pids == [ 1000015, 1000015 ]:
             pids = [ -1000015, 1000015 ]
+        if len(pids)==2 and pids[1]<pids[0]:
+            pids = [ pids[1], pids[0] ]
         if pids == [ 1000011, 1000013 ]:
             # can use just e+ e-, good enough
             pids = [ -1000011, 1000011 ]
         massvec = []
         for pid in pids: ## thats the order
-            massvec.append ( masses[abs(pid)] )
+            if pid in masses:
+                massvec.append ( masses[pid] )
+            elif abs(pid) in masses:
+                massvec.append ( masses[abs(pid)] )
+            else:
+                self.log ( f"could not find {pid} in {masses}?" )
+        if pids == [ 1000002, 1000022 ] or pids == [ 1000001, 1000022 ] or \
+                pids == [ 1000004, 1000022 ]:
+            # for now replace with C1N2
+            self.logThrice ( f"sq-N1 production: {pids}. will replace with C1N2" )
+            pids = [ 1000023, 1000024 ]
         # self.log ( f"asking for xsecs for {txname} {massvec} {masses} {pids}" )
         xsecall,order,comment = self.getXSecDictFor ( tuple(pids) )
         if xsecall is None:
-            # self.log ( f"didnt get xsecall for {txname} m={masses} mv={massvec} pids={pids}" )
+            self.logThrice ( f"didnt get xsecall for {txname} pids={pids}" )
             return None
         # self.log ( f"xsecall is {len(xsecall)} order {order} comment {comment}" )
         xsec = self.xsecComputer.interpolate ( massvec, xsecall )
@@ -344,7 +364,6 @@ class Initialiser ( LoggerBase ):
     def findHighestXSecsFor ( self, dataset ):
         """ search for highest xsecs in this dataset """
         d = Top20Dict()
-        totxsec = 0.
         for txname in dataset.txnameList:
             txn = txname.txName
             if txn in self.mapTxnames:
@@ -376,10 +395,14 @@ class Initialiser ( LoggerBase ):
                 xsec = float ( refxsec * eff )
                 while xsec in d: # make sure we dont overwrite
                     xsec += 1e-10
-                d[xsec]={ "masses": masses, "txn": txn, "eff": eff,
+                if type(pt) not in [ list, tuple ]:
+                    pt = pt.tolist()
+                d[xsec]={ "masses": masses, "txn": txn, "eff": float(eff),
                           "pt": pt, "pids": tuple(pids), 
                           "xsec": float ( refxsec * eff ) }
-                totxsec += xsec
+        totxsec = 0. # normalize the keys
+        for k,v in d.items():
+                totxsec += k
         newd = {}
         for k,v in sorted ( d.items(), reverse = True ):
             newd[k/totxsec] = v
