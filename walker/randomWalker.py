@@ -778,7 +778,7 @@ if __name__ == "__main__":
     #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
     rvars = { "walkerid": 0, "dbpath": dbpath, "do_srcombine": True,
               "select": select, "templateSLHA": "templateNaturalEwkino.slha",
-              "allowN1N1Prod": True, "susy_mode": False, "use_initialiser": False }
+              "allowN1N1Prod": True, "susy_mode": False, "use_initialiser": "./ini.dict" }
                
     walker = RandomWalker.fromDictionary ( D, rvars )
     walker.walk()

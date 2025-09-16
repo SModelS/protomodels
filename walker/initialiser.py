@@ -233,6 +233,17 @@ class Initialiser ( LoggerBase ):
                 self.highestXSecs = eval(txt)
                 f.close()
             return
+        if not force_build:
+            # check our default one
+            effscachefile = os.path.abspath(__file__+"../share/{self.effscachefile}" )
+            if os.path.exists ( effscachefile ):
+                self.effscachefile = effscachefile
+                with open ( self.effscachefile, "rt" ) as f:
+                    txt = f.read()
+                    self.highestXSecs = eval(txt)
+                    f.close()
+                return
+
         self.log ( f"now get the highest fiducial xsecs for all results" )
         self.highestXSecs = {}
         from smodels.experiment.databaseObj import Database
@@ -515,8 +526,11 @@ class Initialiser ( LoggerBase ):
         :returns: False, if no cache file found.
         """
         if not os.path.exists ( self.cachefile ):
-            self.error ( f"did not find {self.cachefile}" )
-            return False
+            cachefile = os.path.abspath(__file__+"../share/{self.cachefile}" )
+            if os.path.exists ( cachefile ):
+                self.cachefile = cachefile
+            else:
+                return False
         self.log ( f"reading in all initial data from {self.cachefile}" )
         with open ( self.cachefile, "rt" ) as f:
             lines = f.readlines()
