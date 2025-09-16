@@ -1714,6 +1714,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '--dontsample',
             help='do not sample at all, only filter',
             action='store_true' )
+    argparser.add_argument ( '--allowN1N1Prod',
+            help='add also N1N1 production',
+            action='store_true' )
     argparser.add_argument ( '-l', '--lognormal',
             help='use lognormal, not Gaussian for nuisances (1d regions only)',
             action='store_true' )
