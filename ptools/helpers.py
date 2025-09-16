@@ -250,7 +250,7 @@ def computeZFromP ( pvalue : float ) -> float:
     return float ( - scipy.stats.norm.ppf ( pvalue ) )
 
 def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
-       nmax : int = 40000000 ) -> float:
+       nmax : int = 100000000 ) -> float:
     """ given a dataset, compute p for SM hypothesis
     :param obsN: if not None, compute for the observation
     :param nmax: maximum number of toys
@@ -271,7 +271,7 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
     return p
 
 def computeP ( obs : float, bg : float, bgerr : float,
-        lognormal : bool = False, nmax : int = 40000000 ) -> float:
+        lognormal : bool = False, nmax : int = 100000000 ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
 
@@ -287,6 +287,9 @@ def computeP ( obs : float, bg : float, bgerr : float,
     n = 50000
     ret = 0.
     while ret < .9 / nmax or ret > 1. - .9 / nmax:
+        if n > nmax:
+            print ( f"[helpers] n={n}>{nmax}. breaking off with ret={ret} obs={obs} bg={bg} bgerr={bgerr}" )
+            break
         lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
         lmbda = lmbda[lmbda>0.]
         if lognormal:
@@ -302,13 +305,10 @@ def computeP ( obs : float, bg : float, bgerr : float,
         ## == we count half
         ret = float ( ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs) )
         n *= 5
-        if n > nmax:
-            print ( f"[helpers] n={n}>{nmax}. breaking off with ret={ret}" )
-            break
     return ret
 
 def computePSLv2 ( obs : float, bg : float, bgerr : float, 
-        third : float, nmax : int = 40000000 ) -> float:
+        third : float, nmax : int = 100000000 ) -> float:
     """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2
 
     :param obs: observed number of events
@@ -336,6 +336,9 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
     rhoparam = d.rho[0][0]
     # thtadbn = scipy.stats.multivariate_normal(np.zeros(self.size), rhoparam )
     while ret < .9/nmax or ret > 1. - .9/nmax:
+        if n > nmax:
+            print ( f"[helpers] SLv2 n={n}>{nmax}. breaking off with ret={ret} obs={obs} bg={bg} bgerr={bgerr} third={third}" )
+            break
         ctr = 0
         # thtas = thtadbn.rvs( n )
         thtas = scipy.stats.norm.rvs ( loc=[0.]*n, scale=[1.]*n )
@@ -362,9 +365,6 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
         ## == we count half
         ret = float ( ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs) )
         n *= 5
-        if n > nmax:
-            print ( f"[helpers] n={n}>{nmax}. breaking off with ret={ret}" )
-            break
     return ret
 
 
