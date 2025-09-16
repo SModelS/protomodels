@@ -20,6 +20,7 @@ from tester.critic import Critic
 from smodels_utils.helper.terminalcolors import *
 from ptools.refxsecComputer import RefXSecComputer
 from functools import lru_cache
+from base.locker import lock, unlock
 
 LSP = ProtoModel.LSP
 
@@ -169,8 +170,12 @@ class Initialiser ( LoggerBase ):
             lspmasses = []
             for model in models:
                 if pid in model["masses"]:
-                    dm.append ( model["masses"][pid] - model["masses"][LSP] )
-                    lspmasses.append ( model["masses"][LSP] )
+                    if not LSP in model["masses"]:
+                        dm.append ( model["masses"][pid )
+                        lspmasses.append ( 0. )
+                    else:
+                        dm.append ( model["masses"][pid] - model["masses"][LSP] )
+                        lspmasses.append ( model["masses"][LSP] )
             avg_delta = float ( np.mean ( dm ) )
             if lspmass == None:
                 lspmass = float ( np.mean ( lspmasses ) )
@@ -227,22 +232,23 @@ class Initialiser ( LoggerBase ):
         highest efficiencies, write into a file 
         :param force_build: if true, then ignore cache
         """
+        self.log ( f"effs cache {self.effscachefile}" )
+        if not os.path.exists ( self.effscachefile ) and not force_build:
+            effscachefile = os.path.abspath(__file__+"../share/{self.effscachefile}" )
+            self.log ( f"we might have a version at {effscachefile}" )
+            if os.path.exists ( effscachefile ):
+                lock ( self.effscachefile )
+                self.log ( f"copying effs cache from code dir" )
+                import shutil
+                shutil.copy ( effscachefile, self.effscachefile )
+                unlock ( self.effscachefile )
+
         if os.path.exists ( self.effscachefile ) and not force_build:
             with open ( self.effscachefile, "rt" ) as f:
                 txt = f.read()
                 self.highestXSecs = eval(txt)
                 f.close()
             return
-        if not force_build:
-            # check our default one
-            effscachefile = os.path.abspath(__file__+"../share/{self.effscachefile}" )
-            if os.path.exists ( effscachefile ):
-                self.effscachefile = effscachefile
-                with open ( self.effscachefile, "rt" ) as f:
-                    txt = f.read()
-                    self.highestXSecs = eval(txt)
-                    f.close()
-                return
 
         self.log ( f"now get the highest fiducial xsecs for all results" )
         self.highestXSecs = {}
@@ -265,7 +271,6 @@ class Initialiser ( LoggerBase ):
                     # not interesting
                     continue
                 self.findHighestXSecsFor ( ds )
-        from base.locker import lock, unlock
         lock ( self.effscachefile )
         with open ( self.effscachefile, "wt" ) as f:
             f.write ( f"{self.highestXSecs}\n" )

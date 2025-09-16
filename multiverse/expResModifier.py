@@ -148,7 +148,7 @@ Just filter the database:
     def createMyTruth ( self ):
         from multiverse.mhelpers import createMyFile
         createMyFile ( signal_model = self.pmodel,
-            dbpath = self.outfile, outfile = "my.truth",
+            dbpath = self.outfile, outfile = "truth.dict",
             interactive = False )
 
     def defaults( self ):
@@ -498,7 +498,7 @@ Just filter the database:
             else:
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
             p = self.checkIfZero ( p, dataset )
-            if abs(self.fudge-1.)>1e-10:
+            if True: # abs(self.fudge-1.)>1e-10:
                 self.comments["orig_p_fudged"]="p-value (Gaussian nuisance) of original observation (with fudge factor applied -- is this useful?)"
                 D["orig_p_fudged"]=p
                 origZ = computeZFromP ( p )
