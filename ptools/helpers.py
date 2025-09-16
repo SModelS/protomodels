@@ -266,8 +266,10 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
         thirdMoment = dataset.dataInfo.thirdMoment
     if thirdMoment is None:
         p = computeP ( obsN, exp, err, nmax = nmax )
-        return p
-    p = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax )
+    else:
+        p = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax )
+    if p < 1e-100:
+        print ( f"[helpers] {dataset.globalInfo.id}:{dataset.dataInfo.id} has p={p}" )
     return p
 
 def computeP ( obs : float, bg : float, bgerr : float,

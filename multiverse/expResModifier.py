@@ -478,10 +478,18 @@ Just filter the database:
         if hasattr ( dataset.dataInfo, "thirdMoment" ):
             thirdMoment = dataset.dataInfo.thirdMoment * self.fudge**3
         err = 0.
-        if not self.fixedbackgrounds:
-            err = dataset.dataInfo.bgError * self.fudge
         D = { "origN": int(orig), "expectedBG": exp, "bgError": err, "fudge": self.fudge,
               "lumi": float(dataset.globalInfo.lumi * fb) }
+        porig = computePForDataSet ( dataset )
+        self.checkIfZero ( porig, dataset )
+        D["orig_p"]=porig
+        self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation (no fudge factor applied)"
+        origZ = computeZFromP ( porig )
+        D["orig_Z"]=origZ
+        self.comments["orig_Z"]="the significance Z of the original observation (no fudge factor applied)"
+        """ I think this is not needed
+        if not self.fixedbackgrounds:
+            err = dataset.dataInfo.bgError * self.fudge
         if self.compute_ps:
             if thirdMoment is None:
                 p = computeP ( orig, exp, err )
@@ -489,11 +497,14 @@ Just filter the database:
                 D["thirdMoment"]=thirdMoment
                 self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
-            self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
-            D["orig_p"]=float(p)
-            origZ = computeZFromP ( p )
-            D["orig_Z"]=float(origZ)
-            self.comments["orig_Z"]="the significance Z of the original observation"
+            p = self.checkIfZero ( p, dataset )
+            if abs(self.fudge-1.)>1e-10:
+                self.comments["orig_p_fudged"]="p-value (Gaussian nuisance) of original observation (with fudge factor applied -- is this useful?)"
+                D["orig_p_fudged"]=p
+                origZ = computeZFromP ( p )
+                D["orig_Z_fudged"]=origZ
+                self.comments["orig_Z_fudged"]="the significance Z of the original observation (with fudge factor applied -- is this useful?)"
+        """
         Z = float("inf")
         ct = 0
         while Z > self.max and ct < 10:
@@ -522,6 +533,7 @@ Just filter the database:
                     D["thirdMoment"]=thirdMoment
                     self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                     pnew = computePSLv2 ( orig, exp, err, thirdMoment )
+                pnew = self.checkIfZero ( pnew, dataset )
                 Z = - scipy.stats.norm.ppf ( pnew )
                 # Z = ( obs - exp ) / toterr
                 # origZ = ( orig - exp ) / toterr
@@ -545,11 +557,12 @@ Just filter the database:
                 D["thirdMoment"]=thirdMoment
                 self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( obs, exp, err, thirdMoment )
+            p = self.checkIfZero( p, dataset )
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
             self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
-            D["new_p"]=float(p)
+            D["new_p"]=p
             newZ = computeZFromP ( p )
-            D["new_Z"]=float(newZ)
+            D["new_Z"]=newZ
         D["obsBg"]=obs
         self.comments["obsBg"]="the new fake observation, background component"
         D["toterr"]=toterr
@@ -593,9 +606,10 @@ Just filter the database:
                 self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation"
-            D["orig_p"]=float(p)
+            p = self.checkIfZero ( p, dataset )
+            D["orig_p"]=p
             origZ = computeZFromP ( p )
-            D["orig_Z"]=float(origZ)
+            D["orig_Z"]=origZ
             self.comments["orig_Z"]="the significance Z of the original observation"
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
@@ -636,6 +650,13 @@ Just filter the database:
                         print ( f"@@ERROR XY more than one bin!!! {obs['data']}" )
                         import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
                     obs["data"][0]+=sigN
+
+    def checkIfZero ( self, p, dataset ):
+        """ give a warning if a p-value is zero zero """
+        if p > 1e-100:
+            return p
+        self.warn ( f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId} has p={p} -- maybe you injected to strong a signal?" )
+        return 1e-10
 
     def addSignalForEfficiencyMap ( self, dataset, tpred, lumi ):
         """ add a signal to this efficiency map. background sampling is
@@ -706,6 +727,7 @@ Just filter the database:
         #D["Z"]=Z
         #self.comments["Z"]="the significance of the observation, taking into account the signal"
         new_p = computeP ( dataset.dataInfo.observedN, exp, err )
+        self.checkIfZero( new_p, dataset )
         new_Z = computeZFromP ( new_p )
         D["new_p"] = new_p
         D["new_Z"] = new_Z
@@ -1000,6 +1022,7 @@ Just filter the database:
         with open ( filename, "wt" ) as f:
             ds = py_dumps ( meta, indent = 4 )
             ds = ds.replace( "false", "False" ).replace ( "true", "True" )
+            ds = ds.replace( "inf", "float('inf')" )
             ds = ds.replace( r'"\"None\""', 'None')
             f.write ( ds + "\n"  )
             # f.write ( f"{meta!s}\n" )
@@ -1172,6 +1195,7 @@ Just filter the database:
                 D["lmbda"]=float(lmbda)
             if self.compute_ps:
                 p = computePForDataSet ( dataset, newObs )
+                self.checkIfZero ( p, dataset )
                 self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
                 D["new_p"]=p
                 newZ = computeZFromP ( p )
