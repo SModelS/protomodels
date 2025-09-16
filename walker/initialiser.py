@@ -344,6 +344,7 @@ class Initialiser ( LoggerBase ):
     def findHighestXSecsFor ( self, dataset ):
         """ search for highest xsecs in this dataset """
         d = Top20Dict()
+        totxsec = 0.
         for txname in dataset.txnameList:
             txn = txname.txName
             if txn in self.mapTxnames:
@@ -375,9 +376,15 @@ class Initialiser ( LoggerBase ):
                 xsec = float ( refxsec * eff )
                 while xsec in d: # make sure we dont overwrite
                     xsec += 1e-10
-                d[xsec]={ "masses": masses, "txn": txn }
+                d[xsec]={ "masses": masses, "txn": txn, "eff": eff,
+                          "pt": pt, "pids": tuple(pids), 
+                          "xsec": float ( refxsec * eff ) }
+                totxsec += xsec
+        newd = {}
+        for k,v in sorted ( d.items(), reverse = True ):
+            newd[k/totxsec] = v
         label = f"{dataset.globalInfo.id}:{dataset.getID()}"
-        self.highestXSecs[label]=d
+        self.highestXSecs[label]=newd
 
     def setMassRanges ( self ):
         """ set the mass ranges to draw from. for now set by hand.
@@ -577,10 +584,11 @@ class Initialiser ( LoggerBase ):
             self.pvalues[anaAndSRName]={ "p": p }
         if len(prels)==0:
             self.error ( "computePDict: no results returned" )
-        self.probs = dict( [ (k/ptot,v) for k,v in prels.items() ] )
-        probkeys = list ( self.probs.keys() )
-        probkeys.sort (reverse = True )
-        self.probkeys = probkeys
+        self.probs = dict ( sorted ( [ (k/ptot,v) for k,v in prels.items() ], 
+                            reverse = True ) )
+        #probkeys = list ( self.probs.keys() )
+        #probkeys.sort (reverse = True )
+        #self.probkeys = probkeys
 
     def randomlyChooseFromDataset ( self, result : dict ) -> dict:
         """ ok, we found a dataset, now we choose a random
@@ -592,7 +600,7 @@ class Initialiser ( LoggerBase ):
         Id = result["id"]
         idx = list(self.probs.values()).index ( result )
         p = list(self.probs.keys())[idx]
-        self.log ( f"of {len(self.probs)} entries we randomly choose #{len(self.probs)-idx-1}:" )
+        self.log ( f"of {len(self.probs)} entries we randomly choose #{idx+1}:" )
         newZ = result["new_Z"]
         self.log ( f"  {GREEN}{Id}{RESET} {self.fmtP(p)} Z={newZ:.2f}" )
         self.log ( f"  `- txns = {', '.join(result['txns'])}" )
