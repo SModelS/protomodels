@@ -978,6 +978,7 @@ Just filter the database:
                  "database": self.dbversion, "fudge": self.fudge,
                  "protomodel": f'{str(self.protomodel)}', 
                  "timestamp": time.asctime(),
+                 "allowN1N1Prod": self.allowN1N1Prod,
                  "lognormal": self.lognormal, "ulmassscale": self.ulmassscale,
                  "fixedsignals": self.fixedsignals,
                  "fixedbackgrounds": self.fixedbackgrounds }
@@ -1714,8 +1715,8 @@ if __name__ == "__main__":
     argparser.add_argument ( '--dontsample',
             help='do not sample at all, only filter',
             action='store_true' )
-    argparser.add_argument ( '--allowN1N1Prod',
-            help='add also N1N1 production',
+    argparser.add_argument ( '--disallowN1N1Prod',
+            help='turn off N1N1 production',
             action='store_true' )
     argparser.add_argument ( '-l', '--lognormal',
             help='use lognormal, not Gaussian for nuisances (1d regions only)',
@@ -1767,4 +1768,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '-k', '--keep',
             help='keep temporary files (for debugging)', action='store_true' )
     args = argparser.parse_args()
-    modifier = ExpResModifier( args.__dict__ )
+    vargs = vars(args)
+    vargs["allowN1N1Prod"]= not vargs["disallowN1N1Prod" ]
+    vargs.pop ( "disallowN1N1Prod" )
+    modifier = ExpResModifier( vargs )
