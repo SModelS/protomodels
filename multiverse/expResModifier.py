@@ -21,7 +21,7 @@ from ptools.helpers import computeP, computeZFromP, computePForDataSet, \
          computePSLv2, py_dumps
 from smodels.base import runtime
 if False:
-    runtime._experimental = True
+    runtime._experimental["truncatedgaussians"] = True
 from smodels.base.model import Model
 from smodels.share.models.SMparticles import SMList
 from share.model_spec import BSMList
@@ -394,6 +394,10 @@ Just filter the database:
                 print ( f"[expResModifier] error parsing {filename}: {e}" )
                 print ( f"[expResModifier] is this a protomodel with 'masses', etc defined?" )
                 sys.exit()
+        if allowN1N1Prod and not (1000022,1000022) in m['ssmultipliers']:
+            self.warn ( f"we allow N1N1 production but not N1N1 production in signal model" )
+        if not allowN1N1Prod and (1000022,1000022) in m['ssmultipliers']:
+            self.warn ( f"we disallow N1N1 production but N1N1 production in signal model" )
         ma.initFromDict ( m, initTestStats=True )
         ma.M.computeXSecs( keep_slha = True )
         self.log ( f"xsecs produced {ma.M.currentSLHA}" )
