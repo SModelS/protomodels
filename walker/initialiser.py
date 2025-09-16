@@ -605,6 +605,8 @@ class Initialiser ( LoggerBase ):
             ## we do sth better motivated
             # prel = np.exp ( Z )
             # prel = 1. / ( 1. - scipy.stats.norm.cdf ( np.sqrt(TL) ) )
+            if p == 0:
+                self.error ( f"for {anaAndSRName} we got p=0" )
             prel = 1. / p
             while prel in prels:
                 prel+=1e-10
@@ -894,9 +896,17 @@ class Initialiser ( LoggerBase ):
         models = {}
         for i in range(n):
             ret = self.predictForModel ( None )
-            models[ ret["K"] ] = ret["model"]
+            model = ret["model"]
+            model["K"] = ret["K"]
+            model["TL"] = ret["TL"]
+            models[ ret["K"] ] = model
         # print ( "bestOfFive: {d}" )
-        maxK = max( models.keys() )
+        keys = [ k for k in models.keys() if k is not None ]
+        if len(keys) == 0:
+            self.log ( f"best of {n} got us no good model" )
+            return None
+        maxK = max( keys )
+        self.log ( f"best of {n} got: K={maxK:.2g}" )
         return models[maxK]
 
     def interact ( self ):

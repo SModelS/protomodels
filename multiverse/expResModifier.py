@@ -1173,10 +1173,13 @@ Just filter the database:
             if self.compute_ps:
                 p = computePForDataSet ( dataset, newObs )
                 self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
-                D["new_p"]=float(p)
+                D["new_p"]=p
                 newZ = computeZFromP ( p )
                 self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
-                D["new_Z"]=float(newZ)
+                D["new_Z"]=newZ
+                if p == 0 or newZ == float("inf"):
+                    self.error ( f"we got p={p} Z={newZ}. exit" )
+                    sys.exit()
             D["type"]=tpe
             self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
             expRes.datasets[i].dataInfo.observedN = newObs
@@ -1315,10 +1318,13 @@ Just filter the database:
                 if self.compute_ps:
                     p = computePForDataSet ( dataset, newObs )
                     self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
-                    D["new_p"]=float(p)
+                    D["new_p"]=p
                     newZ = computeZFromP ( p )
                     self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
-                    D["new_Z"]=float(newZ)
+                    D["new_Z"]=newZ
+                    if p == 0 or newZ == float("inf"):
+                        self.error ( f"we got p={p} Z={newZ}. exit" )
+                        sys.exit()
                 label = f"{anaId}:{dataset.dataInfo.dataId}"
                 self.addToStats ( label, D, dataset.globalInfo )
                 ## as the very last measure, we replace the observation with
