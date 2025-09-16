@@ -249,9 +249,11 @@ def computeZFromP ( pvalue : float ) -> float:
     """
     return float ( - scipy.stats.norm.ppf ( pvalue ) )
 
-def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None ) -> float:
+def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
+       nmax : int = 40000000 ) -> float:
     """ given a dataset, compute p for SM hypothesis
     :param obsN: if not None, compute for the observation
+    :param nmax: maximum number of toys
 
     :returns: p-value
     """
@@ -263,13 +265,13 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None ) -> f
     if hasattr ( dataset.dataInfo, "thirdMoment" ):
         thirdMoment = dataset.dataInfo.thirdMoment
     if thirdMoment is None:
-        p = computeP ( obsN, exp, err )
+        p = computeP ( obsN, exp, err, nmax = nmax )
         return p
-    p = computePSLv2 ( obsN, exp, err, thirdMoment )
+    p = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax )
     return p
 
 def computeP ( obs : float, bg : float, bgerr : float,
-        lognormal : bool = False ) -> float:
+        lognormal : bool = False, nmax : int = 40000000 ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
 
@@ -278,12 +280,13 @@ def computeP ( obs : float, bg : float, bgerr : float,
     :param bgerr: error on number of expected bg events
     :param lognormal: if true, model the enveloping nuisance parameter
     as a lognormal instead of a normal
+    :param nmax: maximum number of toys
 
     :returns: p-value
     """
     n = 50000
     ret = 0.
-    while ret < 1e-22 or ret > 1. - 1e-22:
+    while ret < .9 / nmax or ret > 1. - .9 / nmax:
         lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
         lmbda = lmbda[lmbda>0.]
         if lognormal:
@@ -297,19 +300,22 @@ def computeP ( obs : float, bg : float, bgerr : float,
                 lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
         fakeobs = scipy.stats.poisson.rvs ( lmbda )
         ## == we count half
-        ret = ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
+        ret = float ( ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs) )
         n *= 5
-        if n > 4000000:
+        if n > nmax:
+            print ( f"[helpers] n={n}>{nmax}. breaking off with ret={ret}" )
             break
-    return float(ret)
+    return ret
 
-def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> float:
+def computePSLv2 ( obs : float, bg : float, bgerr : float, 
+        third : float, nmax : int = 40000000 ) -> float:
     """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2
 
     :param obs: observed number of events
     :param bg: number of expected background events
     :param bgerr: error on number of expected bg events
     :param third: the third moment
+    :param nmax: maximum number of toys
 
     :returns: p-value
     """
@@ -329,7 +335,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> fl
     ret = 0.
     rhoparam = d.rho[0][0]
     # thtadbn = scipy.stats.multivariate_normal(np.zeros(self.size), rhoparam )
-    while ret < 1e-22 or ret > 1. - 1e-22:
+    while ret < .9/nmax or ret > 1. - .9/nmax:
         ctr = 0
         # thtas = thtadbn.rvs( n )
         thtas = scipy.stats.norm.rvs ( loc=[0.]*n, scale=[1.]*n )
@@ -354,11 +360,12 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float, third : float ) -> fl
             ic ( obs, bg, bgerr, third )
             import sys; sys.exit()
         ## == we count half
-        ret = ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs)
+        ret = float ( ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs) )
         n *= 5
-        if n > 4000000:
+        if n > nmax:
+            print ( f"[helpers] n={n}>{nmax}. breaking off with ret={ret}" )
             break
-    return float ( ret )
+    return ret
 
 
 def stripUnits( container ):
