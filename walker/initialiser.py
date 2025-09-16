@@ -833,6 +833,11 @@ class Initialiser ( LoggerBase ):
     def smearMasses ( self, masses : Dict )-> Dict:
         """ smear out the masses in dictionary """
         newmasses = {}
+        if not LSP in masses: # in this case we just smear more simply
+            for pid,mass in masses.items():
+                nmass = mass * scipy.stats.norm.rvs ( loc = 1., scale =.2 )
+                newmasses[pid]=nmass
+            return newmasses
         oldlspmass = masses[LSP]
         lspmass = float ( masses[LSP]*scipy.stats.norm.rvs ( loc = 1., scale =.2 ) )
         self.log ( f"we randomly smear m(LSP/{LSP}): {masses[LSP]:.1f} -> {lspmass:.1f}" )

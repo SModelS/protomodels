@@ -4,7 +4,7 @@
 """
 
 def createMyFile ( signal_model : str = "signal_model.dict",
-        dbpath : str = "./signal.pcl", outfile : str = "my.truth",
+        dbpath : str = "./signal.pcl", outfile : str = "truth.dict",
         interactive : bool = False ):
     from builder.manipulator import Manipulator
     # from builder.protomodel import ProtoModel

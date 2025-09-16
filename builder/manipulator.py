@@ -88,7 +88,7 @@ class Manipulator ( LoggerBase ):
             self.initFromDict ( protomodel, initTestStats = initTestStats )
         if type(protomodel) == str:
             self.M = ProtoModel ( )
-            if protomodel.endswith ( ".dict" ):
+            if protomodel.endswith ( ".dict" ) or protomodel.endswith ( ".truth" ):
                 self.initFromDictFile ( protomodel, nth = nth )
         self.walkerid = self.M.walkerid
         self.seed = seed
