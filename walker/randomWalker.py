@@ -165,7 +165,7 @@ class RandomWalker ( LoggerBase ):
             from walker.initialiser import Initialiser
             self.initialiser  = Initialiser ( self.walkerid, self.use_initialiser,
                    allowN1N1Prod = allowN1N1Prod, verbose = False,
-                   dbpath = dbpath )
+                   dbpath = dbpath, templateName = templateSLHA )
             #init_model = self.initialiser.propose()
             init_model = self.initialiser.bestOfN(5)
             if init_model != None:

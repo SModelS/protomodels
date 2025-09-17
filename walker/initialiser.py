@@ -83,22 +83,28 @@ class Initialiser ( LoggerBase ):
     cachefile = "pids.cache"
     effscachefile = "xsecs.cache"
 
-    def __init__ ( self, walkerid : Union[str,int] = 0,
+    def __init__ ( self, walkerid : Union[str,int] = "ini",
             dictfile : str = "signal_database.dict",
             allowN1N1Prod : bool = True, verbose : bool = False,
-            dbpath : os.PathLike = "official" ):
+            dbpath : os.PathLike = "official",
+            templateName : Union[None,str] = "default_template.slha" ):
         """ constructor.
 
         :param walkerid: the walkerid we run this under
         :param dictfile: path to the database dict file we will base this on.
         dictfile is usally sth like signal_database.dict, *_database.dict, <dbver>.dict.
         :param allowN1N1Prod: do we allow N1 N1 production?
+        :param templateName: the template SLHA file, is needed to know
+        what decays the slha file wants
         """
-        super ( Initialiser, self ).__init__ ( "ini" )
+        super ( Initialiser, self ).__init__ ( walkerid )
         self.printLogMessages = verbose
         dictfile = os.path.expanduser ( dictfile )
+        self.templateName = templateName
         self.warnings= {}
         self.dictfile = dictfile
+        self.readRunDict()
+        self._pm = ProtoModel ( walkerid, templateSLHA = self.templateName )
         self.dbpath = self.readDBPath ( dbpath )
         self.dsIdsInProposal = set()
         self.allowN1N1Prod = allowN1N1Prod
@@ -465,11 +471,27 @@ class Initialiser ( LoggerBase ):
         for i in squarks:
             self.massRanges[i] = squarkrange # ~b
 
+    def decaysAllowedBySLHA ( self, decays : dict ):
+        """ for txname are decays <ids> allowed for 
+        mother <pid>, according to the slha template file? """
+        self.log ( f"filter decays allowed by template slha file" )
+        ret = {}
+        for mpid, dpids in decays.items():
+            temp_tuples = set ( self._pm.decay_tuples[mpid].values() )
+            newdpids = set()
+            for dpid in dpids:
+                adpid = tuple ( map(abs,dpid) )
+                if adpid in temp_tuples:
+                    newdpids.add ( dpid )
+            ret[mpid]=newdpids
+            self.log ( f"for {mpid} we allow {newdpids}" )
+        return ret
+
     def getTxParamsFor ( self, filename : str ):
         """ get pids, decays for slha template <filename>
         :param filename: e.g. ..../T1.template
         """
-        self.log ( f"getTxParamsFor {filename}" )
+        # self.log ( f"getTxParamsFor {filename}" )
         txname = filename.replace(".template","")
         pr = txname.rfind("/")
         txname = txname[pr+1:]
@@ -790,7 +812,7 @@ class Initialiser ( LoggerBase ):
         """ for a given txname, alongside with the constraints of
         the result, return a dictionary of the decay channels we want to
         see being open, for multiple particles """
-        all_channels = self.decaysForTxnames[txname]
+        all_channels = self.decaysAllowedBySLHA (  self.decaysForTxnames[txname] )
         allowed_particles = self.getAllowedParticles ( constraints )
 
         good_channels = {}
@@ -837,7 +859,7 @@ class Initialiser ( LoggerBase ):
             if not mother in decays:
                 decays[mother]={}
             for daughterpids in daughters:
-                keys = tuple ( set ( [ abs(dp) for dp in daughterpids ] ) )
+                keys = tuple ( [ abs(dp) for dp in daughterpids ] )
                 nbr = random.uniform(0.,1.)
                 if not keys in decays[mother]:
                     decays[mother][keys]=nbr
@@ -981,17 +1003,27 @@ class Initialiser ( LoggerBase ):
         import IPython
         IPython.embed( colors = "neutral" )
 
-    def readDBPath ( self, dbpath ):
-        if dbpath != None:
-            return dbpath
+    def readRunDict ( self ):
+        self.runDict = {}
         if not os.path.exists ( "run.dict" ):
-            return "official"
+            return
         with open ( "run.dict", "rt" ) as f:
             txt = f.read()
             d = eval ( txt )
-            dbpath = d["dbpath"]
-            self.log ( f"extracted dbpath {dbpath} from run.dict" )
+            self.runDict = d
+        if "templateSLHA" in self.runDict:
+            templateName = self.runDict["templateSLHA"]
+            if self.templateName != templateName:
+                if self.templateName is not None:
+                    self.log ( f"templateName changed from {templateName} to {self.templateName}" )
+                self.templateName = templateName
+
+    def readDBPath ( self, dbpath ):
+        if dbpath != None:
             return dbpath
+        if not "dbpath" in self.runDict:
+            return "official"
+        return self.runDict["dbpath"]
 
 if __name__ == "__main__":
     import argparse
