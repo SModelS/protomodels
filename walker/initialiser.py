@@ -26,15 +26,21 @@ LSP = ProtoModel.LSP
 
 namer = SParticleNames ( susy = False )
 
-class Top20Dict(dict):
+class TopNDict(dict):
     """ a dictionary that only keeps the top 20 entries """
+    def __init__ ( self, nmax : int = 20 ):
+        super ( TopNDict, self ).__init__()
+        self.nmax = nmax
     def __setitem__(self, key, value):
         # insert the key-value pair
         super().__setitem__(key, value)
         # if we now have more than 10 entries, drop the smallest key
-        if len(self) > 20:
+        if len(self) > self.nmax:
             smallest_key = min(self.keys())
             del self[smallest_key]
+    def update(self, d : dict ):
+        for k,v in d.items():
+            self[k]=v
 
 def mergeTwoModels ( model1 : str, model2: str ) -> Union[None,Dict]:
     """ merge two models, add all particles from both models.
@@ -190,6 +196,7 @@ class Initialiser ( LoggerBase ):
         def computeAverageDecaysForPid ( pid : int, models : List[Dict] ) -> Dict:
             decays = {}
             Stot = 0.
+            nentries = {}
             for model in models:
                 if pid in model["decays"]:
                     mdecays = model["decays"][pid]
@@ -197,9 +204,15 @@ class Initialiser ( LoggerBase ):
                         if not daughterpids in decays:
                             decays[daughterpids] = 0.
                         decays[daughterpids] += br
+                        if not daughterpids in nentries:
+                            nentries[daughterpids]=0
+                        nentries[daughterpids]+=1
                         Stot += br
-            for daughterpids, br in decays.items():
-                decays[daughterpids]/=Stot
+            for daughterpids, ct in nentries.items():
+                if ct>1:
+                    decays[daughterpids]/=ct
+            #for daughterpids, br in decays.items():
+            #    decays[daughterpids]/=Stot
             return decays
 
         def computeAverageSSMs ( models : List[Dict] ) -> Dict:
@@ -403,7 +416,8 @@ class Initialiser ( LoggerBase ):
 
     def findHighestXSecsFor ( self, dataset ):
         """ search for highest xsecs in this dataset """
-        d = Top20Dict()
+        nmax = 20
+        d = TopNDict(nmax=nmax)
         for txname in dataset.txnameList:
             txn = txname.txName
             if txn in self.mapTxnames:
@@ -423,6 +437,8 @@ class Initialiser ( LoggerBase ):
                 else:
                     pids = [ -pids[0], pids[0] ]
             data = txname.txnameData
+            d_txn = TopNDict(nmax=int(np.ceil(nmax/len(dataset.txnameList))))
+            txn_xsec_tot = 0.
             for pt,eff in zip(data.tri.points,data.y_values):
                 # in the mass plane
                 massvec = data.inversePCAtransf(pt)
@@ -437,9 +453,13 @@ class Initialiser ( LoggerBase ):
                     xsec += 1e-10
                 if type(pt) not in [ list, tuple ]:
                     pt = pt.tolist()
-                d[xsec]={ "masses": masses, "txn": txn, "eff": float(eff),
-                          "pt": pt, "pids": tuple(pids), 
-                          "xsec": float ( refxsec * eff ) }
+                txn_xsec_tot += xsec
+                d_txn[xsec]={ "masses": masses, "txn": txn, "eff": float(eff),
+                          "pt": pt, "pids": tuple(pids), "refxsec": float(refxsec),
+                          "xsee": float ( refxsec * eff ) }
+            for k,v in d_txn.items():
+                d[k/txn_xsec_tot]=v
+            # d.update ( d_txn ) # didnt rewrite this method for capping
         totxsec = 0. # normalize the keys
         for k,v in d.items():
                 totxsec += k
@@ -471,21 +491,29 @@ class Initialiser ( LoggerBase ):
         for i in squarks:
             self.massRanges[i] = squarkrange # ~b
 
-    def decaysAllowedBySLHA ( self, decays : dict ):
+    def decaysAllowedBySLHA ( self, decays : dict ) -> dict:
         """ for txname are decays <ids> allowed for 
         mother <pid>, according to the slha template file? """
         self.log ( f"filter decays allowed by template slha file" )
         ret = {}
+        counts = {}
         for mpid, dpids in decays.items():
-            temp_tuples = set ( self._pm.decay_tuples[mpid].values() )
+            if mpid not in [ 1000023, 1000024 ]:
+                ret[mpid]=dpids # ugly hack for now
+                continue
+            temp_tuples = list ( self._pm.decay_tuples[mpid].values() )
             newdpids = set()
             for dpid in dpids:
                 adpid = tuple ( map(abs,dpid) )
-                if adpid in temp_tuples:
+                ct = temp_tuples.count ( adpid )
+                if ct > 0:
                     newdpids.add ( dpid )
+                    if not mpid in counts:
+                        counts[mpid]={}
+                    counts[mpid][adpid]=ct
             ret[mpid]=newdpids
             self.log ( f"for {mpid} we allow {newdpids}" )
-        return ret
+        return ret, counts
 
     def getTxParamsFor ( self, filename : str ):
         """ get pids, decays for slha template <filename>
@@ -812,7 +840,7 @@ class Initialiser ( LoggerBase ):
         """ for a given txname, alongside with the constraints of
         the result, return a dictionary of the decay channels we want to
         see being open, for multiple particles """
-        all_channels = self.decaysAllowedBySLHA (  self.decaysForTxnames[txname] )
+        all_channels, counts = self.decaysAllowedBySLHA (  self.decaysForTxnames[txname] )
         allowed_particles = self.getAllowedParticles ( constraints )
 
         good_channels = {}
@@ -836,7 +864,7 @@ class Initialiser ( LoggerBase ):
                 self.log ( f"  `- {mother}: {decays} -> {good_decays}" )
         # self.log ( f"for {txname}:" ) # , {constraints}:" )
         #self.log ( f"  `- {all_channels} -> {good_channels}" )
-        return good_channels
+        return good_channels, counts
 
     def getDecaysForTxname ( self, result : Dict ) -> Dict:
         """ get some random decays starting points
@@ -850,7 +878,7 @@ class Initialiser ( LoggerBase ):
         if not "constraints" in result:
             print ( f"@@22 no constraint:  {result}" )
         constraints = result["constraints"]
-        tmp = self.getPossibleChannelsFromConstraints ( txname, constraints )
+        tmp, counts = self.getPossibleChannelsFromConstraints ( txname, constraints )
 
         decays = { ProtoModel.LSP: {} }
         for mother,daughters in tmp.items():
@@ -868,7 +896,16 @@ class Initialiser ( LoggerBase ):
                 decays[mother][keys]= nbr / nbr_tot
             # self.debug ( f"mother {mother} nbr_tot {nbr_tot} decays {decays}" )
         self.log ( f"we randomly choose the decays for {txname}:" )
+        # self.log ( f"counts are {counts}" )
         for mother, daughters in decays.items():
+            #if mother in counts:
+            #    self.log ( f"for {mother} the counts are {counts[mother]}" )
+            for dpid, nbr in daughters.items():
+                # self.log ( f"dpid is {dpid}" )
+                if mother in counts and dpid in counts[mother]:
+                    ct = counts[mother][dpid]
+                    decays[mother][dpid]/=ct
+                    # daughters[dpid]/=ct
             self.log ( f"  `- {mother}: {daughters}" )
         # self.log ( f"constraints were {result['constraints']}" )
         return decays

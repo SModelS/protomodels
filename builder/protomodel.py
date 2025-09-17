@@ -150,6 +150,7 @@ class ProtoModel ( LoggerBase ):
         self.masses = {}
         self.possibledecays = {} ## list all possible decay channels
         self.decay_keys = {} #list the key associated with each decay of a pid
+        self.decay_tuples = {} #list the tuples used in the slha template file with each decay of a pid
         self._stored_xsecs = () #Store cross-sections. It should only be accesses through getXsecs()!
         self._xsecMasses = {} #Store the masses used for computing the cross-sections
         self._xsecSSMs = {} #Store the signal strenght multiplier used for computing the cross-sections
@@ -186,9 +187,11 @@ class ProtoModel ( LoggerBase ):
         for p in self.particles:
             decays = []
             dkey = {}
+            dtuples = {}
             for key in slha_decay_keys:
                 if f"D{p}" in key[0]:
                     dpid,dpid2,dpid3,dpd = None,None,None,None
+                    dtuple=tuple(map(int,key[0].split("_")[1:]))
 
                     if int(key[1]) == 2:                    #2body decay
                         dpid = abs(int(key[2]))
@@ -202,9 +205,11 @@ class ProtoModel ( LoggerBase ):
 
                     decays.append ( dpd )
                     dkey.update({dpd: key[0]})
+                    dtuples.update({dpd: dtuple})
 
             self.possibledecays[p]=decays
             self.decay_keys[p] = dkey
+            self.decay_tuples[p] = dtuples
 
     def __str__(self):
         """ return basic information on model
@@ -308,7 +313,7 @@ class ProtoModel ( LoggerBase ):
         #Get list of possible decay channels:
         openChannels = set()
         unfrozen = self.unFrozenParticles()
-        from base.constants import smMasses
+        from base.constants import smMasses, smWidths
         #Get all relevant masses
         allMasses = dict([[pid,mass] for pid,mass in self.masses.items()])
         allMasses.update(smMasses)
