@@ -308,17 +308,17 @@ class ProtoModel ( LoggerBase ):
         #Get list of possible decay channels:
         openChannels = set()
         unfrozen = self.unFrozenParticles()
-        from base.constants import mass_W, mwidth_W, mass_Z, mwidth_Z, smMasses
+        from base.constants import smMasses
         #Get all relevant masses
         allMasses = dict([[pid,mass] for pid,mass in self.masses.items()])
         allMasses.update(smMasses)
 
         offshell = False
         if pid == 1000023 and pid in self.masses and self.LSP in self.masses and \
-                (self.masses[pid] - self.masses[self.LSP]) < (mass_Z + mwidth_Z): 
+                (self.masses[pid] - self.masses[self.LSP]) < (smMasses["Z"] + smWidths["Z"]): 
             offshell = True
         elif pid == 1000024 and pid in self.masses and self.LSP in self.masses and \
-                  (self.masses[pid] - self.masses[self.LSP]) < (mass_W + mwidth_W):
+                  (self.masses[pid] - self.masses[self.LSP]) < (smMasses["W"] + smWidths["W"]):
             offshell = True
         else: offshell = False
 

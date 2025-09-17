@@ -23,7 +23,7 @@ from base.loggerbase import LoggerBase
 from os import PathLike
 import tempfile
 from scipy.stats import norm, lognorm, uniform
-from base.constants import mass_W, mwidth_W, mass_Z, mwidth_Z
+from base.constants import smMasses, smWidths
 
 class Manipulator ( LoggerBase ):
     """ contains the protomodel manipulation algorithms. """
@@ -145,8 +145,8 @@ class Manipulator ( LoggerBase ):
             protomodel = self.M
         offshell = False
         if 1000023 in protomodel.unFrozenParticles() or 1000024 in protomodel.unFrozenParticles():
-            if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (mass_Z + mwidth_Z): offshell = True
-            elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (mass_W + mwidth_W): offshell = True
+            if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (smMasses["Z"] + smWidths["Z"]): offshell = True
+            elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (smMasses["W"] + smWidths["W"]): offshell = True
             else: offshell = False
         else: offshell = False
 
@@ -1805,8 +1805,8 @@ class Manipulator ( LoggerBase ):
             if p < 0.1:
                 offshell = True
                 self.log ( f"Unfreezing {self.namer.asciiName(pid)}, randomly chose to restrict to offshell mass!" )
-                if pid == 1000023: maxMass = minMass + mass_Z + mwidth_Z
-                else: maxMass = minMass + mass_W + mwidth_W
+                if pid == 1000023: maxMass = minMass + smMasses["Z"] + smWidths["Z"]
+                else: maxMass = minMass + smMasses["W"] + smWidths["W"]
 
         m_random = float(np.random.uniform ( 0., 1. ))
         tmpMass = minMass + (maxMass-minMass)*m_random
@@ -1972,8 +1972,8 @@ class Manipulator ( LoggerBase ):
             if p < 0.1:
                 offshell = True
                 self.log ( f"randomly chose {self.namer.asciiName(pid)} to restrict to offshell mass!" )
-                if pid == 1000023: maxMax = minMass + mass_Z + mwidth_Z
-                else: maxMax = minMass + mass_W + mwidth_W
+                if pid == 1000023: maxMax = minMass + smMasses["Z"] + smWidths["Z"]
+                else: maxMax = minMass + smMasses["W"] + smWidths["W"]
 
         massIsLegal = False
         ctIterations = 0
@@ -2021,8 +2021,8 @@ class Manipulator ( LoggerBase ):
         for ipid in allpids:
             self.M.masses[ipid]=tmpmass
             if ipid in [ 1000023, 1000024 ]:
-                if ipid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (mass_Z + mwidth_Z)
-                if ipid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (mass_W + mwidth_W)
+                if ipid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < ( smMasses["Z"] + smWidths["Z"])
+                if ipid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (smMasses["W"] + smWidths["W"])
                 if was_offshell != is_offshell:     #initialize branchings
                     if self.run_mcmc:
                         self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {ipid}.")
@@ -2172,6 +2172,9 @@ class Manipulator ( LoggerBase ):
         ## add the decays from pid2 to pid1 if decay is allowed:
         for pids,br in p2decays.items():
             if not pids in openChannels:
+                continue
+            if not p1 in protomodel.decays:
+                self.log(f"how is {p1} not in {protomodel.decays}?" )
                 continue
             if pids in protomodel.decays[p1]:   #add to existing br
                 if br > 0.001:

@@ -218,6 +218,16 @@ class Initialiser ( LoggerBase ):
                 masses[pid]=mass
             piddecays = computeAverageDecaysForPid ( pid, models )
             decays[pid] = piddecays
+        ties = [ ( 1000023, 1000024 ) ]
+        for pids in ties:
+            if pids[0] in masses and pids[1] in masses:
+                if self.isOnshell ( pids[0], masses ) == \
+                       self.isOnshell ( pids[1], masses ):
+                    p = np.random.uniform ( 0, 1 )
+                    if p < .1:
+                        masses[pids[1]] = masses[pids[0]]
+                    if p > .9:
+                        masses[pids[0]] = masses[pids[1]]
         ssms = computeAverageSSMs ( models )
         ret["masses"]=masses
         ret["decays"]=decays
@@ -726,6 +736,27 @@ class Initialiser ( LoggerBase ):
                 return None
         return None
 
+    def isOnshell ( self, pid : int, masses : dict ) -> bool:
+        """ determine if a pid like 1000023, 1000024 is onshell
+
+        :returns: true if onshell, false if ofshell, none if
+        doesnt apply
+        """
+        if not pid in masses:
+            return None
+        if not LSP in masses:
+            return None
+        massG = 0.
+        if pid in [ 1000023, 1000024, 1000006 ]:
+            from base.constants import smMasses
+            massG = smMasses[pid-1000000]
+        else:
+            return None
+        dm = masses[pid] - masses[LSP]
+        if dm > massG:
+            return True
+        return False
+
     def getAllowedParticles ( self, constraints ):
         allowed_particles = set()
         test_particles = { "W(": (24,), "Z(": (23,), "e": (11,),
@@ -856,6 +887,12 @@ class Initialiser ( LoggerBase ):
                 nmass = lspmass + float ( deltam * scipy.stats.norm.rvs ( loc = 1., scale =.2 ) )
             self.log ( f"we randomly smear m({pid}): {mass:.1f} -> {nmass:.1f}" )
             newmasses[pid]=nmass
+        if 1000023 in newmasses and 1000024 in newmasses:
+            p = np.random.uniform ( 0, 1 )
+            if p < .2:
+                newmasses[1000023] = newmasses[1000024]
+            if p > .8:
+                newmasses[1000024] = newmasses[1000023]
         return newmasses
 
     def getRandomSubmodelForTxname ( self, result : Dict ) -> Dict:
@@ -891,6 +928,7 @@ class Initialiser ( LoggerBase ):
             submodels.append ( submodel )
         self.submodels = submodels
         model = self.mergeNModels ( submodels )
+        
         if self.allowN1N1Prod and model is not None:
             ssm = float ( np.exp ( scipy.stats.norm.rvs() ) )
             model["ssmultipliers"][(1000022,1000022)]=ssm
@@ -926,11 +964,12 @@ class Initialiser ( LoggerBase ):
             models[ ret["K"] ] = model
         # print ( "bestOfFive: {d}" )
         keys = [ k for k in models.keys() if k is not None ]
+        skeys = [ f"{k:.1f}" for k in keys ]
         if len(keys) == 0:
             self.log ( f"best of {n} got us no good model" )
             return None
         maxK = max( keys )
-        self.log ( f"best of {n} got: K={maxK:.2g}" )
+        self.log ( f"best of {n} got: K=max({', '.join(skeys)})={maxK:.2f}" )
         return models[maxK]
 
     def interact ( self ):
