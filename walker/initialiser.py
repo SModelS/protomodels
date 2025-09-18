@@ -204,6 +204,7 @@ class Initialiser ( LoggerBase ):
             self.log ( f"renaming {oldpid} to {newpid}" )
             if not oldpid in model["masses"]:
                 return
+            self.log ( f"set m({newpid}) to m({oldpid})={model['masses'][oldpid]}" )
             model["masses"][newpid]=model["masses"][oldpid]
             model["masses"].pop(oldpid)
             if oldpid in model["decays"]:
@@ -213,16 +214,26 @@ class Initialiser ( LoggerBase ):
                 model["decays"][newpid] = model["decays"][oldpid]
                 model["decays"].pop(oldpid)
             for mpid, daughters in model["decays"].items():
+                newdaughters = {}
                 for pdaughters, br in daughters.items():
                     if oldpid in pdaughters:
                         newkeys = tuple( newpid if v == oldpid else v for v in pdaughters )
-                        model["decays"][mpid][newkeys] = br
+                        newdaughters[newkeys] = br
+                    else:
+                        newdaughters[pdaughters]=br
+                model["decays"][mpid] = newdaughters
+            newssms = {}
             for pids,ssm in model["ssmultipliers"].items():
-                if not oldpid in pids:
-                    continue
-                newpids = tuple( newpid if v == oldpid else v for v in pids )
-                model["ssmultipliers"][newpids]=ssm
-                model["ssmultipliers"].remove(pids)
+                if oldpid in pids:
+                    newpids = tuple( newpid if v == oldpid else v for v in pids )
+                    newssms[newpids]=ssm
+                elif -oldpid in pids:
+                    newpids = tuple( -newpid if v == -oldpid else v for v in pids )
+                    newssms[newpids]=ssm
+                else:
+                    newssms[pids]=ssm
+            model["ssmultipliers"] = newssms
+            self.log ( f'renameParticle returning {model}' )
             return model
                 
 
@@ -230,19 +241,6 @@ class Initialiser ( LoggerBase ):
             decays = {}
             Stot = 0.
             nentries = {}
-            onoffParticles = [ 1000006, 1000023, 1000024 ]
-            # for the particles above, we dont merge on with offshell variants
-            hasOffshell = set() ## for 1000023, 1000024, 1000006
-            for model in models:
-                for particle in onoffParticles:
-                    if particle in model["masses"]:
-                        isOn = self.isOnshell ( particle, model["masses"] )
-                        if isOn == False:
-                            hasOffshell.add ( particle )
-            for i,model in enumerate(models):
-                for particle in onoffParticles:
-                    if self.isOnshell ( particle, model["masses"] ) and particle in hasOffshell:
-                        models[i]=renameParticle ( particle + 1000000, particle, model )
             for model in models:
                 if pid in model["decays"]:
                     mdecays = model["decays"][pid]
@@ -268,6 +266,21 @@ class Initialiser ( LoggerBase ):
                 for k,v in mssms.items():
                     ssms[k]=v # just bluntly take them over.
             return ssms
+
+        # step #0, rename some particles
+        onoffParticles = [ 1000006, 1000023, 1000024 ]
+        # for the particles above, we dont merge on with offshell variants
+        hasOffshell = set() ## for 1000023, 1000024, 1000006
+        for model in models:
+            for particle in onoffParticles:
+                if particle in model["masses"]:
+                    isOn = self.isOnshell ( particle, model["masses"] )
+                    if isOn == False:
+                        hasOffshell.add ( particle )
+        for i,model in enumerate(models):
+            for particle in onoffParticles:
+                if self.isOnshell ( particle, model["masses"] ) and particle in hasOffshell:
+                    models[i]=renameParticle ( particle + 1000000, particle, model )
 
         # first, we collect all pids
         pids = collectPids ( models )
@@ -1063,7 +1076,9 @@ class Initialiser ( LoggerBase ):
         model = self.mergeNModels ( submodels )
         
         if self.allowN1N1Prod and model is not None:
-            ssm = float ( np.exp ( scipy.stats.norm.rvs() ) )
+            ## the factor of .2 below is because our reference xsecs for N1N1 are those of C1C1
+            ## so too high
+            ssm = float ( .2 * np.exp ( scipy.stats.norm.rvs() ) )
             model["ssmultipliers"][(1000022,1000022)]=ssm
         if True:
             from ptools.helpers import py_dumps
