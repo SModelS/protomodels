@@ -93,7 +93,7 @@ class Initialiser ( LoggerBase ):
             dictfile : str = "signal_database.dict",
             allowN1N1Prod : bool = True, verbose : bool = False,
             dbpath : os.PathLike = "official",
-            templateName : Union[None,str] = "default_template.slha" ):
+            templateName : Union[None,str] = "template_default.slha" ):
         """ constructor.
 
         :param walkerid: the walkerid we run this under
@@ -129,7 +129,7 @@ class Initialiser ( LoggerBase ):
                              2000002, 2000003, 2000004, 2000011,
                              2000013, 20000015, 1000014, 1000016,
                              2000012, 20000014, 2000016 ]
-        self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWW",
+        self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWWoff",
             "TRV1": None }
         force_build  = False
         re = None
@@ -575,7 +575,7 @@ class Initialiser ( LoggerBase ):
                         counts[mpid]={}
                     counts[mpid][adpid]=ct
             ret[mpid]=newdpids
-            self.log ( f"for {mpid} we allow {newdpids}" )
+            self.debug ( f"for {mpid} we allow {newdpids}" )
         return ret, counts
 
     def getTxParamsFor ( self, filename : str ):
