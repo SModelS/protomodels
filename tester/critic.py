@@ -309,7 +309,7 @@ class Critic ( LoggerBase ):
                 self.info( f"Keeping {protomodel.currentSLHA}, as requested" )
             else:
                 protomodel.delCurrentSLHA()
-            return False, "failed UL-based critic ({n_excluding}/{n_sensitive})"
+            return False, f"failed UL-based critic ({n_excluding}/{n_sensitive})"
 
         self.info("Model allowed by UL-based critic. Starting llhd-based critic.")
 

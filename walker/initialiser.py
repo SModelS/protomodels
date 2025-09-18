@@ -1101,14 +1101,34 @@ class Initialiser ( LoggerBase ):
             self.debug ( f"predictForModel {model}" )
         ma = Manipulator( model )
 
-        pr = Predictor("ini", self.db, do_srcombine = True )
-        cr = Critic("ini", self.db, do_srcombine = True )
-        pr.predict ( ma, keep_predictions = True, force_computation_K=True )
-        ret = { "ma": ma, "pr": pr, "model": model, "cr": cr }
+        self.pr = Predictor("ini", self.db, do_srcombine = True )
+        self.log( f"predictForModel, run predict(1)" )
+        self.pr.predict ( ma, keep_predictions = True, force_computation_K=True )
+        # FIXME why do I have to call this twice?
+        self.cr = Critic("ini", self.db, do_srcombine = True )
+        crr = False, "critic not run"
+        ctr = 0
+        scale = 1.
+        self.log( f"predictForModel, K={ma.M.K}, run critics" )
+        while ctr < 3:
+            crr = self.cr.predict_critic ( ma.M )
+            self.log ( f"predictForModel asking the critic ({ctr}): {crr}" )
+            verdict = crr[0]
+            if verdict == True:
+                break
+            scale *= .6
+            ma.M.rescaleXSecsBy ( scale ) ## FIXME do sth smarter here!
+            ctr += 1
+        self.log( f"predictForModel, run predict(2)" )
+        self.pr.predict ( ma, keep_predictions = True, force_computation_K=True )
+
+        # update the ssms, they might have changed
+        model["ssmultipliers"]=ma.M.ssmultipliers
+        ret = { "ma": ma, "pr": self.pr, "model": model, "cr": self.cr }
         ret["K"] = ma.M.K
         ret["TL"] = ma.M.TL
         sK = "None" if ma.M.K is None else f"{ma.M.K:.1f}"
-        self.log ( f"predictForModel K={sK}" )
+        self.log ( f"{RED}predictForModel final K={sK} cr={crr}{RESET}" )
         return ret
 
     def bestOfN ( self, n : int = 5 ):
