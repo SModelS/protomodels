@@ -21,6 +21,7 @@ from smodels_utils.helper.terminalcolors import *
 from ptools.refxsecComputer import RefXSecComputer
 from functools import lru_cache
 from base.locker import lock, unlock
+from smodels.experiment.databaseObj import Database
 
 LSP = ProtoModel.LSP
 
@@ -112,6 +113,7 @@ class Initialiser ( LoggerBase ):
         self.readRunDict()
         self._pm = ProtoModel ( walkerid, templateSLHA = self.templateName )
         self.dbpath = self.readDBPath ( dbpath )
+        self.db = Database ( self.dbpath )
         self.dsIdsInProposal = set()
         self.allowN1N1Prod = allowN1N1Prod
         self.xsecComputer = RefXSecComputer( allowN1N1Prod = allowN1N1Prod )
@@ -328,14 +330,12 @@ class Initialiser ( LoggerBase ):
             effscachefile = os.path.abspath ( f"{self.getMyPathName()}/../share/{self.effscachefile}" )
             # self.log ( f"we might have a version at {effscachefile}" )
             if os.path.exists ( effscachefile ):
-                os.symlink ( effscachefile, self.effscachefile )
-                """
+                #os.symlink ( effscachefile, self.effscachefile )
                 lock ( self.effscachefile )
                 self.log ( f"copying {self.effscachefile} from {effscachefile}" )
                 import shutil
                 shutil.copy ( effscachefile, self.effscachefile )
                 unlock ( self.effscachefile )
-                """
 
         if os.path.exists ( self.effscachefile ) and not force_build:
             with open ( self.effscachefile, "rt" ) as f:
@@ -346,9 +346,7 @@ class Initialiser ( LoggerBase ):
 
         self.log ( f"now get the highest fiducial xsecs for all results" )
         self.highestXSecs = {}
-        from smodels.experiment.databaseObj import Database
         from ptools.helpers import computeP
-        self.db = Database ( self.dbpath )
         ers = self.db.getExpResults( dataTypes=["efficiencyMap"] )
         ners = len(ers)
         for i,er in enumerate(ers):
@@ -668,15 +666,13 @@ class Initialiser ( LoggerBase ):
             cachefile = os.path.abspath ( f"{self.getMyPathName()}/../share/{self.cachefile}" )
             # self.log ( f"we do not have {self.cachefile}, lets see if we can pull in {cachefile}" )
             if os.path.exists ( cachefile ):
-                os.symlink ( cachefile, self.cachefile )
-                """
+                # os.symlink ( cachefile, self.cachefile )
                 lock ( self.cachefile )
                 self.log ( f"copying {self.cachefile} from {cachefile}" )
                 import shutil
                 shutil.copy ( cachefile, self.cachefile )
                 unlock ( self.cachefile )
                 # self.cachefile = cachefile
-                """
             else:
                 return False
         self.log ( f"reading in all initial data from {self.cachefile}" )
@@ -773,6 +769,7 @@ class Initialiser ( LoggerBase ):
             # prel = 1. / ( 1. - scipy.stats.norm.cdf ( np.sqrt(TL) ) )
             if p == 0:
                 self.error ( f"for {anaAndSRName} we got p=0" )
+                p = 1e-8
             prel = 1. / p
             while prel in prels:
                 prel+=1e-10
@@ -843,10 +840,20 @@ class Initialiser ( LoggerBase ):
         :returns: result dictionary object
         """
         Id, result = "?", {}
+        probs = copy.deepcopy ( self.probs )
         while (Id not in self.highestXSecs) or (Id in self.dsIdsInProposal):
-            result = np.random.choice(list(self.probs.values()),
-                    p=list(self.probs.keys()) )
+            keys = list(probs.keys())
+            key = np.random.choice(keys,p=keys)
+            result = probs[key]
+            #result = np.random.choice(list(probs.values()),
+            #        p=list(probs.keys()) )
             Id = result["id"]
+            probs.pop ( key ) ## take it out
+            prob_tot = 1. - key
+            newprobs = {}
+            for k,v in probs.items():
+                newprobs[k/prob_tot]=v
+            probs = newprobs
         self.dsIdsInProposal.add ( Id )
         result = self.randomlyChooseFromDataset ( result )
         return result
@@ -926,7 +933,7 @@ class Initialiser ( LoggerBase ):
         allowed_particles = self.getAllowedParticles ( constraints )
 
         good_channels = {}
-        self.log ( f"for {txname} we filter:" ) 
+        self.debug ( f"for {txname} we filter:" ) 
         for mother,decays in all_channels.items():
             #if mother == 1000024:
             #    self.log ( f"debug allowed {allowed_particles} constraints {constraints}" )
@@ -939,13 +946,11 @@ class Initialiser ( LoggerBase ):
             if len(good_decays)>0:
                 good_channels[mother]=good_decays
             if good_decays == decays:
-                self.log ( f"  `- {mother}: {decays} (same)" )
+                self.debug ( f"  `- {mother}: {decays} (same)" )
             elif good_decays == set():
-                self.log ( f"  `- {mother}: {decays} -> empty" )
+                self.debug ( f"  `- {mother}: {decays} -> empty" )
             else:
-                self.log ( f"  `- {mother}: {decays} -> {good_decays}" )
-        # self.log ( f"for {txname}:" ) # , {constraints}:" )
-        #self.log ( f"  `- {all_channels} -> {good_channels}" )
+                self.debug ( f"  `- {mother}: {decays} -> {good_decays}" )
         return good_channels, counts
 
     def getDecaysForTxname ( self, result : Dict ) -> Dict:
@@ -1066,7 +1071,7 @@ class Initialiser ( LoggerBase ):
         self.dsIdsInProposal = set()
         submodels = []
         nmodels = np.random.choice ( [1,2,3] )
-        self.log ( f"proposed model {self.dictfile} will consist of {GREEN}{nmodels} submodels{RESET}." )
+        self.log ( f"proposed model {self.dictfile} will consist of {RED}{nmodels} submodels{RESET}." )
         for i in range(nmodels):
             result = self.randomlyChooseOneResult()
             submodel = self.getRandomSubmodelForTxname ( result )
@@ -1085,7 +1090,7 @@ class Initialiser ( LoggerBase ):
         if True:
             from ptools.helpers import py_dumps
             ds = py_dumps ( model )
-            self.log ( f"we propose the model:" )
+            self.log ( f"{RED}we propose the model:{RESET}" )
             self.log ( f"\n{ds}" )
         return model
 
@@ -1093,14 +1098,17 @@ class Initialiser ( LoggerBase ):
         """ call pr.predict for the given model """
         if model == None:
             model = self.propose()
-            self.log ( f"predictForModel {model}" )
+            self.debug ( f"predictForModel {model}" )
         ma = Manipulator( model )
-        pr = Predictor("ini", self.dbpath, do_srcombine = True )
-        cr = Critic("ini", self.dbpath, do_srcombine = True )
+
+        pr = Predictor("ini", self.db, do_srcombine = True )
+        cr = Critic("ini", self.db, do_srcombine = True )
         pr.predict ( ma, keep_predictions = True, force_computation_K=True )
         ret = { "ma": ma, "pr": pr, "model": model, "cr": cr }
         ret["K"] = ma.M.K
         ret["TL"] = ma.M.TL
+        sK = "None" if ma.M.K is None else f"{ma.M.K:.1f}"
+        self.log ( f"predictForModel K={sK}" )
         return ret
 
     def bestOfN ( self, n : int = 5 ):
