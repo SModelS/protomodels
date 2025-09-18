@@ -622,7 +622,7 @@ class Initialiser ( LoggerBase ):
         if not os.path.exists ( tarball ):
             self.debug ( f"cannot find {tarball}, cannot get default productions." )
             return
-        self.log ( f"get first file in {tarball}" )
+        # self.log ( f"get first file in {tarball}" )
         import tarfile
         tar = tarfile.open ( tarball, "r:gz" )
         files = tar.members
@@ -671,6 +671,10 @@ class Initialiser ( LoggerBase ):
         ptot = 0.
         self.pvalues = {}
         for anaAndSRName,stats in self.data.items():
+            if len(stats["txns"])>7:
+                ## so many txnames, there isnt much info
+                ## this is too vague
+                continue
             #if not "TL" in stats:
             #    continue
             #TL = stats["TL"] # make sure we have unique TLs
