@@ -131,10 +131,13 @@ class Initialiser ( LoggerBase ):
                              2000012, 20000014, 2000016 ]
         self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWW",
             "TRV1": None }
-        re = self.readInitialData()
+        force_build  = False
+        re = None
+        if not force_build:
+            re = self.readInitialData()
         if not re:
             self.getTxParamsFromTemplates()
-        self.getHighestXSecsFromDatabase()
+        self.getHighestXSecsFromDatabase( force_build )
 
     def fmtP ( self, p : float ) -> str:
         return f"{YELLOW}(p={p:.3f}){RESET}"
@@ -263,11 +266,11 @@ class Initialiser ( LoggerBase ):
         """
         self.log ( f"effs cache {self.effscachefile}" )
         if not os.path.exists ( self.effscachefile ) and not force_build:
-            effscachefile = os.path.abspath(__file__+"../share/{self.effscachefile}" )
-            self.log ( f"we might have a version at {effscachefile}" )
+            effscachefile = os.path.abspath ( f"{self.getMyPathName()}/../share/{self.effscachefile}" )
+            # self.log ( f"we might have a version at {effscachefile}" )
             if os.path.exists ( effscachefile ):
                 lock ( self.effscachefile )
-                self.log ( f"copying effs cache from code dir" )
+                self.log ( f"copying {self.effscachefile} from {effscachefile}" )
                 import shutil
                 shutil.copy ( effscachefile, self.effscachefile )
                 unlock ( self.effscachefile )
@@ -586,14 +589,26 @@ class Initialiser ( LoggerBase ):
                 f.close()
             unlock ( self.cachefile )
 
+    def getMyPathName ( self ):
+        """ get the pathname of this very file, but symlinks resolved """
+        return os.path.dirname ( os.path.realpath(__file__) )
+
     def readInitialData ( self ) -> bool:
         """ read in all the data (pids,decays,ssms) from the slha files.
+
+        :param force_build: if True, force rebuilding this file
         :returns: False, if no cache file found.
         """
         if not os.path.exists ( self.cachefile ):
-            cachefile = os.path.abspath(__file__+"../share/{self.cachefile}" )
+            cachefile = os.path.abspath ( f"{self.getMyPathName()}/../share/{self.cachefile}" )
+            # self.log ( f"we do not have {self.cachefile}, lets see if we can pull in {cachefile}" )
             if os.path.exists ( cachefile ):
-                self.cachefile = cachefile
+                lock ( self.cachefile )
+                self.log ( f"copying {self.cachefile} from {cachefile}" )
+                import shutil
+                shutil.copy ( cachefile, self.cachefile )
+                unlock ( self.cachefile )
+                # self.cachefile = cachefile
             else:
                 return False
         self.log ( f"reading in all initial data from {self.cachefile}" )
