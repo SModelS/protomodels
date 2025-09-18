@@ -196,10 +196,53 @@ class Initialiser ( LoggerBase ):
                 lspmass = float ( np.mean ( lspmasses ) )
             return lspmass + avg_delta
 
+        def renameParticle ( newpid : int, oldpid : int, model : dict ) -> dict:
+            """ rename the particle oldpid to newpid in model 
+
+            :returns: model with oldpid replaced by newpid
+            """
+            self.log ( f"renaming {oldpid} to {newpid}" )
+            if not oldpid in model["masses"]:
+                return
+            model["masses"][newpid]=model["masses"][oldpid]
+            model["masses"].pop(oldpid)
+            if oldpid in model["decays"]:
+                model["decays"][newpid] = model["decays"][oldpid]
+                model["decays"].pop(oldpid)
+            if oldpid in model["decays"]:
+                model["decays"][newpid] = model["decays"][oldpid]
+                model["decays"].pop(oldpid)
+            for mpid, daughters in model["decays"].items():
+                for pdaughters, br in daughters.items():
+                    if oldpid in pdaughters:
+                        newkeys = tuple( newpid if v == oldpid else v for v in pdaughters )
+                        model["decays"][mpid][newkeys] = br
+            for pids,ssm in model["ssmultipliers"].items():
+                if not oldpid in pids:
+                    continue
+                newpids = tuple( newpid if v == oldpid else v for v in pids )
+                model["ssmultipliers"][newpids]=ssm
+                model["ssmultipliers"].remove(pids)
+            return model
+                
+
         def computeAverageDecaysForPid ( pid : int, models : List[Dict] ) -> Dict:
             decays = {}
             Stot = 0.
             nentries = {}
+            onoffParticles = [ 1000006, 1000023, 1000024 ]
+            # for the particles above, we dont merge on with offshell variants
+            hasOffshell = set() ## for 1000023, 1000024, 1000006
+            for model in models:
+                for particle in onoffParticles:
+                    if particle in model["masses"]:
+                        isOn = self.isOnshell ( particle, model["masses"] )
+                        if isOn == False:
+                            hasOffshell.add ( particle )
+            for i,model in enumerate(models):
+                for particle in onoffParticles:
+                    if self.isOnshell ( particle, model["masses"] ) and particle in hasOffshell:
+                        models[i]=renameParticle ( particle + 1000000, particle, model )
             for model in models:
                 if pid in model["decays"]:
                     mdecays = model["decays"][pid]
@@ -250,6 +293,7 @@ class Initialiser ( LoggerBase ):
                         masses[pids[1]] = masses[pids[0]]
                     if p > .9:
                         masses[pids[0]] = masses[pids[1]]
+
         ssms = computeAverageSSMs ( models )
         ret["masses"]=masses
         ret["decays"]=decays
@@ -269,11 +313,14 @@ class Initialiser ( LoggerBase ):
             effscachefile = os.path.abspath ( f"{self.getMyPathName()}/../share/{self.effscachefile}" )
             # self.log ( f"we might have a version at {effscachefile}" )
             if os.path.exists ( effscachefile ):
+                os.symlink ( effscachefile, self.effscachefile )
+                """
                 lock ( self.effscachefile )
                 self.log ( f"copying {self.effscachefile} from {effscachefile}" )
                 import shutil
                 shutil.copy ( effscachefile, self.effscachefile )
                 unlock ( self.effscachefile )
+                """
 
         if os.path.exists ( self.effscachefile ) and not force_build:
             with open ( self.effscachefile, "rt" ) as f:
@@ -573,7 +620,10 @@ class Initialiser ( LoggerBase ):
             if not pid in self.decaysForTxnames[txname] and len(decays)>0:
                 self.decaysForTxnames[txname][pid]=set()
             for decay in decays:
-                ids = tuple ( decay.ids )
+                ids = decay.ids
+                if ids[-1] > 1000000:
+                    ids = [ ids[-1] ] + ids[:-1]
+                ids = tuple ( ids )
                 self.decaysForTxnames[txname][pid].add(ids)
         os.unlink ( self.tempslha )
         self.getDefaultSSMs ( filename )
@@ -603,12 +653,15 @@ class Initialiser ( LoggerBase ):
             cachefile = os.path.abspath ( f"{self.getMyPathName()}/../share/{self.cachefile}" )
             # self.log ( f"we do not have {self.cachefile}, lets see if we can pull in {cachefile}" )
             if os.path.exists ( cachefile ):
+                os.symlink ( cachefile, self.cachefile )
+                """
                 lock ( self.cachefile )
                 self.log ( f"copying {self.cachefile} from {cachefile}" )
                 import shutil
                 shutil.copy ( cachefile, self.cachefile )
                 unlock ( self.cachefile )
                 # self.cachefile = cachefile
+                """
             else:
                 return False
         self.log ( f"reading in all initial data from {self.cachefile}" )
@@ -794,15 +847,10 @@ class Initialiser ( LoggerBase ):
         """
         ties = [ ( 1000023, 1000024 ) ]
         for tie in ties:
-            if pid in ties:
-                pos = ties.index ( pid )# pos is our guy
-                apos = 1 - pos # thats the alternative pid
-                if not ties[apos] in pids:
-                    return None
-                if np.random.uniform ( 0, 1 ) < .5:
-                    # tie them only in half the cases
-                    return ties[apos]
-                return None
+            if pid in tie:
+                otherpid = tie[0] if tie[1] == pid else tie[1]
+                if otherpid in pids:
+                    return otherpid
         return None
 
     def isOnshell ( self, pid : int, masses : dict ) -> bool:
@@ -959,12 +1007,19 @@ class Initialiser ( LoggerBase ):
         for pid,mass in masses.items():
             if pid == LSP:
                 continue
+            tpid = self.tiePids ( pid, masses.keys() )
+            if tpid is not None and tpid < pid:
+                continue
             nmass = -1. 
             while nmass < lspmass + 1: ## at least 1 gev distance to lsp
                 deltam = max ( 1., mass - oldlspmass )
                 nmass = lspmass + float ( deltam * scipy.stats.norm.rvs ( loc = 1., scale =.2 ) )
             self.log ( f"we randomly smear m({pid}): {mass:.1f} -> {nmass:.1f}" )
             newmasses[pid]=nmass
+            if tpid is not None:
+                self.log ( f"we randomly smear m({tpid}): {mass:.1f} -> {nmass:.1f}" )
+                newmasses[tpid]=nmass
+                
         if 1000023 in newmasses and 1000024 in newmasses:
             p = np.random.uniform ( 0, 1 )
             if p < .2:
