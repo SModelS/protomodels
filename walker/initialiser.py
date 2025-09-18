@@ -280,7 +280,9 @@ class Initialiser ( LoggerBase ):
         for i,model in enumerate(models):
             for particle in onoffParticles:
                 if self.isOnshell ( particle, model["masses"] ) and particle in hasOffshell:
-                    models[i]=renameParticle ( particle + 1000000, particle, model )
+                    newPids = { 1000023: 1000025, 1000024: 1000037,
+                                1000006: 2000006 }
+                    models[i]=renameParticle ( newPids[particle], particle, model )
 
         # first, we collect all pids
         pids = collectPids ( models )
