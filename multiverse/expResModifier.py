@@ -93,6 +93,10 @@ Database with a fake signal:
 ----------------------------
 ./expResModifier.py -R $RUNDIR -d original.pcl -s signal1 -P signal_model.dict
 
+No data synthesis, just create the _database.dict file:
+-------------------------------------------------------
+./expResModifier.py -R $RUNDIR -d original.pcl -s original --no_synthesis
+
 Playback the modifications described in playback file "db.dict":
 ----------------------------------------------------------------
 WARNING this functionality has not yet been tested!
@@ -489,9 +493,33 @@ Just filter the database:
         origZ = computeZFromP ( porig )
         D["orig_Z"]=origZ
         self.comments["orig_Z"]="the significance Z of the original observation (no fudge factor applied)"
+        label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
+        txnames = [ tx.txName for tx in dataset.txnameList ]
+        txnames.sort()
+        if len ( txnames ) == 0:
+            self.warning ( f"no txnames for {label}." )
+        D["txns"]=tuple(txnames )
+        self.comments["txns"]="tuple of txnames that populate this signal region / analysis"
+        if self.timestamps:
+            D["timestamp"]=dataset.globalInfo.lastUpdate
+        constraints = set()
+        for txni in dataset.txnameList:
+            constraints.add ( txni.constraint )
+        D["constraints"]=tuple( constraints )
+        self.comments["constraints"]="tuple of the sms constraints"
+
         if thirdMoment is not None:
             D["thirdMoment"]=thirdMoment
             self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
+        if self.no_synthesis:
+            D["newObs"] = D["origN"]
+            D["new_p"]=D["orig_p"]
+            D["new_Z"]=D["orig_Z"]
+            self.comments["newObs"]="the new fake observation (signal + background) -- in our case same as 'origN'"
+            self.comments["new_p"]="p-value (Gaussian nuisance) of newObs -- in our case same as 'orig_p'"
+            self.comments["new_Z"]="significance (Gaussian nuisance) of newObs -- in our case same as 'orig_Z'"
+            self.addToStats ( label, D, dataset.globalInfo )
+            return dataset
         if self.compute_ps:
             if thirdMoment is None:
                 p = computeP ( orig, exp, err )
@@ -553,8 +581,6 @@ Just filter the database:
             if thirdMoment is None:
                 p = computeP ( obs, exp, err )
             else:
-                D["thirdMoment"]=thirdMoment
-                self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                 p = computePSLv2 ( obs, exp, err, thirdMoment )
             p = self.checkIfZero( p, dataset )
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
@@ -567,20 +593,6 @@ Just filter the database:
         D["toterr"]=toterr
         ## origN stores the n_observed of the original database
         dataset.dataInfo.origN = orig
-        label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
-        txnames = [ tx.txName for tx in dataset.txnameList ]
-        txnames.sort()
-        if len ( txnames ) == 0:
-            self.warning ( f"no txnames for {label}." )
-        D["txns"]=tuple(txnames )
-        self.comments["txns"]="tuple of txnames that populate this signal region / analysis"
-        if self.timestamps:
-            D["timestamp"]=dataset.globalInfo.lastUpdate
-        constraints = set()
-        for txni in dataset.txnameList:
-            constraints.add ( txni.constraint )
-        D["constraints"]=tuple( constraints )
-        self.comments["constraints"]="tuple of the sms constraints"
         self.addToStats ( label, D, dataset.globalInfo )
         return dataset
 
@@ -1746,6 +1758,9 @@ if __name__ == "__main__":
             action='store_true' )
     argparser.add_argument ( '--nosuperseded',
             help='remove superseded results',
+            action='store_true' )
+    argparser.add_argument ( '--no_synthesis',
+            help='no data synthesis, just report observations',
             action='store_true' )
     argparser.add_argument ( '--noupperlimits',
             help='remove upper limit results',

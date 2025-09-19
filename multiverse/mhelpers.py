@@ -3,9 +3,17 @@
 """ module to contain helper methods for the multiverse
 """
 
+import os
+
 def createMyFile ( signal_model : str = "signal_model.dict",
         dbpath : str = "./signal.pcl", outfile : str = "truth.dict",
         interactive : bool = False ):
+    if signal_model == "":
+        print ( f"[predictForTruth] no signal model defined. exiting." )
+        return
+    if not os.path.exists ( signal_model ):
+        print ( f"[predictForTruth] {signal_model} does not exist. exiting." )
+        return
     from builder.manipulator import Manipulator
     # from builder.protomodel import ProtoModel
     from tester.predictor import Predictor
