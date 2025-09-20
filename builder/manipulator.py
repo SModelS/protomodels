@@ -579,7 +579,7 @@ class Manipulator ( LoggerBase ):
     def cheat ( self, mode : Union[int,str] = "no_cheat" ):
         """ cheating, i.e. starting with models that are known to work well
         :param mode: if string, then this is path to cheat model file.
-        if integer, then cheat model is in f'Pmodels/pmode{mode}.dict'
+        if integer, then cheat model is f'Pmodels/pmodel{mode}.dict'
         """
 
         if mode in [ "no_cheat", "", None, 0 ]: ## no cheating
@@ -589,7 +589,8 @@ class Manipulator ( LoggerBase ):
             filename = f"Pmodels/pmodel{mode}.dict"
         if not os.path.exists ( filename ):
             self.highlight ( "red", f"cheat mode started with {mode}, but no {os.getcwd()}/{filename} found" )
-            sys.exit(-1)
+            return
+            # sys.exit(-1)
         # scom = ""
         with open ( filename, "rt" ) as f:
             m = eval ( f.read() )

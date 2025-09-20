@@ -117,6 +117,9 @@ class Initialiser ( LoggerBase ):
         self.dsIdsInProposal = set()
         self.allowN1N1Prod = allowN1N1Prod
         self.xsecComputer = RefXSecComputer( allowN1N1Prod = allowN1N1Prod )
+        self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWWoff",
+            "TRV1": None, "TDTM1F": None, "TDTM2F": None, "TRHadGM1": None,
+            "THSCPM1": None, "THSCPM2": None, "T1Disp": None }
         from multiverse.expResModifier import readDictFile
         self.log ( f"reading database dict {RED}{dictfile}{RESET}" )
         d = readDictFile ( dictfile )
@@ -131,8 +134,6 @@ class Initialiser ( LoggerBase ):
                              2000002, 2000003, 2000004, 2000011,
                              2000013, 20000015, 1000014, 1000016,
                              2000012, 20000014, 2000016 ]
-        self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWWoff",
-            "TRV1": None }
         force_build  = False
         re = None
         if not force_build:
@@ -750,9 +751,14 @@ class Initialiser ( LoggerBase ):
         ptot = 0.
         self.pvalues = {}
         for anaAndSRName,stats in self.data.items():
-            if len(stats["txns"])>7:
+            txns = set()
+            for txn in stats["txns"]:
+                if txn in self.mapTxnames and self.mapTxnames[txn] is None:
+                    continue
+                txns.add ( txn )
+            if len(txns)>7 or len(txns)==0:
                 ## so many txnames, there isnt much info
-                ## this is too vague
+                ## this is too vague, or no txns we are using
                 continue
             #if not "TL" in stats:
             #    continue

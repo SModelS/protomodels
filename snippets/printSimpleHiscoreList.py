@@ -16,6 +16,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
     :param dictfile: path to dictionary file
     :param extended: extended output, add description timestamp
     """
+    printTruth()
     nlines = 0
     if not os.path.exists ( dictfile ):
         print ( f"[printSimpleHiscoreList] {dictfile} does not exist" )
@@ -84,6 +85,28 @@ def runSlurmWalk() -> int:
     print ( o )
     print ( )
     return 4
+
+def printTruth():
+    """ if a truth.dict file is found, pretty print it """
+    dictfile = "truth.dict"
+    if not os.path.exists ( dictfile ):
+        return
+    with open( dictfile, "rt" ) as f:
+        txt=f.read().replace('"inf"',"float('inf')").replace('"nan"',"float('nan')")
+        txt=txt.replace("'inf'",'float("inf")').replace("'nan'",'float("nan")')
+        f.close()
+    d = eval(txt)
+    K, TL = d["K"], d["TL"]
+    sK = "None" if K == None else f"{K:.3f}"
+    particles = d["masses"].keys()
+    sparticles = ""
+    for ip, p in enumerate ( particles ):
+        if ip != 0:
+            sparticles += ", "
+        name = SParticleNames( False).asciiName(p)
+        mass = d["masses"][p]
+        sparticles += f"{ansi.CYAN}{name}{ansi.RESET}={ansi.RED}{mass:.1f}{ansi.RESET}"
+    print ( f"{ansi.RED}Truth:{ansi.RESET}   K={ansi.GREEN}{sK}{ansi.RESET}; TL={TL:.3f}; {sparticles}" )
 
 if __name__ == "__main__":
     import argparse

@@ -151,6 +151,7 @@ class RandomWalker ( LoggerBase ):
             jobid = os.environ["SLURM_JOBID"]
         # self.pprint ( f"Ramping up with slurm jobid {jobid} using template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
         self.pprint ( f"Ramping up with slurm jobid {jobid}" )
+        self.pprint ( f"It is {time.asctime()}" )
         self.pprint ( f"template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
         
         #keep track of log llhd ratio
@@ -161,15 +162,16 @@ class RandomWalker ( LoggerBase ):
         if self.use_initialiser not in [ False, None ]:
             if cheatcode not in [ "no_cheat", "", "none", None, 0 ]:
                 logger.error ( f"use_initialiser {use_initialiser} specified, but also cheatcode {cheatcode} defined" )
-                sys.exit(-1)
-            from walker.initialiser import Initialiser
-            self.initialiser  = Initialiser ( self.walkerid, self.use_initialiser,
-                   allowN1N1Prod = allowN1N1Prod, verbose = False,
-                   dbpath = dbpath, templateName = templateSLHA )
-            #init_model = self.initialiser.propose()
-            init_model = self.initialiser.bestOfN(5)
-            if init_model != None:
-                self.manipulator.initFromDict ( init_model )
+                logger.error ( f"cheatcode takes precedence" )
+            else:
+                from walker.initialiser import Initialiser
+                self.initialiser  = Initialiser ( self.walkerid, self.use_initialiser,
+                       allowN1N1Prod = allowN1N1Prod, verbose = False,
+                       dbpath = dbpath, templateName = templateSLHA )
+                #init_model = self.initialiser.propose()
+                init_model = self.initialiser.bestOfN(5)
+                if init_model != None:
+                    self.manipulator.initFromDict ( init_model )
         if self.run_mcmc: self.highlight("info", "Running MCMC walk")
         if cheatcode in [ "no_cheat", "", "none", None, 0 ]:
             self.takeStep() # the first step should be considered as "taken"
@@ -669,6 +671,7 @@ class RandomWalker ( LoggerBase ):
             # sys.exit(0)
         # Register signal handlers for graceful shutdown
         signal.signal(signal.SIGTERM, handle_termination)  # SLURM termination signal
+        # signal.signal(signal.SIGKILL, handle_termination)  # OOM memory error signal
         signal.signal(signal.SIGINT, handle_termination)   # Manual interruption (Ctrl+C)
         signal.signal(signal.SIGUSR1, handle_termination)  # SLURM preemption signal
 
@@ -676,6 +679,8 @@ class RandomWalker ( LoggerBase ):
             if not catchem:
                 try:
                     self.onestep()
+                    if self.manipulator.M.step % 1000 == 0: # log every 1000th step
+                        self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict", step=self.manipulator.M.step )
                 except KeyboardInterrupt:
                     self.highlight(f"error", "Interrupted by user/ Killed by slurm.")
                     handle_termination()

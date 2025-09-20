@@ -294,7 +294,10 @@ class Critic ( LoggerBase ):
         # --- UL-based critic ---
 
         # Run SModelS to get for UL-type predictions, and best SR preditcions if no UL-type result.
-        UL_preds, bestSR_preds = self.runSModelS( slhafile, combineSRs=False, ULpreds=True, sigmacut=sigmacut, mingap=mingap, mingapISR=mingapISR)
+        UL_preds, bestSR_preds = None, None
+        rSM = self.runSModelS( slhafile, combineSRs=False, ULpreds=True, sigmacut=sigmacut, mingap=mingap, mingapISR=mingapISR)
+        if rSM != None:
+            UL_preds, bestSR_preds = rSM
 
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
