@@ -236,7 +236,7 @@ class Initialiser ( LoggerBase ):
                 else:
                     newssms[pids]=ssm
             model["ssmultipliers"] = newssms
-            self.log ( f'renameParticle returning {model}' )
+            self.debug ( f'renameParticle returning {model}' )
             return model
                 
 
@@ -1036,12 +1036,22 @@ class Initialiser ( LoggerBase ):
             tpid = self.tiePids ( pid, masses.keys() )
             if tpid is not None and tpid < pid:
                 continue
+            wasOnshell = self.isOnshell ( pid, masses )
             nmass = -1. 
+
+            scale = .2
             while nmass < lspmass + 1: ## at least 1 gev distance to lsp
                 deltam = max ( 1., mass - oldlspmass )
-                nmass = lspmass + float ( deltam * scipy.stats.norm.rvs ( loc = 1., scale =.2 ) )
+                nmass = lspmass + float ( deltam * scipy.stats.norm.rvs ( loc = 1., scale = scale) )
+                newmasses[pid]=nmass
+                isOnsh = self.isOnshell ( pid, newmasses )
+                if wasOnshell == True and isOnsh == False:
+                    nmass = -1. # continue
+                if wasOnshell == False and isOnsh == True:
+                    nmass = -1. # continue
+                scale *= 1.3
             self.log ( f"we randomly smear m({pid}): {mass:.1f} -> {nmass:.1f}" )
-            newmasses[pid]=nmass
+            
             if tpid is not None:
                 self.log ( f"we randomly smear m({tpid}): {mass:.1f} -> {nmass:.1f}" )
                 newmasses[tpid]=nmass
@@ -1132,20 +1142,24 @@ class Initialiser ( LoggerBase ):
         model["ssmultipliers"]=ma.M.ssmultipliers
         ret = { "ma": ma, "pr": self.pr, "model": model, "cr": self.cr }
         ret["K"] = ma.M.K
+        ret["crr"]=crr
         ret["TL"] = ma.M.TL
-        sK = "None" if ma.M.K is None else f"{ma.M.K:.1f}"
-        self.log ( f"{RED}predictForModel final K={sK} cr={crr}{RESET}" )
         return ret
 
     def bestOfN ( self, n : int = 5 ):
         """ get <n> initial contender models, return the best """
         models = {}
         for i in range(n):
+            self.log ( f"{CYAN}best of N: {i+1}/{n}{RESET}: starting" )
             ret = self.predictForModel ( None )
             model = ret["model"]
-            model["K"] = ret["K"]
+            K = ret["K"]
+            crr = ret["crr"]
+            model["K"] = K
             model["TL"] = ret["TL"]
             models[ ret["K"] ] = model
+            sK = "None" if K is None else f"{K:.1f}"
+            self.log ( f"{CYAN}best of N: {i+1}/{n}{RESET}: got K={sK} cr={crr}{RESET}" )
         # print ( "bestOfFive: {d}" )
         keys = [ k for k in models.keys() if k is not None ]
         skeys = [ f"{k:.1f}" for k in keys ]

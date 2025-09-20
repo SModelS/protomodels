@@ -337,7 +337,7 @@ class Critic ( LoggerBase ):
         if allowed_by_llhd_critic:
             if num_preds == 0:  # No constraints for the model, it is excluded
                 self.log("Model has no UL critic preds or Llhd based critic preds. Excluding Model")
-                return False, "no predictions for model"
+                return True, "no predictions for model"
             self.log(f"Model passed llhd-based critic with critic robs = {robsComb}.")
             return True, "passed both critics"
         self.info(f"Model failed llhd-based critic with critic robs = {robsComb}.")
@@ -489,5 +489,6 @@ class Critic ( LoggerBase ):
             self.highlight("warning","The computation of the observed r-value of the most sensitive combination gave None.")
             return False, best_comb, None, None
 
-        # change r threshold?
-        return r < 1.2 and r/rexp < 1, best_comb, r, rexp
+        ## change r threshold?
+        # we pass if r < 1.2, or if r < 1.5 but rexp is at least twice that of r(obs)
+        return (r < 1.2) or (r < 1.5 and r/rexp < .5), best_comb, r, rexp

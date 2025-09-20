@@ -1195,35 +1195,44 @@ Just filter the database:
         if hasattr ( expRes.datasets[0].dataInfo, "thirdMoment" ):
             tpe = "SLv2"
             thirdMoments = [ x.dataInfo.thirdMoment * self.fudge**3 for x in expRes.datasets ]
+        self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
         from smodels.statistics.simplifiedLikelihoods import Data
         data = Data ( observed, expectedBGs, covm, thirdMoments )
         # print ( f"@@3 for {expRes.globalInfo.id} rvs {rvs[:3]} cnt {centers[:3]} diag {diag[:3]}" )
         for i,dataset in enumerate(expRes.datasets):
-            lmbda = dataset.dataInfo.expectedBG + rvs[i]
-            if tpe == "SLv2":
-                lmbda = data.A[i] + rvs[i] + data.C[i] * rvs[i]**2 / data.B[i]**2
-                # lmbda += dataset.dataInfo.thirdMoments / diag[i]**2 * rvs[i]**2
-            lmbda = max ( 0., lmbda )
-            newObs = scipy.stats.poisson.rvs ( lmbda )
+            newObs = dataset.dataInfo.observedN
+            if not self.no_synthesis:
+                lmbda = dataset.dataInfo.expectedBG + rvs[i]
+                if tpe == "SLv2":
+                    lmbda = data.A[i] + rvs[i] + data.C[i] * rvs[i]**2 / data.B[i]**2
+                    # lmbda += dataset.dataInfo.thirdMoments / diag[i]**2 * rvs[i]**2
+                lmbda = max ( 0., lmbda )
+                newObs = scipy.stats.poisson.rvs ( lmbda )
             D = self.createEMStatsDict ( dataset )
+            D["type"]=tpe
             if self.fixedbackgrounds:
                 D["newObs"]=dataset.dataInfo.expectedBG
             else:
                 D["newObs"]=newObs
-                D["lmbda"]=float(lmbda)
+                if not self.no_synthesis:
+                    D["lmbda"]=float(lmbda)
             if self.compute_ps:
-                p = computePForDataSet ( dataset, newObs )
-                self.checkIfZero ( p, dataset )
-                self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
-                D["new_p"]=p
-                newZ = computeZFromP ( p )
-                self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
-                D["new_Z"]=newZ
-                if p == 0 or newZ == float("inf"):
-                    self.error ( f"we got p={p} Z={newZ}. exit" )
-                    sys.exit()
-            D["type"]=tpe
-            self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
+                if self.no_synthesis:
+                    D["new_p"] = D["orig_p"]
+                    D["new_Z"] = D["orig_Z"]
+                    self.comments["new_p"]="p-value (Gaussian nuisance) of newObs -- in our case same as 'orig_p'"
+                    self.comments["new_Z"]="significance (Gaussian nuisance) of newObs -- in our case same as 'orig_Z'"
+                else:
+                    p = computePForDataSet ( dataset, newObs )
+                    self.checkIfZero ( p, dataset )
+                    self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
+                    D["new_p"]=p
+                    newZ = computeZFromP ( p )
+                    self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
+                    D["new_Z"]=newZ
+                    if p == 0 or newZ == float("inf"):
+                        self.error ( f"we got p={p} Z={newZ}. exit" )
+                        sys.exit()
             expRes.datasets[i].dataInfo.observedN = newObs
             label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
             self.addToStats ( label, D, dataset.globalInfo )
@@ -1356,6 +1365,8 @@ Just filter the database:
                     D["newObs"]=dataset.dataInfo.expectedBG
                 else:
                     D["newObs"]=newObs
+                if self.no_synthesis:
+                    D["newObs"]=D["origN"]
                 D["type"]="pyhf"
                 if self.compute_ps:
                     p = computePForDataSet ( dataset, newObs )
@@ -1367,6 +1378,11 @@ Just filter the database:
                     if p == 0 or newZ == float("inf"):
                         self.error ( f"we got p={p} Z={newZ}. exit" )
                         sys.exit()
+                    if self.no_synthesis:
+                        D["new_p"] = D["orig_p"]
+                        D["new_Z"] = D["orig_Z"]
+                        self.comments["new_p"]="p-value (Gaussian nuisance) of newObs -- in our case same as 'orig_p'"
+                        self.comments["new_Z"]="significance (Gaussian nuisance) of newObs -- in our case same as 'orig_Z'"
                 label = f"{anaId}:{dataset.dataInfo.dataId}"
                 self.addToStats ( label, D, dataset.globalInfo )
                 ## as the very last measure, we replace the observation with
