@@ -110,13 +110,13 @@ class Initialiser ( LoggerBase ):
         self.templateName = templateName
         self.warnings= {}
         self.dictfile = dictfile
+        self.allowN1N1Prod = allowN1N1Prod
         self.readRunDict()
         self._pm = ProtoModel ( walkerid, templateSLHA = self.templateName )
         self.dbpath = self.readDBPath ( dbpath )
         self.db = Database ( self.dbpath )
         self.dsIdsInProposal = set()
-        self.allowN1N1Prod = allowN1N1Prod
-        self.xsecComputer = RefXSecComputer( allowN1N1Prod = allowN1N1Prod )
+        self.xsecComputer = RefXSecComputer( allowN1N1Prod = self.allowN1N1Prod )
         self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWWoff",
             "TRV1": None, "TDTM1F": None, "TDTM2F": None, "TRHadGM1": None,
             "THSCPM1": None, "THSCPM2": None, "T1Disp": None }
@@ -1199,6 +1199,10 @@ class Initialiser ( LoggerBase ):
             txt = f.read()
             d = eval ( txt )
             self.runDict = d
+        if "allowN1N1Prod" in self.runDict:
+            if self.allowN1N1Prod != self.runDict["allowN1N1Prod"]:
+                self.warning ( f"allowN1N1Prod was {self.allowN1N1Prod} but run.dict says {self.runDict['allowN1N1Prod']} will set to {self.runDict['allowN1N1Prod']}" )
+            self.allowN1N1Prod = self.runDict["allowN1N1Prod"]
         if "templateSLHA" in self.runDict:
             templateName = self.runDict["templateSLHA"]
             if self.templateName != templateName:
@@ -1225,6 +1229,8 @@ if __name__ == "__main__":
             type=str, default=None )
     argparser.add_argument ( '-v', '--verbose',
             help='verbose', action="store_true" )
+    argparser.add_argument ( '-a', '--allowN1N1Prod',
+            help='allow N1N1 production', action="store_true" )
     argparser.add_argument ( '-r', '--recompute_cache',
             help='dont use pids.cache and xsecs.cache cache files', action="store_true" )
     ## 310.dict is also a good default, for the actual observations
@@ -1247,7 +1253,7 @@ if __name__ == "__main__":
         else:
             print ( f"[initialiser] potential dict files are {files}. specify!")
             sys.exit(-1)
-    allowN1N1Prod = True
+    allowN1N1Prod = args.allowN1N1Prod
     ini = Initialiser( "ini", args.dictfile, allowN1N1Prod = allowN1N1Prod,
             verbose = args.verbose, dbpath = args.dbpath )
     ini.interact()
