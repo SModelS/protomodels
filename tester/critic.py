@@ -160,16 +160,17 @@ class Critic ( LoggerBase ):
 
         critic_description = {}
         for tp in tpList[:3]:
-            rtype = tp['tp'].dataType(short=True)
+            # rtype = tp['tp'].dataType(short=True)
+            dataId = tp['tp'].dataId()
             # robs = f"{tp['robs']:.2f}"
             robs = float ( np.round ( tp['robs'], 3 ) )
             rexp = None
             if tp['rexp'] is not None:
                 # rexp = f"{tp['rexp']:.2f}"
                 rexp = float ( np.round ( tp['rexp'], 3 ) )
-            tmp = {f'{tp["tp"].analysisId()}({rtype})': {'robs': robs, 'rexp': rexp}}
+            tmp = {f'{tp["tp"].analysisId()}:{dataId}': {'robs': robs, 'rexp': rexp}}
             critic_description.update(tmp)
-        if len(tpList)>3:
+        if len(tpList)>5:
             critic_description.update({'...':'...'})
 
         protomodel.ul_critic.update({'datasets':critic_description})
@@ -366,7 +367,8 @@ class Critic ( LoggerBase ):
 
 
     def ul_critic(self, protomodel, predictions : List ) -> Tuple[bool,int,int]:
-        """ UL-based critic (can also use best SR results if no UL-type result available for a given analysis).
+        """ UL-based critic (can also use best SR results if no UL-type result 
+        available for a given analysis).
 
         :param predictions: list of theory predictions (UL-type and EM-type)
 
@@ -380,9 +382,9 @@ class Critic ( LoggerBase ):
         from scipy.stats import binom
 
         # n_sensitive: number of results that are in principle sensitive
-        # (i.e. rexp < sensitivy_threshold)
+        # (i.e. rexp > sensitivy_threshold=0.7)
         # n_excluding: number of results that do exclude the model
-        # (ie robs > r_threshold)
+        # (ie robs > r_threshold=1.38)
         n_sensitive, n_excluding = 0, 0
 
         for pred in predictions:
@@ -406,10 +408,14 @@ class Critic ( LoggerBase ):
         # rewrite as max_allowed = binom.ppf(0.66, n_sensitive, 0.05)?
         while binom.cdf(max_allowed,n_sensitive,0.05) <= 0.66:
             max_allowed += 1
-        
-        protomodel.ul_critic = {'n_sen': n_sensitive, 'n_excl': n_excluding, 'max_all': max_allowed, 'passes': max_allowed >= n_excluding}
 
-        self.log(f"UL-based critic: n_sen={n_sensitive}, n_excl={n_excluding}, max_all={max_allowed} => passes critic: {max_allowed >= n_excluding}")
+        max_allowed = max ( max_allowed, 1 )
+
+        protomodel.ul_critic = {'n_sensitive': n_sensitive, 
+            'n_excluding': n_excluding, 'max_allowed': max_allowed, 
+            'passes': max_allowed >= n_excluding}
+
+        self.log(f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}")
         return max_allowed >= n_excluding, n_sensitive, n_excluding
 
 

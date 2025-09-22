@@ -713,14 +713,26 @@ class Initialiser ( LoggerBase ):
             f.close()
         tar.close()
         r = pyslha.readSLHAFile(self.tempslha)
+        associate_modes = [ ( -1000024, 1000023 ),
+                            ( -1000024, 1000022 ),
+                            ( -1000024, 1000025 ),
+                            ( -1000037, 1000022 ),
+                            ( -1000037, 1000023 ) ]
         try:
             xsecs = r.xsections
             ssmpids = set()
             ignore_pids = self.ignore_pids + [ -x for x in self.ignore_pids ] + [ 2212]
             for k,v in xsecs.items():
                 # print ( "k=", k, "  v=", v, "type v", type(v) )
-                pids = tuple ( filter(lambda x: x not in ignore_pids, k) )
-                # print ( "pids", pids )
+                pids = list ( filter(lambda x: x not in ignore_pids, k) )
+                pids.sort()
+                pids = tuple( pids )
+                skip_associate = False
+                for am in associate_modes:
+                    if pids == am:
+                        skip_associate = True
+                if skip_associate:
+                    continue
                 ssmpids.add ( pids )
             self.ssmsForTxnames[txname]=ssmpids
         except Exception as e:
