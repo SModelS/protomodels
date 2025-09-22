@@ -1583,7 +1583,7 @@ class Manipulator ( LoggerBase ):
             self.log("Not freezing: Only 2 particles present.")
             return None
 
-        if nUnfrozen <=3 and self.M.TL <=0 :
+        if nUnfrozen <=3 and (self.M.TL == None or self.M.TL <=0 ):
             self.log(f"Not freezing: Only {nUnfrozen} particles and low TL {self.M.TL}.")
             return None
 

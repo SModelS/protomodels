@@ -525,7 +525,7 @@ Just filter the database:
                 p = computeP ( orig, exp, err )
             else:
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
-            p = self.checkIfZero ( p, dataset )
+            self.checkIfZero ( p, dataset )
             if True: # abs(self.fudge-1.)>1e-10:
                 self.comments["orig_p_fudged"]="p-value (Gaussian nuisance) of original observation (with fudge factor applied -- is this useful?)"
                 D["orig_p_fudged"]=p
@@ -560,7 +560,7 @@ Just filter the database:
                     D["thirdMoment"]=thirdMoment
                     self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
                     pnew = computePSLv2 ( orig, exp, err, thirdMoment )
-                pnew = self.checkIfZero ( pnew, dataset )
+                self.checkIfZero ( pnew, dataset )
                 Z = - scipy.stats.norm.ppf ( pnew )
                 # Z = ( obs - exp ) / toterr
                 # origZ = ( orig - exp ) / toterr
@@ -582,7 +582,7 @@ Just filter the database:
                 p = computeP ( obs, exp, err )
             else:
                 p = computePSLv2 ( obs, exp, err, thirdMoment )
-            p = self.checkIfZero( p, dataset )
+            self.checkIfZero( p, dataset )
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
             self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
             D["new_p"]=p
@@ -624,7 +624,7 @@ Just filter the database:
             else:
                 p = computePSLv2 ( orig, exp, err, thirdMoment )
             self.comments["orig_p_fudged"]="p-value (Gaussian nuisance) of original observation (fudge factor applied)"
-            p = self.checkIfZero ( p, dataset )
+            self.checkIfZero ( p, dataset )
             D["orig_p_fudged"]=p
             origZ = computeZFromP ( p )
             D["orig_Z_fudged"]=origZ
@@ -672,9 +672,8 @@ Just filter the database:
     def checkIfZero ( self, p, dataset ):
         """ give a warning if a p-value is zero zero """
         if p > 1e-100:
-            return p
+            return
         self.warn ( f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId} has p={p} -- maybe you injected too strong a signal?" )
-        return 1e-100
 
     def addSignalForEfficiencyMap ( self, dataset, tpred, lumi ):
         """ add a signal to this efficiency map. background sampling is
@@ -689,6 +688,11 @@ Just filter the database:
         orig = dataset.dataInfo.observedN
         sigLambda = float ( tpred.xsection * lumi )
         D={}
+        ## FIXME sigLumi and sigXSec, we should take it back out later
+        D["sigLumi"] = float ( lumi.asNumber(1./fb) )
+        self.comments["sigLumi"]="the lumi assumed for the signal in fb FIXME remove"
+        D["sigXSec"] = float ( tpred.xsection.asNumber(fb) )
+        self.comments["sigXSec"]="the fiducial xsec computed for the signal in fb FIXME remove"
         D["sigLambda"]=sigLambda
         self.comments["sigLambda"]="the lambda for the signal"
         sigN = sigLambda
@@ -704,6 +708,8 @@ Just filter the database:
         D["sigN"]=D["sigN"]+sigN
         self.sigNTotal["total"] += sigN
         self.comments["sigN"]="the number of events from the added signal"
+        D["sigTxns"] = txns
+        self.comments["sigTxns"]="the txnames that contributed to sigN"
         txnsc = "_".join( txns )
         ## sigNT<x> denotes the contributions from the individual theory preds
         sigNt = f"sigN{txnsc}"
@@ -1040,7 +1046,7 @@ Just filter the database:
         with open ( filename, "wt" ) as f:
             ds = py_dumps ( meta, indent = 4 )
             ds = ds.replace( "false", "False" ).replace ( "true", "True" )
-            ds = ds.replace( "inf", "float('inf')" )
+            # ds = ds.replace( "inf", "float('inf')" )
             ds = ds.replace( r'"\"None\""', 'None')
             f.write ( ds + "\n"  )
             # f.write ( f"{meta!s}\n" )
@@ -1053,7 +1059,7 @@ Just filter the database:
             for k,v in self.comments.items():
                 f.write ( f"# {k}: {v}\n" )
             ds = py_dumps ( self.stats, indent=4 )
-            ds = ds.replace( "inf", "float('inf')" )
+            # ds = ds.replace( "inf", "float('inf')" )
             f.write ( ds+ "\n" )
             f.close()
 
