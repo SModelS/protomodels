@@ -51,14 +51,17 @@ def repr_double_quotes(obj):
         return repr(obj)
 
 def py_dumps( obj, indent : int = 4, level : int = 0, stop_at_level : int = -1, 
-              double_quotes : bool = False ) -> str:
+              double_quotes : bool = True ) -> str:
     """ equivalent to json.dumps (ie it pretty prints a given nested structure)
     but tuples are allowed as keys.
 
     :param indent: number of spaces used for an indentation
     :param level: how many indentations are we in?
     :param stop_at_level: stop indentation at that level, if positive number
-    :param double_quotes: use double quotes, like json
+    :param double_quotes: use double quotes, as required for json.
+    FIXME maybe not even ask, its always true
+
+    :returns: formatted string
     """
     sp = ' ' * (level * indent)
     sp_next = ' ' * ((level + 1) * indent)
