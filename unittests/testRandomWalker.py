@@ -22,7 +22,7 @@ class VerticalTest(unittest.TestCase):
         if os.path.isfile('H0.hi'):
             os.remove('H0.hi')
         helpers.seedRandomNumbers ( 1 )
-        walker = RandomWalker ( nsteps=11, dbpath="./database.pcl", nevents = 10000 )
+        walker = RandomWalker ( maxsteps=11, dbpath="./database.pcl", nevents = 10000 )
         walker.predictor.rthreshold = 1.3 #Make sure to use the correct threshold
         walker.walk()
 

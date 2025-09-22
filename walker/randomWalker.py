@@ -46,7 +46,7 @@ logger.setLevel("ERROR")
 
 class RandomWalker ( LoggerBase ):
     def __init__ ( self, rvars : dict ):
-#        walkerid : Union[str,int] = 0, nsteps : int = 10000,
+#        walkerid : Union[str,int] = 0, maxsteps : int = 10000,
 #            strategy : str = "aggressive",
 #            cheatcode : Union[str,int] = "no_cheat", dbpath : PathLike = "./database.pcl",
 #            expected : bool = False, select : str = "all", cap_ssm = 100,
@@ -60,7 +60,7 @@ class RandomWalker ( LoggerBase ):
         """ initialise the walker
 
         rvars ( dict ):
-          - nsteps: maximum number of steps to perform, negative is infinity
+          - maxsteps: maximum number of steps to perform, negative is infinity
           - cheatcode: cheat mode. 0 or "no_cheat" is no cheating, else
         cheatcode is path to model.
           - expected: remove possible signals from database
@@ -98,8 +98,8 @@ class RandomWalker ( LoggerBase ):
         #call the super class of the random walker i.e Loggerbase
         super ( RandomWalker, self ).__init__ ( walkerid )
         dbpath = os.path.expanduser ( dbpath )
-        if type(walkerid) != int or type(nsteps) != int or type(strategy)!= str:
-            self.pprint ( f"Wrong call of constructor: {walkerid}, {nsteps}, {strategy}" )
+        if type(walkerid) != int or type(maxsteps) != int or type(strategy)!= str:
+            self.pprint ( f"Wrong call of constructor: {walkerid}, {maxsteps}, {strategy}" )
             sys.exit(-2)
         self.walkerid = walkerid ## walker id, for parallel runs
         self.templateSLHA = templateSLHA
@@ -137,7 +137,7 @@ class RandomWalker ( LoggerBase ):
         self.manipulator = Manipulator ( protomodel, strategy,
                         do_record = record_history, seed = self.random_seed )
         self.catch_exceptions = catch_exceptions
-        self.maxsteps = nsteps
+        self.maxsteps = maxsteps
         if stopTeleportationAfter == None:
             stopTeleportationAfter = -1
         # stopTeleportationAfter = self.maxsteps/3.
@@ -230,7 +230,7 @@ class RandomWalker ( LoggerBase ):
     def defaults ( cls, rvars ):
         """ define the defaults """
         defs = { "walkerid": "default", "use_initialiser": False, "jmin": 0, "continueFrom": "",
-                 "cheatcode": "no_cheat", "nsteps": 1000, "dbpath": "./database.pcl",
+                 "cheatcode": "no_cheat", "maxsteps": 1000, "dbpath": "./database.pcl",
                  "strategy": "aggressive", "rundir": "./", "cap_ssm": 100.,
                  "test_param_space": False, "seed": None, "expected": False,
                  "record_history": False, "catch_exceptions": True,
@@ -779,7 +779,7 @@ if __name__ == "__main__":
     select = "txnames:electroweakinos,electroweakinos_offshell"
     select = "all"
     D = model2()
-    #walker = RandomWalker( walkerid=0, nsteps = 1000,
+    #walker = RandomWalker( walkerid=0, maxsteps = 1000,
     #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
     rvars = { "walkerid": 0, "dbpath": dbpath, "do_srcombine": True,
               "select": select, "templateSLHA": "templateNaturalEwkino.slha",

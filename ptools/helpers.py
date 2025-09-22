@@ -19,7 +19,7 @@ from typing import Union, Set
 import numpy as np
 
 def repr_double_quotes(obj):
-    import json
+    import json, math
     if isinstance(obj, str):
         # Use json.dumps to get a double-quoted string with escapes handled
         return json.dumps(obj)
@@ -37,6 +37,16 @@ def repr_double_quotes(obj):
     elif isinstance(obj, dict):
         items = (f"{repr_double_quotes(k)}: {repr_double_quotes(v)}" for k, v in obj.items())
         return "{" + ", ".join(items) + "}"
+    elif isinstance(obj, float):
+        if math.isnan(obj):
+            return 'float("nan")'
+        elif math.isinf(obj):
+            if obj > 0.:
+                return 'float("inf")'
+            else:
+                return 'float("-inf")'
+        else:
+            return repr(obj)
     else:
         return repr(obj)
 
@@ -290,7 +300,7 @@ def computeP ( obs : float, bg : float, bgerr : float,
     ret = 0.
     while ret < .9 / nmax or ret > 1. - .9 / nmax:
         if n > nmax:
-            print ( f"[helpers] n={n}>{nmax}. breaking off with ret={ret} obs={obs} bg={bg} bgerr={bgerr}" )
+            print ( f"[helpers] when computing p: n={n}>{nmax}. breaking off with ret={ret} obs={obs} bg={bg} bgerr={bgerr}" )
             break
         lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
         lmbda = lmbda[lmbda>0.]

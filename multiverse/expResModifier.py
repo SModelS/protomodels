@@ -350,7 +350,7 @@ Just filter the database:
             if " " in i or "," in i:
                 i = f'"{i}"'
             args += f"{i} "
-        f.write ( f"[expResModifier.py-{time.strftime('%H:%M:%S')}] {args.strip()}\n")
+        f.write ( f"[expResModifier.py-{time.asctime()}]\n{args.strip()}\n")
         f.close()
 
     def startLogger ( self ):
@@ -673,8 +673,8 @@ Just filter the database:
         """ give a warning if a p-value is zero zero """
         if p > 1e-100:
             return p
-        self.warn ( f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId} has p={p} -- maybe you injected to strong a signal?" )
-        return 1e-10
+        self.warn ( f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId} has p={p} -- maybe you injected too strong a signal?" )
+        return 1e-100
 
     def addSignalForEfficiencyMap ( self, dataset, tpred, lumi ):
         """ add a signal to this efficiency map. background sampling is
@@ -1053,6 +1053,7 @@ Just filter the database:
             for k,v in self.comments.items():
                 f.write ( f"# {k}: {v}\n" )
             ds = py_dumps ( self.stats, indent=4 )
+            ds = ds.replace( "inf", "float('inf')" )
             f.write ( ds+ "\n" )
             f.close()
 

@@ -225,7 +225,7 @@ if __name__ == "__main__":
     s = "all"
     dbpath = "./default.pcl"
     dbpath = "official"
-    w = RandomWalker( walkerid=0, nsteps = 200, 
+    w = RandomWalker( walkerid=0, maxsteps = 200, 
                       dbpath=dbpath, cheatcode="no_cheat", select=s,
                       rundir="./", seed = None )
     w.walk()
