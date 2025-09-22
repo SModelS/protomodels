@@ -1110,7 +1110,7 @@ class Manipulator ( LoggerBase ):
         nChanges = 0
 
         # If TL < = 0, try to drastically change model, else will be stuck in a model with low TL for many steps
-        if self.M.TL <=0 :
+        if self.M.TL == None or self.M.TL <=0 :
             probSS = 1.0
             probBR = 1.0
             probMass = 1.0
