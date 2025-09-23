@@ -5,9 +5,25 @@
 import os, time
 from os import PathLike
 from ptools.sparticleNames import SParticleNames 
-from colorama import Fore as ansi
+from smodels_utils.helper.terminalcolors import *
 from typing import Union
 import numpy as np
+
+def summarizeJobsForThisDir():
+    from clip.cliphelpers import getJobStatus, readJobIds
+    jobids = readJobIds()
+    statuses = getJobStatus ( jobids )
+    reverse = {}
+    for k,v in statuses.items():
+        if not v in reverse:
+            reverse[v]=set()
+        reverse[v].add(k)
+    nrunning = 0
+    if "running" in reverse:
+        nrunning = len(reverse["running"])
+    print ( f"In this directory: {GREEN}{nrunning}{RESET} running jobs, {YELLOW}{len(statuses)}{RESET} total" )
+    print ( )
+    return 1
 
 def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
     extended : bool = False, nmax : Union[None,int] = None ) -> int:
@@ -54,7 +70,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
                 sparticles += ", "
             name = SParticleNames( False).asciiName(p)
             mass = entry["masses"][p]
-            sparticles += f"{ansi.CYAN}{name}{ansi.RESET}={mass:.1f}"
+            sparticles += f"{CYAN}{name}{RESET}={mass:.1f}"
         timestamp = ""
         if "timestamp" in entry:
             timestamp = entry["timestamp"]
@@ -63,7 +79,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             timestamp = timestamp[r1:r2]
         if extended:
             step = entry["step"]
-            print ( f"#{i}({wid:3d}): K={ansi.GREEN}{K:.3f}{ansi.RESET} TL={TL:.3f}; {sparticles}" )
+            print ( f"#{i}({wid:3d}): K={GREEN}{K:.3f}{RESET} TL={TL:.3f}; {sparticles}" )
             print ( f"       `---: {entry['description']}" )
             print ( f"       `---:{timestamp}" )
             print ( f"       `---: step {step}" )
@@ -71,7 +87,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             nlines += 5
         else:
             sK = "None" if K == None else f"{K:.3f}"
-            print ( f"#{i}({wid:3d}): K={ansi.GREEN}{sK}{ansi.RESET}; TL={TL:.3f}; {sparticles} {timestamp}" )
+            print ( f"#{i}({wid:3d}): K={GREEN}{sK}{RESET}; TL={TL:.3f}; {sparticles} {timestamp}" )
             nlines += 1
     return nlines
 
@@ -80,10 +96,10 @@ def runSlurmWalk() -> int:
     cmd = f"slurm_walk.py -R {rundir} -q"
     import subprocess
     o = subprocess.getoutput ( cmd )
-    print ( f"{ansi.RED}Running Status:{ansi.RESET} {time.asctime()}" )
+    print ( f"{RED}Running Status:{RESET} {time.asctime()}" )
     print ( "=========================================" )
     print ( o )
-    print ( )
+   #  print ( )
     return 4
 
 def printTruth():
@@ -105,8 +121,8 @@ def printTruth():
             sparticles += ", "
         name = SParticleNames( False).asciiName(p)
         mass = d["masses"][p]
-        sparticles += f"{ansi.CYAN}{name}{ansi.RESET}={ansi.RED}{mass:.1f}{ansi.RESET}"
-    print ( f"{ansi.RED}Truth:{ansi.RESET}   K={ansi.GREEN}{sK}{ansi.RESET}; TL={TL:.3f}; {sparticles}" )
+        sparticles += f"{CYAN}{name}{RESET}={RED}{mass:.1f}{RESET}"
+    print ( f"{RED}Truth:{RESET}   K={GREEN}{sK}{RESET}; TL={TL:.3f}; {sparticles}" )
 
 if __name__ == "__main__":
     import argparse
@@ -126,6 +142,7 @@ if __name__ == "__main__":
     colorama.init()
     while True:
         nlines = runSlurmWalk()
+        nlines += summarizeJobsForThisDir()
         nlines += summarizeHiscores ( args.hiscores, args.extended, args.nmax )
         if not args.loop:
             break

@@ -1,23 +1,16 @@
 #!/usr/bin/env python3
 
 import subprocess
+from clip.cliphelpers import getJobStatus, readJobIds
 
 def showOneJob( jobid : int ):
-    cmd = f"jobinfo {jobid}" 
-    output = subprocess.getoutput ( cmd ).split("\n")
-    for line in output:
-        if "State" in line:
-            token = line.replace("State","")
-            token = token.strip()
-            token = token[2:]
-            print ( f"{jobid} {token}" )
+    print ( f"{jobid} {getJobStatus(jobid)[jobid]}" )
 
 def show():
-    with open ( "jobs", "rt" ) as f:
-        lines = f.readlines()
-    for line in lines:
-        jobid = line.strip()
-        showOneJob ( int ( jobid ) )
+    jobids = readJobIds()
+    statuses = getJobStatus ( jobids )
+    for jobid, status in  statuses.items():
+        print ( f"{jobid}: {status}" )
 
 if __name__ == "__main__":
     show()
