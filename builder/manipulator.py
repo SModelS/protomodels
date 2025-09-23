@@ -1950,7 +1950,8 @@ class Manipulator ( LoggerBase ):
         """
         denom = 1.0
 
-        if self.M.TL > 0: #short term fix -> discuss with Wg!
+        if self.M.TL is not None and self.M.TL > 0: 
+            #short term fix -> discuss with Wg!
             denom = np.sqrt(self.M.TL) + 1.0
 
         step_size = 100 if self.M.masses[pid]<1000 else 500

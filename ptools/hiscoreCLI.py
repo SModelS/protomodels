@@ -95,8 +95,8 @@ if __name__ == "__main__":
             help='Hiscore file. [hiscores_global.dict]',
             type=str, default="hiscores_global.dict" )
     argparser.add_argument ( '-i', '--walkerid',
-            help='walker id [0]',
-            type=int, default=0 )
+            help="walker id ['cli']",
+            type=str, default='cli' )
     argparser.add_argument ( '-d', '--dbpath',
             help='Database path. If auto, get from run.dict. [auto]',
             type=str, default=None )
