@@ -12,7 +12,7 @@ old_handler = signal.getsignal(signal.SIGINT)
 
 def signal_handler(sig, frame):
     if sig == signal.SIGINT:
-        print( f'You pressed Ctrl+C, remove all locks! {sig}')
+        print( f'You pressed Ctrl+C (sig {sig}), remove all {len(__locks__)} locks!' )
     for l in __locks__: ## remove always
         cmd = f"rm -f {l}"
         subprocess.getoutput ( cmd )

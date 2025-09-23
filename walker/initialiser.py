@@ -790,7 +790,7 @@ class Initialiser ( LoggerBase ):
                 p = 1e-8
             prel = 1. / p
             while prel in prels:
-                prel+=1e-10
+                prel+=1e-6
             value = stats
             value["id"]=anaAndSRName
             prels[ prel ] = value
