@@ -91,6 +91,14 @@ def py_dumps( obj, indent : int = 4, level : int = 0, stop_at_level : int = -1,
             return '[ ' + ', '.join(items) + ' ]'
         return '[\n' + ',\n'.join(items) + '\n' + sp + ']'
 
+    elif isinstance(obj, tuple):
+        if not obj:
+            return '()'
+        items = [f"{sp_next}{py_dumps(i, indent, level + 1, stop_at_level, double_quotes )}" for i in obj]
+        if stop_at_level > 0 and level >= stop_at_level:
+            return '( ' + ', '.join(items) + ' )'
+        return '(\n' + ',\n'.join(items) + '\n' + sp + ')'
+
     return mrepr(obj)
 
 def mkdir ( dirname : os.PathLike ) -> bool:

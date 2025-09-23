@@ -38,6 +38,7 @@ from base.loggerbase import LoggerBase
 from tester.combinationsmatrix import getYamlMatrix
 from typing import Dict, List, Text
 # from icecream import ic
+from smodels_utils.helper.terminalcolors import *
 
 logger.setLevel("ERROR")
 
@@ -220,9 +221,9 @@ Just filter the database:
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
-            print ( f"[expResModifier] loading database {self.dbpath}" )
+            self.pprint ( f"loading database {self.dbpath}" )
             self.db = Database ( picklefile, combinationsmatrix=combinationsmatrix )
-            print ( f"[expResModifier] loaded db v{self.db.databaseVersion}" )
+            self.pprint ( f"loaded db v{self.db.databaseVersion}" )
         self.dbversion = self.db.databaseVersion
         listOfExpRes = self.db.expResultList
         self.stats = {}
@@ -445,9 +446,9 @@ Just filter the database:
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
-            print ( f"[expResModifier] loading database {self.dbpath}" )
+            self.pprint ( f"loading database {self.dbpath}" )
             self.db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
-            print ( f"[expResModifier] loaded db v{self.db.databaseVersion}" )
+            self.pprint ( f"loaded db v{self.db.databaseVersion}" )
         self.dbversion = self.db.databaseVersion
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
         self.produceProtoModel ( self.pmodel, self.db.databaseVersion,
@@ -1027,7 +1028,6 @@ Just filter the database:
         filename = f"{self.rundir}/{self.suffix}.dict".replace("//","/")
         if statsname != None:
             filename = statsname
-        self.log ( f"saving stats to {filename}" )
         meta = { "dbpath": self.dbpath, "Zmax": self.max,
                  "database": self.dbversion, "fudge": self.fudge,
                  "protomodel": f'{str(self.protomodel)}', 
@@ -1040,9 +1040,10 @@ Just filter the database:
             meta["_drmax"]=runtime._drmax
         if hasattr ( runtime, "_experimental" ):
             meta["_experimental"]=runtime._experimental
-        self.pprint ( f"saving stats to {filename}" )
         self.addSupersededFlags()
         meta["sigNTotal"] = self.sigNTotal
+        self.pprint ( f"saving stats to {filename}" )
+        self.log ( f"saving stats to {filename}" )
         with open ( filename, "wt" ) as f:
             ds = py_dumps ( meta, indent = 4 )
             ds = ds.replace( "false", "False" ).replace ( "true", "True" )
@@ -1690,26 +1691,26 @@ Just filter the database:
 
     def run ( self ):
         if self.fixedbackgrounds and not self.fixedsignals:
-            print ( "[expResModifier] WARNING fixing backgrounds but not signals. Sounds weird" )
+            self.pprint ( "WARNING fixing backgrounds but not signals. Sounds weird" )
         if self.fixedbackgrounds and self.fudge > 1e-2:
-            print ( "[expResModifier] WARNING fixing backgrounds but fudge factor is not zero. Sounds weird" )
+            self.pprint ( "WARNING fixing backgrounds but fudge factor is not zero. Sounds weird" )
         if self.build:
             from smodels.experiment.txnameObj import TxNameData
             TxNameData._keep_values = True
             from smodels.experiment.databaseObj import Database
             #self.database = "official"
             # self.database = "../../smodels-database"
-            print ( f"[expResModifier] starting to build database at {self.dbpath}." )
+            self.pprint ( f"starting to build database at {self.dbpath}." )
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
-            print ( f"[expResModifier] loading database {self.dbpath}" )
+            self.pprint ( f"loading database {self.dbpath}" )
             db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix )
-            print ( f"[expResModifier] built database at {self.dbpath}. Exiting." )
+            self.pprint ( f"built database at {self.dbpath}. Exiting." )
             sys.exit()
         if self.rundir == None:
-            print ( f"[expResModifier] setting rundir to {os.getcwd()}" )
             self.rundir = os.getcwd()
+        self.pprint ( f"{GREEN}rundir is {os.getcwd()}{RESET}" )
         if type(self.rundir)==str and not "/" in self.rundir and \
                 not self.rundir.startswith("."):
             self.rundir = f"{os.environ['HOME']}/{self.rundir}"
@@ -1722,12 +1723,12 @@ Just filter the database:
                 statsname = "playback.dict"
 
             if not self.outfile.endswith(".pcl") and self.outfile != None:
-                print ( f"[expResModifier] warning, shouldnt the name of your outputfile ``{self.outfile}'' end with .pcl?" )
+                self.pprint ( f"warning, shouldnt the name of your outputfile ``{self.outfile}'' end with .pcl?" )
         #else: # outfile is None
         #    statsname = None
         self.filter ( )
         if self.dontsample:
-            print ( "[expResModifier] we were asked to not sample, so we exit now." )
+            self.pprint ( "we were asked to not sample, so we exit now." )
             sys.exit()
 
         if self.extract_stats:
@@ -1855,7 +1856,7 @@ if __name__ == "__main__":
     args = argparser.parse_args()
     vargs = vars(args)
     if vargs["allowN1N1Prod"] and vargs["disallowN1N1Prod"]:
-        print ( f"[expResModifier] you at the same time allow and disallow N1N1 prod. fix this." )
+        print ( f"[ExpResModifier:...] you at the same time allow and disallow N1N1 prod. fix this." )
         sys.exit()
     vargs["allowN1N1Prod"]= not vargs["disallowN1N1Prod" ]
     vargs.pop ( "disallowN1N1Prod" )
