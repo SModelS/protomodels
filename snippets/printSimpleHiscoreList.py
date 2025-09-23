@@ -18,10 +18,12 @@ def summarizeJobsForThisDir():
         if not v in reverse:
             reverse[v]=set()
         reverse[v].add(k)
-    nrunning = 0
+    nrunning, npending = 0, 0
     if "running" in reverse:
         nrunning = len(reverse["running"])
-    print ( f"In this directory: {GREEN}{nrunning}{RESET} running jobs, {YELLOW}{len(statuses)}{RESET} total" )
+    if "pending" in reverse:
+        npending = len(reverse["pending"])
+    print ( f"In this directory: {GREEN}{nrunning}{RESET} running jobs, {YELLOW}{npending}{RESET} pending jobs, {RED}{len(statuses)}{RESET} total" )
     print ( )
     return 1
 
