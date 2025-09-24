@@ -815,6 +815,10 @@ class Initialiser ( LoggerBase ):
         idx = list(self.probs.values()).index ( result )
         p = list(self.probs.keys())[idx]
         self.log ( f"of {len(self.probs)} entries we randomly choose #{idx+1}:" )
+        if not "new_Z" in result:
+            result["new_Z"]=result["orig_Z"]
+            result["new_p"]=result["orig_p"]
+#            self.pprint ( f"result is {result}" )
         newZ = result["new_Z"]
         self.log ( f"  {GREEN}{Id}{RESET} {self.fmtP(p)} Z={newZ:.2f}" )
         self.log ( f"  `- txns = {', '.join(result['txns'])}" )
