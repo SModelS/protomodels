@@ -74,7 +74,7 @@ class RandomWalker ( LoggerBase ):
           - do_srcombine: if true, then also perform combinations, either via
                            simplified likelihoods or via pyhf
           - test_param_space: if true, run with constant K and TL (=1.0)
-          - run_mcmc: if true, run mcmc walk without changing dimensions
+          - run_mcmc: if true, run mcmc walk witho computut changing dimensions
           - record_history: if true, attach a history recorder class
           - seed: random seed, int or None
           - stopTeleportationAfter: int or None. we stop teleportation after
@@ -85,6 +85,7 @@ class RandomWalker ( LoggerBase ):
           - use_initialiser: if string, then interpret it as path to database
             dictionary file that we use for the initialiser. only works if
             not using cheatcode. if false, then dont use initialiser.
+          - printDebug: if True, print debug messages in log file.
         """
         rvars = self.defaults ( rvars )
         globals().update ( rvars ) # doesnt work for all
@@ -96,9 +97,10 @@ class RandomWalker ( LoggerBase ):
         do_srcombine = rvars["do_srcombine"]
         stopTeleportationAfter = rvars["stopTeleportationAfter"]
         run_mcmc = rvars["run_mcmc"]
+        printDebug = rvars["printDebug"]
 
         #call the super class of the random walker i.e Loggerbase
-        super ( RandomWalker, self ).__init__ ( walkerid )
+        super ( RandomWalker, self ).__init__ ( walkerid, printDebug )
         dbpath = os.path.expanduser ( dbpath )
         if type(walkerid) != int or type(maxsteps) != int or type(strategy)!= str:
             self.pprint ( f"Wrong call of constructor: {walkerid}, {maxsteps}, {strategy}" )
@@ -134,7 +136,7 @@ class RandomWalker ( LoggerBase ):
         protomodel = ProtoModel( self.walkerid, keep_meta = True,
                 dbversion = self.predictor.database.databaseVersion,
                 templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod,
-                susy_mode = susy_mode )
+                susy_mode = susy_mode, printDebug = printDebug )
 
         self.manipulator = Manipulator ( protomodel, strategy,
                         do_record = record_history, seed = self.random_seed )
@@ -169,7 +171,7 @@ class RandomWalker ( LoggerBase ):
                 from walker.initialiser import Initialiser
                 self.initialiser  = Initialiser ( self.walkerid, self.use_initialiser,
                        allowN1N1Prod = allowN1N1Prod, verbose = False,
-                       dbpath = dbpath, templateName = templateSLHA )
+                       dbpath = dbpath, templateName = templateSLHA, printDebug = printDebug )
                 #init_model = self.initialiser.propose()
                 init_model = self.initialiser.bestOfN(5)
                 if init_model != None:
@@ -211,6 +213,7 @@ class RandomWalker ( LoggerBase ):
     def fromProtoModel( cls, protomodel : ProtoModel, args : Dict ):
         """ create a RandomWalker from a ProtoModel. Continue walking
             from that model """
+        if hasattr ( protomodel, "printDebug" ): args["printDebug"] = protomodel.printDebug
         ret = cls( args )
         ret.manipulator.M = protomodel
         if "walkerid" in args:
@@ -238,7 +241,7 @@ class RandomWalker ( LoggerBase ):
                  "record_history": False, "catch_exceptions": True,
                  "stopTeleportationAfter": -1, "templateSLHA": "template_default.slha",
                  "allowN1N1Prod": False, "susy_mode": False, "use_initialiser": False,
-                 "do_srcombine": True, "run_mcmc": False }
+                 "do_srcombine": True, "run_mcmc": False, "printDebug": False }
         for k,v in defs.items():
             if not k in rvars:
                 rvars[k]=v
@@ -776,6 +779,13 @@ def model2():
     return D
 
 if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser( description= "Performs a random walk for the protomodel." )
+    ap.add_argument('-d', '--debug', help='prints debug information in the log file.', action='store_true')
+    args = ap.parse_args()
+    printDebug = False
+    if args.debug: printDebug = True
+            
     dbpath = "../../smodels-database/"
     dbpath = "official"
     select = "txnames:electroweakinos,electroweakinos_offshell"
@@ -785,7 +795,7 @@ if __name__ == "__main__":
     #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
     rvars = { "walkerid": 0, "dbpath": dbpath, "do_srcombine": True,
               "select": select, "templateSLHA": "templateNaturalEwkino.slha",
-              "allowN1N1Prod": True, "susy_mode": False, "use_initialiser": "./ini.dict" }
+              "allowN1N1Prod": True, "susy_mode": False, "printDebug": printDebug}#, "use_initialiser": "./ini.dict" }
                
     walker = RandomWalker.fromDictionary ( D, rvars )
     walker.walk()

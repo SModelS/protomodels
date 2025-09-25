@@ -114,7 +114,7 @@ class XSecFitter():
     def getValueFromFit(self, input_value, inverse, show_plot=False):
         
         from ptools.refxsecComputer import RefXSecComputer
-        xsec_obj = RefXSecComputer()
+        xsec_obj = RefXSecComputer(printDebug = True)
         
         xsec_dict = xsec_obj.getXSecsFor(pid1 = self.pid[0], pid2 = self.pid[1], sqrts=self.sqrt, ewk=None, masses=[200.0, 300.0])[0]
         if xsec_dict is None: return None

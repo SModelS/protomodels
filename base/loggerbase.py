@@ -12,9 +12,10 @@ __all__ = [ "LoggerBase" ]
 class LoggerBase:
     __slots__ = [ "walkerid", "module", "logdir" ]
 
-    def __init__ ( self, walkerid : Union[str,int] = 0 ):
+    def __init__ ( self, walkerid : Union[str,int] = 0, printDebug : bool = False ):
         """ instantiate the logger class with a walkerid """
         self.walkerid = walkerid
+        self.printDebug = printDebug
         self.countLogs = {}
         self.printLogMessages = False
         self.logdir = "logs/"
@@ -68,7 +69,16 @@ class LoggerBase:
         self.log ( *args )
 
     def debug ( self, *args ):
-        pass
+        print("loggerBase.debug:" + f"[{self.module}:{self.walkerid}] {' '.join(map(str,args))}" )
+        print("self.printDebug:", self.printDebug)
+        if self.printDebug:
+            tmp = list ( args )
+            for i,arg in enumerate ( tmp ):
+                if type ( arg ) == str:
+                    tmp[i] = 'DEBUG: ' + arg
+                    break 
+            args = tuple ( tmp )
+            self.log ( *args )
 
     def pprint ( self, *args ):
         """ logging """

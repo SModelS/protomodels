@@ -36,7 +36,7 @@ class ProtoModel ( LoggerBase ):
     def __init__ ( self, walkerid : Union[str,int] = 0,
             keep_meta : bool = True, dbversion : str = "????",
             templateSLHA : os.PathLike = "template_default.slha",
-            allowN1N1Prod : bool = False, susy_mode : bool = False ):
+            allowN1N1Prod : bool = False, susy_mode : bool = False, printDebug : bool = False ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
         this a heavyweight object)
@@ -47,8 +47,9 @@ class ProtoModel ( LoggerBase ):
         :param allowN1N1Prod: do we allow the N1 N1 production mode?
         :param susy_mode: susy mode (penalty for ssms away from unity)
         """
-        super(ProtoModel,self).__init__ ( walkerid )
+        super(ProtoModel,self).__init__ ( walkerid, printDebug )
         self.walkerid = walkerid
+        self.printDebug = printDebug
         self.keep_meta = keep_meta ## keep all meta info? big!
         self.version = 1 ## version of this class
         self.maxMass = 2400. ## maximum masses we consider
@@ -60,7 +61,7 @@ class ProtoModel ( LoggerBase ):
         self.templateName = templateSLHA
         self.getParticleContent()
         self.computer = RefXSecComputer( verbose = False,
-                                         allowN1N1Prod = allowN1N1Prod )
+                                         allowN1N1Prod = allowN1N1Prod, walkerid = walkerid, printDebug = printDebug )
         self.protomodels_version = "2.0"
         self.initializeModel()
 
@@ -722,9 +723,9 @@ class ProtoModel ( LoggerBase ):
 
         :returns: copy of protomodel
         """
-
+        
         #Initialize empty model:
-        newmodel = self.__class__( self.walkerid )
+        newmodel = self.__class__( walkerid = self.walkerid, printDebug = self.printDebug )
 
         #Copy information
         newmodel.keep_meta = self.keep_meta
@@ -774,6 +775,6 @@ class ProtoModel ( LoggerBase ):
             return helpers.lightObjCopy(self)
 
 if __name__ == "__main__":
-    p = ProtoModel( 1 )
+    p = ProtoModel( 1, True )
     p.createSLHAFile()
     p.computeXSecs()

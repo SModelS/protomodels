@@ -75,10 +75,11 @@ class Manipulator ( LoggerBase ):
             >>> # best combination, most constraining analyses, etc
             >>> m.describe()
         """
-        super(Manipulator, self).__init__ ( walkerid if walkerid is not None else 0 )
+        super(Manipulator, self).__init__ ( walkerid if walkerid is not None else 0, protomodel.printDebug )
         if type ( protomodel ) == ProtoModel:
             ## make sure we log correctly asap
             self.walkerid = protomodel.walkerid
+        self.printDebug = protomodel.printDebug
         self.namer = SParticleNames ( False )
         self.run_mcmc = False
         self.M = protomodel
@@ -505,7 +506,7 @@ class Manipulator ( LoggerBase ):
     #    self.manipulator.backupModel()
 
     def initFromDict ( self, D : Dict, filename : str = "",
-            initTestStats : bool = False ):
+            initTestStats : bool = False, printDebug : bool = False ):
         """ setup the protomodel from dictionary D.
         :param D: dictionary, as defined in pmodel*.dict files.
         :param filename: name of origin. not necessary, only for logging.
@@ -545,7 +546,7 @@ class Manipulator ( LoggerBase ):
         if "allowN1N1Prod" in D:
             from ptools.refxsecComputer import RefXSecComputer
             self.M.computer = RefXSecComputer( verbose = False,
-                    allowN1N1Prod = D["allowN1N1Prod"] )
+                    allowN1N1Prod = D["allowN1N1Prod"], printDebug = self.printDebug )
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
         if "susy_mode" in D:

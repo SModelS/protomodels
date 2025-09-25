@@ -26,9 +26,10 @@ from smodels.base import crossSection
 from smodels.base.exceptions import SModelSBaseError as SModelSError
 from smodels import installation as smodelsinstallation
 import os, sys, io, shutil, pyslha
+from base.loggerbase import LoggerBase
+from typing import Union
 
-
-class RefXSecComputer:
+class RefXSecComputer ( LoggerBase ):
     """
     The xsec computer that simply looks up reference cross sections,
     and interpolates them.
@@ -36,11 +37,12 @@ class RefXSecComputer:
     version = "1.0" ## make sure we can trace changes in the tables
     hasWarned = { "omitted": 0 }
 
-    def __init__( self, verbose : bool = False, allowN1N1Prod : bool = False ):
+    def __init__( self, verbose : bool = False, allowN1N1Prod : bool = False, walkerid : Union[str,int] = 0, printDebug : bool = False ):
         """
         :param verbose: turn on verbose mode, for debugging
         :param allowN1N1Prod: if true, then allow also N1 N1 production
         """
+        super(RefXSecComputer,self).__init__ ( walkerid, printDebug )
         self.verbose = verbose
         self._allowN1N1Prod = allowN1N1Prod
         if verbose:
@@ -789,12 +791,13 @@ if __name__ == "__main__":
             type=int, nargs="*", default=None )
     argparser.add_argument ( "-i", "--ignore_pids",
             help="ignore pids", type=str, default=None )
+    argparser.add_argument('-d', '--debug', help='prints debug information in the log file.', action='store_true')
     args = argparser.parse_args()
     sqrts = args.sqrts
     if sqrts == None:
         sqrts = [ 8, 13 ]
     setLogLevel ( "debug" )
-    tool = RefXSecComputer( args.verbose, allowN1N1Prod = False )
+    tool = RefXSecComputer( args.verbose, allowN1N1Prod = False, printDebug =  args.printDebug )
     slhapaths = args.inputfile
     ssmultipliers = { (1000021,1000021):2. }
     ssmultipliers = None

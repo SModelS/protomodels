@@ -95,7 +95,7 @@ class Initialiser ( LoggerBase ):
             dictfile : str = "signal_database.dict",
             allowN1N1Prod : bool = True, verbose : bool = False,
             dbpath : os.PathLike = "official",
-            templateName : Union[None,str] = "template_default.slha" ):
+            templateName : Union[None,str] = "template_default.slha", printDebug : bool = False ):
         """ constructor.
 
         :param walkerid: the walkerid we run this under
@@ -117,7 +117,7 @@ class Initialiser ( LoggerBase ):
         self.dbpath = self.readDBPath ( dbpath )
         self.db = Database ( self.dbpath )
         self.dsIdsInProposal = set()
-        self.xsecComputer = RefXSecComputer( allowN1N1Prod = self.allowN1N1Prod )
+        self.xsecComputer = RefXSecComputer( allowN1N1Prod = self.allowN1N1Prod, printDebug = printDebug )
         self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWWoff",
             "TRV1": None, "TDTM1F": None, "TDTM2F": None, "TRHadGM1": None,
             "THSCPM1": None, "THSCPM2": None, "T1Disp": None }
@@ -1237,6 +1237,8 @@ if __name__ == "__main__":
             help='allow N1N1 production', action="store_true" )
     argparser.add_argument ( '-r', '--recompute_cache',
             help='dont use pids.cache and xsecs.cache cache files', action="store_true" )
+    argparser.add_argument('-d', '--debug',
+            help='prints debug information in the log file.', action='store_true')
     ## 310.dict is also a good default, for the actual observations
     args = argparser.parse_args()
     if args.recompute_cache:
@@ -1259,5 +1261,5 @@ if __name__ == "__main__":
             sys.exit(-1)
     allowN1N1Prod = args.allowN1N1Prod
     ini = Initialiser( "ini", args.dictfile, allowN1N1Prod = allowN1N1Prod,
-            verbose = args.verbose, dbpath = args.dbpath )
+            verbose = args.verbose, dbpath = args.dbpath, printDebug = args.printDebug )
     ini.interact()
