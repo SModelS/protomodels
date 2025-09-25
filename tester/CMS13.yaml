@@ -1,7 +1,7 @@
 ---
 CMS-EXO-19-001:
 - CMS-EXO-19-010
-- CMS-EXO-20-004            #check combinablity
+- CMS-EXO-20-004
 - CMS-PAS-EXO-16-036        #eff-maps not implemented in SModelS
 - CMS-PAS-SUS-16-052
 - CMS-PAS-SUS-16-052-agg
@@ -145,6 +145,7 @@ CMS-EXO-20-004:
 - CMS-SUS-16-048
 - CMS-SUS-16-050
 - CMS-SUS-16-050-agg
+- CMS-SUS-20-004
 CMS-PAS-SUS-16-022: # >= 3 leptons + Etmiss     #eff-maps not implemented in SModelS
 - CMS-PAS-EXO-16-036
 - CMS-PAS-SUS-16-052
@@ -268,8 +269,8 @@ CMS-SUS-16-033:
 - CMS-SUS-16-046
 - CMS-SUS-16-047
 - CMS-SUS-16-048
-#- CMS-SUS-16-050            #check combinability
-#- CMS-SUS-16-050-agg
+- CMS-SUS-16-050
+- CMS-SUS-16-050-agg
 - CMS-SUS-16-051
 - CMS-SUS-17-005
 - CMS-SUS-17-009
@@ -1488,7 +1489,7 @@ CMS-SUS-16-050: # 0L + top tag
 - CMS-PAS-SUS-16-052
 - CMS-PAS-SUS-16-052-agg
 - CMS-PAS-SUS-17-004
-#- CMS-SUS-16-033            #check combinability
+- CMS-SUS-16-033
 - CMS-SUS-16-034
 - CMS-SUS-16-035
 - CMS-SUS-16-037
@@ -1506,14 +1507,14 @@ CMS-SUS-16-050: # 0L + top tag
 - CMS-SUS-17-010
 - CMS-SUS-18-002
 - CMS-SUS-18-007
-#- CMS-SUS-19-006            #check combinability
-#- CMS-SUS-19-006-agg
+- CMS-SUS-19-006            #check combinability
+- CMS-SUS-19-006-agg
 - CMS-SUS-19-008
 - CMS-SUS-19-009
 - CMS-SUS-19-011
 - CMS-SUS-20-001
-#- CMS-SUS-20-004            #check combinability
-#- CMS-SUS-21-002            #check combinability
+- CMS-SUS-20-004            #check combinability
+- CMS-SUS-21-002            #check combinability
 CMS-SUS-16-050-agg: # 0L + top tag
 - CMS-EXO-19-001
 - CMS-EXO-19-010
@@ -1523,7 +1524,7 @@ CMS-SUS-16-050-agg: # 0L + top tag
 - CMS-PAS-SUS-16-052
 - CMS-PAS-SUS-16-052-agg
 - CMS-PAS-SUS-17-004
-#- CMS-SUS-16-033
+- CMS-SUS-16-033
 - CMS-SUS-16-034
 - CMS-SUS-16-035
 - CMS-SUS-16-037
@@ -1540,14 +1541,14 @@ CMS-SUS-16-050-agg: # 0L + top tag
 - CMS-SUS-17-010
 - CMS-SUS-18-002
 - CMS-SUS-18-007
-#- CMS-SUS-19-006
-#- CMS-SUS-19-006-agg
+- CMS-SUS-19-006
+- CMS-SUS-19-006-agg
 - CMS-SUS-19-008
 - CMS-SUS-19-009
 - CMS-SUS-19-011
 - CMS-SUS-20-001
-#- CMS-SUS-20-004
-#- CMS-SUS-21-002
+- CMS-SUS-20-004
+- CMS-SUS-21-002
 CMS-SUS-16-051: # 1L stop       #eff-maps not implemented in SModelS
 - CMS-PAS-EXO-16-036
 - CMS-PAS-SUS-16-022
@@ -1850,8 +1851,8 @@ CMS-SUS-19-006: # 0L + multijets with MHT
 - CMS-SUS-16-046
 - CMS-SUS-16-047
 - CMS-SUS-16-048
-#- CMS-SUS-16-050            #check combinability
-#- CMS-SUS-16-050-agg
+- CMS-SUS-16-050            #check combinability
+- CMS-SUS-16-050-agg
 - CMS-SUS-16-051
 - CMS-SUS-17-001
 - CMS-SUS-17-005
@@ -1883,8 +1884,8 @@ CMS-SUS-19-006-agg: # 0L + multijets with MHT
 - CMS-SUS-16-046
 - CMS-SUS-16-047
 - CMS-SUS-16-048
-#- CMS-SUS-16-050            #check combinability
-#- CMS-SUS-16-050-agg
+- CMS-SUS-16-050            #check combinability
+- CMS-SUS-16-050-agg
 - CMS-SUS-16-051
 - CMS-SUS-17-001
 - CMS-SUS-17-005
@@ -2934,6 +2935,7 @@ CMS-SUS-20-002:         #eff-maps not implemented in SModelS
 CMS-SUS-20-004:
 - CMS-EXO-19-001
 - CMS-EXO-19-010
+- CMS-EXO-20-004
 - CMS-PAS-EXO-16-036
 - CMS-PAS-SUS-16-052
 - CMS-PAS-SUS-16-052-agg
@@ -2948,8 +2950,8 @@ CMS-SUS-20-004:
 - CMS-SUS-16-046
 - CMS-SUS-16-047
 - CMS-SUS-16-048
-#- CMS-SUS-16-050            #check combinability
-#- CMS-SUS-16-050-agg
+- CMS-SUS-16-050            #check combinability
+- CMS-SUS-16-050-agg
 - CMS-SUS-16-051
 - CMS-SUS-17-005
 - CMS-SUS-17-009
@@ -2976,8 +2978,8 @@ CMS-SUS-21-002:
 - CMS-SUS-16-046
 - CMS-SUS-16-047
 - CMS-SUS-16-048
-#- CMS-SUS-16-050            #check combinability
-#- CMS-SUS-16-050-agg
+- CMS-SUS-16-050            #check combinability
+- CMS-SUS-16-050-agg
 - CMS-SUS-16-051
 - CMS-SUS-17-005
 - CMS-SUS-17-009

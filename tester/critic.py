@@ -44,7 +44,7 @@ class Critic ( LoggerBase ):
         super ( Critic, self ).__init__ ( walkerid )
         self.walkerid = walkerid
         self.do_srcombine = do_srcombine
-        self.r_threshold = 1.38
+        self.r_threshold = 1.33
         self.sensitivity_threshold = 0.7
         self.verbose = 1
         self.select = select

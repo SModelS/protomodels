@@ -1425,7 +1425,9 @@ class Manipulator ( LoggerBase ):
                 pidpair.add(ppair)
 
         pidpair = list(pidpair)
-
+            
+        #prob to add a ssm occurs 70% of the time. This is done if none of three random moves below are implemented
+        #prob to rem a ssm occurs only 10% of the time, in the first random move implemented below (under a >0.9)
         #Do random moves
         a = np.random.uniform ( 0., 1. )
         if a > .9: ## sometimes, just knock out a random SSM
