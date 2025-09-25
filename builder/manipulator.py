@@ -9,7 +9,8 @@ __all__ = [ "Manipulator" ]
 
 from ptools.sparticleNames import SParticleNames
 from builder.protomodel import ProtoModel
-from ptools.helpers import nround, getAllPidsOfTheoryPred, py_dumps, mkdir
+from ptools.helpers import nround, getAllPidsOfTheoryPred, py_dumps, mkdir, \
+         formatObject
 from smodels.base.physicsUnits import fb, TeV, GeV
 from smodels.base.crossSection import LO
 from smodels.matching.theoryPrediction import TheoryPrediction
@@ -1050,7 +1051,7 @@ class Manipulator ( LoggerBase ):
         ## cap TL here or else you freeze in particle content for injected signals
         TL = self.M.TL
         if TL > 49:
-            self.highlight("warning", f"TL {TL}>49. we cap at 49 for computing the probability of the proposal!" )
+            self.highlight("warning", f"TL {formatObject(TL)}>49. we cap at 49 for computing the probability of the proposal!" )
             TL = 49
         ### FIXME add warning if this upper limit gets triggered!
 

@@ -114,6 +114,12 @@ def mkdir ( dirname : os.PathLike ) -> bool:
         pass
     return False
 
+def formatObject ( obj, fmt_str : str = ".2f" ) -> str:
+    """ format an object like a number, e.g. a test statistic """
+    if number == None:
+        return "None"
+    return f"{number:{fmt_str}}"
+
 def getJsonFileName(dset: DataSet) -> str:
     "get file name of json used by the combined dataset dset"
 
