@@ -5,21 +5,24 @@
 __all__ = [ "ProtoModel" ]
 
 import random, tempfile, os, time, colorama, copy, sys, pickle
+from typing import Union, List, Tuple
+import numpy as np
 sys.path.insert(0,"../")
 sys.path.insert(0,f"{os.environ['HOME']}/git/smodels/")
 from smodels.tools.wrapperBase import WrapperBase
+from smodels.base.physicsUnits import TeV, fb
+from smodels.base.smodelsLogging import setLogLevel
+
+from base.loggerbase import LoggerBase
+from base.runEnviron import RunEnviron
+
 # the default tempdir of wrapper base is /tmp
 # WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 # WrapperBase.defaulttempdir="/dev/shm" ## keep the temps in shared memory
 from ptools.refxsecComputer import RefXSecComputer
-from smodels.base.physicsUnits import TeV, fb
 from ptools import helpers
 from ptools.helpers import formatObject
 from ptools.sparticleNames import SParticleNames
-from typing import Union, List, Tuple
-import numpy as np
-from smodels.base.smodelsLogging import setLogLevel
-from base.loggerbase import LoggerBase
 setLogLevel ( "error" )
 
 
@@ -34,33 +37,24 @@ class ProtoModel ( LoggerBase ):
     #SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
 
     def __init__ ( self, walkerid : Union[str,int] = 0,
-            keep_meta : bool = True, dbversion : str = "????",
-            templateSLHA : os.PathLike = "template_default.slha",
-            allowN1N1Prod : bool = False, susy_mode : bool = False ):
+            keep_meta : bool = True, environ : RunEnviron = None ):
         """
         :param keep_meta: If True, keep also all the data in best combo (makes
         this a heavyweight object)
         :param walkerid: id of current walker
-        :param dbversion: the version of the database, to track provenance
-        :param templateSLHA: which slha file to use as template, as they
-        appear in the builder/templates/ folder
-        :param allowN1N1Prod: do we allow the N1 N1 production mode?
-        :param susy_mode: susy mode (penalty for ssms away from unity)
+        :param environ: a RunEnviron (not None)
         """
+        assert environ != None, "set environ!"
         super(ProtoModel,self).__init__ ( walkerid )
         self.walkerid = walkerid
         self.keep_meta = keep_meta ## keep all meta info? big!
         self.version = 1 ## version of this class
         self.maxMass = 2400. ## maximum masses we consider
-        self.susy_mode = susy_mode
+        self.environ = environ
         self.step = 0 ## count the steps
-        self.dbversion = dbversion ## keep track of the database version
-        if templateSLHA.startswith ( "templates/" ):
-            templateSLHA = templateSLHA.replace("templates/","")
-        self.templateName = templateSLHA
         self.getParticleContent()
         self.computer = RefXSecComputer( verbose = False,
-                                         allowN1N1Prod = allowN1N1Prod )
+                                         allowN1N1Prod = environ.allowN1N1Prod )
         self.protomodels_version = "2.0"
         self.initializeModel()
 
@@ -72,16 +66,13 @@ class ProtoModel ( LoggerBase ):
     def allowN1N1Prod(self,flag : bool ):
         self.computer.allowN1N1Prod = flag
 
-    @property
-    def templateSLHA(self):
-        return os.path.join ( os.path.dirname ( __file__ ), "templates", self.templateName )
-
     def getParticleContent ( self ):
-        """ for self.templateSLHA, get its particle content as a list.
+        """ for self.environ.templateSLHA, get its particle content as a list.
         save the content in self.particles.
         also, define potential forced_degeneracies
         """
-        assert os.path.exists ( self.templateSLHA ), f"{self.templateSLHA} does not exist"
+        assert os.path.exists ( self.environ.templateSLHA ), \
+                f"{self.environ.templateSLHA} does not exist"
         particles = set()
         mass_params = set()
         slha = ""
@@ -89,7 +80,7 @@ class ProtoModel ( LoggerBase ):
         self.forced_degeneracies = []
         self.decaylessParticles = ( ProtoModel.LSP, )
         # decaylessParticles = [ ProtoModel.LSP, 1000023, 1000024 ]
-        with open ( self.templateSLHA, "rt" ) as f:
+        with open ( self.environ.templateSLHA, "rt" ) as f:
             lines = f.readlines()
             for line in lines:
                 # stop at the decays
@@ -173,7 +164,7 @@ class ProtoModel ( LoggerBase ):
 
         slha_decay_keys = []
 
-        with open ( self.templateSLHA ) as slhaf:
+        with open ( self.environ.templateSLHA ) as slhaf:
             tmp = slhaf.readlines()
             for line in tmp:
                 p = line.find("#" )
@@ -551,11 +542,11 @@ class ProtoModel ( LoggerBase ):
         return self.currentSLHA
 
     def checkTemplateSLHA ( self ):
-        if not os.path.exists ( self.templateSLHA ):
-            if "/mnt/hephy/" in self.templateSLHA:
-                trySLHA = self.templateSLHA.replace(f"{os.environ['CODEDIR']}/smodels-utils/protomodels/","./" )
+        if not os.path.exists ( self.environ.templateSLHA ):
+            if "/mnt/hephy/" in self.environ.templateSLHA:
+                trySLHA = self.environ.templateSLHA.replace(f"{os.environ['CODEDIR']}/smodels-utils/protomodels/","./" )
                 if os.path.exists ( trySLHA ):
-                    self.templateName = trySLHA
+                    self.environ.templateName = trySLHA
                     return
 
     def _writeSLHAFile ( self, outputSLHA : os.PathLike ):
@@ -565,7 +556,7 @@ class ProtoModel ( LoggerBase ):
         :param outputSLHA: name of slha file to write
         """
         #Get template data:
-        with open( self.templateSLHA ) as f:
+        with open( self.environ.templateSLHA ) as f:
             lines=f.readlines()
         unfrozen = self.unFrozenParticles()
 
@@ -724,20 +715,17 @@ class ProtoModel ( LoggerBase ):
         """
 
         #Initialize empty model:
-        newmodel = self.__class__( self.walkerid )
+        newmodel = self.__class__( self.walkerid, self.keep_meta, self.environ )
 
         #Copy information
         newmodel.keep_meta = self.keep_meta
         newmodel.maxMass = self.maxMass
         newmodel.step = self.step
-        newmodel.dbversion = self.dbversion
         newmodel.protomodels_version = self.protomodels_version
         newmodel.forced_degeneracies = self.forced_degeneracies
         newmodel.decaylessParticles = self.decaylessParticles
         newmodel.particles = self.particles[:]
-        newmodel.templateName = self.templateName[:]
-        newmodel.allowN1N1Prod = self.allowN1N1Prod
-        newmodel.susy_mode = self.susy_mode
+        newmodel.environ = self.environ
         newmodel.possibledecays = dict([[key,val] for key,val in self.possibledecays.items()])
         decayDict = {}
         for pid,dec in self.decays.items():

@@ -20,19 +20,21 @@ sys.path.insert(0,f"/scratch-cbe/users/{os.environ['USER']}/git/smodels-utils/pr
 sys.path.insert(0,"../")
 sys.path.insert(0,"../../")
 sys.path.insert(0,"../smodels/")
-from walker.hiscores import Hiscores
+from os import PathLike
+from pympler.asizeof import asizeof
+from smodels.base.smodelsLogging import logger
+from typing import Callable, Dict, Union
+
+from base.runEnviron import RunEnviron
+from base.loggerbase import LoggerBase
+from ptools.sparticleNames import SParticleNames
+from ptools import helpers
+from ptools.helpers import prettyPrint
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
 from tester.critic import Critic
-from ptools.sparticleNames import SParticleNames
-from pympler.asizeof import asizeof
-from smodels.base.smodelsLogging import logger
-from typing import Callable, Dict, Union
-from os import PathLike
-from base.loggerbase import LoggerBase
-from ptools import helpers
-from ptools.helpers import prettyPrint
+from walker.hiscores import Hiscores
 
 try:
     from smodels.statistics.pyhfInterface import setBackend
@@ -47,18 +49,7 @@ except ImportError as e:
 logger.setLevel("ERROR")
 
 class RandomWalker ( LoggerBase ):
-    def __init__ ( self, rvars : dict ):
-#        walkerid : Union[str,int] = 0, maxsteps : int = 10000,
-#            strategy : str = "aggressive",
-#            cheatcode : Union[str,int] = "no_cheat", dbpath : PathLike = "./database.pcl",
-#            expected : bool = False, select : str = "all", cap_ssm = 100,
-#            catch_exceptions : bool = True, rundir : Union[PathLike,None] = None,
-#            do_srcombine : bool = False, test_param_space = False, run_mcmc = False,
-#            record_history : bool = False, seed : Union[int,None] = None,
-#            stopTeleportationAfter : int = -1,
-#            templateSLHA : os.PathLike = "template_default.slha",
-#            allowN1N1Prod : bool = False, susy_mode : bool = False,
-#            use_initialiser : Union[str,bool] = False ):
+    def __init__ ( self, environ : RunEnviron, rvars : dict ):
         """ initialise the walker
 
         rvars ( dict ):
@@ -86,14 +77,16 @@ class RandomWalker ( LoggerBase ):
             dictionary file that we use for the initialiser. only works if
             not using cheatcode. if false, then dont use initialiser.
         """
+        globals().update ( environ.run_dict ) # doesnt work for all
         rvars = self.defaults ( rvars )
         globals().update ( rvars ) # doesnt work for all
-        dbpath = rvars["dbpath"]
-        use_initialiser = rvars["use_initialiser"]
-        jmax = rvars["jmax"]
+        dbpath = environ.dbpath
+        use_initialiser = environ.use_initialiser
         continueFrom = rvars["continueFrom"]
+        strategy = environ.strategy
+        do_srcombine = environ.do_srcombine
+        jmax = rvars["jmax"]
         cheatcode = rvars["cheatcode"]
-        do_srcombine = rvars["do_srcombine"]
         stopTeleportationAfter = rvars["stopTeleportationAfter"]
         run_mcmc = rvars["run_mcmc"]
 
@@ -105,6 +98,7 @@ class RandomWalker ( LoggerBase ):
             sys.exit(-2)
         self.walkerid = walkerid ## walker id, for parallel runs
         self.templateSLHA = templateSLHA
+        self.environ = environ
         self.rundir = rundir
         self.cap_ssm = cap_ssm
         if rundir == None:
@@ -132,9 +126,7 @@ class RandomWalker ( LoggerBase ):
 
         #Initialize ProtoModel and Manipulator:
         protomodel = ProtoModel( self.walkerid, keep_meta = True,
-                dbversion = self.predictor.database.databaseVersion,
-                templateSLHA = templateSLHA, allowN1N1Prod = allowN1N1Prod,
-                susy_mode = susy_mode )
+                environ = environ )
 
         self.manipulator = Manipulator ( protomodel, strategy,
                         do_record = record_history, seed = self.random_seed )
@@ -154,7 +146,7 @@ class RandomWalker ( LoggerBase ):
         # self.pprint ( f"Ramping up with slurm jobid {jobid} using template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
         self.pprint ( f"Ramping up with slurm jobid {jobid}" )
         self.pprint ( f"It is {time.asctime()}" )
-        self.pprint ( f"template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
+        self.pprint ( f"template {self.environ.templateSLHA} allowN1N1 {self.environ.allowN1N1Prod} susy_mode {self.environ.susy_mode}" )
         
         #keep track of log llhd ratio
         self.trace_logllhdratio = []
@@ -167,9 +159,10 @@ class RandomWalker ( LoggerBase ):
                 logger.error ( f"cheatcode takes precedence" )
             else:
                 from walker.initialiser import Initialiser
-                self.initialiser  = Initialiser ( self.walkerid, self.use_initialiser,
-                       allowN1N1Prod = allowN1N1Prod, verbose = False,
-                       dbpath = dbpath, templateName = templateSLHA )
+                from base.runEnviron import RunEnviron
+                environ = RunEnviron()
+                self.initialiser  = Initialiser ( self.walkerid, 
+                        self.use_initialiser, environ, verbose = False )
                 #init_model = self.initialiser.propose()
                 init_model = self.initialiser.bestOfN(5)
                 if init_model != None:
@@ -231,14 +224,13 @@ class RandomWalker ( LoggerBase ):
     @classmethod
     def defaults ( cls, rvars ):
         """ define the defaults """
-        defs = { "walkerid": "default", "use_initialiser": False, "jmin": 0, "continueFrom": "",
-                 "cheatcode": "no_cheat", "maxsteps": 1000, "dbpath": "./database.pcl",
-                 "strategy": "aggressive", "rundir": "./", "cap_ssm": 100.,
+        defs = { "walkerid": "default", "jmin": 0, "continueFrom": "",
+                 "cheatcode": "no_cheat", "maxsteps": 1000, 
+                 "cap_ssm": 100.,
                  "test_param_space": False, "seed": None, "expected": False,
                  "record_history": False, "catch_exceptions": True,
-                 "stopTeleportationAfter": -1, "templateSLHA": "template_default.slha",
-                 "allowN1N1Prod": False, "susy_mode": False, "use_initialiser": False,
-                 "do_srcombine": True, "run_mcmc": False }
+                 "stopTeleportationAfter": -1,
+                 "run_mcmc": False }
         for k,v in defs.items():
             if not k in rvars:
                 rvars[k]=v
@@ -247,14 +239,14 @@ class RandomWalker ( LoggerBase ):
         return rvars
 
     @classmethod
-    def fromDictionary( cls, dictionary : Union[PathLike,Dict], rvars : Dict ):
+    def fromDictionary( cls, dictionary : Union[PathLike,Dict],
+           environ : RunEnviron, rvars : Dict ):
         """ create a RandomWalker from a hiscore dictionary. Continue walking
             from the model in that dictionary
         :param dictionary: either a dictionary, or a string containing a dictionary,
         :param rvars: the rvars dictionary see constructor
         or the path to a dictionary
         """
-        rvars = cls.defaults ( rvars )
         if type(dictionary) == str and dictionary.endswith ( ".dict" ):
             if not os.path.exists ( dictionary ):
                 logger.error ( f"argument {dictionary} is a string, but doesnt work as pathname" )
@@ -272,9 +264,9 @@ class RandomWalker ( LoggerBase ):
             except Exception as e:
                 logger.error  ( f"could not interpret the content of {dictionary}: {e}" )
 
-        ret = cls( rvars ) ## simply pass on all the arguments
-
+        ret = cls( environ, rvars ) ## simply pass on all the arguments
         pm = RandomWalker.extractArguments ( ProtoModel.__init__, rvars )
+        pm["environ"] = environ
         ret.manipulator.M = ProtoModel( **pm )
         ret.manipulator.initFromDict ( dictionary )
         if "walkerid" in rvars:
@@ -769,9 +761,6 @@ def model2():
                 (1000024, 5): 0.4651041087881375
             }
         },
-        'templateSLHA': 'naturalEwkino_nodegeneracy.slha',
-        'allowN1N1Prod': True,
-        'susy_mode': True,
     }
     return D
 
@@ -781,11 +770,8 @@ if __name__ == "__main__":
     select = "txnames:electroweakinos,electroweakinos_offshell"
     select = "all"
     D = model2()
-    #walker = RandomWalker( walkerid=0, maxsteps = 1000,
-    #                dbpath=dbpath, cheatcode=1, select=select, do_srcombine = True )
-    rvars = { "walkerid": 0, "dbpath": dbpath, "do_srcombine": True,
-              "select": select, "templateSLHA": "templateNaturalEwkino.slha",
-              "allowN1N1Prod": True, "susy_mode": False, "use_initialiser": "./ini.dict" }
+    environ = RunEnviron.create ( dbpath = dbpath, select = "all" )
                
-    walker = RandomWalker.fromDictionary ( D, rvars )
+    rvars = { "walkerid": 0 }
+    walker = RandomWalker.fromDictionary ( D, environ, rvars )
     walker.walk()

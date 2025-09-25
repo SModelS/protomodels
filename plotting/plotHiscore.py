@@ -24,7 +24,8 @@ logger.setLevel("ERROR")
 from os import PathLike
 from colorama import Fore
 from typing import Union, Dict, TextIO, List
-from ptools.helpers import computeP, computeZFromP, getAllPidsOfTheoryPred
+from ptools.helpers import computeP, computeZFromP, getAllPidsOfTheoryPred, \
+         formatObject
 from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
 from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
 from base.loggerbase import LoggerBase
@@ -50,12 +51,8 @@ class HiscorePlotter ( LoggerBase ):
         """
         if not wanted:
             return False
-        sK = str(self.protomodel.K)
-        if self.protomodel.K is not None:
-            sK = f"{self.protomodel.K:.3f}"
-        sTL = str(self.protomodel.TL)
-        if self.protomodel.TL is not None:
-            sTL = f"{self.protomodel.TL:.2f}"
+        sK = formatObject ( self.protomodel.K, 3 )
+        sTL = formatObject ( self.protomodel.TL, 2 )
         comment = f"automated update by plotHiscore.py to {upload}:\n    K={sK} TL={sTL} walkerid={self.protomodel.walkerid}"
         destdir = dest
         destdir = destdir.replace(upload,"")
@@ -736,7 +733,7 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( "<body>\n" )
         f.write ( "<center>\n" )
         f.write ( f"<table><td><h1>" )
-        sK = "None" if self.protomodel.K is None else f"{self.protomodel.K:.2f}"
+        sK = formatObject ( self.protomodel.K, 2 )
         f.write ( f"Current best protomodel: <i>K</i>={sK}" )
         f.write ( f", <i>TL</i>={self.protomodel.TL:.2f}" )
         f.write ( f"</h1><td>" )

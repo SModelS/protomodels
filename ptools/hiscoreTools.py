@@ -18,6 +18,7 @@ from builder.protomodel import ProtoModel
 from walker.hiscores import Hiscores
 from typing import Union, Dict, List, Set, Tuple
 from argparse import Namespace
+from ptools.helpers import formatObject
 from os import PathLike
 
 def count ( protomodels : List[ProtoModel] ) -> int:
@@ -32,12 +33,12 @@ def sortByK ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
     return protomodels[:n] ## only n
 
 def discuss ( protomodel, name ):
-    print ( f"Currently {name:7s} K={protomodel.K:.3f}, TL={protomodel.TL:.3f} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{protomodel.walkerid})" )
+    print ( f"Currently {name:7s} K={formatObject(protomodel.K,3)}, TL={formatObject(protomodel.TL,3)} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{protomodel.walkerid})" )
 
 def discussBest ( protomodel, detailed ):
     """ a detailed discussion of number 1 """
     p = 2. * ( 1. - stats.norm.cdf ( protomodel.TL ) ) ## two times because one-sided
-    print ( f"Current      best K={protomodel.K:.3f}, TL={protomodel.TL:.3f}, p={p:.2g} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{int(protomodel.walkerid)})" )
+    print ( f"Current      best K={formatObject(protomodel.K,3)}, TL={formatObject(protomodel.TL,3)}, p={p:.2g} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{int(protomodel.walkerid)})" )
     if detailed:
         print ( f"Solution was found in step #{protomodel.step}" )
         for i in protomodel.bestCombo:
@@ -78,7 +79,7 @@ def obtainHiscore ( number : int,
            dbpath = dbpath )
     TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K
-    sK = "K=None" if K==None else f"K={K:.3f}"
+    sK = formatObject ( K, 3 )
     print ( f"[hiscoreTools] obtaining #{number}: {sK}" )
     ret = hi.hiscores[ number ]
     return ret

@@ -10,19 +10,24 @@ import numpy as np
 import scipy
 import random
 import pyslha
+from typing import Union, Dict, List, Set
+from functools import lru_cache
+
+from smodels.experiment.databaseObj import Database
+from smodels_utils.helper.terminalcolors import *
+
 from base.loggerbase import LoggerBase
-from typing import List, Set, Dict, Tuple, Union
+from base.runEnviron import RunEnviron
+from base.locker import lock, unlock
+
 from ptools.sparticleNames import SParticleNames
 from ptools.helpers import formatObject
+from ptools.refxsecComputer import RefXSecComputer
+
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
 from tester.critic import Critic
-from smodels_utils.helper.terminalcolors import *
-from ptools.refxsecComputer import RefXSecComputer
-from functools import lru_cache
-from base.locker import lock, unlock
-from smodels.experiment.databaseObj import Database
 
 LSP = ProtoModel.LSP
 
@@ -91,33 +96,24 @@ class Initialiser ( LoggerBase ):
     cachefile = "pids.cache"
     effscachefile = "xsecs.cache"
 
-    def __init__ ( self, walkerid : Union[str,int] = "ini",
-            dictfile : str = "signal_database.dict",
-            allowN1N1Prod : bool = True, verbose : bool = False,
-            dbpath : os.PathLike = "official",
-            templateName : Union[None,str] = "template_default.slha" ):
+    def __init__ ( self, walkerid : Union[str,int],
+            dictfile : os.PathLike, environ : RunEnviron, 
+            verbose : bool = False ):
         """ constructor.
 
         :param walkerid: the walkerid we run this under
-        :param dictfile: path to the database dict file we will base this on.
-        dictfile is usally sth like signal_database.dict, *_database.dict, <dbver>.dict.
-        :param allowN1N1Prod: do we allow N1 N1 production?
-        :param templateName: the template SLHA file, is needed to know
-        what decays the slha file wants
+        :param environ: a run environment
+        :param verbose: true if verbose
         """
         super ( Initialiser, self ).__init__ ( walkerid )
-        self.printLogMessages = verbose
-        dictfile = os.path.expanduser ( dictfile )
-        self.templateName = templateName
-        self.warnings= {}
         self.dictfile = dictfile
-        self.allowN1N1Prod = allowN1N1Prod
-        self.readRunDict()
-        self._pm = ProtoModel ( walkerid, templateSLHA = self.templateName )
-        self.dbpath = self.readDBPath ( dbpath )
-        self.db = Database ( self.dbpath )
+        self.printLogMessages = verbose
+        self.environ = environ
+        self.warnings= {}
+        self._pm = ProtoModel ( walkerid, templateSLHA = self.environ.templateName )
+        self.db = Database ( self.environ.dbpath )
         self.dsIdsInProposal = set()
-        self.xsecComputer = RefXSecComputer( allowN1N1Prod = self.allowN1N1Prod )
+        self.xsecComputer = RefXSecComputer( allowN1N1Prod = self.environ.allowN1N1Prod )
         self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWWoff",
             "TRV1": None, "TDTM1F": None, "TDTM2F": None, "TRHadGM1": None,
             "THSCPM1": None, "THSCPM2": None, "T1Disp": None }
@@ -1115,7 +1111,7 @@ class Initialiser ( LoggerBase ):
         self.submodels = submodels
         model = self.mergeNModels ( submodels )
         
-        if self.allowN1N1Prod and model is not None:
+        if self.environ.allowN1N1Prod and model is not None:
             ## the factor of .2 below is because our reference xsecs for N1N1 are those of C1C1
             ## so too high
             ssm = float ( .2 * np.exp ( scipy.stats.norm.rvs() ) )
@@ -1195,32 +1191,6 @@ class Initialiser ( LoggerBase ):
         import IPython
         IPython.embed( colors = "neutral" )
 
-    def readRunDict ( self ):
-        self.runDict = {}
-        if not os.path.exists ( "run.dict" ):
-            return
-        with open ( "run.dict", "rt" ) as f:
-            txt = f.read()
-            d = eval ( txt )
-            self.runDict = d
-        if "allowN1N1Prod" in self.runDict:
-            if self.allowN1N1Prod != self.runDict["allowN1N1Prod"]:
-                self.warning ( f"allowN1N1Prod was {self.allowN1N1Prod} but run.dict says {self.runDict['allowN1N1Prod']} will set to {self.runDict['allowN1N1Prod']}" )
-            self.allowN1N1Prod = self.runDict["allowN1N1Prod"]
-        if "templateSLHA" in self.runDict:
-            templateName = self.runDict["templateSLHA"]
-            if self.templateName != templateName:
-                if self.templateName is not None:
-                    self.log ( f"templateName changed from {templateName} to {self.templateName}" )
-                self.templateName = templateName
-
-    def readDBPath ( self, dbpath ):
-        if dbpath != None:
-            return dbpath
-        if not "dbpath" in self.runDict:
-            return "official"
-        return self.runDict["dbpath"]
-
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(
@@ -1228,13 +1198,8 @@ if __name__ == "__main__":
     argparser.add_argument ( '-d', '--dictfile',
             help='input database dict file ["signal_database.dict"]',
             type=str, default="*_database.dict" )
-    argparser.add_argument ( '-D', '--dbpath',
-            help='path to database, if none then read from run.dict [none]',
-            type=str, default=None )
     argparser.add_argument ( '-v', '--verbose',
             help='verbose', action="store_true" )
-    argparser.add_argument ( '-a', '--allowN1N1Prod',
-            help='allow N1N1 production', action="store_true" )
     argparser.add_argument ( '-r', '--recompute_cache',
             help='dont use pids.cache and xsecs.cache cache files', action="store_true" )
     ## 310.dict is also a good default, for the actual observations
@@ -1257,7 +1222,6 @@ if __name__ == "__main__":
         else:
             print ( f"[initialiser] potential dict files are {files}. specify!")
             sys.exit(-1)
-    allowN1N1Prod = args.allowN1N1Prod
-    ini = Initialiser( "ini", args.dictfile, allowN1N1Prod = allowN1N1Prod,
-            verbose = args.verbose, dbpath = args.dbpath )
+    environ = RunEnviron( "run.dict" )
+    ini = Initialiser( "ini", args.dictfile, environ, verbose = args.verbose )
     ini.interact()

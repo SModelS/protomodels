@@ -204,7 +204,7 @@ class Combiner ( LoggerBase ):
             ret = - math.log ( ret )
 
         ## susy_mode!
-        if protomodel.susy_mode == True:
+        if protomodel.environ.susy_mode == True:
             nll_penalty = 0.
             for pids, ssm in protomodel.ssmultipliers.items():
                 # dnll = .1*float(abs(ssm-1.)) L1 penalty

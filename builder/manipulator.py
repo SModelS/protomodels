@@ -1590,7 +1590,7 @@ class Manipulator ( LoggerBase ):
 
         pid = int(np.random.choice ( unfrozen ))
         allpids = self.forcedMassDegeneratePids ( pid )
-        self.log ( f"randomly freezing particle {pid}->{allpids} {self.M.forced_degeneracies} {self.M.templateName}" )
+        self.log ( f"randomly freezing particle {pid}->{allpids} {self.M.forced_degeneracies} {self.M.environ.templateName}" )
         frozen = self.freezeParticles ( pid, protomodel=self.propose_model )
         return frozen
 
@@ -2567,7 +2567,7 @@ class Manipulator ( LoggerBase ):
                          "masses": copy.deepcopy(self.M.masses),
                          "ssmultipliers": copy.deepcopy(self.M.ssmultipliers),
                          "decays": copy.deepcopy(self.M.decays),
-                         "templateName": copy.deepcopy(self.M.templateName),
+                         "environ": copy.deepcopy(self.M.environ),
                          "rvalues": copy.deepcopy(self.M.rvalues),
                          "_stored_xsecs" : copy.deepcopy(self.M._stored_xsecs),
                          "_xsecMasses" : copy.deepcopy(self.M._xsecMasses),

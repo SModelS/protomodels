@@ -13,8 +13,8 @@ import sys
 sys.path.insert(0,"../")
 from smodels.experiment.databaseObj import Database
 
-# dbpath = "./database"
-dbpath = "./signal.pcl"
+dbpath = "../../smodels-database"
+# dbpath = "./signal.pcl"
 # dbpath = "unittest"
 
 database = Database( dbpath)

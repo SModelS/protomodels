@@ -5,6 +5,7 @@
 import os, time
 from os import PathLike
 from ptools.sparticleNames import SParticleNames 
+from ptools.helpers import formatObject
 from smodels_utils.helper.terminalcolors import *
 from typing import Union
 import numpy as np
@@ -88,8 +89,8 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             print ( )
             nlines += 5
         else:
-            sK = "None" if K == None else f"{K:.3f}"
-            print ( f"#{i}({wid:3d}): K={GREEN}{sK}{RESET}; TL={TL:.3f}; {sparticles} {timestamp}" )
+            sK = formatObject ( K, 3 )
+            print ( f"#{i}({wid:3d}): K={GREEN}{sK}{RESET}; TL={formatObject(TL,3)}; {sparticles} {timestamp}" )
             nlines += 1
     return nlines
 
@@ -115,7 +116,7 @@ def printTruth():
         f.close()
     d = eval(txt)
     K, TL = d["K"], d["TL"]
-    sK = "None" if K == None else f"{K:.3f}"
+    sK = formatObject ( K, 3 )
     particles = d["masses"].keys()
     sparticles = ""
     for ip, p in enumerate ( particles ):
@@ -124,7 +125,7 @@ def printTruth():
         name = SParticleNames( False).asciiName(p)
         mass = d["masses"][p]
         sparticles += f"{CYAN}{name}{RESET}={RED}{mass:.1f}{RESET}"
-    print ( f"{RED}Truth:{RESET}   K={GREEN}{sK}{RESET}; TL={TL:.3f}; {sparticles}" )
+    print ( f"{RED}Truth:{RESET}   K={GREEN}{sK}{RESET}; TL={formatObject(TL,3)}; {sparticles}" )
 
 if __name__ == "__main__":
     import argparse

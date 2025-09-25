@@ -50,6 +50,18 @@ def repr_double_quotes(obj):
     else:
         return repr(obj)
 
+def py_dump ( obj, handle, **args ):
+    """ equivalent to json.dump, convenience method 
+    :param handle: is either a file handle, or a file name
+    """
+    ds = py_dumps ( obj, **args )
+    if type(handle) == str: # a pathname was given
+        with open ( handle, "wt" ) as f:
+            f.write ( ds + "\n" )
+            f.close()
+    else:
+        handle.write ( ds + "\n" )
+
 def py_dumps( obj, indent : int = 4, level : int = 0, stop_at_level : int = -1, 
               double_quotes : bool = True ) -> str:
     """ equivalent to json.dumps (ie it pretty prints a given nested structure)

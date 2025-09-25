@@ -4,12 +4,23 @@
 better than starting with the SM / any first 5 steps
 """
 
-def writeModels( models ):
-    with open ( "init.stats", "wt" ) as f:
-        f.write ( f"{models}\n" )
-        f.close()
+from ptools.helpers import py_dumps
+from base.locker import lock, unlock
 
-def createStatsForInit():
+def writeModel( model : dict, outfile : str = "init.stats" ):
+    """ append model to outfile """
+    with open ( outfile, "rt" ) as f:
+        models = eval(f.read())
+    models.append ( model )
+    lock ( outfile )
+    with open ( outfile, "wt" ) as f:
+        ds = py_dumps ( models, indent=4 )
+        f.write ( f"{ds}\n" )
+        f.close()
+    unlock ( outfile )
+
+def createStatsForInit( dbpath : str = "official.pcl", 
+        outfile : str = "init.stats" ):
     dbpath = "official.pcl"
     # from smodels.experimental.databaseObj import Database
     # db = Database ( dbpath )
@@ -20,16 +31,15 @@ def createStatsForInit():
     initialiser = Initialiser ( walkerid = "stats",
         dictfile = dictfile, allowN1N1Prod = allowN1N1Prod,
         dbpath = dbpath )
-    models = []
     for i in range(1000):
         ret = initialiser.bestOfN(5)
         K, TL = ret["K"], ret["TL"]
         print ( f"K={K} TL={TL}" )
-        models.append( ret )
-        writeModels ( models )
+        writeModel ( ret )
 
 def plotStats():
-    with open ( "init.stats", "rt" ) as f:
+    outfile = "init.stats"
+    with open ( outfile, "rt" ) as f:
         models = eval ( f.read() )
 
 if __name__ == "__main__":

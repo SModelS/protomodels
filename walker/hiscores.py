@@ -13,6 +13,7 @@ setup()
 from builder.manipulator import Manipulator
 from tester.combiner import Combiner
 from ptools import helpers
+from ptools.helpers import formatObject
 from ptools import sparticleNames
 from ptools.helpers import py_dumps
 from typing import Union
@@ -466,8 +467,7 @@ class Hiscores ( LoggerBase ):
                 percK = 0.
             else:
                 percK = ( manipulator.M.K - oldK ) / oldK
-                self.pprint ( "when removing %s, K changed: %.3f -> %.3f (%.1f%s), TL: %.3f -> %.3f (%d evts)" % \
-                    ( self.namer.asciiName(pid), oldK, manipulator.M.K, 100.*percK, "%", oldTL,manipulator.M.TL, manipulator.M.nevents ) )
+                self.pprint ( f"when removing {self.namer.asciiName(pid)}, K changed: {formatObject(oldK,3)} -> {formatObject(manipulator.M.K,3)} ({100.*percK:.1f}%), TL: {formatObject(oldTL,3)} -> {formatObject(manipulator.M.TL,3)} ({manipulator.M.nevents} evts)" )
 
             #Store the new TL and K values in the original model:
             particleContributions[pid]=manipulator.M.K
@@ -495,24 +495,24 @@ class Hiscores ( LoggerBase ):
             combiner = Combiner()
             dTLtot, dKtot = 0., 0.
             bestCombo = copy.deepcopy ( manipulator.M.bestCombo )
-            #self.pprint ( "we have %d entries in best combo" % len(bestCombo) )
+            #self.pprint ( f"we have {len(bestCombo)} entries in best combo" )
             prior = combiner.computePrior ( manipulator.M, nll = False )
-            #self.pprint ( "the prior is %s" % prior )
+            #self.pprint ( f"the prior is {prior}" )
             for ctr,pred in enumerate(bestCombo):
-                #self.pprint ( "Now starting to compute for %d" % ctr )
+                #self.pprint ( f"Now starting to compute for {ctr}" )
                 combo = bestCombo[:ctr]+bestCombo[ctr+1:]
                 # combo = copy.deepcopy ( bestCombo )[:ctr]+copy.deepcopy ( bestCombo)[ctr+1:]
-                #self.pprint ( "deep copy still worked: %d" % (len(combo)) )
+                #self.pprint ( f"deep copy still worked: {len(combo)}" )
                 TL, muhat_ = combiner.getSignificance ( combo )
-                #self.pprint ( "TL for %d is %s" % ( ctr, TL ) )
+                #self.pprint ( f"TL for {ctr} is {TL}" )
                 K = combiner.computeK ( TL, prior )
-                #self.pprint ( "K for %d is %s" % ( ctr, K ) )
+                #self.pprint ( f"K for {ctr} is {K}" )
                 contributionsK [ ctr ] = K
             self.pprint ( "finished computing contributions" )
 
             contrsWithNames = {}
             for k,v in contributionsK.items():
-                # self.pprint ( "contributionsK of %s reads %s" % ( k, v ) )
+                # self.pprint ( f"contributionsK of {k} reads {v}" )
                 contrsWithNames [ manipulator.M.bestCombo[k].analysisId() ] = v
             manipulator.M.analysisContributions = contrsWithNames
             self.pprint ( f"stored {len(manipulator.M.analysisContributions)} analyses contributions" )

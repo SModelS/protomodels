@@ -9,13 +9,27 @@ from ptools.helpers import py_dump, py_dumps
 
 __all__ = [ "RunEnviron" ]
 
+def dict_diff(d1, d2):
+    """
+    Return keys and values where two dictionaries differ.
+    """
+    diff = {}
+    all_keys = set(d1) | set(d2)  # union of keys
+    for k in all_keys:
+        v1 = d1.get(k, "<missing>")
+        v2 = d2.get(k, "<missing>")
+        if v1 != v2:
+            diff[k] = (v1, v2)
+    return diff
+
 class RunEnviron:
-    """ captures all parameters that pertain to a specific 'run' 
+    """ captures all parameters that pertain to a specific 'run'
     A 'run' is characterized a by a slew of similar walkers
     """
-    def __init__ ( self, dictfile : str = "run.dict" ):
+    def __init__ ( self, runDictFile : str = "run.dict" ):
         """
         :ivar dbpath(str): the database path
+        :ivar dbver(str): the database version
         :ivar select(str): what txnames to select
         :ivar do_srcombine(bool): do sr-combinations
         :ivar forbidden(list): list of forbidden particles
@@ -26,10 +40,9 @@ class RunEnviron:
         :ivar rundir(str): the run directory
         for initialisation, or dont use initialiser (None)
         """
-        self.dictfile = dictfile
+        self.runDictFile = os.path.expanduser ( runDictFile )
         self.didReadRunDict = False # did we get the info from run.dict?
-        self._runDict = {} 
-        self._runDict = self.defaults()
+        self.run_dict = self.defaults()
         self.readRunDict()
         self._setAttrs()
 
@@ -39,14 +52,25 @@ class RunEnviron:
         defaults = cls.defaults()
         import copy
         newdict = copy.deepcopy( defaults )
-        dictfile = "run.dict"
-        if "dictfile" in args:
-            dictfile = args["dictfile"]
-            args.pop("dictfile")
+        runDictFile = "run.dict"
+        if "runDictFile" in args:
+            runDictFile = os.path.expanduser ( args["runDictFile"] )
+            args.pop("runDictFile")
+        oldret = None
+        if os.path.exists ( runDictFile ):
+            oldret = RunEnviron ( runDictFile )
         newdict.update ( **args )
-        with open ( dictfile, "wt" ) as f:
-            py_dump ( newdict, f )
-        ret = RunEnviron ( dictfile )
+        if oldret != None:
+            if newdict != oldret.run_dict:
+                print ( f"[RunEnviron] {runDictFile} differs from previous version:" )
+                dd = dict_diff(oldret.run_dict,newdict)
+                for k,v in dd.items():
+                    print ( f"[RunEnviron] {k:>16}: {v[0]} != {v[1]}" )
+                print ( f"[RunEnviron] correct this!" )
+                import sys; sys.exit(-1)
+
+        py_dump ( newdict, runDictFile )
+        ret = RunEnviron ( runDictFile )
         return ret
 
     @classmethod
@@ -55,32 +79,40 @@ class RunEnviron:
         defaults = { "dbpath": "official", "select": "all",
             "do_srcombine": True, "forbidden": [],
             "templateSLHA": "template_default.slha",
-            "allowN1NProd": False, "susy_mode": False,
-            "rundir": os.getcwd(),
-            "use_initialiser": None }
+            "allowN1N1Prod": False, "susy_mode": False,
+            "rundir": os.getcwd(), "strategy": "aggressive",
+            "use_initialiser": None, "dbver": "???" }
         return defaults
 
     def __str__ ( self ):
-        return py_dumps ( self._runDict ) 
+        return py_dumps ( self.run_dict )
 
     def readRunDict ( self ):
         """ read the run.dict file, set runDict """
-        if self.dictfile is None or not os.path.exists ( self.dictfile ):
-            return
+        if self.runDictFile is None or not os.path.exists ( self.runDictFile ):
+            print ( f"[RunEnviron] no {self.runDictFile} exists" )
+            print ( f"[RunEnviron] you make create one RunEnviron.create()" )
+            sys.exit()
         self.didReadRunDict = True
-        with open ( self.dictfile, "rt" ) as f:
+        with open ( self.runDictFile, "rt" ) as f:
             txt = f.read()
             d = eval ( txt )
-            self._runDict.update ( d )
+            self.run_dict.update ( d )
         self._setAttrs()
 
     @property
     def templateSLHA(self):
-        return os.path.join ( os.path.dirname ( __file__ ), "templates", \
-                              self.templateName )
+        fname = os.path.dirname ( __file__ )
+        ret = os.path.join ( fname, "..", "builder" , "templates", self.templateName )
+        return os.path.abspath ( ret )
+
+    def __eq__ ( self, other ):
+        if type(other) != RunEnviron:
+            return False
+        return self.run_dict == other.run_dict
 
     def _setAttrs ( self ):
-        for key, value in self._runDict.items():
+        for key, value in self.run_dict.items():
             if key == "templateSLHA":
                 key = "templateName"
             setattr ( self, key, value )
