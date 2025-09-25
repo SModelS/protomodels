@@ -401,9 +401,9 @@ class Manipulator ( LoggerBase ):
             D["protomodels_version"]=self.M.protomodels_version
             D["smodels_version"]=smodels.installation.version()
             D["database_version"]=self.M.dbversion
-            D["templateSLHA"]=self.M.templateName
-            D["allowN1N1Prod"]=self.M.allowN1N1Prod
-            D["susy_mode"]=self.M.susy_mode
+            D["templateSLHA"]=self.M.environ.templateName
+            D["allowN1N1Prod"]=self.M.environ.allowN1N1Prod
+            D["susy_mode"]=self.M.environ.susy_mode
         D["description"]=self.M.description
         if hasattr ( self.M, "ul_critic" ):
             D["ul_critic"]=self.M.ul_critic
