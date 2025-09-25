@@ -14,6 +14,7 @@ from smodels.tools.wrapperBase import WrapperBase
 from ptools.refxsecComputer import RefXSecComputer
 from smodels.base.physicsUnits import TeV, fb
 from ptools import helpers
+from ptools.helpers import formatObject
 from ptools.sparticleNames import SParticleNames
 from typing import Union, List, Tuple
 import numpy as np
@@ -232,13 +233,7 @@ class ProtoModel ( LoggerBase ):
 
     def __repr__(self):
         """ shortened version of __str__"""
-        sK = str(self.K)
-        import numpy as np
-        if type(self.K) in [ float, np.float64 ]:
-            sK=f"{self.K:1.2f}"
-        sTL = str(self.TL)
-        if type(self.TL) in [ float, np.float64 ]:
-            sTL=f"{self.TL:1.2f}"
+        sK, sTL = formatObject(self.K), formatObject(self.TL)
         pStr = f'ProtoModel ({sK}, {sTL})'
         return pStr
 

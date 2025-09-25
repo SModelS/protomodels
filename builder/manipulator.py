@@ -523,7 +523,7 @@ class Manipulator ( LoggerBase ):
         else:
             sK=""
             if "K" in D:
-                sK = f"[K={D['K']:.1f}] " if D["K"] is not None else "None"
+                sK = formatObject ( D['K'], 1 )
             self.highlight ( "info", f"starting with {sK}{filename}{scom}" )
         if self.walkerid != None:
             self.M.walkerid = self.walkerid
@@ -883,15 +883,7 @@ class Manipulator ( LoggerBase ):
         """ lengthy description of protomodel
         :param allTheoryPredictions: if true, list all theory preds
         """
-        sK, sTL = str(self.M.K), str(self.M.TL)
-        try:
-            sK=f"{self.M.K:1.2f}"
-        except:
-            pass
-        try:
-            sTL=f"{self.M.TL:1.2f}"
-        except:
-            pass
+        sK, sTL = formatObject(self.M.K), formatObject(self.M.TL)
         print( f'\nK = {sK}, TL = {sTL}, muhat = {self.M.muhat:1.2f}, mumax={self.M.mumax:1.3g}' )
         print('  * Best Combo:')
         for tp in self.M.bestCombo:

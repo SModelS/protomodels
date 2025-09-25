@@ -13,6 +13,7 @@ import pyslha
 from base.loggerbase import LoggerBase
 from typing import List, Set, Dict, Tuple, Union
 from ptools.sparticleNames import SParticleNames
+from ptools.helpers import formatObject
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
@@ -1131,13 +1132,13 @@ class Initialiser ( LoggerBase ):
         if model == None:
             model = self.propose()
             self.debug ( f"predictForModel {model}" )
-        ma = Manipulator( model )
+        ma = Manipulator( model, walkerid = self.walkerid )
 
-        self.pr = Predictor("ini", self.db, do_srcombine = True )
+        self.pr = Predictor( self.walkerid, self.db, do_srcombine = True )
         self.log( f"predictForModel, run predict(1)" )
         self.pr.predict ( ma, keep_predictions = True, force_computation_K=True )
         # FIXME why do I have to call this twice?
-        self.cr = Critic("ini", self.db, do_srcombine = True )
+        self.cr = Critic( self.walkerid, self.db, do_srcombine = True )
         crr = False, "critic not run"
         ctr = 0
         scale = 1.
@@ -1174,8 +1175,7 @@ class Initialiser ( LoggerBase ):
             model["K"] = K
             model["TL"] = ret["TL"]
             models[ ret["K"] ] = model
-            sK = "None" if K is None else f"{K:.1f}"
-            self.log ( f"{CYAN}best of N: {i+1}/{n}{RESET}: got K={sK} cr={crr}{RESET}" )
+            self.log ( f"{CYAN}best of N: {i+1}/{n}{RESET}: got K={formatObject(K,'.1f')} cr={crr}{RESET}" )
         # print ( "bestOfFive: {d}" )
         keys = [ k for k in models.keys() if k is not None ]
         skeys = [ f"{k:.1f}" for k in keys ]

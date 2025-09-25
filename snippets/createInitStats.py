@@ -4,6 +4,11 @@
 better than starting with the SM / any first 5 steps
 """
 
+def writeModels( models ):
+    with open ( "init.stats", "wt" ) as f:
+        f.write ( f"{models}\n" )
+        f.close()
+
 def createStatsForInit():
     dbpath = "official.pcl"
     # from smodels.experimental.databaseObj import Database
@@ -15,19 +20,17 @@ def createStatsForInit():
     initialiser = Initialiser ( walkerid = "stats",
         dictfile = dictfile, allowN1N1Prod = allowN1N1Prod,
         dbpath = dbpath )
-    Kvalues = []
-    for i in range(10):
+    models = []
+    for i in range(1000):
         ret = initialiser.bestOfN(5)
-        K = ret["K"]
-        print ( "K {K}" )
-        Kvalues.append( K )
-    with open ( "init.stats", "wt" ) as f:
-        f.write ( Kvalues + "\n" )
-        f.close()
+        K, TL = ret["K"], ret["TL"]
+        print ( f"K={K} TL={TL}" )
+        models.append( ret )
+        writeModels ( models )
 
 def plotStats():
     with open ( "init.stats", "rt" ) as f:
-        Kvalues = eval ( f.read() )
+        models = eval ( f.read() )
 
 if __name__ == "__main__":
     createStatsForInit()
