@@ -40,6 +40,7 @@ class RunEnviron:
         :ivar rundir(str): the run directory
         for initialisation, or dont use initialiser (None)
         """
+        self._db = None # we instantiate only when needed
         self.runDictFile = os.path.expanduser ( runDictFile )
         self.didReadRunDict = False # did we get the info from run.dict?
         self.run_dict = self.defaults()
@@ -99,6 +100,37 @@ class RunEnviron:
             d = eval ( txt )
             self.run_dict.update ( d )
         self._setAttrs()
+
+    @property
+    def database(self):
+        if self._db != None:
+            return self._db
+        from tester.combinationsmatrix import getYamlMatrix
+        combinationsmatrix, status = getYamlMatrix()
+        if not combinationsmatrix or status != 0:
+            sys.exit("Combination matrix not loaded correctly in RunEnviron.")
+        force_load = None
+        if self.dbpath.endswith ( ".pcl" ):
+            force_load = "pcl"
+        if "/" in self.dbpath:
+            ntries = 0
+            while not os.path.exists ( self.dbpath ):
+                ## give it a few tries
+                ntries += 1
+                time.sleep ( ntries * 5 )
+                if ntries > 5:
+                    break
+        from smodels.experiment.databaseObj import Database
+        self._db = Database ( self.dbpath, force_load = force_load,
+               combinationsmatrix = combinationsmatrix )
+        if "official" not in self.dbpath:
+            from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
+            self._db = removeNonAggregatedFromDB( self._db )
+        return self._db
+
+    @property
+    def databaseVersion(self):
+        return self.database.databaseVersion
 
     @property
     def templateSLHA(self):

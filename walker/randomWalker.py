@@ -112,8 +112,8 @@ class RandomWalker ( LoggerBase ):
         helpers.mkdir ( "dictfiles" )
         self.dictfile = f"dictfiles/pmodel_{walkerid}.dict"
         #Initialize Predictor
-        self.predictor =  Predictor( self.walkerid, dbpath=dbpath,
-                              expected=expected, select=select, do_srcombine=do_srcombine )
+        self.predictor =  Predictor( self.walkerid, environ=self.environ,
+                expected=expected )
         self.critic =  Critic( self.walkerid, dbpath=dbpath,
                               expected=expected, select=select, do_srcombine=do_srcombine )
 

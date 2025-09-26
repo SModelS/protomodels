@@ -8,22 +8,25 @@ finds the best combinations, and computes the final test statistics
 __all__ = [ "Predictor" ]
 
 import pickle, time, os, sys
-from smodels.decomposition import decomposer
-from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionList, TheoryPredictionsCombiner
-sys.path.insert(0,"../")
-from builder.protomodel import ProtoModel
-from builder.manipulator import Manipulator
-from smodels.share.models.SMparticles import SMList
-from share.model_spec import BSMList
-from smodels.base.physicsUnits import fb, GeV, TeV
-from smodels.experiment.databaseObj import Database
-from smodels.base.model import Model
-from smodels.base.exceptions import SModelSBaseError as SModelSError
 from os import PathLike
 from typing import List, Union
-from base.loggerbase import LoggerBase
-from tester.combinationsmatrix import getYamlMatrix
+
+from smodels.decomposition import decomposer
+from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionList, TheoryPredictionsCombiner
+from smodels.share.models.SMparticles import SMList
+from smodels.base.physicsUnits import fb, GeV, TeV
+from smodels.base.model import Model
+from smodels.base.exceptions import SModelSBaseError as SModelSError
+
+sys.path.insert(0,"../")
 from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
+from share.model_spec import BSMList
+from base.loggerbase import LoggerBase
+from base.runEnviron import RunEnviron
+
+from builder.protomodel import ProtoModel
+from builder.manipulator import Manipulator
+from tester.combinationsmatrix import getYamlMatrix
 
 try:
     from tester.combiner import Combiner
@@ -32,51 +35,25 @@ except:
 
 class Predictor ( LoggerBase ):
     def __init__ ( self, walkerid : Union[str,int],
-            dbpath : Union[Database,PathLike] = "official",
-            expected : bool = False, select : str = "all",
-            do_srcombine : bool = True ):
+            environ : RunEnviron,
+            expected : bool = False ):
         """
         the predictor class, i.e. the class that computes the predictions,
         finds the best combinations, and computes the final test statistics
-
         :param walkerid: walkerid to run this as
-        :param dbpath: either the path to a database, or the database object
-        itself
-
-        :param do_srcombine: if True, then also use combined results,
-                           both via simplified likelihoods and pyhf.
+        :param environ: the run environment
+        :param expected: ?
         """
         super ( Predictor, self ).__init__ ( walkerid )
         self.walkerid = walkerid
-        self.do_srcombine = do_srcombine
+        self.environ = environ
         self.modifier = None
-        self.select = select
         self.expected = expected
 
         if expected:
             from expResModifier import ExpResModifier
             self.modifier = ExpResModifier()
 
-        if type ( dbpath ) == Database:
-            self.database = dbpath
-        else:
-            force_load = None
-            if dbpath.endswith ( ".pcl" ):
-                force_load = "pcl"
-            if "/" in dbpath:
-                ntries = 0
-                while not os.path.exists ( dbpath ):
-                    ## give it a few tries
-                    ntries += 1
-                    time.sleep ( ntries * 5 )
-                    if ntries > 5:
-                        break
-            combinationsmatrix, status = getYamlMatrix()
-            if not combinationsmatrix or status != 0:
-                sys.exit("Combination matrix not loaded correctly when instantiating Predictor class.")
-            self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
-            if 'official' not in dbpath:
-                self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
         self.fetchResults()
         self.combiner = Combiner(self.walkerid)
 
@@ -172,19 +149,19 @@ class Predictor ( LoggerBase ):
             and modding """
 
         dataTypes = [ "all" ]
-        if self.select == "em":
+        if self.environ.select == "em":
             dataTypes = [ "efficiencyMap" ]
-        if self.select == "ul":
+        if self.environ.select == "ul":
             dataTypes = [ "upperLimit" ]
         txnames = [ "all" ]
-        if self.select.startswith("txnames:"):
-            s = self.select.replace("txnames:","")
+        if self.environ.select.startswith("txnames:"):
+            s = self.environ.select.replace("txnames:","")
             from ptools.moreHelpers import namesForSetsOfTopologies
             txnames = namesForSetsOfTopologies ( s )[0]
             self.log ( f"I have been asked to select txnames for {txnames}" )
             txnames = txnames.split(",")
 
-        listOfExpRes = self.database.getExpResults( dataTypes = dataTypes,
+        listOfExpRes = self.environ.database.getExpResults( dataTypes = dataTypes,
                                                     txnames = txnames,
                                                     useNonValidated=True )
         if self.modifier:
@@ -277,7 +254,7 @@ class Predictor ( LoggerBase ):
         else:
             protomodel.delCurrentSLHA()
         # we keep track of the database version, when predicting
-        protomodel.dbversion = self.database.databaseVersion
+        protomodel.dbversion = self.environ.database.databaseVersion
         return True
 
     def runSModelS(self, inputFile : PathLike, sigmacut : float, mingap : float, mingapISR:float,
@@ -335,7 +312,9 @@ class Predictor ( LoggerBase ):
         self.log("start computing preds")
         import time
         start_time = time.time()
-        theoryPredictions = theoryPredictionsFor ( self.database, topos, useBestDataset=bestDataSet, combinedResults=self.do_srcombine )
+        theoryPredictions = theoryPredictionsFor ( self.environ.database, 
+                topos, useBestDataset=bestDataSet, 
+                combinedResults=self.environ.do_srcombine )
         preds = TheoryPredictionList(theoryPredictions, maxcond)
 
         end_time = time.time()
