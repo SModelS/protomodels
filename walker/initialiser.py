@@ -13,7 +13,6 @@ import pyslha
 from typing import Union, Dict, List, Set
 from functools import lru_cache
 
-from smodels.experiment.databaseObj import Database
 from smodels_utils.helper.terminalcolors import *
 
 from base.loggerbase import LoggerBase

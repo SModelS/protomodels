@@ -1039,6 +1039,7 @@ def runPlotting ( args ):
         return
     # upload = args.upload.replace(args.environ.rundir+"_","")
     #upload = args.upload.replace(args.environ.rundir,"rundir")
+    upload = args.upload
     if upload in [ "none", "None", "" ]:
         upload = None
 
@@ -1062,7 +1063,6 @@ def runPlotting ( args ):
         dest = f"{destdir}/smodels.github.io/protomodels/{upload}/"
     if "paper" in upload:
         dest = f"{destdir}/smodels.github.io/protomodels/{upload}/"
-    import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
     if dest != "":
         if not os.path.exists ( dest ):
