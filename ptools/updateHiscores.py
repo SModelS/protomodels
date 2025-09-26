@@ -9,6 +9,8 @@ import time, types, sys, os, subprocess
 from os import PathLike
 from typing import Union, Dict
 
+from base.runEnviron import RunEnviron
+
 def setup( rundir = None ):
     if "CODEDIR" in os.environ:
         codedir = os.environ['CODEDIR']
@@ -122,25 +124,26 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
             print ( a )
     return tots,steps
 
-def updateHiscores( rundir : Union[None,PathLike] = None,
-                dictfile : os.PathLike = "{rundir}/hiscores_global.dict",
+def updateHiscores( dictfile : os.PathLike = "{rundir}/hiscores_global.dict",
                 cachefile : os.PathLike = "{rundir}/hiscores_global.cache",
-                dbpath : Union[None,PathLike] = None,
-                do_srcombine : bool = False,
+                environ : Union[RunEnviron,None ] = None,
                 walkerid : Union[str,int] = 0 ) -> Dict:
     """ update the hiscores FIXME """
-    dictfile = dictfile.replace("{rundir}",rundir)
-    cachefile = cachefile.replace("{rundir}",rundir)
+    assert environ != None, "set RunEnviron"
+    assert type(environ) != str, "set RunEnviron, not str"
+    dictfile = dictfile.replace("{rundir}",environ.rundir)
+    cachefile = cachefile.replace("{rundir}",environ.rundir)
     from ptools import hiscoreTools
-    hi = hiscoreTools.fetchHiscoresObj ( dictfile, cachefile, dbpath, walkerid = walkerid )
+    hi = hiscoreTools.fetchHiscoresObj ( dictfile, cachefile, environ = environ, 
+            walkerid = walkerid )
 
     from builder.manipulator import Manipulator
-    D = Manipulator ( hi.hiscores[0] ).writeDictFile ( None )
+    D = Manipulator ( hi.hiscores[0], environ=environ ).writeDictFile ( None )
     D["model"]=hi.hiscores[0]
     return D
 
-def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
-          dbpath : str = "official", verbose : bool = False,
+def plot( TL : float, K : float, environ : RunEnviron, upload : str ="230",
+          verbose : bool = False,
           dictfile : str = "{rundir}/hiscores_global.dict",
           walkerid : Union[str,int] = 0,
           git_commit : bool = False ):
@@ -152,7 +155,7 @@ def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
     :param dbpath: path to database, look for default.pcl in rundir by default
     :param verbose: be verbose, if true
     """
-    dictfile = dictfile.replace("{rundir}",rundir)
+    dictfile = dictfile.replace("{rundir}",environ.rundir)
     from plotting import plotHiscore
     from argparse import Namespace
     args = Namespace()
@@ -162,9 +165,7 @@ def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
     args.detailed = False
     args.destinations = False
     args.hiscorefile = dictfile
-    args.dbpath = dbpath.replace("@rundir@",rundir )
-    # args.dbpath = f"{rundir}/default.pcl"
-    args.rundir = rundir
+    args.environ = environ
     args.verbosity = "info"
     args.horizontal = False
     args.html = True
@@ -177,11 +178,9 @@ def plot( TL : float, K : float, rundir : os.PathLike, upload : str ="230",
     args.walkerid = walkerid
     plotHiscore.runPlotting ( args )
 
-def loop( rundir : Union[None,os.PathLike] = None,
-          maxruns : Union[None,int] = 3, createPlots : bool=True,
-          uploadTo : str = "temp", dbpath : str = "official",
-          verbose : bool = False, do_srcombine : bool = False,
-          dictfile = "{rundir}/hiscores_global.dict",
+def loop( maxruns : Union[None,int] = 3, createPlots : bool=True,
+          uploadTo : str = "temp", environ : Union[RunEnviron, None] = None,
+          verbose : bool = False, dictfile = "{rundir}/hiscores_global.dict",
           cachefile = "{rundir}/hiscores_global.cache",
           walkerid : Union[str,int] = 0,
           git_commit : bool = True  ):
@@ -190,13 +189,13 @@ def loop( rundir : Union[None,os.PathLike] = None,
     :param maxruns: maximally iterate that many times, if None then loop endlessly
     :param createPlots: if False, suppress plotting
     :param uploadTo: upload plots to directory "~/git/smodels.github.io/<uploadTo>"
-    :param dbpath: path to database, @rundir@ will replaced with actual rundir
     :param verbose: verbosity
-    :param do_srcombine: if we need to reconstruct .hi file, reconstruct the proper
-    way.
+    :param environ: the run environ, set to None for default (run.dict)
     :param walkerid: log everything as walker #walkerid
     """
-    rundir = setup( rundir )
+    if environ == None:
+        environ = RunEnviron()
+    rundir = setup( environ.rundir )
     i = 0
     TL, TLold, step, K, Kold = 0., 0., 0, -90., -90.
     TLfile = f"{rundir}/TLold.conf"
@@ -216,7 +215,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
             break
         if i>1:
             time.sleep(60.)
-        D = updateHiscores( rundir, dictfile, cachefile, dbpath, do_srcombine,
+        D = updateHiscores( dictfile, cachefile, environ,
                 walkerid=walkerid )
         TL, step, K = float("nan"),0,float("nan")
         model = D["model"]
@@ -228,7 +227,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
             K = D["K"]
         if K is not None and K > Kold + 1e-10: #  + .001:
             from builder.manipulator import Manipulator
-            m = Manipulator ( model )
+            m = Manipulator ( model, environ )
             T=str(int(time.time()))
             m.writeDictFile ( f"pmodel-{T}.dict", comment="history keeper" )
             with open ( f"{rundir}history.txt", "at" ) as f:
@@ -243,7 +242,7 @@ def loop( rundir : Union[None,os.PathLike] = None,
             TLold = TL
             Kold = K
         if createPlots:
-            plot ( TL, K, rundir, uploadTo, dbpath, verbose,
+            plot ( TL, K, environ, uploadTo, verbose,
                    dictfile = dictfile, walkerid = walkerid,
                    git_commit = git_commit )
         else:

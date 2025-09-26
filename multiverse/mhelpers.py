@@ -26,8 +26,9 @@ def createMyFile ( signal_model : str = "signal_model.dict",
     ma = Manipulator( signal_model, walkerid = "truth" )
     ma.M.dbpath = dbpath
     print ( f"[predictForTruth] starting" )
-    predictor = Predictor( "truth", db, do_srcombine=True )
-    critic = Critic ( "truth", db, do_srcombine = True ) 
+    environ = RunEnviron ( dbpath = dbpath )
+    predictor = Predictor( "truth", environ )
+    critic = Critic ( "truth", environ ) 
     cr, response = critic.predict_critic ( ma.M )
     print ( f"[predictForTruth] critic: {cr}, {response}" )
     predictor.predict ( ma, keep_predictions = True, force_computation_K = True )

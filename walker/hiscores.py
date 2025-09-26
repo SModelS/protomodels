@@ -7,23 +7,26 @@ __all__ = [ "Hiscores" ]
 
 import random, copy, pickle, os, fcntl, time, subprocess, colorama
 import numpy as np
+from os import PathLike
+from typing import Union
+
 from scipy import stats
 from csetup import setup
 setup()
+from base.loggerbase import LoggerBase
+from base.runEnviron import RunEnviron
 from builder.manipulator import Manipulator
-from tester.combiner import Combiner
 from ptools import helpers
 from ptools.helpers import formatObject
 from ptools import sparticleNames
 from ptools.helpers import py_dumps
-from typing import Union
-from os import PathLike
-from base.loggerbase import LoggerBase
+from tester.combiner import Combiner
 
 class Hiscores ( LoggerBase ):
     """ encapsulates the hiscore list. """
     def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
-                   picklefile: PathLike="hiscores.cache", backup : bool = True, keep_separate_hiscores = False,
+                   picklefile: PathLike="hiscores.cache", backup : bool = True, 
+                   keep_separate_hiscores = False,
                    hiscores = None, predictor = None ):
         """ the constructor
         :param save_hiscores: if true, then assume you want to save, not just read.
@@ -209,7 +212,7 @@ class Hiscores ( LoggerBase ):
     @classmethod
     def fromDictionaryFile ( cls, path : PathLike,
            firstn : Union[None,int] = 0, 
-           dbpath : PathLike = "official",
+           environ : Union[RunEnviron,None] = None,
            walkerid : Union[str,int] = 0 ):
         """ initialise from a dictionary file
 
@@ -219,16 +222,18 @@ class Hiscores ( LoggerBase ):
         :param walkerid: log everything as walker #walkerid
         :returns: Hiscores object
         """
-        if not cls.dbpathExists ( dbpath ):
+        assert environ != None, "set environment"
+        # print ( f"environ {environ} cls {cls}" )
+        if not cls.dbpathExists ( environ.dbpath ):
             print ( f"[hiscores] database path {dbpath} does not exist" )
             import sys; sys.exit()
         assert firstn == 0, "firstn != 0 not yet working"
         from tester.predictor import Predictor
-        predictor = Predictor(walkerid, do_srcombine=True, dbpath = dbpath )
+        predictor = Predictor(walkerid, environ )
         hiscores = []
         c = 0
         while True:
-            m = Manipulator( path, nth = c, walkerid = walkerid )
+            m = Manipulator( path, nth = c, walkerid = walkerid, environ=environ )
             m.M.walkerid = walkerid
             predictor.predict ( m, keep_predictions=True )
             hiscores.append ( m.M )

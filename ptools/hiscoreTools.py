@@ -9,17 +9,18 @@ import pickle, subprocess, sys, os, time
 import numpy as np
 from colorama import Fore as ansi
 from scipy import stats
+from typing import Union, Dict, List, Set, Tuple
+from os import PathLike
 sys.path.insert(0,"../")
 sys.path.insert(0,"../../")
 from protomodels.csetup import setup
 setup()
+
+from base.runEnviron import RunEnviron
 from builder.manipulator import Manipulator
 from builder.protomodel import ProtoModel
-from walker.hiscores import Hiscores
-from typing import Union, Dict, List, Set, Tuple
-from argparse import Namespace
 from ptools.helpers import formatObject
-from os import PathLike
+from walker.hiscores import Hiscores
 
 def count ( protomodels : List[ProtoModel] ) -> int:
     return len(protomodels)-protomodels.count(None)
@@ -68,15 +69,17 @@ def pprintEvs ( protomodel ):
 def obtainHiscore ( number : int,
         hiscorefile : PathLike = "hiscores_global.dict",
         walkerid : Union[str,int] = 0,
-        dbpath : PathLike = "official" ) -> ProtoModel:
+        environ : Union[RunEnviron,None] = None ) -> ProtoModel:
     """ obtain hiscore number <number> from <hiscorefile>
 
     :param walkerid: log everything as walker #walkerid
 
     :returns: protomodel object
     """
+    assert environ != None, "set RunEnviron"
+    assert type(environ) != str, "set RunEnviron"
     hi = fetchHiscoresObj ( hiscorefile, walkerid = walkerid,
-           dbpath = dbpath )
+           environ = environ )
     TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K
     sK = formatObject ( K, 3 )
@@ -165,7 +168,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
 
 def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
                        picklefile : Union[None,str] = None,
-                       dbpath : str = "official",
+                       environ : Union[RunEnviron,None] = None,
                        walkerid : Union[str,int] = 0 ) -> Hiscores:
     """ create Hiscores object from hiscores_global.cache file.
     update hiscores_global.cache file before, if needed.
@@ -177,6 +180,7 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
 
     :returns: hiscore object
     """
+    assert environ != None, "define RunEnvironment"
     if picklefile is None:
         picklefile = dictfile.replace(".dict",".cache" )
         if not picklefile.endswith ( ".cache" ):
@@ -189,7 +193,8 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
         print ( f"[hiscoreTools] can reuse cache: {shortname}" )
         return Hiscores ( 0, False, picklefile )
     print ( f"[hiscoreTools] updating cache: {shortname} ... " )
-    hi = Hiscores.fromDictionaryFile ( dictfile, dbpath=dbpath, walkerid = walkerid )
+    hi = Hiscores.fromDictionaryFile ( path = dictfile, environ = environ, 
+            walkerid = walkerid )
     hi.writeListToPickle ( picklefile )
     print ( f"[hiscoreTools] cache {shortname} updated!" )
     return hi

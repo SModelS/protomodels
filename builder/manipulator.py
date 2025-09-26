@@ -7,24 +7,27 @@
 
 __all__ = [ "Manipulator" ]
 
-from ptools.sparticleNames import SParticleNames
-from builder.protomodel import ProtoModel
-from ptools.helpers import nround, getAllPidsOfTheoryPred, py_dumps, mkdir, \
-         formatObject
-from smodels.base.physicsUnits import fb, TeV, GeV
-from smodels.base.crossSection import LO
-from smodels.matching.theoryPrediction import TheoryPrediction
-import smodels
 import copy, os, sys, itertools, colorama, random
 import numpy as np
 from colorama import Fore as ansi
 from typing import Union, Dict, List, Tuple, Set
 from unum import Unum
-from base.loggerbase import LoggerBase
 from os import PathLike
 import tempfile
 from scipy.stats import norm, lognorm, uniform
+
+from smodels.base.physicsUnits import fb, TeV, GeV
+from smodels.base.crossSection import LO
+from smodels.matching.theoryPrediction import TheoryPrediction
+import smodels
+
+from base.loggerbase import LoggerBase
 from base.constants import smMasses, smWidths
+from base.runEnviron import RunEnviron
+from builder.protomodel import ProtoModel
+from ptools.sparticleNames import SParticleNames
+from ptools.helpers import nround, getAllPidsOfTheoryPred, py_dumps, mkdir, \
+         formatObject
 
 class Manipulator ( LoggerBase ):
     """ contains the protomodel manipulation algorithms. """
@@ -45,7 +48,7 @@ class Manipulator ( LoggerBase ):
     # FIXME might have to make this smarter later on
 
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike],
-            strategy: str = "aggressive", verbose : bool = False,
+            environ : RunEnviron, verbose : bool = False,
             do_record : bool = False, seed : Union[bool,int] = None,
             nth : int = 0, walkerid : Union[None,int] = None,
             initTestStats : bool = False ):
@@ -85,15 +88,14 @@ class Manipulator ( LoggerBase ):
         self.propose_model = None
 
         if type(protomodel) == dict:
-            self.M = ProtoModel ( )
+            self.M = ProtoModel ( walkerid = walkerid, environ = environ )
             self.initFromDict ( protomodel, initTestStats = initTestStats )
         if type(protomodel) == str:
-            self.M = ProtoModel ( )
+            self.M = ProtoModel ( walkerid = walkerid, environ = environ )
             if protomodel.endswith ( ".dict" ) or protomodel.endswith ( ".truth" ):
                 self.initFromDictFile ( protomodel, nth = nth )
         self.walkerid = self.M.walkerid
         self.seed = seed
-        self.strategy = strategy
         self.verbose = verbose
 
         #need the below attribute to be defined here, in case of using hiscoreCLI to manipulate the protomodel
@@ -524,7 +526,7 @@ class Manipulator ( LoggerBase ):
             sK=""
             if "K" in D:
                 sK = formatObject ( D['K'], 1 )
-            self.highlight ( "info", f"starting with {sK}{filename}{scom}" )
+            self.highlight ( "info", f"starting with K={sK}, {filename}{scom}" )
         if self.walkerid != None:
             self.M.walkerid = self.walkerid
         #Reset all model attributes:

@@ -8,24 +8,28 @@ current model survives LHC constraints or not.
 __all__ = [ "Critic" ]
 
 import pickle, time, os, sys
+from os import PathLike
+from typing import List, Union, Text, Tuple
+import numpy as np
+
 from smodels.decomposition import decomposer
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionList, TheoryPredictionsCombiner
-sys.path.insert(0,"../")
-from builder.protomodel import ProtoModel
 from smodels.share.models.SMparticles import SMList
-from share.model_spec import BSMList
 from smodels.base.physicsUnits import fb, GeV, TeV
 from smodels.experiment.databaseObj import Database
 from smodels.base.model import Model
 from smodels.base.exceptions import SModelSBaseError as SModelSError
-from os import PathLike
-from typing import List, Union, Text, Tuple
 #from smodels.base.smodelsLogging import logger
+sys.path.insert(0,"../")
+
+from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
+from share.model_spec import BSMList
 from base.loggerbase import LoggerBase
+from base.runEnviron import RunEnviron
+from builder.protomodel import ProtoModel
 from tester.combiner import Combiner
 from tester.combinationsmatrix import getYamlMatrix
-from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
-import numpy as np
+
 try:
     from smodels.statistics.basicStats import observed, apriori, aposteriori
 except Exception as e:
@@ -33,9 +37,8 @@ except Exception as e:
 
 class Critic ( LoggerBase ):
     def __init__ ( self, walkerid : Union[str,int], 
-            dbpath : Union[PathLike,Database] = "official", 
-            expected : bool = False, select : str = "all", 
-            do_srcombine : bool = False ):
+            environ : RunEnviron,
+            expected : bool = False ):
         """
         :param dbpath: either the path to a database, or the database object
         itself
@@ -43,26 +46,11 @@ class Critic ( LoggerBase ):
         #call the super class of the critic i.e Loggerbase
         super ( Critic, self ).__init__ ( walkerid )
         self.walkerid = walkerid
-        self.do_srcombine = do_srcombine
+        self.environ = environ
         self.r_threshold = 1.33
         self.sensitivity_threshold = 0.7
         self.verbose = 1
-        self.select = select
         
-        if type(dbpath) == Database:
-            self.database = dbpath
-        else:
-            force_load = None
-            if dbpath.endswith ( ".pcl" ):
-                force_load = "pcl"
-
-            combinationsmatrix, status = getYamlMatrix()
-            if not combinationsmatrix or status != 0:
-                sys.exit("Combination matrix not loaded correctly when instantiating Critic class.")
-
-            self.database=Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix )
-            if 'official' not in dbpath:
-                self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
         self.fetchResults()
         self.combiner = Combiner(self.walkerid)
 
@@ -89,18 +77,18 @@ class Critic ( LoggerBase ):
             and modding """
 
         dataTypes = [ "all" ]
-        if self.select == "em":
+        if self.environ.select == "em":
             dataTypes = [ "efficiencyMap" ]
-        if self.select == "ul":
+        if self.environ.select == "ul":
             dataTypes = [ "upperLimit" ]
         txnames = [ "all" ]
-        if self.select.startswith("txnames:"):
-            s = self.select.replace("txnames:","")
+        if self.environ.select.startswith("txnames:"):
+            s = self.environ.select.replace("txnames:","")
             from ptools.moreHelpers import namesForSetsOfTopologies
             txnames = namesForSetsOfTopologies ( s )[0]
             txnames = txnames.split(",")
 
-        listOfExpRes = self.database.getExpResults( dataTypes = dataTypes,
+        listOfExpRes = self.environ.database.getExpResults( dataTypes = dataTypes,
                                                     txnames = txnames,
                                                     useNonValidated=True )
         #if self.modifier:
@@ -233,7 +221,8 @@ class Critic ( LoggerBase ):
         ulpreds = []
 
         try:
-            theoryPredictions = theoryPredictionsFor ( self.database, topos, useBestDataset=True, combinedResults=combineSRs )
+            theoryPredictions = theoryPredictionsFor ( self.environ.database, 
+                    topos, useBestDataset=True, combinedResults=combineSRs )
         except Exception as e:
             import time
             outfile = f"pmodel-{self.walkerid}_{self.protomodel.step}-{int(time.time())}.dict"
@@ -287,7 +276,7 @@ class Critic ( LoggerBase ):
         if abs(protomodel.muhat-1.0)>1e-4:
             # rescale signals by muhat, set muhat to 1.0
             from builder.manipulator import Manipulator
-            Manipulator ( protomodel ).rescaleSignalBy ( None )
+            Manipulator ( protomodel, self.environ ).rescaleSignalBy ( None )
         # Create SLHA file (for running SModelS)
         slhafile = protomodel.createSLHAFile()
         self.protomodel = protomodel

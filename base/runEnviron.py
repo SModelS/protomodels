@@ -67,8 +67,11 @@ class RunEnviron:
                 dd = dict_diff(oldret.run_dict,newdict)
                 for k,v in dd.items():
                     print ( f"[RunEnviron] {k:>16}: {v[0]} != {v[1]}" )
-                print ( f"[RunEnviron] correct this!" )
-                import sys; sys.exit(-1)
+                if k not in [ "use_initialiser" ]:
+                    print ( f"[RunEnviron] correct this!" )
+                    import sys; sys.exit(-1)
+                else:
+                    print ( f"[RunEnviron] thats allowed!" )
 
         py_dump ( newdict, runDictFile )
         ret = RunEnviron ( runDictFile )

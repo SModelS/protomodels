@@ -114,8 +114,8 @@ class RandomWalker ( LoggerBase ):
         #Initialize Predictor
         self.predictor =  Predictor( self.walkerid, environ=self.environ,
                 expected=expected )
-        self.critic =  Critic( self.walkerid, dbpath=dbpath,
-                              expected=expected, select=select, do_srcombine=do_srcombine )
+        self.critic =  Critic( self.walkerid, environ=self.environ,
+                              expected=expected )
 
         #Initialize Hiscore (with access to the predictor)
         picklefile = f"{self.rundir}/H{walkerid}.cache"

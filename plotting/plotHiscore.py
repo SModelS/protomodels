@@ -1,36 +1,41 @@
 #!/usr/bin/env python3
 
-from smodels.statistics.basicStats import observed, apriori, aposteriori
-import pickle, os, sys, subprocess, time, glob, colorama, math, scipy
-import numpy as np
-sys.path.insert(0,"../../")
-from protomodels.csetup import setup
-setup()
-from ptools import hiscoreTools
-from builder.manipulator import Manipulator
-from tester.predictor import Predictor
-from tester.critic import Critic
-from tester.combiner import Combiner
-from builder import protomodel
-from builder.protomodel import ProtoModel
-from smodels.base.physicsUnits import fb, TeV
-from unum import Unum
-from smodels.matching.theoryPrediction import TheoryPrediction
-from smodels.base import runtime
-from smodels_utils.helper.bibtexTools import BibtexWriter
-from ptools.sparticleNames import SParticleNames
-from smodels.base.smodelsLogging import logger
-logger.setLevel("ERROR")
 from os import PathLike
 from colorama import Fore
 from typing import Union, Dict, TextIO, List
-from ptools.helpers import computeP, computeZFromP, getAllPidsOfTheoryPred, \
-         formatObject
+from unum import Unum
+import pickle, os, sys, subprocess, time, glob, colorama, math, scipy
+import numpy as np
+
+from smodels.base.physicsUnits import fb, TeV
+from smodels.matching.theoryPrediction import TheoryPrediction
+from smodels.base import runtime
+from smodels.statistics.basicStats import observed, apriori, aposteriori
+from smodels.experiment.databaseObj import Database
+from smodels.base.smodelsLogging import logger
+logger.setLevel("ERROR")
+
+sys.path.insert(0,"../../")
+from protomodels.csetup import setup
+setup()
+
+from smodels_utils.helper.bibtexTools import BibtexWriter
 from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
 from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
+
+from base.runEnviron import RunEnviron
 from base.loggerbase import LoggerBase
+from builder.manipulator import Manipulator
+from builder import protomodel
+from builder.protomodel import ProtoModel
+from ptools import hiscoreTools
+from ptools.sparticleNames import SParticleNames
+from ptools.helpers import computeP, computeZFromP, getAllPidsOfTheoryPred, \
+         formatObject
+from tester.predictor import Predictor
+from tester.critic import Critic
+from tester.combiner import Combiner
 from tester.combinationsmatrix import getYamlMatrix
-from smodels.experiment.databaseObj import Database
 
 namer = SParticleNames ( susy = False )
 bibtex = BibtexWriter()
@@ -574,6 +579,8 @@ class HiscorePlotter ( LoggerBase ):
         g.close()
 
     def getDatabaseVersion ( self, dbpath = "default.pcl" ):
+        return self.environ.databaseVersion
+        """
         dbver = "???"
         if hasattr ( self.protomodel, "dbversion" ):
             dbver = self.protomodel.dbversion
@@ -585,6 +592,7 @@ class HiscorePlotter ( LoggerBase ):
             db = Database ( dbpath )
             dbver = db.databaseVersion
         return dbver
+        """
 
     def writeIndexTex ( self, texdoc ):
         """ write the index.tex file
@@ -666,7 +674,7 @@ class HiscorePlotter ( LoggerBase ):
         :returns: dictionary of SSMs without frozen particles
         """
         # ssms = protomodel.ssmultipliers
-        ma = Manipulator ( self.protomodel )
+        ma = Manipulator ( self.protomodel, self.environ )
         ssms = ma.simplifySSMs ( threshold = .01 * fb )
         D={}
         for pids,v in ssms.items():
@@ -949,7 +957,7 @@ class HiscorePlotter ( LoggerBase ):
                             verbosity = verbosity )
 
     def plot ( self, number : int , verbosity,
-            hiscorefile : os.PathLike, options : dict, dbpath : str,
+            hiscorefile : os.PathLike, options : dict, environ : RunEnviron,
             walkerid : Union[str,int] = 0,
             interact : bool = False ):
         """ plot hiscore number "number"
@@ -959,29 +967,18 @@ class HiscorePlotter ( LoggerBase ):
         """
         print ( f"[plotHiscore] plot #{number}" )
 
-        pm = hiscoreTools.obtainHiscore ( number, hiscorefile, walkerid=walkerid,
-               dbpath = dbpath )
+        pm = hiscoreTools.obtainHiscore ( number, hiscorefile, 
+                walkerid=walkerid, environ = environ )
         pm.walkerid = walkerid
-        self.dbpath = dbpath
-        combinationsmatrix, status = getYamlMatrix()
-        if not combinationsmatrix or status != 0:
-            sys.exit("Combination matrix not loaded correctly when instantiating Predictor class.")
-        self.combinationsmatrix = combinationsmatrix
-        force_load = None
-        if dbpath.endswith ( ".pcl" ):
-            force_load = "pcl"
-        self.database=Database( dbpath, force_load = force_load,
-                combinationsmatrix = combinationsmatrix )
-        if 'official' not in dbpath:
-            self.database = removeNonAggregatedFromDB(Database( dbpath, force_load = force_load, combinationsmatrix = combinationsmatrix ))
+        self.environ = environ
         self.protomodel = pm
         self.combiner = Combiner ( self.protomodel.walkerid )
-        self.predictor = Predictor ( pm.walkerid, self.database, do_srcombine = True )
-        self.critic = Critic ( pm.walkerid, self.database, do_srcombine = True )
+        self.predictor = Predictor ( pm.walkerid, self.environ )
+        self.critic = Critic ( pm.walkerid, self.environ )
 
         protoslha = self.protomodel.createSLHAFile ()
         subprocess.getoutput ( f"cp {protoslha} hiscore.slha" )
-        m = Manipulator ( self.protomodel )
+        m = Manipulator ( self.protomodel, self.environ )
         print ( f"[plotHiscore:{m.walkerid}] now write pmodel.dict" )
         m.writeDictFile()
         opts = [ "ruler", "decays", "predictions", "copy", "html" ]
@@ -1040,7 +1037,8 @@ def runPlotting ( args ):
         print ( "anomaly: upload to github git directory, 'anomaly' folder." )
         print ( f"             Result can be seen at {self.url}/protomodels/anomaly" )
         return
-    upload = args.upload# .lower()
+    # upload = args.upload.replace(args.environ.rundir+"_","")
+    #upload = args.upload.replace(args.environ.rundir,"rundir")
     if upload in [ "none", "None", "" ]:
         upload = None
 
@@ -1051,7 +1049,7 @@ def runPlotting ( args ):
 
     hiplt = HiscorePlotter( args.walkerid )
     hiplt.plot ( args.number, args.verbosity, args.hiscorefile, options,
-                   args.dbpath, walkerid = args.walkerid )
+                 args.environ, walkerid = args.walkerid )
     if upload is None:
         return
     F = "decays.png ruler.png texdoc.png pmodel.dict hiscore.slha index.html rawnumbers.html"
@@ -1064,6 +1062,7 @@ def runPlotting ( args ):
         dest = f"{destdir}/smodels.github.io/protomodels/{upload}/"
     if "paper" in upload:
         dest = f"{destdir}/smodels.github.io/protomodels/{upload}/"
+    import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
     if dest != "":
         if not os.path.exists ( dest ):

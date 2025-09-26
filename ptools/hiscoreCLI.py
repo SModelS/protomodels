@@ -48,6 +48,7 @@ def cli( infile : str = "hiscores_global.dict",
     from ptools import helpers
     print ( f"[hiscoreCLI]        Modules: {ansi.RED}manipulator, hiscores, combiner, predictor, helpers{ansi.RESET}" )
     from walker.hiscores import Hiscores
+    from base.runEnviron import RunEnviron
     from builder.protomodel import ProtoModel
     from builder.manipulator import Manipulator
     from tester.combiner import Combiner
@@ -55,6 +56,7 @@ def cli( infile : str = "hiscores_global.dict",
     from tester.critic import Critic
     from ptools.sparticleNames import SParticleNames
     from smodels.experiment.databaseObj import Database
+    environ = RunEnviron()
     print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database," )
     print ( f"                             SParticleNames{ansi.RESET}" )
     hi = fetchHiscoresObj ( infile, None, dbpath, walkerid = walkerid )
@@ -71,9 +73,9 @@ def cli( infile : str = "hiscores_global.dict",
     print ( f"[hiscoreCLI] {ansi.RED}co = Combiner ( protomodel ){ansi.RESET}" )
     co = Combiner( walkerid ) # instantiate for convenience
     print ( f"[hiscoreCLI] {ansi.RED}pr = Predictor ( ){ansi.RESET}" )
-    pr = Predictor( walkerid, do_srcombine=do_srcombine, dbpath=dbpath ) # instantiate for convenience
+    pr = Predictor( walkerid, environ = environ ) # instantiate for convenience
     print ( f"[hiscoreCLI] {ansi.RED}cr = Critic ( ){ansi.RESET}" )
-    cr = Critic ( walkerid, do_srcombine=do_srcombine, dbpath=dbpath )
+    cr = Critic ( walkerid, environ = environ )
 
     # print ( f"[hiscoreCLI] Instantiations: {ansi.RED}ma, co, hi, pr{ansi.RESET}" )
 

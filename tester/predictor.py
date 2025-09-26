@@ -431,7 +431,7 @@ class Predictor ( LoggerBase ):
             self.highlight("warning", "No muhat found")
             return
         if force_computation_K and abs(muhat - 1.0) > 1e-2:
-            ma = Manipulator ( protomodel )
+            ma = Manipulator ( protomodel, environ = self.environ )
             ma.rescaleSignalBy ( s = None ) # rescale by muhat ("None")
             muhat = ma.M.muhat
 

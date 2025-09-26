@@ -110,8 +110,7 @@ class Initialiser ( LoggerBase ):
         self.printLogMessages = verbose
         self.environ = environ
         self.warnings= {}
-        self._pm = ProtoModel ( walkerid, templateSLHA = self.environ.templateName )
-        self.db = Database ( self.environ.dbpath )
+        self._pm = ProtoModel ( walkerid, environ = self.environ )
         self.dsIdsInProposal = set()
         self.xsecComputer = RefXSecComputer( allowN1N1Prod = self.environ.allowN1N1Prod )
         self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWWoff",
@@ -345,7 +344,7 @@ class Initialiser ( LoggerBase ):
         self.log ( f"now get the highest fiducial xsecs for all results" )
         self.highestXSecs = {}
         from ptools.helpers import computeP
-        ers = self.db.getExpResults( dataTypes=["efficiencyMap"] )
+        ers = self.environ.database.getExpResults( dataTypes=["efficiencyMap"] )
         ners = len(ers)
         for i,er in enumerate(ers):
             if True: # i % 10 == 0:
@@ -1128,13 +1127,14 @@ class Initialiser ( LoggerBase ):
         if model == None:
             model = self.propose()
             self.debug ( f"predictForModel {model}" )
-        ma = Manipulator( model, walkerid = self.walkerid )
+        ma = Manipulator( model, walkerid = self.walkerid, 
+                          environ = self.environ )
 
-        self.pr = Predictor( self.walkerid, self.db, do_srcombine = True )
+        self.pr = Predictor( self.walkerid, self.environ )
         self.log( f"predictForModel, run predict(1)" )
         self.pr.predict ( ma, keep_predictions = True, force_computation_K=True )
         # FIXME why do I have to call this twice?
-        self.cr = Critic( self.walkerid, self.db, do_srcombine = True )
+        self.cr = Critic( self.walkerid, self.environ )
         crr = False, "critic not run"
         ctr = 0
         scale = 1.
