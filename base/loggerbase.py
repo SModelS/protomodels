@@ -69,8 +69,6 @@ class LoggerBase:
         self.log ( *args )
 
     def debug ( self, *args ):
-        print("loggerBase.debug:" + f"[{self.module}:{self.walkerid}] {' '.join(map(str,args))}" )
-        print("self.printDebug:", self.printDebug)
         if self.printDebug:
             tmp = list ( args )
             for i,arg in enumerate ( tmp ):
