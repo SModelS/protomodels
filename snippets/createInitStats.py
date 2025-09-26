@@ -27,10 +27,10 @@ def createStatsForInit( dbpath : str = "official.pcl",
     dbpath = "official"
     from walker.initialiser import Initialiser
     dictfile = "signal_database.dict"
-    allowN1N1Prod = True
+    from base.runEnviron import RunEnviron
+    environ = RunEnviron()
     initialiser = Initialiser ( walkerid = "stats",
-        dictfile = dictfile, allowN1N1Prod = allowN1N1Prod,
-        dbpath = dbpath )
+        dictfile = dictfile, environ = environ )
     for i in range(1000):
         ret = initialiser.bestOfN(5)
         K, TL = ret["K"], ret["TL"]

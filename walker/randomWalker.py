@@ -407,7 +407,8 @@ class RandomWalker ( LoggerBase ):
         else: protomodelSimp = None
         manipulatorSimp = None
         if protomodelSimp:
-            manipulatorSimp = Manipulator ( protomodelSimp, strategy="aggressive",do_record = False, seed = self.random_seed )
+            manipulatorSimp = Manipulator ( protomodelSimp, environ = self.environ,
+                                   do_record = False, seed = self.random_seed )
             manipulatorSimp.reassignPID()
         boolProtoSimp = False
 

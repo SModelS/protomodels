@@ -96,7 +96,7 @@ class RunEnviron:
         if self.runDictFile is None or not os.path.exists ( self.runDictFile ):
             print ( f"[RunEnviron] no {self.runDictFile} exists" )
             print ( f"[RunEnviron] you make create one RunEnviron.create()" )
-            sys.exit()
+            import sys; sys.exit()
         self.didReadRunDict = True
         with open ( self.runDictFile, "rt" ) as f:
             txt = f.read()
