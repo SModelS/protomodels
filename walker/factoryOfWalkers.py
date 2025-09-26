@@ -14,9 +14,12 @@ import os, sys
 from os import PathLike
 from typing import Union, Dict, List
 try:
+    # FIXME we sure we want to go via torch?
     from torch import multiprocessing
 except:
     import multiprocessing
+
+from base.runEnviron import RunEnviron
 
 def _run ( walker, catch_exceptions, seed ):
     if seed is not None:
@@ -61,34 +64,6 @@ def startWalkers ( walkers : List, catch_exceptions : bool = False,
         p.join()
     return len(processes)
 
-def writeMetaInfo ( rundir : str, meta : Dict ):
-    """ write meta info of factory run to run.dict. complain if data is 
-    different from previous info.
-    """
-    dictfile = f"{rundir}/run.dict"
-    if os.path.exists ( dictfile ):
-        oldmeta = {}
-        with open ( dictfile, "rt" ) as f:
-            txt = f.read()
-            f.close()
-            if len(txt)>0:
-                oldmeta = eval(txt)
-            for k,v in oldmeta.items():
-                if not k in meta:
-                    print ( f"[factoryOfWalkers] run's meta info changed: {k} was {v} now not in meta" )  
-                    continue
-                if meta[k] != v:
-                    print ( f"[factoryOfWalkers] run's meta info changed: {k} was {v} not {meta[k]}" )
-    else:
-        with open ( dictfile, "wt" ) as f:
-            from ptools.helpers import py_dumps
-            ds = py_dumps ( meta, indent = 4 )
-            #ds = ds.replace ( "false", "False" )
-            #ds = ds.replace ( "true", "True" )
-            f.write ( ds + "\n" )
-            # f.write ( f"{meta!s}\n" )
-            f.close()
-
 def createWalkers ( rvars: dict ):
     """ a worker node to set up to run walkers
 
@@ -130,13 +105,15 @@ def createWalkers ( rvars: dict ):
     cheatcode = rvars["cheatcode"]
     do_srcombine = rvars["do_srcombine"]
     meta = { "dbpath": dbpath, "select": select, "do_srcombine": do_srcombine,
-             "forbidden": forbiddenparticles, "templateSLHA": templateSLHA,
+             "templateSLHA": templateSLHA,
              "allowN1N1Prod": allowN1N1Prod, "susy_mode": susy_mode,
+             "rundir": rvars["rundir"],
              "use_initialiser": use_initialiser }
-    from builder.manipulator import Manipulator
     from ptools.moreHelpers import namesForSetsOfPids
-    Manipulator.forbiddenparticles = namesForSetsOfPids ( forbiddenparticles )
-    writeMetaInfo ( rundir, meta )
+    meta["forbiddenparticles"] = namesForSetsOfPids ( forbiddenparticles )
+    environ = RunEnviron.create ( **meta )
+    from builder.manipulator import Manipulator
+    # writeMetaInfo ( rundir, meta )
 
     if rundir != None and "<rundir>" in dbpath:
         dbpath=dbpath.replace("<rundir>", f"{rundir}/" )
@@ -173,21 +150,21 @@ def createWalkers ( rvars: dict ):
             label = f"[factoryOfWalkers:{hostname};{atime}]"
             print ( f"{label} starting {i} @ {rundir} with cheatcode {cheatcode}" )
             rvars["walkerid"]= i
-            w = RandomWalker( rvars )
+            w = RandomWalker( environ, rvars )
             walkers.append ( w )
         elif pfile.endswith(".hi") or pfile.endswith(".pcl"):
             nstates = len(states )
             ctr = i % nstates
             print ( f"[factoryOfWalkers] fromModel {i}: loading {ctr}/{nstates}" )
             rvars["walkerid"]=i
-            w = RandomWalker.fromProtoModel ( states[ctr], rvars )
+            w = RandomWalker.fromProtoModel ( states[ctr], environ, rvars )
             walkers.append ( w )
         else:
             nstates = len(states )
             ctr = i % nstates
             print ( f"[factoryOfWalkers] fromDict {i}: loading {ctr}/{nstates}" )
             rvars["walkerid"]=i
-            w = RandomWalker.fromDictionary ( states[ctr], rvars )
+            w = RandomWalker.fromDictionary ( states[ctr], environ, rvars )
             walkers.append ( w )
     #start running walkers
     startWalkers ( walkers, catch_exceptions=catch_exceptions, seed=seed )
@@ -225,8 +202,8 @@ if __name__ == "__main__":
     s = "all"
     dbpath = "./default.pcl"
     dbpath = "official"
-    w = RandomWalker( walkerid=0, maxsteps = 200, 
-                      dbpath=dbpath, cheatcode="no_cheat", select=s,
-                      rundir="./", seed = None )
+    environ = RunEnviron.create ( dbpath = dbpath, select = s,
+            cheatcode = "no_cheat", rundir="./" )
+    rvars = { "maxsteps": 200, "walkerid": 0, "seed": None }
+    w = RandomWalker( environ, rvars )
     w.walk()
-

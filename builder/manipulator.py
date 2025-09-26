@@ -35,7 +35,7 @@ class Manipulator ( LoggerBase ):
                    1000021 : 310, 1000023 : 20, 1000024 :  100, 1000037 : 100,
                    1000025 : 20 }
     ## forbiddenparticles are particle ids that we do not touch in this run
-    forbiddenparticles = []
+    # forbiddenparticles = []
 
     # decayless particles: list of particles that are allowed to not
     # have any branching ratio parameters defined. LSP, because it is the DMC,
@@ -1187,14 +1187,14 @@ class Manipulator ( LoggerBase ):
 
         # Randomly select the pid:
         frozen = self.M.frozenParticles()
-        if self.forbiddenparticles != []:
-            frozen = [par for par in self.M.frozenParticles() if par not in self.forbiddenparticles]
+        if self.M.environ.forbiddenparticles != []:
+            frozen = [par for par in self.M.frozenParticles() if par not in self.M.environ.forbiddenparticles]
 
         if len(frozen)==0:
             return None
         pid = int(np.random.choice ( frozen ))
 
-        if pid in self.forbiddenparticles:
+        if pid in self.M.environ.forbiddenparticles:
             self.log ( f"wanted to unfreeze {self.namer.asciiName(pid)} but its forbidden" )
             return None
 
@@ -1675,14 +1675,14 @@ class Manipulator ( LoggerBase ):
         num_unfrozen = len(unfrozen)
         num_frozen = len(protomodel.frozenParticles())
         for pids in self.canonicalOrder:
-            if pids[0] in self.forbiddenparticles and pids[1] in self.forbiddenparticles: continue
+            if pids[0] in self.M.environ.forbiddenparticles and pids[1] in self.M.environ.forbiddenparticles: continue
             if pids[0] in unfrozen and pids[1] in unfrozen:
                 num_unfrozen -= 1       #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
             if pids[0] in protomodel.frozenParticles() and pids[1] in protomodel.frozenParticles():
                 num_frozen -= 1         #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
 
-        if self.forbiddenparticles != [] :
-            num_frozen -= len(self.forbiddenparticles)
+        if self.M.environ.forbiddenparticles != [] :
+            num_frozen -= len(self.M.environ.forbiddenparticles)
             if num_frozen < 0: self.log(f"NUm frozen {num_frozen} <0 !"); num_frozen = 1
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(add pid from frozen)/p(rem pid from unfrozen) = (1/(n_fr+1))/(1/n_un)
         if merge: self.proposal_ratio['merge']['q'] *= len(unfrozen)/(num_frozen + 1)
@@ -1764,14 +1764,14 @@ class Manipulator ( LoggerBase ):
 
         #get total num of frozen and unfrozen par for proposal ratio
         for pids in self.canonicalOrder:
-            if pids[0] in self.forbiddenparticles and pids[1] in self.forbiddenparticles: continue
+            if pids[0] in self.M.environ.forbiddenparticles and pids[1] in self.M.environ.forbiddenparticles: continue
             if pids[0] in frozen and pids[1] in frozen:
                 n_frozen -= 1                   #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
             if pids[0] in protomodel.unFrozenParticles() and pids[1] in protomodel.unFrozenParticles():
                 num_unfrozen -= 1               #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
 
-        if self.forbiddenparticles != []:
-            n_frozen -= len(self.forbiddenparticles)
+        if self.M.environ.forbiddenparticles != []:
+            n_frozen -= len(self.M.environ.forbiddenparticles)
             if n_frozen < 0: self.log(f"Num frozen {n_frozen} < 0! "); n_frozen = 1
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(rem pid)/p(add pid) = (1/(n_un+1))/(1/n_fr)
         self.proposal_ratio['add_par']['q'] *= n_frozen/(num_unfrozen + 1)

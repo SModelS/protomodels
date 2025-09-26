@@ -32,7 +32,7 @@ class RunEnviron:
         :ivar dbver(str): the database version
         :ivar select(str): what txnames to select
         :ivar do_srcombine(bool): do sr-combinations
-        :ivar forbidden(list): list of forbidden particles
+        :ivar forbiddenparticles(list): list of forbidden particles
         :ivar templateSLHA(str): template SLHA file
         :ivar allowN1N1Prod(bool): allow production of N1 N1
         :ivar susy_model(bool): susy mode (penalize for unusual xsecs)
@@ -77,7 +77,7 @@ class RunEnviron:
     def defaults ( obj ) -> dict:
         """ sets and returns the default values """
         defaults = { "dbpath": "official", "select": "all",
-            "do_srcombine": True, "forbidden": [],
+            "do_srcombine": True, "forbiddenparticles": [],
             "templateSLHA": "template_default.slha",
             "allowN1N1Prod": False, "susy_mode": False,
             "rundir": os.getcwd(), "strategy": "aggressive",
