@@ -388,10 +388,12 @@ Just filter the database:
         select = "all"
         keep_meta = True
         # M = ProtoModel ( walkerid, self.dbpath, expected, select, keep_meta )
-        M = ProtoModel ( walkerid, keep_meta, dbversion = dbversion,
-                         allowN1N1Prod = allowN1N1Prod )
+        from base.runEnviron import RunEnviron
+        environ = RunEnviron.create( allowN1N1Prod = allowN1N1Prod, dbversion = dbversion,
+            dbpath = self.dbpath )
+        M = ProtoModel ( walkerid, keep_meta, environ = environ )
         M.createNewSLHAFileName ( prefix="erm" )
-        ma = Manipulator ( M, walkerid = walkerid )
+        ma = Manipulator ( M, walkerid = walkerid, environ = environ )
         with open ( filename, "rt" ) as f:
             try:
                 m = eval ( f.read() )

@@ -98,10 +98,15 @@ class RunEnviron:
             print ( f"[RunEnviron] you make create one RunEnviron.create()" )
             import sys; sys.exit()
         self.didReadRunDict = True
-        with open ( self.runDictFile, "rt" ) as f:
-            txt = f.read()
-            d = eval ( txt )
-            self.run_dict.update ( d )
+        try:
+            with open ( self.runDictFile, "rt" ) as f:
+                txt = f.read()
+                d = eval ( txt )
+                self.run_dict.update ( d )
+        except ( SyntaxError, ValueError ) as e:
+            print (f"[RunEnviron] something is wrong with {self.runDictFile}: {e}" )
+            print (f"[RunEnviron] fix it!" )
+            sys.exit(-1)
         self._setAttrs()
 
     @property

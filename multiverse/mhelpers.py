@@ -18,15 +18,16 @@ def createMyFile ( signal_model : str = "signal_model.dict",
     # from builder.protomodel import ProtoModel
     from tester.predictor import Predictor
     from tester.critic import Critic
+    from base.runEnviron import RunEnviron
     from smodels.experiment.databaseObj import Database
     print ( f"[predictForTruth] instantiate database {dbpath}" )
     db = Database ( dbpath )
     # protomodel = Protomodel()
     walkerid = "truth"
-    ma = Manipulator( signal_model, walkerid = "truth" )
+    environ = RunEnviron ( )
+    ma = Manipulator( signal_model, walkerid = "truth", environ = environ )
     ma.M.dbpath = dbpath
     print ( f"[predictForTruth] starting" )
-    environ = RunEnviron ( dbpath = dbpath )
     predictor = Predictor( "truth", environ )
     critic = Critic ( "truth", environ ) 
     cr, response = critic.predict_critic ( ma.M )
@@ -34,7 +35,7 @@ def createMyFile ( signal_model : str = "signal_model.dict",
     predictor.predict ( ma, keep_predictions = True, force_computation_K = True )
     print ( f"[predictForTruth] predict K={ma.M.K} TL={ma.M.TL}" )
     K,TL = ma.M.K, ma.M.TL
-    ma = Manipulator( signal_model, walkerid = "truth" )
+    ma = Manipulator( signal_model, walkerid = "truth", environ = environ )
     ma.M.dbpath = dbpath
     ma.M.K, ma.M.TL = K, TL
     ma.writeDictFile( outfile )
