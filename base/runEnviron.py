@@ -72,7 +72,8 @@ class RunEnviron:
                     import sys; sys.exit(-1)
                 else:
                     print ( f"[RunEnviron] thats allowed!" )
-
+            else: # newdict is compatible with old dict
+                return oldret
         py_dump ( newdict, runDictFile )
         ret = RunEnviron ( runDictFile )
         return ret
@@ -106,7 +107,7 @@ class RunEnviron:
         except ( SyntaxError, ValueError ) as e:
             print (f"[RunEnviron] something is wrong with {self.runDictFile}: {e}" )
             print (f"[RunEnviron] fix it!" )
-            sys.exit(-1)
+            import sys; sys.exit(-1)
         self._setAttrs()
 
     @property
