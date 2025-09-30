@@ -9,8 +9,10 @@ from base.locker import lock, unlock
 
 def writeModel( model : dict, outfile : str = "init5.stats" ):
     """ append model to outfile """
-    with open ( outfile, "rt" ) as f:
-        models = eval(f.read())
+    models = []
+    if os.path.exists ( outfile ):
+        with open ( outfile, "rt" ) as f:
+            models = eval(f.read())
     models.append ( model )
     lock ( outfile )
     with open ( outfile, "wt" ) as f:
@@ -37,10 +39,12 @@ def createStatsForInit( dbpath : str = "official.pcl",
         print ( f"K={K} TL={TL}" )
         writeModel ( ret, outfile )
 
+"""
 def plotStats():
     outfile = "init.stats"
     with open ( outfile, "rt" ) as f:
         models = eval ( f.read() )
+"""
 
 if __name__ == "__main__":
     import argparse

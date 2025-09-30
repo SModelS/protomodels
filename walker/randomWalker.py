@@ -574,7 +574,7 @@ class RandomWalker ( LoggerBase ):
         # acceptance ratio = exp(1/2 (newK - K) + log (proposal_ratio))
         log_prop_ratio = np.log(self.manipulator.proposal_ratio['q_total'])
         acceptance_ratio = np.exp(0.5*( newK - K) + log_prop_ratio)
-        self.log(f"Step {self.protomodel.step}: Acceptance ratio: {acceptance_ratio}, K ratio: {0.5*(newK-K)}, Log proposal ratio: {log_prop_ratio}")
+        self.log(f"Step {self.protomodel.step}: Acceptance ratio: {acceptance_ratio:.3f}, K ratio: {0.5*(newK-K):.3f}, Log proposal ratio: {log_prop_ratio:.3f}")
         #print(f"Step {self.protomodel.step}: Acceptance ratio {acceptance_ratio}, K {K}, newK {newK}")
         if acceptance_ratio > 1:
             self.highlight ( "info", f"Acceptance ratio > 1.0. K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )
