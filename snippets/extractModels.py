@@ -6,12 +6,15 @@
 def extractModels( after : int = 10 ):
     import glob
     files = glob.glob ( "logs/walker_*.log" )
-    models = []
+    models = {}
     for fl in files:
         with open ( fl, "rt" ) as f:
             lines = f.readlines()
             stepnr = 0
+            weDone=False
             for line in lines:
+                if weDone == True:
+                    break
                 p2 = line.find(" begins")
                 p1 = line.find("Step " )
                 if p2 > 0 and p1 > 0:
@@ -19,14 +22,18 @@ def extractModels( after : int = 10 ):
                     tmp.strip()
                     stepnr = int ( tmp )
                 p3 = line.find("Protomodel:")
-                if p3 > 0 and stepnr == after:
+                if p3 > 0: #  and stepnr == after:
                     tmp = line[p3+11:]
                     m = eval ( tmp )
-                    models.append ( m )
+                    models[fl]=m
+                if stepnr == after:
+                    weDone = True
+                    break
     from ptools.helpers import py_dump
-    py_dump ( models, f"pmodels_{after}.list" )
+    py_dump ( list(models.values()), f"pmodels_{after}.list" )
 
 if __name__ == "__main__":
+    extractModels( 3 )
     extractModels( 5 )
     extractModels( 10 )
     extractModels( 20 )

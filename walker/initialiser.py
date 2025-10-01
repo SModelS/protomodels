@@ -1169,6 +1169,7 @@ class Initialiser ( LoggerBase ):
             crr = ret["crr"]
             model["K"] = K
             model["TL"] = ret["TL"]
+            model["crr"] = ret["crr"]
             models[ ret["K"] ] = model
             self.log ( f"{CYAN}best of N: {i+1}/{n}{RESET}: got K={formatObject(K,'.1f')} cr={crr}{RESET}" )
         # print ( "bestOfFive: {d}" )

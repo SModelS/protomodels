@@ -346,7 +346,7 @@ class RandomWalker ( LoggerBase ):
             if predict: #returns False if no preds are found or TL is None (i.e no comb found)
                 #print(f"i {i}, muhat {model.muhat}, convergence {abs(model.muhat - 1.0)}")
                 if abs(model.muhat - 1.0) < 1e-02:
-                    self.log(f"Step {model.step} converged at loop {i} with muhat {model.muhat}!")
+                    self.log(f"Step {model.step} converged at loop {i} with muhat {model.muhat:.4f}!")
                     muhat_converge = True
                     #proto_dict = manipulator.getPmodelDict()
                     #self.log(f"Protomodel: {proto_dict}")
