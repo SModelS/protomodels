@@ -320,7 +320,10 @@ class RandomWalker ( LoggerBase ):
             dicts.append(proto_dict)
             # helpers.mkdir ( os.path.dirname ( self.dictfile ) )
             with open (self.dictfile, "wt" ) as f:
-                f.write (f"{dicts}")
+                from ptools.helpers import py_dumps
+                ds = py_dumps ( dicts, indent=4 )
+                f.write (f"{ds}")
+                # f.write (f"{dicts}")
 
 
     def predict ( self, manipulator : Manipulator) -> bool:

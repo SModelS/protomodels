@@ -293,21 +293,39 @@ class Manipulator ( LoggerBase ):
         else: model.masses[pid_pair[1]] = model_mass.asNumber(GeV)
 
 
-    def getPmodelDict (self, get_xsecs=False, acc=False, critic_acc=False) -> Dict:
+    def getPmodelDict (self, get_xsecs : bool = False, acc : bool = False, 
+            critic_acc : bool = False) -> Dict:
+        """ get the Pmodel dictionary
+        :param critic_all: if true, passed the critic
+        :param acc: if true, passed the acceptance ratio check
+        """
         if type(self.M) == type(None):
             ## there is nothing to write
             self.log("No protomodel")
             return
 
         proto_dict = self.M.dict(sort_dict=True)
-        if not get_xsecs and 'xsecs[fb]' in proto_dict.keys(): del proto_dict['xsecs[fb]']
+        if not get_xsecs and 'xsecs[fb]' in proto_dict.keys(): 
+            del proto_dict['xsecs[fb]']
 
-        if acc and critic_acc: proto_dict['Accepted'] = 0
-        elif acc and not critic_acc: proto_dict['Accepted'] = 1
-        else: proto_dict['Accepted'] = 2
+        addTexts = False
+
+        if acc and critic_acc: 
+            proto_dict['Accepted'] = 0
+            if addTexts:
+                proto_dict['Accepted_Text'] = "passed all"
+        elif acc and not critic_acc: 
+            proto_dict['Accepted'] = 1
+            if addTexts:
+                proto_dict['Accepted_Text'] = "passed acceptance ratio not critic"
+        else: 
+            proto_dict['Accepted'] = 2
+            if addTexts:
+                proto_dict['Accepted_Text'] = "failed acceptance ratio"
 
         proto_dict['K'] = self.M.K
         proto_dict['TL'] = self.M.TL
+        proto_dict['step'] = self.M.step
 
         return proto_dict
 

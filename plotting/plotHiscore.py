@@ -132,8 +132,8 @@ class HiscorePlotter ( LoggerBase ):
             Z = computeZFromP ( p )
             return Z
         if dtype == "upperLimit":
-            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
-            eUL = tp.getUpperLimit ( expected = True )
+            oUL = tp.getUpperLimit ( evaluationType = observed ).asNumber(fb)
+            eUL = tp.getUpperLimit ( evaluationType = apriori )
             if type(eUL)==type(None):
                 return None ## cannot compute a significance
             eUL = eUL.asNumber(fb)
@@ -141,7 +141,7 @@ class HiscorePlotter ( LoggerBase ):
             Z = ( oUL - eUL ) / sigma_exp
             return Z
         if dtype == "combined":
-            llhd = tp.likelihood( expected=False, return_nll=True )
+            llhd = tp.likelihood( evaluationType = observed, return_nll=True )
             l0 = tp.lsm ( return_nll = True )
             chi2 = 2 * ( l0 - llhd )
             if chi2 < 0.:
@@ -210,9 +210,9 @@ class HiscorePlotter ( LoggerBase ):
                 f.write ( f'<td style="text-align:right">{sig}</td>' )
         if dtype == "upperLimit":
             S = "?"
-            llhd = tp.likelihood( expected=False )
-            oUL = tp.getUpperLimit ( expected = False ).asNumber(fb)
-            eUL = tp.getUpperLimit ( expected = True )
+            llhd = tp.likelihood( evaluationType = observed )
+            oUL = tp.getUpperLimit ( evaluationType = observed ).asNumber(fb)
+            eUL = tp.getUpperLimit ( evaluationType = apriori )
             seUL = "n/a"
             S = "n/a"
             if Z != None:
@@ -335,7 +335,9 @@ class HiscorePlotter ( LoggerBase ):
         anaId = tp.analysisId()
         ananame = anaId
         if usePrettyNames:
-            ananame = prettyTexAnalysisName ( None, anaid = anaId )
+            prettyname = tp.dataset.globalInfo.prettyName
+            ananame = prettyTexAnalysisName ( prettyname, anaid = anaId )
+
         dtype = tp.dataType()
         print ( f"[plotHiscore] item {anaId} ({dtype})" )
         dt = { "upperLimit": "ul", "efficiencyMap": "em" }
@@ -411,10 +413,12 @@ class HiscorePlotter ( LoggerBase ):
                 highestOrder = order
         return orderedXsec
 
-    def writeTex ( self, keep_tex : bool ):
-        """ write the comment about ss multipliers and particle contributions, in tex.
-        Creates texdoc.png.
-        :param keep_tex: keep tex source of texdoc.png
+    def writeTex ( self, keep_tex : bool ) -> str:
+        """ write the comment about ss multipliers and particle contributions, 
+        in tex.  Creates texdoc.png.
+        :param keep_tex: keep tex source of texdoc.png as texdoc.tex
+
+        :returns: the latex source as a string
         """
         cpids = {}
         frozen = self.protomodel.frozenParticles()
@@ -571,8 +575,8 @@ class HiscorePlotter ( LoggerBase ):
             sigmapred = "20.13"
             sigmapred = rv['tp'].xsection.asNumber(fb)
             sigmaexp = "--"
-            if type(rv['tp'].getUpperLimit ( expected = True )) != type(None):
-                sigmaexp = f"{rv['tp'].getUpperLimit(expected=True).asNumber(fb):.2f}"
+            if type(rv['tp'].getUpperLimit ( evaluationType = apriori )) != type(None):
+                sigmaexp = f"{rv['tp'].getUpperLimit(evaluationType=apriori).asNumber(fb):.2f}"
             sigmaobs = rv['tp'].getUpperLimit().asNumber(fb)
             g.write ( f"{prettyName}~\\cite{{{ref}}} & {prod} & {sigmapred:.2f} & {sigmaobs:.2f} & {sigmaexp} \\\\\n" )#& {rv['obs']:.2f}
         g.write ( "\\end{tabular}\n" )
