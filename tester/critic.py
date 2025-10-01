@@ -448,7 +448,7 @@ class Critic ( LoggerBase ):
         self.log( f"Found {len(EMpreds)} llhd-based critic predictions passing rexp cut of {cut}" )
         if len(EMpreds) == 0:
             num_non_sen_res = len(predictions)
-            self.log(f"There are {num_non_sen_res} llhd-based critic predicitions, but none of them passed the rexp cut of {cut}. Highest rexp is {rexp_max}")
+            self.log(f"There are {num_non_sen_res} llhd-based critic predicitions, but none of them passed the rexp cut of {cut}. Highest rexp is {rexp_max:.4g}")
             # the model is not excluded, SN: should we allow for the best llhd based critic though?
             return True, None, None, None
 
