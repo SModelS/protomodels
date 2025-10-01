@@ -111,7 +111,7 @@ class Initialiser ( LoggerBase ):
         self.warnings= {}
         self._pm = ProtoModel ( walkerid, environ = self.environ )
         self.dsIdsInProposal = set()
-        self.xsecComputer = RefXSecComputer( allowN1N1Prod = self.environ.allowN1N1Prod )
+        self.xsecComputer = RefXSecComputer( allowN1N1Prod = self.environ.allowN1N1Prod, walkerid = walkerid )
         self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWWoff",
             "TRV1": None, "TDTM1F": None, "TDTM2F": None, "TRHadGM1": None,
             "THSCPM1": None, "THSCPM2": None, "T1Disp": None }

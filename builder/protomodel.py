@@ -54,7 +54,8 @@ class ProtoModel ( LoggerBase ):
         self.step = 0 ## count the steps
         self.getParticleContent()
         self.computer = RefXSecComputer( verbose = False,
-                                         allowN1N1Prod = environ.allowN1N1Prod )
+                                         allowN1N1Prod = environ.allowN1N1Prod,
+                                         walkerid = walkerid )
         self.protomodels_version = "2.0"
         self.initializeModel()
 
