@@ -342,7 +342,7 @@ class HiscorePlotter ( LoggerBase ):
         print ( f"[plotHiscore] item {anaId} ({dtype})" )
         dt = { "upperLimit": "ul", "efficiencyMap": "em" }
         ref = bibtex.query ( anaId )
-        f.write ( f"{ananame}~\\cite{{ref}} & " )
+        f.write ( f"{ananame}~\\cite{{{ref}}} & " )
         Z = self.significanceOfTP ( tp )
         if dtype == "efficiencyMap":
             dI = tp.dataset.dataInfo
@@ -386,7 +386,7 @@ class HiscorePlotter ( LoggerBase ):
             pids = getAllPidsOfTheoryPred ( tp )
             particles = namer.texName ( pids, addDollars=True, addSign = False,
                                         addBrackets = False )
-            sigmapred=f"{tp.xsection.asNumber(fb)} fb"
+            sigmapred=f"{tp.xsection.asNumber(fb):.2f} fb"
             print ( f"  `- observed {oUL:.2f}*fb, expected {eUL:.2f}*fb {Z:.1f} sigma" )
             f.write ( f" & {oUL:.1f} fb & {eUL:.1f} fb & {S} & {particles} & {sigmapred} \\\\ \n" )
         return f"{anaId}:{dtype}"
