@@ -36,7 +36,10 @@ def show():
     walkerids = set()
     for walk in walks:
         walkerid = walk.replace("logs/walker_","").replace(".log","")
-        walkerids.add ( int( walkerid) )
+        try:
+            walkerids.add ( int( walkerid) )
+        except ValueError as e:
+            pass
     for walkerid in walkerids:
         showWalkerid ( walkerid )
 

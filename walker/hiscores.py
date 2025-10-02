@@ -357,7 +357,11 @@ class Hiscores ( LoggerBase ):
         newlist, added = self.insertHiscore ( oldhiscores, D )
         if added:
             self.log(f"Write model to {hiscorefile}" )
+            from ptools.helpers import py_dump
+            py_dump ( newlist, f"all_hiscores/{hiscorefile}" )
+            """
             with open ( f"all_hiscores/{hiscorefile}", "wt" ) as f:
+                ds = py
                 f.write ( "[" )
                 for ctr,l in enumerate(newlist):
                     f.write ( f"{l}" )
@@ -365,6 +369,7 @@ class Hiscores ( LoggerBase ):
                         f.write ( ",\n" % ( l ) )
                 f.write ( "]\n" )
                 f.close()
+            """
             return True
         return False
 
