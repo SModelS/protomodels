@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+""" this is i think the exported version of the highScoreModels notebook """
+
+print ( f"FIXME this has not been ported to smodels v2. perhaps try the notebooks?" )
+sys.exit()
+
 import sys, os, copy, glob, argparse
 import numpy as np
 sys.path.append(os.path.abspath('../smodels'))
