@@ -45,6 +45,9 @@ class LoggerBase:
 
     def warn ( self, *args ):
         self.highlight ( "warn", *args )
+        
+    def warning ( self, *args ):
+        self.highlight ( "warn", *args )
 
     def info ( self, *args ):
         """ logging to file, but also write to screen """
@@ -68,7 +71,13 @@ class LoggerBase:
         self.log ( *args )
 
     def debug ( self, *args ):
-        pass
+        tmp = list ( args )
+        for i,arg in enumerate ( tmp ):
+            if type ( arg ) == str:
+                tmp[i] = 'DEBUG: ' + arg
+                break 
+        args = tuple ( tmp )
+        self.log ( *args )
 
     def pprint ( self, *args ):
         """ logging """

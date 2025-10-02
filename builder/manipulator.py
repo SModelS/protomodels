@@ -565,7 +565,8 @@ class Manipulator ( LoggerBase ):
         if "allowN1N1Prod" in D:
             from ptools.refxsecComputer import RefXSecComputer
             self.M.computer = RefXSecComputer( verbose = False,
-                    allowN1N1Prod = D["allowN1N1Prod"] )
+                    allowN1N1Prod = D["allowN1N1Prod"],
+                    walkerid = self.walkerid )
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
         if "susy_mode" in D:

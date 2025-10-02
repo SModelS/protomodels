@@ -19,16 +19,17 @@ from smodels.tools import wrapperBase
 # from smodels.theory.crossSection import LO, NLO, NLL, NNLL
 # from smodels.theory import crossSection
 # from smodels.theory.exceptions import SModelSTheoryError as SModelSError
-from smodels.base.smodelsLogging import logger, setLogLevel
 from smodels.base.physicsUnits import fb, pb, GeV, TeV, mb, unum
 from smodels.base.crossSection import LO, NLO, NLL, NNLL
 from smodels.base import crossSection
 from smodels.base.exceptions import SModelSBaseError as SModelSError
 from smodels import installation as smodelsinstallation
 import os, sys, io, shutil, pyslha
+from base.loggerbase import LoggerBase
+from typing import Union
 
 
-class RefXSecComputer:
+class RefXSecComputer ( LoggerBase ):
     """
     The xsec computer that simply looks up reference cross sections,
     and interpolates them.
@@ -36,15 +37,14 @@ class RefXSecComputer:
     version = "1.0" ## make sure we can trace changes in the tables
     hasWarned = { "omitted": 0 }
 
-    def __init__( self, verbose : bool = False, allowN1N1Prod : bool = False ):
+    def __init__( self, verbose : int = 1, allowN1N1Prod : bool = False, walkerid : Union[None,int] = 0 ):
         """
         :param verbose: turn on verbose mode, for debugging
         :param allowN1N1Prod: if true, then allow also N1 N1 production
         """
+        super ( RefXSecComputer, self ).__init__ ( walkerid )
         self.verbose = verbose
         self._allowN1N1Prod = allowN1N1Prod
-        if verbose:
-            setLogLevel ( "info" )
         codedir = "../"
         try:
             import csetup
@@ -108,11 +108,11 @@ class RefXSecComputer:
             self.hasWarned[stxt]=0
         self.hasWarned[stxt]+=1
         if self.hasWarned[stxt]<3:
-            logger.warning ( *txt )
+            self.warning ( *txt )
         if self.hasWarned[stxt]==3:
             self.hasWarned["omitted"]+=1
             if self.hasWarned["omitted"]<2:
-                logger.warning ( "(omitted similar msgs)" )
+                self.warning ( "(omitted similar msgs)" )
 
     def checkFileExists(self, inputFile):
         """
@@ -158,16 +158,16 @@ class RefXSecComputer:
 
         if not os.path.isfile(slhafile):
             line = f"SLHA file {slhafile} not found."
-            logger.error( line )
+            self.error( line )
             raise SModelSError( line )
         if len(xsecs) == 0:
-            logger.debug(f"No cross sections available for {slhafile}.")
+            self.debug(f"No cross sections available for {slhafile}.")
             return False
-        logger.debug ( f"I have xsecs: {', '.join(map(str,xsecs))}" )
+        self.debug ( f"I have xsecs: {', '.join(map(str,xsecs))}" )
         # Check if file already contain cross section blocks
         xSectionList = crossSection.getXsecFromSLHAFile(slhafile)
         if xSectionList and complain:
-            logger.info("SLHA file already contains XSECTION blocks. Adding "
+            self.info("SLHA file already contains XSECTION blocks. Adding "
                            "only missing cross sections.")
 
         # Write cross sections to file, if they do not overlap any cross section in
@@ -207,7 +207,7 @@ class RefXSecComputer:
 
         """
         if type(xsec) != type(crossSection.XSection()):
-            logger.error("Wrong input")
+            self.error("Wrong input")
             raise SModelSError()
         # Sqrt(s) in GeV
         header = f"XSECTION  {xsec.info.sqrts / GeV!s}"
@@ -248,7 +248,7 @@ class RefXSecComputer:
         self.xsecs = crossSection.XSectionList()
         nXSecs = 0
         if tofile:
-            logger.info(f"Computing SLHA cross section from {inputFile}, adding to SLHA file." )
+            self.info(f"Computing SLHA cross section from {inputFile}, adding to SLHA file." )
             complain = True ## dont complain about already existing xsecs,
             # if we were the ones writing them
             for s in sqrtses:
@@ -269,7 +269,7 @@ class RefXSecComputer:
             self.addCommentToFile ( comment, inputFile )
             self.cleanSLHAFile ( inputFile )
         else:
-            logger.info(f"Computing SLHA cross section from {inputFile}." )
+            self.info(f"Computing SLHA cross section from {inputFile}." )
             print()
             print( "     Cross sections:" )
             print( "=======================" )
@@ -305,7 +305,7 @@ class RefXSecComputer:
     def computeForBunch ( self, sqrtses, inputFiles, tofile, ssmultipliers=None ):
         """ compute xsecs for a bunch of slha files """
         for inputFile in inputFiles:
-            logger.debug ( f"computing xsec for {inputFile}" )
+            self.debug ( f"computing xsec for {inputFile}" )
             self.computeForOneFile ( sqrtses, inputFile, tofile,
                                      ssmultipliers = ssmultipliers )
 
@@ -314,7 +314,7 @@ class RefXSecComputer:
         if comment in [ None, "" ]:
             return
         if not os.path.isfile(slhaFile ):
-            logger.error(f"SLHA file {slhaFile} not found." )
+            self.error(f"SLHA file {slhaFile} not found." )
             raise SModelSError()
         outfile = open(slhaFile, 'a')
         outfile.write ( f"\n# {comment}\n" )
@@ -325,7 +325,7 @@ class RefXSecComputer:
         if ssmultipliers in [ None, {} ]:
             return
         if not os.path.isfile(slhaFile ):
-            logger.error(f"SLHA file {slhaFile} not found." )
+            self.error(f"SLHA file {slhaFile} not found." )
             raise SModelSError()
         tokens = []
         for k,v in ssmultipliers.items():
@@ -339,9 +339,9 @@ class RefXSecComputer:
         for line in lines:
             if "Signal strength multipliers" in line:
                 if ( line.strip() == newline ):
-                    logger.debug ( "Signal strength multipliers have alread been applied." )
+                    self.debug ( "Signal strength multipliers have alread been applied." )
                 else:
-                    logger.error ( "Different signal strength multipliers have alread been applied!!!" )
+                    self.error ( "Different signal strength multipliers have alread been applied!!!" )
                     rewrite.append ( f"{line} ERROR inconsistent!" )
             else:
                 if not "produced at step" in line:
@@ -399,7 +399,7 @@ class RefXSecComputer:
         try:
             myignores = eval(ignore)
         except Exception as e:
-            logger.error ( f"dont understand the ignore arg {ignore}: {e}" )
+            self.error ( f"dont understand the ignore arg {ignore}: {e}" )
             sys.exit()
         for c in channels:
             tobeignored = False
@@ -407,7 +407,7 @@ class RefXSecComputer:
             if isin:
                 tobeignored = True
             if not tobeignored:
-                logger.info ( f"selecting {c}" )
+                self.info ( f"selecting {c}" )
                 ret.append ( c )
         return ret
 
@@ -470,10 +470,10 @@ class RefXSecComputer:
                 continue
             xsec = self.interpolate ( channel["masses"], xsecall )
             if xsecall is None:
-                logger.debug (f"NO CROSS SECTION TABLE FOUND FOR {channel}")
+                self.debug (f"No cross section table found for {channel}")
             if xsec == None:
                 try:
-                    logger.debug (f'NO CROSS SECTION OBTAINED FOR CHANNEL {channel} FOR {sqrts} TeV. WILL TRY WITH PYTHIA8.')
+                    self.warning (f'No cross section obtained for channel {channel} at {sqrts} TeV. Will try with PYTHIA.')
                     from smodels.tools.xsecComputer import XSecComputer, NLL
                     xsecComputer = XSecComputer ( NLL, 5000, pythiaVersion=8, maycompile=True )
                     pythia = xsecComputer.getPythia()
@@ -492,17 +492,17 @@ class RefXSecComputer:
                     for x in xsecComputer.xsecs:
                         if set(pids) == set(x.pid):
                             xsec = x.value.asNumber(pb)
-                    comment += " Computed with Pythia8"
+                    comment += " Computed with PYTHIA"
                     os.unlik(pythia.pythiacard)
                     pythia.pythiacard = None
-                    logger.debug (f'PYTHIA8 CROSS SECTION: {xsec}')
+                    self.warning (f'PYTHIA cross section: {xsec}')
                 except Exception as e:
                     if pythia.pythiacard != None:
                         os.unlink(pythia.pythiacard)
                     pythia.pythiacard = None
-                    logger.debug (f'PYTHIA COMPUTATION FAILED: {e}')
+                    self.error (f'PYTHIA computation failed for channel {channel} at {sqrts} TeV, the reason is the following: {e}')
             if xsec == None:
-                logger.debug ('*** FAILED ALSO WITH PYTHIA. NO CROSS SECTION RETURNED ***')
+                self.debug ('Failed also with PYTHIA. No cross section returned')
                 continue
             if ssmultipliers != None and ( pids[1], pids[0] ) in ssmultipliers:
                 pids = ( pids[1], pids[0] )
@@ -521,9 +521,9 @@ class RefXSecComputer:
                 # print ( "adding", a, hasattr ( a, "comment" ) )
                 xsecs.add ( a )
             else:
-                logger.debug (f"*** No signal strength multiplier for {pids} ***")
-                logger.debug (pids,pids in ssmultipliers)
-                logger.debug (ssmultipliers)
+                self.debug (f"No signal strength multiplier for {pids}")
+                self.debug (pids,pids in ssmultipliers)
+                self.debug (ssmultipliers)
             
         # print ( "xdding", xsecs, hasattr ( xsecs[0], "comment" ) )
         self.xsecs = xsecs
@@ -541,7 +541,7 @@ class RefXSecComputer:
             if pid < 999999 and pid not in self.schannel:
                 continue
             if type(mass) not in [ float, int ]:
-                logger.error ( f"I found a mass of {mass} in {slhafile}, do not know what to do with it." )
+                self.error ( f"I found a mass of {mass} in {slhafile}, do not know what to do with it." )
                 sys.exit(-1)
             if mass > 5000:
                 continue
@@ -594,10 +594,10 @@ class RefXSecComputer:
         """ check if masses are out of bounds """
         if type(mass) in [ int, float ]:
             if mass > max(xsecs):
-                logger.info ( f"mass {int(mass)}>{int(max(xsecs))} too high to interpolate, leave it as is." )
+                self.info ( f"mass {int(mass)}>{int(max(xsecs))} too high to interpolate, leave it as is." )
                 return True
             if mass < min(xsecs):
-                logger.info ( f"mass {int(mass)}<{int(min(xsecs))} too low to interpolate, leave it as is." )
+                self.info ( f"mass {int(mass)}<{int(min(xsecs))} too low to interpolate, leave it as is." )
                 return True
             return False
         ## masses are tuple
@@ -607,9 +607,9 @@ class RefXSecComputer:
             else:
                 xi = [ x[i] for x in xsecs ]
             if mi < min(xi):
-                logger.info ( f"{i}st mass {mi}<{min(xi)} too low to interpolate, leave it as is." )
+                self.info ( f"{i}st mass {mi}<{min(xi)} too low to interpolate, leave it as is." )
             if mi > max(xi):
-                logger.info ( f"{i}st mass {mi}>{max(xi)} too high to interpolate, leave it as is." )
+                self.info ( f"{i}st mass {mi}>{max(xi)} too high to interpolate, leave it as is." )
                 return True
         return False
 
@@ -631,7 +631,7 @@ class RefXSecComputer:
     def interpolate ( self, mass, xsecs ):
         """ interpolate between masses """
         if len ( xsecs ) == 0:
-            logger.error ( f"cannot interpolate empty set" )
+            self.error ( f"cannot interpolate empty set" )
             return None
         mass = self.collapse ( mass )
         if mass in xsecs:
@@ -653,9 +653,9 @@ class RefXSecComputer:
         """
         ret = {}
         if not os.path.exists ( path ):
-            logger.info ( f"could not find {path}" )
+            self.info ( f"could not find {path}" )
             return ret
-        logger.info ( f"getting xsecs from {path}" )
+        self.info ( f"getting xsecs from {path}" )
         f = open ( path, "rt" )
         lines=f.readlines()
         f.close()
@@ -683,7 +683,7 @@ class RefXSecComputer:
         """ get the xsec dictionary for pid1/pid2, sqrts
         :param ewk: specify the ewkino process (hino, or wino, or None)
         """
-        logger.debug ( f"asking for cross sections for pids={pid1,pid2}, {sqrts} TeV" )
+        self.debug ( f"asking for cross sections for pids={pid1,pid2}, {sqrts} TeV" )
         filename = None
         order = 0
         pb = True
@@ -746,9 +746,9 @@ class RefXSecComputer:
             neutralinos = N1N2N3
         if pid1 in N1N2N3 and pid2 in neutralinos: # Neutralinos pair production
             if masses[1]+masses[0] == 0.:
-                logger.info ( f"Asking for massless {(pid1,pid2)} production. Will return None." )
+                self.info ( f"Asking for massless {(pid1,pid2)} production. Will return None." )
                 return None, None, None
-            logger.info ( f"Asking for {(pid1,pid2)} production. Will use C1 C1 xsecs (No N1 N2 cross sections at 8 TeV)." )
+            self.info ( f"Asking for {(pid1,pid2)} production. Will use C1 C1 xsecs (No N1 N2 cross sections at 8 TeV)." )
             filename = f"xsecC1C1{int(sqrts)}.txt"
             #filename = "xsecN2N1p%d.txt" % sqrts
             order = NLL
@@ -760,8 +760,8 @@ class RefXSecComputer:
             pb = False
             isEWK = True
         if filename == None:
-            logger.info ( f"could not identify filename for xsecs for {pid1,pid2}" )
-            # logger.info ( "seems like we dont have ref xsecs for the pids %d/%d?" % ( pid1, pid2 ) )
+            self.info ( f"could not identify filename for xsecs for {pid1,pid2}" )
+            # self.info ( "seems like we dont have ref xsecs for the pids %d/%d?" % ( pid1, pid2 ) )
             return None, None, None
             # sys.exit()
         if ewk == "hino":
@@ -770,10 +770,9 @@ class RefXSecComputer:
             if comment == "":
                 comment = f"({ewk})"
         path = os.path.join ( self.shareDir, filename )
-        if self.verbose:
-            print ( f"[refxsecComputer] will query {filename}" )
+        self.info ( f"[refxsecComputer] will query {filename}" )
         if not os.path.exists ( path ):
-            logger.error ( f"{path} missing" )
+            self.error ( f"{path} missing" )
             sys.exit(-1)
         xsecs = self.getXSecsFrom ( path, pb, columns )
         return xsecs,order,comment
@@ -793,8 +792,7 @@ if __name__ == "__main__":
     sqrts = args.sqrts
     if sqrts == None:
         sqrts = [ 8, 13 ]
-    setLogLevel ( "debug" )
-    tool = RefXSecComputer( args.verbose, allowN1N1Prod = False )
+    tool = RefXSecComputer( verbose = 2, allowN1N1Prod = False, walkerid = 0 )
     slhapaths = args.inputfile
     ssmultipliers = { (1000021,1000021):2. }
     ssmultipliers = None

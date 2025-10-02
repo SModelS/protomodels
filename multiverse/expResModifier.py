@@ -1032,12 +1032,14 @@ Just filter the database:
             filename = statsname
         meta = { "dbpath": self.dbpath, "Zmax": self.max,
                  "database": self.dbversion, "fudge": self.fudge,
-                 "protomodel": f'{str(self.protomodel)}', 
                  "timestamp": time.asctime(),
                  "allowN1N1Prod": self.allowN1N1Prod,
                  "lognormal": self.lognormal, "ulmassscale": self.ulmassscale,
                  "fixedsignals": self.fixedsignals,
                  "fixedbackgrounds": self.fixedbackgrounds }
+        meta["protomodel"]=None
+        if self.protomodel!= None:
+            meta["protomodel"] = f'{str(self.protomodel)}'
         if hasattr ( runtime, "_drmax" ):
             meta["_drmax"]=runtime._drmax
         if hasattr ( runtime, "_experimental" ):
@@ -1708,8 +1710,8 @@ Just filter the database:
                 logger.error("Combination matrix not loaded correctly.")
             self.pprint ( f"loading database {self.dbpath}" )
             db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix )
-            self.pprint ( f"built database at {self.dbpath}. Exiting." )
-            sys.exit()
+            self.pprint ( f"built database at {self.dbpath}." )
+            # sys.exit()
         if self.rundir == None:
             self.rundir = os.getcwd()
         self.pprint ( f"{GREEN}rundir is {os.getcwd()}{RESET}" )
