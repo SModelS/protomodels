@@ -4,7 +4,7 @@
 Used to ``take out potential signals'' i.e. put all observations to values
 expected from background, by sampling the background model. """
 
-__all__ = [ "readDictFile", "ExpResModifier" ]
+__all__ = [ "readDatabaseDictFile", "ExpResModifier" ]
 
 # https://link.springer.com/content/pdf/10.1007/JHEP02(2015)004.pdf
 
@@ -44,8 +44,8 @@ logger.setLevel("ERROR")
 
 hasWarned = { "noupperlimits": 0 }
 
-def readDictFile ( filename : str = "default.dict" ) -> Dict:
-    """ read in content of filename
+def readDatabaseDictFile ( filename : str = "default.dict" ) -> Dict:
+    """ read in content of a database dict file <filename>
     :param filename: the filename of the database dictionary.
     often it is <dbversion>.dict or *_database.dict or
     signal_database.dict.
