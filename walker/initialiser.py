@@ -115,9 +115,9 @@ class Initialiser ( LoggerBase ):
         self.mapTxnames = { "TRS1": None, "TChiWWISRqq": "TChiWWoff",
             "TRV1": None, "TDTM1F": None, "TDTM2F": None, "TRHadGM1": None,
             "THSCPM1": None, "THSCPM2": None, "T1Disp": None }
-        from multiverse.expResModifier import readDictFile
+        from multiverse.expResModifier import readDatabaseDictFile
         self.log ( f"reading database dict {RED}{dictfile}{RESET}" )
-        d = readDictFile ( dictfile )
+        d = readDatabaseDictFile ( dictfile )
         self.tempslha = "/dev/shm/temp.slha"
         self.meta = d["meta"]
         self.data = d["data"]

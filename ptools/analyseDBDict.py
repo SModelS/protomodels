@@ -113,8 +113,8 @@ class Analyzer ( LoggerBase ):
             self.analyzeFile ( filename, nlargest, nsmallest )
 
     def read ( self, fname ):
-        from multiverse.expResModifier import readDictFile 
-        d = readDictFile ( fname )
+        from multiverse.expResModifier import readDatabaseDictFile 
+        d = readDatabaseDictFile ( fname )
         return ( d["meta"], d["data"] )
 
     def topoIsIn ( self, topo : str ) -> Union[None,bool]:
