@@ -36,7 +36,7 @@ from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
 from base.loggerbase import LoggerBase
 from tester.combinationsmatrix import getYamlMatrix
-from typing import Dict, List, Text
+from typing import Dict, List, Text, Callable, Union
 # from icecream import ic
 from smodels_utils.helper.terminalcolors import *
 
@@ -44,13 +44,18 @@ logger.setLevel("ERROR")
 
 hasWarned = { "noupperlimits": 0 }
 
-def readDatabaseDictFile ( filename : str = "default.dict" ) -> Dict:
+def readDatabaseDictFile ( filename : str = "default.dict",
+       filterWith : Union[None,Callable] = None ) -> Dict:
     """ read in content of a database dict file <filename>
     :param filename: the filename of the database dictionary.
     often it is <dbversion>.dict or *_database.dict or
     signal_database.dict.
+    :param filterWith: optionally supply a filter function
+    that takes the analysis name and the analysis dictionary as 
+    arguments, and is supposed to return a boolean, with true
+    meaning a pass, false meaning drop
 
-    :returns: a dictionary with 'meta' and 'data' as keys
+    :returns: a dictionary with 'meta', 'data', and 'basename'
     """
 
     with open( filename,"rt") as f:
@@ -70,6 +75,11 @@ def readDatabaseDictFile ( filename : str = "default.dict" ) -> Dict:
     data = eval("\n".join(lines[firstcommentline:]))
     newdata = {}
     for i,v in data.items():
+        keepThis = True
+        if filterWith is not None:
+            keepThis = filterWith ( i, v )
+        if keepThis == False:
+            continue
         if "expectedBG" in v and v["expectedBG"]>=0.:
             newdata[i]=v
         else:
@@ -79,7 +89,8 @@ def readDatabaseDictFile ( filename : str = "default.dict" ) -> Dict:
                 eBG=None
                 if "expectedBG" in v:
                     eBG = v["expectedBG"]
-    return { "meta": meta, "data": newdata }
+    basename = os.path.basename ( filename ).replace(".dict","")
+    return { "meta": meta, "data": newdata, "basename": basename }
 
 class ExpResModifier ( LoggerBase ):
     epilog="""

@@ -20,14 +20,14 @@ def addPValue ( pvalues : List, v : Dict, verbose : bool , min_expected : float 
 
 def extractPValues( analyses : List, directory : os.PathLike, verbose,
                     min_expected ):
-    from ptools.helpers import readDictionaryFile
+    from multiverse.expResModifier import readDatabaseDictFile
     import glob
     files = glob.glob ( f"{directory}/*.dict" )
     pvalues = []
     nuniverses = 0
     print ( f"[plotPAcrossMultiverse] found {len(files)} files in '{directory}/'" )
     for f in files:
-        D = readDictionaryFile ( f )["data"]
+        D = readDatabaseDictFile ( f )["data"]
         for k,v in D.items():
             if "new_p" in v and v["new_p"]==0.0:
                 print ( k, v, f )

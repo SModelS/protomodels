@@ -259,32 +259,6 @@ def simplifyUnixPath ( path : str ) -> str:
         path = path.replace("//","/")
     return path
 
-def readDictionaryFile ( filename : PathLike ) -> dict:
-    """ read the database dictionary files, as produced by expResModifier.py -C
-    :param filename: path to the dictionary file
-    :returns: a dictionary with "meta" and "data" as keys
-
-    .. code-block:: python3
-
-    >>> content = readDictionaryFile ( "230.dict" )
-    """
-    with open( filename,"rt") as f:
-        tmp=f.readlines()
-    lines = []
-    for line in tmp:
-        if line.startswith("#"):
-            continue
-        lines.append ( line )
-    basename = os.path.basename ( filename ).replace(".dict","")
-    ret = { "meta": {}, "data": {}, "basename": basename }
-    ret["meta"].update (  eval(lines[0]) )
-    nan=float("nan")
-    import importlib
-    data = eval("\n".join(lines[1:]),{'inf':float('inf'), 'nan':float('nan'),
-                                      'np': importlib.import_module('numpy') })
-    ret["data"] = data
-    return ret
-
 def computeZFromP ( pvalue : float ) -> float:
     """ compute significance Z from p-value, i.e. compute Phi^-1 ( p )
 

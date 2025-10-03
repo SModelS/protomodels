@@ -244,10 +244,14 @@ class Plotter ( LoggerBase ):
         for dictfile,filecontent in self.data.items():
             for anaid,values in filecontent.items():
                 if not "orig_Z_fudged" in values:
-                    self.pprint ( "no orig_Z in dictionaries, did you forget the '-C' flag when calling expResModifier.py?" )
-                    sys.exit(-1)
-                if values["orig_Z_fudged"] > Zmax and np.isfinite ( values["orig_Z_fudged"] ):
-                    Zmax = values["orig_Z_fudged"]
+                    # if no fudged version in values, then use original version
+                    # self.pprint ( "no orig_Z_fudged in dictionaries, did you forget the '-C' flag when calling expResModifier.py?" )
+                    # sys.exit(-1)
+                    if values["orig_Z"] > Zmax and np.isfinite ( values["orig_Z"] ):
+                        Zmax = values["orig_Z"]
+                else:
+                    if values["orig_Z_fudged"] > Zmax and np.isfinite ( values["orig_Z_fudged"] ):
+                        Zmax = values["orig_Z_fudged"]
         self.Zmax = np.ceil ( Zmax * 4. ) / 4.
         # self.pprint ( f"Zmax is {Zmax:.2f}" )
 
@@ -285,9 +289,9 @@ class Plotter ( LoggerBase ):
 
     def read ( self ):
         """ read in content of self.filenames """
-        from ptools.helpers import readDictionaryFile
+        from multiverse.expResModifier import readDatabaseDictFile
         for fname in self.filenames:
-            ret = readDictionaryFile ( fname )
+            ret = readDatabaseDictFile ( fname )
             self.meta.update (  ret["meta"] )
             newdata = {}
             for i,v in ret["data"].items():
@@ -403,7 +407,7 @@ class Plotter ( LoggerBase ):
                 w = 1. / len(self.srCounts[anaid]) / len(self.filenames)
                 txns = []
                 if "txns" in v:
-                    txns = v["txns"].split(",")
+                    txns = v["txns"] # .split(",")
                 passesTx=False
                 if len(self.topologies)==0 and len(self.negativetopos)==0:
                     passesTx=True
