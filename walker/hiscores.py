@@ -223,7 +223,6 @@ class Hiscores ( LoggerBase ):
         :returns: Hiscores object
         """
         assert environ != None, "set environment"
-        # print ( f"environ {environ} cls {cls}" )
         if not cls.dbpathExists ( environ.dbpath ):
             print ( f"[hiscores] database path {dbpath} does not exist" )
             import sys; sys.exit()

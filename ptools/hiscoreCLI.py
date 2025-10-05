@@ -59,7 +59,7 @@ def cli( infile : str = "hiscores_global.dict",
     environ = RunEnviron()
     print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database," )
     print ( f"                             SParticleNames{ansi.RESET}" )
-    hi = fetchHiscoresObj ( infile, None, dbpath, walkerid = walkerid )
+    hi = fetchHiscoresObj ( infile, None, environ = environ, walkerid = walkerid )
     print ( f"[hiscoreCLI] {ansi.RED}hi = fetchHiscoresObj ('{infile}', ... ) # Hiscore {ansi.RESET}" )
     namer = SParticleNames()
     from importlib import reload
@@ -67,7 +67,7 @@ def cli( infile : str = "hiscores_global.dict",
     protomodel = hi.hiscores[0]
     protomodel.walkerid = walkerid
     print ( f"[hiscoreCLI] {ansi.RED}protomodel = hi.hiscores[0]{ansi.RESET}" )
-    ma = Manipulator ( protomodel )
+    ma = Manipulator ( protomodel, environ )
     print ( f"[hiscoreCLI] {ansi.RED}ma = Manipulator ( protomodel ){ansi.RESET}" )
     ma.M.createNewSLHAFileName()
     print ( f"[hiscoreCLI] {ansi.RED}co = Combiner ( protomodel ){ansi.RESET}" )
