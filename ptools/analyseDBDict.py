@@ -144,7 +144,9 @@ class Analyzer ( LoggerBase ):
         if "txns" in values:
             tret = values["txns"]
             #tret = ret.split(",")
-            ret = ",".join(tret)
+            ret = tret
+            if type(tret)==tuple:
+                ret = "".join(tret)
             isIn = False
             for t in tret:
                 if self.topoIsIn ( t ) == True:
