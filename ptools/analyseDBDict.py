@@ -142,8 +142,9 @@ class Analyzer ( LoggerBase ):
         """ get the topologies. """
         # we filter with self.topos
         if "txns" in values:
-            ret = values["txns"]
-            tret = ret.split(",")
+            tret = values["txns"]
+            #tret = ret.split(",")
+            ret = ",".join(tret)
             isIn = False
             for t in tret:
                 if self.topoIsIn ( t ) == True:
