@@ -776,7 +776,10 @@ if __name__ == "__main__":
     select = "all"
     D = model2()
     environ = RunEnviron.create ( dbpath = dbpath, select = "all" )
-               
+    for k,v in D.items():
+        if k not in ["masses", "ssmultipliers", "decays", "step", "xsecs[fb]"]:
+            environ.run_dict[k] = v
+    
     rvars = { "walkerid": 0 }
     walker = RandomWalker.fromDictionary ( D, environ, rvars )
     walker.walk()
