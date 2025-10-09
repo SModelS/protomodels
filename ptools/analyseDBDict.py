@@ -15,6 +15,7 @@ from ptools.moreHelpers import namesForSetsOfTopologies
 from typing import Union, Text, List, Dict
 from protomodels.base.loggerbase import LoggerBase
 import subprocess, shutil
+from smodels_utils.helper.terminalcolors import *
 
 class Analyzer ( LoggerBase ):
     def __init__ ( self, pathname : str, topos : Union[Text,None,List], 
@@ -142,8 +143,11 @@ class Analyzer ( LoggerBase ):
         """ get the topologies. """
         # we filter with self.topos
         if "txns" in values:
-            ret = values["txns"]
-            tret = ret.split(",")
+            tret = values["txns"]
+            #tret = ret.split(",")
+            ret = tret
+            if type(tret)==tuple:
+                ret = "".join(tret)
             isIn = False
             for t in tret:
                 if self.topoIsIn ( t ) == True:
@@ -228,12 +232,12 @@ class Analyzer ( LoggerBase ):
                 line += f"#{ctr+1:2d}: "
                 self.writeLatex ( f"{bcol}{ctr+1:2d} & " )
             if self.reportZvalues:
-                line += f"Z={Z:.2f}:"
+                line += f"{GREEN}Z={Z:.2f}{RESET}:"
                 self.writeLatex ( f" {bcol} {Z:.2f} & " )
             else:
                 line += f"p={k:.2f}:"
                 self.writeLatex ( f"{bcol} {p:.2f} & " )
-            line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
+            line += f" {YELLOW}{ana}{RESET} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
             anaonly = ana[:ana.find(":")]
             sr = ana[ana.find(":")+1:].replace("_",r"\_")
             self.writeLatex ( f"{bcol}{anaonly} & {bcol}{sr} & {bcol}{topos} & {bcol}{obsN:.0f} & {bcol}{expBG:.2f}$\\pm${bgErr:.2f} \\\\\n" )
@@ -256,11 +260,11 @@ class Analyzer ( LoggerBase ):
                     line += f"#{ctr+1:2d}: "
                     self.writeLatex ( f"{bcol}{ctr+1:2d} & " )
                 if self.reportZvalues:
-                    line += f"Z={Z:.2f}:"
+                    line += f"{RED}Z={Z:.2f}{RESET}:"
                     self.writeLatex ( f"{bcol}{Z:.2f} & " )
                 else:
                     line += f"p={k:.2f}:"
-                line += f" {ana} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
+                line += f" {YELLOW}{ana}{RESET} {topos} (obsN={obsN:.0f}, bg={expBG:.2f}+-{bgErr:.2f})"
                 self.writeLatex ( f"{bcol}{anaonly} & {bcol}{sr} & {bcol}{topos} & {bcol}{obsN:.0f} & {bcol}{expBG:.2f}+-{bgErr:.2f} \\\\\n" )
                 print ( line )
         

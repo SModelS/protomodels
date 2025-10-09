@@ -493,7 +493,7 @@ class RefXSecComputer ( LoggerBase ):
                         if set(pids) == set(x.pid):
                             xsec = x.value.asNumber(pb)
                     comment += " Computed with PYTHIA"
-                    os.unlik(pythia.pythiacard)
+                    os.unlink(pythia.pythiacard)
                     pythia.pythiacard = None
                     self.warning (f'PYTHIA cross section: {xsec}')
                 except Exception as e:

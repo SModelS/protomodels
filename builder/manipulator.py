@@ -559,18 +559,8 @@ class Manipulator ( LoggerBase ):
                 self.M.decays[mpid]={}
             for dpid,v in decays.items():
                 self.M.decays[mpid][dpid]=v
-        if "templateSLHA" in D:
-            self.M.templateName = D["templateSLHA"]
-            self.M.getParticleContent()
-        if "allowN1N1Prod" in D:
-            from ptools.refxsecComputer import RefXSecComputer
-            self.M.computer = RefXSecComputer( verbose = False,
-                    allowN1N1Prod = D["allowN1N1Prod"],
-                    walkerid = self.walkerid )
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
-        if "susy_mode" in D:
-            self.M.susy_mode = D["susy_mode"]
         #if "walkerid" in D:
         #    self.M.walkerid = D["walkerid"]
         if initTestStats:

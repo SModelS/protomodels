@@ -99,10 +99,10 @@ class RandomWalker ( LoggerBase ):
         self.walkerid = walkerid ## walker id, for parallel runs
         self.templateSLHA = templateSLHA
         self.environ = environ
-        self.rundir = rundir
+        self.environ.rundir = rundir
         self.cap_ssm = cap_ssm
         if rundir == None:
-            self.rundir = "./"
+            self.environ.rundir = "./"
         self.random_seed = np.random.seed()
         self.test_param_space = test_param_space
         if seed is not None:
@@ -118,7 +118,7 @@ class RandomWalker ( LoggerBase ):
                               expected=expected )
 
         #Initialize Hiscore (with access to the predictor)
-        picklefile = f"{self.rundir}/H{walkerid}.cache"
+        picklefile = f"{self.environ.rundir}/H{walkerid}.cache"
         save_hiscores = True
         self.hiscoreList = Hiscores ( walkerid, save_hiscores=save_hiscores,
                 picklefile=picklefile, backup=False, predictor=self.predictor )
@@ -138,12 +138,13 @@ class RandomWalker ( LoggerBase ):
         self.stopTeleportationAfter = stopTeleportationAfter
         if record_history:
             from ptools.history import History
-            self.recorder = History ( f"{self.rundir}/history{walkerid}.list" )
+            self.recorder = History ( f"{self.environ.rundir}/history{walkerid}.list" )
             self.manipulator.do_record = True
         jobid = "unknown"
         if "SLURM_JOBID" in os.environ:
             jobid = os.environ["SLURM_JOBID"]
         # self.pprint ( f"Ramping up with slurm jobid {jobid} using template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
+        print(self.environ.susy_mode)
         self.pprint ( f"Ramping up with slurm jobid {jobid}" )
         self.pprint ( f"It is {time.asctime()}" )
         self.pprint ( f"template {self.environ.templateSLHA} allowN1N1 {self.environ.allowN1N1Prod} susy_mode {self.environ.susy_mode}" )
@@ -269,7 +270,9 @@ class RandomWalker ( LoggerBase ):
         pm = RandomWalker.extractArguments ( ProtoModel.__init__, rvars )
         pm["environ"] = environ
         ret.manipulator.M = ProtoModel( **pm )
+        print("before init",ret.environ.susy_mode)
         ret.manipulator.initFromDict ( dictionary )
+        print("after init",ret.environ.susy_mode)
         if "walkerid" in rvars:
             ret.manipulator.setWalkerId ( rvars["walkerid"] )
         ret.manipulator.M.createNewSLHAFileName()
@@ -696,7 +699,7 @@ class RandomWalker ( LoggerBase ):
                     extracted = traceback.extract_tb(tb)
                     for point in extracted:
                         self.pprint ( f"extracted: {point}" )
-                    with open( f"{self.rundir}/exceptions.log","a") as f:
+                    with open( f"{self.environ.rundir}/exceptions.log","a") as f:
                         f.write ( f"{time.asctime()}: taking a step resulted in exception: {type(e)}, {e}\n" )
                         f.write ( f"   `- exception occured in walker #{self.protomodel.walkerid}\n" )
                         import traceback
@@ -765,7 +768,7 @@ def model2():
                 (1000023, 6): 0.35964987901179013,
                 (1000024, 5): 0.4651041087881375
             }
-        },
+        }
     }
     return D
 
@@ -776,7 +779,7 @@ if __name__ == "__main__":
     select = "all"
     D = model2()
     environ = RunEnviron.create ( dbpath = dbpath, select = "all" )
-               
+    
     rvars = { "walkerid": 0 }
     walker = RandomWalker.fromDictionary ( D, environ, rvars )
     walker.walk()

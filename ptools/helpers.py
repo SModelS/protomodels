@@ -291,7 +291,8 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
     return p
 
 def computeP ( obs : float, bg : float, bgerr : float,
-        lognormal : bool = False, nmax : int = 100000000 ) -> float:
+        lognormal : bool = False, nmax : int = 100000000,
+        sigN : Union[None,float] = None, nmin : int = 50000 ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
 
@@ -301,25 +302,28 @@ def computeP ( obs : float, bg : float, bgerr : float,
     :param lognormal: if true, model the enveloping nuisance parameter
     as a lognormal instead of a normal
     :param nmax: maximum number of toys
+    :param nmin: minimum number of toys
 
     :returns: p-value
     """
-    n = 50000
+    n = min ( nmin, nmax )
     ret = 0.
     while ret < .9 / nmax or ret > 1. - .9 / nmax:
         if n > nmax:
-            print ( f"[helpers] when computing p: n={n}>{nmax}. breaking off with ret={ret} obs={obs} bg={bg} bgerr={bgerr}" )
+            # print ( f"[helpers] when computing p: n={n}>{nmax}. breaking off with ret={ret} obs={obs} bg={bg} bgerr={bgerr}" )
             break
         lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
         lmbda = lmbda[lmbda>0.]
         if lognormal:
             # for lognormal and signals
             central = bg
-            if self.signalmodel and sigN != None:
+            if sigN != None:
                 central = bg + sigN
             if lognormal and central > ( bgerr / 4. ):
                 loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
-                stderr = np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) )
+                stderr = float ( np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) ) )
+                if stderr == 0.:
+                    return 0.
                 lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
         fakeobs = scipy.stats.poisson.rvs ( lmbda )
         ## == we count half
