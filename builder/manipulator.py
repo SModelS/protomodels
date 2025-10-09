@@ -293,7 +293,7 @@ class Manipulator ( LoggerBase ):
         else: model.masses[pid_pair[1]] = model_mass.asNumber(GeV)
 
 
-    def getPmodelDict (self, get_xsecs : bool = False, acc : bool = False, 
+    def getPmodelDict (self, get_xsecs : bool = False, acc : bool = False,
             critic_acc : bool = False) -> Dict:
         """ get the Pmodel dictionary
         :param critic_all: if true, passed the critic
@@ -305,20 +305,20 @@ class Manipulator ( LoggerBase ):
             return
 
         proto_dict = self.M.dict(sort_dict=True)
-        if not get_xsecs and 'xsecs[fb]' in proto_dict.keys(): 
+        if not get_xsecs and 'xsecs[fb]' in proto_dict.keys():
             del proto_dict['xsecs[fb]']
 
         addTexts = False
 
-        if acc and critic_acc: 
+        if acc and critic_acc:
             proto_dict['Accepted'] = 0
             if addTexts:
                 proto_dict['Accepted_Text'] = "passed all"
-        elif acc and not critic_acc: 
+        elif acc and not critic_acc:
             proto_dict['Accepted'] = 1
             if addTexts:
                 proto_dict['Accepted_Text'] = "passed acceptance ratio not critic"
-        else: 
+        else:
             proto_dict['Accepted'] = 2
             if addTexts:
                 proto_dict['Accepted_Text'] = "failed acceptance ratio"
@@ -1429,7 +1429,7 @@ class Manipulator ( LoggerBase ):
                 pidpair.add(ppair)
 
         pidpair = list(pidpair)
-            
+
         #prob to add a ssm occurs 70% of the time. This is done if none of three random moves below are implemented
         #prob to rem a ssm occurs only 10% of the time, in the first random move implemented below (under a >0.9)
         #Do random moves
@@ -1956,7 +1956,7 @@ class Manipulator ( LoggerBase ):
         """
         denom = 1.0
 
-        if self.M.TL is not None and self.M.TL > 0: 
+        if self.M.TL is not None and self.M.TL > 0:
             #short term fix -> discuss with Wg!
             denom = np.sqrt(self.M.TL) + 1.0
 
@@ -2093,15 +2093,17 @@ class Manipulator ( LoggerBase ):
         else:
             return None
 
-    def mergeParticles(self,dm=200,protomodel=None):
-        """ Look for pair of candidates with mass difference smaller than dm and merge them.
-            If several particles can be merged, only merge the ones with the smallest mass difference.
-            If protomodel is defined merge the particles of the given model, else merge particles in self.M
+    def mergeParticles( self, dm : float = 200,
+        protomodel : Union[ProtoModel,None] = None ):
+        """ Look for pair of candidates with mass difference smaller than dm and
+        merge them. If several particles can be merged, only merge the ones with
+        the smallest mass difference. If protomodel is defined merge the particles
+        of the given model, else merge particles in self.M
 
-            :param dm: Maximum mass difference for merging
-            :param protomodel: ProtoModel to be modified. If None, use self.M
+        :param dm: Maximum mass difference for merging
+        :param protomodel: ProtoModel to be modified. If None, use self.M
 
-            :return: False if no merge was performed, else returns True
+        :returns: False if no merge was performed, else returns True
         """
 
         #Loop over candidates
@@ -2145,7 +2147,7 @@ class Manipulator ( LoggerBase ):
         :param pair: Pair of particle pids to be merged
         :param protomodel: ProtoModel to be modified. If None, use self.M
 
-        :return: Protomodel with the particles merged
+        :returns: Protomodel with the particles merged
         """
 
         if not protomodel:
@@ -2229,7 +2231,8 @@ class Manipulator ( LoggerBase ):
 
         if oldxsecs != None:
             ## merge the signal strength multipliers:
-            n_ssms_old, n_ssms_new = self.mergeSSMs( pair, oldXsecs = oldxsecs, protomodel=protomodel )
+            n_ssms_old, n_ssms_new = self.mergeSSMs( pair,
+                    oldXsecs = oldxsecs, protomodel=protomodel )
 
         #Get proposal ratio for merge move
         a,b,c = 2,4,8
@@ -2257,14 +2260,17 @@ class Manipulator ( LoggerBase ):
             ret+=self.M.masses[pid]
         return ret / len(pids)
 
-    def mergeSSMs ( self, pair, oldXsecs, protomodel=None ):
-        """ merge signal strength multipliers for particles in pair. The cross-selections
-            involving the merged particles are assumed to be added and the corresponding
-            signal strengths are rescaled.
+    def mergeSSMs ( self, pair : Tuple[int], oldXsecs : list,
+            protomodel : Union[ProtoModel,None] = None ):
+        """ merge signal strength multipliers for particles in pair.
+        The cross-selections involving the merged particles are assumed to be
+        added and the corresponding signal strengths are rescaled.
 
         :param pair: pair of particle PIDs being merged
         :param oldXsecs: cross-sections before the merge
         :param protomodel: protomodel to be modified. If not defined, use self.M
+
+        :returns: tuple(number of old xsecs, number of new xsecs)
         """
 
         if not protomodel:

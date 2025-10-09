@@ -267,15 +267,17 @@ class ProtoModel ( LoggerBase ):
 
         return self._stored_xsecs
 
-    def getAllowedProdModes(self, return_mass=False):
-        '''
+    def getAllowedProdModes(self, return_mass : bool = False ):
+        """
         Get the list of allowed production modes for the protomodel
-        :param return_mass: If True, return the mass of the particles in the prod modes along with the prod modes
+        :param return_mass: If True, return the mass of the particles in the
+        prod modes along with the prod modes
 
-        :return: List of all allowed production modes for the protomodel
-        '''
+        :returns: List of all allowed production modes for the protomodel
+        """
 
-        tmpSLHA = tempfile.mktemp( prefix=f".{self.walkerid}_xsecfile", suffix=".slha",dir=self.SLHATEMPDIR )
+        tmpSLHA = tempfile.mktemp( prefix=f".{self.walkerid}_xsecfile",
+                                   suffix=".slha",dir=self.SLHATEMPDIR )
         slhafile = self.createSLHAFile(tmpSLHA, addXsecs=False)
         channels = self.computer.findOpenChannels(slhafile)
 
@@ -307,7 +309,7 @@ class ProtoModel ( LoggerBase ):
 
         offshell = False
         if pid == 1000023 and pid in self.masses and self.LSP in self.masses and \
-                (self.masses[pid] - self.masses[self.LSP]) < (smMasses["Z"] + smWidths["Z"]): 
+                (self.masses[pid] - self.masses[self.LSP]) < (smMasses["Z"] + smWidths["Z"]):
             offshell = True
         elif pid == 1000024 and pid in self.masses and self.LSP in self.masses and \
                   (self.masses[pid] - self.masses[self.LSP]) < (smMasses["W"] + smWidths["W"]):
