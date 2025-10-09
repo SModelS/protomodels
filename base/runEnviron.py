@@ -35,7 +35,7 @@ class RunEnviron:
         :ivar forbiddenparticles(list): list of forbidden particles
         :ivar templateSLHA(str): template SLHA file
         :ivar allowN1N1Prod(bool): allow production of N1 N1
-        :ivar susy_model(bool): susy mode (penalize for unusual xsecs)
+        :ivar susy_mode(bool): susy mode (penalize for unusual xsecs)
         :ivar use_initialiser(Union[None,str]): use given dict file
         :ivar rundir(str): the run directory
         for initialisation, or dont use initialiser (None)
