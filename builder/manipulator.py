@@ -2290,12 +2290,12 @@ class Manipulator ( LoggerBase ):
         #Find cross-sections PIDs containing p2 or -p2
         #and build the new PIDs (with p2 replaced by p1)
         p2Xsecs = {}
-        procDict = {}
+        procDict = {} ## this shows the mapping of production modes
         prodModes = protomodel.getAllowedProdModes()
         for pids,xsec in oldxsecDict.items():
             if not p2 in pids and not -p2 in pids:
                 continue
-            newpids = [pid if abs(pid) != abs(p2) else abs(p1)*pid/abs(pid) for pid in pids ]
+            newpids = [pid if abs(pid) != abs(p2) else int(abs(p1)*pid/abs(pid)) for pid in pids ]
             newpids = tuple(sorted(newpids))
             #Skip processes containing frozen particles:
             if not all([abs(pid) in unfrozen for pid in newpids]):
@@ -2307,9 +2307,9 @@ class Manipulator ( LoggerBase ):
 
         #Now compute the new SSMs assuming that the cross-sections will be added:
         newSSMs= {}
-        for oldpid,newpid in procDict.items():
+        for oldpids,newpids in procDict.items():
            #Get xsec value for the process containing p2:
-           value = p2Xsecs[oldpid]
+           value = p2Xsecs[oldpids]
            oldvalue = None
            #Check if the new process (with p2->p1) already existed
            if newpids in oldxsecDict:
@@ -2323,13 +2323,20 @@ class Manipulator ( LoggerBase ):
                if newpids in protomodel.ssmultipliers:
                    oldssm = protomodel.ssmultipliers[newpids]
                #The new SSM is going to be the ratio of old and new cross-sections times the old SSM:
-               newSSMs[newpids] = oldssm*(value/oldvalue) #?
+               if not newpids in newSSMs:
+                   newSSMs[newpids] = 0
+               newSSMs[newpids] += oldssm*(value/oldvalue) #?
            #If the new process does not exist take the SSM for the (old) process containing p2
            else:
                oldssm = 1.0
-               if oldpid in protomodel.ssmultipliers:
-                   oldssm = protomodel.ssmultipliers[oldpid]
-               newSSMs[newpids] = oldssm
+               if oldpids in protomodel.ssmultipliers:
+                   oldssm = protomodel.ssmultipliers[oldpids]
+               if not newpids in newSSMs:
+                   newSSMs[newpids] = 0
+               # we dont know what the oldssm would roughly
+               # correspond to with the newpids, so we use oldssm for newpids
+               # FIXME we can improve here
+               newSSMs[newpids] += oldssm
 
         #Now replace the SSMs in protomodel:
         for pid,ssm in newSSMs.items():
