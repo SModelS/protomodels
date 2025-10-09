@@ -446,10 +446,11 @@ class ProtoModel ( LoggerBase ):
         print ( ", ".join ( particles ) )
 
     def computeXSecs ( self, keep_slha : bool = False ):
-        """ compute xsecs given the masses and signal strength multipliers of the model.
-         The results are stored in self._stored_xsecs and should be accessed through getXsecs.
-        :param keep_slha: if true, then keep slha file at the end
+        """ compute xsecs given the masses and signal strength multipliers of the
+        model. The results are stored in self._stored_xsecs and should be
+        accessed through getXsecs.
 
+        :param keep_slha: if true, then keep slha file at the end
         :returns: current slha file, if slha file is kept, else none
         """
 
