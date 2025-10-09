@@ -1638,8 +1638,8 @@ class Manipulator ( LoggerBase ):
         siblings
 
         :param pid: PID to be frozen
-        :param force: If False, will only freeze the particle if it does not 
-        violate the canonical order (e.g. will not freeze stop1 if stop2 is 
+        :param force: If False, will only freeze the particle if it does not
+        violate the canonical order (e.g. will not freeze stop1 if stop2 is
         unfrozen) and the model contains at least 3 particles.
         :param reassignPID: if tuple of two pids and not none,
         then reassign pid #1 to #2 in ssmultipliers
@@ -1650,7 +1650,7 @@ class Manipulator ( LoggerBase ):
         frozen = []
         allpids = self.forcedMassDegeneratePids(pid)
         for ipid in allpids:
-            frozen += self.freezeParticle ( ipid, force=True, 
+            frozen += self.freezeParticle ( ipid, force=True,
                     protomodel=protomodel, reassignPID = reassignPID )
         return frozen
 
@@ -1662,8 +1662,8 @@ class Manipulator ( LoggerBase ):
             branching normalization
 
         :param pid: PID to be frozen
-        :param force: If False, will only freeze the particle if it does not 
-        violate the canonical order (e.g. will not freeze stop1 if stop2 is 
+        :param force: If False, will only freeze the particle if it does not
+        violate the canonical order (e.g. will not freeze stop1 if stop2 is
         unfrozen) and the model contains at least 3 particles.
         :param merge: something about the proposal density?
         :param reassignPID: if tuple of two pids and not none,
@@ -2072,7 +2072,7 @@ class Manipulator ( LoggerBase ):
         return nchanges
 
     def reassignPIDs(self):
-        """ Check if a heavier mass eigenstate is present when the lighter one is 
+        """ Check if a heavier mass eigenstate is present when the lighter one is
         not. If so, reassign the heavier eigenstate to the lighter one."""
         unfrozen = self.M.unFrozenParticles()
         frozen = self.M.frozenParticles()
@@ -2353,18 +2353,21 @@ class Manipulator ( LoggerBase ):
                #The new SSM is going to be the ratio of old and new cross-sections times the old SSM:
                if not newpids in newSSMs:
                    newSSMs[newpids] = 0
-               newSSMs[newpids] += oldssm*(value/oldvalue) #?
+               newSSMs[newpids] += oldssm*(value/oldvalue)
            #If the new process does not exist take the SSM for the (old) process containing p2
            else:
                oldssm = 1.0
                if oldpids in protomodel.ssmultipliers:
                    oldssm = protomodel.ssmultipliers[oldpids]
                if not newpids in newSSMs:
-                   newSSMs[newpids] = 0
+                   newSSMs[newpids] = 0.
+                   self.ssmultipliers[newpids] = 1.0
                # we dont know what the oldssm would roughly
                # correspond to with the newpids, so we use oldssm for newpids
                # FIXME we can improve here
-               newSSMs[newpids] += oldssm
+               oldxsec = p2Xsecs[oldpids]
+               newssm, newxsec = self.computeNewSSM ( newpids, oldpids, oldssm, p2Xsecs[oldpids] )
+               newSSMs[newpids] += newssm
 
         #Now replace the SSMs in protomodel:
         for pid,ssm in newSSMs.items():
@@ -2372,6 +2375,22 @@ class Manipulator ( LoggerBase ):
 
         n_ssm_old, n_ssm_new = len(oldxsecDict.keys()), len(newSSMs.keys())
         return n_ssm_old, n_ssm_new
+
+    def computeNewSSM ( self, newpids, oldpids, oldssm, oldxsec ):
+        """ ok we need the translation of oldssm to newpids,
+        but we are missing an xsec """
+        tmpSLHA = tempfile.mktemp( prefix=f".{self.walkerid}_xsecfile",
+                                   suffix=".slha",dir=self.SLHATEMPDIR )
+        tmpSLHA = self.createSLHAFile(tmpSLHA, addXsecs = False)
+        self.computer.compute( 13, tmpSLHA, ssmultipliers = self.ssmultipliers )
+        for xsec in self.computer.xsecs:
+            if xsec.info.sqrts == 13*TeV and xsec.pid == newpids:
+                newxsec = xsec.value.asNumber(fb)
+                newssm = oldxsec / newxsec
+                if os.path.exists ( tmpSLHA ): ## remove
+                    os.remove( tmpSLHA )
+                return newssm, newssm*newxsec
+        return None, None
 
     def simplifyMasses ( self ):
         """ return the masses only of the unfrozen particles """
