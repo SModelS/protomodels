@@ -83,7 +83,8 @@ def cli( infile : str = "hiscores_global.dict",
         if os.path.exists ( args.execute ):
             with open ( args.execute, "rt" ) as f:
                 print ( f"[hiscoreCLI] {GREEN}executing {args.execute}{RESET}" )
-                exec ( f.read() )
+                globals().update(locals())
+                exec ( f.read(), globals() )
 
     if not args.nointeractive:
         import IPython
