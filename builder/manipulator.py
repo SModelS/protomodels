@@ -1720,10 +1720,10 @@ class Manipulator ( LoggerBase ):
         if reassignPID != None:
             for pids, value in protomodel.ssmultipliers.items():
                 if reassignPID[0] == abs ( pids[0] ):
-                    newpids = ( reassignPID[0], pids[1] )
+                    newpids = ( reassignPID[1], pids[1] )
                     newSSMs[newpids]=value
-                if reassignPID[1] == abs ( pids[1] ):
-                    newpids = ( pids[0], reassignPID[0] )
+                if reassignPID[0] == abs ( pids[1] ):
+                    newpids = ( pids[0], reassignPID[1] )
                     newSSMs[newpids]=value
 
         removeSSM = [pids for pids in protomodel.ssmultipliers if (pid in pids or -pid in pids)]
@@ -2271,11 +2271,13 @@ class Manipulator ( LoggerBase ):
         self.proposal_ratio['merge'] = {'q':prob_add}
         #print(f"prob  merge = {prob_add}")
 
+        mpair = pair
+        if mpair[0] < mpair[1]:
+            mpair = [ pair[1], pair[0] ]
         ## finally freeze p2:
         self.freezeParticles(p2,protomodel=protomodel,merge=True,
-                reassignPID = pair )
+                reassignPID = mpair )
         self.reassignPIDs()
-
         return protomodel
 
     def computeAvgMass ( self, pids ):

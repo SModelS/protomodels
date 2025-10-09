@@ -82,7 +82,7 @@ class RefXSecComputer ( LoggerBase ):
         self.associatesamesignproduction = ( ( 1000022, 1000024 ), 
                 ( 1000023, 1000024 ), ( 1000024, 1000025 ), 
                 ( 1000022, 1000037 ), ( 1000023, 1000037 ), 
-                ( 1000025, 1000037 ) )
+                ( 1000025, 1000037 ), ( 1000022, 1000025 ) )
                  
         # self.schannel = ( 35, 55, )
         self.schannel = tuple()
@@ -452,9 +452,7 @@ class RefXSecComputer ( LoggerBase ):
         :returns: List of cross sections to be added
         """
         channels = self.findOpenChannels ( slhafile )
-        #print ( "open", [ c["pids"] for c in channels ] )
         channels = self.selectChannels ( channels, ignore_pids )
-        #print ( "selected ", channels )
         xsecs = crossSection.XSectionList()
         for channel in channels:
             # obtain xsecs for all masses, but for the given channel
