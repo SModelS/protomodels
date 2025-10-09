@@ -29,6 +29,8 @@ from ptools.sparticleNames import SParticleNames
 from ptools.helpers import nround, getAllPidsOfTheoryPred, py_dumps, mkdir, \
          formatObject
 
+LSP = ProtoModel.LSP
+
 class Manipulator ( LoggerBase ):
     """ contains the protomodel manipulation algorithms. """
 
@@ -148,8 +150,8 @@ class Manipulator ( LoggerBase ):
             protomodel = self.M
         offshell = False
         if 1000023 in protomodel.unFrozenParticles() or 1000024 in protomodel.unFrozenParticles():
-            if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (smMasses["Z"] + smWidths["Z"]): offshell = True
-            elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[protomodel.LSP]) < (smMasses["W"] + smWidths["W"]): offshell = True
+            if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[LSP]) < (smMasses["Z"] + smWidths["Z"]): offshell = True
+            elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[LSP]) < (smMasses["W"] + smWidths["W"]): offshell = True
             else: offshell = False
         else: offshell = False
 
@@ -201,7 +203,7 @@ class Manipulator ( LoggerBase ):
         self.log(f"Shifting all other masses by {dm:.2f}")
         shifted = set()
         for pid,m in self.M.masses.items():
-            if pid is self.M.LSP and not lsp:
+            if pid is LSP and not lsp:
                 continue
             self.M.masses[pid]=m+dm
             shifted.add ( pid )
@@ -991,8 +993,8 @@ class Manipulator ( LoggerBase ):
         n_par_propose = len(model_propose.unFrozenParticles())
 
         #total number of non-trivial br
-        n_decays_current = sum([len(dc.keys())- 1 for par, dc in model_current.decays.items() if par != 1000022])
-        n_decays_propose = sum([len(dc.keys())- 1 for par, dc in model_propose.decays.items() if par != 1000022])
+        n_decays_current = sum([len(dc.keys())- 1 for par, dc in model_current.decays.items() if par != LSP ])
+        n_decays_propose = sum([len(dc.keys())- 1 for par, dc in model_propose.decays.items() if par != LSP ])
 
         #total number of production modes
         n_ssms_current = len([ssm for ssm in model_current.ssmultipliers.values() if ssm > 1e-04])
@@ -1630,32 +1632,43 @@ class Manipulator ( LoggerBase ):
         return frozen
 
     def freezeParticles ( self, pid : int, force : bool = False,
-            protomodel = None, merge : bool = False) -> list:
+            protomodel = None, merge : bool = False,
+            reassignPID : Union[None,Tuple[int]] = None ) -> list:
         """ freeze particle pid, and all its forced mass degenerate
         siblings
 
         :param pid: PID to be frozen
-        :param force: If False, will only freeze the particle if it does not violate
-                      the canonical order (e.g. will not freeze stop1 if stop2 is unfrozen)
-                      and the model contains at least 3 particles.
+        :param force: If False, will only freeze the particle if it does not 
+        violate the canonical order (e.g. will not freeze stop1 if stop2 is 
+        unfrozen) and the model contains at least 3 particles.
+        :param reassignPID: if tuple of two pids and not none,
+        then reassign pid #1 to #2 in ssmultipliers
+        :param merge: something about the proposal density?
+
         :returns: list of pids that really were frozen out
         """
         frozen = []
         allpids = self.forcedMassDegeneratePids(pid)
         for ipid in allpids:
-            frozen += self.freezeParticle ( ipid, force=True, protomodel=protomodel )
+            frozen += self.freezeParticle ( ipid, force=True, 
+                    protomodel=protomodel, reassignPID = reassignPID )
         return frozen
 
 
     def freezeParticle ( self, pid : int, force : bool = False,
-            protomodel = None, merge : bool = False) -> list:
+            protomodel = None, merge : bool = False,
+            reassignPID : Union[None,Tuple[int]] = None ) -> list:
         """ freeze particle pid, take care of offshell removal, and
             branching normalization
 
         :param pid: PID to be frozen
-        :param force: If False, will only freeze the particle if it does not violate
-                      the canonical order (e.g. will not freeze stop1 if stop2 is unfrozen)
-                      and the model contains at least 3 particles.
+        :param force: If False, will only freeze the particle if it does not 
+        violate the canonical order (e.g. will not freeze stop1 if stop2 is 
+        unfrozen) and the model contains at least 3 particles.
+        :param merge: something about the proposal density?
+        :param reassignPID: if tuple of two pids and not none,
+        then reassign pid #1 to #2 in ssmultipliers
+
         :returns: list of pids that really were frozen out
         """
         self.log ( f"freeze {pid}({self.namer.asciiName(pid)})" )
@@ -1703,9 +1716,21 @@ class Manipulator ( LoggerBase ):
         if  pid in protomodel.masses: protomodel.masses.pop(pid)
         if  pid in protomodel.decays: protomodel.decays.pop(pid)
 
+        newSSMs = {}
+        if reassignPID != None:
+            for pids, value in protomodel.ssmultipliers.items():
+                if reassignPID[0] == abs ( pids[0] ):
+                    newpids = ( reassignPID[0], pids[1] )
+                    newSSMs[newpids]=value
+                if reassignPID[1] == abs ( pids[1] ):
+                    newpids = ( pids[0], reassignPID[0] )
+                    newSSMs[newpids]=value
+
         removeSSM = [pids for pids in protomodel.ssmultipliers if (pid in pids or -pid in pids)]
         for pids in removeSSM:
             protomodel.ssmultipliers.pop(pids)
+        for pids,value in newSSMs.items():
+            protomodel.ssmultipliers[pids]=value
 
         #Fix branching ratios and rescale signal strengths, so other channels are not affected
         self.removeIllegalBRs(rescaleSSMs=True, protomodel=protomodel)
@@ -1790,7 +1815,7 @@ class Manipulator ( LoggerBase ):
 
         #Absolute mass range:
         maxMass = protomodel.maxMass    #2400 GeV
-        minMass = protomodel.masses[protomodel.LSP]
+        minMass = protomodel.masses[LSP]
 
         #Redefine mass range if necessary to make sure the mass ordering is respected:
         for pids in self.canonicalOrder:
@@ -1819,7 +1844,7 @@ class Manipulator ( LoggerBase ):
         tmpMass = minMass + (maxMass-minMass)*m_random
 
         ctr = 0
-        while pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpMass, protomodel.masses[protomodel.LSP] ):
+        while pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpMass, protomodel.masses[LSP] ):
             # if in corridor region, redraw!
             tmpMass =  minMass + (maxMass-minMass)*m_random
             ctr += 1
@@ -1876,7 +1901,7 @@ class Manipulator ( LoggerBase ):
 
         #Define mass interval
         maxMass = self.M.maxMass
-        minMass = self.M.masses[self.M.LSP]
+        minMass = self.M.masses[LSP]
         #In case the pid corresponds to a lighter or heavier state of a pair of particles,
         #make sure the mass ordering is respected:
         for pids in self.canonicalOrder:
@@ -1888,7 +1913,7 @@ class Manipulator ( LoggerBase ):
                 minMass = self.M.masses[pids[0]]
 
         #If the particle is the LSP, relax the lower limit
-        if pid == self.M.LSP:
+        if pid == LSP:
             minMass = 10.0
             maxMass = 1500.0
 
@@ -1968,7 +1993,7 @@ class Manipulator ( LoggerBase ):
         self.log(f"Current mass of {self.namer.asciiName(pid)}({pid}) = {self.M.masses[pid]:.3f} GeV, dx = {dx:.3f} GeV")
 
         if not minMass:
-            minMass = self.M.masses[self.M.LSP]
+            minMass = self.M.masses[LSP]
         if not maxMass:
             maxMass = self.M.maxMass
 
@@ -1992,11 +2017,11 @@ class Manipulator ( LoggerBase ):
             tmpmass = float(norm.rvs(loc=self.M.masses[pid], scale=dx))
             if offshell: tmpMass = float(np.random.uniform ( minMass, maxMass ))
             # Enforce mass interval:
-            if pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpmass, self.M.masses[self.M.LSP] ):
+            if pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpmass, self.M.masses[LSP] ):
                 massIsLegal = False
-            if pid == self.M.LSP and 1000006 in self.M.masses and self.inCorridorRegion ( self.M.masses[1000006], tmpmass ):
+            if pid == LSP and 1000006 in self.M.masses and self.inCorridorRegion ( self.M.masses[1000006], tmpmass ):
                 massIsLegal = False
-            if pid == self.M.LSP and 2000006 in self.M.masses and self.inCorridorRegion ( self.M.masses[2000006], tmpmass ):
+            if pid == LSP and 2000006 in self.M.masses and self.inCorridorRegion ( self.M.masses[2000006], tmpmass ):
                 massIsLegal = False
             if tmpmass > maxMass: ## check again if we are legal
                 # tmpmass = maxMass-1.0
@@ -2015,8 +2040,8 @@ class Manipulator ( LoggerBase ):
                 tmpmass = self.M.masses[pid]
                 break
 
-        if pid == self.M.LSP:
-            delta_mass = tmpmass - self.M.masses[self.M.LSP]
+        if pid == LSP:
+            delta_mass = tmpmass - self.M.masses[LSP]
             self.M.masses[pid] = tmpmass
             self.log(f"Randomly changing LSP mass to {tmpmass:.1f}.")
             shifted=self.shiftAllMassesBy(delta_mass, lsp=False)
@@ -2029,8 +2054,8 @@ class Manipulator ( LoggerBase ):
         for ipid in allpids:
             self.M.masses[ipid]=tmpmass
             if ipid in [ 1000023, 1000024 ]:
-                if ipid == 1000023: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < ( smMasses["Z"] + smWidths["Z"])
-                if ipid == 1000024: is_offshell = (tmpmass - self.M.masses[self.M.LSP]) < (smMasses["W"] + smWidths["W"])
+                if ipid == 1000023: is_offshell = (tmpmass - self.M.masses[LSP]) < ( smMasses["Z"] + smWidths["Z"])
+                if ipid == 1000024: is_offshell = (tmpmass - self.M.masses[LSP]) < (smMasses["W"] + smWidths["W"])
                 if was_offshell != is_offshell:     #initialize branchings
                     if self.run_mcmc:
                         self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {ipid}.")
@@ -2133,7 +2158,7 @@ class Manipulator ( LoggerBase ):
             if pidA in [ 1000006, 2000006 ] and pidB in [ 1000006, 2000006 ]:
                 ## merging stops. check if we would end up in corridor.
                 avgM = self.computeAvgMass ( (pidA,pidB) )
-                if self.inCorridorRegion ( avgM, self.M.masses[self.M.LSP] ):
+                if self.inCorridorRegion ( avgM, self.M.masses[LSP] ):
                     self.pprint ( "wont merge the stops since we would end up in corridor region!" )
                     return False
             self.merge((pidA,pidB),protomodel)
@@ -2156,7 +2181,7 @@ class Manipulator ( LoggerBase ):
 
         n_par_old = len(protomodel.unFrozenParticles())
         n_par_new = n_par_old - 1
-        n_decays_old = sum([len(dc.keys())- 1 for par, dc in protomodel.decays.items() if par != 1000022])
+        n_decays_old = sum([len(dc.keys())- 1 for par, dc in protomodel.decays.items() if par != LSP ])
 
         ## Store original decays
         olddecays = {}
@@ -2228,7 +2253,7 @@ class Manipulator ( LoggerBase ):
                 #Add new channel:
                 protomodel.decays[mpid][newpids]=br
 
-        n_decays_new = sum([len(dc.keys())- 1 for par, dc in protomodel.decays.items() if par != 1000022])
+        n_decays_new = sum([len(dc.keys())- 1 for par, dc in protomodel.decays.items() if par != LSP ])
 
         if oldxsecs != None:
             ## merge the signal strength multipliers:
@@ -2247,7 +2272,8 @@ class Manipulator ( LoggerBase ):
         #print(f"prob  merge = {prob_add}")
 
         ## finally freeze p2:
-        self.freezeParticles(p2,protomodel=protomodel,merge=True)
+        self.freezeParticles(p2,protomodel=protomodel,merge=True,
+                reassignPID = pair )
         self.reassignPIDs()
 
         return protomodel
