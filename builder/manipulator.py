@@ -2046,8 +2046,9 @@ class Manipulator ( LoggerBase ):
 
         return nchanges
 
-    def reassignPID(self):
-        """Check if a heavier mass eigenstate is present when the lighter one is not. If so, reassign the heavier eigenstate to the lighter one."""
+    def reassignPIDs(self):
+        """ Check if a heavier mass eigenstate is present when the lighter one is 
+        not. If so, reassign the heavier eigenstate to the lighter one."""
         unfrozen = self.M.unFrozenParticles()
         frozen = self.M.frozenParticles()
         for pids in self.canonicalOrder:
@@ -2247,6 +2248,7 @@ class Manipulator ( LoggerBase ):
 
         ## finally freeze p2:
         self.freezeParticles(p2,protomodel=protomodel,merge=True)
+        self.reassignPIDs()
 
         return protomodel
 

@@ -399,7 +399,7 @@ class RandomWalker ( LoggerBase ):
         #Take a step in the model space:
         self.log("Randomly change model")
         self.manipulator.randomlyChangeModel(run_mcmc = self.run_mcmc, cap_ssm = self.cap_ssm)
-        self.manipulator.reassignPID()
+        self.manipulator.reassignPIDs()
         # self.printStats( substep=13 )
 
         nUnfrozen = len( self.protomodel.unFrozenParticles() )
@@ -415,7 +415,7 @@ class RandomWalker ( LoggerBase ):
         if protomodelSimp:
             manipulatorSimp = Manipulator ( protomodelSimp, environ = self.environ,
                                    do_record = False, seed = self.random_seed )
-            manipulatorSimp.reassignPID()
+            manipulatorSimp.reassignPIDs()
         boolProtoSimp = False
 
         # self.printStats( substep=14 )
