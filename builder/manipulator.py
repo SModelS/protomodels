@@ -2167,11 +2167,14 @@ class Manipulator ( LoggerBase ):
             return False
 
     def merge ( self, pair : Tuple[int],
-        protomodel : Union[ProtoModel,None] = None) -> ProtoModel:
+        protomodel : Union[ProtoModel,None] = None,
+        strategy : str = "avg" ) -> ProtoModel:
         """ merge the particles with pidA and pidB in protomodel.
 
         :param pair: Pair of particle pids to be merged
         :param protomodel: ProtoModel to be modified. If None, use self.M
+        :param strategy: strategy for resultant mass. Avg: take avg of
+        two previous masses. Lower: take lower of the two
 
         :returns: Protomodel with the particles merged
         """
@@ -2198,9 +2201,14 @@ class Manipulator ( LoggerBase ):
         p1,p2 = pair[0], pair[1]
         self.log(f"Merging {self.namer.asciiName(p1)} and {self.namer.asciiName(p2)}")
         self.log(f"Masses before merger: {protomodel.masses[p1]:.2f}, {protomodel.masses[p2]:.2f}")
-        avgM = self.computeAvgMass ( pair )
-        self.log(f"Avg mass for {str(pair)} is {avgM:.2f}")
-        protomodel.masses[ p1 ] = avgM ## set this one to the avg mass
+        strategy = strategy.lower()
+        assert strategy in [ "avg", "lower" ], "strategy has to be one of: avg, lower"
+        if strategy == "avg":
+            avgM = self.computeAvgMass ( pair )
+            self.log(f"Avg mass for {str(pair)} is {avgM:.2f}")
+            protomodel.masses[ p1 ] = avgM ## set this one to the avg mass
+        else:
+            m = min ( [ self.M.masses[x] for x in pair ] )
 
         #Get p2 decays:
         p2decays = protomodel.decays[p2]
