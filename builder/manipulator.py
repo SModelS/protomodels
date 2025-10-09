@@ -2138,7 +2138,8 @@ class Manipulator ( LoggerBase ):
         else:
             return False
 
-    def merge ( self, pair, protomodel = None):
+    def merge ( self, pair : Tuple[int],
+        protomodel : Union[ProtoModel,None] = None) -> ProtoModel:
         """ merge the particles with pidA and pidB in protomodel.
 
         :param pair: Pair of particle pids to be merged

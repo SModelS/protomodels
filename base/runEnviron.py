@@ -96,7 +96,7 @@ class RunEnviron:
         """ read the run.dict file, set runDict """
         if self.runDictFile is None or not os.path.exists ( self.runDictFile ):
             print ( f"[RunEnviron] no {self.runDictFile} exists" )
-            print ( f"[RunEnviron] you make create one RunEnviron.create()" )
+            print ( f"[RunEnviron] you can create one via RunEnviron.create()" )
             import sys; sys.exit()
         self.didReadRunDict = True
         try:
@@ -159,6 +159,6 @@ class RunEnviron:
             setattr ( self, key, value )
 
 if __name__ == "__main__":
-    environ = RunEnviron()
-    print ( "environment at environ. Try e.g. environ.templateSLHA" )
+    #environ = RunEnviron()
+    #print ( "environment at environ. Try e.g. environ.templateSLHA" )
     import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
