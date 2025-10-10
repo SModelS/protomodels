@@ -35,18 +35,18 @@ def cli( infile : str = "hiscores_global.dict",
     sys.path.insert(0,"../../")
     import csetup
     csetup.setup()
-    from colorama import Fore as ansi
+    from smodels_utils.helper.terminalcolors import RED, GREEN, YELLOW, RESET
     print ( "[hiscoreCLI] starting interactive session." )
     import copy, numpy, scipy, scipy.stats
-    print ( f"[hiscoreCLI]         python: {ansi.RED}copy, numpy, scipy, scipy.stats, math{ansi.RESET}" )
+    print ( f"[hiscoreCLI]         python: {RED}copy, numpy, scipy, scipy.stats, math{RESET}" )
     from smodels.base.physicsUnits import pb, fb, GeV, TeV
-    print ( f"[hiscoreCLI]      Constants: {ansi.RED}pb, fb, GeV, TeV{ansi.RESET}" )
+    print ( f"[hiscoreCLI]      Constants: {RED}pb, fb, GeV, TeV{RESET}" )
     from ptools.hiscoreTools import fetchHiscoresObj
     from builder import manipulator
     from walker import hiscores
     from tester import combiner, predictor
     from ptools import helpers
-    print ( f"[hiscoreCLI]        Modules: {ansi.RED}manipulator, hiscores, combiner, predictor, helpers{ansi.RESET}" )
+    print ( f"[hiscoreCLI]        Modules: {RED}manipulator, hiscores, combiner, predictor, helpers{RESET}" )
     from walker.hiscores import Hiscores
     from base.runEnviron import RunEnviron
     from builder.protomodel import ProtoModel
@@ -57,32 +57,34 @@ def cli( infile : str = "hiscores_global.dict",
     from ptools.sparticleNames import SParticleNames
     from smodels.experiment.databaseObj import Database
     environ = RunEnviron()
-    print ( f"[hiscoreCLI]        Classes: {ansi.RED}ProtoModel, Combiner, Predictor, Hiscores, Database," )
-    print ( f"                             SParticleNames{ansi.RESET}" )
+    print ( f"[hiscoreCLI]        Classes: {RED}ProtoModel, Combiner, Predictor, Hiscores, Database," )
+    print ( f"                             SParticleNames{RESET}" )
     hi = fetchHiscoresObj ( infile, None, environ = environ, walkerid = walkerid )
-    print ( f"[hiscoreCLI] {ansi.RED}hi = fetchHiscoresObj ('{infile}', ... ) # Hiscore {ansi.RESET}" )
+    print ( f"[hiscoreCLI] {RED}hi = fetchHiscoresObj ('{infile}', ... ) # Hiscore {RESET}" )
     namer = SParticleNames()
     from importlib import reload
-    print ( f"[hiscoreCLI] {ansi.RED}namer = SParticleNames(){ansi.RESET}" )
+    print ( f"[hiscoreCLI] {RED}namer = SParticleNames(){RESET}" )
     protomodel = hi.hiscores[0]
     protomodel.walkerid = walkerid
-    print ( f"[hiscoreCLI] {ansi.RED}protomodel = hi.hiscores[0]{ansi.RESET}" )
+    print ( f"[hiscoreCLI] {RED}protomodel = hi.hiscores[0]{RESET}" )
     ma = Manipulator ( protomodel, environ )
-    print ( f"[hiscoreCLI] {ansi.RED}ma = Manipulator ( protomodel ){ansi.RESET}" )
+    print ( f"[hiscoreCLI] {RED}ma = Manipulator ( protomodel ){RESET}" )
     ma.M.createNewSLHAFileName()
-    print ( f"[hiscoreCLI] {ansi.RED}co = Combiner ( protomodel ){ansi.RESET}" )
+    print ( f"[hiscoreCLI] {RED}co = Combiner ( protomodel ){RESET}" )
     co = Combiner( walkerid ) # instantiate for convenience
-    print ( f"[hiscoreCLI] {ansi.RED}pr = Predictor ( ){ansi.RESET}" )
+    print ( f"[hiscoreCLI] {RED}pr = Predictor ( ){RESET}" )
     pr = Predictor( walkerid, environ = environ ) # instantiate for convenience
-    print ( f"[hiscoreCLI] {ansi.RED}cr = Critic ( ){ansi.RESET}" )
+    print ( f"[hiscoreCLI] {RED}cr = Critic ( ){RESET}" )
     cr = Critic ( walkerid, environ = environ )
 
-    # print ( f"[hiscoreCLI] Instantiations: {ansi.RED}ma, co, hi, pr{ansi.RESET}" )
+    # print ( f"[hiscoreCLI] Instantiations: {RED}ma, co, hi, pr{RESET}" )
 
     if args.execute not in [ "", None ]:
         if os.path.exists ( args.execute ):
             with open ( args.execute, "rt" ) as f:
-                exec ( f.read() )
+                print ( f"[hiscoreCLI] {GREEN}executing {args.execute}{RESET}" )
+                globals().update(locals())
+                exec ( f.read(), globals() )
 
     if not args.nointeractive:
         import IPython
