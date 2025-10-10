@@ -83,7 +83,7 @@ def obtainHiscore ( number : int,
     TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K
     sK = formatObject ( K, 3 )
-    print ( f"[hiscoreTools] obtaining #{number}: {sK}" )
+    print ( f"[hiscoreTools] obtaining #{number}: K={sK}" )
     ret = hi.hiscores[ number ]
     return ret
 
