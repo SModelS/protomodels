@@ -20,7 +20,7 @@ def namesForSetsOfPids ( names: List[str|int] ) -> Tuple[int]:
     """ short names for various sets of pids. used as abbreviations
     for forbiddenparticles
 
-    :param names: e.g. [ "stops","sbottoms",2000037"
+    :param names: e.g. [ "stops","sbottoms",2000037" ]
     :returns: list of pids as ints e.g. "1000006,1000005"
     """
     dic = { "stops": [ 1000006, 2000006 ], 
@@ -59,8 +59,10 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
     """
     if name is None:
         return "all", None
-    if "," in name:
-        name = name.split(",")
+    if type(name)==str:
+        name = name.replace("+",",")
+        if "," in name:
+            name = name.split(",")
     if type(name) in [ list, tuple ]:
         topos, descriptions = [], []
         for n in name:
