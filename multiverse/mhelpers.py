@@ -19,6 +19,7 @@ def createMyFile ( signal_model : str = "signal_model.dict",
     from tester.predictor import Predictor
     from tester.critic import Critic
     from base.runEnviron import RunEnviron
+    from ptools.helpers import formatObject
     from smodels.experiment.databaseObj import Database
     print ( f"[predictForTruth] instantiate database {dbpath}" )
     db = Database ( dbpath )
@@ -33,7 +34,7 @@ def createMyFile ( signal_model : str = "signal_model.dict",
     cr, response = critic.predict_critic ( ma.M )
     print ( f"[predictForTruth] critic: {cr}, {response}" )
     predictor.predict ( ma, keep_predictions = True, force_computation_K = True )
-    print ( f"[predictForTruth] predict K={ma.M.K} TL={ma.M.TL}" )
+    print ( f"[predictForTruth] predict K={formatObject(ma.M.K)} TL={formatObject(ma.M.TL)}" )
     K,TL = ma.M.K, ma.M.TL
     ma = Manipulator( signal_model, walkerid = "truth", environ = environ )
     ma.M.dbpath = dbpath
