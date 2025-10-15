@@ -270,9 +270,7 @@ class RandomWalker ( LoggerBase ):
         pm = RandomWalker.extractArguments ( ProtoModel.__init__, rvars )
         pm["environ"] = environ
         ret.manipulator.M = ProtoModel( **pm )
-        print("before init",ret.environ.susy_mode)
         ret.manipulator.initFromDict ( dictionary )
-        print("after init",ret.environ.susy_mode)
         if "walkerid" in rvars:
             ret.manipulator.setWalkerId ( rvars["walkerid"] )
         ret.manipulator.M.createNewSLHAFileName()
