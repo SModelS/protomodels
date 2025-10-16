@@ -1789,7 +1789,8 @@ class Manipulator ( LoggerBase ):
         #Check for canonical ordering.
         frozen = protomodel.frozenParticles()
         n_frozen = len(frozen)
-        num_unfrozen = len(protomodel.unFrozenParticles( withLSP=False ))
+        unfrozen = protomodel.unFrozenParticles()
+        n_unfrozen = len(protomodel.unFrozenParticles( withLSP=False ))
 
         if not force:
             #If pid matches the heavier state and the lighter state is frozen,
@@ -1803,14 +1804,14 @@ class Manipulator ( LoggerBase ):
             if pids[0] in self.M.environ.forbiddenparticles and pids[1] in self.M.environ.forbiddenparticles: continue
             if pids[0] in frozen and pids[1] in frozen:
                 n_frozen -= 1                   #num of par to unfreeze is smaller (i.e cannot unfreeze pids[1] while pids[0] is frozen)
-            if pids[0] in protomodel.unFrozenParticles() and pids[1] in protomodel.unFrozenParticles():
-                num_unfrozen -= 1               #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
+            if pids[0] in unfrozen and pids[1] in unfrozen:
+                n_unfrozen -= 1               #num of par to freeze is smaller (i.e cannot freeze pids[0] while pids[1] is unfrozen)
 
         if self.M.environ.forbiddenparticles != []:
             n_frozen -= len(self.M.environ.forbiddenparticles)
             if n_frozen < 0: self.log(f"Num frozen {n_frozen} < 0! "); n_frozen = 1
         #proposal ratio = p(i+1 -> i)/p(i->i+1) = p(rem pid)/p(add pid) = (1/(n_un+1))/(1/n_fr)
-        self.proposal_ratio['add_par']['q'] *= n_frozen/(num_unfrozen + 1)
+        self.proposal_ratio['add_par']['q'] *= n_frozen/(n_unfrozen + 1)
         #print(f"Prob to unfreeze = {self.proposal_ratio['add_par']['q']}")
 
         #Absolute mass range:
@@ -1842,19 +1843,28 @@ class Manipulator ( LoggerBase ):
 
         m_random = float(np.random.uniform ( 0., 1. ))
         tmpMass = minMass + (maxMass-minMass)*m_random
+        
+        if pid in protomodel.forced_degeneracies:
+            for degen_pid in protomodel.forced_degeneracies:
+                if degen_pid != pid and degen_pid in unfrozen:
+                    degen_mass = protomodel.masses[degen_pid]
+                    tmpMass = degen_mass
+                    if mass is not None and degen_mass != mass:
+                        self.warning(f"Unfreeze {pid} at mass {mass} while it should be mass degenerate at {degen_mass} with {degen_pid}.")
+                    break
 
         ctr = 0
         while pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpMass, protomodel.masses[LSP] ):
             # if in corridor region, redraw!
             tmpMass =  minMass + (maxMass-minMass)*m_random
-            ctr += 1
-            if ctr > 5: ## seems like the air is too thin. make more space.
-                mstop2 = 2000.
-                if 2000006 in protomodel.masses:
-                    mstop2 = protomodel.masses[2000006]
-                    protomodel.masses[2000006] = mstop2 + 20.
-                if pid == 1000006:
-                    maxMass = mstop2 + 20.
+            mstop2 = 2000.
+            if 2000006 in protomodel.masses:
+                mstop2 = protomodel.masses[2000006]
+                protomodel.masses[2000006] = mstop2 + 20.
+                if pid == 2000006:
+                    tmpMass = protomodel.masses[2000006]
+            if pid == 1000006:
+                maxMass = mstop2 + 20.
 
         if mass is not None:
             tmpMass = mass
