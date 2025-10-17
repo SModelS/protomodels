@@ -6,6 +6,7 @@ better than starting with the SM / any first 5 steps
 
 from ptools.helpers import py_dumps
 from base.locker import lock, unlock
+import time
 
 def writeModel( model : dict, outfile : str = "init5.stats" ):
     """ append model to outfile """
@@ -34,8 +35,11 @@ def createStatsForInit( dbpath : str = "official.pcl",
     initialiser = Initialiser ( walkerid = "stats",
         dictfile = dictfile, environ = environ )
     for i in range(1000):
+        t0 = time.time()
         ret = initialiser.bestOfN(bestOfN)
+        dt = time.time() - t0
         K, TL = ret["K"], ret["TL"]
+        ret[ "dt" ] = dt
         print ( f"K={K} TL={TL}" )
         writeModel ( ret, outfile )
 
