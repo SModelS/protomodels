@@ -144,7 +144,6 @@ class RandomWalker ( LoggerBase ):
         if "SLURM_JOBID" in os.environ:
             jobid = os.environ["SLURM_JOBID"]
         # self.pprint ( f"Ramping up with slurm jobid {jobid} using template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
-        print(self.environ.susy_mode)
         self.pprint ( f"Ramping up with slurm jobid {jobid}" )
         self.pprint ( f"It is {time.asctime()}" )
         self.pprint ( f"template {self.environ.templateSLHA} allowN1N1 {self.environ.allowN1N1Prod} susy_mode {self.environ.susy_mode}" )
