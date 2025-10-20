@@ -1844,15 +1844,16 @@ class Manipulator ( LoggerBase ):
         m_random = float(np.random.uniform ( 0., 1. ))
         tmpMass = minMass + (maxMass-minMass)*m_random
         
-        if pid in protomodel.forced_degeneracies:
-            for degen_pid in protomodel.forced_degeneracies:
-                if degen_pid != pid and degen_pid in unfrozen:
-                    degen_mass = protomodel.masses[degen_pid]
-                    tmpMass = degen_mass
-                    if mass is not None and degen_mass != mass:
-                        self.warning(f"Unfreeze {pid} at mass {mass} while it should be mass degenerate at {degen_mass} with {degen_pid}.")
-                    break
-
+        for degeneracy in protomodel.forced_degeneracies:
+            if pid in degeneracy:
+                for degen_pid in degeneracy:
+                    if degen_pid != pid and degen_pid in unfrozen:
+                        degen_mass = protomodel.masses[degen_pid]
+                        tmpMass = degen_mass
+                        if mass is not None and degen_mass != mass:
+                            self.warning(f"Unfreeze {pid} at mass {mass} while it should be mass degenerate at {degen_mass} with {degen_pid}.")
+                        break
+        
         ctr = 0
         while pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpMass, protomodel.masses[LSP] ):
             # if in corridor region, redraw!
