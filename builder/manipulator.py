@@ -120,13 +120,13 @@ class Manipulator ( LoggerBase ):
 
         :returns: list of all mass degenerate pids
         """
+        ret = [pid]
         for pids in self.M.forced_degeneracies:
             if pid in pids:
                 ret = list(pids)
-                if not include_self:
-                    ret.remove(pid)
-                return ret
-        return [pid]
+        if not include_self:
+            ret.remove(pid)
+        return ret
 
     def getClosestPair ( self, pids ):
         """ of <n> PIDs, identify the two that are closest in mass """
@@ -143,7 +143,6 @@ class Manipulator ( LoggerBase ):
                     dmin = dm
                     pair = ( pid1, pid2 )
         return pair,dmin
-
 
     def checkIfOffshell(self, pid, protomodel=None):
         if protomodel is None:
@@ -1782,7 +1781,7 @@ class Manipulator ( LoggerBase ):
 
         :returns: mass of particle that got unfrozen or None
         """
-
+        
         if protomodel is None:
             protomodel = self.M
 
@@ -1831,12 +1830,12 @@ class Manipulator ( LoggerBase ):
             ## heed the wall!
             minMass = max ( self.walledpids[pid], minMass )
 
-        offshell = False
+        # offshell = False
         if pid in [ 1000023, 1000024 ]:
             # for C1 and N2 we want a 10% chance to start in the offshell regime -> increase prob?
             p = np.random.uniform ( 0, 1 )
             if p < 0.1:
-                offshell = True
+                # offshell = True
                 self.log ( f"Unfreezing {self.namer.asciiName(pid)}, randomly chose to restrict to offshell mass!" )
                 if pid == 1000023: maxMass = minMass + smMasses["Z"] + smWidths["Z"]
                 else: maxMass = minMass + smMasses["W"] + smWidths["W"]
@@ -1873,7 +1872,7 @@ class Manipulator ( LoggerBase ):
 
         self.record ( f"Unfreeze mass of {pid}({self.namer.texName(pid,addDollars=True)}) to {tmpMass:.1f}" )
         self.log ( f"Unfreeze mass of {self.namer.asciiName(pid)} to {protomodel.masses[pid]:.1f}" )
-
+        
         # Set branchings
         self.log(f"Initializing Branchings for {self.namer.asciiName(pid)}({pid})")
         initialized = self.initBranchings(pid, protomodel=protomodel)
