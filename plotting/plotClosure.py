@@ -5,9 +5,9 @@ import numpy as np
 from math import exp
 import os, glob
 
-def getAllModels() -> list[dict]:
+def getAllModels( directory : os.PathLike = "../data/fake_stops1" ) -> list[dict]:
     """ get all the model dictionaries """
-    dictfpattern = f"../data/dictfiles/pmodel_?.dict"
+    dictfpattern = f"{directory}/dictfiles/pmodel_?.dict"
     dictfiles = glob.glob ( dictfpattern )
     all_models = []
     for dictfile in dictfiles:
@@ -23,9 +23,10 @@ def getAllModels() -> list[dict]:
     filtered = [d for d in all_models if d["K"] > .8* maxK ]
     return filtered, maxK
 
-def getAllPModels() -> list[dict]:
+def getAllPModels( directory : os.PathLike = "../data/fake_stops1" ) -> \
+											  list[dict]:
     """ get all the model dictionaries """
-    dictfpattern = f"../data/Pmodels/pmodel*.dict"
+    dictfpattern = f"{directory}/Pmodels/pmodel*.dict"
     dictfiles = glob.glob ( dictfpattern )
     all_models = []
     for dictfile in dictfiles:
@@ -69,8 +70,8 @@ def getCoordinates ( models : Union[list,dict], maxK : float ):
             Kvalues.append ( K )
     return xvalues, yvalues, Kvalues
 
-def getTruthModel():
-    truthfile = f"../data/truth.dict"
+def getTruthModel( directory : os.PathLike = "../data/fake_stops1/" ):
+    truthfile = f"{directory}/truth.dict"
     with open ( truthfile, "rt" ) as f:
         model = eval ( f.read() )
         return model
