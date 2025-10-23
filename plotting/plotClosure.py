@@ -1,26 +1,31 @@
 #!/usr/bin/env python3
 
 from typing import Union
+import numpy as np
 from math import exp
+import os, glob
 
 def getAllModels() -> list[dict]:
     """ get all the model dictionaries """
-    dictfpattern = f"../data/dictfiles/pmodel_*.dict"
-    import glob
+    dictfpattern = f"../data/dictfiles/pmodel_?.dict"
     dictfiles = glob.glob ( dictfpattern )
     all_models = []
     for dictfile in dictfiles:
+        dfname = os.path.basename ( dictfile ) 
+        dfname = dfname.replace("pmodel_","").replace(".dict","")
         with open ( dictfile, "rt" ) as f:
             models = eval ( f.read() )
             for model in models[500:]:
+                model["dictfile"]=dfname
                 if model["Accepted"]==0:
                     all_models.append ( model )
-    return all_models
+    maxK = max ( x["K"] for x in all_models )
+    filtered = [d for d in all_models if d["K"] > .8* maxK ]
+    return filtered, maxK
 
 def getAllPModels() -> list[dict]:
     """ get all the model dictionaries """
     dictfpattern = f"../data/Pmodels/pmodel*.dict"
-    import glob
     dictfiles = glob.glob ( dictfpattern )
     all_models = []
     for dictfile in dictfiles:
@@ -30,8 +35,16 @@ def getAllPModels() -> list[dict]:
             all_models.append ( model )
     return all_models
 
+def splitByDictFile ( models : list ):
+    ret = {}
+    for model in models:
+        df = model["dictfile"]
+        if not df in ret:
+            ret[df]=[]
+        ret[df].append ( model )
+    return ret
 
-def getCoordinates ( models : Union[list,dict] ):
+def getCoordinates ( models : Union[list,dict], maxK : float ):
     plot={ "x": 1000006, "y": 1000022, "type_x": "mass", "type_y": "mass" }
     xvalues, yvalues, Kvalues = [], [], []
     xpid, ypid = plot["x"], plot["y"]
@@ -49,7 +62,8 @@ def getCoordinates ( models : Union[list,dict] ):
                 K = float("nan")
             else:
                 pass
-                K = K**2 / 60.264
+                # K = K**2 / (maxK**2)
+                K = 10 * ( K - .8 * maxK )
                 # K /= 100.
                 # K = exp(K) / exp(60.264) * 80
             Kvalues.append ( K )
@@ -61,18 +75,32 @@ def getTruthModel():
         model = eval ( f.read() )
         return model
 
+# Function to darken colors
+def darken(color, amount=0.6):
+    """Return a darker shade of a given matplotlib color."""
+    import matplotlib.colors as mcolors
+    c = mcolors.to_rgb(color)
+    return tuple(max(0, min(1, i * amount)) for i in c)
+
 def plotClosure():
-    models = getAllPModels()
-    truth = getTruthModel()
-    x, y, K = getCoordinates ( models )
-    x_true, y_true, K_true = getCoordinates ( truth )
     from matplotlib import pyplot as plt
-    plt.scatter ( x, y, s = K )
-    plt.scatter ( x_true, y_true, s=80, marker="+", color="red" )
+    # models = getAllPModels()
+    models, maxK = getAllModels()
+    truth = getTruthModel()
+    x_true, y_true, K_true = getCoordinates ( truth, maxK )
+    splitm = splitByDictFile ( models )
+    colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
+    for i,(df,models) in enumerate(splitm.items()):
+        x, y, K = getCoordinates ( models, maxK )
+        plt.scatter ( x, y, s = K, alpha=0.5, c = colors[i],
+                      label=df, edgecolors = darken(colors[i]) )
+    plt.scatter ( x_true, y_true, s=140, marker="+", color="black", 
+                  label="truth" )
+    plt.legend()
     filename = "closure.png"
-    plt.xlabel ( "mass, [Xt]" )
-    plt.ylabel ( "mass, [X1Z]" )
-    plt.title ( "closure test, stop injection " )
+    plt.xlabel ( "mass, Xt [GeV]" )
+    plt.ylabel ( "mass, X1Z [GeV]" )
+    plt.title ( "closure test, stop injection" )
     plt.savefig ( filename )
     from smodels_utils.plotting.mpkitty import timg
     timg ( filename )
