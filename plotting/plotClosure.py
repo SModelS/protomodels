@@ -5,12 +5,16 @@ import numpy as np
 from math import exp
 import os, glob
 
-def getAllModels( directory : os.PathLike = "../data/fake_stops1" ) -> list[dict]:
-    """ get all the model dictionaries """
-    dictfpattern = f"{directory}/dictfiles/pmodel_?.dict"
+def getAllModels( directory : os.PathLike = "../data/fake_stops1",
+       minF : float = .8 ) -> tuple[list[dict],float]:
+    """ get all the model dictionaries 
+    :param directory: directory to search for
+    :param minF: ignore all points with K < minF * maxK
+    """
+    dictfpattern = f"{directory}/dictfiles/pmodel_*.dict"
     dictfiles = glob.glob ( dictfpattern )
     all_models = []
-    for dictfile in dictfiles:
+    for dictfile in dictfiles[:10]:
         dfname = os.path.basename ( dictfile ) 
         dfname = dfname.replace("pmodel_","").replace(".dict","")
         with open ( dictfile, "rt" ) as f:
@@ -20,11 +24,11 @@ def getAllModels( directory : os.PathLike = "../data/fake_stops1" ) -> list[dict
                 if model["Accepted"]==0:
                     all_models.append ( model )
     maxK = max ( x["K"] for x in all_models )
-    filtered = [d for d in all_models if d["K"] > .8* maxK ]
+    filtered = [d for d in all_models if d["K"] > minF * maxK ]
     return filtered, maxK
 
 def getAllPModels( directory : os.PathLike = "../data/fake_stops1" ) -> \
-											  list[dict]:
+                                              list[dict]:
     """ get all the model dictionaries """
     dictfpattern = f"{directory}/Pmodels/pmodel*.dict"
     dictfiles = glob.glob ( dictfpattern )
@@ -45,8 +49,9 @@ def splitByDictFile ( models : list ):
         ret[df].append ( model )
     return ret
 
-def getCoordinates ( models : Union[list,dict], maxK : float ):
+def getCoordinates ( models : Union[list,dict], maxK : float, minF : float ):
     plot={ "x": 1000006, "y": 1000022, "type_x": "mass", "type_y": "mass" }
+    plot={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
     xvalues, yvalues, Kvalues = [], [], []
     xpid, ypid = plot["x"], plot["y"]
     if type(models) == dict:
@@ -64,13 +69,13 @@ def getCoordinates ( models : Union[list,dict], maxK : float ):
             else:
                 pass
                 # K = K**2 / (maxK**2)
-                K = 10 * ( K - .8 * maxK )
+                K = max ( 1, 10 * ( K - minF * maxK ) )
                 # K /= 100.
                 # K = exp(K) / exp(60.264) * 80
             Kvalues.append ( K )
     return xvalues, yvalues, Kvalues
 
-def getTruthModel( directory : os.PathLike = "../data/fake_stops1/" ):
+def getTruthModel( directory : os.PathLike ):
     truthfile = f"{directory}/truth.dict"
     with open ( truthfile, "rt" ) as f:
         model = eval ( f.read() )
@@ -85,14 +90,17 @@ def darken(color, amount=0.6):
 
 def plotClosure():
     from matplotlib import pyplot as plt
-    # models = getAllPModels()
-    models, maxK = getAllModels()
-    truth = getTruthModel()
-    x_true, y_true, K_true = getCoordinates ( truth, maxK )
+    path = "../data/fake_ewk1/"
+    # path = "../data/fake_stops1/"
+    # models = getAllPModels( path )
+    minF = .7
+    models, maxK = getAllModels( path, minF )
+    truth = getTruthModel( path )
+    x_true, y_true, K_true = getCoordinates ( truth, maxK, 0. )
     splitm = splitByDictFile ( models )
     colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
     for i,(df,models) in enumerate(splitm.items()):
-        x, y, K = getCoordinates ( models, maxK )
+        x, y, K = getCoordinates ( models, maxK, minF )
         plt.scatter ( x, y, s = K, alpha=0.5, c = colors[i],
                       label=df, edgecolors = darken(colors[i]) )
     plt.scatter ( x_true, y_true, s=140, marker="+", color="black", 
