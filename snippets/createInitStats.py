@@ -43,6 +43,11 @@ def createStatsForInit( dbpath : str = "official.pcl",
         print ( f"K={K} TL={TL}" )
         writeModel ( ret, outfile )
 
+def createRunDict():
+    """ create a simple, default run.dict file """
+    from base.runEnviron import RunEnviron
+    RunEnviron.create()
+
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(
@@ -50,10 +55,15 @@ if __name__ == "__main__":
     argparser.add_argument ( '-n', '--bestOfN',
             help='best of how many [5]',
             type=int, default=5 )
+    argparser.add_argument ( '-c', '--create_rundict',
+            help='create a default run.dict, then exit', action="store_true" )
     argparser.add_argument ( '-o', '--outfile',
             help='output file ["init@@N@@.stats"]',
             type=str, default="init@@N@@.stats" )
     args = argparser.parse_args()
+    if args.create_rundict:
+        createRunDict()
+        import sys; sys.exit()
     outfile = args.outfile.replace( "@@N@@", str(args.bestOfN) )
     import os
     dirname = os.path.dirname ( os.path.abspath ( __file__ ) )
