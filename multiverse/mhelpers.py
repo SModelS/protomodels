@@ -4,9 +4,11 @@
 """
 
 import os
+from typing import Union
 
 def createMyFile ( signal_model : str = "signal_model.dict",
-        dbpath : str = "./signal.pcl", outfile : str = "truth.dict",
+        dbpath : Union[None,os.PathLike] = "./signal.pcl", 
+        outfile : str = "truth.dict",
         interactive : bool = False ):
     if signal_model == "":
         print ( f"[predictForTruth] no signal model defined." )
@@ -21,11 +23,13 @@ def createMyFile ( signal_model : str = "signal_model.dict",
     from base.runEnviron import RunEnviron
     from ptools.helpers import formatObject
     from smodels.experiment.databaseObj import Database
+    environ = RunEnviron ( )
+    if dbpath == None:
+        dbpath = environ.dbpath
     print ( f"[predictForTruth] instantiate database {dbpath}" )
     db = Database ( dbpath )
     # protomodel = Protomodel()
     walkerid = "truth"
-    environ = RunEnviron ( )
     ma = Manipulator( signal_model, walkerid = "truth", environ = environ )
     ma.M.dbpath = dbpath
     print ( f"[predictForTruth] starting" )
