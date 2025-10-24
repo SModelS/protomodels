@@ -333,7 +333,7 @@ class Manipulator ( LoggerBase ):
     @classmethod
     def writeDictionaryToFile ( cls, filename : os.PathLike,
            obj : dict, appendMode : bool = False ) -> dict:
-        """ class method, write the dictionary d in a formatted manner to file
+        """ class method, write the dictionary obj in a formatted manner to file
         filename
 
         :param appendMode: if true, assume it is one of a list of dictionaries.
