@@ -493,7 +493,7 @@ class RefXSecComputer ( LoggerBase ):
                     comment += " Computed with PYTHIA"
                     os.unlink(pythia.pythiacard)
                     pythia.pythiacard = None
-                    self.warning (f'PYTHIA cross section: {xsec}')
+                    self.warning (f'PYTHIA cross section: {xsec*1000:.2f}*fb')
                 except Exception as e:
                     if pythia.pythiacard != None:
                         os.unlink(pythia.pythiacard)
