@@ -87,16 +87,18 @@ def darken(color, amount=0.6):
     c = mcolors.to_rgb(color)
     return tuple(max(0, min(1, i * amount)) for i in c)
 
-def plotClosure():
+def plotClosure( args : dict ):
+    """ closure plot
+
+    args (dict):
+        path (os.PathLike) - the path to all the data
+        minF (float) - the minimum fraction of K to plot a point
+    """
     from matplotlib import pyplot as plt
-    path = "../data/fake_ewk1/"
-    path = "../data/fake_ewkoff1/"
-    # path = "../data/fake_stops1/"
     # models = getAllPModels( path )
-    minF = .7
     print ( f"[plotClosure] obtaining data from {path}" )
-    models, maxK = getAllModels( path, minF )
-    truth = getTruthModel( path )
+    models, maxK = getAllModels( args["path"], args["minF"] )
+    truth = getTruthModel( args["path"] )
     coords={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
     sinjection = "ewkino"
     if 1000006 in truth["masses"]:
@@ -113,17 +115,23 @@ def plotClosure():
     plt.scatter ( x_true, y_true, s=140, marker="+", color="red", 
                   label="truth" )
     plt.legend()
-    filename = "closure.png"
     from ptools.sparticleNames import SParticleNames
     namer = SParticleNames()
+    filename = f"closure_{namer.asciiName(coords['x'])}.png"
     plt.xlabel ( f"mass, ${namer.texName(coords['x'])}$ [GeV]" )
-    plt.ylabel ( "mass, ${namer.texName(coords['y'])}$ [GeV]" )
+    plt.ylabel ( f"mass, ${namer.texName(coords['y'])}$ [GeV]" )
     plt.title ( f"closure test, {sinjection} injection" )
     plt.savefig ( filename )
     from smodels_utils.plotting.mpkitty import timg
     timg ( filename )
-    if True:
+    if args["interact"]:
         import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 if __name__ == "__main__":
-    plotClosure()
+    path = "../data/fake_ewk1/"
+    path = "../data/fake_ewkoff1/"
+    minF = .1
+    # path = "../data/fake_stops1/"
+    interact = False
+    args = { "path": path, "minF": minF, "interact": interact }
+    plotClosure( args )
