@@ -96,7 +96,7 @@ def plotClosure( args : dict ):
     """
     from matplotlib import pyplot as plt
     # models = getAllPModels( path )
-    print ( f"[plotClosure] obtaining data from {path}" )
+    print ( f"[plotClosure] obtaining data from {args['path']}" )
     models, maxK = getAllModels( args["path"], args["minF"] )
     truth = getTruthModel( args["path"] )
     coords={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
@@ -108,7 +108,7 @@ def plotClosure( args : dict ):
     splitm = splitByDictFile ( models )
     colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
     for i,(df,models) in enumerate(splitm.items()):
-        x, y, K = getCoordinates ( models, maxK, minF, coords )
+        x, y, K = getCoordinates ( models, maxK, args["minF"], coords )
         plt.scatter ( x, y, s = K, alpha=0.5, color = colors[i],
                       label=df, edgecolors = darken(colors[i]) )
     plt.scatter ( x_true, y_true, s=280, marker="+", color="white",linewidths=4 )
@@ -128,10 +128,20 @@ def plotClosure( args : dict ):
         import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 if __name__ == "__main__":
-    path = "../data/fake_ewk1/"
-    path = "../data/fake_ewkoff1/"
-    minF = .1
+    import argparse
+    argparser = argparse.ArgumentParser(description="plots closure tests")
+    argparser.add_argument ( '-p', '--path', 
+            help='path [../data/fake_stops1/]', type=str, 
+            default='../data/fake_stops1/' )
+    argparser.add_argument ( '-i', '--interact',
+            help='interactive shell', action="store_true" )
+    argparser.add_argument ( '-m', '--minF', 
+            help='minF [0.7]',
+            type=float, default=0.7 )
+    args=vars ( argparser.parse_args() )
+    #path = "../data/fake_ewk1/"
+    #path = "../data/fake_ewkoff1/"
+    #minF = .1
     # path = "../data/fake_stops1/"
-    interact = False
-    args = { "path": path, "minF": minF, "interact": interact }
+    # args = { "path": path, "minF": minF, "interact": interact }
     plotClosure( args )
