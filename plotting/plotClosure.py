@@ -49,11 +49,10 @@ def splitByDictFile ( models : list ):
         ret[df].append ( model )
     return ret
 
-def getCoordinates ( models : Union[list,dict], maxK : float, minF : float ):
-    plot={ "x": 1000006, "y": 1000022, "type_x": "mass", "type_y": "mass" }
-    plot={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
+def getCoordinates ( models : Union[list,dict], maxK : float, minF : float,
+       coords : dict ):
     xvalues, yvalues, Kvalues = [], [], []
-    xpid, ypid = plot["x"], plot["y"]
+    xpid, ypid = coords["x"], coords["y"]
     if type(models) == dict:
         if xpid in models["masses"] and ypid in models["masses"]:
             return models["masses"][xpid], models["masses"][ypid], models["K"]
@@ -91,28 +90,40 @@ def darken(color, amount=0.6):
 def plotClosure():
     from matplotlib import pyplot as plt
     path = "../data/fake_ewk1/"
+    path = "../data/fake_ewkoff1/"
     # path = "../data/fake_stops1/"
     # models = getAllPModels( path )
     minF = .7
+    print ( f"[plotClosure] obtaining data from {path}" )
     models, maxK = getAllModels( path, minF )
     truth = getTruthModel( path )
-    x_true, y_true, K_true = getCoordinates ( truth, maxK, 0. )
+    coords={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
+    sinjection = "ewkino"
+    if 1000006 in truth["masses"]:
+        coords[ "x" ] = 1000006
+        sinjection = "stop"
+    x_true, y_true, K_true = getCoordinates ( truth, maxK, 0., coords )
     splitm = splitByDictFile ( models )
     colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
     for i,(df,models) in enumerate(splitm.items()):
-        x, y, K = getCoordinates ( models, maxK, minF )
-        plt.scatter ( x, y, s = K, alpha=0.5, c = colors[i],
+        x, y, K = getCoordinates ( models, maxK, minF, coords )
+        plt.scatter ( x, y, s = K, alpha=0.5, color = colors[i],
                       label=df, edgecolors = darken(colors[i]) )
-    plt.scatter ( x_true, y_true, s=140, marker="+", color="black", 
+    plt.scatter ( x_true, y_true, s=280, marker="+", color="white",linewidths=4 )
+    plt.scatter ( x_true, y_true, s=140, marker="+", color="red", 
                   label="truth" )
     plt.legend()
     filename = "closure.png"
-    plt.xlabel ( "mass, Xt [GeV]" )
-    plt.ylabel ( "mass, X1Z [GeV]" )
-    plt.title ( "closure test, stop injection" )
+    from ptools.sparticleNames import SParticleNames
+    namer = SParticleNames()
+    plt.xlabel ( f"mass, ${namer.texName(coords['x'])}$ [GeV]" )
+    plt.ylabel ( "mass, ${namer.texName(coords['y'])}$ [GeV]" )
+    plt.title ( f"closure test, {sinjection} injection" )
     plt.savefig ( filename )
     from smodels_utils.plotting.mpkitty import timg
     timg ( filename )
+    if True:
+        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 if __name__ == "__main__":
     plotClosure()
