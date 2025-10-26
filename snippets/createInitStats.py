@@ -22,14 +22,25 @@ def writeModel( model : dict, outfile : str = "init5.stats" ):
         f.close()
     unlock ( outfile )
 
-def createStatsForInit( dbpath : str = "official.pcl", 
-        outfile : str = "init5.stats", bestOfN : int = 5 ):
+def createStatsForInit( args : dict ):
+    """ create the stats for the initialiser
+
+    args:
+        - dbpath (os.PathLike): path to database
+        - outfile (os.PathLike): write to this file
+        - bestOfN (int): best of how many attempts
+    """
+    dbpath = args["dbpath"]
+    outfile = args["outfile"]
+    bestOfN = args["bestOfN"]
+    outfile = outfile.replace( "@@N@@", str(bestOfN) )
+    dictfile = args["dictfile"]
     # dbpath = "official.pcl"
-    # from smodels.experimental.databaseObj import Database
+    #from smodels.experimental.databaseObj import Database
     # db = Database ( dbpath )
-    dbpath = "official"
+    # dbpath = "official"
     from walker.initialiser import Initialiser
-    dictfile = "signal_database.dict"
+    # dictfile = "signal_database.dict"
     from base.runEnviron import RunEnviron
     environ = RunEnviron()
     initialiser = Initialiser ( walkerid = "stats",
@@ -57,6 +68,12 @@ if __name__ == "__main__":
             type=int, default=5 )
     argparser.add_argument ( '-c', '--create_rundict',
             help='create a default run.dict, then exit', action="store_true" )
+    argparser.add_argument ( '-d', '--dbpath',
+            help='databasse path ["official"]',
+            type=str, default="official" )
+    argparser.add_argument ( '-D', '--dictfile',
+            help='path to database dict file ["signal_database.dict"]',
+            type=str, default="signal_database.dict" )
     argparser.add_argument ( '-o', '--outfile',
             help='output file ["init@@N@@.stats"]',
             type=str, default="init@@N@@.stats" )
@@ -64,8 +81,7 @@ if __name__ == "__main__":
     if args.create_rundict:
         createRunDict()
         import sys; sys.exit()
-    outfile = args.outfile.replace( "@@N@@", str(args.bestOfN) )
     import os
     dirname = os.path.dirname ( os.path.abspath ( __file__ ) )
     os.chdir ( dirname ) # got to protomodels/snippets
-    createStatsForInit( outfile = outfile, bestOfN = args.bestOfN )
+    createStatsForInit( vars(args) )
