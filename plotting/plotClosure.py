@@ -13,6 +13,8 @@ def getAllModels( directory : os.PathLike = "../data/fake_stops1",
     """
     dictfpattern = f"{directory}/dictfiles/pmodel_*.dict"
     dictfiles = glob.glob ( dictfpattern )
+    from natsort import natsorted
+    dictfiles = natsorted ( dictfiles )
     all_models = []
     for dictfile in dictfiles[:10]:
         dfname = os.path.basename ( dictfile ) 
@@ -110,11 +112,13 @@ def plotClosure( args : dict ):
     for i,(df,models) in enumerate(splitm.items()):
         x, y, K = getCoordinates ( models, maxK, args["minF"], coords )
         plt.scatter ( x, y, s = K, alpha=0.5, color = colors[i],
-                      label=df, edgecolors = darken(colors[i]) )
+                      label=f"walker #{df}", edgecolors = darken(colors[i]) )
     plt.scatter ( x_true, y_true, s=280, marker="+", color="white",linewidths=4 )
     plt.scatter ( x_true, y_true, s=140, marker="+", color="red", 
                   label="truth" )
-    plt.legend()
+    loc = "best"
+    loc = "lower right"
+    plt.legend( loc = loc )
     from ptools.sparticleNames import SParticleNames
     namer = SParticleNames()
     filename = f"closure_{namer.asciiName(coords['x'])}.png"
