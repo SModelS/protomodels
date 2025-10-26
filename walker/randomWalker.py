@@ -659,10 +659,10 @@ class RandomWalker ( LoggerBase ):
             if old_handler is signal.SIG_DFL:
                 # Default behavior for SIGINT is to raise KeyboardInterrupt,
                 # which usually exits with code 130.
-                print("Exiting gracefully...")
+                print("[randomWalker] Exiting gracefully after receiving {signum} ...")
                 sys.exit(130)
             elif old_handler is signal.SIG_IGN:
-                print("Old handler ignored SIGINT, continuing.")
+                print("[randomWalker] Old handler ignored SIGINT, continuing.")
             else:
                 # Call previous custom handler
                 old_handler(signum, frame)
