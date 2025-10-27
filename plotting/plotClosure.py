@@ -1,27 +1,37 @@
 #!/usr/bin/env python3
 
+""" the closure plots, see e.g. closure_Xt.png """
+
 from typing import Union
 import numpy as np
 from math import exp
 import os, glob
 
 def getAllModels( directory : os.PathLike = "../data/fake_stops1",
-       minF : float = .8 ) -> tuple[list[dict],float]:
+       minF : float = .8, maxfiles : Union[None,int] = None,
+       burnin : int = 0 ) -> tuple[list[dict],float]:
     """ get all the model dictionaries 
     :param directory: directory to search for
     :param minF: ignore all points with K < minF * maxK
+    :param maxfiles: if not none, the cap on the number of files
+    :param burnin: if not none, then throw away this number of burnin steps
     """
     dictfpattern = f"{directory}/dictfiles/pmodel_*.dict"
     dictfiles = glob.glob ( dictfpattern )
+    print ( f"[plotClosure] found {len(dictfiles)} files in {dictfpattern}" )
     from natsort import natsorted
     dictfiles = natsorted ( dictfiles )
     all_models = []
-    for dictfile in dictfiles[:10]:
+    if maxfiles != None:
+        dictfiles = dictfiles[:maxfiles]
+    for dictfile in dictfiles[:]:
         dfname = os.path.basename ( dictfile ) 
         dfname = dfname.replace("pmodel_","").replace(".dict","")
         with open ( dictfile, "rt" ) as f:
             models = eval ( f.read() )
-            for model in models[500:]:
+            if burnin != None:
+                models = models[burnin:]
+            for model in models:
                 model["dictfile"]=dfname
                 if model["Accepted"]==0:
                     all_models.append ( model )
@@ -78,6 +88,8 @@ def getCoordinates ( models : Union[list,dict], maxK : float, minF : float,
 
 def getTruthModel( directory : os.PathLike ):
     truthfile = f"{directory}/truth.dict"
+    if not os.path.exists ( truthfile ):
+        return None
     with open ( truthfile, "rt" ) as f:
         model = eval ( f.read() )
         return model
@@ -99,23 +111,27 @@ def plotClosure( args : dict ):
     from matplotlib import pyplot as plt
     # models = getAllPModels( path )
     print ( f"[plotClosure] obtaining data from {args['path']}" )
-    models, maxK = getAllModels( args["path"], args["minF"] )
+    models, maxK = getAllModels( args["path"], args["minF"], args["maxfiles"],
+            args["burnin"] )
     truth = getTruthModel( args["path"] )
     coords={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
     sinjection = "ewkino"
-    if 1000006 in truth["masses"]:
+    if truth is not None and 1000006 in truth["masses"]:
         coords[ "x" ] = 1000006
         sinjection = "stop"
-    x_true, y_true, K_true = getCoordinates ( truth, maxK, 0., coords )
+    if truth is not None:
+        x_true, y_true, K_true = getCoordinates ( truth, maxK, 0., coords )
     splitm = splitByDictFile ( models )
     colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
     for i,(df,models) in enumerate(splitm.items()):
         x, y, K = getCoordinates ( models, maxK, args["minF"], coords )
         plt.scatter ( x, y, s = K, alpha=0.5, color = colors[i],
                       label=f"walker #{df}", edgecolors = darken(colors[i]) )
-    plt.scatter ( x_true, y_true, s=280, marker="+", color="white",linewidths=4 )
-    plt.scatter ( x_true, y_true, s=140, marker="+", color="red", 
-                  label="truth" )
+    if truth is not None:
+        plt.scatter ( x_true, y_true, s=280, marker="+", color="white",
+            linewidths=4 )
+        plt.scatter ( x_true, y_true, s=140, marker="+", color="red", 
+            label="truth" )
     loc = "best"
     loc = "lower right"
     plt.legend( loc = loc )
@@ -142,6 +158,10 @@ if __name__ == "__main__":
     argparser.add_argument ( '-m', '--minF', 
             help='minF [0.7]',
             type=float, default=0.7 )
+    argparser.add_argument ( '--maxfiles', type=int,
+            help='maximum numbers of files [None]', default=None )
+    argparser.add_argument ( '--burnin', type=int,
+            help='throw away first n burnin steps [None]', default=0 )
     args=vars ( argparser.parse_args() )
     #path = "../data/fake_ewk1/"
     #path = "../data/fake_ewkoff1/"
