@@ -20,15 +20,20 @@ def reverse_readline(filename, buf_size=1024):
         if buffer:
             yield buffer.decode("utf-8")
 
-def showWalkerid ( walkerid ):
+def showWalkerid ( walkerid : int ) -> tuple:
     filename = f"logs/walker_{walkerid}.log"
+    nfin, ntot = 0, 0
     for line in reverse_readline( filename ):
         p1 = line.find ( "Step ")
         p2 = line.find ( "finished" )
         if p1>-1 and p2>-1:
-            print ( walkerid, line[p1+5:p2], "finished" )
+            token = line[p1+5:p2]
+            nfin_i, ntot_i = tuple(map(int,token.split("/")))
+            nfin +=  nfin_i
+            ntot += ntot_i
+            print ( f"#{walkerid:2d}: {nfin_i:5d}/{ntot_i:5d} finished" )
             break
-    return
+    return nfin, ntot
 
 def show():
     import glob
@@ -40,8 +45,13 @@ def show():
             walkerids.add ( int( walkerid) )
         except ValueError as e:
             pass
+    nfin, ntot = [], []
     for walkerid in walkerids:
-        showWalkerid ( walkerid )
+        nfin_i, ntot_i = showWalkerid ( walkerid )
+        nfin.append ( nfin_i )
+        ntot.append ( ntot_i )
+    perc = sum(nfin)/sum(ntot)*100.
+    print ( f"total: {sum(nfin)}/{sum(ntot)} ({perc:.1f}%)" )
 
 if __name__ == "__main__":
     show()
