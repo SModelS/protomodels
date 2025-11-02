@@ -17,6 +17,7 @@ def writeModel( model : dict, outfile : str = "init5.stats" ):
     models.append ( model )
     lock ( outfile )
     with open ( outfile, "wt" ) as f:
+        print ( f"[createInitStats] writing model to {outfile}" )
         ds = py_dumps ( models, indent=4 )
         f.write ( f"{ds}\n" )
         f.close()
