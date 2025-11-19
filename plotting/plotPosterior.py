@@ -12,7 +12,7 @@ def getAllModels( directory : os.PathLike = "../data/fake_stops1",
        burnin : int = 0 ) -> tuple[list[dict],float]:
     """ get all the model dictionaries 
     :param directory: directory to search for
-    :param minF: ignore all points with K < minF * maxK
+    :param minF: ignore all points with K < minF * minK
     :param maxfiles: if not none, the cap on the number of files
     :param burnin: if not none, then throw away this number of burnin steps
     """
@@ -35,10 +35,11 @@ def getAllModels( directory : os.PathLike = "../data/fake_stops1",
                 model["dictfile"]=dfname
                 if model["Accepted"]==0:
                     all_models.append ( model )
-    maxK = max ( x["K"] for x in all_models if x["K"] is not None )
-    print ( f"allmodels {len(all_models)}" )
-    filtered = all_models
-    return filtered, maxK
+    minK = min ( x["K"] for x in all_models )
+    print ( f"[plotPosterior] minK is {minK:.2f}" )
+    filtered = [d for d in all_models if d["K"] is not None and d["K"] > (1 + minF ) * minK ]
+    print ( f"[plotPosterior] filtered from {len(all_models)} to {len(filtered)}" )
+    return filtered, minK
 
 def getAllPModels( directory : os.PathLike = "../data/fake_stops1" ) -> \
                                               list[dict]:
@@ -62,30 +63,31 @@ def splitByDictFile ( models : list ):
         ret[df].append ( model )
     return ret
 
-def getCoordinates ( models : Union[list,dict], maxK : float, minF : float,
-       coords : dict ):
-    xvalues, yvalues, Kvalues = [], [], []
+def getCoordinates ( models : Union[list,dict], minK : float, minF : float,
+       coords : dict ) -> dict:
     xpid, ypid = coords["x"], coords["y"]
     if type(models) == dict:
         if xpid in models["masses"] and ypid in models["masses"]:
             return models["masses"][xpid], models["masses"][ypid], models["K"]
         return float("nan"), float("nan"), float("nan")
     print ( f"[plotPosterior] we have {len(models)} models" )
+    points = {}
     for model in models:
         if xpid in model["masses"] and ypid in model["masses"]:
-            xvalues.append ( model["masses"][ xpid ] )
-            yvalues.append ( model["masses"][ ypid ] )
-            K = model["K"]
-            if K == None:
-                K = float("nan")
-            else:
-                pass
-                # K = K**2 / (maxK**2)
-                K = max ( .1, 1 * ( K - minF * maxK ) )
-                # K /= 100.
-                # K = exp(K) / exp(60.264) * 80
-            Kvalues.append ( K )
-    return xvalues, yvalues, Kvalues
+            xv, yv =  model["masses"][ xpid ], model["masses"][ ypid ] 
+            K = model["K"] - minK
+            hashCode = 1e6*xv+yv
+            if not hashCode in points:
+                points[hashCode] = { "x": xv, "y": yv, "w": 0, "K": K } 
+            points[hashCode]["w"]+=1
+    xvalues, yvalues, Kvalues, weights = [], [], [], []
+    for hashC,point in points.items():
+        xv, yv =  point[ "x" ], point[ "y" ] 
+        xvalues.append ( xv )
+        yvalues.append ( yv )
+        weights.append ( point["w"] )
+        Kvalues.append ( point["K"] )
+    return { "x": xvalues, "y": yvalues, "w": weights, "K": Kvalues }
 
 def getTruthModel( directory : os.PathLike ):
     truthfile = f"{directory}/truth.dict"
@@ -112,7 +114,7 @@ def plotPosterior( args : dict ):
     from matplotlib import pyplot as plt
     # models = getAllPModels( path )
     print ( f"[plotPosterior] obtaining data from {args['path']}" )
-    models, maxK = getAllModels( args["path"], args["minF"], args["maxfiles"],
+    models, minK = getAllModels( args["path"], args["minF"], args["maxfiles"],
             args["burnin"] )
     truth = getTruthModel( args["path"] )
     coords={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
@@ -121,12 +123,63 @@ def plotPosterior( args : dict ):
         coords[ "x" ] = 1000006
         sinjection = "stop"
     if truth is not None:
-        x_true, y_true, K_true = getCoordinates ( truth, maxK, 0., coords )
+        true_coords = getCoordinates ( truth, minK, 0., coords )
     # splitm = splitByDictFile ( models )
     # colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
-    x, y, K = getCoordinates ( models, maxK, args["minF"], coords )
-    plt.scatter ( x, y, s = K, alpha=0.5, color = "green",
-                  edgecolors = "darkgreen" )
+    dcoords = getCoordinates ( models, minK, args["minF"], coords )
+    x,y,w = dcoords["x"], dcoords["y"], dcoords["w"]
+    plt.scatter ( x, y, s = np.sqrt(w), 
+            alpha=0.5, color = "green",
+            edgecolors = "darkgreen" )
+    from scipy.stats import gaussian_kde
+    # x, y are your 1D arrays of data points
+    # x, y = ...
+
+    # stack data for KDE
+    data = np.vstack([x, y])
+    kde = gaussian_kde(data,weights=w)
+
+    # create a grid for evaluating the KDE
+    xmin, xmax = min(x), max(x)
+    ymin, ymax = min(y), max(y)
+    xx, yy = np.meshgrid(
+        np.linspace(xmin, xmax, 300),
+        np.linspace(ymin, ymax, 300)
+    )
+
+    # evaluate KDE on grid
+    zz = kde(np.vstack([xx.ravel(), yy.ravel()])).reshape(xx.shape)
+
+    # compute contour levels for 67%, 95%, 100%
+    # sort the density values from high to low
+    z_sorted = np.sort(zz.ravel())[::-1]
+    cumulative = np.cumsum(z_sorted)
+    cumulative /= cumulative[-1]
+
+    def find_level(threshold):
+        """Returns the density value such that the enclosed probability is 'threshold'."""
+        return z_sorted[np.searchsorted(cumulative, threshold)]
+
+    # clevels= [ 0.99, 0.95, 0.67 ]
+    clevels= [ 0.99, 0.86, 0.39 ]
+
+    levels = [find_level(p) for p in clevels ]
+
+    # plot
+    # plt.figure(figsize=(7,6))
+    # plt.scatter(x, y, s=5, alpha=0.3)  # original points
+
+    cs = plt.contour(
+        xx, yy, zz,
+        levels=levels,
+        colors=['0.4', '0.2', '0.0'],
+        linewidths=2
+    )
+
+    plt.clabel(cs, inline=True, fontsize=12,
+        fmt={lvl: f"{p*100:.0f}%" for lvl, p in zip(levels, clevels )})
+
+    # plt.contour ( X, Y, Z )
     if truth is not None:
         plt.scatter ( x_true, y_true, s=280, marker="+", color="white",
             linewidths=4 )
@@ -134,7 +187,7 @@ def plotPosterior( args : dict ):
             label="truth" )
     loc = "best"
     loc = "lower right"
-    plt.legend( loc = loc )
+    # plt.legend( loc = loc )
     from ptools.sparticleNames import SParticleNames
     namer = SParticleNames()
     filename = f"posterior_{namer.asciiName(coords['x'])}.png"
@@ -156,12 +209,12 @@ if __name__ == "__main__":
     argparser.add_argument ( '-i', '--interact',
             help='interactive shell', action="store_true" )
     argparser.add_argument ( '-m', '--minF', 
-            help='minF [0.7]',
-            type=float, default=0.7 )
+            help='minF [0.1]',
+            type=float, default=0.1 )
     argparser.add_argument ( '--maxfiles', type=int,
             help='maximum numbers of files [None]', default=None )
     argparser.add_argument ( '--burnin', type=int,
-            help='throw away first n burnin steps [None]', default=0 )
+            help='throw away first n burnin steps [100]', default=100 )
     args=vars ( argparser.parse_args() )
     #path = "../data/fake_ewk1/"
     #path = "../data/fake_ewkoff1/"
