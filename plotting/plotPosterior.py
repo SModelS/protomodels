@@ -65,12 +65,23 @@ def splitByDictFile ( models : list ):
 
 def getCoordsFromModel ( model : dict, coords : dict ) -> dict:
     """ get the right coordinates from a single model """
-    xpid, ypid = coords["x"], coords["y"]
-    if xpid in model["masses"] and ypid in model["masses"]:
-        return { "x": model["masses"][xpid], "y": model["masses"][ypid], 
-                 "K": model["K"], "legit": True }
-    return { "x": float("nan"), "y": float("nan"), "K": float("nan"),
+    ret = { "x": float("nan"), "y": float("nan"), "K": float("nan"),
              "legit": False }
+    if "K" in model: ret["K"] = model["K"]
+    xpid, ypid = coords["x"], coords["y"]
+    if coords["type_x"]=="mass" and xpid in model["masses"]:
+        ret["x"] = model["masses"][xpid]
+    if coords["type_y"]=="mass" and ypid in model["masses"]:
+        ret["y"] = model["masses"][ypid]
+    if coords["type_x"]=="ssm":
+        if xpid in model["ssmultipliers"]:
+            ret["x"] = model["ssmultipliers"][xpid]
+    if coords["type_y"]=="ssm":
+        if ypid in model["ssmultipliers"]:
+            ret["y"] = model["ssmultipliers"][ypid]
+    if np.isfinite( ret["x"] ) and np.isfinite ( ret["y"] ):
+        ret["legit"]=True
+    return ret
 
 def getCoordinates ( models : Union[list,dict], minK : float, minF : float,
        coords : dict ) -> dict:
@@ -239,10 +250,14 @@ def plotPosterior( args : dict ):
     from ptools.sparticleNames import SParticleNames
     namer = SParticleNames()
     filename = args["outfile"]
-    filename = filename.replace( "@@X@@", namer.asciiName(coords['x']) )
-    filename = filename.replace( "@@Y@@", namer.asciiName(coords['y']) )
-    plt.xlabel ( f"mass, ${namer.texName(coords['x'])}$ [GeV]" )
-    plt.ylabel ( f"mass, ${namer.texName(coords['y'])}$ [GeV]" )
+    xname = namer.asciiName(coords['x'])
+    xname = xname.replace(" ","").replace("~","m").replace(",","")
+    yname = namer.asciiName(coords['y'])
+    yname = yname.replace(" ","").replace("~","m").replace(",","")
+    filename = filename.replace( "@@X@@", xname )
+    filename = filename.replace( "@@Y@@", yname )
+    plt.xlabel ( f"{coords['type_x']}, ${namer.texName(coords['x'])}$ [GeV]" )
+    plt.ylabel ( f"{coords['type_y']}, ${namer.texName(coords['y'])}$ [GeV]" )
     plt.title ( f"a posteriori distribution" )
     print ( f"[plotPosterior] saving to {filename}" )
     plt.savefig ( filename )
