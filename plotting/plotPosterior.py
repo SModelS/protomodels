@@ -117,6 +117,11 @@ def getTruthModel( directory : os.PathLike ):
         model = eval ( f.read() )
         return model
 
+def getExeCall():
+    import sys
+    call = ' '.join ( sys.argv )
+    return call
+
 # Function to darken colors
 def darken(color, amount=0.6):
     """Return a darker shade of a given matplotlib color."""
@@ -174,9 +179,22 @@ def plotPosterior( args : dict ):
     # colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
     dcoords = getCoordinates ( models, minK, args["minF"], coords )
     x,y,w = dcoords["x"], dcoords["y"], dcoords["w"]
-    plt.scatter ( x, y, s = np.sqrt(w),
+    plt.scatter ( x, y, s = .5*np.sqrt(w),
             alpha=0.5, color = "green",
             edgecolors = "darkgreen" )
+    # create a grid for evaluating the KDE
+    xmin, xmax = min(x), max(x)
+    ymin, ymax = min(y), max(y)
+    x1 = np.linspace(xmin, xmax, 300)
+    y1 = np.linspace(ymin, ymax, 300)
+    if coords["type_x"]=="ssm":
+        plt.xscale("log")
+        #xmin = max ( .01, xmin )
+        x1 = np.logspace(np.log10(xmin), np.log10(xmax), 300)
+    if coords["type_y"]=="ssm":
+        plt.yscale("log")
+        #ymin = max ( .01, ymin )
+        y1 = np.logspace(np.log10(ymin), np.log10(ymax), 300)
     from scipy.stats import gaussian_kde
     # x, y are your 1D arrays of data points
     # x, y = ...
@@ -185,13 +203,7 @@ def plotPosterior( args : dict ):
     data = np.vstack([x, y])
     kde = gaussian_kde(data,weights=w)
 
-    # create a grid for evaluating the KDE
-    xmin, xmax = min(x), max(x)
-    ymin, ymax = min(y), max(y)
-    xx, yy = np.meshgrid(
-        np.linspace(xmin, xmax, 300),
-        np.linspace(ymin, ymax, 300)
-    )
+    xx, yy = np.meshgrid( x1, y1 )
 
     # evaluate KDE on grid
     zz = kde(np.vstack([xx.ravel(), yy.ravel()])).reshape(xx.shape)
@@ -256,13 +268,14 @@ def plotPosterior( args : dict ):
     yname = yname.replace(" ","").replace("~","m").replace(",","")
     filename = filename.replace( "@@X@@", xname )
     filename = filename.replace( "@@Y@@", yname )
-    if coords["type_y"]=="ssm":
-        plt.yscale("log")
     plt.xlabel ( f"{coords['type_x']}, ${namer.texName(coords['x'])}$ [GeV]" )
     plt.ylabel ( f"{coords['type_y']}, ${namer.texName(coords['y'])}$ [GeV]" )
     plt.title ( f"a posteriori distribution" )
     print ( f"[plotPosterior] saving to {filename}" )
-    plt.savefig ( filename )
+    from smodels_utils.helper.various import getCommandLine
+    call = getCommandLine()
+    metadata = { "Comment": call, "Commandline": call }
+    plt.savefig ( filename, metadata= metadata )
     from smodels_utils.plotting.mpkitty import timg
     timg ( filename )
     if args["interact"]:
