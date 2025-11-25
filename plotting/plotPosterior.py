@@ -128,6 +128,8 @@ def plotPosterior( args : dict ):
         path (os.PathLike) - the path to all the data
         minF (float) - the minimum fraction of K to plot a point
     """
+    dirname = os.path.abspath ( os.path.dirname(__file__) + "/../" )
+    args["path"]=args["path"].replace("__file__", dirname )
     from matplotlib import pyplot as plt
     # models = getAllPModels( path )
     print ( f"[plotPosterior] obtaining data from {args['path']}" )
@@ -219,10 +221,13 @@ def plotPosterior( args : dict ):
     # plt.legend( loc = loc )
     from ptools.sparticleNames import SParticleNames
     namer = SParticleNames()
-    filename = f"posterior_{namer.asciiName(coords['x'])}.png"
+    filename = args["outfile"]
+    filename = filename.replace( "@@X@@", namer.asciiName(coords['x']) )
+    filename = filename.replace( "@@Y@@", namer.asciiName(coords['y']) )
     plt.xlabel ( f"mass, ${namer.texName(coords['x'])}$ [GeV]" )
     plt.ylabel ( f"mass, ${namer.texName(coords['y'])}$ [GeV]" )
     plt.title ( f"a posteriori distribution" )
+    print ( f"[plotPosterior] saving to {filename}" )
     plt.savefig ( filename )
     from smodels_utils.plotting.mpkitty import timg
     timg ( filename )
@@ -234,7 +239,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description="plots closure tests")
     argparser.add_argument ( '-p', '--path',
             help='path [../data/rundir4/]', type=str,
-            default='../data/rundir4/' )
+            default='__file__/data/rundir4/' )
     argparser.add_argument ( '-i', '--interact',
             help='interactive shell', action="store_true" )
     argparser.add_argument ( '-m', '--minF',
@@ -246,6 +251,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-y', '--ycoordinate',
             help='what to plot on the y axis, e.g. "SSM10000061000006". None is automatic [None]',
             type=str, default=None )
+    argparser.add_argument ( '-o', '--outfile',
+            help='Name of output file, replacing @@X@@ and @@Y@@ [posterior_@@X@@_@@Y@@.png]',
+            type=str, default="posterior_@@X@@_@@Y@@.png" )
     argparser.add_argument ( '--maxfiles', type=int,
             help='maximum numbers of files [None]', default=None )
     argparser.add_argument ( '--burnin', type=int,
