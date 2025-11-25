@@ -63,19 +63,28 @@ def splitByDictFile ( models : list ):
         ret[df].append ( model )
     return ret
 
+def getCoordsFromModel ( model : dict, coords : dict ) -> dict:
+    """ get the right coordinates from a single model """
+    xpid, ypid = coords["x"], coords["y"]
+    if xpid in model["masses"] and ypid in model["masses"]:
+        return { "x": model["masses"][xpid], "y": model["masses"][ypid], 
+                 "K": model["K"], "legit": True }
+    return { "x": float("nan"), "y": float("nan"), "K": float("nan"),
+             "legit": False }
+
 def getCoordinates ( models : Union[list,dict], minK : float, minF : float,
        coords : dict ) -> dict:
-    xpid, ypid = coords["x"], coords["y"]
     if type(models) == dict:
-        if xpid in models["masses"] and ypid in models["masses"]:
-            return models["masses"][xpid], models["masses"][ypid], models["K"]
-        return float("nan"), float("nan"), float("nan")
+        mcoords = getCoordsFromModel ( models, coords )
+        return { "x": [ mcoords["x"] ], "y": [ mcoords["y"] ], 
+                 "K": [ mcoords["K"] ], "w": 1 }
     print ( f"[plotPosterior] we have {len(models)} models" )
     points = {}
     for model in models:
-        if xpid in model["masses"] and ypid in model["masses"]:
-            xv, yv =  model["masses"][ xpid ], model["masses"][ ypid ]
-            K = model["K"] - minK
+        mcoords = getCoordsFromModel ( model, coords )
+        if mcoords["legit"]==True:
+            xv, yv =  mcoords[ "x" ], mcoords[ "y" ]
+            K = mcoords["K"] - minK
             hashCode = 1e6*xv+yv
             if not hashCode in points:
                 points[hashCode] = { "x": xv, "y": yv, "w": 0, "K": K }
@@ -114,11 +123,19 @@ def getPlottingCoords ( args, truth ):
         if xc.startswith ( "M" ):
             coords["x"]=int(xc[1:])
             coords["type_x"]="mass"
+        if xc.startswith ( "S" ):
+            xc = xc.lower().replace("ssms","").replace("ssm","").replace("s","")
+            coords["x"]=eval(xc)
+            coords["type_x"]="ssm"
     if "ycoordinate" in args and args["ycoordinate"] is not None:
         yc = args["ycoordinate"]
         if yc.startswith ( "M" ):
             coords["y"]=int(yc[1:])
             coords["type_y"]="mass"
+        if yc.startswith ( "S" ):
+            yc = yc.lower().replace("ssms","").replace("ssm","").replace("s","")
+            coords["y"]=eval(yc)
+            coords["type_y"]="ssm"
     return coords
 
 def plotPosterior( args : dict ):
