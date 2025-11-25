@@ -87,7 +87,7 @@ def getCoordinates ( models : Union[list,dict], minK : float, minF : float,
        coords : dict ) -> dict:
     if type(models) == dict:
         mcoords = getCoordsFromModel ( models, coords )
-        return { "x": [ mcoords["x"] ], "y": [ mcoords["y"] ], 
+        return { "x": [ mcoords["x"] ], "y": [ mcoords["y"] ],
                  "K": [ mcoords["K"] ], "w": 1 }
     print ( f"[plotPosterior] we have {len(models)} models" )
     points = {}
@@ -225,11 +225,11 @@ def plotPosterior( args : dict ):
     cs = plt.contour(
         xx, yy, zz,
         levels=levels,
-        colors=['0.4', '0.2', '0.0'],
+        colors=['0.3', '0.15', '0.0'],
         linewidths=2
     )
 
-    labels = plt.clabel(cs, inline=True, fontsize=12,
+    labels = plt.clabel(cs, inline=True, fontsize=13,
         fmt={lvl: f"{p*100:.0f}%" for lvl, p in zip(levels, clevels )})
 
     for txt in labels:
@@ -256,6 +256,8 @@ def plotPosterior( args : dict ):
     yname = yname.replace(" ","").replace("~","m").replace(",","")
     filename = filename.replace( "@@X@@", xname )
     filename = filename.replace( "@@Y@@", yname )
+    if coords["type_y"]=="ssm":
+        plt.yscale("log")
     plt.xlabel ( f"{coords['type_x']}, ${namer.texName(coords['x'])}$ [GeV]" )
     plt.ylabel ( f"{coords['type_y']}, ${namer.texName(coords['y'])}$ [GeV]" )
     plt.title ( f"a posteriori distribution" )
