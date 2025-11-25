@@ -10,7 +10,7 @@ import os, glob
 def getAllModels( directory : os.PathLike = "../data/fake_stops1",
        minF : float = .8, maxfiles : Union[None,int] = None,
        burnin : int = 0 ) -> tuple[list[dict],float]:
-    """ get all the model dictionaries 
+    """ get all the model dictionaries
     :param directory: directory to search for
     :param minF: ignore all points with K < minF * minK
     :param maxfiles: if not none, the cap on the number of files
@@ -25,7 +25,7 @@ def getAllModels( directory : os.PathLike = "../data/fake_stops1",
     if maxfiles != None:
         dictfiles = dictfiles[:maxfiles]
     for dictfile in dictfiles[:]:
-        dfname = os.path.basename ( dictfile ) 
+        dfname = os.path.basename ( dictfile )
         dfname = dfname.replace("pmodel_","").replace(".dict","")
         with open ( dictfile, "rt" ) as f:
             models = eval ( f.read() )
@@ -74,15 +74,15 @@ def getCoordinates ( models : Union[list,dict], minK : float, minF : float,
     points = {}
     for model in models:
         if xpid in model["masses"] and ypid in model["masses"]:
-            xv, yv =  model["masses"][ xpid ], model["masses"][ ypid ] 
+            xv, yv =  model["masses"][ xpid ], model["masses"][ ypid ]
             K = model["K"] - minK
             hashCode = 1e6*xv+yv
             if not hashCode in points:
-                points[hashCode] = { "x": xv, "y": yv, "w": 0, "K": K } 
+                points[hashCode] = { "x": xv, "y": yv, "w": 0, "K": K }
             points[hashCode]["w"]+=1
     xvalues, yvalues, Kvalues, weights = [], [], [], []
     for hashC,point in points.items():
-        xv, yv =  point[ "x" ], point[ "y" ] 
+        xv, yv =  point[ "x" ], point[ "y" ]
         xvalues.append ( xv )
         yvalues.append ( yv )
         weights.append ( point["w"] )
@@ -144,7 +144,7 @@ def plotPosterior( args : dict ):
     # colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
     dcoords = getCoordinates ( models, minK, args["minF"], coords )
     x,y,w = dcoords["x"], dcoords["y"], dcoords["w"]
-    plt.scatter ( x, y, s = np.sqrt(w), 
+    plt.scatter ( x, y, s = np.sqrt(w),
             alpha=0.5, color = "green",
             edgecolors = "darkgreen" )
     from scipy.stats import gaussian_kde
@@ -177,7 +177,14 @@ def plotPosterior( args : dict ):
         return z_sorted[np.searchsorted(cumulative, threshold)]
 
     # clevels= [ 0.99, 0.95, 0.67 ]
-    clevels= [ 0.99, 0.86, 0.39 ]
+    # clevels= [ 0.99, 0.86, 0.39 ]
+    # .5 sigma 0.1175030974
+    # 1 sigma 0.3934693403
+    # 2 sigma 0.8646647168
+    # 3 sigma 0.9888910035
+    # 4 sigma 0.9996645374
+    clevels= [ 0.9888910035, 0.8646647168, 0.3934693403 ]
+    clevels= [ 0.95, 0.8646647168, 0.3934693403 ]
 
     levels = [find_level(p) for p in clevels ]
 
@@ -192,14 +199,20 @@ def plotPosterior( args : dict ):
         linewidths=2
     )
 
-    plt.clabel(cs, inline=True, fontsize=12,
+    labels = plt.clabel(cs, inline=True, fontsize=12,
         fmt={lvl: f"{p*100:.0f}%" for lvl, p in zip(levels, clevels )})
+
+    for txt in labels:
+        txt.set_fontweight('bold')
+
+    ## change the xrange
+    # plt.xlim ( 300, 2300 )
 
     # plt.contour ( X, Y, Z )
     if truth is not None:
         plt.scatter ( x_true, y_true, s=280, marker="+", color="white",
             linewidths=4 )
-        plt.scatter ( x_true, y_true, s=140, marker="+", color="red", 
+        plt.scatter ( x_true, y_true, s=140, marker="+", color="red",
             label="truth" )
     loc = "best"
     loc = "lower right"
@@ -219,18 +232,18 @@ def plotPosterior( args : dict ):
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(description="plots closure tests")
-    argparser.add_argument ( '-p', '--path', 
-            help='path [../data/rundir4/]', type=str, 
+    argparser.add_argument ( '-p', '--path',
+            help='path [../data/rundir4/]', type=str,
             default='../data/rundir4/' )
     argparser.add_argument ( '-i', '--interact',
             help='interactive shell', action="store_true" )
-    argparser.add_argument ( '-m', '--minF', 
+    argparser.add_argument ( '-m', '--minF',
             help='minF [0.1]',
             type=float, default=0.1 )
-    argparser.add_argument ( '-x', '--xcoordinate', 
+    argparser.add_argument ( '-x', '--xcoordinate',
             help='what to plot on the x axis, e.g. "M1000006". None is automatic. [None]',
             type=str, default=None )
-    argparser.add_argument ( '-y', '--ycoordinate', 
+    argparser.add_argument ( '-y', '--ycoordinate',
             help='what to plot on the y axis, e.g. "SSM10000061000006". None is automatic [None]',
             type=str, default=None )
     argparser.add_argument ( '--maxfiles', type=int,
