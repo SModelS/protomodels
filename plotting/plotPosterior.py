@@ -104,6 +104,23 @@ def darken(color, amount=0.6):
     c = mcolors.to_rgb(color)
     return tuple(max(0, min(1, i * amount)) for i in c)
 
+def getPlottingCoords ( args, truth ):
+    """ determine what gets plotted on what axis """
+    coords={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
+    if truth is not None and 1000006 in truth["masses"]:
+        coords[ "x" ] = 1000006
+    if "xcoordinate" in args and args["xcoordinate"] is not None:
+        xc = args["xcoordinate"]
+        if xc.startswith ( "M" ):
+            coords["x"]=int(xc[1:])
+            coords["type_x"]="mass"
+    if "ycoordinate" in args and args["ycoordinate"] is not None:
+        yc = args["ycoordinate"]
+        if yc.startswith ( "M" ):
+            coords["y"]=int(yc[1:])
+            coords["type_y"]="mass"
+    return coords
+
 def plotPosterior( args : dict ):
     """ closure plot
 
@@ -117,10 +134,9 @@ def plotPosterior( args : dict ):
     models, minK = getAllModels( args["path"], args["minF"], args["maxfiles"],
             args["burnin"] )
     truth = getTruthModel( args["path"] )
-    coords={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
+    coords = getPlottingCoords ( args, truth )
     sinjection = "ewkino"
-    if truth is not None and 1000006 in truth["masses"]:
-        coords[ "x" ] = 1000006
+    if coords["x"] == 1000006:
         sinjection = "stop"
     if truth is not None:
         true_coords = getCoordinates ( truth, minK, 0., coords )
@@ -211,6 +227,12 @@ if __name__ == "__main__":
     argparser.add_argument ( '-m', '--minF', 
             help='minF [0.1]',
             type=float, default=0.1 )
+    argparser.add_argument ( '-x', '--xcoordinate', 
+            help='what to plot on the x axis, e.g. "M1000006". None is automatic. [None]',
+            type=str, default=None )
+    argparser.add_argument ( '-y', '--ycoordinate', 
+            help='what to plot on the y axis, e.g. "SSM10000061000006". None is automatic [None]',
+            type=str, default=None )
     argparser.add_argument ( '--maxfiles', type=int,
             help='maximum numbers of files [None]', default=None )
     argparser.add_argument ( '--burnin', type=int,
