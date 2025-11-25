@@ -237,8 +237,10 @@ def plot():
     # plt.legend(loc=(0.8,0.85),framealpha=1.0,ncol=3,labelspacing=0.1,
     #            handlelength=0.4,handletextpad=0.35,markerscale=0.8,columnspacing=1.0)
     # plt.tight_layout()
-    plt.savefig( f'highScoreSignal_{args.signalfiles}.pdf')
-    plt.savefig( f'highScoreSignal_{args.signalfiles}.png')
+    from smodels_utils.helper.various import pngMetaInfo
+    metadata = pngMetaInfo()
+    plt.savefig( f'highScoreSignal_{args.signalfiles}.pdf', metadata = metadata )
+    plt.savefig( f'highScoreSignal_{args.signalfiles}.png', metadata = metadata )
     print ( f"saving to highScoreSignal_{args.signalfiles}.png highScoreSignal_{args.signalfiles}.pdf" )
     # plt.show()
 

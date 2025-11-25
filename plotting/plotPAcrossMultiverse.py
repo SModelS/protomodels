@@ -57,7 +57,9 @@ def plotPValues( info, anas, outfile, nbins : int ):
     # title += f" [{info['nuniverses']} universes]" 
     plt.title ( title )
     plt.text ( -.1, -.1, f"{nuniverses} universes", transform=ax.transAxes )
-    plt.savefig ( outfile )
+    from smodels_utils.helper.various import pngMetaInfo
+    metadata = pngMetaInfo()
+    plt.savefig ( outfile, metadata = metadata )
     from helpers.various import viewImage
     viewImage ( outfile )
     # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()

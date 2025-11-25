@@ -356,7 +356,11 @@ def draw( args : dict ):
         ## fewer than 5 results? make it very small!
         dpi = 15
     # plt.tight_layout( )
-    plt.savefig ( outputfile, dpi=dpi, bbox_inches="tight" )
+    from smodels_utils.helper.various import pngMetaInfo
+    metadata = pngMetaInfo()
+    from installation import version as protomodels_version
+    metadata["protomodels"] = protomodels_version()
+    plt.savefig ( outputfile, dpi=dpi, bbox_inches="tight", metadata = metadata )
     if "trim" in args and args["trim"]:
         cmd = f"convert {outputfile} -trim trimmed.{outputfile}"
         subprocess.getoutput ( cmd )

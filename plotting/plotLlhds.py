@@ -783,7 +783,9 @@ class LlhdPlot ( LoggerBase ):
         syv = moreHelpers.shortYVarName( self.yvariable )
         figname = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}{syv}.png"
         self.pprint ( f"saving to {figname}" )
-        plt.savefig ( figname )
+        from smodels_utils.helper.various import pngMetaInfo
+        metadata = pngMetaInfo()
+        plt.savefig ( figname, metadata = metadata )
         if self.interactive:
             self.axes = ax
             self.plt = plt

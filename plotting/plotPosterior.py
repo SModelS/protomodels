@@ -272,9 +272,10 @@ def plotPosterior( args : dict ):
     plt.ylabel ( f"{coords['type_y']}, ${namer.texName(coords['y'])}$ [GeV]" )
     plt.title ( f"a posteriori distribution" )
     print ( f"[plotPosterior] saving to {filename}" )
-    from smodels_utils.helper.various import getCommandLine
-    call = getCommandLine()
-    metadata = { "Comment": call, "Commandline": call }
+    from smodels_utils.helper.various import pngMetaInfo
+    metadata = pngMetaInfo()
+    from installation import version as protomodels_version
+    metadata["protomodels"] = protomodels_version()
     plt.savefig ( filename, metadata= metadata )
     from smodels_utils.plotting.mpkitty import timg
     timg ( filename )

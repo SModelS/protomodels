@@ -10,7 +10,7 @@ import os, glob
 def getAllModels( directory : os.PathLike = "../data/fake_stops1",
        minF : float = .8, maxfiles : Union[None,int] = None,
        burnin : int = 0 ) -> tuple[list[dict],float]:
-    """ get all the model dictionaries 
+    """ get all the model dictionaries
     :param directory: directory to search for
     :param minF: ignore all points with K < minF * maxK
     :param maxfiles: if not none, the cap on the number of files
@@ -25,7 +25,7 @@ def getAllModels( directory : os.PathLike = "../data/fake_stops1",
     if maxfiles != None:
         dictfiles = dictfiles[:maxfiles]
     for dictfile in dictfiles[:]:
-        dfname = os.path.basename ( dictfile ) 
+        dfname = os.path.basename ( dictfile )
         dfname = dfname.replace("pmodel_","").replace(".dict","")
         with open ( dictfile, "rt" ) as f:
             models = eval ( f.read() )
@@ -130,7 +130,7 @@ def plotClosure( args : dict ):
     if truth is not None:
         plt.scatter ( x_true, y_true, s=280, marker="+", color="white",
             linewidths=4 )
-        plt.scatter ( x_true, y_true, s=140, marker="+", color="red", 
+        plt.scatter ( x_true, y_true, s=140, marker="+", color="red",
             label="truth" )
     loc = "best"
     loc = "lower right"
@@ -141,7 +141,11 @@ def plotClosure( args : dict ):
     plt.xlabel ( f"mass, ${namer.texName(coords['x'])}$ [GeV]" )
     plt.ylabel ( f"mass, ${namer.texName(coords['y'])}$ [GeV]" )
     plt.title ( f"closure test, {sinjection} injection" )
-    plt.savefig ( filename )
+    from smodels_utils.helper.various import pngMetaInfo
+    metadata = pngMetaInfo()
+    from installation import version as protomodels_version
+    metadata["protomodels"] = protomodels_version()
+    plt.savefig ( filename, metadata= metadata )
     from smodels_utils.plotting.mpkitty import timg
     timg ( filename )
     if args["interact"]:
@@ -150,12 +154,12 @@ def plotClosure( args : dict ):
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(description="plots closure tests")
-    argparser.add_argument ( '-p', '--path', 
-            help='path [../data/fake_stops1/]', type=str, 
+    argparser.add_argument ( '-p', '--path',
+            help='path [../data/fake_stops1/]', type=str,
             default='../data/fake_stops1/' )
     argparser.add_argument ( '-i', '--interact',
             help='interactive shell', action="store_true" )
-    argparser.add_argument ( '-m', '--minF', 
+    argparser.add_argument ( '-m', '--minF',
             help='minF [0.7]',
             type=float, default=0.7 )
     argparser.add_argument ( '--maxfiles', type=int,

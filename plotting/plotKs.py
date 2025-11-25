@@ -114,7 +114,9 @@ def plot( opts: dict ):
     plt.xlabel ( "$K$" )
     plt.legend ()
     print ( f"[plotKs] saving to {outputfile}." )
-    plt.savefig ( outputfile )
+    from smodels_utils.helper.various import pngMetaInfo
+    metadata = pngMetaInfo()
+    plt.savefig ( outputfile, metadata = metadata )
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser( description="plot the money plots" )

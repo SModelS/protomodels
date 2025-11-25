@@ -17,7 +17,9 @@ def version( return_tuple : bool = False) -> Union[str,Tuple]:
     :param return_tuple: Return a tuple of (major,minor,patch,...) instead of string
     :returns: version, either as string or as tuple
     """
-    f = open("version" )
+    import os
+    path = f"{os.path.abspath(os.path.dirname(__file__))}/version"
+    f = open( path )
     l = f.readline()
     f.close()
     l = l.replace("\n", "")

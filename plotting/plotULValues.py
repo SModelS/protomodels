@@ -76,7 +76,9 @@ def plotS ( allSs ):
     plt.text(xmax+(xmax-xmin)*0.032,.1,time.asctime(),c="grey", rotation=90 )
     plt.plot ( [ 0., 0. ], [ 0, mr0 ], linestyle="-." )
     plt.xlabel ( "significance Z" )
-    plt.savefig ( "ulSs.png") 
+    from smodels_utils.helper.various import pngMetaInfo
+    metadata = pngMetaInfo()
+    plt.savefig ( "ulSs.png", metadata = metadata ) 
 
 def plotP ( ps ):
     from matplotlib import pyplot as plt
