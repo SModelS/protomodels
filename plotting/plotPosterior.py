@@ -184,13 +184,16 @@ def plotPosterior( args : dict ):
     dcoords = getCoordinates ( models, minK, args["minF"], coords )
     x,y,w = dcoords["x"], dcoords["y"], dcoords["w"]
     plt.scatter ( x, y, s = 6.*np.sqrt(w),
-            alpha=0.2, color = "green",
-            edgecolors = "darkgreen" )
+            alpha=0.1, color = "green",
+            edgecolors = "#002b00" )
     # create a grid for evaluating the KDE
     xmin, xmax = min(x), max(x)
     ymin, ymax = min(y), max(y)
     x1 = np.linspace(xmin, xmax, 300)
     y1 = np.linspace(ymin, ymax, 300)
+    from scipy.stats import gaussian_kde
+    # stack data for KDE
+
     if coords["type_x"]=="ssm":
         plt.xscale("log")
         #xmin = max ( .01, xmin )
@@ -199,13 +202,11 @@ def plotPosterior( args : dict ):
         plt.yscale("log")
         #ymin = max ( .01, ymin )
         y1 = np.logspace(np.log10(ymin), np.log10(ymax), 300)
-    from scipy.stats import gaussian_kde
-    # stack data for KDE
     data = np.vstack([x, y])
     kde = gaussian_kde(data,weights=w)
     xx, yy = np.meshgrid( x1, y1 )
     # evaluate KDE on grid
-    zz = kde(np.vstack([xx.ravel(), yy.ravel()])).reshape(xx.shape)
+    grid = np.vstack([xx.ravel(), yy.ravel()])
 
     if coords["type_y"]=="ssm" and coords["type_x"]=="ssm":
         logx = np.log(x)
@@ -216,8 +217,9 @@ def plotPosterior( args : dict ):
         # Log-transformed grid for KDE evaluation
         logxx = np.log(xx)
         logyy = np.log(yy)
-        grid_log = np.vstack([logxx.ravel(), logyy.ravel()])
-        zz = kde(grid_log).reshape(xx.shape)
+        grid = np.vstack([logxx.ravel(), logyy.ravel()])
+
+    zz = kde(grid).reshape(xx.shape)
 
     # compute contour levels for 67%, 95%, 100%
     # sort the density values from high to low
