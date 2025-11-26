@@ -83,6 +83,12 @@ def getCoordsFromModel ( model : dict, coords : dict ) -> dict:
     if coords["type_y"]=="ssm":
         if ypid in model["ssmultipliers"]:
             ret["y"] = model["ssmultipliers"][ypid]
+    if coords["type_x"]=="br":
+        if xpid[0] in model["decays"] and xpid[1:] in model["decays"][xpid[0]]:
+            ret["x"] = model["decays"][xpid[0]][xpid[1:]]
+    if coords["type_y"]=="br":
+        if ypid[0] in model["decays"] and ypid[1:] in model["decays"][ypid[0]]:
+            ret["y"] = model["decays"][ypid[0]][ypid[1:]]
     if np.isfinite( ret["x"] ) and np.isfinite ( ret["y"] ):
         ret["legit"]=True
     return ret
@@ -143,19 +149,27 @@ def getPlottingCoords ( args, truth ):
         if xc.startswith ( "M" ):
             coords["x"]=int(xc[1:])
             coords["type_x"]="mass"
-        if xc.startswith ( "S" ):
+        if xc.lower().startswith ( "s" ):
             xc = xc.lower().replace("ssms","").replace("ssm","").replace("s","")
             coords["x"]=eval(xc)
             coords["type_x"]="ssm"
+        if xc.lower().startswith ( "b" ):
+            xc = xc.lower().replace("brs","").replace("br","").replace("b","")
+            coords["x"]=eval(xc)
+            coords["type_x"]="br"
     if "ycoordinate" in args and args["ycoordinate"] is not None:
         yc = args["ycoordinate"]
         if yc.startswith ( "M" ):
             coords["y"]=int(yc[1:])
             coords["type_y"]="mass"
-        if yc.startswith ( "S" ):
+        if yc.lower().startswith ( "s" ):
             yc = yc.lower().replace("ssms","").replace("ssm","").replace("s","")
             coords["y"]=eval(yc)
             coords["type_y"]="ssm"
+        if yc.lower().startswith ( "b" ):
+            yc = yc.lower().replace("brs","").replace("br","").replace("b","")
+            coords["y"]=eval(yc)
+            coords["type_y"]="br"
     return coords
 
 def plotPosterior( args : dict ):
@@ -279,8 +293,19 @@ def plotPosterior( args : dict ):
     yname = yname.replace(" ","").replace("~","m").replace(",","")
     filename = filename.replace( "@@X@@", xname )
     filename = filename.replace( "@@Y@@", yname )
-    plt.xlabel ( f"{coords['type_x']}, ${namer.texName(coords['x'])}$ [GeV]" )
-    plt.ylabel ( f"{coords['type_y']}, ${namer.texName(coords['y'])}$ [GeV]" )
+    x_units, y_units = "", ""
+    if coords['type_x']=="mass":
+        x_units = " [GeV]"
+    if coords['type_y']=="mass":
+        y_units = " [GeV]"
+    x_name = f"${namer.texName(coords['x'])}$"
+    if coords['type_x']=="br":
+        x_name = rf"${namer.texName(coords['x'][0])} \rightarrow {namer.texName(coords['x'][1:])}$"
+    y_name = f"${namer.texName(coords['y'])}$"
+    if coords['type_y']=="br":
+        y_name = rf"${namer.texName(coords['y'][0])} \rightarrow {namer.texName(coords['y'][1:])}$"
+    plt.xlabel ( f"{coords['type_x']}, {x_name}{x_units}" )
+    plt.ylabel ( f"{coords['type_y']}, {y_name}{y_units}" )
     plt.title ( f"a posteriori distribution" )
     pprint ( f"saving to {filename}" )
     from smodels_utils.helper.various import pngMetaInfo
