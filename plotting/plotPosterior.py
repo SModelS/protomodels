@@ -183,7 +183,7 @@ def plotPosterior( args : dict ):
     # colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
     dcoords = getCoordinates ( models, minK, args["minF"], coords )
     x,y,w = dcoords["x"], dcoords["y"], dcoords["w"]
-    plt.scatter ( x, y, s = 4.*np.sqrt(w),
+    plt.scatter ( x, y, s = 6.*np.sqrt(w),
             alpha=0.2, color = "green",
             edgecolors = "darkgreen" )
     # create a grid for evaluating the KDE
@@ -200,9 +200,6 @@ def plotPosterior( args : dict ):
         #ymin = max ( .01, ymin )
         y1 = np.logspace(np.log10(ymin), np.log10(ymax), 300)
     from scipy.stats import gaussian_kde
-    # x, y are your 1D arrays of data points
-    # x, y = ...
-
     # stack data for KDE
     data = np.vstack([x, y])
     kde = gaussian_kde(data,weights=w)
@@ -211,20 +208,16 @@ def plotPosterior( args : dict ):
     zz = kde(np.vstack([xx.ravel(), yy.ravel()])).reshape(xx.shape)
 
     if coords["type_y"]=="ssm" and coords["type_x"]=="ssm":
-        from sklearn.neighbors import KernelDensity
-        logdata = np.log(np.vstack([x, y]).T)  # shape (n_samples, 2)
-        kde = KernelDensity(bandwidth=0.2, kernel='gaussian')
-        kde.fit(logdata)
+        logx = np.log(x)
+        logy = np.log(y)
+        logdata = np.vstack([logx, logy])
+        kde = gaussian_kde(logdata,weights=w)
 
         # Log-transformed grid for KDE evaluation
         logxx = np.log(xx)
         logyy = np.log(yy)
-
-        # Evaluate KDE in log-space
-        zz = np.exp(kde.score_samples(
-            np.vstack([logxx.ravel(), logyy.ravel()]).T
-        )).reshape(xx.shape)
-
+        grid_log = np.vstack([logxx.ravel(), logyy.ravel()])
+        zz = kde(grid_log).reshape(xx.shape)
 
     # compute contour levels for 67%, 95%, 100%
     # sort the density values from high to low
@@ -255,7 +248,8 @@ def plotPosterior( args : dict ):
     cs = plt.contour(
         xx, yy, zz,
         levels=levels,
-        colors=['0.3', '0.15', '0.0'],
+        #colors=['0.3', '0.15', '0.0'],
+        colors=['0.4', '0.2', '0.0'],
         linewidths=2,
     )
 
