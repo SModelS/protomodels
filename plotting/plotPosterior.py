@@ -197,7 +197,7 @@ def plotPosterior( args : dict ):
     # colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
     dcoords = getCoordinates ( models, minK, args["minF"], coords )
     x,y,w = dcoords["x"], dcoords["y"], dcoords["w"]
-    plt.scatter ( x, y, s = 6.*np.sqrt(w),
+    plt.scatter ( x, y, s = 8.*np.sqrt(w),
             alpha=0.1, color = "green",
             edgecolors = "#002b00" )
     # create a grid for evaluating the KDE
@@ -333,7 +333,7 @@ if __name__ == "__main__":
             help='what to plot on the x axis, e.g. "M1000006". None is automatic. [None]',
             type=str, default=None )
     argparser.add_argument ( '-y', '--ycoordinate',
-            help='what to plot on the y axis, e.g. "SSM10000061000006". None is automatic [None]',
+            help='what to plot on the y axis, e.g. "SSM1000006,1000006" or "BR1000006,1000024,5". None is automatic [None]',
             type=str, default=None )
     argparser.add_argument ( '-o', '--outfile',
             help='Name of output file, replacing @@X@@ and @@Y@@ [posterior_@@X@@_@@Y@@.png]',
