@@ -206,19 +206,21 @@ def plotPosterior( args : dict ):
     kde = gaussian_kde(data,weights=w)
     xx, yy = np.meshgrid( x1, y1 )
     # evaluate KDE on grid
-    grid = np.vstack([xx.ravel(), yy.ravel()])
+    lxx = xx
+    lyy = yy
 
     if coords["type_y"]=="ssm" and coords["type_x"]=="ssm":
         logx = np.log(x)
         logy = np.log(y)
-        logdata = np.vstack([logx, logy])
-        kde = gaussian_kde(logdata,weights=w)
+        data = np.vstack([logx, logy])
+        kde = gaussian_kde(data,weights=w)
 
         # Log-transformed grid for KDE evaluation
-        logxx = np.log(xx)
-        logyy = np.log(yy)
-        grid = np.vstack([logxx.ravel(), logyy.ravel()])
-
+        lxx = np.log(xx)
+        lyy = np.log(yy)
+        # grid = np.vstack([logxx.ravel(), logyy.ravel()])
+    # grid = np.vstack([xx.ravel(), yy.ravel()])
+    grid = np.vstack([lxx.ravel(), lyy.ravel()])
     zz = kde(grid).reshape(xx.shape)
 
     # compute contour levels for 67%, 95%, 100%
