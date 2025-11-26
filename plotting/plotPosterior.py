@@ -7,6 +7,10 @@ import numpy as np
 from math import exp
 import os, glob
 
+def pprint ( *args ):
+    """ logging """
+    print ( f"[plotPosterior] {' '.join(map(str,args))}" )
+
 def getAllModels( directory : os.PathLike = "../data/fake_stops1",
        minF : float = .8, maxfiles : Union[None,int] = None,
        burnin : int = 0 ) -> tuple[list[dict],float]:
@@ -18,7 +22,7 @@ def getAllModels( directory : os.PathLike = "../data/fake_stops1",
     """
     dictfpattern = f"{directory}/dictfiles/pmodel_*.dict"
     dictfiles = glob.glob ( dictfpattern )
-    print ( f"[plotPosterior] found {len(dictfiles)} files in {dictfpattern}" )
+    pprint ( f"found {len(dictfiles)} files in {dictfpattern}" )
     from natsort import natsorted
     dictfiles = natsorted ( dictfiles )
     all_models = []
@@ -36,9 +40,9 @@ def getAllModels( directory : os.PathLike = "../data/fake_stops1",
                 if model["Accepted"]==0:
                     all_models.append ( model )
     minK = min ( x["K"] for x in all_models )
-    print ( f"[plotPosterior] minK is {minK:.2f}" )
+    pprint ( f"minK is {minK:.2f}" )
     filtered = [d for d in all_models if d["K"] is not None and d["K"] > (1 + minF ) * minK ]
-    print ( f"[plotPosterior] filtered from {len(all_models)} to {len(filtered)}" )
+    pprint ( f"filtered from {len(all_models)} to {len(filtered)} models" )
     return filtered, minK
 
 def getAllPModels( directory : os.PathLike = "../data/fake_stops1" ) -> \
@@ -89,7 +93,7 @@ def getCoordinates ( models : Union[list,dict], minK : float, minF : float,
         mcoords = getCoordsFromModel ( models, coords )
         return { "x": [ mcoords["x"] ], "y": [ mcoords["y"] ],
                  "K": [ mcoords["K"] ], "w": 1 }
-    print ( f"[plotPosterior] we have {len(models)} models" )
+    # pprint ( f"we have {len(models)} models" )
     points = {}
     for model in models:
         mcoords = getCoordsFromModel ( model, coords )
@@ -165,7 +169,7 @@ def plotPosterior( args : dict ):
     args["path"]=args["path"].replace("__file__", dirname )
     from matplotlib import pyplot as plt
     # models = getAllPModels( path )
-    print ( f"[plotPosterior] obtaining data from {args['path']}" )
+    pprint ( f"obtaining data from {args['path']}" )
     models, minK = getAllModels( args["path"], args["minF"], args["maxfiles"],
             args["burnin"] )
     truth = getTruthModel( args["path"] )
@@ -271,7 +275,7 @@ def plotPosterior( args : dict ):
     plt.xlabel ( f"{coords['type_x']}, ${namer.texName(coords['x'])}$ [GeV]" )
     plt.ylabel ( f"{coords['type_y']}, ${namer.texName(coords['y'])}$ [GeV]" )
     plt.title ( f"a posteriori distribution" )
-    print ( f"[plotPosterior] saving to {filename}" )
+    pprint ( f"saving to {filename}" )
     from smodels_utils.helper.various import pngMetaInfo
     metadata = pngMetaInfo()
     from installation import version as protomodels_version
@@ -307,9 +311,4 @@ if __name__ == "__main__":
     argparser.add_argument ( '--burnin', type=int,
             help='throw away first n burnin steps [100]', default=100 )
     args=vars ( argparser.parse_args() )
-    #path = "../data/fake_ewk1/"
-    #path = "../data/fake_ewkoff1/"
-    #minF = .1
-    # path = "../data/fake_stops1/"
-    # args = { "path": path, "minF": minF, "interact": interact }
     plotPosterior( args )
