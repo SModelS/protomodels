@@ -206,11 +206,25 @@ def plotPosterior( args : dict ):
     # stack data for KDE
     data = np.vstack([x, y])
     kde = gaussian_kde(data,weights=w)
-
     xx, yy = np.meshgrid( x1, y1 )
-
     # evaluate KDE on grid
     zz = kde(np.vstack([xx.ravel(), yy.ravel()])).reshape(xx.shape)
+
+    if coords["type_y"]=="ssm" and coords["type_x"]=="ssm":
+        from sklearn.neighbors import KernelDensity
+        logdata = np.log(np.vstack([x, y]).T)  # shape (n_samples, 2)
+        kde = KernelDensity(bandwidth=0.2, kernel='gaussian')
+        kde.fit(logdata)
+
+        # Log-transformed grid for KDE evaluation
+        logxx = np.log(xx)
+        logyy = np.log(yy)
+
+        # Evaluate KDE in log-space
+        zz = np.exp(kde.score_samples(
+            np.vstack([logxx.ravel(), logyy.ravel()]).T
+        )).reshape(xx.shape)
+
 
     # compute contour levels for 67%, 95%, 100%
     # sort the density values from high to low
@@ -242,7 +256,7 @@ def plotPosterior( args : dict ):
         xx, yy, zz,
         levels=levels,
         colors=['0.3', '0.15', '0.0'],
-        linewidths=2
+        linewidths=2,
     )
 
     labels = plt.clabel(cs, inline=True, fontsize=13,
