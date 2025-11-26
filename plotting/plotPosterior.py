@@ -183,8 +183,8 @@ def plotPosterior( args : dict ):
     # colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(splitm)))
     dcoords = getCoordinates ( models, minK, args["minF"], coords )
     x,y,w = dcoords["x"], dcoords["y"], dcoords["w"]
-    plt.scatter ( x, y, s = .5*np.sqrt(w),
-            alpha=0.5, color = "green",
+    plt.scatter ( x, y, s = 4.*np.sqrt(w),
+            alpha=0.2, color = "green",
             edgecolors = "darkgreen" )
     # create a grid for evaluating the KDE
     xmin, xmax = min(x), max(x)
