@@ -203,7 +203,6 @@ def plotPosterior( args : dict ):
         #ymin = max ( .01, ymin )
         y1 = np.logspace(np.log10(ymin), np.log10(ymax), 300)
     data = np.vstack([x, y])
-    kde = gaussian_kde(data,weights=w)
     xx, yy = np.meshgrid( x1, y1 )
     # evaluate KDE on grid
     lxx = xx
@@ -213,13 +212,11 @@ def plotPosterior( args : dict ):
         logx = np.log(x)
         logy = np.log(y)
         data = np.vstack([logx, logy])
-        kde = gaussian_kde(data,weights=w)
 
         # Log-transformed grid for KDE evaluation
         lxx = np.log(xx)
         lyy = np.log(yy)
-        # grid = np.vstack([logxx.ravel(), logyy.ravel()])
-    # grid = np.vstack([xx.ravel(), yy.ravel()])
+    kde = gaussian_kde(data,weights=w)
     grid = np.vstack([lxx.ravel(), lyy.ravel()])
     zz = kde(grid).reshape(xx.shape)
 
