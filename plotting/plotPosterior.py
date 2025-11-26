@@ -193,28 +193,26 @@ def plotPosterior( args : dict ):
     y1 = np.linspace(ymin, ymax, 300)
     from scipy.stats import gaussian_kde
     # stack data for KDE
+    lx, ly = x, y
 
     if coords["type_x"]=="ssm":
         plt.xscale("log")
         #xmin = max ( .01, xmin )
         x1 = np.logspace(np.log10(xmin), np.log10(xmax), 300)
+        lx = np.log(x)
     if coords["type_y"]=="ssm":
         plt.yscale("log")
         #ymin = max ( .01, ymin )
         y1 = np.logspace(np.log10(ymin), np.log10(ymax), 300)
-    data = np.vstack([x, y])
+        ly = np.log(y)
+    data = np.vstack([lx, ly])
     xx, yy = np.meshgrid( x1, y1 )
     # evaluate KDE on grid
-    lxx = xx
-    lyy = yy
-
-    if coords["type_y"]=="ssm" and coords["type_x"]=="ssm":
-        logx = np.log(x)
-        logy = np.log(y)
-        data = np.vstack([logx, logy])
-
+    lxx, lyy = xx, yy
+    if coords["type_x"]=="ssm":
         # Log-transformed grid for KDE evaluation
         lxx = np.log(xx)
+    if coords["type_y"]=="ssm":
         lyy = np.log(yy)
     kde = gaussian_kde(data,weights=w)
     grid = np.vstack([lxx.ravel(), lyy.ravel()])
