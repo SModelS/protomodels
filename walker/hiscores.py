@@ -224,7 +224,7 @@ class Hiscores ( LoggerBase ):
         """
         assert environ != None, "set environment"
         if not cls.dbpathExists ( environ.dbpath ):
-            print ( f"[hiscores] database path {dbpath} does not exist" )
+            print ( f"[hiscores] database path {environ.dbpath} does not exist" )
             import sys; sys.exit()
         assert firstn == 0, "firstn != 0 not yet working"
         from tester.predictor import Predictor

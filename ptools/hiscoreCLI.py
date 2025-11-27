@@ -9,6 +9,10 @@
 
 """
 
+import os, sys
+pmpath =os.path.abspath ( f"{os.path.dirname (  __file__ )}/../../" )
+sys.path.insert(0,pmpath)
+
 from typing import Union
 
 def cli( infile : str = "hiscores_global.dict",
