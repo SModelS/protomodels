@@ -21,6 +21,7 @@ from ptools.helpers import computeP
 from ptools.moreHelpers import namesForSetsOfTopologies
 from protomodels.base.loggerbase import LoggerBase
 from smodels_utils.helper.various import hasLLHD, removeAnaIdSuffices
+from smodels_utils.helper.terminalcolors import GREEN, YELLOW, RESET, RED
 
 def isSelectedCustomFunction ( anaid, txns : List ) -> bool:
     """ a generic hook to make it easy to select based on any requirement.
@@ -671,7 +672,6 @@ class Plotter ( LoggerBase ):
         weighted = False
         if "weighted" in self.options:
             weighted = self.options["weighted"]
-        print ( f"weighted {weighted} {type(weighted)}" )
         if not "database" in self.meta:
             self.pprint ( "error: database not defined in meta. did you pick up any dict files at all?" )
             sys.exit()
@@ -817,7 +817,7 @@ class Plotter ( LoggerBase ):
                        c="black", fontsize=10 )
 
         # plt.ylabel ( "# Signal Regions" )
-        self.pprint ( f"plotting {self.outfile}" )
+        self.pprint ( f"plotting {GREEN}{self.outfile}{RESET}" )
         if self.comment != None:
             plt.text ( .65, -.11, self.comment, transform=ax.transAxes,
                        style="italic" )
@@ -923,7 +923,6 @@ def getArgs( cmdline = None ):
 
     args=argparser.parse_args( cmdline )
     if args.list_abbreviations:
-        from smodels_utils.helper.terminalcolors import GREEN, YELLOW, RESET, RED
         print ( )
         print ( f"{RED}Defined abbreviations:{RESET}" )
         print ( f"{RED}======================{RESET}" )
