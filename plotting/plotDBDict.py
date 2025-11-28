@@ -823,7 +823,9 @@ class Plotter ( LoggerBase ):
         if self.disclaimer not in [ False, None, "None", "False" ]:
             plt.text ( .3, .3, self.disclaimer, transform=ax.transAxes,
                        rotation=35, c="#ff3333", fontsize=20 )
-        plt.kittyPlot ( self.outfile, self.show )
+        from installation import version as protomodels_version
+        metadata = { "protomodels_version": protomodels_version() }
+        plt.kittyPlot ( self.outfile, self.show, metadata )
 
         plt.clf()
         plt.close()
