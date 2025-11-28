@@ -671,6 +671,7 @@ class Plotter ( LoggerBase ):
         weighted = False
         if "weighted" in self.options:
             weighted = self.options["weighted"]
+        print ( f"weighted {weighted} {type(weighted)}" )
         if not "database" in self.meta:
             self.pprint ( "error: database not defined in meta. did you pick up any dict files at all?" )
             sys.exit()
@@ -922,13 +923,16 @@ def getArgs( cmdline = None ):
 
     args=argparser.parse_args( cmdline )
     if args.list_abbreviations:
-        print ( "Defined abbreviations:" )
-        print ( "======================" )
+        from smodels_utils.helper.terminalcolors import GREEN, YELLOW, RESET, RED
+        print ( )
+        print ( f"{RED}Defined abbreviations:{RESET}" )
+        print ( f"{RED}======================{RESET}" )
         shorts, descriptions = namesForSetsOfTopologies ( "list" )
         for short,topos in shorts.items():
             topos, descr = namesForSetsOfTopologies ( short )
-            print ( f"{short}: {topos}" )
-            print ( f"         {descr}" )
+            print ( f"{GREEN}{short}{RESET}: {topos}" )
+            print ( f"         {YELLOW}''{descr}''{RESET}" )
+        print ( )
         sys.exit()
         
     if type(args.options) == str:
