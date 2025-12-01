@@ -315,24 +315,30 @@ def plotPosterior( args : dict ):
     filename = filename.replace( "@@X@@", xname )
     filename = filename.replace( "@@Y@@", yname )
     x_units, y_units = "", ""
+    xlabel_left = f"{coords['type_x']}"
     if coords['type_x']=="mass":
         x_units = " [GeV]"
+        xlabel_left = "m"
+    ylabel_left = f"{coords['type_y']}"
     if coords['type_y']=="mass":
         y_units = " [GeV]"
+        ylabel_left = "m"
     x_name = f"${namer.texName(coords['x'])}$"
     if coords['type_x']=="br":
         x_name = rf"${namer.texName(coords['x'][0])} \rightarrow {namer.texName(coords['x'][1:])}$"
     y_name = f"${namer.texName(coords['y'])}$"
     if coords['type_y']=="br":
         y_name = rf"${namer.texName(coords['y'][0])} \rightarrow {namer.texName(coords['y'][1:])}$"
-    xlabel = f"{coords['type_x']}"
-    if xlabel == "dm":
-        xlabel = r"$\Delta$m"
-    plt.xlabel ( f"{xlabel}, {x_name}{x_units}" )
-    ylabel = f"{coords['type_y']}"
-    if ylabel == "dm":
-        ylabel = r"$\Delta$m"
-    plt.ylabel ( f"{ylabel}, {y_name}{y_units}" )
+
+    if xlabel_left == "dm":
+        xlabel_left = r"$\Delta$m"
+    xlabel = f"{xlabel_left}({x_name}){x_units}"
+    plt.xlabel ( xlabel )
+
+    if ylabel_left == "dm":
+        ylabel_left = r"$\Delta$m"
+    ylabel = f"{ylabel_left}({y_name}){y_units}" 
+    plt.ylabel ( ylabel )
     plt.title ( f"a posteriori distribution" )
     pprint ( f"saving to {filename}" )
     from smodels_utils.helper.various import pngMetaInfo
