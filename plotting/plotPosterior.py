@@ -32,7 +32,12 @@ def getAllModels( directory : os.PathLike = "../data/fake_stops1",
         dfname = os.path.basename ( dictfile )
         dfname = dfname.replace("pmodel_","").replace(".dict","")
         with open ( dictfile, "rt" ) as f:
-            models = eval ( f.read() )
+            try:
+                txt = f.read()
+                models = eval ( txt )
+            except SyntaxError as e:
+                pprint ( f"error when reading {dictfile}: {e}" )
+                # import sys; sys.exit()
             if burnin != None:
                 models = models[burnin:]
             for model in models:
@@ -198,7 +203,7 @@ def plotPosterior( args : dict ):
     dcoords = getCoordinates ( models, minK, args["minF"], coords )
     x,y,w = dcoords["x"], dcoords["y"], dcoords["w"]
     plt.scatter ( x, y, s = 8.*np.sqrt(w),
-            alpha=0.1, color = "green",
+            alpha=0.05, color = "green",
             edgecolors = "#002b00" )
     # create a grid for evaluating the KDE
     xmin, xmax = min(x), max(x)
@@ -330,10 +335,10 @@ if __name__ == "__main__":
             help='minF [0.1]',
             type=float, default=0.1 )
     argparser.add_argument ( '-x', '--xcoordinate',
-            help='what to plot on the x axis, e.g. "M1000006". None is automatic. [None]',
+            help='what to plot on the x axis, e.g. "M1000022". None is automatic. [None]',
             type=str, default=None )
     argparser.add_argument ( '-y', '--ycoordinate',
-            help='what to plot on the y axis, e.g. "SSM1000006,1000006" or "BR1000006,1000024,5". None is automatic [None]',
+            help='what to plot on the y axis, e.g. "SSM1000022,1000023" or "BR1000006,1000024,5". None is automatic [None]',
             type=str, default=None )
     argparser.add_argument ( '-o', '--outfile',
             help='Name of output file, replacing @@X@@ and @@Y@@ [posterior_@@X@@_@@Y@@.png]',
