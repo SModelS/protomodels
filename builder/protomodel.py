@@ -570,6 +570,7 @@ class ProtoModel ( LoggerBase ):
         ## in "inSLHAFile" we take note of all decays that are mentioned
         ## in the template slha file
         inSLHAFile = {}
+        totalBRs = {}
         with open(outputSLHA,'wt') as outF:
             for i,l in enumerate(lines):
                 for pid in self.particles:
@@ -578,6 +579,7 @@ class ProtoModel ( LoggerBase ):
                         continue
                     if not pid in inSLHAFile:
                         inSLHAFile[pid]=set()
+                        totalBRs[pid]=[]
 
                     #Get information for particle
                     if pid in unfrozen:
@@ -603,6 +605,7 @@ class ProtoModel ( LoggerBase ):
                             if dpids in covered[pid]:
                                 covered[pid].pop ( dpids )
                             br = decays[dpids]
+                            totalBRs[pid].append ( (dpids, br ) )
                             l = l.replace(decayTag, f"{br:.5f}" )
                         else:
                             l = ""
@@ -626,6 +629,14 @@ class ProtoModel ( LoggerBase ):
                             if d in inSLHAFile[pid]:
                                 self.error ( f"did you mean {pid} -> {d}?" )
                 sys.exit(-1)
+            for pid, allbrs in totalBRs.items():
+                totalbr = sum( [ x[1] for x in allbrs ])
+                if abs(totalbr-0.) > 1e-3 and abs(totalbr-1.) > 1e-3:
+                    self.error ( f"total brs for {pid} add up to {totalbr:.3f} != 1." )
+                    self.error ( f"contributions are:" )
+                    for dpids_br in totalBRs[pid]:
+                        self.error ( f"{dpids_br[0]}: {dpids_br[1]}" )
+                    sys.exit(-1)
             frozen = self.frozenParticles()
             # now make the frozen particles stable (to quench smodels warnings,
             # nothing else)
