@@ -25,7 +25,7 @@ from tester.combiner import Combiner
 class Hiscores ( LoggerBase ):
     """ encapsulates the hiscore list. """
     def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
-                   picklefile: PathLike="hiscores.cache", backup : bool = True, 
+                   picklefile: PathLike="hiscores.cache", backup : bool = True,
                    keep_separate_hiscores = False,
                    hiscores = None, predictor = None ):
         """ the constructor
@@ -56,7 +56,7 @@ class Hiscores ( LoggerBase ):
     @classmethod
     def writeDictionariesToFile ( cls, filename : os.PathLike,
            objs : list ) -> bool:
-        """ class method, write the dictionaries objs in a 
+        """ class method, write the dictionaries objs in a
         formatted manner to file filename
 
         :returns: True if worked
@@ -80,7 +80,7 @@ class Hiscores ( LoggerBase ):
             f.close()
         unlock ( filename )
         return True
-        
+
     def currentMinTL ( self ):
         """ the current minimum TL to make it into the list. """
         if self.hiscores[-1] == None:
@@ -148,8 +148,8 @@ class Hiscores ( LoggerBase ):
         return ret
 
     def similarDicts ( self, a : dict, b : dict ) -> bool:
-        """ are models a and b similar? 
-        
+        """ are models a and b similar?
+
         :returns: True if similar
         """
         dK = 0.
@@ -204,14 +204,14 @@ class Hiscores ( LoggerBase ):
             return True
         if dbpath.startswith ( "http" ):
             ## FIXME we can also check existence here
-            return True 
+            return True
         if os.path.exists ( dbpath ):
             return True ## ok its local
         return False
 
     @classmethod
     def fromDictionaryFile ( cls, path : PathLike,
-           firstn : Union[None,int] = 0, 
+           firstn : Union[None,int] = 0,
            environ : Union[RunEnviron,None] = None,
            walkerid : Union[str,int] = 0 ):
         """ initialise from a dictionary file
@@ -234,7 +234,9 @@ class Hiscores ( LoggerBase ):
         while True:
             m = Manipulator( path, nth = c, walkerid = walkerid, environ=environ )
             m.M.walkerid = walkerid
-            predictor.predict ( m, keep_predictions=True )
+            force_computation_K = m.M.K is None
+            predictor.predict ( m, keep_predictions=True,
+                force_computation_K = force_computation_K )
             hiscores.append ( m.M )
             c+=1
             if type(firstn) == int and c > firstn:
@@ -243,7 +245,7 @@ class Hiscores ( LoggerBase ):
                      walkerid = walkerid )
 
         # assert False, "implement me"
-    
+
     def updateGlobalHiscoreFile ( self, m : Manipulator,
            hiscorefile : PathLike = "hiscores_global.dict" ) -> bool:
         """
@@ -281,7 +283,7 @@ class Hiscores ( LoggerBase ):
             f.write ( f"{newlist[-1]['K']}\n" )
             f.close()
         return True
-    
+
     def updateTopHiscoreFile ( self, m : Manipulator,
            hiscorefile : PathLike = "hiscores_top.dict" ) -> bool:
         """
@@ -311,7 +313,7 @@ class Hiscores ( LoggerBase ):
                         if tryRead > 10:
                             raise e
                         time.sleep( .1+3*tryRead )
-        
+
         newlist = sorted(hiscore_top, key=lambda val:val['K'], reverse=True)
         self.writeListToDictFile ( hiscorefile, newlist )
         """
@@ -327,7 +329,7 @@ class Hiscores ( LoggerBase ):
             f.close()
         """
         return True
-        
+
     def updateHiscoreFile ( self, m : Manipulator,
            hiscorefile : PathLike = "hiscores.dict" ) -> bool:
         """
@@ -378,7 +380,7 @@ class Hiscores ( LoggerBase ):
         :param ma: the manipulator object
         :returns: true, if result was added
         """
-        
+
         #if ma.M.K < self.currentMinK():        #SN: removed zeroIsMin for now
         #    self.log(f"K {ma.M.K} less than Min K {self.currentMinK()}. Not adding to hiscore list.")
         #    return False ## doesnt pass minimum requirement
@@ -680,7 +682,7 @@ class Hiscores ( LoggerBase ):
         TL = pprint ( ma.M.TL )
         minK = pprint ( self.currentMinK() )
         saving = "yes" if self.save_hiscores else "no"
-            
+
         self.log ( f"New result with K={K}, TL={TL}, needs to pass K>{minK}, saving: {saving}" )
         if not self.save_hiscores:
             return False
