@@ -11,8 +11,10 @@ from colorama import Fore as ansi
 from scipy import stats
 from typing import Union, Dict, List, Set, Tuple
 from os import PathLike
-sys.path.insert(0,"../")
-sys.path.insert(0,"../../")
+#sys.path.insert(0,"../")
+# sys.path.insert(0,"../../")
+path = os.path.abspath ( f"{__file__}/../../../" )
+sys.path.insert(0,path)
 from protomodels.csetup import setup
 setup()
 
@@ -181,12 +183,14 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
     :returns: hiscore object
     """
     assert environ != None, "define RunEnvironment"
+    dictfile = os.path.expanduser ( dictfile )
     if picklefile is None:
         picklefile = dictfile.replace(".dict",".cache" )
         if not picklefile.endswith ( ".cache" ):
             # educated guess, replace any extension with .cache
             fname, ext = os.path.splitext ( dictfile )
             picklefile = fname + ".cache"
+    picklefile = os.path.expanduser ( picklefile )
     from ptools import helpers
     shortname = helpers.simplifyUnixPath ( picklefile )
     if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=walkerid ):
