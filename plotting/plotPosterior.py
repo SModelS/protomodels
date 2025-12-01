@@ -88,6 +88,12 @@ def getCoordsFromModel ( model : dict, coords : dict ) -> dict:
     if coords["type_y"]=="ssm":
         if ypid in model["ssmultipliers"]:
             ret["y"] = model["ssmultipliers"][ypid]
+    if coords["type_x"]=="dm":
+        if xpid[0] in model["masses"] and xpid[1] in model["masses"]:
+            ret["x"] = model["masses"][xpid[0]] - model["masses"][xpid[1]]
+    if coords["type_y"]=="dm":
+        if ypid[0] in model["masses"] and ypid[1] in model["masses"]:
+            ret["y"] = model["masses"][ypid[0]] - model["masses"][ypid[1]]
     if coords["type_x"]=="br":
         if xpid[0] in model["decays"] and xpid[1:] in model["decays"][xpid[0]]:
             ret["x"] = model["decays"][xpid[0]][xpid[1:]]
@@ -151,30 +157,40 @@ def getPlottingCoords ( args, truth ):
         coords[ "x" ] = 1000006
     if "xcoordinate" in args and args["xcoordinate"] is not None:
         xc = args["xcoordinate"]
-        if xc.startswith ( "M" ):
+        xc = xc.lower()
+        if xc.startswith ( "m" ):
             coords["x"]=int(xc[1:])
             coords["type_x"]="mass"
-        if xc.lower().startswith ( "s" ):
+        if xc.startswith ( "s" ):
             xc = xc.lower().replace("ssms","").replace("ssm","").replace("s","")
             coords["x"]=eval(xc)
             coords["type_x"]="ssm"
-        if xc.lower().startswith ( "b" ):
+        if xc.startswith ( "b" ):
             xc = xc.lower().replace("brs","").replace("br","").replace("b","")
             coords["x"]=eval(xc)
             coords["type_x"]="br"
+        if xc.startswith ( "dm" ):
+            xc = xc.lower().replace("dm","").replace("d","")
+            coords["x"]=eval(xc)
+            coords["type_x"]="dm"
     if "ycoordinate" in args and args["ycoordinate"] is not None:
         yc = args["ycoordinate"]
-        if yc.startswith ( "M" ):
+        yc = yc.lower()
+        if yc.startswith ( "m" ):
             coords["y"]=int(yc[1:])
             coords["type_y"]="mass"
-        if yc.lower().startswith ( "s" ):
+        if yc.startswith ( "s" ):
             yc = yc.lower().replace("ssms","").replace("ssm","").replace("s","")
             coords["y"]=eval(yc)
             coords["type_y"]="ssm"
-        if yc.lower().startswith ( "b" ):
+        if yc.startswith ( "b" ):
             yc = yc.lower().replace("brs","").replace("br","").replace("b","")
             coords["y"]=eval(yc)
             coords["type_y"]="br"
+        if yc.startswith ( "d" ):
+            yc = yc.lower().replace("dm","").replace("d","")
+            coords["y"]=eval(yc)
+            coords["type_y"]="dm"
     return coords
 
 def plotPosterior( args : dict ):
@@ -309,8 +325,14 @@ def plotPosterior( args : dict ):
     y_name = f"${namer.texName(coords['y'])}$"
     if coords['type_y']=="br":
         y_name = rf"${namer.texName(coords['y'][0])} \rightarrow {namer.texName(coords['y'][1:])}$"
-    plt.xlabel ( f"{coords['type_x']}, {x_name}{x_units}" )
-    plt.ylabel ( f"{coords['type_y']}, {y_name}{y_units}" )
+    xlabel = f"{coords['type_x']}"
+    if xlabel == "dm":
+        xlabel = r"$\Delta$m"
+    plt.xlabel ( f"{xlabel}, {x_name}{x_units}" )
+    ylabel = f"{coords['type_y']}"
+    if ylabel == "dm":
+        ylabel = r"$\Delta$m"
+    plt.ylabel ( f"{ylabel}, {y_name}{y_units}" )
     plt.title ( f"a posteriori distribution" )
     pprint ( f"saving to {filename}" )
     from smodels_utils.helper.various import pngMetaInfo
@@ -338,7 +360,7 @@ if __name__ == "__main__":
             help='what to plot on the x axis, e.g. "M1000022". None is automatic. [None]',
             type=str, default=None )
     argparser.add_argument ( '-y', '--ycoordinate',
-            help='what to plot on the y axis, e.g. "SSM1000022,1000023" or "BR1000006,1000024,5". None is automatic [None]',
+            help='what to plot on the y axis, e.g. "SSM1000022,1000023", "BR1000006,1000024,5" or "DM1000022,1000023". None is automatic [None]',
             type=str, default=None )
     argparser.add_argument ( '-o', '--outfile',
             help='Name of output file, replacing @@X@@ and @@Y@@ [posterior_@@X@@_@@Y@@.png]',
