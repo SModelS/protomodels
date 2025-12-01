@@ -625,9 +625,14 @@ class ProtoModel ( LoggerBase ):
                     for decay in decays:
                         self.error ( f"Protomodel lists a decay {pid} -> {decay}, but no equivalent found in template slha file!" )
                         import itertools
+                        hasProposal = False
                         for d in itertools.permutations ( decay ):
                             if d in inSLHAFile[pid]:
                                 self.error ( f"did you mean {pid} -> {d}?" )
+                                hasProposal = True
+                        if not hasProposal:
+                            dpds = ", ".join ( map ( str, inSLHAFile[pid] ) )
+                            self.error ( f"channels mentioned in template file: {dpds}" )
                 sys.exit(-1)
             for pid, allbrs in totalBRs.items():
                 totalbr = sum( [ x[1] for x in allbrs ])
