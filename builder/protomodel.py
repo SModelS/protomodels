@@ -563,13 +563,21 @@ class ProtoModel ( LoggerBase ):
         with open( self.environ.templateSLHA ) as f:
             lines=f.readlines()
         unfrozen = self.unFrozenParticles()
-
+        # in "covered" we log that everything in self.decays
+        # is covered in the slha file. else we complain
+        covered = copy.deepcopy ( self.decays )
+        covered.pop ( self.LSP ) ## no need to check
+        ## in "inSLHAFile" we take note of all decays that are mentioned
+        ## in the template slha file
+        inSLHAFile = {}
         with open(outputSLHA,'wt') as outF:
             for i,l in enumerate(lines):
                 for pid in self.particles:
                     #Skip lines which have no mass or decay tags
                     if not f"M{pid}" in l and not f"D{pid}" in l:
                         continue
+                    if not pid in inSLHAFile:
+                        inSLHAFile[pid]=set()
 
                     #Get information for particle
                     if pid in unfrozen:
@@ -588,9 +596,12 @@ class ProtoModel ( LoggerBase ):
                         decayTag = l.strip().split()[0]
                         decayPids = decayTag.replace('D','').split('_')
                         dpids = tuple([int(p) for p in decayPids[1:]]) #daughter pids
+                        inSLHAFile[pid].add ( dpids )
                         if len(dpids) == 1:
                             dpids = dpids[0]
                         if dpids in decays:
+                            if dpids in covered[pid]:
+                                covered[pid].pop ( dpids )
                             br = decays[dpids]
                             l = l.replace(decayTag, f"{br:.5f}" )
                         else:
@@ -599,6 +610,22 @@ class ProtoModel ( LoggerBase ):
                 #Only write line if it is not empty
                 if l:
                     outF.write(l)
+            remains = {}
+            for pid,decays in covered.items():
+                if len(decays)>0:
+                    if not pid in remains:
+                        remains[pid]={}
+                    for dkey, dvalue in decays.items():
+                        remains[pid][dkey]=dvalue
+            if len(remains)>0:
+                for pid,decays in remains.items():
+                    for decay in decays:
+                        self.error ( f"Protomodel lists a decay {pid} -> {decay}, but no equivalent found in template slha file!" )
+                        import itertools
+                        for d in itertools.permutations ( decay ):
+                            if d in inSLHAFile[pid]:
+                                self.error ( f"did you mean {pid} -> {d}?" )
+                sys.exit(-1)
             frozen = self.frozenParticles()
             # now make the frozen particles stable (to quench smodels warnings,
             # nothing else)
