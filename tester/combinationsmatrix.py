@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict
+from typing import Dict, Union
 
 __all__ = [ "getMatrix", "getYamlMatrix" ]
 
@@ -604,8 +604,15 @@ def getMatrix():
 
     return allowed
 
+def getYamlMatrix(experiment : Union[str,None]=None,
+        sqrts : Union[int,None] = None ) -> dict:
+    """ get the BAM from the yaml files
+    :param experiment: either one of CMS, ATLAS, None. None means all.
+    :param sqrts: either one of 8, 13, 13.6, None. None means all.
 
-def getYamlMatrix(experiment=None,sqrts=None):
+    :returns: tuple(bam,status). bam is the BAM as a dictionary,
+    status is an int, zero if successful
+    """
     import os, yaml
 
     status = 0

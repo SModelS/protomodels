@@ -26,7 +26,6 @@ from base.runEnviron import RunEnviron
 
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
-from tester.combinationsmatrix import getYamlMatrix
 
 try:
     from tester.combiner import Combiner

@@ -28,7 +28,6 @@ from base.loggerbase import LoggerBase
 from base.runEnviron import RunEnviron
 from builder.protomodel import ProtoModel
 from tester.combiner import Combiner
-from tester.combinationsmatrix import getYamlMatrix
 
 try:
     from smodels.statistics.basicStats import observed, apriori, aposteriori
