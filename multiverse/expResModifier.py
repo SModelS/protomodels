@@ -173,6 +173,7 @@ Just filter the database:
         self.comments = {} ## comments on entries in dict
         self.hasFiltered = False
         self.timestamps = False
+        self.no_synthesis = True
         self.protomodel = None
         self.stats = {}
         self.dbpath = "../../smodels-database"

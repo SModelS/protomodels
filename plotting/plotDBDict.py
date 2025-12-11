@@ -208,6 +208,7 @@ class Plotter ( LoggerBase ):
         self.nbins = None # 10 for p-values, 13 for significances
         self.fudge = 1.
         self.Zmax = None
+        self.use_custom_function= False
         self.before = None
         self.nosuperseded = False # yes superseded
         self.use_aggregated = False # yes add non-aggregated
