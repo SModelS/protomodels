@@ -201,7 +201,8 @@ def plotPosterior( args : dict ):
         minF (float) - the minimum fraction of K to plot a point
     """
     dirname = os.path.abspath ( os.path.dirname(__file__) + "/../" )
-    args["path"]=args["path"].replace("__file__", dirname )
+    args["path"]=args["path"].replace("__file__", dirname ).\
+            replace("__protomodels__", dirname )
     from matplotlib import pyplot as plt
     # models = getAllPModels( path )
     pprint ( f"obtaining data from {args['path']}" )
@@ -355,8 +356,8 @@ if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(description="plots closure tests")
     argparser.add_argument ( '-p', '--path',
-            help='path [../data/rundir4/]', type=str,
-            default='__file__/data/rundir4/' )
+            help='path [__protomodels__/data/rundir7/]', type=str,
+            default='__file__/data/rundir7/' )
     argparser.add_argument ( '-i', '--interact',
             help='interactive shell', action="store_true" )
     argparser.add_argument ( '-m', '--minF',
