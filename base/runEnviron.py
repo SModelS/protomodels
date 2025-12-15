@@ -156,6 +156,8 @@ class RunEnviron:
         for key, value in self.run_dict.items():
             if key == "templateSLHA":
                 key = "templateName"
+            if key == "rundir":
+                value = os.path.expanduser ( value )
             setattr ( self, key, value )
 
 if __name__ == "__main__":

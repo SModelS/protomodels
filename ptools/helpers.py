@@ -117,6 +117,7 @@ def mkdir ( dirname : os.PathLike ) -> bool:
     """ make a directory, gracefully """
     if dirname == "":
         return False
+    dirname = os.path.expanduser ( dirname )
     if os.path.exists ( dirname ):
         return False
     try:
