@@ -27,6 +27,7 @@ from ptools import moreHelpers, helpers
 from base.loggerbase import LoggerBase
 from smodels.statistics.basicStats import observed, apriori, aposteriori,\
          NllEvalType
+from base.runEnviron import RunEnviron
 
 namer = SParticleNames ( False )
 
@@ -53,9 +54,10 @@ class LlhdThread ( LoggerBase ):
         """ the constructor. 
         """
         super ( LlhdThread, self ).__init__ ( threadnr )
-        self.rundir = setup( obj.rundir )
+        self.environ = obj.environ
+        # self.rundir = setup( obj.rundir )
         yname = moreHelpers.shortYVarName( obj.yvariable )
-        self.resultsdir = f"{self.rundir}/llhds_{namer.asciiName(obj.xvariable)}{yname}/"
+        self.resultsdir = f"{self.environ.rundir}/llhds_{namer.asciiName(obj.xvariable)}{yname}/"
         self.topo = obj.topo
         self.threadnr = threadnr
         self.picklefile = obj.picklefile
@@ -206,10 +208,10 @@ class LlhdThread ( LoggerBase ):
         if hasattr ( self.predictor, "predictions" ):
             del self.predictor.predictions
         from builder.manipulator import Manipulator
-        manipulator = Manipulator ( self.M )
+        manipulator = Manipulator ( self.M, self.environ )
         worked = self.predictor.predict ( manipulator, keep_predictions = True )
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
-        print("worked ", worked)
+        self.pprint( f"worked: {worked}" )
         if not worked:
             return { "llhd": None, "critic": None, "oul": None, "eul": None }
         ## now get the likelihoods
@@ -380,30 +382,29 @@ def runThread ( threadid: int, obj, rxvariable, ryvariable,
 
 class LlhdScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
-    def __init__ ( self, protomodel, xvariable, yvariable, nproc, rundir : str,
-                   dbpath : str = "official", select : str = "all",
+    def __init__ ( self, protomodel, xvariable, yvariable, nproc,
+                   environ : RunEnviron, select : str = "all",
                    do_srcombine : bool = True, skip_production : bool = False, 
                    dry_run : bool = False ):
         """
         :param rundir: the rundir
-        :param dbpath: the database path
+        :param environ: the RunEnviron
         :param skip_production: if possible, skip production, go to plotting
         :param dry_run: dont actually perform the actions
         """
         super ( LlhdScanner, self ).__init__ ( 0 )
         self.dry_run = dry_run
-        self.rundirarg = rundir
-        self.rundir = setup( rundir )
+        # self.rundirarg = rundir
+        # self.rundir = setup( rundir )
+        self.environ = environ
         self.M = protomodel
         self.xvariable = xvariable
         self.yvariable = yvariable
         self.nproc = nproc
         self.skip_production = skip_production
-        self.predictor = Predictor ( 0, dbpath=dbpath, 
-                select=select, do_srcombine = do_srcombine )
-        self.critic = Critic ( 0, dbpath=dbpath, 
-                select=select, do_srcombine = do_srcombine )
-        self.pprint ( f"self.predictor = Predictor ( 0, dbpath='{dbpath}', select='{select}', do_srcombine = {do_srcombine} )" )
+        self.predictor = Predictor ( 0, environ=self.environ )
+        self.critic = Critic ( 0, environ=self.environ )
+        self.pprint ( f"self.predictor = Predictor ( 0, environ='{self.environ.runDictFile}' )" )
 
     def describeRange ( self, r ):
         """ describe range r in a string """
@@ -587,7 +588,8 @@ def main ():
             help='variable for y axis, e.g. 1000022 or "(Xt,Xt)", [X1Z]',
             type=str, default="X1Z" )
     argparser.add_argument ( '-P', '--nproc',
-            help='number of process to run in parallel. zero is autodetect. Negative numbers are added to autodetect [0]',
+            help='number of processes to run in parallel. zero is autodetect.'\
+                 'Negative numbers are added to autodetect [0]',
             type=int, default=0 )
     argparser.add_argument ( '-m1', '--min1',
             help='minimum mass of xvariable [None]',
@@ -610,9 +612,9 @@ def main ():
     argparser.add_argument ( '-t', '--topo',
             help='topology [None]',
             type=str, default=None )
-    argparser.add_argument ( '-R', '--rundir',
-            help='override the default rundir [None]',
-            type=str, default=None )
+    #argparser.add_argument ( '-R', '--rundir',
+    #        help='override the default rundir [None]',
+    #        type=str, default=None )
     argparser.add_argument ( '-e', '--nevents',
             help='number of events [50000]',
             type=int, default=50000 )
@@ -640,32 +642,33 @@ def main ():
     argparser.add_argument ( '-s', '--select',
             help="what do we select for [all]",
             type=str, default="all" )
-    argparser.add_argument ( '--dbpath',
-            help="path to database [official]",
-            type=str, default="official" )
+    argparser.add_argument ( '-r', '--run_environ',
+            help="path to run environment [./run.dict]",
+            type=str, default="./run.dict" )
     argparser.add_argument ( '-c', '--do_srcombine',
             help='do_srcombine', action='store_true' )
     argparser.add_argument ( '-S', '--skip_production',
             help='if possible, skip production', action='store_true' )
     args = argparser.parse_args()
-    rundir = setup( args.rundir )
+    # rundir = setup( args.rundir )
     nproc = args.nproc
+    environ = RunEnviron( args.run_environ )
     if nproc < 1:
         nproc = nCPUs() + nproc
     if args.hiscores == "default":
-        args.hiscores = f"{rundir}/hiscores_global.dict"
+        args.hiscores = f"{environ.rundir}/hiscores_global.dict"
     from ptools.hiscoreTools import fetchHiscoresObj
-    hi = fetchHiscoresObj ( args.hiscores, None, args.dbpath )
+    hi = fetchHiscoresObj ( args.hiscores, None, environ )
     protomodel = hi.hiscores[0]
     #self.pprint ( f"fetched {protomodel} from {args.hiscores}" )
 
     xvariables = [ namer.pid ( args.xvariable ) ]
     if args.xvariable == 0:
-        xvariables = findPids( rundir )
+        xvariables = findPids( environ.rundir )
     for xvariable in xvariables:
         yvariable = namer.pid ( args.yvariable )
-        scanner = LlhdScanner( protomodel, xvariable, yvariable, nproc, rundir, 
-                dbpath = args.dbpath, select = args.select, 
+        scanner = LlhdScanner( protomodel, xvariable, yvariable, nproc,
+                environ = environ, select = args.select, 
                 do_srcombine = args.do_srcombine, 
                 skip_production = args.skip_production,
                 dry_run = args.dry_run )
@@ -685,8 +688,9 @@ def main ():
             drawtimestamp = True
             compress = False
             upload = args.uploadTo
-            plot = plotLlhds.LlhdPlot ( xvariable, yvariable, verbose, copy, max_anas,
-                  interactive, drawtimestamp, compress, rundir, upload, args.dbpath )
+            plot = plotLlhds.LlhdPlot ( xvariable, yvariable, verbose, copy, 
+                       max_anas, interactive, drawtimestamp, compress, rundir, 
+                       upload, environ )
             plot.writeScriptFile ( )
             plot.plot()
 
