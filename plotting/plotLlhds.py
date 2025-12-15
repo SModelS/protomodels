@@ -22,6 +22,8 @@ from base.loggerbase import LoggerBase
 from tester.combiner import Combiner
 from ptools.helpers import getAllPidsOfTheoryPred
 from typing import Dict, Tuple, Union
+        
+namer = SParticleNames ( susy = False )
 
 def findMin ( oldZ ):
     """ find the minimum in Z """
@@ -81,9 +83,14 @@ def getPidList( xvariable, rundir ):
         t = t.replace("llhd","")
         t = t.replace(".pcl","")
         t = t.replace(".pcl","")
+        t = t.replace("X",",X")
         t = t.replace("1000022","")
-        print ( f"[plotLlhds] @@2 adding {t} {type(t)}" )
-        pids.add ( self.namer.pid(t) )
+        t = t.replace(",,",",")
+        if t.startswith(","):
+            t = t[1:]
+        name = namer.pid(t)
+        # print ( f"[plotLlhds] @@2 adding {t} {type(t)} name {name}" )
+        pids.add ( name )
         # pids.add ( int(t) )
     pids = list ( pids )
     if len(pids)==0:
@@ -95,8 +102,8 @@ def getPidList( xvariable, rundir ):
 class LlhdPlot ( LoggerBase ):
     """ A simple class to make debugging the plots easier """
     def __init__ ( self, xvariable, yvariable, verbose, copy, max_anas, 
-                   interactive, drawtimestamp, compress, rundir,
-                   upload, dbpath ):
+                   interactive, drawtimestamp, compress, environ,
+                   upload ):
         """
         :param xvariable: pid for x axis, possibly a range of pids
         :param yvariable: pid for y axis
@@ -106,14 +113,12 @@ class LlhdPlot ( LoggerBase ):
         :param interactive: prepare for an interactive session?
         :param drawtimestamp: if true, put a timestamp on plot
         :param compress: prepare for compression
+        :param environ: RunEnviron
         :param upload: upload directory, default is "latest"
-        :param dbpath: path to database
         """
         super ( LlhdPlot, self ).__init__ ( 0 )
-        self.namer = SParticleNames ( susy = False )
         self.combiner = Combiner ( 0 )
-        xvariable, yvariable = self.namer.pid ( xvariable ), self.namer.pid ( yvariable )
-        self.dbpath = dbpath
+        xvariable, yvariable = namer.pid ( xvariable ), namer.pid ( yvariable )
         self.useXSecsNotSSMs = False # use xsecs for y-variable instead of ssm
         self.yunit = "GeV"
         if type(yvariable) == tuple:
@@ -121,7 +126,7 @@ class LlhdPlot ( LoggerBase ):
             if self.useXSecsNotSSMs:
                 self.yunit = "fb"
         self.usePrettyNames = False
-        self.rundir = rundir
+        self.environ = environ
         self.upload = upload
         self.setup( xvariable, yvariable )
         self.DEBUG, self.INFO = 40, 30
@@ -131,8 +136,8 @@ class LlhdPlot ( LoggerBase ):
         self.rthreshold = 1.7
         self.interactive = interactive
         self.hiscorefile = "./hiscores.dict"
-        if rundir != None:
-            self.hiscorefile = f"{rundir}/hiscores.dict"
+        #if rundir != None:
+        #    self.hiscorefile = f"{rundir}/hiscores.dict"
         from ptools import hiscoreTools
         self.protomodel = hiscoreTools.obtainHiscore ( 0, self.hiscorefile )
         self.setVerbosity ( verbose )
@@ -329,7 +334,7 @@ class LlhdPlot ( LoggerBase ):
     def writeScriptFile ( self ):
             from ptools import moreHelpers
             syv = moreHelpers.shortYVarName( self.yvariable )
-            scriptfilename = f"llhdPlot_{self.namer.asciiName(self.xvariable)}{syv}.py"
+            scriptfilename = f"llhdPlot_{namer.asciiName(self.xvariable)}{syv}.py"
             with open ( scriptfilename, "wt" ) as f:
                 print ( f"[llhdScanner] created llhdPlotScript.py" )
                 f.write ( "#!/usr/bin/env python3\n\n" )
@@ -340,8 +345,8 @@ class LlhdPlot ( LoggerBase ):
                 f.write ( "from plotting import plotLlhds\n" )
                 f.write ( f"plot = plotLlhds.LlhdPlot ( xvariable={self.xvariable}, yvariable={self.yvariable}, verbose='{self.verbose}', copy={self.copy},\n" )
                 f.write ( f"    max_anas={self.max_anas}, interactive=interactive, drawtimestamp={self.drawtimestamp}, compress={self.compress},\n" )
-                f.write ( f"    rundir='{self.rundir}',\n" )
-                f.write ( f"    upload='{self.upload}', dbpath='{self.dbpath}' )\n" )
+                f.write ( f"    environ='{self.environ}',\n" )
+                f.write ( f"    upload='{self.upload}' )\n" )
                 f.write ( f"plot.plot()\n" )
                 f.write ( f"if '-s' in sys.argv:\n" )
                 f.write ( f"    plot.show()\n" )
@@ -405,7 +410,7 @@ class LlhdPlot ( LoggerBase ):
 
     def setup ( self, xvariable, yvariable ):
         """ setup rundir, picklefile path and hiscore file path """
-        self.hiscorefile = f"{self.rundir}/hiscores.dict"
+        self.hiscorefile = f"{self.environ.rundir}/hiscores.dict"
         if not os.path.exists ( self.hiscorefile ):
             self.pprint ( f"could not find hiscore file {self.hiscorefile}" )
  
@@ -413,10 +418,10 @@ class LlhdPlot ( LoggerBase ):
         self.yvariable = yvariable
         if type(self.xvariable) in [ tuple, list ]:
             xvariable = self.xvariable[0]
-        self.picklefile = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}{self.namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.pcl"
+        self.picklefile = f"{self.environ.rundir}/llhd{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.pcl"
         if not os.path.exists ( self.picklefile ):
             llhdp = self.picklefile
-            self.picklefile = f"{self.rundir}/mp{self.namer.asciiName(xvariable)}{self.namer.asciiName(self.yvariable)}.pcl" 
+            self.picklefile = f"{self.rundir}/mp{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable)}.pcl" 
         if not os.path.exists ( self.picklefile ):
             self.pprint(f"could not find pickle files {llhdp} and {self.picklefile}")
 
@@ -564,7 +569,7 @@ class LlhdPlot ( LoggerBase ):
             return
         if xvariable == None:
             xvariable = self.xvariable
-        self.pprint ( f"plotting likelihoods for {self.namer.asciiName(xvariable)}: {self.topo}" )
+        self.pprint ( f"plotting likelihoods for {namer.asciiName(xvariable)}: {self.topo}" )
         resultsForPIDs = {}
         ## this is just to obtain the hiscore
         for tpred in self.protomodel.bestCombo:
@@ -766,14 +771,14 @@ class LlhdPlot ( LoggerBase ):
             self.topo = self.topo.replace("electroweakinos_offshell","electroweakinos" )
             self.error ( "FIXME fix the names of the topo sets! electroweakinos!!" )
             
-        plt.title ( f"HPD regions, {self.namer.texName(xvariable, addSign=False, addDollars=True)} [{self.topo}]", fontsize=14 )
-        plt.xlabel ( f"m({self.namer.texName(xvariable,addSign=False, addDollars=True)}) [GeV]", fontsize=14 )
+        plt.title ( f"HPD regions, {namer.texName(xvariable, addSign=False, addDollars=True)} [{self.topo}]", fontsize=14 )
+        plt.xlabel ( f"m({namer.texName(xvariable,addSign=False, addDollars=True)}) [GeV]", fontsize=14 )
         var, postfix = "m", " [GeV]"
         if type ( self.yvariable ) == tuple:
             var, postfix = "ssm", ""
             if self.useXSecsNotSSMs:
                 var, postfix = "$\\sigma$", " [fb] (13 TeV)"
-        plt.ylabel ( f"{var}({self.namer.texName(self.yvariable, addSign=False, addDollars=True)}){postfix}" )
+        plt.ylabel ( f"{var}({namer.texName(self.yvariable, addSign=False, addDollars=True)}){postfix}" )
         hasCritic = np.any ( RMAX > self.rthreshold )
         if hasCritic:
             circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold}):\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
@@ -781,7 +786,7 @@ class LlhdPlot ( LoggerBase ):
         legend = ax.legend( handles=handles, loc="best", fontsize=12 )
         from ptools import moreHelpers
         syv = moreHelpers.shortYVarName( self.yvariable )
-        figname = f"{self.rundir}/llhd{self.namer.asciiName(xvariable)}{syv}.png"
+        figname = f"{self.rundir}/llhd{namer.asciiName(xvariable)}{syv}.png"
         self.pprint ( f"saving to {figname}" )
         from smodels_utils.helper.various import pngMetaInfo
         metadata = pngMetaInfo()
@@ -998,9 +1003,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-u', '--upload',
             help='choose upload directory [latest]',
             type=str, default="latest" )
-    argparser.add_argument ( '-R', '--rundir',
-            help='override the default rundir [None]',
-            type=str, default=None )
+    argparser.add_argument ( '-R', '--run_environ',
+            help='override the default rundir [./run.dict]',
+            type=str, default="./run.dict" )
     argparser.add_argument ( '-I', '--interactive',
             help='interactive mode',
             action="store_true" )
@@ -1010,17 +1015,19 @@ if __name__ == "__main__":
     args = argparser.parse_args()
     drawtimestamp = not args.notimestamp
 
-    rundir = gsetup( args.rundir )
-    pids = getPidList ( args.xvariable, rundir )
+    from base.runEnviron import RunEnviron
+    # rundir = gsetup( args.rundir )
+    environ = RunEnviron ( args.run_environ )
+    pids = getPidList ( args.xvariable, environ.rundir )
 
     if args.interactive and len(pids)>1:
         print ( "[plotLlhds] interactive mode plus several plots. interactive is only for one plot." )
         args.interactive = False
 
     for xvariable in pids:
-        plot = LlhdPlot ( xvariable, args.yvariable, args.verbose, args.copy, args.max_anas,
-                          args.interactive, drawtimestamp, args.compress, rundir,
-                          args.upload )
+        plot = LlhdPlot ( xvariable, args.yvariable, args.verbose, args.copy, 
+                args.max_anas, args.interactive, drawtimestamp, args.compress, 
+                environ, args.upload )
 
         if args.list_analyses:
             plot.listAnalyses()
