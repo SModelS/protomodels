@@ -28,6 +28,7 @@ from base.loggerbase import LoggerBase
 from smodels.statistics.basicStats import observed, apriori, aposteriori,\
          NllEvalType
 from base.runEnviron import RunEnviron
+from smodels_utils.helper.terminalcolors import *
 
 namer = SParticleNames ( False )
 
@@ -50,7 +51,7 @@ def findPids ( rundir ):
 
 class LlhdThread ( LoggerBase ):
     """ one thread of the sweep """
-    def __init__ ( self, threadnr: int, obj ):
+    def __init__ ( self, threadnr: str, obj ):
         """ the constructor. 
         """
         super ( LlhdThread, self ).__init__ ( threadnr )
@@ -60,6 +61,7 @@ class LlhdThread ( LoggerBase ):
         self.resultsdir = f"{self.environ.rundir}/llhds_{namer.asciiName(obj.xvariable)}{yname}/"
         self.topo = obj.topo
         self.threadnr = threadnr
+        self.dict_files = obj.dict_files
         self.picklefile = obj.picklefile
         self.M = copy.deepcopy ( obj.M )
         self.origmasses = copy.deepcopy ( self.M.masses )
@@ -83,19 +85,31 @@ class LlhdThread ( LoggerBase ):
               "model": self.M.dict() }
         return d
 
+    def createPickleBackup ( self ):
+        if os.path.exists ( self.picklefile ) and \
+                os.stat ( self.picklefile ).st_size > 1000:
+            try:
+                f = open ( self.picklefile, "rb" )
+                d = pickle.load(f) ## ok can read. copy, then!
+                cmd = f"cp {self.picklefile} {self.picklefile}.old"
+                subprocess.getoutput ( cmd )
+            except Exception as e:
+                pass
+
     def writePickleFile ( self, d : Dict ):
         """ write the dictionary into the picklefile """
-        #if os.path.exists ( self.picklefile ) and \
-        #        os.stat ( self.picklefile ).st_size > 1000:
-        #    try:
-        #        f = open ( self.picklefile, "rb" )
-        #        d = pickle.load(f) ## ok can read. copy, then!
-        #        subprocess.getoutput ( f"cp {self.picklefile} {self.picklefile}.old" )
-        #    except Exception as e:
-        #        pass
+        # self.createPickleBackup()
         f = open ( self.picklefile, "wb" )
         pickle.dump ( d, f )
         f.close()
+        writeDictFile = False
+        if self.dict_files:
+            dictfile = self.picklefile.replace(".pcl",".dict")
+            from ptools.helpers import py_dumps
+            with open ( dictfile, "wt" ) as f:
+                d = py_dumps ( d, level = 0 )
+                f.write ( d )
+            f.close()
 
     def lockPickleFile ( self ):
         """ make sure we write sequentially """
@@ -168,6 +182,8 @@ class LlhdThread ( LoggerBase ):
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
         masspoints = self.getAllMassPoints()
         Dict["masspoints"] = masspoints
+        from smodels_utils.helper.various import getCommandLine
+        Dict["cmdline"] = getCommandLine()
         self.writePickleFile ( Dict )
         self.unlockPickleFile()
 
@@ -211,7 +227,8 @@ class LlhdThread ( LoggerBase ):
         manipulator = Manipulator ( self.M, self.environ )
         worked = self.predictor.predict ( manipulator, keep_predictions = True )
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
-        self.pprint( f"worked: {worked}" )
+        if not worked:
+            self.error( f"worked: {worked}" )
         if not worked:
             return { "llhd": None, "critic": None, "oul": None, "eul": None }
         ## now get the likelihoods
@@ -320,7 +337,7 @@ class LlhdThread ( LoggerBase ):
         nxvariables = len(rxvariable)
         ct = 0
         for i1,m1 in enumerate(rxvariable):
-            self.pprint ( f"now starting with {i1}/{nxvariables}" )
+            self.pprint ( f"now starting with point #{i1+1}/{nxvariables}" )
             self.setMass ( self.xvariable, m1 )
             if type(self.myvariable)==int:
                 self.M.masses[self.yvariable]=self.myvariable ## reset LSP mass
@@ -343,14 +360,14 @@ class LlhdThread ( LoggerBase ):
                     continue
                 if self.hasResultsForPoint ( m1, m2 ):
                     continue
-                self.pprint ( f"processing m({m1:.2f},{m2:.2f})" )
+                # self.pprint ( f"processing m({m1:.2f},{m2:.2f})" )
                 if type(self.yvariable)==int:
                     self.M.masses[self.yvariable]=m2
                 if type(self.yvariable)==tuple:
                     self.setSSMultiplier ( self.yvariable, m2 )
                 for pid_,m_ in self.M.masses.items():
                     if pid_ != self.yvariable and m_ < m2: ## make sure LSP remains the LSP
-                        self.pprint ( f"WARNING: have to raise {pid_} from {m_} to {m2+1.}" )
+                        self.pprint ( f"WARNING: have to raise {namer.asciiName(pid_)} {m_} -> {m2+1.}, so X1Z stays the LSP" )
                         oldmasses[pid_]=m_
                         self.M.masses[pid_]=m2 + 1.
                 point = self.getPredictions ( False )
@@ -372,7 +389,7 @@ def runThread ( threadid: int, obj, rxvariable, ryvariable,
         return_dict : Union[Dict,None] = None ):
     """ the method needed for parallelization to work """
 
-    thread = LlhdThread ( threadid, obj )
+    thread = LlhdThread ( f"llhd{threadid}", obj )
     newpoints = thread.run ( rxvariable, ryvariable )
     if return_dict != None:
         return_dict[threadid]=newpoints
@@ -383,28 +400,27 @@ def runThread ( threadid: int, obj, rxvariable, ryvariable,
 class LlhdScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, xvariable, yvariable, nproc,
-                   environ : RunEnviron, select : str = "all",
-                   do_srcombine : bool = True, skip_production : bool = False, 
-                   dry_run : bool = False ):
+                   environ : RunEnviron, skip_production : bool = False, 
+                   dry_run : bool = False, dict_files : bool = False ):
         """
         :param rundir: the rundir
         :param environ: the RunEnviron
         :param skip_production: if possible, skip production, go to plotting
         :param dry_run: dont actually perform the actions
         """
-        super ( LlhdScanner, self ).__init__ ( 0 )
+        super ( LlhdScanner, self ).__init__ ( "llhd" )
         self.dry_run = dry_run
-        # self.rundirarg = rundir
-        # self.rundir = setup( rundir )
+        self.dict_files = dict_files
         self.environ = environ
         self.M = protomodel
         self.xvariable = xvariable
         self.yvariable = yvariable
         self.nproc = nproc
         self.skip_production = skip_production
-        self.predictor = Predictor ( 0, environ=self.environ )
-        self.critic = Critic ( 0, environ=self.environ )
-        self.pprint ( f"self.predictor = Predictor ( 0, environ='{self.environ.runDictFile}' )" )
+        self.predictor = Predictor ( 'llhd', environ=self.environ )
+        self.critic = Critic ( 'llhd', environ=self.environ )
+        self.pprint ( f"{YELLOW}starting with {nproc} threads{RESET}" )
+        self.pprint ( f"self.predictor = Predictor ( 'llhd', environ='{self.environ.runDictFile}' )" )
 
     def describeRange ( self, r ):
         """ describe range r in a string """
@@ -430,7 +446,7 @@ class LlhdScanner ( LoggerBase ):
             sys.exit()
         np.random.shuffle ( rxvariable )
         mask = []
-        thread = LlhdThread ( 0, self )
+        thread = LlhdThread ( "llhd0", self )
         for rxv in rxvariable:
             hasMissing = False
             for rxy in ryvariable:
@@ -503,15 +519,15 @@ class LlhdScanner ( LoggerBase ):
 
         #ryvariable = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
         #ryvariable = numpy.insert ( ryvariable, 8, self.myvariable )
-        print ( f"[llhdScanner] range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
-        print ( f"[llhdScanner] range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
-        print ( f"[llhdScanner] total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}" )
+        self.pprint ( f"{GREEN}range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}{RESET}" )
+        self.pprint ( f"{GREEN}range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}{RESET}" )
+        self.pprint ( f"{GREEN}total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}{RESET}" )
         self.M.createNewSLHAFileName ( prefix=f"llhd{xvariable}" )
         #self.M.initializePredictor()
         self.predictor.filterForTopos ( topo )
         self.M.walkerid = 2000
 
-        thread0 = LlhdThread ( 0, self )
+        thread0 = LlhdThread ( "llhd0", self )
         thread0.ntotal = len(rxvariable)*len(ryvariable)+1
         thread0.writeRunMeta()
         if not thread0.hasResultsForPoint ( self.mxvariable, self.myvariable ):
@@ -553,25 +569,25 @@ class LlhdScanner ( LoggerBase ):
         if type(self.yvariable) == tuple:
             self.myvariable = self.M.ssmultipliers[self.yvariable]
         nbinsx, nbinsy = 20, 20 # how many bins do we want per dimension
-        if args.min1 == None:
-            args.min1 = self.mxvariable*.6
-        if args.max1 == None:
-            args.max1 = self.mxvariable*1.7
-        if args.deltam1 == None:
-            args.deltam1 = ( args.max1 - args.min1 ) / nbinsx
-        if args.min2 == None:
+        if args.minx == None:
+            args.minx = self.mxvariable*.6
+        if args.maxx == None:
+            args.maxx = self.mxvariable*1.7
+        if args.deltamx == None:
+            args.deltamx = ( args.maxx - args.minx ) / nbinsx
+        if args.miny == None:
             if type(self.yvariable) == int:
-                args.min2 = max ( self.myvariable*.6 - 10., 1. )
+                args.miny = max ( self.myvariable*.6 - 10., 1. )
             if type(self.yvariable) == tuple:
-                # args.min2 = self.myvariable*.2
-                args.min2 = 0.
-        if args.max2 == None:
+                # args.miny = self.myvariable*.2
+                args.miny = 0.
+        if args.maxy == None:
             if type(self.yvariable) == int:
-                args.max2 = self.myvariable*1.9 + 10.
+                args.maxy = self.myvariable*1.9 + 10.
             if type(self.yvariable) == tuple:
-                args.max2 = self.myvariable*5.
-        if args.deltam2 == None:
-            args.deltam2 = ( args.max2 - args.min2 ) / nbinsy
+                args.maxy = self.myvariable*5.
+        if args.deltamy == None:
+            args.deltamy = ( args.maxy - args.miny ) / nbinsy
         return args
 
 def main ():
@@ -591,30 +607,27 @@ def main ():
             help='number of processes to run in parallel. zero is autodetect.'\
                  'Negative numbers are added to autodetect [0]',
             type=int, default=0 )
-    argparser.add_argument ( '-m1', '--min1',
+    argparser.add_argument ( '-mx', '--minx',
             help='minimum mass of xvariable [None]',
             type=float, default=None )
-    argparser.add_argument ( '-M1', '--max1',
+    argparser.add_argument ( '-Mx', '--maxx',
             help='maximum mass of xvariable [None]',
             type=float, default=None )
-    argparser.add_argument ( '-d1', '--deltam1',
+    argparser.add_argument ( '-dx', '--deltamx',
             help='delta m of xvariable [None]',
             type=float, default=None )
-    argparser.add_argument ( '-m2', '--min2',
+    argparser.add_argument ( '-my', '--miny',
             help='minimum mass of yvariable [None]',
             type=float, default=None )
-    argparser.add_argument ( '-M2', '--max2',
+    argparser.add_argument ( '-My', '--maxy',
             help='maximum mass of yvariable [None]',
             type=float, default=None )
-    argparser.add_argument ( '-d2', '--deltam2',
+    argparser.add_argument ( '-dy', '--deltamy',
             help='delta m of yvariable [None]',
             type=float, default=None )
     argparser.add_argument ( '-t', '--topo',
             help='topology [None]',
             type=str, default=None )
-    #argparser.add_argument ( '-R', '--rundir',
-    #        help='override the default rundir [None]',
-    #        type=str, default=None )
     argparser.add_argument ( '-e', '--nevents',
             help='number of events [50000]',
             type=int, default=50000 )
@@ -639,16 +652,13 @@ def main ():
     argparser.add_argument ( '-u', '--uploadTo',
             help="where do we upload to, on smodels.github.io [latest]",
             type=str, default="latest" )
-    argparser.add_argument ( '-s', '--select',
-            help="what do we select for [all]",
-            type=str, default="all" )
     argparser.add_argument ( '-r', '--run_environ',
             help="path to run environment [./run.dict]",
             type=str, default="./run.dict" )
-    argparser.add_argument ( '-c', '--do_srcombine',
-            help='do_srcombine', action='store_true' )
     argparser.add_argument ( '-S', '--skip_production',
             help='if possible, skip production', action='store_true' )
+    argparser.add_argument ( '--dict_files',
+            help='write out as dict file as well', action='store_true' )
     args = argparser.parse_args()
     # rundir = setup( args.rundir )
     nproc = args.nproc
@@ -658,7 +668,7 @@ def main ():
     if args.hiscores == "default":
         args.hiscores = f"{environ.rundir}/hiscores_global.dict"
     from ptools.hiscoreTools import fetchHiscoresObj
-    hi = fetchHiscoresObj ( args.hiscores, None, environ )
+    hi = fetchHiscoresObj ( args.hiscores, None, environ, walkerid="llhd" )
     protomodel = hi.hiscores[0]
     #self.pprint ( f"fetched {protomodel} from {args.hiscores}" )
 
@@ -668,14 +678,12 @@ def main ():
     for xvariable in xvariables:
         yvariable = namer.pid ( args.yvariable )
         scanner = LlhdScanner( protomodel, xvariable, yvariable, nproc,
-                environ = environ, select = args.select, 
-                do_srcombine = args.do_srcombine, 
-                skip_production = args.skip_production,
-                dry_run = args.dry_run )
+                environ = environ, skip_production = args.skip_production,
+                dry_run = args.dry_run, dict_files = args.dict_files )
         args.xvariable = xvariable
         args = scanner.overrideWithDefaults ( args )
-        range1 = { "min": args.min1, "max": args.max1, "dm": args.deltam1 }
-        range2 = { "min": args.min2, "max": args.max2, "dm": args.deltam2 }
+        range1 = { "min": args.minx, "max": args.maxx, "dm": args.deltamx }
+        range2 = { "min": args.miny, "max": args.maxy, "dm": args.deltamy }
         scanner.scanLikelihoodFor ( range1, range2, args.nevents, args.topo, 
                 args.output )
         if args.dontkeep:
@@ -689,8 +697,8 @@ def main ():
             compress = False
             upload = args.uploadTo
             plot = plotLlhds.LlhdPlot ( xvariable, yvariable, verbose, copy, 
-                       max_anas, interactive, drawtimestamp, compress, rundir, 
-                       upload, environ )
+                       max_anas, interactive, drawtimestamp, compress, environ,
+                       upload )
             plot.writeScriptFile ( )
             plot.plot()
 

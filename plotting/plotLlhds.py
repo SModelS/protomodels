@@ -141,23 +141,24 @@ class LlhdPlot ( LoggerBase ):
                 "llhd", self.environ )
         self.setVerbosity ( verbose )
         self.compress = compress
-        masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
-        self.masspoints = masspoints
-        self.mx = mx
-        self.my = self.convertSSMToXSec ( my, mx )
-        self.nevents = nevents
-        self.topo = topo
+        # masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
+        d = self.loadPickleFile( compress )
+        self.masspoints = d["masspoints"]
+        self.mx = d["mx"]
+        self.my = self.convertSSMToXSec ( d["my"], d["mx"] )
+        self.nevents = d["nevents"]
+        self.topo = d["topo"]
         from ptools.moreHelpers import namesForSetsOfTopologies
         self.toponames = namesForSetsOfTopologies ( self.topo )[0]
-        self.timestamp = timestamp
+        self.timestamp = d["timestamp"]
         self.massdict = {}
         self.rdict = {}
-        if masspoints == None:
+        if d["masspoints"] == None:
             return
         countCritics = {} ## count occurrences of analyses in critic
 
         # to determine which analyses dominate the (fast) critic
-        for m in masspoints:
+        for m in self.masspoints:
             masstuple = (m["mx"],self.convertSSMToXSec(m["my"],m["mx"]))
             self.massdict[ masstuple ] = m["llhd"]
             self.rdict[ masstuple ] = m["critic"]
@@ -167,12 +168,12 @@ class LlhdPlot ( LoggerBase ):
                         countCritics[ana]=0
                     countCritics[ana]+=1
         significances = {} ## get the Z's at the winner
-        for name,eul in masspoints[0]["eul"].items():
-            if not "oul" in masspoints[0]:
+        for name,eul in self.masspoints[0]["eul"].items():
+            if not "oul" in self.masspoints[0]:
                 continue
-            if not name in masspoints[0]["oul"]:
+            if not name in self.masspoints[0]["oul"]:
                 continue
-            oul = masspoints[0]["oul"][name]
+            oul = self.masspoints[0]["oul"][name]
             if eul is None or oul is None:
                 continue
             sigma_exp = eul / 1.96
@@ -371,6 +372,8 @@ class LlhdPlot ( LoggerBase ):
                     nevents = dic["nevents"]
                     topo = dic["topo"]
                     timestamp = dic["timestamp"]
+                    ## this last one is the command line argument of the scanner
+                    cmdline = dic["cmdline"]
                     success = True
                 except Exception as e:
                     self.pprint ( f"Exception {e}, when reading {self.picklefile}")
@@ -380,9 +383,12 @@ class LlhdPlot ( LoggerBase ):
         self.pprint ( f"loaded {len(masspoints)} masspoints." )
         if masspoints == None:
             self.pprint ( f"couldnt read llhds in {self.picklefile}" )
-            return None,None,None,None,None,None
+            return { "masspoints": None, "mx": None, "my": None, "nevents": None,
+                     "topo": None, "timestamp": None, "cmdline" : None }
         if returnAll:
-            return masspoints,mx,my,nevents,topo,timestamp
+            return { "masspoints": masspoints, "mx": mx, "my": my, 
+                     "nevents": nevents, "topo": topo, "timestamp": timestamp, 
+                     "cmdline": cmdline }
         llhds=[]
         mu = 1.
         def getMu1 ( L ):
@@ -406,7 +412,8 @@ class LlhdPlot ( LoggerBase ):
             else:
                 app["llhd"] = getMu1(point["llhd"])
             llhds.append ( app )
-        return llhds,mx,my,nevents,topo,timestamp
+        return { "masspoints": llhds, "mx": mx, "my": my, "nevents": nevents,
+                 "topo": topo, "timestamp": timestamp, "cmdline": cmdline }
 
     def setup ( self, xvariable, yvariable ):
         """ setup rundir, picklefile path and hiscore file path """
@@ -424,6 +431,7 @@ class LlhdPlot ( LoggerBase ):
             self.picklefile = f"{self.rundir}/mp{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable)}.pcl" 
         if not os.path.exists ( self.picklefile ):
             self.pprint(f"could not find pickle files {llhdp} and {self.picklefile}")
+        self.pprint ( f"using {self.picklefile}" )
 
     def describe ( self ):
         """ describe the situation """
