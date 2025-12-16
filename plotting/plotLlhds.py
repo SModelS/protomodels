@@ -5,7 +5,7 @@
 from smodels.base.physicsUnits import TeV, fb
 from unum import Unum
 import pickle, sys, copy, subprocess, os, time, glob, math
-from colorama import Fore as ansi
+from smodels_utils.helper.terminalcolors import *
 import IPython
 import numpy as np
 from csetup import setup
@@ -958,15 +958,13 @@ class LlhdPlot ( LoggerBase ):
     def interact ( self ):
         import IPython
         varis = "plot.describe()"
-        print ( f"{ansi.GREEN}[plot] interactive session. Try: {varis}{ansi.RESET}" )
+        print ( f"{GREEN}[plot] interactive session. Try: {varis}{RESET}" )
         IPython.embed( using=False )
 
     def show( self ):
-        cmd = f"see {self.figname}"
-        o = subprocess.getoutput ( cmd )
-        print ( o )
-        # from smodels_utils.plotting.mpkitty import timg
-        # timg ( self.figname )
+        """ show plot in the end """
+        from smodels_utils.plotting.mpkitty import timg
+        timg ( self.figname )
 
 
 if __name__ == "__main__":
@@ -1039,8 +1037,7 @@ if __name__ == "__main__":
         filename = plot.plot()
 
         if args.show:
-            from smodels_utils.plotting.mpkitty import timg
-            timg ( filename )
+            plot.show()
 
         if args.interactive:
             plot.interact()
