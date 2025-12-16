@@ -85,7 +85,7 @@ def obtainHiscore ( number : int,
     TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K
     sK = formatObject ( K, 3 )
-    print ( f"[hiscoreTools] obtaining #{number}: K={sK}" )
+    print ( f"[hiscoreTools:{walkerid}] obtaining #{number}: K={sK}" )
     ret = hi.hiscores[ number ]
     return ret
 
@@ -194,8 +194,8 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
     from ptools import helpers
     shortname = helpers.simplifyUnixPath ( picklefile )
     if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=walkerid ):
-        print ( f"[hiscoreTools] can reuse cache: {shortname}" )
-        return Hiscores ( 0, False, picklefile )
+        print ( f"[hiscoreTools:{walkerid}] can reuse cache: {shortname}" )
+        return Hiscores ( walkerid, False, picklefile )
     print ( f"[hiscoreTools] updating cache: {shortname} ... " )
     hi = Hiscores.fromDictionaryFile ( path = dictfile, environ = environ, 
             walkerid = walkerid )

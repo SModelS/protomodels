@@ -16,6 +16,7 @@ class LoggerBase:
         """ instantiate the logger class with a walkerid """
         self.walkerid = walkerid
         self.countLogs = {}
+        self.prevMessage = ""
         self.printLogMessages = False
         self.logdir = "logs/"
         # self.printHigherThan = "critical"
@@ -55,7 +56,6 @@ class LoggerBase:
         if self.verbose > 1:
             print ( f"[expResModifier] {' '.join(map(str, args))}" )
 
-
     def highlight ( self, msgType : str = "info", *args ):
         """ logging, hilit """
         col = ansi.GREEN
@@ -81,7 +81,14 @@ class LoggerBase:
 
     def pprint ( self, *args ):
         """ logging """
-        print ( f"[{self.module}:{self.walkerid}] {' '.join(map(str,args))}" )
+        line = ' '.join(map(str,args))
+        if line == self.prevMessage:
+            if not line in self.countLogs:
+                self.countLogs[line]=0
+            self.countLogs[line] += 1
+            return
+        print ( f"[{self.module}:{self.walkerid}] {line}" )
+        self.prevMessage = line
         self.log ( *args )
 
     def log ( self, *args ):

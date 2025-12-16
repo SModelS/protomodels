@@ -116,8 +116,8 @@ class LlhdPlot ( LoggerBase ):
         :param environ: RunEnviron
         :param upload: upload directory, default is "latest"
         """
-        super ( LlhdPlot, self ).__init__ ( 0 )
-        self.combiner = Combiner ( 0 )
+        super ( LlhdPlot, self ).__init__ ( "llhd" )
+        self.combiner = Combiner ( "llhd" )
         xvariable, yvariable = namer.pid ( xvariable ), namer.pid ( yvariable )
         self.useXSecsNotSSMs = False # use xsecs for y-variable instead of ssm
         self.yunit = "GeV"
@@ -135,11 +135,10 @@ class LlhdPlot ( LoggerBase ):
         self.copy = copy
         self.rthreshold = 1.7
         self.interactive = interactive
-        self.hiscorefile = "./hiscores.dict"
-        #if rundir != None:
-        #    self.hiscorefile = f"{rundir}/hiscores.dict"
+        self.hiscorefile = "./hiscores_global.dict"
         from ptools import hiscoreTools
-        self.protomodel = hiscoreTools.obtainHiscore ( 0, self.hiscorefile )
+        self.protomodel = hiscoreTools.obtainHiscore ( 0, self.hiscorefile, 
+                "llhd", self.environ )
         self.setVerbosity ( verbose )
         self.compress = compress
         masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
@@ -156,13 +155,14 @@ class LlhdPlot ( LoggerBase ):
         if masspoints == None:
             return
         countCritics = {} ## count occurrences of analyses in critic
-        # to determine which analyses dominate the critic
+
+        # to determine which analyses dominate the (fast) critic
         for m in masspoints:
             masstuple = (m["mx"],self.convertSSMToXSec(m["my"],m["mx"]))
             self.massdict[ masstuple ] = m["llhd"]
             self.rdict[ masstuple ] = m["critic"]
-            for ana,r in m["critic"].items():
-                if r>self.rthreshold:
+            for ana,r in m["critic"]["ul"]["datasets"].items():
+                if r["robs"]>self.rthreshold:
                     if not ana in countCritics:
                         countCritics[ana]=0
                     countCritics[ana]+=1
@@ -410,7 +410,7 @@ class LlhdPlot ( LoggerBase ):
 
     def setup ( self, xvariable, yvariable ):
         """ setup rundir, picklefile path and hiscore file path """
-        self.hiscorefile = f"{self.environ.rundir}/hiscores.dict"
+        self.hiscorefile = f"{self.environ.rundir}/hiscores_global.dict"
         if not os.path.exists ( self.hiscorefile ):
             self.pprint ( f"could not find hiscore file {self.hiscorefile}" )
  
@@ -646,7 +646,7 @@ class LlhdPlot ( LoggerBase ):
                 m2 = self.convertSSMToXSec ( m2, m1 )
                 rmax=float("nan")
                 if len(critic)>0:
-                    rmax=max(critic.values())
+                    rmax=max([ v["robs"] for k,v in critic['ul']['datasets'].items() ] )
                 if m2 > m1 and not type(self.yvariable) in [ tuple ]:
                     print ( f"m2,m1 mass inversion? {m1,m2}" )
                 x.add ( m1 )
@@ -786,7 +786,7 @@ class LlhdPlot ( LoggerBase ):
         legend = ax.legend( handles=handles, loc="best", fontsize=12 )
         from ptools import moreHelpers
         syv = moreHelpers.shortYVarName( self.yvariable )
-        figname = f"{self.rundir}/llhd{namer.asciiName(xvariable)}{syv}.png"
+        figname = f"{self.environ.rundir}/llhd{namer.asciiName(xvariable)}{syv}.png"
         self.pprint ( f"saving to {figname}" )
         from smodels_utils.helper.various import pngMetaInfo
         metadata = pngMetaInfo()
