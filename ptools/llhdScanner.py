@@ -28,7 +28,6 @@ from base.loggerbase import LoggerBase
 from smodels.statistics.basicStats import observed, apriori, aposteriori,\
          NllEvalType
 from base.runEnviron import RunEnviron
-from smodels_utils.helper.terminalcolors import *
 
 namer = SParticleNames ( False )
 
@@ -419,7 +418,7 @@ class LlhdScanner ( LoggerBase ):
         self.skip_production = skip_production
         self.predictor = Predictor ( 'llhd', environ=self.environ )
         self.critic = Critic ( 'llhd', environ=self.environ )
-        self.pprint ( f"{YELLOW}starting with {nproc} threads{RESET}" )
+        self.cprint ( "yellow", f"starting with {nproc} threads" )
         self.pprint ( f"self.predictor = Predictor ( 'llhd', environ='{self.environ.runDictFile}' )" )
 
     def describeRange ( self, r ):
@@ -519,9 +518,9 @@ class LlhdScanner ( LoggerBase ):
 
         #ryvariable = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
         #ryvariable = numpy.insert ( ryvariable, 8, self.myvariable )
-        self.pprint ( f"{GREEN}range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}{RESET}" )
-        self.pprint ( f"{GREEN}range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}{RESET}" )
-        self.pprint ( f"{GREEN}total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}{RESET}" )
+        self.cprint ( "green", f"range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
+        self.cprint ( "green", f"range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
+        self.cprint ( "green", f"total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}" )
         self.M.createNewSLHAFileName ( prefix=f"llhd{xvariable}" )
         #self.M.initializePredictor()
         self.predictor.filterForTopos ( topo )

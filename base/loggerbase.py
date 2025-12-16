@@ -6,6 +6,7 @@ from colorama import Fore as ansi
 import time, os
 from typing import Union
 from ptools import helpers
+from smodels_utils.helper.terminalcolors import *
 
 __all__ = [ "LoggerBase" ]
 
@@ -88,6 +89,19 @@ class LoggerBase:
             self.countLogs[line] += 1
             return
         print ( f"[{self.module}:{self.walkerid}] {line}" )
+        self.prevMessage = line
+        self.log ( *args )
+
+    def cprint ( self, color, *args ):
+        """ logging, colored version """
+        line = ' '.join(map(str,args))
+        if line == self.prevMessage:
+            if not line in self.countLogs:
+                self.countLogs[line]=0
+            self.countLogs[line] += 1
+            return
+        from smodels_utils.helper.terminalcolors import colordict, RESET
+        print ( f"[{self.module}:{self.walkerid}] {colordict[color]}{line}{RESET}" )
         self.prevMessage = line
         self.log ( *args )
 
