@@ -56,8 +56,9 @@ class LlhdThread ( LoggerBase ):
         super ( LlhdThread, self ).__init__ ( threadnr )
         self.environ = obj.environ
         # self.rundir = setup( obj.rundir )
-        yname = moreHelpers.shortYVarName( obj.yvariable )
-        self.resultsdir = f"{self.environ.rundir}/llhds_{namer.asciiName(obj.xvariable)}{yname}/"
+        # yname = moreHelpers.shortYVarName( obj.yvariable )
+        self.resultsdir = obj.resultsdir
+        # self.resultsdir = f"{self.environ.rundir}/llhds_{namer.asciiName(obj.xvariable)}{yname}/"
         self.topo = obj.topo
         self.threadnr = threadnr
         self.dict_file = obj.dict_file
@@ -393,26 +394,33 @@ class LlhdScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, xvariable, yvariable, nproc,
                    environ : RunEnviron, skip_production : bool = False,
-                   dry_run : bool = False, dict_file : bool = False ):
+                   dry_run : bool = False, dict_file : bool = False,
+                   output : str = "llhd" ):
         """
         :param rundir: the rundir
         :param environ: the RunEnviron
         :param skip_production: if possible, skip production, go to plotting
         :param dry_run: dont actually perform the actions
+        :param output: prefix for output file [llhd]
         """
         super ( LlhdScanner, self ).__init__ ( "llhd" )
         self.dry_run = dry_run
+        self.output = output
         self.dict_file = dict_file
         self.environ = environ
         self.M = protomodel
         self.xvariable = xvariable
         self.yvariable = yvariable
+        picklefile = f"{self.output}{namer.asciiName(self.xvariable)}{namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.pcl"
+        self.picklefile = picklefile
         self.nproc = nproc
         self.skip_production = skip_production
         self.predictor = Predictor ( 'llhd', environ=self.environ )
         self.critic = Critic ( 'llhd', environ=self.environ )
         self.cprint ( "yellow", f"starting with {nproc} threads" )
         self.pprint ( f"self.predictor = Predictor ( 'llhd', environ='{self.environ.runDictFile}' )" )
+        yname = moreHelpers.shortYVarName( self.yvariable )
+        self.resultsdir = f"{self.environ.rundir}/llhds_{namer.asciiName(self.xvariable)}{yname}/"
 
     def describeRange ( self, r ):
         """ describe range r in a string """
@@ -468,12 +476,11 @@ class LlhdScanner ( LoggerBase ):
         thread.updatePickleFile()
 
     def scanLikelihoodFor ( self, range1 : Dict, range2 : Dict,
-                            nevents : int, topo : str, output : str ):
+                            nevents : int, topo : str ):
         """ plot the likelihoods as a function of xvariable and yvariable
 
         :param range1: dictionary for range1 with min, max, dm
         :param range2: dictionary for range1 with min, max, dm
-        :param output: prefix for output file [mp]
         """
         self.nevents = nevents
         self.topo = topo
@@ -481,10 +488,8 @@ class LlhdScanner ( LoggerBase ):
         yvariable = self.yvariable
         if yvariable != self.M.LSP:
             self.pprint ( f"we currently assume yvariable to be the mass of the LSP, but it is {yvariable}" )
-        picklefile = f"{output}{namer.asciiName(xvariable)}{namer.asciiName(yvariable).replace(',','').replace(' ','')}.pcl"
-        self.picklefile = picklefile
-        if os.path.exists ( picklefile ) and self.skip_production:
-            self.pprint ( f"we were asked to skip production: {picklefile} exists." )
+        if os.path.exists ( self.picklefile ) and self.skip_production:
+            self.pprint ( f"we were asked to skip production: {self.picklefile} exists." )
             return
         import numpy
         c = Combiner()
@@ -545,6 +550,15 @@ class LlhdScanner ( LoggerBase ):
 
         self.runForMassPoints ( rxvariable, ryvariable )
         self.M.delCurrentSLHA()
+
+    def cleanFirst ( self ):
+        """ clean results dir and pickle file before running """
+        if os.path.exists ( self.picklefile ):
+            self.pprint ( f"cleaning out {self.picklefile}" )
+            os.unlink ( self.picklefile )
+        if os.path.exists ( self.resultsdir ):
+            self.pprint ( f"cleaning out {self.resultsdir}" )
+            shutil.rmtree ( self.resultsdir )
 
     def overrideWithDefaults ( self, args ):
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
@@ -631,6 +645,9 @@ def main ():
     argparser.add_argument ( '-K', '--dontkeep',
             help='remove resultsdir after finished',
             action='store_true' )
+    argparser.add_argument ( '-c', '--clean_first',
+            help='clean pickle files and results dir before running',
+            action='store_true' )
     argparser.add_argument ( '--dry_run',
             help='just tell us what you would be doing, dont actually do it',
             action='store_true' )
@@ -670,13 +687,15 @@ def main ():
         yvariable = namer.pid ( args.yvariable )
         scanner = LlhdScanner( protomodel, xvariable, yvariable, nproc,
                 environ = environ, skip_production = args.skip_production,
-                dry_run = args.dry_run, dict_file = args.dict_file )
+                dry_run = args.dry_run, dict_file = args.dict_file,
+                output = args.output )
         args.xvariable = xvariable
         args = scanner.overrideWithDefaults ( args )
+        if args.clean_first:
+            scanner.cleanFirst()
         range1 = { "min": args.minx, "max": args.maxx, "dm": args.deltamx }
         range2 = { "min": args.miny, "max": args.maxy, "dm": args.deltamy }
-        scanner.scanLikelihoodFor ( range1, range2, args.nevents, args.topo,
-                args.output )
+        scanner.scanLikelihoodFor ( range1, range2, args.nevents, args.topo )
         if args.dontkeep:
             scanner.unlinkResultsDir()
         if args.draw:
