@@ -338,7 +338,7 @@ class LlhdThread ( LoggerBase ):
                 ## reset LSP mass
                 self.setSSMultiplier ( self.yvariable, self.myvariable )
             for k,v in oldmasses.items():
-                self.pprint ( f"WARNING: setting mass of {k} back to {v}" )
+                self.pprint ( f"WARNING: setting mass of {namer.asciiName(k)} back to {v}" )
                 self.M.masses[k]=v
             oldmasses={}
             self.M.delXSecs() ## make sure we compute
