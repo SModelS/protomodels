@@ -230,10 +230,19 @@ class LlhdThread ( LoggerBase ):
         manipulator = Manipulator ( self.M, self.environ )
         worked = self.predictor.predict ( manipulator, keep_predictions = True )
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
+        ret = { "llhd": None, "critic": None, "oul": None, "eul": None }
+
+        self.M.delCurrentSLHA()
+        critics={ "llhd": None, "ul": self.M.ul_critic }
+        if hasattr ( self.M, "llhd_critic" ):
+            self.M.llhd_critic["passes"] = ( self.M.llhd_critic["robs"]<1.0 )
+            critics["llhd"] = self.M.llhd_critic
+            ret["critic"] = critics
+
         if not worked:
             self.error( f"worked: {worked}" )
         if not worked:
-            return { "llhd": None, "critic": None, "oul": None, "eul": None }
+            return ret
         ## now get the likelihoods
         llhds={}
         ## start with the SM likelihood
@@ -241,16 +250,15 @@ class LlhdThread ( LoggerBase ):
         ## get for the others FIXME should adapt to ssm?
         for mu in numpy.arange(.4,1.8,.05):
             llhds[float(mu)] = self.getLikelihoods ( self.predictor.predictions, mu=mu )
+        ret["llhd"] = llhds
         ouls = self.getLimits ( self.predictor.predictions, observed )
+        ret["oul"] = ouls
         euls = self.getLimits ( self.predictor.predictions, apriori )
-        del self.predictor.predictions
-        self.M.delCurrentSLHA()
-        critics={ "llhd": None, "ul": self.M.ul_critic }
-        if hasattr ( self.M, "llhd_critic" ):
-            self.M.llhd_critic["passes"] = ( self.M.llhd_critic["robs"]<1.0 )
-            critics["llhd"] = self.M.llhd_critic
+        ret["eul"] = euls
 
-        return { "llhd": llhds, "critic": critics, "oul": ouls, "eul": euls }
+        del self.predictor.predictions
+
+        return ret
 
     def getLimits ( self, predictions : List[TheoryPrediction],
                     evaluationType : NllEvalType ) -> Dict:
@@ -556,6 +564,11 @@ class LlhdScanner ( LoggerBase ):
         if os.path.exists ( self.picklefile ):
             self.pprint ( f"cleaning out {self.picklefile}" )
             os.unlink ( self.picklefile )
+        if self.dict_file:
+            dictfile = self.picklefile.replace(".pcl",".dict")
+            if os.path.exists ( dictfile ):
+                self.pprint ( f"cleaning out {dictfile}" )
+                os.unlink ( dictfile )
         if os.path.exists ( self.resultsdir ):
             self.pprint ( f"cleaning out {self.resultsdir}" )
             shutil.rmtree ( self.resultsdir )
