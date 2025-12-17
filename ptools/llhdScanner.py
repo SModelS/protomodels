@@ -241,27 +241,9 @@ class LlhdThread ( LoggerBase ):
         euls = self.getLimits ( self.predictor.predictions, apriori )
         del self.predictor.predictions
         self.M.delCurrentSLHA()
-        critics={ "llhd": self.M.llhd_critic, "ul": self.M.ul_critic }
-        """
-        print("critic desc ", self.M.critic_description)
-        num_of_critics = len(self.M.critic_description.split(';'))
-        ul_critic = self.M.critic_description.split(';')[0] #, llhd_critic, self.M.critic_description.split(';')[1]
-        p1 = ul_critic.find ( "Datasets: " )
-        datasets = ul_critic[p1+10:]
-        for critic in datasets.split(","):
-            print("Crtiic ", critic)
-            tokens = critic.split(":")
-            if len(tokens)>1:
-                critics[tokens[0]]=float(tokens[1])
-        if num_of_critics > 1:
-            llhd_critic = self.M.critic_description.split(';')[1]
-            p1 = llhd_critic.find("datasets:")
-            p2 = llhd_critic.find("with r=")
-            datasets = llhd_critic[p1+9:p2-1]
-            comb_r = float(llhd_critic[p2+7:])
-            critics[datasets] = comb_r
-        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
-        """
+        critics={ "llhd": None, "ul": self.M.ul_critic }
+        if hasattr ( self.M, "llhd_critic" ):
+            critics["llhd"] = self.M.llhd_critic
 
         return { "llhd": llhds, "critic": critics, "oul": ouls, "eul": euls }
 
@@ -336,7 +318,14 @@ class LlhdThread ( LoggerBase ):
         nxvariables = len(rxvariable)
         ct = 0
         for i1,m1 in enumerate(rxvariable):
-            self.pprint ( f"now starting with point #{i1+1}/{nxvariables}" )
+            thrnr = 0
+            try:
+                thrnr = int ( self.threadnr.replace("llhd","") )
+            except Exception as e:
+                pass
+            setnr = i1+1 + thrnr * ( nxvariables )
+            self.pprint ( f"now starting with point set #{setnr} [of {nxvariables} in this thread]" )
+            self.pprint ( f"this point set contains {len(ryvariable)} points" )
             self.setMass ( self.xvariable, m1 )
             if type(self.myvariable)==int:
                 self.M.masses[self.yvariable]=self.myvariable ## reset LSP mass
@@ -547,7 +536,6 @@ class LlhdScanner ( LoggerBase ):
         if False:
             ## freeze out all other particles? We shouldnt!
             for pid_,m_ in self.M.masses.items():
-                # print ( f"@@a freezing {pid_}? {pid_ not in [ self.xvariable, self.yvariable ]}" )
                 if pid_ not in [ self.xvariable, self.yvariable ]:
                     self.M.masses[pid_]=1e6
 

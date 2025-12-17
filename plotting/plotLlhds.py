@@ -69,9 +69,11 @@ def getAlpha ( color ):
         return rets[color]
     return .3
 
-def getPidList( xvariable, rundir ):
+def getPidList( xvariable : Union[str,int], rundir : str ) -> set:
     """ obtain the list of pids to produce plots for """
-    if xvariable > 0:
+    if xvariable != 0:
+        if type(xvariable) == str:
+            xvariable = namer.pid ( xvariable )
         return [ xvariable ]
     pids = set()
     ## obtain pids from mp files
@@ -89,7 +91,6 @@ def getPidList( xvariable, rundir ):
         if t.startswith(","):
             t = t[1:]
         name = namer.pid(t)
-        # print ( f"[plotLlhds] @@2 adding {t} {type(t)} name {name}" )
         pids.add ( name )
         # pids.add ( int(t) )
     pids = list ( pids )
@@ -143,6 +144,7 @@ class LlhdPlot ( LoggerBase ):
         self.compress = compress
         # masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
         d = self.loadPickleFile( compress )
+        self.cmdline = d["cmdline"]
         self.masspoints = d["masspoints"]
         self.mx = d["mx"]
         self.my = self.convertSSMToXSec ( d["my"], d["mx"] )
@@ -255,10 +257,13 @@ class LlhdPlot ( LoggerBase ):
             print ( f"{sum(sum(newZ))}/{n} points in {int(alpha*100)}% HPD" )
         return newZ
 
-    def topoMatches ( self, topo ):
-        """ does topo match self.topo """
-        ret = topo in self.toponames
-        return ret
+    def toposMatch ( self, topos : str ) -> bool:
+        """ does one topo in topos match self.topo """
+        topos_list = topos.split(",")
+        for topo in topos_list:
+            if topo in self.toponames:
+                return True
+        return False
 
     def setVerbosity ( self, verbose ):
         self.verbose = verbose
@@ -319,7 +324,7 @@ class LlhdPlot ( LoggerBase ):
                 if tokens[1] != dType:
                     continue
                 self.debug ( f"found a match for {tokens[0]}, {tokens[1]}, l={llhd}" )
-            if not self.topoMatches ( tokens[2] ):
+            if not self.toposMatch ( tokens[2] ):
                 self.cprint ( "yellow", f"topology {tokens[2]} does not match {self.topo}, will skip" )
                 # continue
             if max_llhd == None or llhd > max_llhd:
@@ -362,6 +367,9 @@ class LlhdPlot ( LoggerBase ):
         masspoints = None
         ctr = 0
         success = False
+        if not os.path.exists ( self.picklefile ):
+            self.error ( f"could not find {self.picklefile}. exiting." )
+            sys.exit()
         while ctr < 15 and not success:
             with open ( self.picklefile, "rb" ) as f:
                 try:
@@ -428,7 +436,7 @@ class LlhdPlot ( LoggerBase ):
         self.picklefile = f"{self.environ.rundir}/llhd{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.pcl"
         if not os.path.exists ( self.picklefile ):
             llhdp = self.picklefile
-            self.picklefile = f"{self.rundir}/mp{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable)}.pcl"
+            self.picklefile = f"{self.environ.rundir}/mp{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable)}.pcl"
         if not os.path.exists ( self.picklefile ):
             self.pprint(f"could not find pickle files {llhdp} and {self.picklefile}")
         self.pprint ( f"using {self.picklefile}" )
@@ -461,10 +469,10 @@ class LlhdPlot ( LoggerBase ):
                 vmin = v
         return vmin
 
-    def getPrettyName ( self, anaid ):
+    def getPrettyName ( self, anaid : str ) -> str:
         """ get pretty name of ana id """
         if not self.usePrettyNames: ## set to true and we have the old analysis Ids
-            anaid = anaid.replace("(combined)","(comb)" )
+            anaid = anaid.replace("(combined)","comb" )
             return anaid
         if not hasattr ( self, "database" ):
             from smodels.experiment.databaseObj import Database
@@ -489,13 +497,18 @@ class LlhdPlot ( LoggerBase ):
         # print ( "found no pretty name", ers[0].globalInfo )
         return anaid
 
-    def getPIDsOfTPred ( self, tpred, ret, integrateDataType=True, integrateSRs=True ):
+    def getPIDsOfTPred ( self, tpred, ret : dict, integrateDataType : bool = True,
+            integrateSRs : bool = True ) -> dict:
         """ get the list of PIDs that the theory prediction should be assigned to
         :param tpred: theory prediction
-        :param ret: results of a previous run of this function, so we can add iteratively
-        :param integrateDataType: if False, then use anaid:dtype (eg CMS-SUS-19-006:ul) as values
-        :param integrateSRs: if False, then use anaid:SR (eg CMS-SUS-19-006:SRC) as values.
-                             takes precedence over integrateDataType
+        :param ret: results of a previous run of this function,
+        so we can add iteratively
+        :param integrateDataType: if False, then use anaid:dtype
+        (eg CMS-SUS-19-006:ul) as values
+        :param integrateSRs: if False, then use anaid:SR
+        (eg CMS-SUS-19-006:SRC) as values.
+        takes precedence over integrateDataType
+
         :returns: dictionary with pid as key and sets of ana ids as value
         """
         LSP = 1000022
@@ -618,7 +631,10 @@ class LlhdPlot ( LoggerBase ):
         rankthem = {}
         for ana in anas: ## loop over the analyses
             ret = self.getHighestLlhdFor ( ana, self.masspoints[0]["llhd"] )
-            rankthem[ ret["Z"] ] = ana
+            Z = ret["Z"]
+            while Z in rankthem:
+                Z += 1e-5
+            rankthem[ Z ] = ana
         Zs = list ( rankthem.keys())
         Zs.sort( reverse = True )
         newanas = []
@@ -732,7 +748,6 @@ class LlhdPlot ( LoggerBase ):
             a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=180, color="black", zorder=20 )
             anan = ana.replace(":None",":UL") # + " (%.2f)" % (minXY[2])
             label = self.getPrettyName ( ana )
-            # print ( f"@@5 ana {ana} label {label} dType {dType}" )
             a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=110,
                     color=color, label=label, alpha=1., zorder=20 )
             existingPoints.append ( minXY )
@@ -800,6 +815,7 @@ class LlhdPlot ( LoggerBase ):
         self.pprint ( f"saving to {figname}" )
         from smodels_utils.helper.various import pngMetaInfo
         metadata = pngMetaInfo()
+        metadata["prod Cmdline"] = self.cmdline
         plt.savefig ( figname, metadata = metadata )
         if self.interactive:
             self.axes = ax
@@ -984,18 +1000,18 @@ if __name__ == "__main__":
     argparser.add_argument ( '-v', '--verbose',
             help='verbosity: debug, info, warn, or error [warn]',
             type=str, default="warn" )
-    argparser.add_argument ( '-1', '--xvariable',
+    argparser.add_argument ( '-x', '--xvariable',
             help='xvariable, if 0 then search for llhd*pcl files [0]',
-            type=int, default=0 )
+            type=str, default=0 )
     argparser.add_argument ( '-M', '--max_anas',
             help='maximum number of analyses [4]',
             type=int, default=4 )
     argparser.add_argument ( '-N', '--notimestamp',
             help='dont put a timestamp on it',
             action="store_true" )
-    argparser.add_argument ( '-2', '--yvariable',
-            help='yvariable [1000022]',
-            type=int, default=1000022 )
+    argparser.add_argument ( '-y', '--yvariable',
+            help='yvariable, name or pid [X1Z]',
+            type=str, default="X1Z" )
     argparser.add_argument ( '-a', '--analyses',
             help="analyses, comma separated. '*' means all analyses [*]",
             type=str, default="*" )
