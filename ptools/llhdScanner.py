@@ -60,7 +60,7 @@ class LlhdThread ( LoggerBase ):
         self.resultsdir = f"{self.environ.rundir}/llhds_{namer.asciiName(obj.xvariable)}{yname}/"
         self.topo = obj.topo
         self.threadnr = threadnr
-        self.dict_files = obj.dict_files
+        self.dict_file = obj.dict_file
         self.picklefile = obj.picklefile
         self.M = copy.deepcopy ( obj.M )
         self.origmasses = copy.deepcopy ( self.M.masses )
@@ -102,8 +102,9 @@ class LlhdThread ( LoggerBase ):
         pickle.dump ( d, f )
         f.close()
         writeDictFile = False
-        if self.dict_files:
+        if self.dict_file:
             dictfile = self.picklefile.replace(".pcl",".dict")
+            self.pprint ( f"writing to {dictfile}" )
             from ptools.helpers import py_dumps
             with open ( dictfile, "wt" ) as f:
                 d = py_dumps ( d, level = 0 )
@@ -162,20 +163,22 @@ class LlhdThread ( LoggerBase ):
         if nfiles % 100 == 0: # update with every 20th entry
             self.updatePickleFile()
 
-    def getAllMassPoints ( self ):
+    def getAllMassPoints ( self ) -> list:
         """ retrieve all mass points from resultsdir """
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
         masspoints = []
         for fname in files:
             with open ( fname, "rt" ) as h:
                 d = eval(h.read())
+                d["mx"] = float ( d["mx"] )
+                d["my"] = float ( d["my"] )
                 masspoints.append ( d )
         return masspoints
 
     def updatePickleFile ( self ):
         """ collect all the entries in resultsdir, and compile them
         into one big pickle file """
-        self.pprint ( f"update {self.picklefile}" )
+        self.pprint ( f"updating {self.picklefile}" )
         self.lockPickleFile()
         Dict = self.getDefaultDictionary()
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
@@ -243,6 +246,7 @@ class LlhdThread ( LoggerBase ):
         self.M.delCurrentSLHA()
         critics={ "llhd": None, "ul": self.M.ul_critic }
         if hasattr ( self.M, "llhd_critic" ):
+            self.M.llhd_critic["passes"] = ( self.M.llhd_critic["robs"]<1.0 )
             critics["llhd"] = self.M.llhd_critic
 
         return { "llhd": llhds, "critic": critics, "oul": ouls, "eul": euls }
@@ -367,8 +371,8 @@ class LlhdThread ( LoggerBase ):
                     nllhds+=len(llhd)
 
                 self.pprint ( f"{i1}/{nxvariables}: m({namer.asciiName(self.xvariable)})={m1:.1f}, m2({namer.asciiName(self.yvariable)})={m2:.1f}, {len(llhds)} mu's, {nllhds} llhds." )
-                point["mx"] = m1
-                point["my"] = m2
+                point["mx"] = float ( m1 )
+                point["my"] = float ( m2 )
                 masspoints.append ( point )
                 self.addNewPoint ( point ) ## add the point
         return masspoints
@@ -389,7 +393,7 @@ class LlhdScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, xvariable, yvariable, nproc,
                    environ : RunEnviron, skip_production : bool = False,
-                   dry_run : bool = False, dict_files : bool = False ):
+                   dry_run : bool = False, dict_file : bool = False ):
         """
         :param rundir: the rundir
         :param environ: the RunEnviron
@@ -398,7 +402,7 @@ class LlhdScanner ( LoggerBase ):
         """
         super ( LlhdScanner, self ).__init__ ( "llhd" )
         self.dry_run = dry_run
-        self.dict_files = dict_files
+        self.dict_file = dict_file
         self.environ = environ
         self.M = protomodel
         self.xvariable = xvariable
@@ -520,15 +524,15 @@ class LlhdScanner ( LoggerBase ):
         thread0.writeRunMeta()
         if not thread0.hasResultsForPoint ( self.mxvariable, self.myvariable ):
             point = thread0.getPredictions ( False )
-            point["mx"] = self.mxvariable
-            point["my"] = self.myvariable
+            point["mx"] = float ( self.mxvariable )
+            point["my"] = float ( self.myvariable )
             thread0.addNewPoint ( point )
             llhds = point["llhd"]
             critics = point["critic"]
             thread0.clean()
             self.pprint ( f"protomodel point: m1({namer.asciiName(self.xvariable)})={self.mxvariable:.2f}, m2({namer.asciiName(self.yvariable)})={self.myvariable:.2f}, {len(llhds)} llhds" )
-            point [ "mx" ] = self.mxvariable
-            point [ "my" ] = self.myvariable
+            # point [ "mx" ] = float ( self.mxvariable )
+            # point [ "my" ] = float ( self.myvariable )
             masspoints = [ point ]
         else:
             masspoints = thread0.getAllMassPoints()
@@ -644,7 +648,7 @@ def main ():
             type=str, default="./run.dict" )
     argparser.add_argument ( '-S', '--skip_production',
             help='if possible, skip production', action='store_true' )
-    argparser.add_argument ( '--dict_files',
+    argparser.add_argument ( '--dict_file',
             help='write out as dict file as well', action='store_true' )
     args = argparser.parse_args()
     # rundir = setup( args.rundir )
@@ -666,7 +670,7 @@ def main ():
         yvariable = namer.pid ( args.yvariable )
         scanner = LlhdScanner( protomodel, xvariable, yvariable, nproc,
                 environ = environ, skip_production = args.skip_production,
-                dry_run = args.dry_run, dict_files = args.dict_files )
+                dry_run = args.dry_run, dict_file = args.dict_file )
         args.xvariable = xvariable
         args = scanner.overrideWithDefaults ( args )
         range1 = { "min": args.minx, "max": args.maxx, "dm": args.deltamx }

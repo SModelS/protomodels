@@ -662,7 +662,7 @@ class LlhdPlot ( LoggerBase ):
                 s=f"{-np.log(llhd):.2f}"
             mx, my = self.masspoints[0]['mx'], self.masspoints[0]['my']
             my = self.convertSSMToXSec ( my, mx )
-            self.pprint(f"{ana} @ hiscore m=({mx:.1f} GeV,{my:.1f} {self.yunit}): nll_max={s}")
+            self.pprint(f"{ana} @ hiscore m=({mx:.1f} GeV,{my:.1f} {self.yunit}): nll_min={s}")
             cresults = 0
             ## then, run on all other points
             for cm,masspoint in enumerate(self.masspoints[1:]):
@@ -671,8 +671,13 @@ class LlhdPlot ( LoggerBase ):
                 m1,m2,llhds,critic=masspoint["mx"],masspoint["my"],masspoint["llhd"],masspoint["critic"]
                 m2 = self.convertSSMToXSec ( m2, m1 )
                 rmax=float("nan")
-                if len(critic)>0:
-                    rmax=max([ v["robs"] for k,v in critic['ul']['datasets'].items() ] )
+                #if len(critic)>0:
+                #    rmax=max([ v["robs"] for k,v in critic['ul']['datasets'].items() ] )
+                passes_critic = False
+                if "llhd" in critic:
+                    rmax = critic["llhd"]["robs"]
+                    passes_critic = ( critic["llhd"]["robs"]<1.0 )
+
                 if m2 > m1 and not type(self.yvariable) in [ tuple ]:
                     print ( f"m2,m1 mass inversion? {m1,m2}" )
                 x.add ( m1 )
@@ -684,7 +689,7 @@ class LlhdPlot ( LoggerBase ):
                 if result:
                     zt = - np.log( result )
                     cresults += 1
-                    if zt < minXY[2] and rmax<=self.rthreshold:
+                    if zt < minXY[2] and passes_critic: # rmax<=self.rthreshold:
                         minXY=(m1,m2,zt)
                 h = self.getHash(m1,m2)
                 L[h]=zt
@@ -806,7 +811,7 @@ class LlhdPlot ( LoggerBase ):
         plt.ylabel ( f"{var}({namer.texName(self.yvariable, addSign=False, addDollars=True)}){postfix}" )
         hasCritic = np.any ( RMAX > self.rthreshold )
         if hasCritic:
-            circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by critic (r>{self.rthreshold}):\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
+            circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by slow critic:\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
             handles.append ( circ1 )
         legend = ax.legend( handles=handles, loc="best", fontsize=12 )
         from ptools import moreHelpers
