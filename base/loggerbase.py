@@ -17,7 +17,6 @@ class LoggerBase:
         """ instantiate the logger class with a walkerid """
         self.walkerid = walkerid
         self.countLogs = {}
-        self.prevMessage = ""
         self.printLogMessages = False
         self.logdir = "logs/"
         # self.printHigherThan = "critical"
@@ -83,10 +82,13 @@ class LoggerBase:
     def pprint ( self, *args ):
         """ logging """
         line = ' '.join(map(str,args))
-        if line == self.prevMessage:
-            if not line in self.countLogs:
-                self.countLogs[line]=0
-            self.countLogs[line] += 1
+        if not line in self.countLogs:
+            self.countLogs[line]=0
+        self.countLogs[line] += 1
+        if self.countLogs[line]==3:
+            self.pprint ( f"skipping repeating messages" )
+            return
+        if self.countLogs[line]>3:
             return
         print ( f"[{self.module}:{self.walkerid}] {line}" )
         self.prevMessage = line
@@ -95,12 +97,15 @@ class LoggerBase:
     def cprint ( self, color, *args ):
         """ logging, colored version """
         line = ' '.join(map(str,args))
-        if line == self.prevMessage:
-            if not line in self.countLogs:
-                self.countLogs[line]=0
-            self.countLogs[line] += 1
-            return
         from smodels_utils.helper.terminalcolors import colordict, RESET
+        if not line in self.countLogs:
+            self.countLogs[line]=0
+        self.countLogs[line] += 1
+        if self.countLogs[line]==3:
+            self.pprint ( f"skipping repeating messages" )
+            return
+        if self.countLogs[line]>3:
+            return
         print ( f"[{self.module}:{self.walkerid}] {colordict[color]}{line}{RESET}" )
         self.prevMessage = line
         self.log ( *args )

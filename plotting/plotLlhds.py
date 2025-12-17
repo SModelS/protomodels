@@ -22,13 +22,13 @@ from base.loggerbase import LoggerBase
 from tester.combiner import Combiner
 from ptools.helpers import getAllPidsOfTheoryPred
 from typing import Dict, Tuple, Union
-        
+
 namer = SParticleNames ( susy = False )
 
 def findMin ( oldZ ):
     """ find the minimum in Z """
-    idx = np.nanargmin ( oldZ ) 
-    y = idx % oldZ.shape[1] 
+    idx = np.nanargmin ( oldZ )
+    y = idx % oldZ.shape[1]
     x = int ( ( idx - y ) / oldZ.shape[1] )
     m = oldZ[x][y]
     return x,y,m
@@ -53,7 +53,7 @@ def filterSmaller ( X, Y ):
         Xs.append ( xt )
         Ys.append ( yt )
     return np.array(Xs), np.array(Ys)
-            
+
 def isCloseToExisting ( minXY, existingPoints ):
     """ is the point at minXY close to any existing Points? """
     for ep in existingPoints:
@@ -101,7 +101,7 @@ def getPidList( xvariable, rundir ):
 
 class LlhdPlot ( LoggerBase ):
     """ A simple class to make debugging the plots easier """
-    def __init__ ( self, xvariable, yvariable, verbose, copy, max_anas, 
+    def __init__ ( self, xvariable, yvariable, verbose, copy, max_anas,
                    interactive, drawtimestamp, compress, environ,
                    upload ):
         """
@@ -137,7 +137,7 @@ class LlhdPlot ( LoggerBase ):
         self.interactive = interactive
         self.hiscorefile = "./hiscores_global.dict"
         from ptools import hiscoreTools
-        self.protomodel = hiscoreTools.obtainHiscore ( 0, self.hiscorefile, 
+        self.protomodel = hiscoreTools.obtainHiscore ( 0, self.hiscorefile,
                 "llhd", self.environ )
         self.setVerbosity ( verbose )
         self.compress = compress
@@ -292,10 +292,10 @@ class LlhdPlot ( LoggerBase ):
 
         :param ana: the analysis id. optionally a data type can be specificed, e.g.
         as :em. Alternatively, a signal region can be specified.
-        :param llhddict: a dictionary of likelihoods of one of the llhddicts, 
+        :param llhddict: a dictionary of likelihoods of one of the llhddicts,
         e.g. self.llhddicts[0]["llhd"]
 
-        :returns: Dictionary with highest likelihood and name of signal region, 
+        :returns: Dictionary with highest likelihood and name of signal region,
         (both being None if nothing is found)
         """
         max_llhd,sr = None, None
@@ -320,7 +320,7 @@ class LlhdPlot ( LoggerBase ):
                     continue
                 self.debug ( f"found a match for {tokens[0]}, {tokens[1]}, l={llhd}" )
             if not self.topoMatches ( tokens[2] ):
-                self.pprint ( f"topology {tokens[2]} does not match {self.topo}, will skip" )
+                self.cprint ( "yellow", f"topology {tokens[2]} does not match {self.topo}, will skip" )
                 # continue
             if max_llhd == None or llhd > max_llhd:
                 max_llhd = llhd
@@ -355,7 +355,7 @@ class LlhdPlot ( LoggerBase ):
                 os.chmod ( scriptfilename, 0o755 )
 
     def loadPickleFile ( self, returnAll=False ):
-        """ load dictionary from picklefile 
+        """ load dictionary from picklefile
         :param returnAll: return all likelihoods info
         """
         topo, timestamp = "?", "?"
@@ -386,8 +386,8 @@ class LlhdPlot ( LoggerBase ):
             return { "masspoints": None, "mx": None, "my": None, "nevents": None,
                      "topo": None, "timestamp": None, "cmdline" : None }
         if returnAll:
-            return { "masspoints": masspoints, "mx": mx, "my": my, 
-                     "nevents": nevents, "topo": topo, "timestamp": timestamp, 
+            return { "masspoints": masspoints, "mx": mx, "my": my,
+                     "nevents": nevents, "topo": topo, "timestamp": timestamp,
                      "cmdline": cmdline }
         llhds=[]
         mu = 1.
@@ -420,7 +420,7 @@ class LlhdPlot ( LoggerBase ):
         self.hiscorefile = f"{self.environ.rundir}/hiscores_global.dict"
         if not os.path.exists ( self.hiscorefile ):
             self.pprint ( f"could not find hiscore file {self.hiscorefile}" )
- 
+
         self.xvariable = xvariable
         self.yvariable = yvariable
         if type(self.xvariable) in [ tuple, list ]:
@@ -428,7 +428,7 @@ class LlhdPlot ( LoggerBase ):
         self.picklefile = f"{self.environ.rundir}/llhd{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.pcl"
         if not os.path.exists ( self.picklefile ):
             llhdp = self.picklefile
-            self.picklefile = f"{self.rundir}/mp{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable)}.pcl" 
+            self.picklefile = f"{self.rundir}/mp{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable)}.pcl"
         if not os.path.exists ( self.picklefile ):
             self.pprint(f"could not find pickle files {llhdp} and {self.picklefile}")
         self.pprint ( f"using {self.picklefile}" )
@@ -468,9 +468,9 @@ class LlhdPlot ( LoggerBase ):
             return anaid
         if not hasattr ( self, "database" ):
             from smodels.experiment.databaseObj import Database
-            #dbname = "./original.pcl" 
+            #dbname = "./original.pcl"
             # dbname = "official"
-            self.database = Database ( self.dbpath )
+            self.database = Database ( self.environ.dbpath )
         from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
         if ":" in anaid:
             anaid = anaid[:anaid.find(":")]
@@ -520,7 +520,7 @@ class LlhdPlot ( LoggerBase ):
     def getXSecsFor ( self, sqrts : TeV, process : Tuple,
             mx : float, ignoreSignsOfPids : bool = True ) -> Union[None,Unum]:
         """ given self.protomodel, get the cross sections for
-        mass of xvariable == mx 
+        mass of xvariable == mx
         :param sqrts: center of mass energy e.g. 13*TeV
         :param process: e.g. (-1000006,1000006)
         :param mx: mass of e.g. 1000006
@@ -550,7 +550,7 @@ class LlhdPlot ( LoggerBase ):
 
     def convertSSMToXSec ( self, ssm : float, mx : float ) -> float:
         """ if self.useXSecsNotSSMs is True, then translate ssms
-        to xsecs. else return the ssms. 
+        to xsecs. else return the ssms.
         :param ssm: the signal strength multiplier value to convert
         :param mx: the mass for which we need to convert ssm -> xsec
 
@@ -561,9 +561,9 @@ class LlhdPlot ( LoggerBase ):
         xsec = self.getXSecsFor ( 13*TeV, self.yvariable, mx )
         return xsec
 
-    def plot ( self, ulSeparately : bool = True, xvariable : Union[None,int] = None, 
-               dbpath : str = "official" ):
-        """ a summary plot, overlaying all contributing analyses 
+    def plot ( self, ulSeparately : bool = True,
+               xvariable : Union[None,int] = None ):
+        """ a summary plot, overlaying all contributing analyses
 
         :param ulSeparately: if true, then plot UL results on their own
         """
@@ -581,7 +581,7 @@ class LlhdPlot ( LoggerBase ):
         resultsForPIDs = {}
         ## this is just to obtain the hiscore
         for tpred in self.protomodel.bestCombo:
-            resultsForPIDs = self.getPIDsOfTPred ( tpred, resultsForPIDs, 
+            resultsForPIDs = self.getPIDsOfTPred ( tpred, resultsForPIDs,
                                 integrateSRs=False )
         stats = self.getAnaStats( integrateSRs=False )
         if stats == None:
@@ -593,7 +593,7 @@ class LlhdPlot ( LoggerBase ):
             anas = list ( resultsForPIDs[xvariable] )
         anas.sort()
         self.pprint ( f"summary plot: {', '.join ( anas )}" )
-        colors = [ "red", "green", "blue", "orange", "cyan", "magenta", "grey", 
+        colors = [ "red", "green", "blue", "orange", "cyan", "magenta", "grey",
             "brown", "pink", "indigo", "olive", "orchid", "darkseagreen", "teal" ]
         xmin,xmax,ymin,ymax=9000,0,9000,0
         for m in self.masspoints:
@@ -623,8 +623,10 @@ class LlhdPlot ( LoggerBase ):
         Zs.sort( reverse = True )
         newanas = []
         for mZ in Zs:
-            if mZ > -20.:
+            if mZ > -40.:
                 newanas.append ( rankthem[mZ] )
+            else:
+                self.cprint ( "red", f"{rankthem[mZ]} does not meet mZ requirement. skip it" )
         for ctr,ana in enumerate ( newanas ): ## loop over the analyses
             if ctr >= self.max_anas:
                 self.pprint ( f"too many ({len(anas)} > {self.max_anas}) analyses." )
@@ -731,7 +733,7 @@ class LlhdPlot ( LoggerBase ):
             anan = ana.replace(":None",":UL") # + " (%.2f)" % (minXY[2])
             label = self.getPrettyName ( ana )
             # print ( f"@@5 ana {ana} label {label} dType {dType}" )
-            a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=110, 
+            a = ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="*", s=110,
                     color=color, label=label, alpha=1., zorder=20 )
             existingPoints.append ( minXY )
             handles.append ( a )
@@ -769,7 +771,7 @@ class LlhdPlot ( LoggerBase ):
         h = self.getHash()
         s=""
         ax.scatter( [ self.mx ], [ self.my ], marker="*", s=200, color="white", zorder=20 )
-        c = ax.scatter( [ self.mx ], [ self.my ], marker="*", s=160, color="black", 
+        c = ax.scatter( [ self.mx ], [ self.my ], marker="*", s=160, color="black",
                       label=f"proto-model{s}", zorder=20 )
         handles.append ( c )
         if sr == None:
@@ -778,7 +780,7 @@ class LlhdPlot ( LoggerBase ):
             self.error ( "FIXME fix the names of the topo sets! electroweakinos!!" )
             self.topo = self.topo.replace("electroweakinos_offshell","electroweakinos" )
             self.error ( "FIXME fix the names of the topo sets! electroweakinos!!" )
-            
+
         plt.title ( f"HPD regions, {namer.texName(xvariable, addSign=False, addDollars=True)} [{self.topo}]", fontsize=14 )
         plt.xlabel ( f"m({namer.texName(xvariable,addSign=False, addDollars=True)}) [GeV]", fontsize=14 )
         var, postfix = "m", " [GeV]"
@@ -820,7 +822,7 @@ class LlhdPlot ( LoggerBase ):
     def getAnaStats ( self, integrateSRs : bool = True, integrateTopos : bool = True,
                       integrateDataType : bool =True  ) -> Dict:
         """ given the likelihood dictionaries D, get
-            stats of which analysis occurs how often 
+            stats of which analysis occurs how often
         :param integrateTopos: sum over all topologies
         :param integrateSRs: sum over all signal regions
         :param integrateDataType: ignore data type
@@ -859,7 +861,7 @@ class LlhdPlot ( LoggerBase ):
             print ( f"{v:6d}: {k}" )
 
     def compress ( self ):
-        """ produce a pcl file with only a fraction of the points. 
+        """ produce a pcl file with only a fraction of the points.
             good for testing and development """
         backupfile = self.picklefile.replace(".pcl",".bu.pcl")
         subprocess.getoutput ( f"cp {self.picklefile} {backupfile}" )
@@ -926,9 +928,9 @@ class LlhdPlot ( LoggerBase ):
             print ( f"    #{point['idx']}: m=({point['mx']:.2f},{point['my']:.2f}) r={point['rmax']:.2f}" )
 
 
-    def findClosestPoint ( self, m1 : Union[None,float]=None, 
+    def findClosestPoint ( self, m1 : Union[None,float]=None,
             m2 : Union[None,float]=None, nll : bool = False ) -> Dict:
-        """ find the mass point closest to m1, m2. If not specified, 
+        """ find the mass point closest to m1, m2. If not specified,
             return the hiscore point.
         :param m1: if None, use best fit point coord
         :param m2: if None, use best fit point coord
@@ -1031,8 +1033,8 @@ if __name__ == "__main__":
         args.interactive = False
 
     for xvariable in pids:
-        plot = LlhdPlot ( xvariable, args.yvariable, args.verbose, args.copy, 
-                args.max_anas, args.interactive, drawtimestamp, args.compress, 
+        plot = LlhdPlot ( xvariable, args.yvariable, args.verbose, args.copy,
+                args.max_anas, args.interactive, drawtimestamp, args.compress,
                 environ, args.upload )
 
         if args.list_analyses:

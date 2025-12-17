@@ -51,7 +51,7 @@ def findPids ( rundir ):
 class LlhdThread ( LoggerBase ):
     """ one thread of the sweep """
     def __init__ ( self, threadnr: str, obj ):
-        """ the constructor. 
+        """ the constructor.
         """
         super ( LlhdThread, self ).__init__ ( threadnr )
         self.environ = obj.environ
@@ -126,10 +126,10 @@ class LlhdThread ( LoggerBase ):
     def unlockPickleFile ( self ):
         lockfile = f"{self.picklefile}.lock"
         if os.path.exists ( lockfile ):
-            try:                                                                      
+            try:
                 os.unlink ( lockfile )
-            except FileNotFoundError as e:                                            
-                pass 
+            except FileNotFoundError as e:
+                pass
 
     def isSameMassPoint ( self, point1 : Dict, point2 : Dict ) -> bool:
         """ are the two points identical? """
@@ -203,14 +203,14 @@ class LlhdThread ( LoggerBase ):
         return False
 
     def getPredictions ( self, recycle_xsecs : bool = True ) -> Dict:
-        """ get predictions, return likelihoods 
+        """ get predictions, return likelihoods
 
         :param recycle_xsecs: if true, then recycle the cross sections, dont
         recompute
         :returns: a diction with likelihoods ("llhd"), critics' responses ("critic"),
         observed ("oul") and expected ("eul") upper limits on mu.
         """
-        self.debug ( f"asking for predictions for xmy={self.mxvariable:.2f},{self.myvariable:.2g}") 
+        self.debug ( f"asking for predictions for xmy={self.mxvariable:.2f},{self.myvariable:.2g}")
         slhaf = self.M.createSLHAFile( )
         sigmacut=.02*fb
         if max(self.M.masses)>1600:
@@ -262,12 +262,12 @@ class LlhdThread ( LoggerBase ):
             critics[datasets] = comb_r
         import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         """
-        
+
         return { "llhd": llhds, "critic": critics, "oul": ouls, "eul": euls }
 
-    def getLimits ( self, predictions : List[TheoryPrediction], 
+    def getLimits ( self, predictions : List[TheoryPrediction],
                     evaluationType : NllEvalType ) -> Dict:
-        """ get the limits for all predictions 
+        """ get the limits for all predictions
 
         :param evaluationType: one of: observed, apriori, aposteriori
         """
@@ -278,7 +278,7 @@ class LlhdThread ( LoggerBase ):
             if dId == "(combined)":
                 dId = "(comb)"
             name = f"{tp.analysisId()}:{dId}:{txname}"
-            limits[ name ] = tp.getUpperLimitOnMu ( 
+            limits[ name ] = tp.getUpperLimitOnMu (
                     evaluationType = evaluationType )
         return limits
 
@@ -319,7 +319,7 @@ class LlhdThread ( LoggerBase ):
         pids1 = ( -pids[0], pids[0] )
         if pids1 in self.M.ssmultipliers:
             self.M.ssmultipliers[pids1]=ssm
-                    
+
     def hasResultsForPoint ( self, m1 : float, m2 : float ) -> bool:
         """ return true if we have already run point (m1,m2) """
         dictfile = self.getDictFileName ( m1, m2 )
@@ -373,18 +373,18 @@ class LlhdThread ( LoggerBase ):
                 llhds = point["llhd"]
                 if not llhds: continue
                 nllhds,nnonzeroes=0,0
-                
+
                 for mu,llhd in llhds.items():
                     nllhds+=len(llhd)
 
                 self.pprint ( f"{i1}/{nxvariables}: m({namer.asciiName(self.xvariable)})={m1:.1f}, m2({namer.asciiName(self.yvariable)})={m2:.1f}, {len(llhds)} mu's, {nllhds} llhds." )
-                point["mx"] = m1 
+                point["mx"] = m1
                 point["my"] = m2
                 masspoints.append ( point )
                 self.addNewPoint ( point ) ## add the point
         return masspoints
 
-def runThread ( threadid: int, obj, rxvariable, ryvariable, 
+def runThread ( threadid: int, obj, rxvariable, ryvariable,
         return_dict : Union[Dict,None] = None ):
     """ the method needed for parallelization to work """
 
@@ -399,7 +399,7 @@ def runThread ( threadid: int, obj, rxvariable, ryvariable,
 class LlhdScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, xvariable, yvariable, nproc,
-                   environ : RunEnviron, skip_production : bool = False, 
+                   environ : RunEnviron, skip_production : bool = False,
                    dry_run : bool = False, dict_files : bool = False ):
         """
         :param rundir: the rundir
@@ -457,7 +457,7 @@ class LlhdScanner ( LoggerBase ):
         if len(rxvariable)==0:
             thread.updatePickleFile()
             return
-                
+
         if self.nproc == 1:
             return runThread ( 0, self, rxvariable, ryvariable )
         chunkedRxvariable = [ list(rxvariable[i::self.nproc]) for i in range(self.nproc) ]
@@ -501,19 +501,19 @@ class LlhdScanner ( LoggerBase ):
             self.myvariable = self.M.masses[yvariable]
         if type(yvariable) == tuple:
             self.myvariable = self.M.ssmultipliers[yvariable]
-        
+
         # choose the axis boundaries and step sizes such that the hiscore values
         # are nicely central
         from numpy import ceil
         ndxmin = int ( ceil (( self.mxvariable - range1["min"] ) / range1["dm"]) )
         ndxmax = int ( ceil (( range1["max"] - self.mxvariable ) / range1["dm"]) )
-        rxvariable = numpy.arange ( self.mxvariable - ndxmin*range1["dm"], 
+        rxvariable = numpy.arange ( self.mxvariable - ndxmin*range1["dm"],
                        self.mxvariable + ndxmax * range1["dm"] + 1e-5, range1["dm"] )
-        # rxvariable = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )   
+        # rxvariable = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
         # rxvariable = numpy.insert ( rxvariable, 8, self.mxvariable )
         ndymin = int ( ceil (( self.myvariable - range2["min"] ) / range2["dm"]) )
         ndymay = int ( ceil (( range2["max"] - self.myvariable ) / range2["dm"]) )
-        ryvariable = numpy.arange ( self.myvariable - ndymin*range2["dm"], 
+        ryvariable = numpy.arange ( self.myvariable - ndymin*range2["dm"],
                        self.myvariable + ndymay * range2["dm"] + 1e-5, range2["dm"] )
 
         #ryvariable = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
@@ -556,8 +556,8 @@ class LlhdScanner ( LoggerBase ):
 
     def overrideWithDefaults ( self, args ):
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
-                 1000023: "electroweakinos,stops", 
-                 1000024: "electroweakinos,stops",
+                 1000023: "electroweakinos,stops,TChiZISRqq,TChiISR",
+                 1000024: "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
         if args.topo == None:
@@ -683,7 +683,7 @@ def main ():
         args = scanner.overrideWithDefaults ( args )
         range1 = { "min": args.minx, "max": args.maxx, "dm": args.deltamx }
         range2 = { "min": args.miny, "max": args.maxy, "dm": args.deltamy }
-        scanner.scanLikelihoodFor ( range1, range2, args.nevents, args.topo, 
+        scanner.scanLikelihoodFor ( range1, range2, args.nevents, args.topo,
                 args.output )
         if args.dontkeep:
             scanner.unlinkResultsDir()
@@ -695,7 +695,7 @@ def main ():
             drawtimestamp = True
             compress = False
             upload = args.uploadTo
-            plot = plotLlhds.LlhdPlot ( xvariable, yvariable, verbose, copy, 
+            plot = plotLlhds.LlhdPlot ( xvariable, yvariable, verbose, copy,
                        max_anas, interactive, drawtimestamp, compress, environ,
                        upload )
             plot.writeScriptFile ( )
