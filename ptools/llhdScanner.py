@@ -577,6 +577,8 @@ class LlhdScanner ( LoggerBase ):
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
                  1000023: "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000024: "electroweakinos,stops,TChiZISRqq,TChiISR",
+                 1000025: "electroweakinos,stops,TChiZISRqq,TChiISR",
+                 1000035: "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
         if args.topo == None:
