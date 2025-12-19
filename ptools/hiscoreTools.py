@@ -194,7 +194,13 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
     from ptools import helpers
     shortname = helpers.simplifyUnixPath ( picklefile )
     if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=walkerid ):
-        print ( f"[hiscoreTools:{walkerid}] can reuse cache: {shortname}" )
+        dname = os.path.dirname ( picklefile )
+        if os.path.exists ( picklefile ):
+            print ( f"[hiscoreTools:{walkerid}] can reuse cache: {shortname}" )
+        elif not os.path.exists ( dname ):
+            print ( f"[hiscoreTools:{walkerid}] directory {dname} does not exist: maybe change rundir?" )
+            sys.exit()
+
         return Hiscores ( walkerid, False, picklefile )
     print ( f"[hiscoreTools] updating cache: {shortname} ... " )
     hi = Hiscores.fromDictionaryFile ( path = dictfile, environ = environ, 
