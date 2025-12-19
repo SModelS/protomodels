@@ -2,7 +2,7 @@
 
 """ script used to produce the likelihood scans """
 
-__all__ = [ "LlhdScanner" ]
+__all__ = [ "nllScanner" ]
 
 import os, sys, multiprocessing, time, numpy, subprocess, copy, glob
 import pickle, random, shutil
@@ -20,7 +20,7 @@ from smodels.matching.theoryPrediction import TheoryPrediction
 from tester.combiner import Combiner
 from tester.predictor import Predictor
 from tester.critic import Critic
-from plotting import plotLlhds
+from plotting import plotNLLs
 from typing import Dict, Tuple, Union, List
 from ptools.sparticleNames import SParticleNames
 from ptools import moreHelpers, helpers
@@ -32,33 +32,33 @@ from base.runEnviron import RunEnviron
 namer = SParticleNames ( False )
 
 def findPids ( rundir ):
-    """ search for llhd*pcl files, report the corresponding pids.
+    """ search for nll*pcl files, report the corresponding pids.
     :returns: set of pids
     """
     ret = set()
-    files = glob.glob("llhd*pcl")
-    files += glob.glob( f"{rundir}/llhd*pcl" )
+    files = glob.glob("nll*pcl")
+    files += glob.glob( f"{rundir}/nll*pcl" )
     for f in files:
-        p = f.find("llhd")
+        p = f.find("nll")
         s = f[p+4:]
         s = s.replace(".pcl","")
         s = s.replace("1000022","")
         s = s.replace("X1Z","")
         ret.add ( int(s) )
-    print ( f"[llhdScanner] pids are {ret}" )
+    print ( f"[nllScanner] pids are {ret}" )
     return ret
 
-class LlhdThread ( LoggerBase ):
+class nllThread ( LoggerBase ):
     """ one thread of the sweep """
     def __init__ ( self, threadnr: str, obj ):
         """ the constructor.
         """
-        super ( LlhdThread, self ).__init__ ( threadnr )
+        super ( nllThread, self ).__init__ ( threadnr )
         self.environ = obj.environ
         # self.rundir = setup( obj.rundir )
         # yname = moreHelpers.shortYVarName( obj.yvariable )
         self.resultsdir = obj.resultsdir
-        # self.resultsdir = f"{self.environ.rundir}/llhds_{namer.asciiName(obj.xvariable)}{yname}/"
+        # self.resultsdir = f"{self.environ.rundir}/nlls_{namer.asciiName(obj.xvariable)}{yname}/"
         self.topo = obj.topo
         self.threadnr = threadnr
         self.dict_file = obj.dict_file
@@ -108,8 +108,8 @@ class LlhdThread ( LoggerBase ):
             self.pprint ( f"writing to {dictfile}" )
             from ptools.helpers import py_dumps
             with open ( dictfile, "wt" ) as f:
-                befores = { "my": "critic", "mx": "my", "critic": "llhd",
-                            "oul": "eul", "eul": "llhd" }
+                befores = { "my": "critic", "mx": "my", "critic": "nll",
+                            "oul": "eul", "eul": "nll" }
                 d = py_dumps ( d, level = 0, a_before = befores )
                 f.write ( d )
             f.close()
@@ -213,7 +213,7 @@ class LlhdThread ( LoggerBase ):
 
         :param recycle_xsecs: if true, then recycle the cross sections, dont
         recompute
-        :returns: a diction with likelihoods ("llhd"), critics' responses ("critic"),
+        :returns: a diction with likelihoods ("nll"), critics' responses ("critic"),
         observed ("oul") and expected ("eul") upper limits on mu.
         """
         self.debug ( f"asking for predictions for xmy={self.mxvariable:.2f},{self.myvariable:.2g}")
@@ -232,13 +232,13 @@ class LlhdThread ( LoggerBase ):
         manipulator = Manipulator ( self.M, self.environ )
         worked = self.predictor.predict ( manipulator, keep_predictions = True )
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
-        ret = { "llhd": None, "critic": None, "oul": None, "eul": None }
+        ret = { "nll": None, "critic": None, "oul": None, "eul": None }
 
         self.M.delCurrentSLHA()
-        critics={ "llhd": None, "ul": self.M.ul_critic }
-        if hasattr ( self.M, "llhd_critic" ):
-            self.M.llhd_critic["passes"] = ( self.M.llhd_critic["robs"]<1.0 )
-            critics["llhd"] = self.M.llhd_critic
+        critics={ "nll": None, "ul": self.M.ul_critic }
+        if hasattr ( self.M, "nll_critic" ):
+            self.M.nll_critic["passes"] = ( self.M.nll_critic["robs"]<1.0 )
+            critics["nll"] = self.M.nll_critic
             ret["critic"] = critics
 
         if not worked:
@@ -246,13 +246,13 @@ class LlhdThread ( LoggerBase ):
         if not worked:
             return ret
         ## now get the likelihoods
-        llhds={}
+        nlls={}
         ## start with the SM likelihood
-        llhds[0.] = self.getLikelihoods ( self.predictor.predictions, mu=0. )
+        nlls[0.] = self.getNLLs ( self.predictor.predictions, mu=0. )
         ## get for the others FIXME should adapt to ssm?
         for mu in numpy.arange(.4,1.8,.05):
-            llhds[float(mu)] = self.getLikelihoods ( self.predictor.predictions, mu=mu )
-        ret["llhd"] = llhds
+            nlls[float(mu)] = self.getNLLs ( self.predictor.predictions, mu=mu )
+        ret["nll"] = nlls
         ouls = self.getLimits ( self.predictor.predictions, observed )
         ret["oul"] = ouls
         euls = self.getLimits ( self.predictor.predictions, apriori )
@@ -279,17 +279,17 @@ class LlhdThread ( LoggerBase ):
                     evaluationType = evaluationType )
         return limits
 
-    def getLikelihoods ( self, predictions, mu = 1. ) -> Dict:
-        """ return dictionary with the likelihoods per analysis """
-        llhds= {}
+    def getNLLs ( self, predictions, mu = 1. ) -> Dict:
+        """ return dictionary with the nlls per analysis """
+        nlls = {}
         for tp in predictions:
             txname = ','.join ( set( [ i.txName for i in tp.txnames ] ) )
             dId = tp.dataId()
             if dId == "(combined)":
                 dId = "(comb)"
             name = f"{tp.analysisId()}:{dId}:{txname}"
-            llhds[ name ] = tp.likelihood ( mu )
-        return llhds
+            nlls[ name ] = tp.nll ( mu )
+        return nlls
 
     def clean ( self ):
         """ clean up after the run """
@@ -335,7 +335,7 @@ class LlhdThread ( LoggerBase ):
         for i1,m1 in enumerate(rxvariable):
             thrnr = 0
             try:
-                thrnr = int ( self.threadnr.replace("llhd","") )
+                thrnr = int ( self.threadnr.replace("nll","") )
             except Exception as e:
                 pass
             setnr = i1+1 + thrnr * ( nxvariables )
@@ -374,14 +374,14 @@ class LlhdThread ( LoggerBase ):
                         oldmasses[pid_]=m_
                         self.M.masses[pid_]=m2 + 1.
                 point = self.getPredictions ( False )
-                llhds = point["llhd"]
-                if not llhds: continue
-                nllhds,nnonzeroes=0,0
+                nlls = point["nll"]
+                if not nlls: continue
+                nnlls,nnonzeroes=0,0
 
-                for mu,llhd in llhds.items():
-                    nllhds+=len(llhd)
+                for mu,nll in nlls.items():
+                    nnlls+=len(nll)
 
-                self.pprint ( f"{i1}/{nxvariables}: m({namer.asciiName(self.xvariable)})={m1:.1f}, m2({namer.asciiName(self.yvariable)})={m2:.1f}, {len(llhds)} mu's, {nllhds} llhds." )
+                self.pprint ( f"{i1}/{nxvariables}: m({namer.asciiName(self.xvariable)})={m1:.1f}, m2({namer.asciiName(self.yvariable)})={m2:.1f}, {len(nlls)} mu's, {nnlls} nlls." )
                 point["mx"] = float ( m1 )
                 point["my"] = float ( m2 )
                 masspoints.append ( point )
@@ -392,7 +392,7 @@ def runThread ( threadid: int, obj, rxvariable, ryvariable,
         return_dict : Union[Dict,None] = None ):
     """ the method needed for parallelization to work """
 
-    thread = LlhdThread ( f"llhd{threadid}", obj )
+    thread = nllThread ( f"nll{threadid}", obj )
     newpoints = thread.run ( rxvariable, ryvariable )
     if return_dict != None:
         return_dict[threadid]=newpoints
@@ -400,20 +400,20 @@ def runThread ( threadid: int, obj, rxvariable, ryvariable,
     # thread.updatePickleFile()
     return newpoints
 
-class LlhdScanner ( LoggerBase ):
+class nllScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, xvariable, yvariable, nproc,
                    environ : RunEnviron, skip_production : bool = False,
                    dry_run : bool = False, dict_file : bool = False,
-                   output : str = "llhd" ):
+                   output : str = "nll" ):
         """
         :param rundir: the rundir
         :param environ: the RunEnviron
         :param skip_production: if possible, skip production, go to plotting
         :param dry_run: dont actually perform the actions
-        :param output: prefix for output file [llhd]
+        :param output: prefix for output file [nll]
         """
-        super ( LlhdScanner, self ).__init__ ( "llhd" )
+        super ( nllScanner, self ).__init__ ( "nll" )
         self.dry_run = dry_run
         self.output = output
         self.dict_file = dict_file
@@ -425,12 +425,12 @@ class LlhdScanner ( LoggerBase ):
         self.picklefile = picklefile
         self.nproc = nproc
         self.skip_production = skip_production
-        self.predictor = Predictor ( 'llhd', environ=self.environ )
-        self.critic = Critic ( 'llhd', environ=self.environ )
+        self.predictor = Predictor ( 'nll', environ=self.environ )
+        self.critic = Critic ( 'nll', environ=self.environ )
         self.cprint ( "yellow", f"starting with {nproc} threads" )
-        self.pprint ( f"self.predictor = Predictor ( 'llhd', environ='{self.environ.runDictFile}' )" )
+        self.pprint ( f"self.predictor = Predictor ( 'nll', environ='{self.environ.runDictFile}' )" )
         yname = moreHelpers.shortYVarName( self.yvariable )
-        self.resultsdir = f"{self.environ.rundir}/llhds_{namer.asciiName(self.xvariable)}{yname}/"
+        self.resultsdir = f"{self.environ.rundir}/nlls_{namer.asciiName(self.xvariable)}{yname}/"
 
     def describeRange ( self, r ):
         """ describe range r in a string """
@@ -456,7 +456,7 @@ class LlhdScanner ( LoggerBase ):
             sys.exit()
         np.random.shuffle ( rxvariable )
         mask = []
-        thread = LlhdThread ( "llhd0", self )
+        thread = nllThread ( "nll0", self )
         for rxv in rxvariable:
             hasMissing = False
             for rxy in ryvariable:
@@ -529,12 +529,12 @@ class LlhdScanner ( LoggerBase ):
         self.cprint ( "green", f"range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
         self.cprint ( "green", f"range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
         self.cprint ( "green", f"total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}" )
-        self.M.createNewSLHAFileName ( prefix=f"llhd{xvariable}" )
+        self.M.createNewSLHAFileName ( prefix=f"nll{xvariable}" )
         #self.M.initializePredictor()
         self.predictor.filterForTopos ( topo )
         self.M.walkerid = 2000
 
-        thread0 = LlhdThread ( "llhd0", self )
+        thread0 = nllThread ( "nll0", self )
         thread0.ntotal = len(rxvariable)*len(ryvariable)+1
         thread0.writeRunMeta()
         if not thread0.hasResultsForPoint ( self.mxvariable, self.myvariable ):
@@ -542,10 +542,10 @@ class LlhdScanner ( LoggerBase ):
             point["mx"] = float ( self.mxvariable )
             point["my"] = float ( self.myvariable )
             thread0.addNewPoint ( point )
-            llhds = point["llhd"]
+            nlls = point["nll"]
             critics = point["critic"]
             thread0.clean()
-            self.pprint ( f"protomodel point: m1({namer.asciiName(self.xvariable)})={self.mxvariable:.2f}, m2({namer.asciiName(self.yvariable)})={self.myvariable:.2f}, {len(llhds)} llhds" )
+            self.pprint ( f"protomodel point: m1({namer.asciiName(self.xvariable)})={self.mxvariable:.2f}, m2({namer.asciiName(self.yvariable)})={self.myvariable:.2f}, {len(nlls)} nlls" )
             # point [ "mx" ] = float ( self.mxvariable )
             # point [ "my" ] = float ( self.myvariable )
             masspoints = [ point ]
@@ -657,7 +657,7 @@ def main ():
             help='hiscore file to draw from [<rundir>/hiscores_global.dict]',
             type=str, default="default" )
     argparser.add_argument ( '-D', '--draw',
-            help='also perform the plotting, ie call plotLlhds',
+            help='also perform the plotting, ie call plotnlls',
             action='store_true' )
     argparser.add_argument ( '-K', '--dontkeep',
             help='remove resultsdir after finished',
@@ -672,8 +672,8 @@ def main ():
             help='verbosity -- debug, info, warn, err [info]',
             type=str, default="info" )
     argparser.add_argument ( '-o', '--output',
-            help="prefix for output file [llhd]",
-            type=str, default="llhd" )
+            help="prefix for output file [nll]",
+            type=str, default="nll" )
     argparser.add_argument ( '-u', '--uploadTo',
             help="where do we upload to, on smodels.github.io [latest]",
             type=str, default="latest" )
@@ -693,7 +693,7 @@ def main ():
     if args.hiscores == "default":
         args.hiscores = f"{environ.rundir}/hiscores_global.dict"
     from ptools.hiscoreTools import fetchHiscoresObj
-    hi = fetchHiscoresObj ( args.hiscores, None, environ, walkerid="llhd" )
+    hi = fetchHiscoresObj ( args.hiscores, None, environ, walkerid="nll" )
     protomodel = hi.hiscores[0]
     #self.pprint ( f"fetched {protomodel} from {args.hiscores}" )
 
@@ -702,7 +702,7 @@ def main ():
         xvariables = findPids( environ.rundir )
     for xvariable in xvariables:
         yvariable = namer.pid ( args.yvariable )
-        scanner = LlhdScanner( protomodel, xvariable, yvariable, nproc,
+        scanner = nllScanner( protomodel, xvariable, yvariable, nproc,
                 environ = environ, skip_production = args.skip_production,
                 dry_run = args.dry_run, dict_file = args.dict_file,
                 output = args.output )
@@ -723,7 +723,7 @@ def main ():
             drawtimestamp = True
             compress = False
             upload = args.uploadTo
-            plot = plotLlhds.LlhdPlot ( xvariable, yvariable, verbose, copy,
+            plot = plotNLLs.NLLPlot ( xvariable, yvariable, verbose, copy,
                        max_anas, interactive, drawtimestamp, compress, environ,
                        upload )
             plot.writeScriptFile ( )

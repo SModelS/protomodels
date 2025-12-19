@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" the plotting script for the llhd scans """
+""" the plotting script for the NLL scans """
 
 from smodels.base.physicsUnits import TeV, fb
 from unum import Unum
@@ -77,12 +77,10 @@ def getPidList( xvariable : Union[str,int], rundir : str ) -> set:
         return [ xvariable ]
     pids = set()
     ## obtain pids from mp files
-    # files = glob.glob ( "%s/mp*pcl" % rundir )
-    files = glob.glob ( f"{rundir}/llhd*pcl" )
+    files = glob.glob ( f"{rundir}/nll*pcl" )
     for f in files:
         t = f.replace(rundir,"")
-        t = t.replace("mp","")
-        t = t.replace("llhd","")
+        t = t.replace("nll","")
         t = t.replace(".pcl","")
         t = t.replace(".pcl","")
         t = t.replace("X",",X")
@@ -95,12 +93,12 @@ def getPidList( xvariable : Union[str,int], rundir : str ) -> set:
         # pids.add ( int(t) )
     pids = list ( pids )
     if len(pids)==0:
-        print ( "[plotLlhds] could not find any llhd*pcl files. Perhaps you wish to perform ../moretools/fetchFromClip.py --llhds=" )
+        print ( "[plotNLLs] could not find any nll*pcl files. Perhaps you wish to perform ../moretools/fetchFromClip.py --nlls=" )
         sys.exit()
-    print ( f"[plotLlhds] creating plots for pids: {', '.join ( map(str,pids) )}" )
+    print ( f"[plotNLLs] creating plots for pids: {', '.join ( map(str,pids) )}" )
     return pids
 
-class LlhdPlot ( LoggerBase ):
+class NLLPlot ( LoggerBase ):
     """ A simple class to make debugging the plots easier """
     def __init__ ( self, xvariable, yvariable, verbose, copy, max_anas,
                    interactive, drawtimestamp, compress, environ,
@@ -117,8 +115,8 @@ class LlhdPlot ( LoggerBase ):
         :param environ: RunEnviron
         :param upload: upload directory, default is "latest"
         """
-        super ( LlhdPlot, self ).__init__ ( "llhd" )
-        self.combiner = Combiner ( "llhd" )
+        super ( NLLPlot, self ).__init__ ( "nll" )
+        self.combiner = Combiner ( "nll" )
         xvariable, yvariable = namer.pid ( xvariable ), namer.pid ( yvariable )
         self.useXSecsNotSSMs = False # use xsecs for y-variable instead of ssm
         self.yunit = "GeV"
@@ -139,7 +137,7 @@ class LlhdPlot ( LoggerBase ):
         self.hiscorefile = "./hiscores_global.dict"
         from ptools import hiscoreTools
         self.protomodel = hiscoreTools.obtainHiscore ( 0, self.hiscorefile,
-                "llhd", self.environ )
+                "nll", self.environ )
         self.setVerbosity ( verbose )
         self.compress = compress
         # masspoints,mx,my,nevents,topo,timestamp = self.loadPickleFile( compress )
@@ -162,7 +160,7 @@ class LlhdPlot ( LoggerBase ):
         # to determine which analyses dominate the (fast) critic
         for m in self.masspoints:
             masstuple = (m["mx"],self.convertSSMToXSec(m["my"],m["mx"]))
-            self.massdict[ masstuple ] = m["llhd"]
+            self.massdict[ masstuple ] = m["nll"]
             self.rdict[ masstuple ] = m["critic"]
             for ana,r in m["critic"]["ul"]["datasets"].items():
                 if r["robs"]>self.rthreshold:
@@ -208,7 +206,7 @@ class LlhdPlot ( LoggerBase ):
         ret = ret.replace("(comb)","")
         return ret
 
-    def integrateLlhds ( self, Z, RMAX ):
+    def integratenlls ( self, Z, RMAX ):
         """ compute the integral of the likelihood over all points """
         I = 0.
         for x,row in enumerate(Z):
@@ -231,7 +229,7 @@ class LlhdPlot ( LoggerBase ):
                     else:
                         newZ[x][y]=0.
             return newZ
-        I = self.integrateLlhds ( Z, RMAX )
+        I = self.integratenlls ( Z, RMAX )
         S = 0.
         points = []
         n = 0
@@ -292,18 +290,18 @@ class LlhdPlot ( LoggerBase ):
             m2 = self.my
         return int(1e8*m1) + int(1e4*m2)
 
-    def getHighestLlhdFor ( self, ana : str, llhddict : Dict ) -> Dict:
-        """ return llhds for ana
+    def getLowestNLLFor ( self, ana : str, nlldict : Dict ) -> Dict:
+        """ return nlls for ana
 
         :param ana: the analysis id. optionally a data type can be specificed, e.g.
         as :em. Alternatively, a signal region can be specified.
-        :param llhddict: a dictionary of likelihoods of one of the llhddicts,
-        e.g. self.llhddicts[0]["llhd"]
+        :param nlldict: a dictionary of nlls of one of the nlldicts,
+        e.g. self.nlldicts[0]["nll"]
 
         :returns: Dictionary with highest likelihood and name of signal region,
         (both being None if nothing is found)
         """
-        max_llhd,sr = None, None
+        min_nll,sr = None, None
         dType = "any"
         n_ana = ana
         if ":" in ana:
@@ -311,7 +309,7 @@ class LlhdPlot ( LoggerBase ):
             if dType == "(combined)":
                 dType = "(comb)"
         mname = "?"
-        for name,llhd in llhddict.items():
+        for name,nll in nlldict.items():
             tokens = name.split(":")
             if dType == "ul" and tokens[1] != "None":
                 continue
@@ -323,15 +321,15 @@ class LlhdPlot ( LoggerBase ):
                 # if signal regions are given, they need to match
                 if tokens[1] != dType:
                     continue
-                self.debug ( f"found a match for {tokens[0]}, {tokens[1]}, l={llhd}" )
+                self.debug ( f"found a match for {tokens[0]}, {tokens[1]}, nll={nll}" )
             if not self.toposMatch ( tokens[2] ):
                 self.cprint ( "yellow", f"topology {tokens[2]} does not match {self.topo}, will skip" )
                 # continue
-            if max_llhd == None or llhd > max_llhd:
-                max_llhd = llhd
+            if min_nll == None or nll < min_nll:
+                min_nll = nll
                 sr = tokens[1]
                 mname = name
-        ret = { "llhd": max_llhd, "sr": sr }
+        ret = { "nll": min_nll, "sr": sr }
         ret["Z"] = -30.
         if mname in self.significances:
             ret["Z"] = self.significances[mname]
@@ -340,16 +338,16 @@ class LlhdPlot ( LoggerBase ):
     def writeScriptFile ( self ):
             from ptools import moreHelpers
             syv = moreHelpers.shortYVarName( self.yvariable )
-            scriptfilename = f"llhdPlot_{namer.asciiName(self.xvariable)}{syv}.py"
+            scriptfilename = f"nllPlot_{namer.asciiName(self.xvariable)}{syv}.py"
             with open ( scriptfilename, "wt" ) as f:
-                print ( f"[llhdScanner] created llhdPlotScript.py" )
+                print ( f"[nllscanner] created nllPlotScript.py" )
                 f.write ( "#!/usr/bin/env python3\n\n" )
                 f.write ( "import sys\n" )
                 f.write ( "interactive=False\n" )
                 f.write ( "if '-i' in sys.argv:\n" )
                 f.write ( "    interactive=True\n" )
-                f.write ( "from plotting import plotLlhds\n" )
-                f.write ( f"plot = plotLlhds.LlhdPlot ( xvariable={self.xvariable}, yvariable={self.yvariable}, verbose='{self.verbose}', copy={self.copy},\n" )
+                f.write ( "from plotting import plotNLLs\n" )
+                f.write ( f"plot = plotNLLs.NLLPlot ( xvariable={self.xvariable}, yvariable={self.yvariable}, verbose='{self.verbose}', copy={self.copy},\n" )
                 f.write ( f"    max_anas={self.max_anas}, interactive=interactive, drawtimestamp={self.drawtimestamp}, compress={self.compress},\n" )
                 f.write ( f"    environ='{self.environ}',\n" )
                 f.write ( f"    upload='{self.upload}' )\n" )
@@ -390,14 +388,14 @@ class LlhdPlot ( LoggerBase ):
                 f.close()
         self.pprint ( f"loaded {len(masspoints)} masspoints." )
         if masspoints == None:
-            self.pprint ( f"couldnt read llhds in {self.picklefile}" )
+            self.pprint ( f"couldnt read NLLs in {self.picklefile}" )
             return { "masspoints": None, "mx": None, "my": None, "nevents": None,
                      "topo": None, "timestamp": None, "cmdline" : None }
         if returnAll:
             return { "masspoints": masspoints, "mx": mx, "my": my,
                      "nevents": nevents, "topo": topo, "timestamp": timestamp,
                      "cmdline": cmdline }
-        llhds=[]
+        nlls=[]
         mu = 1.
         def getMu1 ( L ):
             for k,v in L.items():
@@ -406,21 +404,21 @@ class LlhdPlot ( LoggerBase ):
             print ( "couldnt find anything" )
             return None
         for point in masspoints:
-            if not "llhd" in point:
-                print ( f"point has no llhds? {point.keys()}" )
+            if not "nll" in point:
+                print ( f"point has no nlls? {point.keys()}" )
             if self.xvariable in [ 1000001, 1000002, 1000003, 1000004 ]:
                 if point['mx']<310.:
-                    print ( f"light squark mass wall, skipping mx {llhd['mx']} < 310 GeV" )
+                    print ( f"light squark mass wall, skipping mx {nll['mx']} < 310 GeV" )
                     continue
             app = copy.deepcopy ( point )
             if type(app)==tuple:
                 print ( f"FIXME why is this a tuple? {app[:2]}" )
-                app= { "mx": point[0], "my": point[1], "llhd": getMu1(point[2]),
+                app= { "mx": point[0], "my": point[1], "nll": getMu1(point[2]),
                        "critic": point[3] }
             else:
-                app["llhd"] = getMu1(point["llhd"])
-            llhds.append ( app )
-        return { "masspoints": llhds, "mx": mx, "my": my, "nevents": nevents,
+                app["nll"] = getMu1(point["nll"])
+            nlls.append ( app )
+        return { "masspoints": nlls, "mx": mx, "my": my, "nevents": nevents,
                  "topo": topo, "timestamp": timestamp, "cmdline": cmdline }
 
     def setup ( self, xvariable, yvariable ):
@@ -433,12 +431,9 @@ class LlhdPlot ( LoggerBase ):
         self.yvariable = yvariable
         if type(self.xvariable) in [ tuple, list ]:
             xvariable = self.xvariable[0]
-        self.picklefile = f"{self.environ.rundir}/llhd{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.pcl"
+        self.picklefile = f"{self.environ.rundir}/nll{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.pcl"
         if not os.path.exists ( self.picklefile ):
-            llhdp = self.picklefile
-            self.picklefile = f"{self.environ.rundir}/mp{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable)}.pcl"
-        if not os.path.exists ( self.picklefile ):
-            self.pprint(f"could not find pickle files {llhdp} and {self.picklefile}")
+            self.pprint(f"could not find pickle file {self.picklefile}")
         self.cprint ( "green", f"using {self.picklefile}" )
 
     def describe ( self ):
@@ -630,7 +625,7 @@ class LlhdPlot ( LoggerBase ):
         combL = {}
         rankthem = {}
         for ana in anas: ## loop over the analyses
-            ret = self.getHighestLlhdFor ( ana, self.masspoints[0]["llhd"] )
+            ret = self.getLowestNLLFor ( ana, self.masspoints[0]["nll"] )
             Z = ret["Z"]
             while Z in rankthem:
                 Z += 1e-5
@@ -655,11 +650,11 @@ class LlhdPlot ( LoggerBase ):
             minXY=( float("nan"),float("nan"), float("inf") )
             s="none"
             ## first, check for the hiscore point
-            ret = self.getHighestLlhdFor ( ana, self.masspoints[0]["llhd"] )
+            ret = self.getLowestNLLFor ( ana, self.masspoints[0]["nll"] )
             sr = ret["sr"]
-            llhd = ret["llhd"]
-            if llhd:
-                s=f"{-np.log(llhd):.2f}"
+            nll = ret["nll"]
+            if nll:
+                s=f"{nll:.2f}"
             mx, my = self.masspoints[0]['mx'], self.masspoints[0]['my']
             my = self.convertSSMToXSec ( my, mx )
             self.pprint(f"{ana} @ hiscore m=({mx:.1f} GeV,{my:.1f} {self.yunit}): nll_min={s}")
@@ -668,7 +663,7 @@ class LlhdPlot ( LoggerBase ):
             for cm,masspoint in enumerate(self.masspoints[1:]):
                 if cm % 100 == 0:
                     print ( ".", end="", flush=True )
-                m1,m2,llhds,critic=masspoint["mx"],masspoint["my"],masspoint["llhd"],masspoint["critic"]
+                m1,m2,nlls,critic=masspoint["mx"],masspoint["my"],masspoint["nll"],masspoint["critic"]
                 m2 = self.convertSSMToXSec ( m2, m1 )
                 rmax=float("nan")
                 #if len(critic)>0:
@@ -683,11 +678,11 @@ class LlhdPlot ( LoggerBase ):
                 x.add ( m1 )
                 y.add ( m2 )
                 zt = float("nan")
-                ret = self.getHighestLlhdFor ( ana, llhds )
-                result = ret [ "llhd" ]
+                ret = self.getLowestNLLFor ( ana, nlls )
+                result = ret [ "nll" ]
                 sr = ret [ "sr" ]
                 if result:
-                    zt = - np.log( result )
+                    zt = result # - np.log( result )
                     cresults += 1
                     if zt < minXY[2] and passes_critic: # rmax<=self.rthreshold:
                         minXY=(m1,m2,zt)
@@ -700,6 +695,7 @@ class LlhdPlot ( LoggerBase ):
                 else:
                     combL[h] = combL[h] + zt
                 R[h]=rmax
+                print ( f"@@0 masspoint {m1},{m2},{zt},{rmax}:: {result}" )
             print ()
             self.pprint ( f"{ana}: {cresults}/{len(self.masspoints)} results" )
             if cresults == 0:
@@ -816,7 +812,7 @@ class LlhdPlot ( LoggerBase ):
         legend = ax.legend( handles=handles, loc="best", fontsize=12 )
         from ptools import moreHelpers
         syv = moreHelpers.shortYVarName( self.yvariable )
-        figname = f"{self.environ.rundir}/llhd{namer.asciiName(xvariable)}{syv}.png"
+        figname = f"{self.environ.rundir}/nll{namer.asciiName(xvariable)}{syv}.png"
         self.pprint ( f"saving to {figname}" )
         from smodels_utils.helper.various import pngMetaInfo
         metadata = pngMetaInfo()
@@ -853,9 +849,9 @@ class LlhdPlot ( LoggerBase ):
             return None
         for masspoint in self.masspoints:
             # print ( "masspoint", masspoint )
-            m1,m2,llhds=masspoint["mx"],masspoint["my"],masspoint["llhd"]
+            m1,m2,nlls=masspoint["mx"],masspoint["my"],masspoint["nll"]
             critic = masspoint["critic"]
-            for k,v in llhds.items():
+            for k,v in nlls.items():
                 tokens = k.split(":")
                 if not integrateTopos and self.topo not in tokens[2]:
                     continue
@@ -922,9 +918,9 @@ class LlhdPlot ( LoggerBase ):
             print ( f"    {k:14s}: {v:.2f}" )
             if ctr > 3:
                 break
-        print ( f"llhds:" )
+        print ( f"nlls:" )
         print ( f"======" )
-        for ctr,(k,v) in enumerate(point["llhd"].items()):
+        for ctr,(k,v) in enumerate(point["nll"].items()):
             print ( f"    {k:14s}: {v:.2g}" )
             if ctr > 1:
                 break
@@ -950,14 +946,13 @@ class LlhdPlot ( LoggerBase ):
 
 
     def findClosestPoint ( self, m1 : Union[None,float]=None,
-            m2 : Union[None,float]=None, nll : bool = False ) -> Dict:
+            m2 : Union[None,float]=None ) -> Dict:
         """ find the mass point closest to m1, m2. If not specified,
             return the hiscore point.
         :param m1: if None, use best fit point coord
         :param m2: if None, use best fit point coord
-        :param nll: if True, report nlls, else report likelihoods.
 
-        :returns: dictionary with coordinates and llhd
+        :returns: dictionary with coordinates and nll
         """
         if m1 == None:
             m1 = self.mx
@@ -975,15 +970,10 @@ class LlhdPlot ( LoggerBase ):
                 point = m
                 idx = idx_
         ret = { "mx": point["mx"], "my": point["my"], "dm": np.sqrt(dm), "idx": idx }
-        llhdname = "llhd"
-        if not nll:
-            return ret
-        llhdname = "nll"
-        # asked for NLLs
         D = {}
         for k,v in point[2].items():
-            D[k]=-np.log(v)
-        ret[llhdname] = D
+            D[k]=v # -np.log(v)
+        ret["nll"] = D
         return ret
 
     def interact ( self ):
@@ -1006,7 +996,7 @@ if __name__ == "__main__":
             help='verbosity: debug, info, warn, or error [warn]',
             type=str, default="warn" )
     argparser.add_argument ( '-x', '--xvariable',
-            help='xvariable, if 0 then search for llhd*pcl files [0]',
+            help='xvariable, if 0 then search for nll*pcl files [0]',
             type=str, default=0 )
     argparser.add_argument ( '-M', '--max_anas',
             help='maximum number of analyses [4]',
@@ -1050,11 +1040,11 @@ if __name__ == "__main__":
     pids = getPidList ( args.xvariable, environ.rundir )
 
     if args.interactive and len(pids)>1:
-        print ( "[plotLlhds] interactive mode plus several plots. interactive is only for one plot." )
+        print ( "[plotNLLs] interactive mode plus several plots. interactive is only for one plot." )
         args.interactive = False
 
     for xvariable in pids:
-        plot = LlhdPlot ( xvariable, args.yvariable, args.verbose, args.copy,
+        plot = NLLPlot ( xvariable, args.yvariable, args.verbose, args.copy,
                 args.max_anas, args.interactive, drawtimestamp, args.compress,
                 environ, args.upload )
 
