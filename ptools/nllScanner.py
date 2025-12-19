@@ -108,7 +108,7 @@ class nllThread ( LoggerBase ):
             self.pprint ( f"writing to {dictfile}" )
             from ptools.helpers import py_dumps
             with open ( dictfile, "wt" ) as f:
-                befores = { "my": "critic", "mx": "my", "critic": "nll",
+                befores = { "mx": "my", "my": "critic", "critic": "oul",
                             "oul": "eul", "eul": "nll" }
                 d = py_dumps ( d, level = 0, a_before = befores )
                 f.write ( d )
@@ -236,9 +236,9 @@ class nllThread ( LoggerBase ):
 
         self.M.delCurrentSLHA()
         critics={ "nll": None, "ul": self.M.ul_critic }
-        if hasattr ( self.M, "nll_critic" ):
-            self.M.nll_critic["passes"] = ( self.M.nll_critic["robs"]<1.0 )
-            critics["nll"] = self.M.nll_critic
+        if hasattr ( self.M, "llhd_critic" ):
+            self.M.llhd_critic["passes"] = ( self.M.llhd_critic["robs"]<1.0 )
+            critics["nll"] = self.M.llhd_critic
             ret["critic"] = critics
 
         if not worked:
