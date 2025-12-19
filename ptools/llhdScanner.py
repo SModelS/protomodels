@@ -108,7 +108,9 @@ class LlhdThread ( LoggerBase ):
             self.pprint ( f"writing to {dictfile}" )
             from ptools.helpers import py_dumps
             with open ( dictfile, "wt" ) as f:
-                d = py_dumps ( d, level = 0 )
+                befores = { "my": "critic", "mx": "my", "critic": "llhd",
+                            "oul": "eul", "eul": "llhd" }
+                d = py_dumps ( d, level = 0, a_before = befores )
                 f.write ( d )
             f.close()
 

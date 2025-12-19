@@ -51,7 +51,7 @@ def repr_double_quotes(obj):
         return repr(obj)
 
 def py_dump ( obj, handle, **args ):
-    """ equivalent to json.dump, convenience method 
+    """ equivalent to json.dump, convenience method
     :param handle: is either a file handle, or a file name
     """
     ds = py_dumps ( obj, **args )
@@ -62,16 +62,52 @@ def py_dump ( obj, handle, **args ):
     else:
         handle.write ( ds + "\n" )
 
-def py_dumps( obj, indent : int = 4, level : int = 0, stop_at_level : int = -1, 
-              double_quotes : bool = True ) -> str:
+def reorder_list_by_dict( lst : list, mapping : dict ) -> list:
+    """ reorder the list, but make sure the keys in mapping
+    come before the values in mapping """
+    from collections import defaultdict, deque
+    present = set(lst)
+
+    edges = defaultdict(set)
+    indegree = defaultdict(int)
+
+    for k, v in mapping.items():
+        if k in present and v in present:
+            if v not in edges[k]:
+                edges[k].add(v)
+                indegree[v] += 1
+                indegree.setdefault(k, 0)
+
+    queue = deque([x for x in lst if indegree[x] == 0])
+    result = []
+
+    while queue:
+        node = queue.popleft()
+        result.append(node)
+        for nxt in edges[node]:
+            indegree[nxt] -= 1
+            if indegree[nxt] == 0:
+                queue.append(nxt)
+
+    if len(result) != len(present):
+        raise ValueError("Cycle detected: ordering impossible")
+
+    # preserve original duplicates & unrelated items
+    order = {v: i for i, v in enumerate(result)}
+    return sorted(lst, key=lambda x: order.get(x, float("inf")))
+
+def py_dumps( obj, indent : int = 4, level : int = 0, stop_at_level : int = -1,
+              a_before : dict = {}, double_quotes : bool = True ) -> str:
     """ equivalent to json.dumps (ie it pretty prints a given nested structure)
     but tuples are allowed as keys.
 
     :param indent: number of spaces used for an indentation
     :param level: how many indentations are we in?
     :param stop_at_level: stop indentation at that level, if positive number
+    :param a_before: dictionary, if e.g. { "a": "b", "d": "c" }, then
     :param double_quotes: use double quotes, as required for json.
     FIXME maybe not even ask, its always true
+    key a comes before key b
 
     :returns: formatted string
     """
@@ -85,20 +121,25 @@ def py_dumps( obj, indent : int = 4, level : int = 0, stop_at_level : int = -1,
         if not obj:
             return '{}'
         items = []
+        keys = list ( obj.keys() )
+        if len(a_before)>0:
+            keys = reorder_list_by_dict ( keys, a_before )
         if stop_at_level > 0 and level >= stop_at_level:
-            for k, v in obj.items():
-                value = f"{py_dumps(v, indent, level + 1, stop_at_level, double_quotes )}"
+            for k in keys:
+                v = obj[k]
+                value = f"{py_dumps(v, indent, level + 1, stop_at_level, a_before, double_quotes )}"
                 items.append(f"{mrepr(k)}: {value}")
             return '{ ' + ', '.join(items) + ' }'
-        for k, v in obj.items():
-            value = f"{py_dumps(v, indent, level + 1, stop_at_level, double_quotes )}"
+        for k in keys:
+            v = obj[k]
+            value = f"{py_dumps(v, indent, level + 1, stop_at_level, a_before, double_quotes )}"
             items.append(f"{sp_next}{mrepr(k)}: {value}")
         return '{\n' + ',\n'.join(items) + '\n' + sp + '}'
 
     elif isinstance(obj, list):
         if not obj:
             return '[]'
-        items = [f"{sp_next}{py_dumps(i, indent, level + 1, stop_at_level, double_quotes )}" for i in obj]
+        items = [f"{sp_next}{py_dumps(i, indent, level + 1, stop_at_level, a_before, double_quotes )}" for i in obj]
         if stop_at_level > 0 and level >= stop_at_level:
             return '[ ' + ', '.join(items) + ' ]'
         return '[\n' + ',\n'.join(items) + '\n' + sp + ']'
@@ -106,7 +147,7 @@ def py_dumps( obj, indent : int = 4, level : int = 0, stop_at_level : int = -1,
     elif isinstance(obj, tuple):
         if not obj:
             return '()'
-        items = [f"{sp_next}{py_dumps(i, indent, level + 1, stop_at_level, double_quotes )}" for i in obj]
+        items = [f"{sp_next}{py_dumps(i, indent, level + 1, stop_at_level, a_before, double_quotes )}" for i in obj]
         if stop_at_level > 0 and level >= stop_at_level:
             return '( ' + ', '.join(items) + ' )'
         return '(\n' + ',\n'.join(items) + '\n' + sp + ')'
@@ -128,7 +169,7 @@ def mkdir ( dirname : os.PathLike ) -> bool:
     return False
 
 def formatObject ( obj, fmt_str : Union[int,str] = ".2f" ) -> str:
-    """ format an object like a number, e.g. a test statistic 
+    """ format an object like a number, e.g. a test statistic
 
     :param fmt_str: either e.g. .2f, or '1' which gets translated to .1f
     """
@@ -332,7 +373,7 @@ def computeP ( obs : float, bg : float, bgerr : float,
         n *= 5
     return ret
 
-def computePSLv2 ( obs : float, bg : float, bgerr : float, 
+def computePSLv2 ( obs : float, bg : float, bgerr : float,
         third : float, nmax : int = 100000000 ) -> float:
     """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2
 
