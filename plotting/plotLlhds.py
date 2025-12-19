@@ -439,7 +439,7 @@ class LlhdPlot ( LoggerBase ):
             self.picklefile = f"{self.environ.rundir}/mp{namer.asciiName(xvariable)}{namer.asciiName(self.yvariable)}.pcl"
         if not os.path.exists ( self.picklefile ):
             self.pprint(f"could not find pickle files {llhdp} and {self.picklefile}")
-        self.pprint ( f"using {self.picklefile}" )
+        self.cprint ( "green", f"using {self.picklefile}" )
 
     def describe ( self ):
         """ describe the situation """
