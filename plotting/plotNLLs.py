@@ -298,10 +298,10 @@ class NLLPlot ( LoggerBase ):
         :param nlldict: a dictionary of nlls of one of the nlldicts,
         e.g. self.nlldicts[0]["nll"]
 
-        :returns: Dictionary with highest likelihood and name of signal region,
-        (both being None if nothing is found)
+        :returns: Dictionary with lowest nll and name of signal region,
+        ( inf and None, respectively, if nothing is found)
         """
-        min_nll,sr = None, None
+        min_nll,sr = float("inf"), None
         dType = "any"
         n_ana = ana
         if ":" in ana:
@@ -325,11 +325,11 @@ class NLLPlot ( LoggerBase ):
             if not self.toposMatch ( tokens[2] ):
                 self.cprint ( "yellow", f"topology {tokens[2]} does not match {self.topo}, will skip" )
                 # continue
-            if min_nll == None or nll < min_nll:
+            if nll < min_nll:
                 min_nll = nll
                 sr = tokens[1]
                 mname = name
-        ret = { "nll": min_nll, "sr": sr }
+        ret = { "nll": min_nll, "sr": sr, "name": mname }
         ret["Z"] = -30.
         if mname in self.significances:
             ret["Z"] = self.significances[mname]
@@ -626,6 +626,7 @@ class NLLPlot ( LoggerBase ):
         rankthem = {}
         for ana in anas: ## loop over the analyses
             ret = self.getLowestNLLFor ( ana, self.masspoints[0]["nll"] )
+            # print ( f"@@1 lowest for {ana} at {self.masspoints[0]['mx']},{self.masspoints[0]['my']} is {ret}" )
             Z = ret["Z"]
             while Z in rankthem:
                 Z += 1e-5
@@ -695,7 +696,7 @@ class NLLPlot ( LoggerBase ):
                 else:
                     combL[h] = combL[h] + zt
                 R[h]=rmax
-                print ( f"@@0 masspoint {m1},{m2},{zt},{rmax}:: {result}" )
+                print ( f"@@0 masspoint {m1},{m2},z={zt},rmax={rmax}:: {result}" )
             print ()
             self.pprint ( f"{ana}: {cresults}/{len(self.masspoints)} results" )
             if cresults == 0:
