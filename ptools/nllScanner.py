@@ -235,10 +235,10 @@ class nllThread ( LoggerBase ):
         ret = { "nll": None, "critic": None, "oul": None, "eul": None }
 
         self.M.delCurrentSLHA()
-        critics={ "nll": None, "ul": self.M.ul_critic }
+        critics={ "llhd": None, "ul": self.M.ul_critic }
         if hasattr ( self.M, "llhd_critic" ):
             self.M.llhd_critic["passes"] = ( self.M.llhd_critic["robs"]<1.0 )
-            critics["nll"] = self.M.llhd_critic
+            critics["llhd"] = self.M.llhd_critic
             ret["critic"] = critics
 
         if not worked:

@@ -132,7 +132,7 @@ class NLLPlot ( LoggerBase ):
         self.drawtimestamp = drawtimestamp
         self.max_anas = max_anas ## maximum number of analyses
         self.copy = copy
-        self.rthreshold = 1.7
+        self.rthreshold = 1.0
         self.interactive = interactive
         self.hiscorefile = "./hiscores_global.dict"
         from ptools import hiscoreTools
@@ -206,8 +206,13 @@ class NLLPlot ( LoggerBase ):
         ret = ret.replace("(comb)","")
         return ret
 
-    def integratenlls ( self, Z, RMAX ):
-        """ compute the integral of the likelihood over all points """
+    def integrateNLLs ( self, Z : np.ndarray, RMAX : np.ndarray ) -> float:
+        """ compute the integral of the likelihood (= exp(-nll)) over all points 
+
+        :param RMAX: dont consider any point for which rmax > 1.0
+
+        :returns: integrals
+        """
         I = 0.
         for x,row in enumerate(Z):
             for y,nll in enumerate(row):
@@ -229,7 +234,7 @@ class NLLPlot ( LoggerBase ):
                     else:
                         newZ[x][y]=0.
             return newZ
-        I = self.integratenlls ( Z, RMAX )
+        I = self.integrateNLLs ( Z, RMAX )
         S = 0.
         points = []
         n = 0
@@ -252,7 +257,7 @@ class NLLPlot ( LoggerBase ):
                 oldZ[x][y]=float("nan") ## kill this one
                 newZ[x][y]=1 +1./ctr
         if verbose:
-            print ( f"{sum(sum(newZ))}/{n} points in {int(alpha*100)}% HPD" )
+            self.pprint ( f"{sum(sum(newZ)):.2f}/{n} points in {int(alpha*100)}% HPD" )
         return newZ
 
     def toposMatch ( self, topos : str ) -> bool:
@@ -654,6 +659,7 @@ class NLLPlot ( LoggerBase ):
             ret = self.getLowestNLLFor ( ana, self.masspoints[0]["nll"] )
             sr = ret["sr"]
             nll = ret["nll"]
+            nll_min = min ( [ self.getLowestNLLFor ( ana, x["nll"] )["nll"] for x in self.masspoints ] )
             if nll:
                 s=f"{nll:.2f}"
             mx, my = self.masspoints[0]['mx'], self.masspoints[0]['my']
@@ -661,7 +667,7 @@ class NLLPlot ( LoggerBase ):
             self.pprint(f"{ana} @ hiscore m=({mx:.1f} GeV,{my:.1f} {self.yunit}): nll_min={s}")
             cresults = 0
             ## then, run on all other points
-            for cm,masspoint in enumerate(self.masspoints[1:]):
+            for cm,masspoint in enumerate(self.masspoints[0:]):
                 if cm % 100 == 0:
                     print ( ".", end="", flush=True )
                 m1,m2,nlls,critic=masspoint["mx"],masspoint["my"],masspoint["nll"],masspoint["critic"]
@@ -683,10 +689,13 @@ class NLLPlot ( LoggerBase ):
                 result = ret [ "nll" ]
                 sr = ret [ "sr" ]
                 if result:
-                    zt = result # - np.log( result )
+                    zt = result - nll_min
                     cresults += 1
                     if zt < minXY[2] and passes_critic: # rmax<=self.rthreshold:
                         minXY=(m1,m2,zt)
+                if True: # cm % 10 == 0:
+                    # plt.text ( m1, m2, f"{ana}:{zt:.2f}" )
+                    plt.text ( m1, m2, f"{np.exp(-zt):.2f}" )
                 h = self.getHash(m1,m2)
                 L[h]=zt
                 if not h in combL:
@@ -696,7 +705,8 @@ class NLLPlot ( LoggerBase ):
                 else:
                     combL[h] = combL[h] + zt
                 R[h]=rmax
-                print ( f"@@0 masspoint {m1},{m2},z={zt},rmax={rmax}:: {result}" )
+                if 370<m1<381:
+                    print ( f"@@0 masspoint {m1},{m2},z={zt},rmax={rmax}:: {result}" )
             print ()
             self.pprint ( f"{ana}: {cresults}/{len(self.masspoints)} results" )
             if cresults == 0:
@@ -729,15 +739,15 @@ class NLLPlot ( LoggerBase ):
                 self.R = R
                 self.X = X
                 self.Y = Y
-            hldZ100 = self.computeHPD ( Z, None, 1., False )
-            cont100 = plt.contour ( X, Y, hldZ100, levels=[0.25], colors = [ color ], linestyles = [ "dotted" ], zorder=-1 )
+            #hldZ100 = self.computeHPD ( Z, None, 1., False )
+            #cont100 = plt.contour ( X, Y, hldZ100, levels=[0.25], colors = [ color ], linestyles = [ "dotted" ], zorder=-1 )
             #hldZ95 = self.computeHPD ( Z, .95, False )
             #cont95 = plt.contour ( X, Y, hldZ95, levels=[0.5], colors = [ color ], linestyles = [ "dashed" ] )
             #plt.clabel ( cont95, fmt="95%.0s" )
-            hldZ50 = self.computeHPD ( Z, RMAX, .68, False )
+            hldZ50 = self.computeHPD ( Z, RMAX, .38, True )
             cont50c = plt.contour ( X, Y, hldZ50, levels=[1.0], colors = [ color ], zorder=-1 )
             cont50 = plt.contourf ( X, Y, hldZ50, levels=[1.,10.], colors = [ color, color ], alpha=getAlpha( color ), zorder=-1 )
-            plt.clabel ( cont50c, fmt="68%.0s" )
+            plt.clabel ( cont50c, fmt="38%.0s" )
             if hasattr ( cont50, "axes" ):
                 ax = cont50.axes
             else:
@@ -765,10 +775,13 @@ class NLLPlot ( LoggerBase ):
                     if combL[h]==0.:
                         ZCOMB[irow,icol]=float("nan")
         self.ZCOMB = ZCOMB
-        contRMAX = plt.contour ( X, Y, RMAX, levels=[self.rthreshold], colors = [ "gray" ], zorder=-1 )
-        contRMAXf = plt.contourf ( X, Y, RMAX, levels=[self.rthreshold,float("inf")], colors = [ "gray" ], hatches = ['////'], alpha=getAlpha( "gray" ), zorder=-1 )
-        hldZcomb68 = self.computeHPD ( ZCOMB, RMAX, .68, False  )
-        contZCOMB = plt.contour ( X, Y, hldZcomb68, levels=[.25], colors = [ "black" ], zorder=-1 )
+        contRMAX = plt.contour ( X, Y, RMAX, levels=[self.rthreshold], 
+                                 colors = [ "gray" ], zorder=-1 )
+        contRMAXf = plt.contourf ( X, Y, RMAX, levels=[self.rthreshold,float("inf")], 
+                                   colors = [ "gray" ], hatches = ['////'], 
+                                   alpha=getAlpha( "gray" ), zorder=-1 )
+        #hldZcomb68 = self.computeHPD ( ZCOMB, RMAX, .68, False  )
+        #contZCOMB = plt.contour ( X, Y, hldZcomb68, levels=[.25], colors = [ "black" ], zorder=-1 )
 
         # ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="s", s=110, color="gray", label="excluded", alpha=.3, zorder=20 )
         print()
