@@ -132,7 +132,7 @@ class NLLPlot ( LoggerBase ):
         self.drawtimestamp = drawtimestamp
         self.max_anas = max_anas ## maximum number of analyses
         self.copy = copy
-        self.rthreshold = 1.0
+        self.rthreshold = 1.05
         self.interactive = interactive
         self.hiscorefile = "./hiscores_global.dict"
         from ptools import hiscoreTools
@@ -206,24 +206,27 @@ class NLLPlot ( LoggerBase ):
         ret = ret.replace("(comb)","")
         return ret
 
-    def integrateNLLs ( self, Z : np.ndarray, RMAX : np.ndarray ) -> float:
+    def integrateNLLs ( self, Z : np.ndarray, robs : np.ndarray ) -> float:
         """ compute the integral of the likelihood (= exp(-nll)) over all points 
 
-        :param RMAX: dont consider any point for which rmax > 1.0
+        :param robs: dont consider any point for which robs > 1.0
 
         :returns: integrals
         """
         I = 0.
         for x,row in enumerate(Z):
             for y,nll in enumerate(row):
-                if RMAX[x][y]>self.rthreshold:
+                if robs[x][y]>self.rthreshold:
                     continue
                 if not np.isnan(nll):
                     I += np.exp ( - nll )
         return I
 
-    def computeHPD ( self, Z, RMAX, alpha : float = .9, verbose : bool = True ):
+    def computeHPD ( self, Z : np.ndarray, robs : np.ndarray, 
+                     alpha : float = .9, verbose : bool = True ) -> np.ndarray:
         """ compute the regions of highest posterior density to the alpha quantile
+        :param robs: the array of the llhd-based r_obs values. fixme what does
+        nan mean? does it mean, the UL-based critic already excludes?
         """
         newZ = copy.deepcopy ( Z )
         if alpha > .999999: # give all points with likelihoods
@@ -234,17 +237,17 @@ class NLLPlot ( LoggerBase ):
                     else:
                         newZ[x][y]=0.
             return newZ
-        I = self.integrateNLLs ( Z, RMAX )
+        I = self.integrateNLLs ( Z, robs )
         S = 0.
         points = []
         n = 0
         oldZ = copy.deepcopy ( Z )
         for x,row in enumerate(newZ):
             for y,_ in enumerate(row):
-                rmax = 0.
-                if type(RMAX) != type(None):
-                    rmax = RMAX[x][y]
-                if rmax > self.rthreshold: ## kill the excluded areas
+                r_cur = 0.
+                if type(robs) != type(None):
+                    r_cur = robs[x][y]
+                if r_cur > self.rthreshold: ## kill the excluded areas
                     oldZ[x][y]= float("nan") # oldZ[x][y] # float("nan")
                 n += 1
                 newZ[x][y] = 0.
@@ -608,7 +611,7 @@ class NLLPlot ( LoggerBase ):
         self.pprint ( f"summary plot: {', '.join ( anas )}" )
         colors = [ "red", "green", "blue", "orange", "cyan", "magenta", "grey",
             "brown", "pink", "indigo", "olive", "orchid", "darkseagreen", "teal" ]
-        xmin,xmax,ymin,ymax=9000,0,9000,0
+        xmin,xmax,ymin,ymax=float("inf"),float("-inf"),float("inf"),float("-inf")
         for m in self.masspoints:
             if m["mx"] < xmin:
                 xmin = m["mx"]
@@ -672,12 +675,10 @@ class NLLPlot ( LoggerBase ):
                     print ( ".", end="", flush=True )
                 m1,m2,nlls,critic=masspoint["mx"],masspoint["my"],masspoint["nll"],masspoint["critic"]
                 m2 = self.convertSSMToXSec ( m2, m1 )
-                rmax=float("nan")
-                #if len(critic)>0:
-                #    rmax=max([ v["robs"] for k,v in critic['ul']['datasets'].items() ] )
+                robs=float("nan")
                 passes_critic = False
                 if "llhd" in critic:
-                    rmax = critic["llhd"]["robs"]
+                    robs = critic["llhd"]["robs"]
                     passes_critic = ( critic["llhd"]["robs"]<1.0 )
 
                 if m2 > m1 and not type(self.yvariable) in [ tuple ]:
@@ -691,11 +692,12 @@ class NLLPlot ( LoggerBase ):
                 if result:
                     zt = result - nll_min
                     cresults += 1
-                    if zt < minXY[2] and passes_critic: # rmax<=self.rthreshold:
+                    if zt < minXY[2] and passes_critic: # robs<=self.rthreshold:
                         minXY=(m1,m2,zt)
-                if True: # cm % 10 == 0:
+                if np.exp(-zt)>.1 and passes_critic: # cm % 10 == 0:
                     # plt.text ( m1, m2, f"{ana}:{zt:.2f}" )
-                    plt.text ( m1, m2, f"{np.exp(-zt):.2f}" )
+                    plt.text ( m1, m2, f"{np.exp(-zt):.1f}" )
+                    # plt.text ( m1, m2, f"{robs:.1f}" )
                 h = self.getHash(m1,m2)
                 L[h]=zt
                 if not h in combL:
@@ -704,9 +706,9 @@ class NLLPlot ( LoggerBase ):
                     combL[h] = combL[h] + 100.
                 else:
                     combL[h] = combL[h] + zt
-                R[h]=rmax
-                if 370<m1<381:
-                    print ( f"@@0 masspoint {m1},{m2},z={zt},rmax={rmax}:: {result}" )
+                R[h]=robs
+                if 390<m1<481:
+                    print ( f"@@0 masspoint {m1},{m2},l={np.exp(-zt)},robs={robs}:: nll={result}" )
             print ()
             self.pprint ( f"{ana}: {cresults}/{len(self.masspoints)} results" )
             if cresults == 0:
@@ -721,7 +723,7 @@ class NLLPlot ( LoggerBase ):
             x.sort(); y.sort()
             X, Y = np.meshgrid ( x, y )
             Z = float("nan")*X
-            RMAX = float("nan")*X
+            robs = float("nan")*X
             for irow,row in enumerate(Z):
                 for icol,col in enumerate(row):
                     h = 0
@@ -730,9 +732,9 @@ class NLLPlot ( LoggerBase ):
                     if h in L:
                         Z[irow,icol]=L[h]
                     if h in R:
-                        RMAX[irow,icol]=R[h]
+                        robs[irow,icol]=R[h]
             if self.interactive:
-                self.RMAX = RMAX
+                self.robs = robs
                 # self.ZCOMB = ZCOMB
                 self.Z = Z
                 self.L = L
@@ -744,7 +746,7 @@ class NLLPlot ( LoggerBase ):
             #hldZ95 = self.computeHPD ( Z, .95, False )
             #cont95 = plt.contour ( X, Y, hldZ95, levels=[0.5], colors = [ color ], linestyles = [ "dashed" ] )
             #plt.clabel ( cont95, fmt="95%.0s" )
-            hldZ50 = self.computeHPD ( Z, RMAX, .38, True )
+            hldZ50 = self.computeHPD ( Z, robs, .38, True )
             cont50c = plt.contour ( X, Y, hldZ50, levels=[1.0], colors = [ color ], zorder=-1 )
             cont50 = plt.contourf ( X, Y, hldZ50, levels=[1.,10.], colors = [ color, color ], alpha=getAlpha( color ), zorder=-1 )
             plt.clabel ( cont50c, fmt="38%.0s" )
@@ -775,12 +777,12 @@ class NLLPlot ( LoggerBase ):
                     if combL[h]==0.:
                         ZCOMB[irow,icol]=float("nan")
         self.ZCOMB = ZCOMB
-        contRMAX = plt.contour ( X, Y, RMAX, levels=[self.rthreshold], 
+        controbs = plt.contour ( X, Y, robs, levels=[self.rthreshold], 
                                  colors = [ "gray" ], zorder=-1 )
-        contRMAXf = plt.contourf ( X, Y, RMAX, levels=[self.rthreshold,float("inf")], 
+        controbsf = plt.contourf ( X, Y, robs, levels=[self.rthreshold,float("inf")], 
                                    colors = [ "gray" ], hatches = ['////'], 
                                    alpha=getAlpha( "gray" ), zorder=-1 )
-        #hldZcomb68 = self.computeHPD ( ZCOMB, RMAX, .68, False  )
+        #hldZcomb68 = self.computeHPD ( ZCOMB, robs, .68, False  )
         #contZCOMB = plt.contour ( X, Y, hldZcomb68, levels=[.25], colors = [ "black" ], zorder=-1 )
 
         # ax.scatter( [ minXY[0] ], [ minXY[1] ], marker="s", s=110, color="gray", label="excluded", alpha=.3, zorder=20 )
@@ -819,9 +821,11 @@ class NLLPlot ( LoggerBase ):
             if self.useXSecsNotSSMs:
                 var, postfix = "$\\sigma$", " [fb] (13 TeV)"
         plt.ylabel ( f"{var}({namer.texName(self.yvariable, addSign=False, addDollars=True)}){postfix}" )
-        hasCritic = np.any ( RMAX > self.rthreshold )
+        hasCritic = np.any ( robs > self.rthreshold )
         if hasCritic:
-            circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=f'excluded by slow critic:\n{self.getMostOutspokenCritic()} et al', edgecolor="black" )
+            # label = f'excluded by slow critic:\n{self.getMostOutspokenCritic()} et al'
+            label = f"excluded by llhd-based critic"
+            circ1 = mpatches.Patch( facecolor="gray",alpha=getAlpha("gray"),hatch=r'////',label=label, edgecolor="black" )
             handles.append ( circ1 )
         legend = ax.legend( handles=handles, loc="best", fontsize=12 )
         from ptools import moreHelpers
@@ -946,17 +950,17 @@ class NLLPlot ( LoggerBase ):
         se = "non-excluded" if revert else "excluded"
         filteredpoints = []
         for idx,point in enumerate ( self.masspoints ):
-            rmax = max(point["critic"].values())
+            robs = max(point["critic"].values())
             point["idx"] = idx
-            point["rmax"] = rmax
-            if rmax >= self.rthreshold and not revert:
+            point["robs"] = robs
+            if robs >= self.rthreshold and not revert:
                 filteredpoints.append ( point )
-            if rmax <= self.rthreshold and revert:
+            if robs <= self.rthreshold and revert:
                 filteredpoints.append ( point )
         filteredpoints.sort ( key = lambda x : 1e6*x["mx"]+x["my"] )
         print ( f"List of {len(filteredpoints)} {se} points (r>{self.rthreshold}):" )
         for point in filteredpoints:
-            print ( f"    #{point['idx']}: m=({point['mx']:.2f},{point['my']:.2f}) r={point['rmax']:.2f}" )
+            print ( f"    #{point['idx']}: m=({point['mx']:.2f},{point['my']:.2f}) r={point['robs']:.2f}" )
 
 
     def findClosestPoint ( self, m1 : Union[None,float]=None,
