@@ -84,7 +84,11 @@ class NLLThread ( LoggerBase ):
               "model": self.M.dict() }
         return d
 
-    def getMeta ( self ):
+    def getMetaInformation ( self ) -> dict:
+        """ the meta information about this nll scan.
+        contains command line arguments, date of production, 
+        x, y variables.
+        """ 
         from smodels_utils.helper.various import getCommandLine
         meta = { "cmdline": getCommandLine() }
         from datetime import datetime
@@ -95,6 +99,8 @@ class NLLThread ( LoggerBase ):
         hostname = socket.gethostname()
         meta["hostname"]=socket.gethostname()
         meta["dt[h]"]=(time.time()-t0)/60./60. # time it took in hours
+        meta["xvariable"]=self.xvariable
+        meta["yvariable"]=self.yvariable
         return meta
 
     def createPickleBackup ( self ):
@@ -199,7 +205,7 @@ class NLLThread ( LoggerBase ):
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
         masspoints = self.getAllMassPoints()
         Dict["masspoints"] = masspoints
-        Dict["meta"] = self.getMeta()
+        Dict["meta"] = self.getMetaInformation()
         self.writePickleFile ( Dict )
         self.unlockPickleFile()
 
