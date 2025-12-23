@@ -2,7 +2,7 @@
 
 """ script used to produce the likelihood scans """
 
-__all__ = [ "nllScanner" ]
+__all__ = [ "NLLScanner" ]
 
 import os, sys, multiprocessing, time, numpy, subprocess, copy, glob
 import pickle, random, shutil
@@ -30,6 +30,7 @@ from smodels.statistics.basicStats import observed, apriori, aposteriori,\
 from base.runEnviron import RunEnviron
 
 namer = SParticleNames ( False )
+t0 = time.time() ## define t0, to measure how long things took
 
 def findPids ( rundir ):
     """ search for nll*pcl files, report the corresponding pids.
@@ -45,20 +46,17 @@ def findPids ( rundir ):
         s = s.replace("1000022","")
         s = s.replace("X1Z","")
         ret.add ( int(s) )
-    print ( f"[nllScanner] pids are {ret}" )
+    print ( f"[NLLScanner] pids are {ret}" )
     return ret
 
-class nllThread ( LoggerBase ):
+class NLLThread ( LoggerBase ):
     """ one thread of the sweep """
     def __init__ ( self, threadnr: str, obj ):
         """ the constructor.
         """
-        super ( nllThread, self ).__init__ ( threadnr )
+        super ( NLLThread, self ).__init__ ( threadnr )
         self.environ = obj.environ
-        # self.rundir = setup( obj.rundir )
-        # yname = moreHelpers.shortYVarName( obj.yvariable )
         self.resultsdir = obj.resultsdir
-        # self.resultsdir = f"{self.environ.rundir}/nlls_{namer.asciiName(obj.xvariable)}{yname}/"
         self.topo = obj.topo
         self.threadnr = threadnr
         self.dict_file = obj.dict_file
@@ -78,12 +76,26 @@ class nllThread ( LoggerBase ):
 
     def getDefaultDictionary ( self ):
         """ initialise the dictionary for the pickle file """
+        import time
         d = { "masspoints": [], "mxvariable": self.mxvariable,
               "myvariable": self.myvariable, "nevents": self.nevents,
               "topo": self.topo, "timestamp": time.asctime(),
               "xvariable": self.xvariable, "yvariable": self.yvariable,
               "model": self.M.dict() }
         return d
+
+    def getMeta ( self ):
+        from smodels_utils.helper.various import getCommandLine
+        meta = { "cmdline": getCommandLine() }
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        now = datetime.now(ZoneInfo("Europe/Vienna"))
+        meta["created"]=now.isoformat()
+        import socket
+        hostname = socket.gethostname()
+        meta["hostname"]=socket.gethostname()
+        meta["dt[h]"]=(time.time()-t0)/60./60. # time it took in hours
+        return meta
 
     def createPickleBackup ( self ):
         if os.path.exists ( self.picklefile ) and \
@@ -187,8 +199,7 @@ class nllThread ( LoggerBase ):
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
         masspoints = self.getAllMassPoints()
         Dict["masspoints"] = masspoints
-        from smodels_utils.helper.various import getCommandLine
-        Dict["cmdline"] = getCommandLine()
+        Dict["meta"] = self.getMeta()
         self.writePickleFile ( Dict )
         self.unlockPickleFile()
 
@@ -273,7 +284,7 @@ class nllThread ( LoggerBase ):
             txname = ','.join ( set( [ i.txName for i in tp.txnames ] ) )
             dId = tp.dataId()
             if dId == "(combined)":
-                dId = "(comb)"
+                dId = "combined"
             name = f"{tp.analysisId()}:{dId}:{txname}"
             limits[ name ] = tp.getUpperLimitOnMu (
                     evaluationType = evaluationType )
@@ -392,7 +403,7 @@ def runThread ( threadid: int, obj, rxvariable, ryvariable,
         return_dict : Union[Dict,None] = None ):
     """ the method needed for parallelization to work """
 
-    thread = nllThread ( f"nll{threadid}", obj )
+    thread = NLLThread ( f"nll{threadid}", obj )
     newpoints = thread.run ( rxvariable, ryvariable )
     if return_dict != None:
         return_dict[threadid]=newpoints
@@ -400,7 +411,7 @@ def runThread ( threadid: int, obj, rxvariable, ryvariable,
     # thread.updatePickleFile()
     return newpoints
 
-class nllScanner ( LoggerBase ):
+class NLLScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, xvariable, yvariable, nproc,
                    environ : RunEnviron, skip_production : bool = False,
@@ -413,7 +424,7 @@ class nllScanner ( LoggerBase ):
         :param dry_run: dont actually perform the actions
         :param output: prefix for output file [nll]
         """
-        super ( nllScanner, self ).__init__ ( "nll" )
+        super ( NLLScanner, self ).__init__ ( "nll" )
         self.dry_run = dry_run
         self.output = output
         self.dict_file = dict_file
@@ -456,7 +467,7 @@ class nllScanner ( LoggerBase ):
             sys.exit()
         np.random.shuffle ( rxvariable )
         mask = []
-        thread = nllThread ( "nll0", self )
+        thread = NLLThread ( "nll0", self )
         for rxv in rxvariable:
             hasMissing = False
             for rxy in ryvariable:
@@ -534,7 +545,7 @@ class nllScanner ( LoggerBase ):
         self.predictor.filterForTopos ( topo )
         self.M.walkerid = 2000
 
-        thread0 = nllThread ( "nll0", self )
+        thread0 = NLLThread ( "nll0", self )
         thread0.ntotal = len(rxvariable)*len(ryvariable)+1
         thread0.writeRunMeta()
         if not thread0.hasResultsForPoint ( self.mxvariable, self.myvariable ):
@@ -702,7 +713,7 @@ def main ():
         xvariables = findPids( environ.rundir )
     for xvariable in xvariables:
         yvariable = namer.pid ( args.yvariable )
-        scanner = nllScanner( protomodel, xvariable, yvariable, nproc,
+        scanner = NLLScanner( protomodel, xvariable, yvariable, nproc,
                 environ = environ, skip_production = args.skip_production,
                 dry_run = args.dry_run, dict_file = args.dict_file,
                 output = args.output )
