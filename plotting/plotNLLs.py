@@ -5,6 +5,7 @@
 import os
 from base.loggerbase import LoggerBase
 import matplotlib.pyplot as plt
+from scipy.interpolate import griddata
 import numpy as np
 
 class NLLPlotter ( LoggerBase ):
@@ -77,20 +78,39 @@ class NLLPlotter ( LoggerBase ):
 
         :returns: list of dictionaries, "mx", "my", "nll" as keys
         """
-        ret, nlls, llhds = [], [], []
+        ret = [] 
+        # nlls, llhds = [], []
         for masspoint in self.data["masspoints"]:
             mx, my = masspoint["mx"], masspoint["my"]
             anlls = masspoint["nll"]
             for ssm, anas in anlls.items():
                 if abs(ssm-1.)<1e-5 and anaid in anas:
                     nll = anas[anaid]
-                    nlls.append ( nll )
+                    # nlls.append ( nll )
                     llhd = float ( np.exp ( - nll ) )
-                    llhds.append ( llhd )
+                    # llhds.append ( llhd )
                     # nll = masspoint["nll"][1.0][anaid]
                     tmp = { "mx": mx, "my": my, "nll": nll, "llhd": llhd }
                     ret.append ( tmp )
                     break
+        return ret
+
+    def normalize ( self, points : list[dict], how : str = "max_llhd" ) -> list[dict]:
+        """ normalize the likelihoods given in points, in various ways
+        :param how: one of: max_llhd
+
+        :returns: normalized points
+        """
+        ret = []
+        nlls = [ x["nll"] for x in points ]
+        llhds = [ x["llhd"] for x in points ]
+        min_nll = min ( nlls )
+        max_llhd = max ( llhds )
+        for p in points:
+            tmp = { "mx": p["mx"], "my": p["my"] }
+            tmp["dnll"]=p["nll"]-min_nll
+            tmp["llhd_rel"]=p["llhd"]/max_llhd
+            ret.append ( tmp )
         return ret
 
     def plotLikelihoodMass ( self, points : list[dict], options : dict ):
@@ -98,14 +118,53 @@ class NLLPlotter ( LoggerBase ):
         defaults = { "text": False }
         opts = defaults
         opts.update ( options )
-        # Extract arrays
-        x = np.array([d["mx"] for d in points])
-        y = np.array([d["my"] for d in points])
-        z = np.array([d["nll"] for d in points], dtype=float)
-        plt.scatter ( x, y, s=1 )
+        points = self.normalize ( points, "max_llhd" )
+        # ---- input data ----
+        # example: data = [{"mx": ..., "my": ..., "llhd": ...}, ...]
+        xs = np.array([d["mx"] for d in points])
+        ys = np.array([d["my"] for d in points])
+        ll = np.array([d["llhd_rel"] for d in points])
+
+        # ---- make a regular grid ----
+        nx, ny = 200, 200
+        xi = np.linspace(xs.min(), xs.max(), nx)
+        yi = np.linspace(ys.min(), ys.max(), ny)
+        X, Y = np.meshgrid(xi, yi)
+
+        Z = griddata((xs, ys), ll, (X, Y), method="linear")
+        Z = np.nan_to_num(Z, nan=0.0)
+
+        # ---- convert likelihood to probability ----
+        Z = np.maximum(Z, 0)
+        Z /= Z.sum()
+
+        # ---- find contour levels for given probability mass ----
+        def contour_level_for_mass(Z, mass):
+            z_sorted = np.sort(Z.ravel())[::-1]
+            cumsum = np.cumsum(z_sorted)
+            idx = np.searchsorted(cumsum, mass)
+            return z_sorted[idx]
+
+        levels = [ .38, .85 ]
+        level_1s = contour_level_for_mass(Z, levels[0] )
+        level_2s = contour_level_for_mass(Z, levels[1] )
+
+        # ---- plot ----
+        plt.figure(figsize=(6, 5))
+        cs = plt.contour(X, Y, Z, levels=[level_2s, level_1s],
+                    colors=["red", "darkred"], linewidths=2)
+        # Label contours
+        fmt = {
+            level_1s: f"{int(levels[0]*100):d}%",
+            level_2s: f"{int(levels[1]*100):d}%"
+        }
+        plt.clabel(cs, cs.levels, inline=True, fmt=fmt, fontsize=10)
+        # plt.scatter(xs, ys, s=5, c="k", alpha=0.3)
+
+        plt.scatter ( xs, ys, s=1 )
         if opts["text"]:
             for d in points:
-                plt.text ( d["mx"], d["my"], f"{d['llhd']:.1g}" )
+                plt.text ( d["mx"], d["my"], f"{d['llhd_rel']:.1g}" )
 
     def plot ( self ):
         nll_points = self.getNLLList( anaid = "CMS-SUS-20-004:(comb):TChiHH" )
@@ -135,7 +194,6 @@ class NLLPlotter ( LoggerBase ):
         :param points: a list of dictionaries, "mx", "my", "passes"
         """
         import numpy as np
-        from scipy.interpolate import griddata
         defaults = { "c_area": "gray", "c_line": "dimgray",
             "scatter": False, "xlabel": "mx", "ylabel": "my", "hatches": "////",
             "label": "excluded" }
