@@ -93,8 +93,31 @@ class NLLPlotter ( LoggerBase ):
         Zi = griddata((x, y), z, (Xi, Yi), method="linear")
 
         # Draw contour where passes == True
-        plt.contour(Xi, Yi, Zi, levels=[0.5])
-        plt.scatter(x, y, c=z, cmap="coolwarm", s=30)
+        plt.contourf(Xi, Yi, Zi, levels=[-0.1,0.5], colors=["lightgrey"],
+                     alpha=0.8,hatches = ['////'] )
+        plt.contour(Xi, Yi, Zi, levels=[0.5], colors=["dimgray"] )
+        # plt.scatter(x, y, c=z, cmap="coolwarm", s=30)
+        # passes == False → red
+        mask_true = z == 1
+        mask_false = z == 0
+        plt.scatter(
+            x[mask_false],
+            y[mask_false],
+            color="red",
+            edgecolor="black",
+            s=40,
+            label="passes = False"
+        )
+
+        # passes == True → green
+        plt.scatter(
+            x[mask_true],
+            y[mask_true],
+            color="green",
+            edgecolor="black",
+            s=40,
+            label="passes = True"
+        )
         plt.xlabel("mx")
         plt.ylabel("my")
         plt.title("Contour of passes == True")
@@ -108,8 +131,11 @@ class NLLPlotter ( LoggerBase ):
             ifile = Path ( self.args["inputfile"] ).stem
             figname = figname.replace("@@I@@",ifile)
         self.outputfile = figname
+        from smodels_utils.helper.various import pngMetaInfo
+        metadata = pngMetaInfo()
+        metadata["Prod Commandline"] = self.data["meta"]["cmdline"]
         # self.pprint ( f"saving to {figname}" )
-        plt.savefig ( figname )
+        plt.savefig ( figname, metadata = metadata )
 
     def show ( self ):
         from smodels_utils.plotting.mpkitty import timg
