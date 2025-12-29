@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from smodels_utils.helper.terminalcolors import *
 
 def reverse_readline(filename, buf_size=1024):
     """Generator to read a file line by line in reverse order."""
@@ -24,7 +25,7 @@ def showWalkerid ( walkerid : int ) -> tuple:
     filename = f"logs/walker_{walkerid}.log"
     nfin, ntot = 0, 0
     for i,line in enumerate( reverse_readline( filename ) ):
-        if i > 1000:
+        if i > 5000:
             break
         p1 = line.find ( "Step ")
         p2 = line.find ( "finished" )
@@ -33,7 +34,10 @@ def showWalkerid ( walkerid : int ) -> tuple:
             nfin_i, ntot_i = tuple(map(int,token.split("/")))
             nfin +=  nfin_i
             ntot += ntot_i
-            print ( f"#{walkerid:2d}: {nfin_i:5d}/{ntot_i:5d} finished" )
+            col,endcol="",RESET
+            if nfin_i == ntot_i:
+                col = GREEN
+            print ( f"#{walkerid:2d}: {col}{nfin_i:5d}{endcol}/{ntot_i:5d} finished" )
             break
     return nfin, ntot
 
