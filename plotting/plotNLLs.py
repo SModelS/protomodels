@@ -71,16 +71,21 @@ class NLLPlotter ( LoggerBase ):
             ret.append ( tmp )
         return ret
 
-    def getNLLList ( self, anaid : str = "combined" ) -> list:
+    def getNLLList ( self, anaid : str = "combined", 
+                     removeDisallowed : bool = True ) -> list:
         """
         get the list of likelihoods for anaid per point
         :param anaid: e.g. ATLAS-SUSY-2018-06:EM6, or combined
+        :param removeDisallowed: remove points not allowed by critic
 
         :returns: list of dictionaries, "mx", "my", "nll" as keys
         """
         ret = [] 
         # nlls, llhds = [], []
         for masspoint in self.data["masspoints"]:
+            if removeDisallowed and masspoint["critic"]["ul"]["passes"]==False\
+                    or masspoint["critic"]["llhd"]["passes"]==False:
+                continue
             mx, my = masspoint["mx"], masspoint["my"]
             anlls = masspoint["nll"]
             for ssm, anas in anlls.items():
@@ -145,12 +150,13 @@ class NLLPlotter ( LoggerBase ):
             idx = np.searchsorted(cumsum, mass)
             return z_sorted[idx]
 
-        levels = [ .38, .85 ]
+        levels = [ float ( 1-np.exp(-.5) ), 
+                   float ( 1-np.exp(-2) ) ]
         level_1s = contour_level_for_mass(Z, levels[0] )
         level_2s = contour_level_for_mass(Z, levels[1] )
 
         # ---- plot ----
-        plt.figure(figsize=(6, 5))
+        # plt.figure(figsize=(6, 5))
         cs = plt.contour(X, Y, Z, levels=[level_2s, level_1s],
                     colors=["red", "darkred"], linewidths=2)
         # Label contours
@@ -167,25 +173,30 @@ class NLLPlotter ( LoggerBase ):
                 plt.text ( d["mx"], d["my"], f"{d['llhd_rel']:.1g}" )
 
     def plot ( self ):
-        nll_points = self.getNLLList( anaid = "CMS-SUS-20-004:(comb):TChiHH" )
-        options = { "text": True }
-        self.plotLikelihoodMass ( nll_points, options )
         """
         critic_points = self.getCriticList( critic_type = "ul" )
         options = { "label": "excluded by ul" }
         self.plotBooleanMap ( critic_points, options )
+        """
         critic_points = self.getCriticList( critic_type = "llhd" )
         options = { "c_area": "gray", "c_line": "dimgray", "hatches": "\\\\",
                     "label": "excluded by llhd"  }
         self.plotBooleanMap ( critic_points, options )
+
+        rmCritic = True
+        nll_points = self.getNLLList( anaid = "CMS-SUS-20-004:(comb):TChiHH",
+               removeDisallowed = rmCritic )
+        options = { "text": True }
+        self.plotLikelihoodMass ( nll_points, options )
 
         # Existing scatter handles (from plt.scatter calls)
         # handles, labels = plt.gca().get_legend_handles_labels()
 
         # Add the area patch to the legend
         plt.legend( handles=self.handles, loc="best")
-        """
-        plt.title ( "llhd based critic" )
+        plt.xlabel( "mx" )
+        plt.ylabel( "my" )
+        plt.title ( "probability mass" )
         self.savefig()
         self.pprint ( f"plotting {self.args['inputfile']} -> {self.outputfile}" )
 
@@ -228,8 +239,6 @@ class NLLPlotter ( LoggerBase ):
             # passes == True → green
             plt.scatter( x[mask_true], y[mask_true],
                 color="green", edgecolor="black", s=40 )
-        plt.xlabel( opts["xlabel"] )
-        plt.ylabel( opts["ylabel"] )
         
         if opts["label"] not in [ None, "" ]:
             import matplotlib.patches as mpatches
