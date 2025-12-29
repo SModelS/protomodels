@@ -12,6 +12,7 @@ class NLLPlotter ( LoggerBase ):
     def __init__ ( self, args : dict ):
         super ( NLLPlotter, self ).__init__ ( "nll" )
         self.args = args
+        self.handles = []
         if self.args["inputfile"]==None:
             self.findInputFile()
         self.readInputFile()
@@ -68,16 +69,34 @@ class NLLPlotter ( LoggerBase ):
         return ret
 
     def plot ( self ):
-        critic_points = self.getCriticList()
-        self.plotBooleanMap ( critic_points )
+        critic_points = self.getCriticList( critic_type = "ul" )
+        options = { "label": "excluded by ul" }
+        self.plotBooleanMap ( critic_points, options )
+        critic_points = self.getCriticList( critic_type = "llhd" )
+        options = { "c_area": "gray", "c_line": "dimgray", "hatches": "\\\\",
+                    "label": "excluded by llhd"  }
+        self.plotBooleanMap ( critic_points, options )
+
+        # Existing scatter handles (from plt.scatter calls)
+        # handles, labels = plt.gca().get_legend_handles_labels()
+
+        # Add the area patch to the legend
+        plt.legend( handles=self.handles, loc="best")
+        plt.title ( "llhd based critic" )
+        self.savefig()
         self.pprint ( f"plotting {self.args['inputfile']} -> {self.outputfile}" )
 
-    def plotBooleanMap ( self, points : list[dict] ):
+    def plotBooleanMap ( self, points : list[dict], options : dict  ):
         """ given a list of dicts, draw the contour
         :param points: a list of dictionaries, "mx", "my", "passes"
         """
         import numpy as np
         from scipy.interpolate import griddata
+        defaults = { "c_area": "gray", "c_line": "dimgray",
+            "scatter": False, "xlabel": "mx", "ylabel": "my", "hatches": "////",
+            "label": "excluded" }
+        opts = defaults
+        opts.update ( options ) 
 
         # Extract arrays
         x = np.array([d["mx"] for d in points])
@@ -93,35 +112,33 @@ class NLLPlotter ( LoggerBase ):
         Zi = griddata((x, y), z, (Xi, Yi), method="linear")
 
         # Draw contour where passes == True
-        plt.contourf(Xi, Yi, Zi, levels=[-0.1,0.5], colors=["lightgrey"],
-                     alpha=0.8,hatches = ['////'] )
-        plt.contour(Xi, Yi, Zi, levels=[0.5], colors=["dimgray"] )
+        plt.contourf(Xi, Yi, Zi, levels=[-0.1,0.5], colors=[ opts["c_area"] ],
+                     alpha=0.8,hatches = [ opts["hatches"] ] )
+        plt.contour(Xi, Yi, Zi, levels=[0.5], colors=[ opts["c_line"] ] )
         # plt.scatter(x, y, c=z, cmap="coolwarm", s=30)
         # passes == False → red
-        mask_true = z == 1
-        mask_false = z == 0
-        plt.scatter(
-            x[mask_false],
-            y[mask_false],
-            color="red",
-            edgecolor="black",
-            s=40,
-            label="passes = False"
-        )
+        if opts["scatter"]:
+            mask_true = z == 1
+            mask_false = z == 0
+            plt.scatter( x[mask_false], y[mask_false],
+                color="red", edgecolor="black", s=40 )
 
-        # passes == True → green
-        plt.scatter(
-            x[mask_true],
-            y[mask_true],
-            color="green",
-            edgecolor="black",
-            s=40,
-            label="passes = True"
-        )
-        plt.xlabel("mx")
-        plt.ylabel("my")
-        plt.title("Contour of passes == True")
-        self.savefig()
+            # passes == True → green
+            plt.scatter( x[mask_true], y[mask_true],
+                color="green", edgecolor="black", s=40 )
+        plt.xlabel( opts["xlabel"] )
+        plt.ylabel( opts["ylabel"] )
+        
+        if opts["label"] not in [ None, "" ]:
+            import matplotlib.patches as mpatches
+            # Legend entry for hatched grey area (passes == False region)
+            false_area_patch = mpatches.Patch(
+                facecolor= opts[ "c_area" ],
+                edgecolor= opts [ "c_line" ],
+                hatch= opts[ "hatches" ],
+                label= opts[ "label" ]
+            )
+            self.handles.append ( false_area_patch )
 
     def savefig ( self ):
         """ save the figure to file """
