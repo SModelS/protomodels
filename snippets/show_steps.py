@@ -23,7 +23,9 @@ def reverse_readline(filename, buf_size=1024):
 def showWalkerid ( walkerid : int ) -> tuple:
     filename = f"logs/walker_{walkerid}.log"
     nfin, ntot = 0, 0
-    for line in reverse_readline( filename ):
+    for i,line in enumerate( reverse_readline( filename ) ):
+        if i > 1000:
+            break
         p1 = line.find ( "Step ")
         p2 = line.find ( "finished" )
         if p1>-1 and p2>-1:
