@@ -5,6 +5,7 @@
 import os
 from base.loggerbase import LoggerBase
 import matplotlib.pyplot as plt
+import numpy as np
 
 class NLLPlotter ( LoggerBase ):
     """ our second generation 2d nll plotter """
@@ -12,6 +13,7 @@ class NLLPlotter ( LoggerBase ):
     def __init__ ( self, args : dict ):
         super ( NLLPlotter, self ).__init__ ( "nll" )
         self.args = args
+        self.outputfile = None
         self.handles = []
         if self.args["inputfile"]==None:
             self.findInputFile()
@@ -68,7 +70,48 @@ class NLLPlotter ( LoggerBase ):
             ret.append ( tmp )
         return ret
 
+    def getNLLList ( self, anaid : str = "combined" ) -> list:
+        """
+        get the list of likelihoods for anaid per point
+        :param anaid: e.g. ATLAS-SUSY-2018-06:EM6, or combined
+
+        :returns: list of dictionaries, "mx", "my", "nll" as keys
+        """
+        ret, nlls, llhds = [], [], []
+        for masspoint in self.data["masspoints"]:
+            mx, my = masspoint["mx"], masspoint["my"]
+            anlls = masspoint["nll"]
+            for ssm, anas in anlls.items():
+                if abs(ssm-1.)<1e-5 and anaid in anas:
+                    nll = anas[anaid]
+                    nlls.append ( nll )
+                    llhd = float ( np.exp ( - nll ) )
+                    llhds.append ( llhd )
+                    # nll = masspoint["nll"][1.0][anaid]
+                    tmp = { "mx": mx, "my": my, "nll": nll, "llhd": llhd }
+                    ret.append ( tmp )
+                    break
+        return ret
+
+    def plotLikelihoodMass ( self, points : list[dict], options : dict ):
+        """ plot the likelihood mass given in nll_points """
+        defaults = { "text": False }
+        opts = defaults
+        opts.update ( options )
+        # Extract arrays
+        x = np.array([d["mx"] for d in points])
+        y = np.array([d["my"] for d in points])
+        z = np.array([d["nll"] for d in points], dtype=float)
+        plt.scatter ( x, y, s=1 )
+        if opts["text"]:
+            for d in points:
+                plt.text ( d["mx"], d["my"], f"{d['llhd']:.1g}" )
+
     def plot ( self ):
+        nll_points = self.getNLLList( anaid = "CMS-SUS-20-004:(comb):TChiHH" )
+        options = { "text": True }
+        self.plotLikelihoodMass ( nll_points, options )
+        """
         critic_points = self.getCriticList( critic_type = "ul" )
         options = { "label": "excluded by ul" }
         self.plotBooleanMap ( critic_points, options )
@@ -82,6 +125,7 @@ class NLLPlotter ( LoggerBase ):
 
         # Add the area patch to the legend
         plt.legend( handles=self.handles, loc="best")
+        """
         plt.title ( "llhd based critic" )
         self.savefig()
         self.pprint ( f"plotting {self.args['inputfile']} -> {self.outputfile}" )
@@ -155,6 +199,8 @@ class NLLPlotter ( LoggerBase ):
         plt.savefig ( figname, metadata = metadata )
 
     def show ( self ):
+        if self.outputfile == None:
+            return
         from smodels_utils.plotting.mpkitty import timg
         timg ( self.outputfile )
 
