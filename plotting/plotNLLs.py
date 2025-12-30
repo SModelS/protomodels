@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
 import numpy as np
 from ptools.sparticleNames import SParticleNames
+from typing import Union
 
 namer = SParticleNames ( False )
 
@@ -30,7 +31,7 @@ class NLLPlotter ( LoggerBase ):
 
     def findInputFile ( self ):
         """ no -I argument was given, so find an input file.
-        currently we simply return the first in the list of 
+        currently we simply return the first in the list of
         all matching files """
         import glob
         files = glob.glob ( "nll*.dict" )
@@ -79,33 +80,46 @@ class NLLPlotter ( LoggerBase ):
             ret.append ( tmp )
         return ret
 
-    def getNLLList ( self, anaid : str = "combined", 
+    def findAnaId ( self, anaid : str, anas : list[dict] ) -> Union[bool,str]:
+        """ see if you can find anaid in anas
+        :param anaid: e.g. CMS-EXO-20-004:(comb):TChiISR, CMS-EXO-20-004:(comb)
+        :param anas: list of anaids with txnames
+        :returns: the anaid that it identified, false if none found
+        """
+        if anaid in anas:
+            return anaid
+        for contender, nll in anas.items():
+            if anaid in contender:
+                return contender
+        return False
+
+    def getNLLList ( self, anaid : str = "joint",
                      removeDisallowed : bool = True ) -> list:
         """
         get the list of likelihoods for anaid per point
-        :param anaid: e.g. ATLAS-SUSY-2018-06:EM6, or combined
+        :param anaid: e.g. CMS-EXO-20-004:(comb):TChiISR, CMS-EXO-20-004:(comb), or joint
         :param removeDisallowed: remove points not allowed by critic
 
         :returns: list of dictionaries, "mx", "my", "nll" as keys
         """
-        ret = [] 
-        # nlls, llhds = [], []
+        ret = []
         for masspoint in self.data["masspoints"]:
             if removeDisallowed and masspoint["critic"]["ul"]["passes"]==False\
                     or masspoint["critic"]["llhd"]["passes"]==False:
-                continue
+                tmp = { "fullid": myId, "mx": mx, "my": my, "nll": 9999., "llhd": 0. }
+                ret.append ( tmp )
+                break
             mx, my = masspoint["mx"], masspoint["my"]
             anlls = masspoint["nll"]
             for ssm, anas in anlls.items():
-                if abs(ssm-1.)<1e-5 and anaid in anas:
-                    nll = anas[anaid]
-                    # nlls.append ( nll )
-                    llhd = float ( np.exp ( - nll ) )
-                    # llhds.append ( llhd )
-                    # nll = masspoint["nll"][1.0][anaid]
-                    tmp = { "mx": mx, "my": my, "nll": nll, "llhd": llhd }
-                    ret.append ( tmp )
-                    break
+                if abs(ssm-1.)<1e-5:
+                    myId = self.findAnaId ( anaid, anas )
+                    if myId != False:
+                        nll = anas[myId]
+                        llhd = float ( np.exp ( - nll ) )
+                        tmp = { "fullid": myId, "mx": mx, "my": my, "nll": nll, "llhd": llhd }
+                        ret.append ( tmp )
+                        break
         return ret
 
     def normalize ( self, points : list[dict], how : str = "max_llhd" ) -> list[dict]:
@@ -128,7 +142,7 @@ class NLLPlotter ( LoggerBase ):
 
     def plotLikelihoodMass ( self, points : list[dict], options : dict ):
         """ plot the likelihood mass given in nll_points """
-        defaults = { "text": False, "colors": [ "red", "darkred" ],
+        defaults = { "text": False, "colors": ( "red", "darkred" ),
                      "label": "probability mass" }
         opts = defaults
         opts.update ( options )
@@ -160,14 +174,16 @@ class NLLPlotter ( LoggerBase ):
             return z_sorted[idx]
 
         ## 1 and 2 sigma
-        levels = [ float ( 1-np.exp(-.5) ), 
+        levels = [ float ( 1-np.exp(-.5) ),
                    float ( 1-np.exp(-2) ) ]
         level_1s = contour_level_for_mass(Z, levels[0] )
         level_2s = contour_level_for_mass(Z, levels[1] )
 
+        colors = opts["colors"]
+        colors = ( "white", colors[1] )
         plt.contourf( X, Y, Z,
             levels=[level_2s, level_1s,Z.max()],
-            colors=opts["colors"], alpha=0.15 )
+            colors=colors, alpha=0.15 )
         # ---- plot ----
         # plt.figure(figsize=(6, 5))
         cs = plt.contour(X, Y, Z, levels=[level_2s, level_1s],
@@ -187,10 +203,26 @@ class NLLPlotter ( LoggerBase ):
         for legend_element in legend_elements:
             self.handles.append ( legend_element )
 
-        plt.scatter ( xs, ys, s=1 )
         if opts["text"]:
+            plt.scatter ( xs, ys, s=1 )
+            llhd_rel_min = .01
             for d in points:
-                plt.text ( d["mx"], d["my"], f"{d['llhd_rel']:.1g}" )
+                if d["llhd_rel"] > llhd_rel_min:
+                    plt.text ( d["mx"], d["my"], f"{d['llhd_rel']:.1g}", fontsize=8 )
+
+    def getAnaIds ( self, comb_only : bool = False ) -> set:
+        """ get a set of all analysis ids that i can procure that have entries for ssm==1.0
+        :param comb_only: if true, then return only (comb) ana ids
+        """
+        ret = set()
+        for masspoint in self.data["masspoints"]:
+            anlls = masspoint["nll"]
+            for ssm, anas in anlls.items():
+                for anaid,nll in anas.items():
+                    if comb_only and not "(comb)" in anaid:
+                        continue
+                    ret.add ( anaid )
+        return ret
 
     def plot ( self ):
         """
@@ -200,21 +232,28 @@ class NLLPlotter ( LoggerBase ):
         """
         critic_points = self.getCriticList( critic_type = "both" )
         options = { "c_area": "gray", "c_line": "dimgray", "hatches": "\\\\",
-                    "label": "excluded by critic"  }
+                    "label": "excluded by critic", "scatter": True  }
         self.plotBooleanMap ( critic_points, options )
 
+        colors = [ ( "red", "darkred" ), ( "green", "darkgreen" ), ( "blue", "darkblue" ) ]
         rmCritic = True
-        anaid = "CMS-SUS-20-004:(comb):TChiHH"
+        # anaid = "CMS-SUS-20-004:(comb):TChiHH"
+        anaid = "CMS-SUS-20-004:(comb)"
+        # anaid = "CMS-EXO-20-004:(comb):TChiISR"
+        # anaid = "CMS-EXO-20-004:(comb):TChiISR,TChiZISRqq"
+        # anaid = "CMS-EXO-20-004:(comb)"
         nll_points = self.getNLLList( anaid = anaid,
                removeDisallowed = rmCritic )
-        options = { "text": True, "label": anaid }
+        options = { "text": False, "label": anaid }
         self.plotLikelihoodMass ( nll_points, options )
 
         # Existing scatter handles (from plt.scatter calls)
         # handles, labels = plt.gca().get_legend_handles_labels()
 
         # Add the area patch to the legend
-        plt.legend( handles=self.handles, loc="best")
+        loc = "best"
+        loc = "upper left"
+        plt.legend( handles=self.handles, loc=loc )
         plt.xlabel( rf"m$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]" )
         plt.ylabel( rf"m$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]" )
         plt.title ( "probability mass" )
@@ -230,7 +269,7 @@ class NLLPlotter ( LoggerBase ):
             "scatter": False, "xlabel": "mx", "ylabel": "my", "hatches": "////",
             "label": "excluded" }
         opts = defaults
-        opts.update ( options ) 
+        opts.update ( options )
 
         # Extract arrays
         x = np.array([d["mx"] for d in points])
@@ -255,12 +294,12 @@ class NLLPlotter ( LoggerBase ):
             mask_true = z == 1
             mask_false = z == 0
             plt.scatter( x[mask_false], y[mask_false],
-                color="red", edgecolor="black", s=40 )
+                color="red", edgecolor="black", s=10 )
 
             # passes == True → green
             plt.scatter( x[mask_true], y[mask_true],
-                color="green", edgecolor="black", s=40 )
-        
+                color="green", edgecolor="black", s=10 )
+
         if opts["label"] not in [ None, "" ]:
             import matplotlib.patches as mpatches
             # Legend entry for hatched grey area (passes == False region)

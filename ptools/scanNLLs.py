@@ -20,7 +20,6 @@ from smodels.matching.theoryPrediction import TheoryPrediction
 from tester.combiner import Combiner
 from tester.predictor import Predictor
 from tester.critic import Critic
-from plotting import plotNLLs
 from typing import Dict, Tuple, Union, List
 from ptools.sparticleNames import SParticleNames
 from ptools import moreHelpers, helpers
@@ -745,6 +744,7 @@ def main ():
             drawtimestamp = True
             compress = False
             upload = args.uploadTo
+            from plotting import plotNLLs
             plot = plotNLLs.NLLPlot ( xvariable, yvariable, verbose, copy,
                        max_anas, interactive, drawtimestamp, compress, environ,
                        upload )
