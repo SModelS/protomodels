@@ -176,7 +176,10 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     if sort_bam:
         results['order'] = bam.sort_bam_by_weight()
 
-    whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
+    try:
+        whdfs = pf.WHDFS(bam, top=1, ignore_subset=True)
+    except TypeError as e:
+        whdfs = pf.WHDFS(bam, top=1, allow_subset=False)
     whdfs.find_paths(verbose=False, runs=25)
 
     results['path'] = whdfs.best.path
