@@ -7,6 +7,9 @@ from base.loggerbase import LoggerBase
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
 import numpy as np
+from ptools.sparticleNames import SParticleNames
+
+namer = SParticleNames ( False )
 
 class NLLPlotter ( LoggerBase ):
     """ our second generation 2d nll plotter """
@@ -162,10 +165,13 @@ class NLLPlotter ( LoggerBase ):
         level_1s = contour_level_for_mass(Z, levels[0] )
         level_2s = contour_level_for_mass(Z, levels[1] )
 
+        plt.contourf( X, Y, Z,
+            levels=[level_2s, level_1s,Z.max()],
+            colors=opts["colors"], alpha=0.15 )
         # ---- plot ----
         # plt.figure(figsize=(6, 5))
         cs = plt.contour(X, Y, Z, levels=[level_2s, level_1s],
-                    colors=opts["colors"], linewidths=2, label=opts["label"])
+                    colors=opts["colors"], linewidths=2 )
         # Label contours
         fmt = {
             level_1s: f"{int(levels[0]*100):d}%",
@@ -198,9 +204,10 @@ class NLLPlotter ( LoggerBase ):
         self.plotBooleanMap ( critic_points, options )
 
         rmCritic = True
-        nll_points = self.getNLLList( anaid = "CMS-SUS-20-004:(comb):TChiHH",
+        anaid = "CMS-SUS-20-004:(comb):TChiHH"
+        nll_points = self.getNLLList( anaid = anaid,
                removeDisallowed = rmCritic )
-        options = { "text": True }
+        options = { "text": True, "label": anaid }
         self.plotLikelihoodMass ( nll_points, options )
 
         # Existing scatter handles (from plt.scatter calls)
@@ -208,8 +215,8 @@ class NLLPlotter ( LoggerBase ):
 
         # Add the area patch to the legend
         plt.legend( handles=self.handles, loc="best")
-        plt.xlabel( "mx" )
-        plt.ylabel( "my" )
+        plt.xlabel( rf"m$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]" )
+        plt.ylabel( rf"m$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]" )
         plt.title ( "probability mass" )
         self.savefig()
         self.pprint ( f"plotting {self.args['inputfile']} -> {self.outputfile}" )
