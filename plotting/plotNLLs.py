@@ -150,6 +150,7 @@ class NLLPlotter ( LoggerBase ):
             idx = np.searchsorted(cumsum, mass)
             return z_sorted[idx]
 
+        ## 1 and 2 sigma
         levels = [ float ( 1-np.exp(-.5) ), 
                    float ( 1-np.exp(-2) ) ]
         level_1s = contour_level_for_mass(Z, levels[0] )
