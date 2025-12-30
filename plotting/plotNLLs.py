@@ -54,19 +54,24 @@ class NLLPlotter ( LoggerBase ):
         with open ( ifile, "rb" ) as f:
             self.data = pickle.load ( f )
 
-    def getCriticList ( self, critic_type : str = "ul" ) -> list:
+    def getCriticList ( self, critic_type : str = "both" ) -> list:
         """
         get the list of critic outputs per point
-        :param critic_type: one of: ul, llhd
+        :param critic_type: one of: ul, llhd, both
 
         :returns: list of dictionaries, "mx", "my", "passes" as keys
         """
-        assert critic_type in [ "ul", "llhd" ], \
-             f"critic type should be one of: ul, llhd"
+        assert critic_type in [ "ul", "llhd", "both" ], \
+             f"critic type should be one of: ul, llhd, both"
         ret = []
         for masspoint in self.data["masspoints"]:
             mx, my = masspoint["mx"], masspoint["my"]
-            passes = masspoint["critic"][critic_type]["passes"]
+            if critic_type == "both":
+                p_ul = masspoint["critic"]["ul"]["passes"]
+                p_llhd = masspoint["critic"]["llhd"]["passes"]
+                passes = p_ul and p_llhd
+            else:
+                passes = masspoint["critic"][critic_type]["passes"]
             tmp = { "mx": mx, "my": my, "passes": passes }
             ret.append ( tmp )
         return ret
@@ -120,7 +125,8 @@ class NLLPlotter ( LoggerBase ):
 
     def plotLikelihoodMass ( self, points : list[dict], options : dict ):
         """ plot the likelihood mass given in nll_points """
-        defaults = { "text": False }
+        defaults = { "text": False, "colors": [ "red", "darkred" ],
+                     "label": "probability mass" }
         opts = defaults
         opts.update ( options )
         points = self.normalize ( points, "max_llhd" )
@@ -159,7 +165,7 @@ class NLLPlotter ( LoggerBase ):
         # ---- plot ----
         # plt.figure(figsize=(6, 5))
         cs = plt.contour(X, Y, Z, levels=[level_2s, level_1s],
-                    colors=["red", "darkred"], linewidths=2)
+                    colors=opts["colors"], linewidths=2, label=opts["label"])
         # Label contours
         fmt = {
             level_1s: f"{int(levels[0]*100):d}%",
@@ -167,6 +173,13 @@ class NLLPlotter ( LoggerBase ):
         }
         plt.clabel(cs, cs.levels, inline=True, fmt=fmt, fontsize=10)
         # plt.scatter(xs, ys, s=5, c="k", alpha=0.3)
+        from matplotlib.lines import Line2D
+        legend_elements = [
+            Line2D([0], [0], color=opts["colors"][1], lw=2, label=opts["label"] ),
+#            Line2D([0], [0], color=opts["colors"][0], lw=2, label=opts["label"] ),
+        ]
+        for legend_element in legend_elements:
+            self.handles.append ( legend_element )
 
         plt.scatter ( xs, ys, s=1 )
         if opts["text"]:
@@ -179,9 +192,9 @@ class NLLPlotter ( LoggerBase ):
         options = { "label": "excluded by ul" }
         self.plotBooleanMap ( critic_points, options )
         """
-        critic_points = self.getCriticList( critic_type = "llhd" )
+        critic_points = self.getCriticList( critic_type = "both" )
         options = { "c_area": "gray", "c_line": "dimgray", "hatches": "\\\\",
-                    "label": "excluded by llhd"  }
+                    "label": "excluded by critic"  }
         self.plotBooleanMap ( critic_points, options )
 
         rmCritic = True

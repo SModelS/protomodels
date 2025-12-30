@@ -254,7 +254,9 @@ class NLLThread ( LoggerBase ):
         self.M.delCurrentSLHA()
         critics={ "llhd": None, "ul": self.M.ul_critic }
         if hasattr ( self.M, "llhd_critic" ):
-            self.M.llhd_critic["passes"] = ( self.M.llhd_critic["robs"]<1.0 )
+            r, rexp = self.M.llhd_critic["robs"], self.M.llhd_critic["rexp"]
+            passes = (r < 1.2) or (r < 1.5 and r/rexp < .5 )
+            self.M.llhd_critic["passes"] = passes
             critics["llhd"] = self.M.llhd_critic
             ret["critic"] = critics
 
@@ -378,6 +380,9 @@ class NLLThread ( LoggerBase ):
             for i2,m2 in enumerate(ryvariable):
                 if m2 > m1: ## we assume yvariable to be the daughter
                     continue
+                if m2 < 0.:
+                    self.warning ( f"m2({namer.asciiName(self.yvariable)})={m2:.1f}<0. skipping!" )
+                    continue
                 if self.hasResultsForPoint ( m1, m2 ):
                     continue
                 # self.pprint ( f"processing m({m1:.2f},{m2:.2f})" )
@@ -387,7 +392,7 @@ class NLLThread ( LoggerBase ):
                     self.setSSMultiplier ( self.yvariable, m2 )
                 for pid_,m_ in self.M.masses.items():
                     if pid_ != self.yvariable and m_ < m2: ## make sure LSP remains the LSP
-                        self.pprint ( f"WARNING: have to raise {namer.asciiName(pid_)} {m_} -> {m2+1.}, so X1Z stays the LSP" )
+                        self.warning ( f"have to raise {namer.asciiName(pid_)} {m_} -> {m2+1.}, so X1Z stays the LSP" )
                         oldmasses[pid_]=m_
                         self.M.masses[pid_]=m2 + 1.
                 point = self.getPredictions ( False )
