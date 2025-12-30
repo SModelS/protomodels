@@ -136,7 +136,9 @@ class NLLPlotter ( LoggerBase ):
         for p in points:
             tmp = { "mx": p["mx"], "my": p["my"] }
             tmp["dnll"]=p["nll"]-min_nll
-            tmp["llhd_rel"]=p["llhd"]/max_llhd
+            tmp["llhd_rel"]=p["llhd"]
+            if max_llhd > 0.:
+                tmp["llhd_rel"]=p["llhd"]/max_llhd
             ret.append ( tmp )
         return ret
 
@@ -144,6 +146,7 @@ class NLLPlotter ( LoggerBase ):
         """ plot the likelihood mass given in nll_points """
         defaults = { "text": False, "colors": ( "red", "darkred" ),
                      "label": "probability mass" }
+        # print ( f"@@0 plotting {len(points)} {options}" )
         opts = defaults
         opts.update ( options )
         points = self.normalize ( points, "max_llhd" )
@@ -180,7 +183,7 @@ class NLLPlotter ( LoggerBase ):
         level_2s = contour_level_for_mass(Z, levels[1] )
 
         colors = opts["colors"]
-        colors = ( "white", colors[1] )
+        #colors = ( "white", colors[1] )
         plt.contourf( X, Y, Z,
             levels=[level_2s, level_1s,Z.max()],
             colors=colors, alpha=0.15 )
@@ -232,16 +235,16 @@ class NLLPlotter ( LoggerBase ):
         """
         critic_points = self.getCriticList( critic_type = "both" )
         options = { "c_area": "gray", "c_line": "dimgray", "hatches": "\\\\",
-                    "label": "excluded by critic", "scatter": True  }
+                    "label": "excluded by critic", "scatter": False }
         self.plotBooleanMap ( critic_points, options )
 
         colors = [ ( "red", "darkred" ), ( "green", "darkgreen" ), ( "blue", "darkblue" ) ]
         rmCritic = True
         # anaid = "CMS-SUS-20-004:(comb):TChiHH"
-        anaid = "CMS-SUS-20-004:(comb)"
+        # anaid = "CMS-SUS-20-004:(comb)"
         # anaid = "CMS-EXO-20-004:(comb):TChiISR"
         # anaid = "CMS-EXO-20-004:(comb):TChiISR,TChiZISRqq"
-        # anaid = "CMS-EXO-20-004:(comb)"
+        anaid = "CMS-EXO-20-004:(comb)"
         nll_points = self.getNLLList( anaid = anaid,
                removeDisallowed = rmCritic )
         options = { "text": False, "label": anaid }

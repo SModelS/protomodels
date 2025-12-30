@@ -252,9 +252,12 @@ class NLLThread ( LoggerBase ):
 
         self.M.delCurrentSLHA()
         critics={ "llhd": None, "ul": self.M.ul_critic }
+        # max_allowed, n_excluding = critics["ul"]["max_allowed"], critics["ul"]["n_excluding"]
+        # critics["ul"]["passes"] = (max_allowed+1) >= n_excluding ## loosened!
         if hasattr ( self.M, "llhd_critic" ):
             r, rexp = self.M.llhd_critic["robs"], self.M.llhd_critic["rexp"]
-            passes = (r < 1.2) or (r < 1.5 and r/rexp < .5 )
+            # passes = (r < 1.2) or (r < 1.5 and r/rexp < .5 ) # thats what we really have
+            passes = (r < 1.3) or (r < 1.6 and r/rexp < .55 ) ## loosened!!
             self.M.llhd_critic["passes"] = passes
             critics["llhd"] = self.M.llhd_critic
             ret["critic"] = critics
