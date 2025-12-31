@@ -381,15 +381,17 @@ class NLLPlotter ( LoggerBase ):
         anaids = self.getAnaIds( True )
         # print ( f"@@0 anaid {anaids}" )
         rmCritic = False
-        anaid = "CMS-SUS-20-004:(comb):TChiHH"
-        # anaid = "CMS-SUS-20-004:(comb)"
+        #anaid = "CMS-SUS-20-004:(comb):TChiHH"
+        #anaid = "CMS-SUS-20-004:(comb)"
         # anaid = "CMS-EXO-20-004:(comb):TChiISR"
         # anaid = "CMS-EXO-20-004:(comb):TChiISR,TChiZISRqq"
         # anaid = "CMS-EXO-20-004:(comb)"
-        nll_points = self.getNLLList( anaid = anaid,
-               removeDisallowed = rmCritic )
-        options = { "text": False, "label": anaid }
-        self.plotLikelihoodMass ( nll_points, options )
+        anaids = [ "CMS-EXO-20-004:(comb)", "CMS-SUS-20-004:(comb)" ]
+        for i,anaid in enumerate ( anaids ):
+            nll_points = self.getNLLList( anaid = anaid,
+                   removeDisallowed = rmCritic )
+            options = { "text": False, "label": anaid, "colors": colors[i] }
+            self.plotLikelihoodMass ( nll_points, options )
         # for_combination = { anaid: nll_points }
         # comb_points = self.combineNLLs ( for_combination )
 
