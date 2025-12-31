@@ -783,6 +783,19 @@ class HiscorePlotter ( LoggerBase ):
             # cr = Critic(self.protomodel.walkerid,do_srcombine=True, dbpath = xxx )
             c_result, c_reason = self.critic.predict_critic( self.protomodel, keep_predictions=True )
         f.write ( f"<br><b>Critics:</b> {c_reason}<br>\n" )
+        if hasattr ( self.protomodel, "ul_critic" ):
+            f.write( f"<br><b>UL Critic:</b>\n" )
+            for anaid,stats in self.protomodel.ul_critic["datasets"].items():
+                if anaid == "...":
+                    continue
+                robs, rexp = stats['robs'], stats['rexp']
+                col, endcol = "<span style='color: darkgreen;'>", "</span>"
+                sanaid = anaid.replace("None","ul")
+                if robs>1.0:
+                    col = "<span style='color: darkred;'>"
+                f.write ( f"{sanaid}:: {col}robs={robs}, rexp={rexp}{endcol}<br>\n" )
+        else:
+            f.write( f"<br><b>No UL Critic results!!</b>\n" )
         if hasattr ( self.protomodel, "llhd_critic" ):
             sdatasets = ", ".join ( self.protomodel.llhd_critic["datasets"] )
             robs = self.protomodel.llhd_critic['robs']
