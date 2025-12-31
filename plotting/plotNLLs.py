@@ -58,25 +58,33 @@ class NLLPlotter ( LoggerBase ):
         with open ( ifile, "rb" ) as f:
             self.data = pickle.load ( f )
 
-    def getCriticList ( self, critic_type : str = "both" ) -> list:
+    def getCriticList ( self, critic_type : str = "both" ) -> list[dict]:
         """
         get the list of critic outputs per point
         :param critic_type: one of: ul, llhd, both
 
-        :returns: list of dictionaries, "mx", "my", "passes" as keys
+        :returns: list of dictionaries: example:
+        [{ "mx": .. , "my": ..., "robs": ..., "rexp": ..., "passes": ... },...]
         """
         assert critic_type in [ "ul", "llhd", "both" ], \
              f"critic type should be one of: ul, llhd, both"
         ret = []
         for masspoint in self.data["masspoints"]:
             mx, my = masspoint["mx"], masspoint["my"]
+            tmp = { "mx": mx, "my": my }
             if critic_type == "both":
                 p_ul = masspoint["critic"]["ul"]["passes"]
                 p_llhd = masspoint["critic"]["llhd"]["passes"]
                 passes = p_ul and p_llhd
+                tmp["robs"] = masspoint["critic"]["llhd"]["robs"]
+                tmp["rexp"] = masspoint["critic"]["llhd"]["rexp"]
+                tmp["passes"]=passes
             else:
                 passes = masspoint["critic"][critic_type]["passes"]
-            tmp = { "mx": mx, "my": my, "passes": passes }
+                tmp["robs"] = masspoint["critic"][critic_type]["robs"]
+                if "rexp" in masspoint["critic"][critic_type]:
+                    tmp["rexp"] = masspoint["critic"][critic_type]["rexp"]
+                tmp["passes"]=passes
             ret.append ( tmp )
         return ret
 
@@ -142,16 +150,17 @@ class NLLPlotter ( LoggerBase ):
             ret.append ( tmp )
         return ret
 
-    def plotLikelihoodMass ( self, points : list[dict], options : dict ):
-        """ plot the likelihood mass given in nll_points """
+    def plotLikelihoodMass ( self, points : list[dict], options : dict ) -> bool:
+        """ plot the likelihood mass given in nll_points
+        :returns: true if successful, else false
+        """
         defaults = { "text": False, "colors": ( "red", "darkred" ),
                      "label": "probability mass" }
-        # print ( f"@@0 plotting {len(points)} {options}" )
         opts = defaults
         opts.update ( options )
         points = self.normalize ( points, "max_llhd" )
         # ---- input data ----
-        # example: data = [{"mx": ..., "my": ..., "llhd": ...}, ...]
+        # example: points = [{"mx": ..., "my": ..., "llhd_rel": ...}, ...]
         xs = np.array([d["mx"] for d in points])
         ys = np.array([d["my"] for d in points])
         ll = np.array([d["llhd_rel"] for d in points])
@@ -162,56 +171,63 @@ class NLLPlotter ( LoggerBase ):
         yi = np.linspace(ys.min(), ys.max(), ny)
         X, Y = np.meshgrid(xi, yi)
 
-        Z = griddata((xs, ys), ll, (X, Y), method="linear")
-        Z = np.nan_to_num(Z, nan=0.0)
+        if len(points)<4:
+            self.warn ( f"plotLikelihoodMass, we have {len(points)}, thats too few. not plotting contours." )
+        else:
+            Z = griddata((xs, ys), ll, (X, Y), method="linear")
+            Z = np.nan_to_num(Z, nan=0.0)
 
-        # ---- convert likelihood to probability ----
-        Z = np.maximum(Z, 0)
-        Z /= Z.sum()
+            # ---- convert likelihood to probability ----
+            Z = np.maximum(Z, 0)
+            Z /= Z.sum()
 
-        # ---- find contour levels for given probability mass ----
-        def contour_level_for_mass(Z, mass):
-            z_sorted = np.sort(Z.ravel())[::-1]
-            cumsum = np.cumsum(z_sorted)
-            idx = np.searchsorted(cumsum, mass)
-            return z_sorted[idx]
+            # ---- find contour levels for given probability mass ----
+            def contour_level_for_mass(Z, mass):
+                z_sorted = np.sort(Z.ravel())[::-1]
+                cumsum = np.cumsum(z_sorted)
+                idx = np.searchsorted(cumsum, mass)
+                return z_sorted[idx]
 
-        ## 1 and 2 sigma
-        levels = [ float ( 1-np.exp(-.5) ),
-                   float ( 1-np.exp(-2) ) ]
-        level_1s = contour_level_for_mass(Z, levels[0] )
-        level_2s = contour_level_for_mass(Z, levels[1] )
+            ## 1 and 2 sigma
+            levels = [ float ( 1-np.exp(-.5) ),
+                       float ( 1-np.exp(-2) ) ]
+            level_1s = contour_level_for_mass(Z, levels[0] )
+            level_2s = contour_level_for_mass(Z, levels[1] )
 
-        colors = opts["colors"]
-        #colors = ( "white", colors[1] )
-        plt.contourf( X, Y, Z,
-            levels=[level_2s, level_1s,Z.max()],
-            colors=colors, alpha=0.15 )
-        # ---- plot ----
-        # plt.figure(figsize=(6, 5))
-        cs = plt.contour(X, Y, Z, levels=[level_2s, level_1s],
-                    colors=opts["colors"], linewidths=2 )
-        # Label contours
-        fmt = {
-            level_1s: f"{int(levels[0]*100):d}%",
-            level_2s: f"{int(levels[1]*100):d}%"
-        }
-        plt.clabel(cs, cs.levels, inline=True, fmt=fmt, fontsize=10)
-        # plt.scatter(xs, ys, s=5, c="k", alpha=0.3)
-        from matplotlib.lines import Line2D
-        legend_elements = [
-            Line2D([0], [0], color=opts["colors"][1], lw=2, label=opts["label"] ),
-#            Line2D([0], [0], color=opts["colors"][0], lw=2, label=opts["label"] ),
-        ]
-        for legend_element in legend_elements:
-            self.handles.append ( legend_element )
+            colors = opts["colors"]
+            #colors = ( "white", colors[1] )
+            plt.contourf( X, Y, Z,
+                levels=[level_2s, level_1s,Z.max()],
+                colors=colors, alpha=0.15 )
+            # ---- plot ----
+            # plt.figure(figsize=(6, 5))
+            cs = plt.contour(X, Y, Z, levels=[level_2s, level_1s],
+                        colors=opts["colors"], linewidths=2 )
+            # Label contours
+            fmt = {
+                level_1s: f"{int(levels[0]*100):d}%",
+                level_2s: f"{int(levels[1]*100):d}%"
+            }
+            plt.clabel(cs, cs.levels, inline=True, fmt=fmt, fontsize=10)
+            from matplotlib.lines import Line2D
+            legend_elements = [
+                Line2D([0], [0], color=opts["colors"][1], lw=2, label=opts["label"] ),
+    #            Line2D([0], [0], color=opts["colors"][0], lw=2, label=opts["label"] ),
+            ]
+            for legend_element in legend_elements:
+                self.handles.append ( legend_element )
 
         if opts["text"]:
-            plt.scatter ( xs, ys, s=1 )
+            pointsize,fontsize=1,8
+            if len(points)<10:
+                pointsize,fontsize=3,10
+            plt.scatter ( xs, ys, s=pointsize )
             llhd_rel_min = .01
             for d in points:
                 if d["llhd_rel"] > llhd_rel_min:
-                    plt.text ( d["mx"], d["my"], f"{d['llhd_rel']:.1g}", fontsize=8 )
+                    plt.text ( d["mx"], d["my"], f"{d['llhd_rel']:.1g}",
+                               fontsize=fontsize )
+        return len(points)>3
 
     def getAnaIds ( self, comb_only : bool = False ) -> set:
         """ get a set of all analysis ids that i can procure that have entries for ssm==1.0
@@ -228,6 +244,9 @@ class NLLPlotter ( LoggerBase ):
         return ret
 
     def plot ( self ):
+        """ this is the method that controls the entire plot.
+        adapt according to your purpose!!
+        """
         """
         critic_points = self.getCriticList( critic_type = "ul" )
         options = { "label": "excluded by ul" }
@@ -235,16 +254,18 @@ class NLLPlotter ( LoggerBase ):
         """
         critic_points = self.getCriticList( critic_type = "both" )
         options = { "c_area": "gray", "c_line": "dimgray", "hatches": "\\\\",
-                    "label": "excluded by critic", "scatter": False }
+                    "label": "excluded by critic", "scatter": False, "text": False }
         self.plotBooleanMap ( critic_points, options )
 
         colors = [ ( "red", "darkred" ), ( "green", "darkgreen" ), ( "blue", "darkblue" ) ]
+        #anaids = self.getAnaIds()
+        #print ( f"@@0 anaid {anaids}" )
         rmCritic = True
         # anaid = "CMS-SUS-20-004:(comb):TChiHH"
-        # anaid = "CMS-SUS-20-004:(comb)"
+        anaid = "CMS-SUS-20-004:(comb)"
         # anaid = "CMS-EXO-20-004:(comb):TChiISR"
         # anaid = "CMS-EXO-20-004:(comb):TChiISR,TChiZISRqq"
-        anaid = "CMS-EXO-20-004:(comb)"
+        # anaid = "CMS-EXO-20-004:(comb)"
         nll_points = self.getNLLList( anaid = anaid,
                removeDisallowed = rmCritic )
         options = { "text": False, "label": anaid }
@@ -270,7 +291,7 @@ class NLLPlotter ( LoggerBase ):
         import numpy as np
         defaults = { "c_area": "gray", "c_line": "dimgray",
             "scatter": False, "xlabel": "mx", "ylabel": "my", "hatches": "////",
-            "label": "excluded" }
+            "label": "excluded", "text": False }
         opts = defaults
         opts.update ( options )
 
@@ -302,6 +323,22 @@ class NLLPlotter ( LoggerBase ):
             # passes == True → green
             plt.scatter( x[mask_true], y[mask_true],
                 color="green", edgecolor="black", s=10 )
+
+            # passes == True → green
+            plt.scatter( x[mask_true], y[mask_true],
+                color="green", edgecolor="black", s=10 )
+
+        if opts["text"]:
+            robs_min = 2.0
+            fontsize=8
+            for i,d in enumerate(points):
+                #if i % 10 != 0:
+                #    continue
+                if d["passes"]==True:
+                    continue
+                if d["robs"] > robs_min:
+                    plt.text ( d["mx"], d["my"], f"{d['robs']:.1f}",
+                               fontsize=fontsize )
 
         if opts["label"] not in [ None, "" ]:
             import matplotlib.patches as mpatches
