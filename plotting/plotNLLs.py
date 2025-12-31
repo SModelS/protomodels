@@ -114,9 +114,7 @@ class NLLPlotter ( LoggerBase ):
         for masspoint in self.data["masspoints"]:
             if removeDisallowed and masspoint["critic"]["ul"]["passes"]==False\
                     or masspoint["critic"]["llhd"]["passes"]==False:
-                tmp = { "fullid": myId, "mx": mx, "my": my, "nll": 9999., "llhd": 0. }
-                ret.append ( tmp )
-                break
+                continue
             mx, my = masspoint["mx"], masspoint["my"]
             anlls = masspoint["nll"]
             for ssm, anas in anlls.items():
@@ -128,6 +126,7 @@ class NLLPlotter ( LoggerBase ):
                         tmp = { "fullid": myId, "mx": mx, "my": my, "nll": nll, "llhd": llhd }
                         ret.append ( tmp )
                         break
+        self.pprint ( f"getNLLList: returning {len(ret)}/{len(self.data['masspoints'])} points for {anaid}" )
         return ret
 
     def normalize ( self, points : list[dict], how : str = "max_llhd" ) -> list[dict]:
@@ -172,7 +171,7 @@ class NLLPlotter ( LoggerBase ):
         X, Y = np.meshgrid(xi, yi)
 
         if len(points)<4:
-            self.warn ( f"plotLikelihoodMass, we have {len(points)}, thats too few. not plotting contours." )
+            self.warn ( f"plotLikelihoodMass, for {options['label']} we have {len(points)} points, thats too few. not plotting contours." )
         else:
             Z = griddata((xs, ys), ll, (X, Y), method="linear")
             Z = np.nan_to_num(Z, nan=0.0)
@@ -229,9 +228,14 @@ class NLLPlotter ( LoggerBase ):
                                fontsize=fontsize )
         return len(points)>3
 
-    def getAnaIds ( self, comb_only : bool = False ) -> set:
-        """ get a set of all analysis ids that i can procure that have entries for ssm==1.0
+    def getAnaIds ( self, comb_only : bool = False,
+                    dropTxname : bool = False ) -> set:
+        """ get a set of all analysis ids that i can procure that have
+        entries for ssm==1.0
         :param comb_only: if true, then return only (comb) ana ids
+        :param dropTxname: if true, drop the txnames
+
+        :returns: set of analysis ids
         """
         ret = set()
         for masspoint in self.data["masspoints"]:
@@ -240,6 +244,9 @@ class NLLPlotter ( LoggerBase ):
                 for anaid,nll in anas.items():
                     if comb_only and not "(comb)" in anaid:
                         continue
+                    if dropTxname:
+                        p1 = anaid.find(":T")
+                        anaid = anaid[:p1]
                     ret.add ( anaid )
         return ret
 
@@ -258,11 +265,11 @@ class NLLPlotter ( LoggerBase ):
         self.plotBooleanMap ( critic_points, options )
 
         colors = [ ( "red", "darkred" ), ( "green", "darkgreen" ), ( "blue", "darkblue" ) ]
-        #anaids = self.getAnaIds()
-        #print ( f"@@0 anaid {anaids}" )
+        anaids = self.getAnaIds( True )
+        # print ( f"@@0 anaid {anaids}" )
         rmCritic = True
-        # anaid = "CMS-SUS-20-004:(comb):TChiHH"
-        anaid = "CMS-SUS-20-004:(comb)"
+        anaid = "CMS-SUS-20-004:(comb):TChiHH"
+        # anaid = "CMS-SUS-20-004:(comb)"
         # anaid = "CMS-EXO-20-004:(comb):TChiISR"
         # anaid = "CMS-EXO-20-004:(comb):TChiISR,TChiZISRqq"
         # anaid = "CMS-EXO-20-004:(comb)"

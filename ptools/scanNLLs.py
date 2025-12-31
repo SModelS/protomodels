@@ -272,7 +272,8 @@ class NLLThread ( LoggerBase ):
         nlls[0.] = self.getNLLs ( self.predictor.predictions, mu=0. )
         ## get for the others FIXME should adapt to ssm?
         for mu in numpy.arange(.4,1.8,.05):
-            nlls[float(mu)] = self.getNLLs ( self.predictor.predictions, mu=mu )
+            rounded_mu = float(round(mu,5))
+            nlls[rounded_mu] = self.getNLLs ( self.predictor.predictions, mu=mu )
         ret["nll"] = nlls
         ouls = self.getLimits ( self.predictor.predictions, observed )
         ret["oul"] = ouls
