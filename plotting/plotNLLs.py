@@ -18,6 +18,8 @@ class NLLPlotter ( LoggerBase ):
     def __init__ ( self, args : dict ):
         super ( NLLPlotter, self ).__init__ ( "nll" )
         self.args = args
+        options = eval ( args["options"] )
+        self.setOptions ( options )
         self.outputfile = None
         self.handles = []
         if self.args["inputfile"]==None:
@@ -28,6 +30,18 @@ class NLLPlotter ( LoggerBase ):
             self.show()
         if self.args["interact"]:
             self.interact()
+
+    def setOptions ( self, options : dict ):
+        """ given the options string at command line, draw options """
+        self.options = {}
+        for name,value in options.items():
+            tnames = name.split(":")
+            if len(tnames)!=2:
+                self.warn ( f"option {name} unknown" )
+                continue
+            if not tnames[0] in self.options:
+                self.options[ tnames[0] ] = {}
+            self.options[ tnames[0] ][ tnames[1] ] = value
 
     def findInputFile ( self ):
         """ no -I argument was given, so find an input file.
@@ -375,6 +389,8 @@ class NLLPlotter ( LoggerBase ):
         critic_points = self.getCriticList( critic_type = "both" )
         options = { "c_area": "gray", "c_line": "dimgray", "hatches": "\\\\",
                     "label": "excluded by critic", "scatter": False, "text": False }
+        if "critic" in self.options:
+            options.update ( self.options["critic"] )
         self.plotBooleanMap ( critic_points, options )
 
         colors = [ ( "red", "darkred" ), ( "green", "darkgreen" ), ( "blue", "darkblue" ) ]
@@ -391,6 +407,8 @@ class NLLPlotter ( LoggerBase ):
             nll_points = self.getNLLList( anaid = anaid,
                    removeDisallowed = rmCritic )
             options = { "text": False, "label": anaid, "colors": colors[i] }
+            if "builder" in self.options:
+                options.update ( self.options["builder"] )
             self.plotLikelihoodMass ( nll_points, options )
         # for_combination = { anaid: nll_points }
         # comb_points = self.combineNLLs ( for_combination )
@@ -511,6 +529,8 @@ if __name__ == "__main__":
             type=str, default="@@I@@.png" )
     argparser.add_argument ( '-I', '--interact',
             help='start interactive shell', action="store_true" )
+    argparser.add_argument ( '-O', '--options',
+            help="additional options, e.g. { 'critic:scatter': True }", type=str, default="{}" )
     argparser.add_argument ( '-s', '--show',
             help='show image', action="store_true" )
     args = argparser.parse_args()
