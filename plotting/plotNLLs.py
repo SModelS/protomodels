@@ -2,7 +2,7 @@
 
 """ a second attempt at plotting likelihoods """
 
-import os
+import os, copy
 from base.loggerbase import LoggerBase
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
@@ -35,6 +35,9 @@ class NLLPlotter ( LoggerBase ):
         """ given the options string at command line, draw options """
         self.options = {}
         for name,value in options.items():
+            if not ":" in name:
+                self.options[ name ] = value
+                continue
             tnames = name.split(":")
             if len(tnames)!=2:
                 self.warn ( f"option {name} unknown" )
@@ -172,17 +175,14 @@ class NLLPlotter ( LoggerBase ):
         opts = defaults
         opts.update ( options )
         points = self.normalize ( points, "max_llhd" )
+        print ( f"@@0 for {options['label']}:" )
+        for p in points[:3]:
+            print ( f"@@1 {p}" )
         # ---- input data ----
         # example: points = [{"mx": ..., "my": ..., "llhd_rel": ...}, ...]
         xs = np.array([d["mx"] for d in points])
         ys = np.array([d["my"] for d in points])
         ll = np.array([d["llhd_rel"] for d in points])
-
-        # ---- make a regular grid ----
-        nx, ny = 200, 200
-        xi = np.linspace(xs.min(), xs.max(), nx)
-        yi = np.linspace(ys.min(), ys.max(), ny)
-        X, Y = np.meshgrid(xi, yi)
 
         if len(points)<4:
             self.warn ( f"plotLikelihoodMass, for {options['label']} we have {len(points)} points, thats too few. not plotting contours." )
@@ -195,7 +195,7 @@ class NLLPlotter ( LoggerBase ):
             # KDE
             kpoints = np.vstack([xs, ys])
             from scipy.stats import gaussian_kde
-            kde = gaussian_kde(kpoints)
+            kde = gaussian_kde(kpoints,weights=ll)
 
             # Grid
             nx, ny = 100, 100
@@ -205,6 +205,13 @@ class NLLPlotter ( LoggerBase ):
 
             grid_points = np.vstack([X.ravel(), Y.ravel()])
             Z = kde(grid_points).reshape(X.shape)
+
+            from scipy.spatial import ConvexHull, Delaunay
+            tri = Delaunay(np.column_stack([xs, ys]))
+            mask = tri.find_simplex(np.column_stack([X.ravel(), Y.ravel()])) >= 0
+            mask = mask.reshape(X.shape)
+            Z = np.ma.array(Z, mask=~mask )
+
             Z /= Z.sum()
 
             # ---- find contour levels for given probability mass ----
@@ -393,7 +400,8 @@ class NLLPlotter ( LoggerBase ):
             options.update ( self.options["critic"] )
         self.plotBooleanMap ( critic_points, options )
 
-        colors = [ ( "red", "darkred" ), ( "green", "darkgreen" ), ( "blue", "darkblue" ) ]
+        colors = [ ( "red", "darkred" ), ( "green", "darkgreen" ), ( "blue", "darkblue" ),
+                   ( "purple", "pink" ), ( "brown", "orange" ) ]
         anaids = self.getAnaIds( True )
         # print ( f"@@0 anaid {anaids}" )
         rmCritic = False
@@ -403,12 +411,21 @@ class NLLPlotter ( LoggerBase ):
         # anaid = "CMS-EXO-20-004:(comb):TChiISR,TChiZISRqq"
         # anaid = "CMS-EXO-20-004:(comb)"
         anaids = [ "CMS-EXO-20-004:(comb)", "CMS-SUS-20-004:(comb)" ]
+        builder_options = { "text": False }
+        if "builder" in self.options:
+            builder_options.update ( self.options["builder"] )
+        if "anaids" in self.options:
+            anaids = self.options["anaids"]
+        if "rmCritic" in self.options:
+            rmCritic = self.options["rmCritic"]
+
         for i,anaid in enumerate ( anaids ):
             nll_points = self.getNLLList( anaid = anaid,
                    removeDisallowed = rmCritic )
-            options = { "text": False, "label": anaid, "colors": colors[i] }
-            if "builder" in self.options:
-                options.update ( self.options["builder"] )
+            options = copy.deepcopy ( builder_options )
+            options.update ( { "label": anaid, "colors": colors[i] } )
+            if anaid in self.options:
+                options.update ( self.options[anaid] )
             self.plotLikelihoodMass ( nll_points, options )
         # for_combination = { anaid: nll_points }
         # comb_points = self.combineNLLs ( for_combination )
