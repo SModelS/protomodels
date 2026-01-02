@@ -184,7 +184,7 @@ class NLLThread ( LoggerBase ):
             befores = { "mx": "my", "my": "critic", "critic": "oul",
                         "oul": "eul", "eul": "nll" }
             d = py_dumps ( point, level = 0, a_before = befores )
-            f.write ( d )
+            f.write ( d + "\n" )
             f.close()
         nfiles = len ( glob.glob ( f"{self.resultsdir}/*.dict" ) )
         if nfiles % 100 == 0: # update with every 20th entry
