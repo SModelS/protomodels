@@ -7,6 +7,8 @@ __all__ = [ "NLLScanner" ]
 import os, sys, multiprocessing, time, numpy, subprocess, copy, glob
 import pickle, random, shutil
 import numpy as np
+from typing import Dict, Tuple, Union, List
+
 try:
     from csetup import setup
     setup()
@@ -17,16 +19,18 @@ WrapperBase.defaulttempdir="./" ## keep the temps in our folder
 from smodels.base.physicsUnits import fb
 from smodels.base.runtime import nCPUs
 from smodels.matching.theoryPrediction import TheoryPrediction
+from smodels.statistics.basicStats import observed, apriori, aposteriori,\
+         NllEvalType
+
+from base.loggerbase import LoggerBase
+from base.runEnviron import RunEnviron
+
 from tester.combiner import Combiner
 from tester.predictor import Predictor
 from tester.critic import Critic
-from typing import Dict, Tuple, Union, List
 from ptools.sparticleNames import SParticleNames
 from ptools import moreHelpers, helpers
-from base.loggerbase import LoggerBase
-from smodels.statistics.basicStats import observed, apriori, aposteriori,\
-         NllEvalType
-from base.runEnviron import RunEnviron
+from ptools.helpers import py_dumps
 
 namer = SParticleNames ( False )
 t0 = time.time() ## define t0, to measure how long things took
@@ -123,7 +127,6 @@ class NLLThread ( LoggerBase ):
         if self.dict_file:
             dictfile = self.picklefile.replace(".pcl",".dict")
             self.pprint ( f"writing to {dictfile}" )
-            from ptools.helpers import py_dumps
             with open ( dictfile, "wt" ) as f:
                 befores = { "mx": "my", "my": "critic", "critic": "oul",
                             "oul": "eul", "eul": "nll" }
@@ -177,7 +180,11 @@ class NLLThread ( LoggerBase ):
         point["my"]=round( point["my"], 7 )
         dictfile = self.getDictFileName ( point["mx"], point["my"] )
         with open ( dictfile, "wt" ) as f:
-            f.write ( f"{point}\n" )
+            # f.write ( f"{point}\n" )
+            befores = { "mx": "my", "my": "critic", "critic": "oul",
+                        "oul": "eul", "eul": "nll" }
+            d = py_dumps ( point, level = 0, a_before = befores )
+            f.write ( d )
             f.close()
         nfiles = len ( glob.glob ( f"{self.resultsdir}/*.dict" ) )
         if nfiles % 100 == 0: # update with every 20th entry
@@ -189,7 +196,11 @@ class NLLThread ( LoggerBase ):
         masspoints = []
         for fname in files:
             with open ( fname, "rt" ) as h:
-                d = eval(h.read())
+                try:
+                    d = eval(h.read())
+                except (SyntaxError,ValueError,TypeError) as e:
+                    self.error ( f"could not read: {fname}: {e}" )
+                    sys.exit()
                 d["mx"] = float ( d["mx"] )
                 d["my"] = float ( d["my"] )
                 masspoints.append ( d )
