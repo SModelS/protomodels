@@ -384,18 +384,31 @@ class NLLPlotter ( LoggerBase ):
 
         :returns: list of masspoints with combined NLLs
         """
-        ret = []
         points = {}
         def getHash ( mx : float, my : float ):
             return int ( round(mx,4)*1e10+round(my,4)*1e5 )
+        anaids = set( for_combination.keys() )
         for anaid, masspoints in for_combination.items():
+
             for masspoint in masspoints:
                 h = getHash ( masspoint["mx"], masspoint["my"] )
-                id not h in points:
+                if not h in points:
                     points[h]={}
                 points[h][anaid] = masspoint
-        for p in points:
-            pass
+        ret = []
+        for h,point in points.items():
+            comb_point =  { "nll": 0, "llhd": 1, "anas": [] }
+            for anaid,values in point.items():
+                comb_point["mx"]=values["mx"]
+                comb_point["my"]=values["my"]
+                comb_point["nll"]+=values["nll"]
+                comb_point["llhd"]*=values["llhd"]
+                comb_point["anas"].append ( values["fullid"] )
+            if len(point)<len(anaids):
+                comb_point["nll"]=float("inf")
+                comb_point["llhd"]=0.
+            ret.append ( comb_point )
+        # print ( f"@@0 ret {ret}" )
         return ret
 
 
@@ -434,6 +447,8 @@ class NLLPlotter ( LoggerBase ):
         if "rmCritic" in self.options:
             rmCritic = self.options["rmCritic"]
 
+        for_combination = {}
+
         for i,anaid in enumerate ( anaids ):
             nll_points = self.getNLLList( anaid = anaid,
                    removeDisallowed = rmCritic )
@@ -442,8 +457,11 @@ class NLLPlotter ( LoggerBase ):
             if anaid in self.options:
                 options.update ( self.options[anaid] )
             self.plotLikelihoodMass ( nll_points, options )
-        # for_combination = { anaid: nll_points }
-        # comb_points = self.combineNLLs ( for_combination )
+            for_combination[anaid] = nll_points
+        comb_points = self.combineNLLs ( for_combination )
+        comb_options = { "colors": ( "0.20", "black" ), "label": "joint" }
+        
+        self.plotLikelihoodMass ( comb_points, comb_options )
 
         # Existing scatter handles (from plt.scatter calls)
         # handles, labels = plt.gca().get_legend_handles_labels()
