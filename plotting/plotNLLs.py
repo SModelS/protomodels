@@ -166,8 +166,11 @@ class NLLPlotter ( LoggerBase ):
             ret.append ( tmp )
         return ret
 
-    def plotLikelihoodMass ( self, points : list[dict], options : dict ) -> bool:
+    def plotLikelihoodMass ( self, points : list[dict], options : dict,
+                             mask_data : list[dict] = [] ) -> bool:
         """ plot the likelihood mass given in nll_points, using a KDE
+        :param mask_data: list of dictionaries as we get it for the critic, e.g.
+        [{"mx": ..., "my": ..., "passes": True/False}, ... ]
         :returns: true if successful, else false
         """
         defaults = { "text": False, "colors": ( "red", "darkred" ),
@@ -175,9 +178,9 @@ class NLLPlotter ( LoggerBase ):
         opts = defaults
         opts.update ( options )
         points = self.normalize ( points, "max_llhd" )
-        print ( f"@@0 for {options['label']}:" )
-        for p in points[:3]:
-            print ( f"@@1 {p}" )
+        #print ( f"@@0 for {options['label']}:" )
+        #for p in points[:3]:
+        #    print ( f"@@1 {p}" )
         # ---- input data ----
         # example: points = [{"mx": ..., "my": ..., "llhd_rel": ...}, ...]
         xs = np.array([d["mx"] for d in points])
@@ -187,9 +190,6 @@ class NLLPlotter ( LoggerBase ):
         if len(points)<4:
             self.warn ( f"plotLikelihoodMass, for {options['label']} we have {len(points)} points, thats too few. not plotting contours." )
         else:
-            #Z = griddata((xs, ys), ll, (X, Y), method="linear")
-            #Z = np.nan_to_num(Z, nan=0.0)
-
             # ---- convert likelihood to probability ----
             #Z = np.maximum(Z, 0)
             # KDE
@@ -207,10 +207,22 @@ class NLLPlotter ( LoggerBase ):
             Z = kde(grid_points).reshape(X.shape)
 
             from scipy.spatial import ConvexHull, Delaunay
+            ## confine to the convex hull
             tri = Delaunay(np.column_stack([xs, ys]))
-            mask = tri.find_simplex(np.column_stack([X.ravel(), Y.ravel()])) >= 0
-            mask = mask.reshape(X.shape)
-            Z = np.ma.array(Z, mask=~mask )
+            hull_mask = tri.find_simplex(np.column_stack([X.ravel(), Y.ravel()])) >= 0
+            hull_mask = hull_mask.reshape(X.shape)
+
+            """
+            # take out all excluded by critic
+            valid = np.array([d["passes"] for d in mask_data], dtype=bool)
+
+            valid_grid = griddata( (xs, ys), valid.astype(float), (X, Y),
+                method="nearest").astype(bool)
+
+            combined_mask = hull_mask & valid_grid
+            Z = np.ma.array(Z, mask=~combined_mask )
+            """
+            Z = np.ma.array(Z, mask=~hull_mask )
 
             Z /= Z.sum()
 
