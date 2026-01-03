@@ -390,7 +390,10 @@ class NLLPlotter ( LoggerBase ):
             return int ( round(mx,4)*1e10+round(my,4)*1e5 )
         for anaid, masspoints in for_combination.items():
             for masspoint in masspoints:
-                pass
+                h = getHash ( masspoint["mx"], masspoint["my"] )
+                id not h in points:
+                    points[h]={}
+                points[h][anaid] = masspoint
         for p in points:
             pass
         return ret
