@@ -212,18 +212,18 @@ class NLLPlotter ( LoggerBase ):
             hull_mask = tri.find_simplex(np.column_stack([X.ravel(), Y.ravel()])) >= 0
             hull_mask = hull_mask.reshape(X.shape)
 
-            """
-            # take out all excluded by critic
-            valid = np.array([d["passes"] for d in mask_data], dtype=bool)
+            if len(mask_data)==0:
+                Z = np.ma.array(Z, mask=~hull_mask )
+            else:
+                # take out all excluded by critic
+                c_xs = np.array([d["mx"] for d in mask_data])
+                c_ys = np.array([d["my"] for d in mask_data])
+                c_valid = np.array([d["passes"] for d in mask_data], dtype=bool)
 
-            valid_grid = griddata( (xs, ys), valid.astype(float), (X, Y),
-                method="nearest").astype(bool)
-
-            combined_mask = hull_mask & valid_grid
-            Z = np.ma.array(Z, mask=~combined_mask )
-            """
-            Z = np.ma.array(Z, mask=~hull_mask )
-
+                valid_grid = griddata( (c_xs, c_ys), c_valid.astype(float), (X, Y),
+                    method="nearest").astype(bool)
+                combined_mask = hull_mask & valid_grid
+                Z = np.ma.array(Z, mask=~combined_mask )
             Z /= Z.sum()
 
             # ---- find contour levels for given probability mass ----
@@ -459,12 +459,12 @@ class NLLPlotter ( LoggerBase ):
             options.update ( { "label": anaid, "colors": colors[i] } )
             if anaid in self.options:
                 options.update ( self.options[anaid] )
-            self.plotLikelihoodMass ( nll_points, options )
+            self.plotLikelihoodMass ( nll_points, options, critic_points )
             for_combination[anaid] = nll_points
         comb_points = self.combineNLLs ( for_combination )
         comb_options = { "colors": ( "0.20", "black" ), "label": "joint" }
         
-        self.plotLikelihoodMass ( comb_points, comb_options )
+        self.plotLikelihoodMass ( comb_points, comb_options, critic_points )
 
         # Existing scatter handles (from plt.scatter calls)
         # handles, labels = plt.gca().get_legend_handles_labels()
