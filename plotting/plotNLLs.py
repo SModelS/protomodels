@@ -174,7 +174,7 @@ class NLLPlotter ( LoggerBase ):
         :returns: true if successful, else false
         """
         defaults = { "text": False, "colors": ( "red", "darkred" ),
-                     "label": "probability mass" }
+                     "label": "probability mass", "nlevels": 2 }
         opts = defaults
         opts.update ( options )
         points = self.normalize ( points, "max_llhd" )
@@ -234,24 +234,27 @@ class NLLPlotter ( LoggerBase ):
                 return z_sorted[idx]
 
             ## 1 and 2 sigma
-            levels = [ float ( 1-np.exp(-.5) ),
+            vlevels = [ float ( 1-np.exp(-.5) ),
                        float ( 1-np.exp(-2) ) ]
-            level_1s = contour_level_for_mass(Z, levels[0] )
-            level_2s = contour_level_for_mass(Z, levels[1] )
+            level_1s = contour_level_for_mass(Z, vlevels[0] )
+            level_2s = contour_level_for_mass(Z, vlevels[1] )
 
             colors = opts["colors"]
             #colors = ( "white", colors[1] )
+            levels = [ level_2s, level_1s ]
+            if opts["nlevels"]==1:
+                levels = [ level_1s ]
             plt.contourf( X, Y, Z,
-                levels=[level_2s, level_1s,Z.max()],
+                levels=levels+[Z.max()],
                 colors=colors, alpha=0.15 )
             # ---- plot ----
             # plt.figure(figsize=(6, 5))
-            cs = plt.contour(X, Y, Z, levels=[level_2s, level_1s],
+            cs = plt.contour(X, Y, Z, levels=levels,
                         colors=opts["colors"], linewidths=2 )
             # Label contours
             fmt = {
-                level_1s: f"{int(levels[0]*100):d}%",
-                level_2s: f"{int(levels[1]*100):d}%"
+                level_1s: f"{int(vlevels[0]*100):d}%",
+                level_2s: f"{int(vlevels[1]*100):d}%"
             }
             plt.clabel(cs, cs.levels, inline=True, fmt=fmt, fontsize=10)
             from matplotlib.lines import Line2D
@@ -439,7 +442,7 @@ class NLLPlotter ( LoggerBase ):
         # anaid = "CMS-EXO-20-004:(comb):TChiISR,TChiZISRqq"
         # anaid = "CMS-EXO-20-004:(comb)"
         anaids = [ "CMS-EXO-20-004:(comb)", "CMS-SUS-20-004:(comb)" ]
-        builder_options = { "text": False }
+        builder_options = { "text": False, "nlevels": 1 }
         if "builder" in self.options:
             builder_options.update ( self.options["builder"] )
         if "anaids" in self.options:
