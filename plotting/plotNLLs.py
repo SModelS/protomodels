@@ -250,7 +250,7 @@ class NLLPlotter ( LoggerBase ):
             # ---- plot ----
             # plt.figure(figsize=(6, 5))
             cs = plt.contour(X, Y, Z, levels=levels,
-                        colors=opts["colors"], linewidths=2 )
+                             colors=opts["colors"], linewidths=2 )
             # Label contours
             fmt = {
                 level_1s: f"{int(vlevels[0]*100):d}%",
@@ -293,7 +293,7 @@ class NLLPlotter ( LoggerBase ):
         ll = np.array([d["llhd_rel"] for d in points])
 
         # ---- make a regular grid ----
-        nx, ny = 200, 200
+        nx, ny = 100, 100
         xi = np.linspace(xs.min(), xs.max(), nx)
         yi = np.linspace(ys.min(), ys.max(), ny)
         X, Y = np.meshgrid(xi, yi)
@@ -462,7 +462,7 @@ class NLLPlotter ( LoggerBase ):
             self.plotLikelihoodMass ( nll_points, options, critic_points )
             for_combination[anaid] = nll_points
         comb_points = self.combineNLLs ( for_combination )
-        comb_options = { "colors": ( "0.20", "black" ), "label": "joint" }
+        comb_options = { "colors": ( "0.20", "black" ), "label": "joint posterior", "nlevels": 1 }
         
         self.plotLikelihoodMass ( comb_points, comb_options, critic_points )
 
@@ -475,7 +475,7 @@ class NLLPlotter ( LoggerBase ):
         plt.legend( handles=self.handles, loc=loc )
         plt.xlabel( rf"m$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]" )
         plt.ylabel( rf"m$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]" )
-        plt.title ( "probability mass" )
+        plt.title ( "posteriors" )
         self.savefig()
         self.pprint ( f"plotting {self.args['inputfile']} -> {self.outputfile}" )
 
