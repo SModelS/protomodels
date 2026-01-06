@@ -369,12 +369,8 @@ def draw( args : dict ):
     return outputfile
 
 def show ( outputfile ):
-    import shutil
-    if shutil.which ( "timg" ) != None:
-        cmd = f"timg {outputfile}"
-        # print ( cmd )
-        o = subprocess.getoutput ( cmd )
-        print ( o )
+    from smodels_utils.plotting.mpkitty import timg
+    timg ( outputfile )
 
 def plotHandCrafted():
     """ modify this to produce your special version of this plot """
