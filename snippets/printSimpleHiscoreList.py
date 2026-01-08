@@ -91,7 +91,8 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
         K, TL = entry['K'], entry['TL']
         if "walkerid" in entry:
             wid = entry['walkerid']
-        particles = entry["masses"].keys()
+        particles = list ( entry["masses"].keys() )
+        particles.sort ( key = lambda x: entry["masses"][x] )
         sparticles = ""
         for ip, p in enumerate ( particles ):
             if ip != 0:
@@ -142,7 +143,8 @@ def printTruth():
     d = eval(txt)
     K, TL = d["K"], d["TL"]
     sK = formatObject ( K, '6.3f' )
-    particles = d["masses"].keys()
+    particles = list ( d["masses"].keys() )
+    particles.sort ( key = lambda x: d["masses"][x] )
     sparticles = ""
     for ip, p in enumerate ( particles ):
         if ip != 0:
