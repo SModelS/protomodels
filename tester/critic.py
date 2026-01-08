@@ -228,7 +228,7 @@ class Critic ( LoggerBase ):
             self.error ( f"critic just caught: {e} when asking for theoryPredictions. Will write model to {outfile}" )
             self.error ( f"topos are {topos}" )
             from builder.manipulator import Manipulator
-            ma = Manipulator ( self.protomodel )
+            ma = Manipulator ( self.protomodel, self.environ )
             comment = f"when computing r-value for combo: walkerid={self.walkerid} step={self.protomodel.step}"
             ma.writeDictFile ( outfile, comment = comment )
             raise e
