@@ -28,25 +28,34 @@ def summarizeJobsForThisDir():
     print ( )
     return 1
 
-def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
-    extended : bool = False, nmax : Union[None,int] = None ) -> int:
-    """ summarize the content of the dict file 
+def getHiscores ( dictfile : PathLike = "hiscores_global.dict" ) -> list:
+    """ get the hiscores
+    :param dictfile: if filename, get hiscores from file, if foldername,
+    get the best model from each file
 
-    :param dictfile: path to dictionary file
-    :param extended: extended output, add description timestamp
+    :returns: list of hiscores
     """
-    printTruth()
-    nlines = 0
     if not os.path.exists ( dictfile ):
         print ( f"[printSimpleHiscoreList] {dictfile} does not exist" )
         nlines += 1
-        return nlines
+        return []
+    if os.path.isdir ( dictfile ):
+        import glob
+        files = glob.glob ( dictfile + "/*dict" )
+        files.sort()
+        D = []
+        for f in files:
+            d1 = getHiscores ( f )
+            if len(d1)>0:
+                D.append ( d1[0] )
+        return D
     with open( dictfile, "rt" ) as f:
         txt=f.read().replace('"inf"',"float('inf')").replace('"nan"',"float('nan')")
         txt=txt.replace("'inf'",'float("inf")').replace("'nan'",'float("nan")')
         f.close()
         try:
             D=eval(txt)
+            return D
         except SyntaxError as e:
             print ( f"[printSimpleHiscoreList.summarizeHiscores] could not read {dictfile}: {e}" )
             print ( f"  message {e.msg}" )
@@ -54,7 +63,23 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             print ( f"  offset {e.offset}" )
             print ( f"  text {e.text}" )
             nlines += 1
-            return nlines
+            return []
+    return []
+
+def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
+    extended : bool = False, nmax : Union[None,int] = None ) -> int:
+    """ summarize the content of the dict file 
+
+    :param dictfile: path to dictionary file
+    :param extended: extended output, add description timestamp
+
+    :returns: number of lines printed
+    """
+    printTruth()
+    nlines = 0
+    D = getHiscores ( dictfile )
+    if len(D) == 0:
+        return 1
     if nmax == None:
         nmax = 10
         if extended:
@@ -82,15 +107,15 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores.dict",
             timestamp = timestamp[r1:r2]
         if extended:
             step = entry["step"]
-            print ( f"#{i}({wid:3d}): K={GREEN}{K:.3f}{RESET} TL={TL:.3f}; {sparticles}" )
+            print ( f"#{i:2d}({wid:3d}): K={GREEN}{K:6.3f}{RESET} TL={TL:6.3f}; {sparticles}" )
             print ( f"       `---: {entry['description']}" )
             print ( f"       `---:{timestamp}" )
             print ( f"       `---: step {step}" )
             print ( )
             nlines += 5
         else:
-            sK = formatObject ( K, 3 )
-            print ( f"#{i}({wid:3d}): K={GREEN}{sK}{RESET}; TL={formatObject(TL,3)}; {sparticles} {timestamp}" )
+            sK = formatObject ( K, "6.3f" )
+            print ( f"#{i:2d}({wid:3d}): K={GREEN}{sK}{RESET}; TL={formatObject(TL,'6.3f')}; {sparticles} {timestamp}" )
             nlines += 1
     return nlines
 
@@ -116,7 +141,7 @@ def printTruth():
         f.close()
     d = eval(txt)
     K, TL = d["K"], d["TL"]
-    sK = formatObject ( K, 3 )
+    sK = formatObject ( K, '6.3f' )
     particles = d["masses"].keys()
     sparticles = ""
     for ip, p in enumerate ( particles ):
@@ -125,14 +150,14 @@ def printTruth():
         name = SParticleNames( False).asciiName(p)
         mass = d["masses"][p]
         sparticles += f"{CYAN}{name}{RESET}={RED}{mass:.1f}{RESET}"
-    print ( f"{RED}Truth:{RESET}   K={GREEN}{sK}{RESET}; TL={formatObject(TL,3)}; {sparticles}" )
+    print ( f"{RED}Truth:{RESET}    K={GREEN}{sK}{RESET}; TL={formatObject(TL,'6.3f')}; {sparticles}" )
 
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(
-        description='summarize the data in hiscores.dict to have an overview' )
+        description='summarize the data in e.g. hiscores_global.dict to have an overview' )
     argparser.add_argument ( '-H', '--hiscores', type=str,
-        help="path to hiscores.dict file [./hiscores_global.dict]", 
+        help="path to hiscores.dict file, if directory (e.g. 'all_hiscores/') then print best of each file in directory [./hiscores_global.dict]", 
         default="./hiscores_global.dict" )
     argparser.add_argument ( '-x', '--extended', action="store_true",
         help="extended info" )
