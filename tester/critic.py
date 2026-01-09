@@ -474,7 +474,7 @@ class Critic ( LoggerBase ):
                     if pred in best_comb: best_line += f"{experimentalId(pred)}, "
                 self.error ( f"best_comb consists of {len(best_comb)} predictions: {best_line}; All predictions: {line}" )
                 from builder.manipulator import Manipulator
-                ma = Manipulator ( self.protomodel )
+                ma = Manipulator ( self.protomodel, self.environ )
                 comment = f"when computing r-value for combo: walkerid={self.walkerid} step={self.protomodel.step}"
                 ma.writeDictFile ( outfile, comment = comment )
                 raise e

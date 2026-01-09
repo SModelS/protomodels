@@ -742,6 +742,7 @@ Just filter the database:
                 D["newObs"]=orig
                 self.addToStats ( label, D, dataset.globalInfo )
                 return dataset
+        """
         ## the signal is less than permille of bg?
         if orig > 0. and sigN / orig < 1e-3:
                 self.log ( f" `- signal sigN={sigN} re obsN={orig} too small. skip.")
@@ -750,6 +751,7 @@ Just filter the database:
                 D["newObs"]=orig
                 self.addToStats ( label, D, dataset.globalInfo )
                 return dataset
+        """
         self.log ( f" `- effmap adding sigN={sigN} to obsN={orig} -> newObs={orig+sigN}" )
         dataset.dataInfo.trueBG = orig ## keep track of true bg
         dataset.dataInfo.observedN = orig + sigN
