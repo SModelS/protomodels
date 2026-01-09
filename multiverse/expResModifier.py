@@ -35,6 +35,7 @@ from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
 from base.loggerbase import LoggerBase
+from base.runEnviron import RunEnviron
 from tester.combinationsmatrix import getYamlMatrix
 from typing import Dict, List, Text, Callable, Union
 # from icecream import ic
@@ -162,6 +163,8 @@ Just filter the database:
         self.run()
 
     def createMyTruth ( self ):
+        """ create the truth.dict file, with the true BSM model,
+        and how it would score with the new signal database """
         from multiverse.mhelpers import createMyFile
         createMyFile ( signal_model = self.pmodel,
             dbpath = self.outfile, outfile = "truth.dict",
@@ -379,7 +382,18 @@ Just filter the database:
         if hasattr ( self, "protomodel" ) and self.protomodel is not None and \
                 type(self.protomodel) != str:
             self.protomodel.delCurrentSLHA()
+        self.createNewRunDict()
         self.createMyTruth()
+
+    def createNewRunDict ( self ):
+        """ create the new run.dict file, referencing the signal database now """
+        self.environ.moveRunDict ( "run_creation.dict" )
+        args = vars(self.environ)
+        newargs = { "dbpath": self.outfile, "dbversion": self.dbversion }
+        for i in [ "allowN1N1Prod", ]:
+            newargs[i]=args[i]
+        ## this line triggers creation of the new run.dict
+        self.environ = RunEnviron.create ( **newargs )
 
     def produceProtoModel ( self, filename : str, dbversion : str,
            allowN1N1Prod : bool = True ):
@@ -400,12 +414,12 @@ Just filter the database:
         select = "all"
         keep_meta = True
         # M = ProtoModel ( walkerid, self.dbpath, expected, select, keep_meta )
-        from base.runEnviron import RunEnviron
-        environ = RunEnviron.create( allowN1N1Prod = allowN1N1Prod, dbversion = dbversion,
+        ## create a new environment, possibly overwriting old run.dicts
+        self.environ = RunEnviron.new( allowN1N1Prod = allowN1N1Prod, dbversion = dbversion,
             dbpath = self.dbpath )
-        M = ProtoModel ( walkerid, keep_meta, environ = environ )
+        M = ProtoModel ( walkerid, keep_meta, environ = self.environ )
         M.createNewSLHAFileName ( prefix="erm" )
-        ma = Manipulator ( M, walkerid = walkerid, environ = environ )
+        ma = Manipulator ( M, walkerid = walkerid, environ = self.environ )
         with open ( filename, "rt" ) as f:
             try:
                 m = eval ( f.read() )
@@ -421,6 +435,7 @@ Just filter the database:
         ma.M.computeXSecs( keep_slha = True )
         self.log ( f"xsecs produced {ma.M.currentSLHA}" )
         self.log ( f" `- does currentslha exist? {os.path.exists ( ma.M.currentSLHA )}" )
+        self.pprint ( f"BSM model's xsecs:" )
         ma.printXSecs( useParticleNames = True )
         self.protomodel = ma.M
         return self.protomodel
@@ -1036,9 +1051,11 @@ Just filter the database:
             dataset.txnameList[i].sigmaN = sigmaN
         return dataset
 
-    def saveStats ( self, statsname = None ):
+    def writeStats ( self, statsname : os.PathLike = None ):
         """ write out the collected stats, so we can discuss experimentalists'
-            conservativeness """
+            conservativeness 
+        :param statsname: sth like *_database.dict
+        """
         if self.suffix in [ None, "None", "", "none" ]:
             return
         filename = f"{self.rundir}/{self.suffix}.dict".replace("//","/")
@@ -1050,6 +1067,7 @@ Just filter the database:
                  "allowN1N1Prod": self.allowN1N1Prod,
                  "lognormal": self.lognormal, "ulmassscale": self.ulmassscale,
                  "fixedsignals": self.fixedsignals,
+                 "bsm_model": self.pmodel,
                  "fixedbackgrounds": self.fixedbackgrounds }
         meta["protomodel"]=None
         if self.protomodel!= None:
@@ -1755,7 +1773,7 @@ Just filter the database:
             if not self.playback:
                 er = self.modifyDatabase ( )
         if statsname is not None:
-            self.saveStats( statsname )
+            self.writeStats( statsname )
 
         if self.check:
             self.check ( )

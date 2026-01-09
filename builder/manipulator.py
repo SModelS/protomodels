@@ -544,8 +544,8 @@ class Manipulator ( LoggerBase ):
         else:
             sK=""
             if "K" in D:
-                sK = formatObject ( D['K'], 1 )
-            self.highlight ( "info", f"starting with K={sK}, {filename}{scom}" )
+                sK = f" K={formatObject ( D['K'], 1 )}, "
+            self.highlight ( "info", f"starting with {sK}{filename}{scom}" )
         if self.walkerid != None:
             self.M.walkerid = self.walkerid
         #Reset all model attributes:

@@ -69,7 +69,7 @@ class RunEnviron:
                     print ( f"[RunEnviron] {k:>16}: {v[0]} != {v[1]}" )
                 if k not in [ "use_initialiser" ]:
                     print ( f"[RunEnviron] correct this!" )
-                    import sys; sys.exit(-1)
+                    raise Exception ( f"[RunEnviron] {k:>16}: {v[0]} != {v[1]}" )
                 else:
                     print ( f"[RunEnviron] thats allowed!" )
             else: # newdict is compatible with old dict
@@ -77,6 +77,21 @@ class RunEnviron:
         py_dump ( newdict, runDictFile )
         ret = RunEnviron ( runDictFile )
         return ret
+
+    @classmethod
+    def new ( cls, **args ):
+        """ create a new run.dict, override any old """
+        runDictFile = "run.dict"
+        if os.path.exists ( runDictFile ):
+            import shutil
+            shutil.move ( runDictFile, "run_old.dict" )
+        return cls.create ( **args )
+
+    def moveRunDict ( self, dest : os.PathLike ):
+        """ move this run.dict file """
+        import shutil
+        shutil.move ( self.runDictFile, dest )
+        self.runDictFile = dest
 
     @classmethod
     def defaults ( obj ) -> dict:
