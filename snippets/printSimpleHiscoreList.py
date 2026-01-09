@@ -35,6 +35,7 @@ def getHiscores ( dictfile : PathLike = "hiscores_global.dict" ) -> list:
 
     :returns: list of hiscores
     """
+    nlines = 0
     if not os.path.exists ( dictfile ):
         print ( f"[printSimpleHiscoreList] {dictfile} does not exist" )
         nlines += 1
