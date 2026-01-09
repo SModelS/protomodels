@@ -165,8 +165,8 @@ Just filter the database:
     def createMyTruth ( self ):
         """ create the truth.dict file, with the true BSM model,
         and how it would score with the new signal database """
-        from multiverse.mhelpers import createMyFile
-        createMyFile ( signal_model = self.pmodel,
+        from multiverse.mhelpers import createMyTruthFile
+        self.truth = createMyTruthFile ( signal_model = self.pmodel,
             dbpath = self.outfile, outfile = "truth.dict",
             interactive = False )
 
@@ -389,7 +389,7 @@ Just filter the database:
         """ create the new run.dict file, referencing the signal database now """
         self.environ.moveRunDict ( "run_creation.dict" )
         args = vars(self.environ)
-        newargs = { "dbpath": self.outfile, "dbversion": self.dbversion }
+        newargs = { "dbpath": self.outfile, "dbver": self.dbversion }
         for i in [ "allowN1N1Prod", ]:
             newargs[i]=args[i]
         ## this line triggers creation of the new run.dict
@@ -1067,11 +1067,12 @@ Just filter the database:
                  "allowN1N1Prod": self.allowN1N1Prod,
                  "lognormal": self.lognormal, "ulmassscale": self.ulmassscale,
                  "fixedsignals": self.fixedsignals,
-                 "bsm_model": self.pmodel,
+                 "bsm_file": self.pmodel,
                  "fixedbackgrounds": self.fixedbackgrounds }
-        meta["protomodel"]=None
-        if self.protomodel!= None:
-            meta["protomodel"] = f'{str(self.protomodel)}'
+        meta["K_true"]=self.truth["K"]
+        #meta["protomodel"]=None
+        #if self.protomodel!= None:
+        #    meta["protomodel"] = f'{str(self.protomodel)}'
         if hasattr ( runtime, "_drmax" ):
             meta["_drmax"]=runtime._drmax
         if hasattr ( runtime, "_experimental" ):
@@ -1772,8 +1773,6 @@ Just filter the database:
         else:
             if not self.playback:
                 er = self.modifyDatabase ( )
-        if statsname is not None:
-            self.writeStats( statsname )
 
         if self.check:
             self.check ( )
@@ -1788,6 +1787,9 @@ Just filter the database:
             self.symlink ( )
 
         self.finalize()
+
+        if statsname is not None:
+            self.writeStats( statsname )
 
 if __name__ == "__main__":
     import argparse

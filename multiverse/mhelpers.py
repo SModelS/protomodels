@@ -6,16 +6,21 @@
 import os
 from typing import Union
 
-def createMyFile ( signal_model : str = "signal_model.dict",
+def createMyTruthFile ( signal_model : str = "signal_model.dict",
         dbpath : Union[None,os.PathLike] = "./signal.pcl", 
         outfile : str = "truth.dict",
-        interactive : bool = False ):
+        interactive : bool = False ) -> dict:
+    """ create the truth.dict file
+    :param signal_model: the input signal_model.dict file
+
+    :returns: the truth as a dictionary
+    """
     if signal_model == "":
         print ( f"[predictForTruth] no signal model defined." )
-        return
+        return {}
     if not os.path.exists ( signal_model ):
         print ( f"[predictForTruth] {signal_model} does not exist." )
-        return
+        return {}
     from builder.manipulator import Manipulator
     # from builder.protomodel import ProtoModel
     from tester.predictor import Predictor
@@ -43,8 +48,9 @@ def createMyFile ( signal_model : str = "signal_model.dict",
     ma = Manipulator( signal_model, walkerid = "truth", environ = environ )
     ma.M.dbpath = dbpath
     ma.M.K, ma.M.TL = K, TL
-    ma.writeDictFile( outfile )
+    d = ma.writeDictFile( outfile )
     print ( f"[predictForTruth] wrote truth into {outfile}" )
     if interactive:
         import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+    return d
 

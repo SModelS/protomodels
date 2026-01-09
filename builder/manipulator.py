@@ -374,7 +374,7 @@ class Manipulator ( LoggerBase ):
         """
         if type(self.M) == type(None):
             ## there is nothing to write
-            return
+            return {}
         D = copy.deepcopy ( self.M.dict() )
         frozen = self.M.frozenParticles()
         if cleanOut:
@@ -439,6 +439,7 @@ class Manipulator ( LoggerBase ):
         import time
         fname = outfile.replace("%t", str(int(time.time())) )
         self.writeDictionaryToFile ( fname, D, appendMode )
+        return D
 
     def pidInList ( self, pid, lst, signed ):
         """ is pid in lst """
