@@ -1,0 +1,5 @@
+# Results from 50 runs on SModelS db v3.1.0 on protomodels thesis branch (ewkinos+monojets)
+1) best_perf_proto.dict = record of best performing proto-model (highest K) from each walk
+2) all_walks.tar.gz = tar file recording all accepted proto-models for all walks
+3) walkers*.dict = separate dict file (same as in all_walks), kept separaltey as they record the top best performing proto-model
+

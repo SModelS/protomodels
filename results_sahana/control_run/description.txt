@@ -1,0 +1,4 @@
+#Runs for reprdcuing fake signal in database: RUN iD: 721-740
+1) best_perf_proto.dict: top K model from each walk
+2) my.signal and signal_model.dict - the description of the fake signal injected into the database
+3) signal.pcl - fake signal database
