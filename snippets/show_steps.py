@@ -56,7 +56,9 @@ def show():
         nfin_i, ntot_i = showWalkerid ( walkerid )
         nfin.append ( nfin_i )
         ntot.append ( ntot_i )
-    perc = sum(nfin)/sum(ntot)*100.
+    perc = 0.
+    if sum(ntot) > 0.:
+        perc = sum(nfin)/sum(ntot)*100.
     print ( f"total: {sum(nfin)}/{sum(ntot)} ({perc:.1f}%)" )
 
 if __name__ == "__main__":
