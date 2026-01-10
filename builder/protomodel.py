@@ -579,7 +579,7 @@ class ProtoModel ( LoggerBase ):
                         continue
                     if not pid in inSLHAFile:
                         inSLHAFile[pid]=set()
-                        totalBRs[pid]={}
+                        totalBRs[pid]=[]
 
                     #Get information for particle
                     if pid in unfrozen:
@@ -605,7 +605,7 @@ class ProtoModel ( LoggerBase ):
                             if dpids in covered[pid]:
                                 covered[pid].pop ( dpids )
                             br = decays[dpids]
-                            totalBRs[pid][dpids] = br
+                            totalBRs[pid].append ( (dpids, br ) )
                             l = l.replace(decayTag, f"{br:.5f}" )
                         else:
                             l = ""
@@ -635,12 +635,12 @@ class ProtoModel ( LoggerBase ):
                             self.error ( f"channels mentioned in template file: {dpds}" )
                 sys.exit(-1)
             for pid, allbrs in totalBRs.items():
-                totalbr = sum( allbrs.values() )
+                totalbr = sum( [ x[1] for x in allbrs ])
                 if abs(totalbr-0.) > 1e-3 and abs(totalbr-1.) > 1e-3:
                     self.error ( f"total brs for {pid} add up to {totalbr:.3f} != 1." )
                     self.error ( f"contributions are:" )
-                    for dpids,br in totalBRs[pid].items():
-                        self.error ( f"{dpids}: {br}" )
+                    for dpids_br in totalBRs[pid]:
+                        self.error ( f"{dpids_br[0]}: {dpids_br[1]}" )
                     sys.exit(-1)
             frozen = self.frozenParticles()
             # now make the frozen particles stable (to quench smodels warnings,
