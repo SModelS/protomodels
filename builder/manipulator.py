@@ -739,8 +739,8 @@ class Manipulator ( LoggerBase ):
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs, protomodel=protomodel)
 
     def initBranchings ( self, pid, protomodel=None):
-        """ Intialize BRs to diffrent open decay channels for pid.
-            Either assign 'democratic' BRs or assign random BRs.
+        """ Initialize BRs to different open decay channels for pid.
+        Either assign 'democratic' BRs or assign random BRs.
         """
         if protomodel is None:
             protomodel = self.M
@@ -812,6 +812,7 @@ class Manipulator ( LoggerBase ):
         if not initialized:
             return False
         protomodel.decays = self.simplifyDecays(protomodel=protomodel)
+        self.log ( f"initialized Branchings for {self.namer.asciiName(pid)} to {protomodel.decays[pid]}" )
         return True
 
     def normalizeBranchings(self, pid, rescaleSSMs=False, protomodel=None):
