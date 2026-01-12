@@ -54,6 +54,10 @@ class RunEnviron:
         import copy
         newdict = copy.deepcopy( defaults )
         runDictFile = "run.dict"
+        check = True
+        if "check" in args:
+            check = args["check"]
+            args.pop("check")
         if "runDictFile" in args:
             runDictFile = os.path.expanduser ( args["runDictFile"] )
             args.pop("runDictFile")
@@ -64,10 +68,10 @@ class RunEnviron:
         old_dbver = "???"
         if oldret != None:
             ## dbver we check later
-            old_dbver = oldret.run_dict["dbver"]
-            oldret.run_dict.pop ( "dbver" )
-            newdict.pop ( "dbver" )
-            if newdict != oldret.run_dict:
+            old_dbver = oldret.run_dict["dbversion"]
+            oldret.run_dict.pop ( "dbversion" )
+            newdict.pop ( "dbversion" )
+            if check and newdict != oldret.run_dict:
                 print ( f"[RunEnviron] {runDictFile} differs from previous version:" )
                 dd = dict_diff(oldret.run_dict,newdict)
                 for k,v in dd.items():
@@ -80,11 +84,12 @@ class RunEnviron:
                     print ( f"[RunEnviron] thats allowed!" )
         #    else: # newdict is compatible with old dict
         #        return oldret
-        newdict["dbver"]=old_dbver
+        if not "dbversion" in newdict:
+            newdict["dbversion"]=old_dbver
         py_dump ( newdict, runDictFile )
         ret = RunEnviron ( runDictFile )
-        new_dbver = ret.databaseVersion # run_dict["dbver"]
-        if old_dbver != new_dbver:
+        new_dbver = ret.databaseVersion 
+        if check and old_dbver != new_dbver:
             line= f"[RunEnviron] dbver changed from {old_dbver} to {new_dbver}"
             print ( line )
             raise Exception ( line )
@@ -97,6 +102,7 @@ class RunEnviron:
         if os.path.exists ( runDictFile ):
             import shutil
             shutil.move ( runDictFile, "run_old.dict" )
+        args["check"]=False
         return cls.create ( **args )
 
     def moveRunDict ( self, dest : os.PathLike ):
@@ -113,7 +119,7 @@ class RunEnviron:
             "templateSLHA": "template_default.slha",
             "allowN1N1Prod": False, "susy_mode": False,
             "rundir": os.getcwd(), "strategy": "aggressive",
-            "use_initialiser": None, "dbver": "???" }
+            "use_initialiser": None, "dbversion": "???" }
         return defaults
 
     def __str__ ( self ):

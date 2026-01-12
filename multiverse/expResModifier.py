@@ -378,8 +378,8 @@ Just filter the database:
         """ finalize, delete files, create my.truth """
         # print ( "[expResModifier] finalize" )
         if self.keep:
-            return
-        if hasattr ( self, "protomodel" ) and self.protomodel is not None and \
+            pass
+        elif hasattr ( self, "protomodel" ) and self.protomodel is not None and \
                 type(self.protomodel) != str:
             self.protomodel.delCurrentSLHA()
         self.createNewRunDict()
@@ -389,20 +389,23 @@ Just filter the database:
         """ create the new run.dict file, referencing the signal database now """
         self.environ.moveRunDict ( "run_creation.dict" )
         args = vars(self.environ)
-        newargs = { "dbpath": self.outfile, "dbver": self.dbversion }
+        self.dbversion = self.db.databaseVersion
+        newargs = { "dbpath": self.outfile, "dbversion": self.dbversion }
         for i in [ "allowN1N1Prod", ]:
             newargs[i]=args[i]
         ## this line triggers creation of the new run.dict
-        self.environ = RunEnviron.create ( **newargs )
+        self.environ = RunEnviron.new ( **newargs )
 
     def produceProtoModel ( self, filename : str, dbversion : str,
-           allowN1N1Prod : bool = True ):
+           allowN1N1Prod : bool = True ) -> Union[None,ProtoModel]:
         """ try to produce a protomodel from pmodel
         :param filename: filename of pmodel dictionary
         :param dbversion: version of database, for tracking
         :param allowN1N1Prod: if bool, then have also N1N1 production
         :returns: none if not succesful, else protomodel object
         """
+        self.environ = RunEnviron.new( allowN1N1Prod = allowN1N1Prod, 
+                dbversion = dbversion, dbpath = self.dbpath )
         if filename == "":
             return None
         if not os.path.exists ( filename ):
@@ -415,8 +418,6 @@ Just filter the database:
         keep_meta = True
         # M = ProtoModel ( walkerid, self.dbpath, expected, select, keep_meta )
         ## create a new environment, possibly overwriting old run.dicts
-        self.environ = RunEnviron.new( allowN1N1Prod = allowN1N1Prod, dbversion = dbversion,
-            dbpath = self.dbpath )
         M = ProtoModel ( walkerid, keep_meta, environ = self.environ )
         M.createNewSLHAFileName ( prefix="erm" )
         ma = Manipulator ( M, walkerid = walkerid, environ = self.environ )
@@ -695,7 +696,7 @@ Just filter the database:
                     oldBG = obs["data"][0]
                     # print ( f"[expResModifier] adding {sigN} to {oldBG} in {pyhfname}" )
                     if len(obs["data"])>1:
-                        print ( f"@@ERROR XY more than one bin!!! {obs['data']}" )
+                        self.error ( f"more than one bin!!! {obs['data']}" )
                         import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
                     obs["data"][0]+=sigN
 
@@ -1069,7 +1070,8 @@ Just filter the database:
                  "fixedsignals": self.fixedsignals,
                  "bsm_file": self.pmodel,
                  "fixedbackgrounds": self.fixedbackgrounds }
-        meta["K_true"]=self.truth["K"]
+        if "K" in self.truth:
+            meta["K_true"]=self.truth["K"]
         #meta["protomodel"]=None
         #if self.protomodel!= None:
         #    meta["protomodel"] = f'{str(self.protomodel)}'
@@ -1243,7 +1245,6 @@ Just filter the database:
         self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
         from smodels.statistics.simplifiedLikelihoods import Data
         data = Data ( observed, expectedBGs, covm, thirdMoments )
-        # print ( f"@@3 for {expRes.globalInfo.id} rvs {rvs[:3]} cnt {centers[:3]} diag {diag[:3]}" )
         for i,dataset in enumerate(expRes.datasets):
             newObs = dataset.dataInfo.observedN
             if not self.no_synthesis:
@@ -1317,12 +1318,10 @@ Just filter the database:
                             data["lo"] = center - delta * self.fudge
                         if "hi_data" in data:
                             for idd,(hi,lo) in enumerate ( zip ( data["hi_data"],data["lo_data"] ) ):
-                                # print ( f"@@9 old hi_data {hi,lo}" ) 
                                 center = (hi+lo)/2.
                                 delta = hi - center
                                 data["hi_data"][idd] = center + delta * self.fudge
                                 data["lo_data"][idd] = center - delta * self.fudge
-                                # print ( f"@@9 new hi {computer.likelihoodComputer.workspaces[iws]['channels'][ich]['samples'][ism]['modifiers'][im]['data']['hi_data'][idd]}" )
 
     def replaceObservation ( self, expRes, sr, newObs, ws_i ):
         jsonEntries = expRes.globalInfo.jsons[ ws_i ]["observations"]
