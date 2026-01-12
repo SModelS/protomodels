@@ -61,21 +61,33 @@ class RunEnviron:
         if os.path.exists ( runDictFile ):
             oldret = RunEnviron ( runDictFile )
         newdict.update ( **args )
+        old_dbver = "???"
         if oldret != None:
+            ## dbver we check later
+            old_dbver = oldret.run_dict["dbver"]
+            oldret.run_dict.pop ( "dbver" )
+            newdict.pop ( "dbver" )
             if newdict != oldret.run_dict:
                 print ( f"[RunEnviron] {runDictFile} differs from previous version:" )
                 dd = dict_diff(oldret.run_dict,newdict)
                 for k,v in dd.items():
-                    print ( f"[RunEnviron] {k:>16}: {v[0]} != {v[1]}" )
-                if k not in [ "use_initialiser" ]:
-                    print ( f"[RunEnviron] correct this!" )
-                    raise Exception ( f"[RunEnviron] {k:>16}: {v[0]} != {v[1]}" )
+                    line = f"[RunEnviron] {k:>16}: {v[0]} != {v[1]}"
+                    print ( line )
+                    if k not in [ "use_initialiser" ]:
+                        print ( f"[RunEnviron] correct this!" )
+                        raise Exception ( line )
                 else:
                     print ( f"[RunEnviron] thats allowed!" )
-            else: # newdict is compatible with old dict
-                return oldret
+        #    else: # newdict is compatible with old dict
+        #        return oldret
+        newdict["dbver"]=old_dbver
         py_dump ( newdict, runDictFile )
         ret = RunEnviron ( runDictFile )
+        new_dbver = ret.databaseVersion # run_dict["dbver"]
+        if old_dbver != new_dbver:
+            line= f"[RunEnviron] dbver changed from {old_dbver} to {new_dbver}"
+            print ( line )
+            raise Exception ( line )
         return ret
 
     @classmethod
