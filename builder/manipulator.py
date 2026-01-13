@@ -778,7 +778,11 @@ class Manipulator ( LoggerBase ):
         for dkey in dkeys:
             br = 1.
             if randomly:
-                br = random.uniform(0,1)
+                # if randomly, then draw from exponentials,
+                # so that we have a dominating decay
+                br = random.expovariate()
+            if len(inv_decay_keys[dkey])>1:
+                br = br / len(inv_decay_keys[dkey])
             for dpids in inv_decay_keys[dkey]:
                 protomodel.decays[pid][dpids]=br
                 br_tot += br
