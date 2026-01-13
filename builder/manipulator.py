@@ -604,7 +604,7 @@ class Manipulator ( LoggerBase ):
             filename = f"Pmodels/pmodel{mode}.dict"
         if not os.path.exists ( filename ):
             fname = f"{os.getcwd()}/{filename}"
-            self.highlight ( "red", 
+            self.highlight ( "red",
                     f"cheat mode started with {mode}, but no {fname} found" )
             return
             # sys.exit(-1)
@@ -793,12 +793,17 @@ class Manipulator ( LoggerBase ):
             protomodel.decays[pid][dpids]=br/br_tot
         return True
 
-    def normalizeBranchings(self, pid, rescaleSSMs=False, protomodel=None):
-        """ normalize branchings of a particle if the total BR is differs from 1.0.
+    def normalizeBranchings(self, pid : int, rescaleSSMs : bool =False,
+            protomodel : Union[ProtoModel,None] = None) -> bool:
+        """ normalize branchings of a particle if the total BR is differs
+        from 1.0.
 
-        :param pid: Particle to have their branchings normalized. If pid = None, normalize all decays.
-        :param rescaleSSMs: if True, rescale the corresponding signal strength multipliers,
-                         so that sigma x br stays the same.
+        :param pid: Particle to have their branchings normalized.
+        If pid = None, normalize all decays.
+        :param rescaleSSMs: if True, rescale the corresponding signal strength
+        multipliers, so that sigma x br stays the same.
+
+        :returns: true if succesful
         """
 
         if not protomodel:
@@ -810,7 +815,7 @@ class Manipulator ( LoggerBase ):
 
         BRtot = sum(protomodel.decays[pid].values())
         if BRtot == 0:
-            self.log ( f"the decayless particles are {self.M.decaylessParticles}" )
+            self.log ( f"the decayless particles are {self.namer.asciiName(self.M.decaylessParticles)} [{self.M.decaylessParticles}]" )
             if pid not in self.M.decaylessParticles:
                 #print(f"decay of {pid}: {protomodel.decays[pid]}")
                 self.log(f"decay of {pid}: {protomodel.decays[pid]}")
@@ -846,11 +851,13 @@ class Manipulator ( LoggerBase ):
 
         return True
 
-    def initSSMFor(self, pid, protomodel=None, ssmSigma=1.0, cap_ssm=100.):
-        """ Initialize SSM multipliers (for pair production of particle/anti-particle):
-            new ssm = lognorm.rvs(1.0, ssmSigma)
+    def initSSMFor(self, pid : int, protomodel : Union[ProtoModel,None] =None,
+            ssmSigma : float = 1.0, cap_ssm : float = 100. ):
+        """ Initialize SSM multipliers (for pair production of
+        particle/anti-particle): new ssm = lognorm.rvs(1.0, ssmSigma)
         """
-        self.log ( f"initSSMFor {pid}({self.namer.asciiName(pid)}) with ssmSigma={ssmSigma:.1} cap_ssm={cap_ssm:.1f}" )
+        p_name = self.namer.asciiName(pid)
+        self.log ( f"initSSMFor {p_name}({pid}) with ssmSigma={ssmSigma:.1} cap_ssm={cap_ssm:.1f}" )
 
         if protomodel is None:
             protomodel = self.M
@@ -1108,9 +1115,9 @@ class Manipulator ( LoggerBase ):
                 accept_move = self.proposal_density(move='add_par', force_move=force_move)
                 if accept_move:
                     nChanges += 1
-                    self.log(f"Accept unfreezing of {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
+                    self.log(f"Accept unfreezing of {self.namer.asciiName(recentlyUnfrozen)} ({recentlyUnfrozen})")
                 else:
-                    self.log(f"Reject unfreezing {recentlyUnfrozen} ({self.namer.asciiName(recentlyUnfrozen)})")
+                    self.log(f"Reject unfreezing {self.namer.asciiName(recentlyUnfrozen)} ({recentlyUnfrozen})")
                     recentlyUnfrozen = None
 
             frozenParticles = self.randomlyFreezeParticle(recentlyUnfrozen=recentlyUnfrozen)
@@ -1198,7 +1205,7 @@ class Manipulator ( LoggerBase ):
                 pid = pids[0] #Unfreeze the lighter state
                 break
 
-        self.log ( f"Propose unfreezing pid: {pid}({self.namer.asciiName(pid)})" )
+        self.log ( f"Propose unfreezing {self.namer.asciiName(pid)}({pid})" )
         #print(f"Propose unfreezing {self.namer.asciiName(pid)}" )
         unfrozen = self.unFreezeParticles( pid, protomodel = self.propose_model, cap_ssm=cap_ssm)
         return unfrozen
@@ -1210,9 +1217,9 @@ class Manipulator ( LoggerBase ):
 
         :param prob: Probability for changing a branching ratio
         :param zeroBRprob: With zeroBRprob probability, close decay channel
-        :param singleBRprob: With probability singleBRprob, 
+        :param singleBRprob: With probability singleBRprob,
         keep only one decay channel
-        :param addBRprob: With probability addBRprob, add a new decay channel 
+        :param addBRprob: With probability addBRprob, add a new decay channel
         for the pid
         :returns: number of changes
         """
@@ -1247,11 +1254,11 @@ class Manipulator ( LoggerBase ):
             self.recording = self.recording[-20:]
 
 
-    def randomlyChangeBranchingOfPid ( self, pid : int, 
-            protomodel : Union[ProtoModel,None] = None, 
-            zeroBRprob : float = 0.05, singleBRprob : float = 0.05, 
+    def randomlyChangeBranchingOfPid ( self, pid : int,
+            protomodel : Union[ProtoModel,None] = None,
+            zeroBRprob : float = 0.05, singleBRprob : float = 0.05,
             addBRprob : float = 0.1 ) -> int:
-        """ randomly change the branching a particle pid 
+        """ randomly change the branching a particle pid
         :returns: number of changes
         """
 
@@ -1502,7 +1509,7 @@ class Manipulator ( LoggerBase ):
 
         p = int(np.random.choice ( unfrozenparticles ))
         if pid != None: p = pid
-        self.log (f"Changing all ssms of {p}({self.namer.asciiName(p)})" )
+        self.log (f"Changing all ssms of {self.namer.asciiName(p)} ({p})" )
 
         ssms = []
         for dpd,v in protomodel.ssmultipliers.items():
@@ -1510,7 +1517,7 @@ class Manipulator ( LoggerBase ):
                 newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
                 if newSSM > cap_ssm: newSSM = cap_ssm
                 protomodel.ssmultipliers[dpd]= newSSM
-                self.log (f"Changing ssm of {dpd}({self.namer.asciiName(dpd)}) to newSSM" )
+                self.log (f"Changing ssm of {self.namer.asciiName(dpd)} ({dpd}) to newSSM" )
                 #self.changeSSM ( dpd, newssm )
                 ssms.append ( newSSM )
 
