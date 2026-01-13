@@ -40,8 +40,8 @@ def _run ( walker, catch_exceptions, seed ):
             f.write ( f"traceback: {str(traceback.format_exc())}\n" )
             if hasattr ( walker.manipulator.M, "currentSLHA" ):
                 f.write ( f"slha file was {walker.manipulator.M.currentSLHA}\n" )
-        from colorama import Fore as ansi
-        print ( f"{ansi.RED}walker {walker.walkerid} threw: {e}{ansi.RESET}\n" )
+        from smodels_utils.helper.terminalcolors import *
+        print ( f"{RED}walker {walker.walkerid} threw: {e}{RESET}\n" )
 
 def startWalkers ( walkers : List, catch_exceptions : bool = False,
                    seed : Union[None,int] = None ) -> int:

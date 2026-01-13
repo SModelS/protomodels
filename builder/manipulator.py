@@ -9,7 +9,6 @@ __all__ = [ "Manipulator" ]
 
 import copy, os, sys, itertools, colorama, random
 import numpy as np
-from colorama import Fore as ansi
 from typing import Union, Dict, List, Tuple, Set
 from unum import Unum
 from os import PathLike
@@ -20,6 +19,8 @@ from smodels.base.physicsUnits import fb, TeV, GeV
 from smodels.base.crossSection import LO
 from smodels.matching.theoryPrediction import TheoryPrediction
 import smodels
+
+from smodels_utils.helper.terminalcolors import *
 
 from base.loggerbase import LoggerBase
 from base.constants import smMasses, smWidths
@@ -602,7 +603,9 @@ class Manipulator ( LoggerBase ):
         if type(mode)==int:
             filename = f"Pmodels/pmodel{mode}.dict"
         if not os.path.exists ( filename ):
-            self.highlight ( "red", f"cheat mode started with {mode}, but no {os.getcwd()}/{filename} found" )
+            fname = f"{os.getcwd()}/{filename}"
+            self.highlight ( "red", 
+                    f"cheat mode started with {mode}, but no {fname} found" )
             return
             # sys.exit(-1)
         # scom = ""
@@ -643,7 +646,7 @@ class Manipulator ( LoggerBase ):
         for i in combo:
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
             dId = i.dataId() if i.dataId() != None else "UL"
-            print ( f" `- {ansi.GREEN}{i.analysisId()}:{dId}: {txns}{ansi.RESET}" )
+            print ( f" `- {GREEN}{i.analysisId()}:{dId}: {txns}{RESET}" )
             line = "        "
             if detailed:
                 import math
@@ -659,7 +662,7 @@ class Manipulator ( LoggerBase ):
                     toterr = math.sqrt ( bgErr**2 + eBG )
                     line += f"obs={dI.observedN} exp={eBG:.2f}+-{bgErr}"
                     if toterr > 0.:
-                        line += f" Z={ansi.RED}{(dI.observedN - eBG ) / toterr :.1f}*sigma{ansi.RESET}"
+                        line += f" Z={RED}{(dI.observedN - eBG ) / toterr :.1f}*sigma{RESET}"
                     print ( line )
                 if dtype in [ "upperLimit", "combined" ]:
                     try:
@@ -669,7 +672,7 @@ class Manipulator ( LoggerBase ):
                     oUL = i.getUpperLimit ( ).asNumber(fb)
                     sigma_exp = eUL / 1.96 # the expected scale, sigma
                     Z = ( oUL - eUL ) / sigma_exp
-                    line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={ansi.RED}{Z:.1f}*sigma{ansi.RESET}"
+                    line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={RED}{Z:.1f}*sigma{RESET}"
                     print ( line )
 
             allpids = list( getAllPidsOfTheoryPred ( i ) )
@@ -738,16 +741,78 @@ class Manipulator ( LoggerBase ):
             #Make sure to normalize the branchings
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs, protomodel=protomodel)
 
-    def initBranchings ( self, pid, protomodel=None):
+    def initBranchings ( self, pid : int ,
+            protomodel : Union[ProtoModel,None] = None,
+            randomly : bool = True ) -> bool:
         """ Initialize BRs to different open decay channels for pid.
         Either assign 'democratic' BRs or assign random BRs.
+        :param pid: particle id
+        :param protomodel: if None, then use self.M
+        :param randomly: if true, initialize to random values, else democratically
+
+        :returns: true if really initialized, false if could not initialize
         """
         if protomodel is None:
             protomodel = self.M
 
         #Do not modify the LSP decays
         if pid in self.decaylessParticles:
-            return
+            return False
+        pid_name = self.namer.asciiName(pid)
+
+        #Erase BRs (if any has been stored)
+        protomodel.decays[pid] = {}
+
+        #Get the allowed decay channels:
+        openChannels = protomodel.getOpenChannels(pid)
+
+        dkeys = set()
+        for dpid in openChannels:
+            dk = self.M.decay_keys[pid][dpid]
+            dkeys.add(dk)
+
+        inv_decay_keys = {}
+        for pids,label in self.decay_keys[pid].items():
+            if not label in inv_decay_keys:
+                inv_decay_keys[label]=set()
+            inv_decay_keys[label].add(pids)
+
+        br_tot = 0.
+        # iterate through all decay keys
+        for dkey in dkeys:
+            br = 1.
+            if randomly:
+                br = random.uniform(0,1)
+            for dpids in inv_decay_keys[dkey]:
+                protomodel.decays[pid][dpids]=br
+                br_tot += br
+
+        if br_tot == 0.:
+            self.error ( f"could not initialize {pid_name}: br_tot={br_tot}." )
+            self.error ( f"openChannels were {openChannels}. will freeze." )
+            self.freezeParticle ( pid )
+            return false
+        ## finally normalize
+        for dpids,br in protomodel.decays[pid].items():
+            protomodel.decays[pid][dpids]=br/br_tot
+        return True
+
+    def oldInitBranchings ( self, pid : int ,
+            protomodel : Union[ProtoModel,None] = None ) -> bool:
+        """ Initialize BRs to different open decay channels for pid.
+        Either assign 'democratic' BRs or assign random BRs.
+        :param pid: particle id
+        :param protomodel: if None, then use self.M
+
+        :returns: true if initialized (what does that mean exactly?)
+        """
+        self.error ( f"FIXME obsolete" )
+        if protomodel is None:
+            protomodel = self.M
+
+        #Do not modify the LSP decays
+        if pid in self.decaylessParticles:
+            return False
 
         #Erase BRs (if any has been stored) for offshell too?
         protomodel.decays[pid] = {}
@@ -760,33 +825,50 @@ class Manipulator ( LoggerBase ):
             dkeys.add(dk)
         dkeys = list(dkeys)
 
-
         nitems = len(openChannels)
 
         offshell = self.checkIfOffshell(pid, protomodel=protomodel)
+
+        protomodel.decays[pid] = {}
 
         for dk in dkeys:
             #get the list of decay channels with the same dkey
             decay_chan = [key for key,value in self.M.decay_keys[pid].items() if value == dk]
             br = float(norm.rvs ( 1. / nitems, np.sqrt ( .5 / nitems )  ))
             br = max ( 0., br )
+            tokens = dk.split("_")
+            last_pid = int ( tokens[-1] )
 
             for dpid in decay_chan:
                 if offshell:
-                    protomodel.decays[pid] = {}
                     if pid == 1000023:
-                        if '11' in dk[-2:]: protomodel.decays[pid][dpid] = 1.0/21.0   #chi2->chi1 l+ l-
-                        elif '2' in dk[-1]: protomodel.decays[pid][dpid] = 12.0/21.0  #chi2->chi1 u ubar (d,c,s), 3 cols of each
-                        elif '5' in dk[-1]: protomodel.decays[pid][dpid] = 3.0/21.0   #chi2->chi1 b bbar, 3 cols of b
-                        elif '12' in dk[-2:]: protomodel.decays[pid][dpid] = 3.0/21.0  #chi2->chi1 nu nu, 3 flav of nus
+                        if last_pid == 11:
+                            # chi2 -> chi1 l+ l-
+                            protomodel.decays[pid][dpid] = 1.0/21.0   #chi2->chi1 l+ l-
+                        elif last_pid == 2:
+                            # chi2->chi1 u ubar (d,c,s), 3 cols of each
+                            protomodel.decays[pid][dpid] = 12.0/21.0
+                        elif last_pid == 5:
+                            # chi2->chi1 b bbar, 3 cols of b
+                            protomodel.decays[pid][dpid] = 3.0/21.0
+                        elif last_pid == 12:
+                            # chi2->chi1 nu nu, 3 flav of nus
+                            protomodel.decays[pid][dpid] = 3.0/21.0
                         else: protomodel.decays[pid][dpid] = 0.0
                     elif pid == 1000024:
-                        if '12' in dk[-2:]: protomodel.decays[pid][dpid] = 1.0/9.0
-                        elif '1' in dk[-1]: protomodel.decays[pid][dpid] = 6.0/9.0
+                        if last_pid == 12:
+                            # chi1+->chi10 l nu
+                            protomodel.decays[pid][dpid] = 1.0/9.0
+                        elif last_pid == 1:
+                            # chi1+->chi10 q qbar
+                            protomodel.decays[pid][dpid] = 6.0/9.0
                         else: protomodel.decays[pid][dpid] = 0.0
                 else:
-                    if len(dpid) == 3 and pid in [1000023,1000024]: protomodel.decays[pid][dpid] = 0.0  #turn off offshell 3 body decays for X^2_Z and X^1_W
-                    else: protomodel.decays[pid][dpid] = br
+                    if len(dpid) == 3 and pid in [1000023,1000024]:
+                        # turn off offshell 3 body decays for X^2_Z and X^1_W
+                        protomodel.decays[pid][dpid] = 0.0
+                    else:
+                        protomodel.decays[pid][dpid] = br
 
         if offshell:
             initialized = self.normalizeBranchings(pid, protomodel=protomodel)
@@ -1232,8 +1314,10 @@ class Manipulator ( LoggerBase ):
 
         :param prob: Probability for changing a branching ratio
         :param zeroBRprob: With zeroBRprob probability, close decay channel
-        :param singleBRprob: With probability singleBRprob, keep only one decay channel
-        :param addBRprob: With probability addBRprob, add a new decay channel for the pid
+        :param singleBRprob: With probability singleBRprob, 
+        keep only one decay channel
+        :param addBRprob: With probability addBRprob, add a new decay channel 
+        for the pid
         :returns: number of changes
         """
         if protomodel is None:
@@ -1267,8 +1351,13 @@ class Manipulator ( LoggerBase ):
             self.recording = self.recording[-20:]
 
 
-    def randomlyChangeBranchingOfPid ( self, pid, protomodel = None, zeroBRprob = 0.05, singleBRprob = 0.05, addBRprob = 0.1):
-        """ randomly change the branching a particle pid """
+    def randomlyChangeBranchingOfPid ( self, pid : int, 
+            protomodel : Union[ProtoModel,None] = None, 
+            zeroBRprob : float = 0.05, singleBRprob : float = 0.05, 
+            addBRprob : float = 0.1 ) -> int:
+        """ randomly change the branching a particle pid 
+        :returns: number of changes
+        """
 
         if protomodel is None:
             protomodel = self.M
@@ -1294,7 +1383,8 @@ class Manipulator ( LoggerBase ):
         #Keep only one channel (with probability singleBRprob)
         uSingle = np.random.uniform( 0., 1. )
         if uSingle < singleBRprob:
-            self.log(f"Keeping only one decay channel for {pid} ({self.namer.asciiName(pid)}).")
+            p_name = self.namer.asciiName(pid)
+            self.log(f"Keeping only one decay channel for {pid} ({p_name}).")
             #Choose random decay key:
             dk = np.random.choice(dkeys)
             #get decay channel assocaiated with key, make sure all channels assocaited with same key get same branchings
@@ -1311,7 +1401,9 @@ class Manipulator ( LoggerBase ):
             br = 1.0/len(decay_chan)
             for dpid in decay_chan:
                 self.record ( f"change decay of {self.namer.texName(pid,addDollars=True)} -> {self.namer.texName(dpid,addDollars=True)} to {br:.2f}" )
-                self.log ( f"changed decay of {self.namer.asciiName(pid)} -> {self.namer.asciiName(dpid)} to {br:.2f}" )
+                p_name = self.namer.asciiName(pid)
+                dp_name = self.namer.asciiName(dpid)
+                self.log ( f"changed decay of {p_name} -> {dp_name} to {br:.2f}" )
                 protomodel.decays[pid].update({dpid: br})
 
             #print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
@@ -1783,7 +1875,7 @@ class Manipulator ( LoggerBase ):
 
         :returns: mass of particle that got unfrozen or None
         """
-        
+
         if protomodel is None:
             protomodel = self.M
 
@@ -1844,7 +1936,7 @@ class Manipulator ( LoggerBase ):
 
         m_random = float(np.random.uniform ( 0., 1. ))
         tmpMass = minMass + (maxMass-minMass)*m_random
-        
+
         for degeneracy in protomodel.forced_degeneracies:
             if pid in degeneracy:
                 for degen_pid in degeneracy:
@@ -1854,7 +1946,7 @@ class Manipulator ( LoggerBase ):
                         if mass is not None and degen_mass != mass:
                             self.warning(f"Unfreeze {pid} at mass {mass} while it should be mass degenerate at {degen_mass} with {degen_pid}.")
                         break
-        
+
         ctr = 0
         while pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpMass, protomodel.masses[LSP] ):
             # if in corridor region, redraw!
@@ -1874,7 +1966,7 @@ class Manipulator ( LoggerBase ):
 
         self.record ( f"Unfreeze mass of {pid}({self.namer.texName(pid,addDollars=True)}) to {tmpMass:.1f}" )
         self.log ( f"Unfreeze mass of {self.namer.asciiName(pid)} to {protomodel.masses[pid]:.1f}" )
-        
+
         # Set branchings
         self.log(f"Initializing Branchings for {self.namer.asciiName(pid)}({pid})")
         initialized = self.initBranchings(pid, protomodel=protomodel)

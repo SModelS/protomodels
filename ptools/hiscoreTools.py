@@ -7,7 +7,6 @@ __all__ = [ "hiscoreHiNeedsUpdate", "fetchHiscoresObj" ]
 
 import pickle, subprocess, sys, os, time
 import numpy as np
-from colorama import Fore as ansi
 from scipy import stats
 from typing import Union, Dict, List, Set, Tuple
 from os import PathLike

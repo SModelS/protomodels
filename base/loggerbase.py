@@ -2,7 +2,6 @@
 
 """ Class for all things around logging """
 
-from colorama import Fore as ansi
 import time, os
 from typing import Union
 from ptools import helpers
@@ -58,16 +57,16 @@ class LoggerBase:
 
     def highlight ( self, msgType : str = "info", *args ):
         """ logging, hilit """
-        col = ansi.GREEN
+        col = GREEN
         if msgType.lower() in [ "error", "red" ]:
-            col = ansi.RED
+            col = RED
         elif msgType.lower() in [ "warn", "warning", "yellow" ]:
-            col = ansi.YELLOW
+            col = YELLOW
         elif msgType.lower() in [ "green", "info" ]:
-            col = ansi.GREEN
+            col = GREEN
         else:
             self.highlight ( "red", "I think we called highlight without msg type" )
-        print ( f'{col}[{self.module}:{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}{ansi.RESET}' )
+        print ( f'{col}[{self.module}:{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}{RESET}' )
         self.log ( *args )
 
     def debug ( self, *args ):
