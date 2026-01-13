@@ -4,7 +4,7 @@
 .. module:: factoryOfWalkers
    :synopsis: facility that creates armies of randomWalkers
 
-.. moduleauthor:: Wolfgang Waltenberger <wolfgang.waltenberger@gmail.com>  
+.. moduleauthor:: Wolfgang Waltenberger <wolfgang.waltenberger@gmail.com>
 
 """
 
@@ -40,7 +40,7 @@ def _run ( walker, catch_exceptions, seed ):
             f.write ( f"traceback: {str(traceback.format_exc())}\n" )
             if hasattr ( walker.manipulator.M, "currentSLHA" ):
                 f.write ( f"slha file was {walker.manipulator.M.currentSLHA}\n" )
-        from smodels_utils.helper.terminalcolors import *
+        from smodels_utils.helper.terminalcolors import RED, RESET
         print ( f"{RED}walker {walker.walkerid} threw: {e}{RESET}\n" )
 
 def startWalkers ( walkers : List, catch_exceptions : bool = False,
@@ -53,7 +53,7 @@ def startWalkers ( walkers : List, catch_exceptions : bool = False,
     """
     processes=[]
     print("[factoryOfWalkers] startWalkers")
-    if len(walkers) == 1: 
+    if len(walkers) == 1:
         _run ( walkers[0], catch_exceptions, seed )
         return 1
     for walker in walkers:
@@ -78,7 +78,7 @@ def createWalkers ( rvars: dict ):
       - test_param_space: if true, run with constant K and TL (=1.0)
       - run_mcmc: if true, run mcmc walk without changing dimensions
       - catch_exceptions: If True will catch the exceptions and exit.
-      - select: select only subset of results (all for all, em for efficiency 
+      - select: select only subset of results (all for all, em for efficiency
         maps only, ul for upper limits only, alternatively select for txnames via
         e.g. "txnames:T1,T2", short names are recognized, e.g.
         "txnames:electroweakinos_offshell,T1"
@@ -88,7 +88,7 @@ def createWalkers ( rvars: dict ):
       - record_history: if True, then use history recorders
       - update_hiscores: if True, then finish your run and
                             after that run hiscore updater
-      - stopTeleportationAfter: integer, stop teleportation after this step has 
+      - stopTeleportationAfter: integer, stop teleportation after this step has
         been reached. -1 or None means, dont run teleportation at all.
       - forbiddenparticles: an optional list of particles we wont touch in this
         run
@@ -104,6 +104,16 @@ def createWalkers ( rvars: dict ):
     continueFrom = rvars["continueFrom"]
     cheatcode = rvars["cheatcode"]
     do_srcombine = rvars["do_srcombine"]
+    if "disallowN1N1Prod" in rvars:
+        if not "allowN1N1Prod" in rvars:
+            rvars["allowN1N1Prod"]=not rvars["disallowN1N1Prod"]
+        if rvars["disallowN1N1Prod"]==rvars["allowN1N1Prod"]:
+            print ( f"[factoryOfWalkers] you gave contradictory info:" )
+            print ( f"[factoryOfWalkers] disallowN1N1Prod={rvars['disallowN1N1Prod']}" )
+            print ( f"[factoryOfWalkers] allowN1N1Prod={rvars['allowN1N1Prod']}" )
+            sys.exit()
+        rvars.pop("disallowN1N1Prod")
+
     meta = { "dbpath": dbpath, "select": select, "do_srcombine": do_srcombine,
              "templateSLHA": templateSLHA,
              "allowN1N1Prod": allowN1N1Prod, "susy_mode": susy_mode,
@@ -119,7 +129,7 @@ def createWalkers ( rvars: dict ):
         dbpath=dbpath.replace("<rundir>", f"{rundir}/" )
     pfile, states = None, None
     if continueFrom == "default":
-        continueFrom = f"{rundir}/states.dict" 
+        continueFrom = f"{rundir}/states.dict"
         if not os.path.exists ( continueFrom ):
             continueFrom = "default"
     if continueFrom.lower() not in [ "none", "" ]:

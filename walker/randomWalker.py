@@ -73,9 +73,9 @@ class RandomWalker ( LoggerBase ):
           - templateSLHA: the template file that is used
           - allowN1N1Prod: allow N1 N1 production mode
           - susy_mode: susy mode (penalty for ssms away from unity)
-          - use_initialiser: if string, then interpret it as path to database
+          - use_initialiser: if string, then interpret it as path to database,
             dictionary file that we use for the initialiser. only works if
-            not using cheatcode. if false, then dont use initialiser.
+            not using cheatcode. if none, then dont use initialiser.
         """
         globals().update ( environ.run_dict ) # doesnt work for all
         rvars = self.defaults ( rvars )

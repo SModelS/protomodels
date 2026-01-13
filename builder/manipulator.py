@@ -771,11 +771,7 @@ class Manipulator ( LoggerBase ):
             dk = self.M.decay_keys[pid][dpid]
             dkeys.add(dk)
 
-        inv_decay_keys = {}
-        for pids,label in self.decay_keys[pid].items():
-            if not label in inv_decay_keys:
-                inv_decay_keys[label]=set()
-            inv_decay_keys[label].add(pids)
+        inv_decay_keys = self.M.inv_decay_keys[pid]
 
         br_tot = 0.
         # iterate through all decay keys
@@ -791,7 +787,7 @@ class Manipulator ( LoggerBase ):
             self.error ( f"could not initialize {pid_name}: br_tot={br_tot}." )
             self.error ( f"openChannels were {openChannels}. will freeze." )
             self.freezeParticle ( pid )
-            return false
+            return False
         ## finally normalize
         for dpids,br in protomodel.decays[pid].items():
             protomodel.decays[pid][dpids]=br/br_tot

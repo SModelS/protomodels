@@ -142,8 +142,10 @@ class ProtoModel ( LoggerBase ):
         self.decays = {} ## the actual branchings
         self.masses = {}
         self.possibledecays = {} ## list all possible decay channels
-        self.decay_keys = {} #list the key associated with each decay of a pid
-        self.decay_tuples = {} #list the tuples used in the slha template file with each decay of a pid
+        self.decay_keys = {} # { pid: { dpid: slha_label } }
+        self.inv_decay_keys = {} # { pid: { slha_label: [ dpids ] } }
+        #list the tuples used in the slha template file with each decay of a pid
+        self.decay_tuples = {} # { pid: { dpids: [ pid_tuples ] } }
         self._stored_xsecs = () #Store cross-sections. It should only be accesses through getXsecs()!
         self._xsecMasses = {} #Store the masses used for computing the cross-sections
         self._xsecSSMs = {} #Store the signal strenght multiplier used for computing the cross-sections
@@ -181,6 +183,7 @@ class ProtoModel ( LoggerBase ):
             decays = []
             dkey = {}
             dtuples = {}
+            dinvkey = {}
             for key in slha_decay_keys:
                 if f"D{p}" in key[0]:
                     dpid,dpid2,dpid3,dpd = None,None,None,None
@@ -198,10 +201,14 @@ class ProtoModel ( LoggerBase ):
 
                     decays.append ( dpd )
                     dkey.update({dpd: key[0]})
+                    if not key[0] in dinvkey:
+                        dinvkey[ key[0] ] = set()
+                    dinvkey[ key[0] ].add ( dpd )
                     dtuples.update({dpd: dtuple})
 
             self.possibledecays[p]=decays
             self.decay_keys[p] = dkey
+            self.inv_decay_keys[p] = dinvkey
             self.decay_tuples[p] = dtuples
 
     def __str__(self):
@@ -340,16 +347,17 @@ class ProtoModel ( LoggerBase ):
 
         openChannels = list(openChannels)
 
-        #remove all decay channels assoaciated with a dkey if one of them is not present for offshell decays to ensure flavor democracy
+        #remove all decay channels assoaciated with a dkey if one of them is
+        # not present for offshell decays to ensure flavor democracy
         if offshell:
             for dpid, dk in self.decay_keys[pid].items():
                 if dpid in openChannels:
                     decay_chan = [key for key,value in self.decay_keys[pid].items() if value == dk]
                     dec_not_present = [dc for dc in decay_chan if dc not in openChannels]
                     if len(dec_not_present) > 0:
-                        self.highlight("warn", f"{dec_not_present} not in {openChannels} but {dpid} present. Removing {dpid}")
+                        self.highlight("warn", f"{dec_not_present} not in the open channels {openChannels} -- it's probably not open. but {dpid} is open. For now we will remove {dpid} from the open channels, ok?")
                         openChannels.remove(dpid)
-                        self.highlight("warn", f"OpenChannels now {openChannels}")
+                        self.highlight("info", f"Open channels are now {openChannels}")
 
         return openChannels
 
@@ -571,6 +579,7 @@ class ProtoModel ( LoggerBase ):
         ## in the template slha file
         inSLHAFile = {}
         totalBRs = {}
+
         with open(outputSLHA,'wt') as outF:
             for i,l in enumerate(lines):
                 for pid in self.particles:
@@ -602,8 +611,13 @@ class ProtoModel ( LoggerBase ):
                         if len(dpids) == 1:
                             dpids = dpids[0]
                         if dpids in decays:
-                            if dpids in covered[pid]:
-                                covered[pid].pop ( dpids )
+                            if decayTag in self.inv_decay_keys[pid]:
+                                for m_dpids in self.inv_decay_keys[pid][decayTag]:
+                                    if m_dpids in covered[pid]:
+                                        covered[pid].pop ( m_dpids )
+                            #if dpids in covered[pid]:
+                            #    print ( f"popping {dpids} from covered[{pid}]" )
+                            #    covered[pid].pop ( dpids )
                             br = decays[dpids]
                             totalBRs[pid].append ( (dpids, br ) )
                             l = l.replace(decayTag, f"{br:.5f}" )

@@ -65,6 +65,9 @@ class RunEnviron:
         if os.path.exists ( runDictFile ):
             oldret = RunEnviron ( runDictFile )
         newdict.update ( **args )
+        if "rundir" in newdict:
+            path = os.path.abspath ( os.path.expanduser ( newdict["rundir"] ) )
+            newdict["rundir"] = path
         old_dbver = "???"
         if oldret != None:
             ## dbver we check later
