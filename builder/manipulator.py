@@ -780,7 +780,7 @@ class Manipulator ( LoggerBase ):
             if randomly:
                 # if randomly, then draw from exponentials,
                 # so that we have a dominating decay
-                br = random.expovariate()
+                br = random.expovariate(1.)
             if len(inv_decay_keys[dkey])>1:
                 br = br / len(inv_decay_keys[dkey])
             for dpids in inv_decay_keys[dkey]:
