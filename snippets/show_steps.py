@@ -47,8 +47,13 @@ def show():
     walkerids = set()
     for walk in walks:
         walkerid = walk.replace("logs/walker_","").replace(".log","")
+        if walkerid in [ "0", 0 ]: # they dont count
+            continue
         try:
-            walkerids.add ( int( walkerid) )
+            walkerid = int(walkerid )
+            if walkerid == 0:
+                continue
+            walkerids.add ( walkerid )
         except ValueError as e:
             pass
     nfin, ntot = [], []
@@ -59,7 +64,8 @@ def show():
     perc = 0.
     if sum(ntot) > 0.:
         perc = sum(nfin)/sum(ntot)*100.
-    print ( f"total: {sum(nfin)}/{sum(ntot)} ({perc:.1f}%)" )
+    nwalks = len(walkerids)
+    print ( f"{nwalks} walks total: {sum(nfin)}/{sum(ntot)} ({perc:.1f}%)" )
 
 if __name__ == "__main__":
     show()
