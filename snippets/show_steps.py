@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from typing import Union
 from smodels_utils.helper.terminalcolors import *
 
 def reverse_readline(filename, buf_size=1024):
@@ -21,7 +22,7 @@ def reverse_readline(filename, buf_size=1024):
         if buffer:
             yield buffer.decode("utf-8")
 
-def showWalkerid ( walkerid : int ) -> tuple:
+def showWalkerid ( walkerid : int, quiet : bool = False ) -> tuple:
     filename = f"logs/walker_{walkerid}.log"
     nfin, ntot = 0, 0
     for i,line in enumerate ( reverse_readline( filename ) ):
@@ -37,11 +38,16 @@ def showWalkerid ( walkerid : int ) -> tuple:
             col,endcol="",RESET
             if nfin_i == ntot_i:
                 col = GREEN
-            print ( f"#{walkerid:2d}: {col}{nfin_i:5d}{endcol}/{ntot_i:5d} finished" )
+            if not quiet:
+                print ( f"#{walkerid:2d}: {col}{nfin_i:5d}{endcol}/{ntot_i:5d} finished" )
             break
     return nfin, ntot
 
-def show():
+def show( summary : bool = True, wd : Union[None,str] = None ):
+    oldwd = None
+    if wd != None:
+        oldwd = os.getcwd()
+        os.chdir ( wd )
     import glob
     walks = glob.glob ( "logs/walker_*.log" )
     walkerids = set()
@@ -58,7 +64,7 @@ def show():
             pass
     nfin, ntot = [], []
     for walkerid in walkerids:
-        nfin_i, ntot_i = showWalkerid ( walkerid )
+        nfin_i, ntot_i = showWalkerid ( walkerid, summary )
         nfin.append ( nfin_i )
         ntot.append ( ntot_i )
     perc = 0.
@@ -66,6 +72,8 @@ def show():
         perc = sum(nfin)/sum(ntot)*100.
     nwalks = len(walkerids)
     print ( f"{nwalks} walks total: {sum(nfin)}/{sum(ntot)} ({perc:.1f}%)" )
+    if oldwd != None: ## cd back
+        os.chdir ( oldwd )
 
 if __name__ == "__main__":
-    show()
+    show( summary = False )
