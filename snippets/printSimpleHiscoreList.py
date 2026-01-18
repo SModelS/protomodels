@@ -67,8 +67,32 @@ def getHiscores ( dictfile : PathLike = "hiscores_global.dict" ) -> list:
             return []
     return []
 
+def sortEntries ( D : list, nmax_analysis : Union[None,int] ) -> list:
+    """ sort entries in D according to K """
+    dc = {}
+    for d in D:
+        k = d["K"]
+        while k in dc:
+            k += 1e-6
+        dc[k]=d
+    keys = list ( dc.keys() )
+    keys.sort( reverse=True )
+    ret=[]
+    walkerids = {}
+    for k in keys:
+        if nmax_analysis != None:
+            walkerid = dc[k]["walkerid"]
+            if not walkerid in walkerids:
+                walkerids[walkerid]=0
+            if walkerids[walkerid]==nmax_analysis:
+                continue
+            walkerids[walkerid]+=1
+        ret.append ( dc[k] )
+    return ret
+
 def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
-    extended : bool = False, nmax : Union[None,int] = None ) -> int:
+    extended : bool = False, nmax : Union[None,int] = None,
+    nmax_analysis : Union[None,int] = None ) -> int:
     """ summarize the content of the dict file 
 
     :param dictfile: path to dictionary file
@@ -85,8 +109,10 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
         nmax = 10
         if extended:
             nmax = 3
+    if True:
+        D = sortEntries ( D, nmax_analysis )
     for i,entry in enumerate ( D ):
-        if extended and i >= nmax:
+        if i >= nmax: #  and extended:
             break
         wid = 0
         K, TL = entry['K'], entry['TL']
@@ -166,6 +192,8 @@ if __name__ == "__main__":
         help="extended info" )
     argparser.add_argument ( '-l', '--loop', action="store_true",
         help="loop" )
+    argparser.add_argument ( '-N', '--nmax_analysis', type=int, default=None,
+        help="print maximally this number of entries per analysis [None]" )
     argparser.add_argument ( '-n', '--nmax', type=int, default=None,
         help="print maximally this number of entries [None]" )
     args = argparser.parse_args()
@@ -174,7 +202,8 @@ if __name__ == "__main__":
     while True:
         nlines = runSlurmWalk()
         nlines += summarizeJobsForThisDir()
-        nlines += summarizeHiscores ( args.hiscores, args.extended, args.nmax )
+        nlines += summarizeHiscores ( args.hiscores, args.extended, args.nmax,
+               args.nmax_analysis )
         if not args.loop:
             break
         time.sleep(10.)
