@@ -80,11 +80,11 @@ def sortEntries ( D : list, nmax_analysis : Union[None,int] ) -> list:
     ret=[]
     walkerids = {}
     for k in keys:
-        if nmax_analysis != None:
+        if nmax_analysis not in  [ None, 0 ]:
             walkerid = dc[k]["walkerid"]
             if not walkerid in walkerids:
                 walkerids[walkerid]=0
-            if walkerids[walkerid]==nmax_analysis:
+            if walkerids[walkerid]>=nmax_analysis:
                 continue
             walkerids[walkerid]+=1
         ret.append ( dc[k] )
