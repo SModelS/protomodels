@@ -2,7 +2,7 @@
 
 """ a second attempt at plotting likelihoods """
 
-import os, copy
+import os, copy, sys
 from base.loggerbase import LoggerBase
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
@@ -65,7 +65,7 @@ class NLLPlotter ( LoggerBase ):
         """ read in the content of args["inputfile"] """
         ifile = self.args["inputfile"]
         if not os.path.exists ( ifile ):
-            self.error ( "inputfile {ifile} does not exist" )
+            self.error ( f"inputfile {ifile} does not exist" )
             sys.exit()
         if ifile.endswith ( ".dict" ):
             with open ( ifile, "rt" ) as f:
