@@ -1,0 +1,4 @@
+# Stores data from fake bg runs
+1) all_dict7.dict - all protomodels (accepted) from walk on fake SM background
+2) all_dict24.dict - all protomodels (accepted) from walk on fake SM background (extreme case)
+3) best_fake.dicr - best performing protomodels (highest K) from each walk on 15 fake SM databases 
