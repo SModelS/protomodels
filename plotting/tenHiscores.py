@@ -248,9 +248,9 @@ class TenHiscores ( LoggerBase ):
         axarr[1].vlines(x=.5,ymin=ymin,ymax=ymax,linestyle='--',color='gray')
         axarr[0].vlines(x=.5,ymin=self.t_ymin,ymax=self.t_ymax,
                         linestyle='--',color='gray')
-        self.pprint ( f"saving to {self.outfile}.png" )
-        plt.savefig ( f"{self.outfile}.png" )
-        timg ( f"{self.outfile}.png" )
+        self.pprint ( f"saving to {self.outfile}" )
+        plt.savefig ( f"{self.outfile}" )
+        timg ( f"{self.outfile}" )
         if False:
             self.plotCombos( df, masses )
 
