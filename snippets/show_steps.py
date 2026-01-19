@@ -32,7 +32,10 @@ def showWalkerid ( walkerid : int, quiet : bool = False ) -> tuple:
         p2 = line.find ( "finished" )
         if p1>-1 and p2>-1:
             token = line[p1+5:p2]
-            nfin_i, ntot_i = tuple(map(int,token.split("/")))
+            try:
+                nfin_i, ntot_i = tuple(map(int,token.split("/")))
+            except ValueError as e:
+                nfin_i, ntot_i = 0, 0
             nfin +=  nfin_i
             ntot += ntot_i
             col,endcol="",RESET

@@ -47,8 +47,10 @@ def getHiscores ( dictfile : PathLike = "hiscores_global.dict" ) -> list:
         D = []
         for f in files:
             d1 = getHiscores ( f )
-            if len(d1)>0:
-                D.append ( d1[0] )
+            for d in d1:
+                D.append ( d )
+            #if len(d1)>0:
+            #    D.append ( d1[0] )
         return D
     with open( dictfile, "rt" ) as f:
         txt=f.read().replace('"inf"',"float('inf')").replace('"nan"',"float('nan')")
@@ -67,7 +69,8 @@ def getHiscores ( dictfile : PathLike = "hiscores_global.dict" ) -> list:
             return []
     return []
 
-def sortEntries ( D : list, nmax_analysis : Union[None,int] ) -> list:
+def sortEntries ( D : list, nmax : Union[None,int], 
+                  nmax_analysis : Union[None,int] ) -> list:
     """ sort entries in D according to K """
     dc = {}
     for d in D:
@@ -78,16 +81,20 @@ def sortEntries ( D : list, nmax_analysis : Union[None,int] ) -> list:
     keys = list ( dc.keys() )
     keys.sort( reverse=True )
     ret=[]
-    walkerids = {}
-    for k in keys:
+    walkerids = {} ## count how oftern walkerid is in list
+    for i,k in enumerate(keys):
+        doAdd = True
         if nmax_analysis not in  [ None, 0 ]:
             walkerid = dc[k]["walkerid"]
             if not walkerid in walkerids:
                 walkerids[walkerid]=0
             if walkerids[walkerid]>=nmax_analysis:
-                continue
+                doAdd = False
             walkerids[walkerid]+=1
-        ret.append ( dc[k] )
+        if doAdd:
+            ret.append ( dc[k] )
+        if nmax not in [ None, 0 ] and len(ret) >= nmax:
+            break
     return ret
 
 def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
@@ -110,7 +117,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
         if extended:
             nmax = 3
     if True:
-        D = sortEntries ( D, nmax_analysis )
+        D = sortEntries ( D, nmax, nmax_analysis )
     for i,entry in enumerate ( D ):
         if i >= nmax: #  and extended:
             break
@@ -135,7 +142,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
             timestamp = timestamp[r1:r2]
         if extended:
             step = entry["step"]
-            print ( f"#{i:2d}({wid:3d}): K={GREEN}{K:6.3f}{RESET} TL={TL:6.3f}; {sparticles}" )
+            print ( f"#{i+1:2d}({wid:3d}): K={GREEN}{K:6.3f}{RESET} TL={TL:6.3f}; {sparticles}" )
             print ( f"       `---: {entry['description']}" )
             print ( f"       `---:{timestamp}" )
             print ( f"       `---: step {step}" )
@@ -143,7 +150,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
             nlines += 5
         else:
             sK = formatObject ( K, "6.3f" )
-            print ( f"#{i:2d}({wid:3d}): K={GREEN}{sK}{RESET}; TL={formatObject(TL,'6.3f')}; {sparticles} {timestamp}" )
+            print ( f"#{i+1:2d}({wid:3d}): K={GREEN}{sK}{RESET}; TL={formatObject(TL,'6.3f')}; {sparticles} {timestamp}" )
             nlines += 1
     return nlines
 
