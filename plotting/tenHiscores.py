@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding: utf-8
 
 import re
@@ -31,8 +31,10 @@ from smodels_utils.plotting.mpkitty import timg
 from base.loggerbase import LoggerBase
 
 class TenHiscores ( LoggerBase ):
-    def __init__ ( self ):
+    def __init__ ( self, args ):
         super ( TenHiscores, self ).__init__ ( "ten" )
+        self.args = args
+        self.folder = "./"
 
     def standardizeK ( self, K, offset : float = 0. ):
             return ( K - self.Kmin ) / self.Kstd * 2.5 + offset
@@ -86,8 +88,8 @@ class TenHiscores ( LoggerBase ):
         show_steps.show(True,self.folder)
 
     def plot( self ):
-        self.folder = "./"
-        max_entries_per_walk = 3
+        max_entries_per_walk = self.args["nmax_analyses"]
+        # max_entries_per_walk = 3
 
         # things you might want to tweak
         path = f"{self.folder}/all_hiscores/*dict"
@@ -190,7 +192,8 @@ class TenHiscores ( LoggerBase ):
                     masses[pid].append(-100.0)
         for pid in masses:
             masses[pid] = np.array(masses[pid])
-        dataDict = {'walkerid': self.walkerid_values, 'K' : Kvalues, 'TL': TLvalues, 'nparticles' : nparticles}
+        dataDict = {'walkerid': self.walkerid_values, 'K' : Kvalues, 
+                    'TL': TLvalues, 'nparticles' : nparticles}
         dataDict.update(masses) 
         bestCombo_values = np.array([proto.description for proto in p])
         dataDict.update({"bestCombo":bestCombo_values}) 
@@ -252,5 +255,11 @@ class TenHiscores ( LoggerBase ):
             self.plotCombos( df, masses )
 
 if __name__ == "__main__":
-    plotter = TenHiscores()
+    import argparse
+    argparser = argparse.ArgumentParser(
+            description="the script that plots the ten hiscores")
+    argparser.add_argument ( '-N', '--nmax_analyses',
+            help='maximum number per analysis [3]', type=int, default=3 )
+    args=argparser.parse_args()
+    plotter = TenHiscores( vars(args) )
     plotter.plot()
