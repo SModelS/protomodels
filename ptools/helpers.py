@@ -310,7 +310,7 @@ def computeZFromP ( pvalue : float ) -> float:
     return float ( - scipy.stats.norm.ppf ( pvalue ) )
 
 def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
-       nmax : int = 100000000 ) -> float:
+       nmax : int = 100000000, nmin : int = 200000 ) -> float:
     """ given a dataset, compute p for SM hypothesis
     :param obsN: if not None, compute for the observation
     :param nmax: maximum number of toys
@@ -325,9 +325,9 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
     if hasattr ( dataset.dataInfo, "thirdMoment" ):
         thirdMoment = dataset.dataInfo.thirdMoment
     if thirdMoment is None:
-        p = computeP ( obsN, exp, err, nmax = nmax )
+        p = computeP ( obsN, exp, err, nmax = nmax, nmin = nmin )
     else:
-        p = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax )
+        p = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax, nmin = nmin )
     if p < 1e-100:
         print ( f"[helpers] {dataset.globalInfo.id}:{dataset.dataInfo.id} has p={p}" )
     return p
@@ -374,7 +374,8 @@ def computeP ( obs : float, bg : float, bgerr : float,
     return ret
 
 def computePSLv2 ( obs : float, bg : float, bgerr : float,
-        third : float, nmax : int = 100000000 ) -> float:
+        third : float, nmax : int = 100000000,
+	      nmin : int = 200000 ) -> float:
     """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2
 
     :param obs: observed number of events
@@ -397,7 +398,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
     d = Data ( obs, bg, bgerr**2, third )
     from icecream import ic
     #ic ( "FIXME needs implementation! computePSLv2" )
-    n = 50000
+    n = nmin
     ret = 0.
     rhoparam = d.rho[0][0]
     # thtadbn = scipy.stats.multivariate_normal(np.zeros(self.size), rhoparam )

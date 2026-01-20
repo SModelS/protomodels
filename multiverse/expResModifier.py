@@ -52,7 +52,7 @@ def readDatabaseDictFile ( filename : str = "default.dict",
     often it is <dbversion>.dict or *_database.dict or
     signal_database.dict.
     :param filterWith: optionally supply a filter function
-    that takes the analysis name and the analysis dictionary as 
+    that takes the analysis name and the analysis dictionary as
     arguments, and is supposed to return a boolean, with true
     meaning a pass, false meaning drop
 
@@ -127,7 +127,7 @@ Just filter the database:
 
     def __init__ ( self, args : dict ):
         """ constructor.
-            
+
         args ( dict ):
           - database: path to database
           - max: upper limit on an individual excess
@@ -145,6 +145,8 @@ Just filter the database:
         self.superseded = set() ## take note of everything superseded
         self.fastlim = set() # take note of everything fastlim
         self.sigNTotal = { "total": 0 } # total numbers of injected signals
+        self.nMCMC_min =    500000
+        self.nMCMC_max = 100000000
         self.defaults()
         if "max" in args and args["max"] == None:
             args["max"] = 100
@@ -404,7 +406,7 @@ Just filter the database:
         :param allowN1N1Prod: if bool, then have also N1N1 production
         :returns: none if not succesful, else protomodel object
         """
-        self.environ = RunEnviron.new( allowN1N1Prod = allowN1N1Prod, 
+        self.environ = RunEnviron.new( allowN1N1Prod = allowN1N1Prod,
                 dbversion = dbversion, dbpath = self.dbpath )
         if filename == "":
             return None
@@ -504,6 +506,24 @@ Just filter the database:
         self.createBinaryFile()
         return self.db
 
+    def computeP ( self, obsN : float, bgExp : float, bgErr : float,
+            thirdMoment : Union[float,None] ):
+        """ a convenience function for computation of p values """
+        if thirdMoment is None:
+            p = computeP ( obsN, bgExp, bgErr, nmin = self.nMCMC_min,
+                           nmax = self.nMCMC_max )
+            return p
+        p = computePSLv2 ( obsN, bgExp, bgErr, thirdMoment,
+                nmin = self.nMCMC_min, nmax = self.nMCMC_max )
+        return p
+
+    def computePForDataSet ( self, dataset,
+            obsN : Union[int,None] = None )-> float:
+        """ convenience function to compute p for dataset, with right
+        nmin and nmax """
+        return computePForDataSet ( dataset, obsN, nmin = self.nMCMC_min,
+                                    nmax = self.nMCMC_max )
+
     def sampleEfficiencyMap ( self, dataset ):
         """ for the given dataset,
         sample from background and put the value as observed """
@@ -515,9 +535,9 @@ Just filter the database:
         err = 0.
         if not self.fixedbackgrounds:
             err = dataset.dataInfo.bgError * self.fudge
-        D = { "origN": int(orig), "expectedBG": exp, "bgError": err, "fudge": self.fudge,
-              "lumi": float(dataset.globalInfo.lumi * fb) }
-        porig = computePForDataSet ( dataset )
+        D = { "origN": int(orig), "expectedBG": exp, "bgError": err,
+              "fudge": self.fudge, "lumi": float(dataset.globalInfo.lumi * fb) }
+        porig = self.computePForDataSet ( dataset )
         self.checkIfZero ( porig, dataset )
         D["orig_p"]=porig
         self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation (no fudge factor applied)"
@@ -552,10 +572,7 @@ Just filter the database:
             self.addToStats ( label, D, dataset.globalInfo )
             return dataset
         if self.compute_ps:
-            if thirdMoment is None:
-                p = computeP ( orig, exp, err )
-            else:
-                p = computePSLv2 ( orig, exp, err, thirdMoment )
+            p = self.computeP ( orig, exp, err, thirdMoment )
             self.checkIfZero ( p, dataset )
             if True: # abs(self.fudge-1.)>1e-10:
                 self.comments["orig_p_fudged"]="p-value (Gaussian nuisance) of original observation (with fudge factor applied -- is this useful?)"
@@ -585,12 +602,10 @@ Just filter the database:
                 obs = stats.poisson.rvs ( lmbda )
                 toterr = math.sqrt ( err**2 + exp )
             if True: # toterr > 0.:
-                if thirdMoment is None:
-                    pnew = computeP ( orig, exp, err )
-                else:
+                pnew = self.computeP ( orig, exp, err, thirdMoment )
+                if thirdMoment is not None:
                     D["thirdMoment"]=thirdMoment
                     self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
-                    pnew = computePSLv2 ( orig, exp, err, thirdMoment )
                 self.checkIfZero ( pnew, dataset )
                 Z = - scipy.stats.norm.ppf ( pnew )
                 # Z = ( obs - exp ) / toterr
@@ -609,10 +624,7 @@ Just filter the database:
         D["newObs"]=obs
         self.comments["newObs"]="the new fake observation (signal + background)"
         if self.compute_ps:
-            if thirdMoment is None:
-                p = computeP ( obs, exp, err )
-            else:
-                p = computePSLv2 ( obs, exp, err, thirdMoment )
+            p = self.computeP ( obs, exp, err, thirdMoment )
             self.checkIfZero( p, dataset )
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
             self.comments["new_Z"]="significance (Gaussian nuisance) of newObs"
@@ -644,16 +656,13 @@ Just filter the database:
             D["thirdMoment"]=thirdMoment
             self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
         if self.compute_ps:
-            p = computePForDataSet ( dataset )
+            p = self.computePForDataSet ( dataset )
             D["orig_p"]=p
             self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation (no fudge factor applied)"
             origZ = computeZFromP ( p )
             self.comments["orig_Z"]="the significance Z of the original observation (no factor applied)"
             D["orig_Z"]=origZ
-            if thirdMoment is None:
-                p = computeP ( orig, exp, err )
-            else:
-                p = computePSLv2 ( orig, exp, err, thirdMoment )
+            p = self.computeP ( orig, exp, err, thirdMoment )
             self.comments["orig_p_fudged"]="p-value (Gaussian nuisance) of original observation (fudge factor applied)"
             self.checkIfZero ( p, dataset )
             D["orig_p_fudged"]=p
@@ -758,16 +767,6 @@ Just filter the database:
                 D["newObs"]=orig
                 self.addToStats ( label, D, dataset.globalInfo )
                 return dataset
-        """
-        ## the signal is less than permille of bg?
-        if orig > 0. and sigN / orig < 1e-3:
-                self.log ( f" `- signal sigN={sigN} re obsN={orig} too small. skip.")
-                dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
-                dataset.dataInfo.origExpectedUpperLimit = dataset.dataInfo.expectedUpperLimit
-                D["newObs"]=orig
-                self.addToStats ( label, D, dataset.globalInfo )
-                return dataset
-        """
         self.log ( f" `- effmap adding sigN={sigN} to obsN={orig} -> newObs={orig+sigN}" )
         dataset.dataInfo.trueBG = orig ## keep track of true bg
         dataset.dataInfo.observedN = orig + sigN
@@ -783,7 +782,8 @@ Just filter the database:
         #    Z = ( dataset.dataInfo.observedN - exp ) / toterr
         #D["Z"]=Z
         #self.comments["Z"]="the significance of the observation, taking into account the signal"
-        new_p = computeP ( dataset.dataInfo.observedN, exp, err )
+        new_p = self.computeP ( dataset.dataInfo.observedN, exp, err,
+                                dataset.dataInfo.thirdMoment )
         self.checkIfZero( new_p, dataset )
         new_Z = computeZFromP ( new_p )
         D["new_p"] = new_p
@@ -1054,7 +1054,7 @@ Just filter the database:
 
     def writeStats ( self, statsname : os.PathLike = None ):
         """ write out the collected stats, so we can discuss experimentalists'
-            conservativeness 
+            conservativeness
         :param statsname: sth like *_database.dict
         """
         if self.suffix in [ None, "None", "", "none" ]:
@@ -1269,7 +1269,7 @@ Just filter the database:
                     self.comments["new_p"]="p-value (Gaussian nuisance) of newObs -- in our case same as 'orig_p'"
                     self.comments["new_Z"]="significance (Gaussian nuisance) of newObs -- in our case same as 'orig_Z'"
                 else:
-                    p = computePForDataSet ( dataset, newObs )
+                    p = self.computePForDataSet ( dataset, newObs )
                     self.checkIfZero ( p, dataset )
                     self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
                     D["new_p"]=p
@@ -1355,7 +1355,7 @@ Just filter the database:
         from smodels.statistics.statsTools import StatsComputer
         from smodels.experiment.datasetObj import CombinedDataSet
         import pyhf
-        
+
         #create combined dataset for pyhf pred
         cdataset = CombinedDataSet ( expRes )
         computer = StatsComputer.forPyhf( cdataset, srNsigDict,
@@ -1400,7 +1400,7 @@ Just filter the database:
                     sampleDictSModelS[ sr["smodels"] ] = sampleDictPyhf[ sr["pyhf"] ]
             for sr in srs:
                 srname = sr["smodels"]
-                if sr["type"] != "SR": 
+                if sr["type"] != "SR":
                     continue
                 dataset = datasetDict[srname]
                 D = self.createEMStatsDict ( dataset )
@@ -1413,7 +1413,7 @@ Just filter the database:
                     D["newObs"]=D["origN"]
                 D["type"]="pyhf"
                 if self.compute_ps:
-                    p = computePForDataSet ( dataset, newObs )
+                    p = self.computePForDataSet ( dataset, newObs )
                     self.comments["new_p"]="p-value (Gaussian nuisance) of newObs"
                     D["new_p"]=p
                     newZ = computeZFromP ( p )
