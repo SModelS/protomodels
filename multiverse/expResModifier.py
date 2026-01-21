@@ -782,8 +782,11 @@ Just filter the database:
         #    Z = ( dataset.dataInfo.observedN - exp ) / toterr
         #D["Z"]=Z
         #self.comments["Z"]="the significance of the observation, taking into account the signal"
+        thirdMoment = None
+        if hasattr ( dataset.dataInfo, "thirdMoment" ):
+            thirdMoment = dataset.dataInfo.thirdMoment
         new_p = self.computeP ( dataset.dataInfo.observedN, exp, err,
-                                dataset.dataInfo.thirdMoment )
+                                thirdMoment )
         self.checkIfZero( new_p, dataset )
         new_Z = computeZFromP ( new_p )
         D["new_p"] = new_p
