@@ -5,7 +5,7 @@
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-import glob
+import glob, math
 #import ast
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -19,6 +19,9 @@ from smodels_utils.plotting.mpkitty import timg
 from ptools import sparticleNames
 from base.loggerbase import LoggerBase
 namer = sparticleNames.SParticleNames ( susy=False )
+
+def ceil_to_step(x, step=50):
+    return math.ceil(x / step) * step
 
 class MassesAndDecays ( LoggerBase ):
     def __init__ ( self, model, options ):
@@ -53,6 +56,20 @@ class MassesAndDecays ( LoggerBase ):
             ymax = self.options["ymax"]
         self.yrange = ( ymin, ymax )
 
+    def dyLabel ( self, pid ):
+        """ get the dy of the label, its a bit involved """
+        ret = 11
+        if pid == 1000022:
+            ret = -40
+        if self.options["scale"] == "symlog":
+            if pid == 1000022:
+                ret = -20
+            else:
+                mass = self.masses[pid]
+                ret = 36. * mass / ( self.yrange[1]+self.yrange[0] )
+            
+        return ret
+
     def drawMasses ( self ):
         """ for each particle draw a horizontal line at the respective
         mass value """
@@ -66,12 +83,11 @@ class MassesAndDecays ( LoggerBase ):
             xpos = 45 + sgn * ctParticles * 10
             dx_line = 10 # length of the line
             dx_label = 2 # dx of the label
-            dy_label = 11 # dy of the label
             if pid == 1000022:
                 xpos = 45
                 dx_line = 20
                 dx_label = 10
-                dy_label = -40
+            dy_label = self.dyLabel ( pid )
             self.ax.hlines ( mass, xpos, xpos+dx_line, color = color )
             self.xpositions[pid]=xpos
             pname = namer.texName ( pid, addDollars=True )
@@ -109,7 +125,10 @@ class MassesAndDecays ( LoggerBase ):
         dx = x_end - x_start
         dy = y_end - y_start
         x_coord =  x_start + .5 * dx
-        y_coord =  y_start + .5 * dy - 7. - i * 25
+        di = i * 25
+        if self.options["scale"]=="symlog":
+            di = i * 35
+        y_coord =  y_start + .5 * dy - 7. - di
         if x_coord > 50:
             x_coord += 8
         plt.text( x_coord, y_coord, label, fontsize=15 )
@@ -120,27 +139,34 @@ class MassesAndDecays ( LoggerBase ):
         ax.get_xaxis().set_visible(False)
         ax.spines.top.set_visible(False)
         ax.set_ylim( self.yrange )
-        grid='major'
-        ticks = [50, 100, 150, 200, 300, 400, 550]
-        ax.set_yticks(ticks)
-        ax.set_yticklabels([str(t) for t in ticks])
-        if self.options["scale"]=="symlog":
-            grid = "major"
-            self.yrange = ( self.yrange[0], self.yrange[1]*1.2 )
-            ax.set_yscale('symlog', linthresh=200, linscale=1. )
-        ax.set_xlim(0,100)
-        ax.yaxis.grid(True,grid)
         self.fig, self.ax = fig, ax
+
+    def interact ( self ):
+        import sys, IPython; IPython.embed( colors = "neutral" )
 
     def plot ( self ):
         self.init()
         plt.ylabel('Mass [GeV]')
         self.drawMasses()
         self.drawDecays()
-        # ax.set_xscale('power', exponent=0.5)  # sqrt scale
+
+        if self.options["scale"]=="symlog":
+            self.yrange = ( self.yrange[0], self.yrange[1]*1.2 )
+            self.ax.set_yscale('symlog', linthresh=200, linscale=1. )
+            ymin = ceil_to_step ( self.yrange[0], 100 )
+            ymax = ceil_to_step ( self.yrange[1], 100 )
+            ticks = range ( ymin, ymax+1, 100 )
+            self.ax.yaxis.set_ticks(ticks)
+            self.ax.yaxis.set_ticklabels([f"{t}" for t in ticks])
+            self.ax.set_xlim(0,100)
+
+        self.ax.yaxis.grid(True)
+
         plt.tight_layout()
         plt.savefig ( self.options["outfile"] )
         timg ( self.options["outfile"] )
+        if self.options["interact"]:
+            self.interact()
 
 
 def getModel():
@@ -153,6 +179,8 @@ if __name__ == "__main__":
             description="draw masses and decays plots")
     argparser.add_argument ( '-s', '--scale',
             help='scale [linear]', type=str, default='linear' )
+    argparser.add_argument ( '-i', '--interact',
+            help='enter interactive mode', action="store_true" )
     args=argparser.parse_args()
     model = getModel()
     options = vars ( args )
