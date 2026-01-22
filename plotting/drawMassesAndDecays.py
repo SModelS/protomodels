@@ -44,7 +44,7 @@ class MassesAndDecays ( LoggerBase ):
                 ymin = mass
             if mass > ymax:
                 ymax = mass
-        ymin, ymax = .8 * ymin - 30., 1.2 * ymax
+        ymin, ymax = .8 * ymin - 35., 1.05 * ymax + 20.
         if "ymin" in self.options:
             ymin = self.options["ymin"]
         if "ymax" in self.options:
@@ -64,7 +64,7 @@ class MassesAndDecays ( LoggerBase ):
             xpos = 45 + sgn * ctParticles * 10
             dx_line = 10 # length of the line
             dx_label = 2 # dx of the label
-            dy_label = 5 # dy of the label
+            dy_label = 11 # dy of the label
             if pid == 1000022:
                 xpos = 45
                 dx_line = 20
@@ -73,15 +73,16 @@ class MassesAndDecays ( LoggerBase ):
             self.ax.hlines ( mass, xpos, xpos+dx_line, color = color )
             self.xpositions[pid]=xpos
             pname = namer.texName ( pid, addDollars=True )
-            self.ax.text( xpos+dx_label, mass+dy_label, pname, fontsize=20)
+            self.ax.text( xpos+dx_label, mass+dy_label, pname, fontsize=20,
+                          color = color )
             ctParticles+=1
 
     def drawDecays ( self ):
         for mpid,decay in self.decays.items():
-            for dpids,br in decay.items():
-                self.drawDecay ( mpid, dpids, br )
+            for i,(dpids,br) in enumerate(decay.items()):
+                self.drawDecay ( mpid, dpids, br, i )
 
-    def drawDecay ( self, mpid, dpids, br ):
+    def drawDecay ( self, mpid : int, dpids : tuple, br : float, i : int ):
         """ draw a single grey arrow connecting mother pid
         with daughter pid """
         dpid = dpids[0]
@@ -90,6 +91,8 @@ class MassesAndDecays ( LoggerBase ):
             d_products = (2,-1)
         label = namer.texName ( d_products, addDollars=True, lightFlavors=False,
                                 addSign = True )
+        if br < 1.0:
+            label = f"{label}:{int(100*br):d}%"
         y_start = self.masses[mpid]
         y_end = self.masses[dpid]
         x_start = self.xpositions[mpid]
@@ -103,8 +106,11 @@ class MassesAndDecays ( LoggerBase ):
                       ha='center')
         dx = x_end - x_start
         dy = y_end - y_start
-        plt.text( x_start + .5 *dx , y_start + .5 * dy , 
-                 label, fontsize=15)
+        x_coord =  x_start + .5 * dx
+        y_coord =  y_start + .5 * dy - 7. - i * 25
+        if x_coord > 50:
+            x_coord += 8
+        plt.text( x_coord, y_coord, label, fontsize=15 )
         self.pprint ( mpid, dpids, br, label )
 
     def init ( self ):
@@ -112,6 +118,7 @@ class MassesAndDecays ( LoggerBase ):
         ax.get_xaxis().set_visible(False)
         ax.spines.top.set_visible(False)
         ax.set_ylim( self.yrange )
+        # ax.set_yscale('symlog', linthresh=200, linscale=1. )
         ax.set_xlim(0,100)
         ax.yaxis.grid()
         ax.set
@@ -122,61 +129,11 @@ class MassesAndDecays ( LoggerBase ):
         plt.ylabel('Mass [GeV]')
         self.drawMasses()
         self.drawDecays()
+        # ax.set_xscale('power', exponent=0.5)  # sqrt scale
         plt.tight_layout()
         plt.savefig ( self.options["outfile"] )
         timg ( self.options["outfile"] )
 
-    def plotSN ( self ):
-        model = self.model
-        fig, (ax1, ax2) = plt.subplots(
-            2, 1, sharex=True,
-            gridspec_kw={'height_ratios': [1, 3]}
-        )
-
-        # Upper axis (true 450 GeV region)
-        ax1.set_ylim(430, 570)
-        ax1.hlines(model['masses'][1000025], 85, 90, color='navy')
-        ax1.hlines(model['masses'][1000006], 93, 99, color='brown')
-
-        ax1.annotate('', (87, 430), xytext=(87,model['masses'][1000025]),arrowprops=dict(color='gray', arrowstyle='-'), ha='center')
-        ax1.text(86, model['masses'][1000025]+5, r'$X_{Z}^{3}$', fontsize=20)
-        ax1.text(95, model['masses'][1000006]+5, r'$X_{t}^{1}$', fontsize=20)
-
-        ax2.set_ylim(60, 180)
-        ax2.hlines(model['masses'][1000022], 90,95, color='dodgerblue')
-        ax2.hlines(model['masses'][1000023], 85,90, color='blue')
-        ax2.hlines(model['masses'][1000024], 100,105, color='limegreen')
-
-
-        ax1.spines.bottom.set_visible(False)
-        ax1.get_xaxis().set_visible(False)
-        ax2.get_xaxis().set_visible(False)
-        ax2.spines.top.set_visible(False)
-
-        plt.annotate('', (92, model['masses'][1000022]), xytext=(87,model['masses'][1000023]),arrowprops=dict(color='gray', arrowstyle='->'), ha='center')
-        plt.annotate('', (92.5, model['masses'][1000022]), xytext=(103,model['masses'][1000024]),arrowprops=dict(color='gray', arrowstyle='->'), ha='center')
-        plt.annotate('', (87, model['masses'][1000023]+15), xytext=(87,180),arrowprops=dict(color='gray', arrowstyle='->'), ha='center')
-        plt.annotate('', (92, model['masses'][1000022]), xytext=(94,180),arrowprops=dict(color='gray', arrowstyle='->'), ha='center')
-
-
-        plt.text(86, model['masses'][1000022]+10, r"$\nu_l,\bar{\nu}_l$", fontsize=20)
-        plt.text(99, model['masses'][1000022]+30, r"$q,\bar{q}$", fontsize=20)
-        plt.text(88, model['masses'][1000023]+50, r"$h$", fontsize=20)
-
-        plt.text(86, model['masses'][1000023]+5, r'$X_{Z}^{2}$', fontsize=20)
-        plt.text(101, model['masses'][1000024]+5, r'$X_{W}^{1}$', fontsize=20)
-        plt.text(91, model['masses'][1000022]-13, r'$X_{Z}^{1}$', fontsize=20)
-
-        ax1.yaxis.grid()
-        ax2.yaxis.grid()
-        ax2.set_xlabel('')
-        plt.ylabel('Mass [GeV]')
-        #ax.set_ylim(60,200)
-        ax1.set_xlim(81,110)
-        plt.tight_layout()
-        outfile = "mass_hierarchy.png"
-        plt.savefig ( outfile )
-        timg ( outfile )
 
 def getModel():
     with open ( "truth.dict", "rt" ) as f:
