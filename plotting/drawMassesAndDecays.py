@@ -10,7 +10,7 @@ import glob
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import seaborn as sns
-sns.set_style('ticks',{'font.family':'Times New Roman', 
+sns.set_style('ticks',{'font.family':'Times New Roman',
                   'font.serif':'Times New Roman'})
 sns.set_context('paper', font_scale=1.5)
 sns.set_palette(sns.color_palette("deep"))
@@ -32,9 +32,11 @@ class MassesAndDecays ( LoggerBase ):
 
     def defaults ( self ):
         ret = { "outfile": "mass_hierarchy.png" }
-        ret["colors"]= { 1000022: "black", 1000023: "navy", 
+        ret["colors"]= { 1000022: "black", 1000023: "navy",
                          1000024: "navy", 1000025: "navy",
                          1000006: "brown" }
+        ret["scale"]="symlog"
+        # ret["scale"]="linear"
         return ret
 
     def getYRange ( self ):
@@ -101,8 +103,8 @@ class MassesAndDecays ( LoggerBase ):
         if dpid == 1000022:
             dx = 10
         arrowprops = dict(color='gray', arrowstyle='<-')
-        plt.annotate( '', ( x_start+5, y_start ), 
-                      xytext=(x_end+dx,y_end),arrowprops=arrowprops, 
+        plt.annotate( '', ( x_start+5, y_start ),
+                      xytext=(x_end+dx,y_end),arrowprops=arrowprops,
                       ha='center')
         dx = x_end - x_start
         dy = y_end - y_start
@@ -118,10 +120,16 @@ class MassesAndDecays ( LoggerBase ):
         ax.get_xaxis().set_visible(False)
         ax.spines.top.set_visible(False)
         ax.set_ylim( self.yrange )
-        # ax.set_yscale('symlog', linthresh=200, linscale=1. )
+        grid='major'
+        ticks = [50, 100, 150, 200, 300, 400, 550]
+        ax.set_yticks(ticks)
+        ax.set_yticklabels([str(t) for t in ticks])
+        if self.options["scale"]=="symlog":
+            grid = "major"
+            self.yrange = ( self.yrange[0], self.yrange[1]*1.2 )
+            ax.set_yscale('symlog', linthresh=200, linscale=1. )
         ax.set_xlim(0,100)
-        ax.yaxis.grid()
-        ax.set
+        ax.yaxis.grid(True,grid)
         self.fig, self.ax = fig, ax
 
     def plot ( self ):
@@ -140,7 +148,13 @@ def getModel():
         return eval(f.read())
 
 if __name__ == "__main__":
+    import argparse
+    argparser = argparse.ArgumentParser(
+            description="draw masses and decays plots")
+    argparser.add_argument ( '-s', '--scale',
+            help='scale [linear]', type=str, default='linear' )
+    args=argparser.parse_args()
     model = getModel()
-    options = {}
+    options = vars ( args )
     plotter = MassesAndDecays( model, options )
     plotter.plot()
