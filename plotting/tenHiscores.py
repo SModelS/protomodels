@@ -240,6 +240,10 @@ class TenHiscores ( LoggerBase ):
                 axarr[1].annotate( namer.texName(pid,addDollars=True),
                                    (index[i],m+2),fontsize=10)
         ymin, ymax = .8*min(amasses), 1.2*max(amasses)
+        if self.args["ymin"] is not None:
+            ymin = self.args["ymin"]
+        if self.args["ymax"] is not None:
+            ymax = self.args["ymax"]
         axarr[1].set_ylim( ymin, ymax )
         axarr[1].set_xlabel('walkerid:step', fontsize=15)
         axarr[1].set_ylabel('mass [GeV]', fontsize=15)
@@ -260,6 +264,10 @@ if __name__ == "__main__":
             description="the script that plots the ten hiscores")
     argparser.add_argument ( '-N', '--nmax_analyses',
             help='maximum number per analysis [3]', type=int, default=3 )
+    argparser.add_argument ( '--ymin',
+            help='ymin [auto]', type=float, default=None )
+    argparser.add_argument ( '--ymax',
+            help='ymax [auto]', type=float, default=None )
     args=argparser.parse_args()
     plotter = TenHiscores( vars(args) )
     plotter.plot()
