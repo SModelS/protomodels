@@ -17,10 +17,12 @@ sns.set_palette(sns.color_palette("deep"))
 
 from smodels_utils.plotting.mpkitty import timg
 from ptools import sparticleNames
+from base.loggerbase import LoggerBase
 namer = sparticleNames.SParticleNames ( susy=False )
 
-class MassesAndDecays:
+class MassesAndDecays ( LoggerBase ):
     def __init__ ( self, model, options ):
+        super ( MassesAndDecays, self ).__init__ ( "draw" )
         self.model = model
         self.masses = model["masses"]
         self.decays = model["decays"]
@@ -84,6 +86,8 @@ class MassesAndDecays:
         with daughter pid """
         dpid = dpids[0]
         d_products = dpids[1:]
+        if d_products == (2,1):
+            d_products = (2,-1)
         label = namer.texName ( d_products, addDollars=True, lightFlavors=False,
                                 addSign = True )
         y_start = self.masses[mpid]
@@ -101,7 +105,7 @@ class MassesAndDecays:
         dy = y_end - y_start
         plt.text( x_start + .5 *dx , y_start + .5 * dy , 
                  label, fontsize=15)
-        print ( mpid, dpids, br )
+        self.pprint ( mpid, dpids, br, label )
 
     def init ( self ):
         fig, ax = plt.subplots()
