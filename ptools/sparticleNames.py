@@ -80,7 +80,7 @@ class SParticleNames:
         return f"\\\\color[rgb]{colors[c]}"
 
     def namedColor ( self, pid ):
-        """ find the default colors for <name>, latex version 
+        """ find the default colors for <name>, latex version
         name can be an integer/pid, or a string/name. In case of a string,
         we will find the according pid.
         """
@@ -153,8 +153,11 @@ class SParticleNames:
             -15: "\\tau^{+}", -13: "\\mu^{+}", -11: "e", -37: "h^{-}", -24: "W^{-}",
             -23: "Z", -25: "h", -35: "H^{0}", -36: "a^{0}", -22: "\\gamma",
             -21: "g", -16: "\\nu", -14: "\\nu", -12: "\\nu", -1: "d",
-            -2: "u", -3: "s", -4: "c", -5: "b", -6: "t", 55: "Z'", 
+            -2: "u", -3: "s", -4: "c", -5: "b", -6: "t", 55: "Z'",
             -55: "Z'" }
+        # in case we dont want to specify light flavors
+        self.ids[7]="q"
+        self.ids[-7]="\\bar{q}"
         # generic BSM, not SUSY not XIDs:
         self.ids[55]="Z'"
         self.ids[54]="H^{0}"
@@ -187,7 +190,7 @@ class SParticleNames:
         import re
         html = name
 
-        replacements = { "\\mu": "&mu;", "\\nu": "&nu;", "\\tau": "&tau;", 
+        replacements = { "\\mu": "&mu;", "\\nu": "&nu;", "\\tau": "&tau;",
                          "\\gamma": "&gamma;" }
         for k,v in replacements.items():
             html = html.replace(k,v)
@@ -225,16 +228,20 @@ class SParticleNames:
         """ format the name for html """
         return self.htmlify ( self.name ( pid, addSign ), addBrackets )
 
-    def texName ( self, pid, addSign=False, addDollars = False, addBrackets = False,
-                  addOnes=False ):
-        """ format the name for tex 
+    def texName ( self, pid : int, addSign : bool =False,
+                  addDollars : bool = False, addBrackets : bool = False,
+                  addOnes : bool = False, lightFlavors : bool = True ) -> str:
+        """ format the name for tex
         :param addSign: if true, denote also charge
         :param addDollars: add dollars to declare math mode
         :param addBrackets: put the particle name in a bracket. good for e.g.
-                            m(Xt)
+        m(Xt)
+        :param lightFlavors: if true, then specify light flavors u,d,c,s
+        else report simply as 'q'
         :param addOnes: if true, add ^{1} to Xt and Xb
         """
-        n = self.name ( pid, addSign, addOnes=addOnes, addBrackets = False )
+        n = self.name ( pid, addSign = addSign, addOnes=addOnes,
+                        addBrackets = False, lightFlavors = lightFlavors )
         n = n.replace ( "#", "\\" )
         if addOnes and "1" in n:
             n = n.replace("1","^{1}")
@@ -250,21 +257,29 @@ class SParticleNames:
             n = f"({n})"
         return n
 
-    def name ( self, pid, addSign=False, addOnes=False, 
-            addBrackets = False ) -> str:
-        """ get the name for a particle id 
+    def name ( self, pid : int, addSign : bool = False, addOnes : bool = False,
+            addBrackets : bool = False, lightFlavors : bool = True ) -> str:
+        """ get the name for a particle id
         :param addSign: if true, denote also charge
         :param addOnes: if true, add ^{1} to Xt and Xb
         :param addBrackets: if true, add brackets
+        :param lightFlavors: if true, then specify light flavors u,d,c,s
+        else report simply as 'q'
         """
         if type(pid) == type(None):
             return "?"
         if type(pid) in [ str ]:
             return pid
+        if not lightFlavors:
+            if pid in range(1,5):
+                pid = 7
+            if pid in range(-4,0):
+                pid = -7
         if type(pid) in [ tuple, set, list ]:
             ret=[]
             for p in pid:
-                ret.append ( self.name ( p, addSign ) )
+                ret.append ( self.name ( p, addSign, addOnes,
+                                         lightFlavors = lightFlavors ) )
             ret = ", ".join ( ret )
             if addBrackets:
                 ret = f"({ret})"
@@ -301,7 +316,7 @@ class SParticleNames:
 
     def pid ( self, name : Union[str,int,Tuple], signed : bool = True ) \
                 -> Union[None,int,Tuple]:
-        """ get the pid for a particle name 
+        """ get the pid for a particle name
         :param name: get the pid for particle with that name
         :param signed: if true, return signed value
         """

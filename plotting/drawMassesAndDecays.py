@@ -67,7 +67,7 @@ class MassesAndDecays ( LoggerBase ):
             else:
                 mass = self.masses[pid]
                 ret = 36. * mass / ( self.yrange[1]+self.yrange[0] )
-            
+
         return ret
 
     def drawMasses ( self ):
@@ -163,8 +163,10 @@ class MassesAndDecays ( LoggerBase ):
         self.ax.yaxis.grid(True)
 
         plt.tight_layout()
-        plt.savefig ( self.options["outfile"] )
-        timg ( self.options["outfile"] )
+        outfile = self.options["outfile"]
+        plt.savefig ( outfile )
+        self.pprint ( f"saving to {outfile}" )
+        timg ( outfile )
         if self.options["interact"]:
             self.interact()
 
@@ -178,7 +180,8 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
             description="draw masses and decays plots")
     argparser.add_argument ( '-s', '--scale',
-            help='scale [linear]', type=str, default='linear' )
+            help='scale: linear, or symlog [symlog]',
+            type=str, default='symlog' )
     argparser.add_argument ( '-i', '--interact',
             help='enter interactive mode', action="store_true" )
     args=argparser.parse_args()
