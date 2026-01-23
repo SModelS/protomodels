@@ -392,7 +392,11 @@ Just filter the database:
         self.environ.moveRunDict ( "run_creation.dict" )
         args = vars(self.environ)
         self.dbversion = self.db.databaseVersion
-        newargs = { "dbpath": self.outfile, "dbversion": self.dbversion }
+        dbpath = self.outfile
+        if dbpath in [ "none", None ]:
+            ## if no outfile is given, we revert to the previous dbpath
+            dbpath = self.dbpath
+        newargs = { "dbpath": dbpath, "dbversion": self.dbversion }
         for i in [ "allowN1N1Prod", ]:
             newargs[i]=args[i]
         ## this line triggers creation of the new run.dict
