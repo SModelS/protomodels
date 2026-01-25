@@ -81,10 +81,8 @@ class Analyzer ( LoggerBase ):
             subprocess.getoutput ( cmd )
         cmd = "pdflatex region_list.tex"
         subprocess.getoutput ( cmd )
-        if shutil.which ( "timg" ) != None:
-            cmd  = "timg -U -W --auto-crop region_list.pdf"
-            o = subprocess.getoutput ( cmd )
-            print ( o )
+        from smodels_utils.plotting.mpkitty import timg
+        timg ( "region_list.pdf", True )
 
     def setColors ( self, nocolors ):
         self.use_colors = not nocolors
