@@ -57,7 +57,7 @@ class Analyzer ( LoggerBase ):
         self.latexfile.write ( f"\n" )
         lformat = "{|l|l|l|l|r|r|}"
         if self.enum:
-            lformat = f"{lformat[:2]}l|{lformat[3:]}"
+            lformat = f"{lformat[:2]}l|{lformat[2:]}"
         # self.latexfile.write ( r"\resizebox{\textwidth}{!}{" )
         self.latexfile.write ( r"\begin{tabular}"+lformat )
         self.latexfile.write ( "\n" )
