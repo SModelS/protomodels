@@ -171,9 +171,12 @@ class MassesAndDecays ( LoggerBase ):
             self.interact()
 
 
-def getModel():
-    with open ( "truth.dict", "rt" ) as f:
-        return eval(f.read())
+def getModel( modelfile : str = "truth.dict" ) -> dict:
+    with open ( modelfile, "rt" ) as f:
+        ret = eval(f.read())
+        if type(ret) == list and type(ret[0]) == dict:
+            return ret[0]
+        return ret
 
 if __name__ == "__main__":
     import argparse
@@ -182,10 +185,13 @@ if __name__ == "__main__":
     argparser.add_argument ( '-s', '--scale',
             help='scale: linear, or symlog [symlog]',
             type=str, default='symlog' )
+    argparser.add_argument ( '-m', '--modelfile',
+            help='path to model file [truth.dict]',
+            type=str, default='truth.dict' )
     argparser.add_argument ( '-i', '--interact',
             help='enter interactive mode', action="store_true" )
     args=argparser.parse_args()
-    model = getModel()
+    model = getModel( args.modelfile )
     options = vars ( args )
     plotter = MassesAndDecays( model, options )
     plotter.plot()
