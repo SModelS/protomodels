@@ -230,7 +230,8 @@ class SParticleNames:
 
     def texName ( self, pid : int, addSign : bool =False,
                   addDollars : bool = False, addBrackets : bool = False,
-                  addOnes : bool = False, lightFlavors : bool = True ) -> str:
+                  addOnes : bool = False, lightFlavors : bool = True,
+                  separator : str = ", " ) -> str:
         """ format the name for tex
         :param addSign: if true, denote also charge
         :param addDollars: add dollars to declare math mode
@@ -239,9 +240,11 @@ class SParticleNames:
         :param lightFlavors: if true, then specify light flavors u,d,c,s
         else report simply as 'q'
         :param addOnes: if true, add ^{1} to Xt and Xb
+        :param separator: string separating particle names
         """
         n = self.name ( pid, addSign = addSign, addOnes=addOnes,
-                        addBrackets = False, lightFlavors = lightFlavors )
+                        addBrackets = False, lightFlavors = lightFlavors,
+                        separator = separator )
         n = n.replace ( "#", "\\" )
         if addOnes and "1" in n:
             n = n.replace("1","^{1}")
@@ -258,13 +261,17 @@ class SParticleNames:
         return n
 
     def name ( self, pid : int, addSign : bool = False, addOnes : bool = False,
-            addBrackets : bool = False, lightFlavors : bool = True ) -> str:
+            addBrackets : bool = False, lightFlavors : bool = True,
+            separator : str = ", " ) -> str:
         """ get the name for a particle id
         :param addSign: if true, denote also charge
         :param addOnes: if true, add ^{1} to Xt and Xb
         :param addBrackets: if true, add brackets
         :param lightFlavors: if true, then specify light flavors u,d,c,s
         else report simply as 'q'
+        :param separator: string separating particle names
+
+        :returns: ascii name
         """
         if type(pid) == type(None):
             return "?"
@@ -280,7 +287,7 @@ class SParticleNames:
             for p in pid:
                 ret.append ( self.name ( p, addSign, addOnes,
                                          lightFlavors = lightFlavors ) )
-            ret = ", ".join ( ret )
+            ret = separator.join ( ret )
             if addBrackets:
                 ret = f"({ret})"
             return ret

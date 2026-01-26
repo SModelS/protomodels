@@ -108,7 +108,7 @@ class MassesAndDecays ( LoggerBase ):
         if d_products == (2,1):
             d_products = (2,-1)
         label = namer.texName ( d_products, addDollars=True, lightFlavors=False,
-                                addSign = True )
+                                addSign = True, separator = " ")
         if br < 1.0:
             label = f"{label}:{int(100*br):d}%"
         y_start = self.masses[mpid]
