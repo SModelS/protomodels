@@ -136,7 +136,6 @@ class MassesAndDecays ( LoggerBase ):
             di = i * 13 * y_start / 100.
         di = di - ( n -1 ) * 10 * y_start / 100.
         y_coord =  y_start + .5 * dy - 7. - di
-        print ( f"@@0 label {label} y_coord {y_coord} dy {dy}" )
         if x_coord > 50:
             x_coord += 8
         plt.text( x_coord, y_coord, label, fontsize=15 )
