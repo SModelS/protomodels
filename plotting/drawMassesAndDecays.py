@@ -98,19 +98,25 @@ class MassesAndDecays ( LoggerBase ):
     def drawDecays ( self ):
         for mpid,decay in self.decays.items():
             for i,(dpids,br) in enumerate(decay.items()):
-                self.drawDecay ( mpid, dpids, br, i )
+                self.drawDecay ( mpid, dpids, br, i, len(decay) )
 
-    def drawDecay ( self, mpid : int, dpids : tuple, br : float, i : int ):
+    def drawDecay ( self, mpid : int, dpids : tuple, br : float, 
+                    i : int, n : int ):
         """ draw a single grey arrow connecting mother pid
         with daughter pid """
         dpid = dpids[0]
         d_products = dpids[1:]
-        if d_products == (2,1):
-            d_products = (2,-1)
+        opposite_signs = [ (2,1), (11,11), (12,12) ]
+        for os_pair in opposite_signs:
+            if d_products == os_pair:
+                d_products = ( d_products[0], -d_products[1] )
+        if d_products == (11,-11):
+            br = 3*br
         label = namer.texName ( d_products, addDollars=True, lightFlavors=False,
                                 addSign = True, separator = " ")
+        # print ( f"@@0 {d_products} -> {label}" )
         if br < 1.0:
-            label = f"{label}:{int(100*br):d}%"
+            label = f"{label}:{int(round(100*br)):d}%"
         y_start = self.masses[mpid]
         y_end = self.masses[dpid]
         x_start = self.xpositions[mpid]
@@ -127,12 +133,14 @@ class MassesAndDecays ( LoggerBase ):
         x_coord =  x_start + .5 * dx
         di = i * 25
         if self.options["scale"]=="symlog":
-            di = i * 35
+            di = i * 13 * y_start / 100.
+        di = di - ( n -1 ) * 10 * y_start / 100.
         y_coord =  y_start + .5 * dy - 7. - di
+        print ( f"@@0 label {label} y_coord {y_coord} dy {dy}" )
         if x_coord > 50:
             x_coord += 8
         plt.text( x_coord, y_coord, label, fontsize=15 )
-        self.pprint ( mpid, dpids, br, label )
+        #self.pprint ( mpid, dpids, br, label )
 
     def init ( self ):
         fig, ax = plt.subplots()
