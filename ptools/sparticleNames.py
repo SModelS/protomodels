@@ -147,17 +147,20 @@ class SParticleNames:
         """
         self.susy = susy
         self.ids={
-            1: "d", 2: "u", 3: "s", 4: "c", 5: "b", 6: "t", 11: "e^{-}", 13: "\\mu^{-}",
-            15: "\\tau^{-}", 12: "\\nu", 14: "\\nu", 16:"\\nu", 21: "g", 22: "\\gamma",
-            24: "W", 23:"Z", 25:"h", 35: "H^{0}", 36: "a^{0}", 37: "h^{+}",
-            -15: "\\tau^{+}", -13: "\\mu^{+}", -11: "e", -37: "h^{-}", -24: "W^{-}",
-            -23: "Z", -25: "h", -35: "H^{0}", -36: "a^{0}", -22: "\\gamma",
-            -21: "g", -16: "\\nu", -14: "\\nu", -12: "\\nu", -1: "d",
-            -2: "u", -3: "s", -4: "c", -5: "b", -6: "t", 55: "Z'",
+            1: "d", 2: "u", 3: "s", 4: "c", 5: "b", 6: "t", 11: "e^{-}", #
+            13: r"\mu^{-}", 15: r"\tau^{-}", 12: r"\nu", 14: r"\nu", 
+            16: r"\nu", 21: "g", 22: r"\gamma", 24: "W", 23:"Z", 25:"h", 
+            35: "H^{0}", 36: "a^{0}", 37: "h^{+}", -15: r"\tau^{+}", 
+            -13: r"\mu^{+}", -11: "e", -37: "h^{-}", -24: "W^{-}",
+            -23: "Z", -25: "h", -35: "H^{0}", -36: "a^{0}", -22: r"\gamma",
+            -21: "g", -16: r"\bar{\nu}", -14: r"\bar{\nu}", -12: r"\bar{\nu}", 
+            -1: "d", -2: "u", -3: "s", -4: "c", -5: "b", -6: "t", 55: "Z'",
             -55: "Z'" }
         # in case we dont want to specify light flavors
         self.ids[7]="q"
         self.ids[-7]="\\bar{q}"
+        self.ids[17]="l^{+}"
+        self.ids[-17]="l^{-}"
         # generic BSM, not SUSY not XIDs:
         self.ids[55]="Z'"
         self.ids[54]="H^{0}"
@@ -282,6 +285,11 @@ class SParticleNames:
                 pid = 7
             if pid in range(-4,0):
                 pid = -7
+        if not lightFlavors:
+            if pid in [11,13,15]:
+                pid = 17
+            if pid in [-11,-13,-15]:
+                pid = -17
         if type(pid) in [ tuple, set, list ]:
             ret=[]
             for p in pid:

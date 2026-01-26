@@ -860,9 +860,10 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( "</table>" )
         f.write ( '<table style="width:80%">\n' )
         f.write ( "<td width=45%>" )
-        f.write ( f"<img height=580px src=./ruler.png?{t0}>" )
+        # f.write ( f"<img height=580px src=./ruler.png?{t0}>" )
+        f.write ( f"<img height=580px src=./mass_hierarchy.png?{t0}>" )
         f.write ( "<td width=55%>" )
-        f.write ( f"<img height=220px src=./decays.png?{t0}>\n" )
+        # f.write ( f"<img height=220px src=./decays.png?{t0}>\n" )
         f.write ( f'<font size=-3><iframe type="text/html" height="350px" width="100%" frameborder="0" src="./rawnumbers.html?{t0}"></iframe></font>\n' )
         f.write ( "</table>\n" )
         f.write ( "</body>\n" )
@@ -911,6 +912,13 @@ class HiscorePlotter ( LoggerBase ):
                 ret[pid]=set()
             ret[pid].add ( name )
         return ret
+
+    def drawMassesDecays( self, verbosity : str ):
+        from plotting.drawMassesAndDecays import MassesAndDecays
+        options = { "scale": "symlog", "interact": False }
+        model = self.protomodel.dict()
+        plotter = MassesAndDecays ( model, options )
+        plotter.plot()
 
     def plotRuler( self, verbosity : str, horizontal : bool ):
         """ plot the ruler plot, given protomodel.
@@ -998,21 +1006,20 @@ class HiscorePlotter ( LoggerBase ):
         m = Manipulator ( self.protomodel, self.environ )
         print ( f"[plotHiscore:{m.walkerid}] now write pmodel.dict" )
         m.writeDictFile()
-        opts = [ "ruler", "decays", "predictions", "copy", "html" ]
+        opts = [ "ruler", "decays", "predictions", "copy", "html", "masses_branchings" ]
         for i in opts:
             if not i in options:
                 options[i]=True
 
-        plotruler = options["ruler"]
         horizontal = False
         if "horizontal" in options and options["horizontal"]:
             horizontal = True
-        if plotruler:
+        if options["ruler"]:
             self.plotRuler ( verbosity, horizontal )
-        plotdecays = options["decays"]
-        if plotdecays:
+        if options["decays"]:
             self.plotDecays ( verbosity )
-
+        if options["masses_decays"]:
+            self.drawMassesDecays( verbosity )
         if options["predictions"]:
             self.discussPredictions ( )
         if options["html"] or options["tex"]:
@@ -1063,14 +1070,23 @@ def runPlotting ( args ):
     options = { "ruler": args.ruler, "decays": args.decays,
                 "predictions": args.predictions, "html": args.html,
                 "keep": args.keep, "tex": args.tex,
-                "horizontal": args.horizontal }
+                "horizontal": args.horizontal, 
+                "masses_decays": args.masses_decays }
+    # options = vars(args)
+
 
     hiplt = HiscorePlotter( args.walkerid )
     hiplt.plot ( args.number, args.verbosity, args.hiscorefile, options,
                  args.environ, walkerid = args.walkerid )
     if upload is None:
         return
-    F = "decays.png ruler.png texdoc.png pmodel.dict hiscore.slha index.html rawnumbers.html"
+    F = "texdoc.png pmodel.dict hiscore.slha index.html rawnumbers.html"
+    if options["masses_decays"]:
+        F+=" mass_hierarchy.png"
+    if options["ruler"]:
+        F+=" ruler.png"
+    if options["decays"]:
+        F+=" decays.png"
     dest = ""
     destdir = f'{os.environ["HOME"]}/git'
     dest = f"{destdir}/smodels.github.io/protomodels/{upload}/"
