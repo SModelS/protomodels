@@ -257,7 +257,7 @@ class TenHiscores ( LoggerBase ):
         if self.args["yscale"] not in [ None, "linear" ]:
             tokens = self.args["yscale"].split(":")
             if tokens[0] == "mylog":
-                linthresh = 200.
+                linthresh = 300.
                 linscale = 1.
                 if len(tokens)>1:
                     linthresh = float ( tokens[1] )
