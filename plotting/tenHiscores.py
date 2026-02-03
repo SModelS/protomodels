@@ -232,20 +232,21 @@ class TenHiscores ( LoggerBase ):
 
         amasses=[]
         for pid in pids:
-            data = df
-            for x in data[pid]:
+            for x in df[pid]:
                 amasses.append ( x )
-            sns.scatterplot(x=data['walkerid'],y=data[pid], size=1000,
+            label = namer.texName(pid,addDollars=True)
+            xvalues = list ( df["walkerid"].keys() )
+            sns.scatterplot(x=xvalues,y=df[pid], size=1000,
                     sizes=(1500,1500),marker='_',
-                    label=namer.texName(pid,addDollars=True), legend=False,
+                    label=label, legend=False,
                     c=[colorDict[pid]],ax=axarr[1] )
             index = [np.where(self.walkerid_values == d['walkerid'])[0][0] \
-                     for j,d in data.iterrows()]
+                     for j,d in df.iterrows()]
             for i,m in enumerate(masses[pid]):
                 if m < 0: continue
-                #print(particleLabels[pid])
-                axarr[1].annotate( namer.texName(pid,addDollars=True),
-                                   (index[i],m+2),fontsize=10)
+                xcoord = index[i]-.1
+                axarr[1].annotate( label,
+                                   (xcoord,m+2),fontsize=10)
         ymin, ymax = .8*min(amasses), 1.2*max(amasses)
         if self.args["ymin"] is not None:
             ymin = self.args["ymin"]
