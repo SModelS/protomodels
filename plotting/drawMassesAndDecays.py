@@ -59,6 +59,12 @@ class MassesAndDecays ( LoggerBase ):
             else:
                 mass = self.masses[pid]
                 ret = 36. * mass / ( self.yrange[1]+self.yrange[0] )
+        if self.options["scale"] == "linear":
+            dy = self.yrange[1] - self.yrange[0]
+            if pid == 1000022:
+                ret = -.1 * dy
+            else:
+                ret = .05 * dy
 
         return ret
 
@@ -109,9 +115,9 @@ class MassesAndDecays ( LoggerBase ):
                 for i,(label,br) in enumerate(radiates.items()):
                     self.drawDecay ( mpid, bsm_dpid, label, br, i, len(decay) )
 
-    def dpidsToStr ( self, dpids : tuple, 
+    def dpidsToStr ( self, dpids : tuple,
             br : Union[None,float] = None ) -> str:
-        """ translate the decay pids to a string 
+        """ translate the decay pids to a string
         e.g. (1000022, 11, 12) -> l+ nu
         :param br: optional branching ratio
         """
@@ -129,7 +135,7 @@ class MassesAndDecays ( LoggerBase ):
             label = f"{label}:{int(round(100*br)):d}%"
         return label
 
-    def drawDecay ( self, mpid : int, dpid : int, label : str, br : float, 
+    def drawDecay ( self, mpid : int, dpid : int, label : str, br : float,
                     i : int, n : int ):
         """ draw a single grey arrow connecting mother pid
         with daughter pid """
