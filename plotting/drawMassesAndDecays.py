@@ -93,7 +93,6 @@ class MassesAndDecays ( LoggerBase ):
             if not mpid in toDraw:
                 toDraw[mpid]={}
             for dpids,br in decay.items():
-                print ( f"draw {mpid} -> {dpids}" )
                 bsm_dpid = dpids[0]
                 label = self.dpidsToStr ( dpids )
                 if not bsm_dpid in toDraw[mpid]:
@@ -122,7 +121,7 @@ class MassesAndDecays ( LoggerBase ):
         if d_products == (11,-11):
             br = 3*br
         label = namer.texName ( d_products, addDollars=True, lightFlavors=False,
-                                addSign = True, separator = " ")
+                                addSign = "ifboth", separator = " ")
         if br is not None and br < 1.0:
             label = f"{label}:{int(round(100*br)):d}%"
         return label

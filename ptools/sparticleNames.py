@@ -231,12 +231,13 @@ class SParticleNames:
         """ format the name for html """
         return self.htmlify ( self.name ( pid, addSign ), addBrackets )
 
-    def texName ( self, pid : int, addSign : bool =False,
+    def texName ( self, pid : int, addSign : Union[str,bool] = False,
                   addDollars : bool = False, addBrackets : bool = False,
                   addOnes : bool = False, lightFlavors : bool = True,
                   separator : str = ", " ) -> str:
         """ format the name for tex
-        :param addSign: if true, denote also charge
+        :param addSign: if true, denote also charge, if "ifboth",
+        then write a sign only if both are given
         :param addDollars: add dollars to declare math mode
         :param addBrackets: put the particle name in a bracket. good for e.g.
         m(Xt)
@@ -263,11 +264,12 @@ class SParticleNames:
             n = f"({n})"
         return n
 
-    def name ( self, pid : int, addSign : bool = False, addOnes : bool = False,
-            addBrackets : bool = False, lightFlavors : bool = True,
-            separator : str = ", " ) -> str:
+    def name ( self, pid : int, addSign : Union[str,bool] = False, 
+            addOnes : bool = False, addBrackets : bool = False, 
+            lightFlavors : bool = True, separator : str = ", " ) -> str:
         """ get the name for a particle id
-        :param addSign: if true, denote also charge
+        :param addSign: if true, denote also charge, if "ifboth",
+        then write a sign only if both are given
         :param addOnes: if true, add ^{1} to Xt and Xb
         :param addBrackets: if true, add brackets
         :param lightFlavors: if true, then specify light flavors u,d,c,s
@@ -292,12 +294,20 @@ class SParticleNames:
                 pid = -17
         if type(pid) in [ tuple, set, list ]:
             ret=[]
+            maddSign = addSign
+            if maddSign == "ifboth":
+                maddSign = True
             for p in pid:
-                ret.append ( self.name ( p, addSign, addOnes,
+                ret.append ( self.name ( p, maddSign, addOnes,
                                          lightFlavors = lightFlavors ) )
             ret = separator.join ( ret )
             if addBrackets:
                 ret = f"({ret})"
+            if addSign == "ifboth":
+                if "^{+}" in ret and not "^{-}" in ret:
+                    ret = ret.replace("^{+}","")
+                if "^{-}" in ret and not "^{+}" in ret:
+                    ret = ret.replace("^{-}","")
             return ret
 
         if abs(pid) in [ 1000005, 1000006 ] and addOnes:
