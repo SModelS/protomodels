@@ -1,34 +1,30 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-import re
-import numpy as np
 import matplotlib.pyplot as plt
-import glob
-import ast
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-
 import sys,os,copy,glob
 import numpy as np
-sys.path.append(os.path.abspath('../smodels'))
-sys.path.append(os.path.abspath('../'))
+import seaborn as sns
+import pandas as pd
+#sys.path.append(os.path.abspath('../smodels'))
+#sys.path.append(os.path.abspath('../'))
+
+from smodels.experiment.databaseObj import Database
+from smodels.base import runtime
+
+from smodels_utils.plotting.mpkitty import timg
+
+from base.loggerbase import LoggerBase
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
 from tester.combiner import Combiner
-from smodels.experiment.databaseObj import Database
-from smodels.base import runtime
-from smodels.base.physicsUnits import fb
-runtime._experimental = True
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
 from base.runEnviron import RunEnviron
 from ptools.sparticleNames import SParticleNames
 from snippets import show_steps
-from smodels_utils.plotting.mpkitty import timg
-from base.loggerbase import LoggerBase
+
+def ceil_to_step(x : float, step : int = 50) -> float:
+    return float ( np.ceil(x / step) * step )
 
 class TenHiscores ( LoggerBase ):
     def __init__ ( self, args ):
@@ -37,16 +33,31 @@ class TenHiscores ( LoggerBase ):
         self.folder = "./"
 
     def standardizeK ( self, K, offset : float = 0. ):
-            return ( K - self.Kmin ) / self.Kstd * 2.5 + offset
+        return ( K - self.Kmin ) / self.Kstd * 2.5 + offset
+
+    def getTicks ( self, ymin : float, ymax : float ) -> tuple:
+        ymin = ceil_to_step ( ymin, 100 )
+        ymin, ymax = int(ymin), int(ymax+1)
+        lim1, lim2 = 600, 1400
+
+        ticks = range ( ymin, ymax, 100 )
+        if ymax > lim1:
+            ticks = range ( ymin, lim1+1, 100 )
+            ticks = list ( ticks ) + list ( range ( lim1+200, ymax, 200 ) )
+        if ymax > 1600:
+            ticks = range ( ymin, lim1+1, 100 )
+            ticks = list ( ticks ) + list ( range ( lim1+200, lim2+1, 200 ) )
+            ticks = list ( ticks ) + list ( range ( lim2, ymax, 400 ) )
+        return tuple ( ticks )
 
     def plotCombos( self, df, masses ):
         """ create the plot that plots the combinations """
         df = df[1:]
         standardizedKs = list ( self.standardizeK ( df["K"], 0. ) )
 
-        f, axarr = plt.subplots(2,sharex=True, 
+        f, axarr = plt.subplots(2,sharex=True,
                 gridspec_kw = {'height_ratios':[1, 4]},figsize=(10,8))
-        plt.subplots_adjust(left=0.12, bottom=0.12, right=0.97, top=None, 
+        plt.subplots_adjust(left=0.12, bottom=0.12, right=0.97, top=None,
                             wspace=None, hspace=0)
 
         nsteps = 10
@@ -60,10 +71,10 @@ class TenHiscores ( LoggerBase ):
         axarr[0].set_ylim( self.t_ymin, self.t_ymax )
         axarr[0].set_yticks([])
         for i,row in df.iterrows():
-            index = np.where(self.walkerid_values == row['walkerid'])[0][0] 
+            index = np.where(self.walkerid_values == row['walkerid'])[0][0]
             # print(index)
-            if row['K'] == max(df['K']):        
-                axarr[0].annotate(rf'{row["K"]:1.2f}',(index-1-.2, 
+            if row['K'] == max(df['K']):
+                axarr[0].annotate(rf'{row["K"]:1.2f}',(index-1-.2,
                                   self.standardizeK ( row["K"], 1 )),fontsize=10)
                 #axarr[0].annotate(r'$\mathbf{%1.2f}$' %row['TL'],(index-0.2,row['TL']+0.5),
                 #                  fontsize=10)
@@ -95,22 +106,18 @@ class TenHiscores ( LoggerBase ):
         path = f"{self.folder}/all_hiscores/*dict"
         truthfile = f'{self.folder}/truth.dict'
         self.outfile = f"{self.folder}/hiscore.png"
-        # sns.set() #Set style
         sns.set_style('ticks')
-        #sns.set_style('ticks',{'font.family':'Times New Roman', 'font.serif':'Times New Roman'})
         sns.set_context('paper', font_scale=2.0)
         # sns.set_palette(sns.color_palette("Paired"))
         sns.set_palette(sns.color_palette("deep"))
-        #from smodels.tools import smodelsLogging
-        #smodelsLogging.setLogLevel('error')
         environ=RunEnviron()
 
         log_file = glob.glob(path)
         print ( os.path.abspath ( log_file[0] ) )
 
         #Set colors:
-        allPids = [ 1000022, 1000006, 1000001, 1000021, 1000012, 1000023, 
-                    1000013, 2000006, 1000011, 1000005, 1000014, 1000004, 
+        allPids = [ 1000022, 1000006, 1000001, 1000021, 1000012, 1000023,
+                    1000013, 2000006, 1000011, 1000005, 1000014, 1000004,
                     1000015, 1000016, 1000024 ]
         namer = SParticleNames ( susy = False )
         colors = sns.color_palette('deep',n_colors=len(namer.xIDs))
@@ -128,7 +135,7 @@ class TenHiscores ( LoggerBase ):
         with open ( truthfile, "rt" ) as f:
             pTrue = eval(f.read())
 
-        def fromDict(inputDict):   
+        def fromDict(inputDict):
             p = ProtoModel(walkerid=0,environ=environ)
             for key,v in inputDict.items():
                 setattr(p,key,copy.deepcopy(v))
@@ -148,8 +155,8 @@ class TenHiscores ( LoggerBase ):
                 pList += tmp[:max_entries_per_walk]
         p = sorted(pList, key = lambda p: p.K, reverse=True)
         p=p[:10]
-        #protomodelsDict[run] = p  
-        p = [ fromDict ( pTrue ) ] + p 
+        #protomodelsDict[run] = p
+        p = [ fromDict ( pTrue ) ] + p
 
         for proto in p:
             walkerid = proto.walkerid
@@ -192,11 +199,11 @@ class TenHiscores ( LoggerBase ):
                     masses[pid].append(-100.0)
         for pid in masses:
             masses[pid] = np.array(masses[pid])
-        dataDict = {'walkerid': self.walkerid_values, 'K' : Kvalues, 
+        dataDict = {'walkerid': self.walkerid_values, 'K' : Kvalues,
                     'TL': TLvalues, 'nparticles' : nparticles}
-        dataDict.update(masses) 
+        dataDict.update(masses)
         bestCombo_values = np.array([proto.description for proto in p])
-        dataDict.update({"bestCombo":bestCombo_values}) 
+        dataDict.update({"bestCombo":bestCombo_values})
 
         df = pd.DataFrame(dataDict)
 
@@ -216,25 +223,25 @@ class TenHiscores ( LoggerBase ):
         axarr[0].set_yticks([])
 
         for i,row in df.iterrows():
-            index = np.where(self.walkerid_values == row['walkerid'])[0][0] 
+            index = np.where(self.walkerid_values == row['walkerid'])[0][0]
             #print(index)
-            if row['K'] == max(df['K']):        
+            if row['K'] == max(df['K']):
                 axarr[0].annotate(rf'{row["K"]:1.2f}',(index-.2, self.standardizeK ( row["K"], 1)),fontsize=10)
             else:
                 axarr[0].annotate(rf'{row["K"]:1.2f}',(index-.2, self.standardizeK (row['K'], 1 )),fontsize=10)
 
         amasses=[]
-        for pid in pids:    
+        for pid in pids:
             data = df
             for x in data[pid]:
                 amasses.append ( x )
             sns.scatterplot(x=data['walkerid'],y=data[pid], size=1000,
-                    sizes=(1500,1500),marker='_', 
+                    sizes=(1500,1500),marker='_',
                     label=namer.texName(pid,addDollars=True), legend=False,
                     c=[colorDict[pid]],ax=axarr[1] )
             index = [np.where(self.walkerid_values == d['walkerid'])[0][0] \
                      for j,d in data.iterrows()]
-            for i,m in enumerate(masses[pid]):   
+            for i,m in enumerate(masses[pid]):
                 if m < 0: continue
                 #print(particleLabels[pid])
                 axarr[1].annotate( namer.texName(pid,addDollars=True),
@@ -249,18 +256,21 @@ class TenHiscores ( LoggerBase ):
         axarr[1].set_ylabel('mass [GeV]', fontsize=15)
         if self.args["yscale"] not in [ None, "linear" ]:
             tokens = self.args["yscale"].split(":")
-            if tokens[0] == "symlog":
+            if tokens[0] == "mylog":
                 linthresh = 200.
                 linscale = 1.
                 if len(tokens)>1:
                     linthresh = float ( tokens[1] )
                 if len(tokens)>2:
                     linscale = float ( tokens[2] )
-                axarr[1].set_yscale('symlog', linthresh=linthresh, 
+                axarr[1].set_yscale('symlog', linthresh=linthresh,
                                     linscale=linscale )
+                ticks = self.getTicks ( ymin, ymax )
+                axarr[1].set_yticks(ticks)
+                axarr[1].set_yticklabels([f"{t}" for t in ticks])
             else:
                 axarr[1].set_yscale( *tokens )
-        axarr[1].set_xticks(sorted(df['walkerid'].tolist()), 
+        axarr[1].set_xticks(sorted(df['walkerid'].tolist()),
                 labels =sorted(df['walkerid'].tolist()),  fontsize=12)
         axarr[1].vlines(x=.5,ymin=ymin,ymax=ymax,linestyle='--',color='gray')
         axarr[0].vlines(x=.5,ymin=self.t_ymin,ymax=self.t_ymax,
