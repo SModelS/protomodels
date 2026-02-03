@@ -292,6 +292,10 @@ class TenHiscores ( LoggerBase ):
                 axarr[1].set_yscale( *tokens )
         axarr[1].set_xticks(sorted(df['walkerid'].tolist()),
                 labels =sorted(df['walkerid'].tolist()),  fontsize=12)
+        doRotateTicks = True
+        if doRotateTicks:
+            plt.setp( axarr[1].get_xticklabels(), rotation=30, ha="right", 
+                      rotation_mode="anchor" )
         axarr[1].vlines(x=.5,ymin=ymin,ymax=ymax,linestyle='--',color='gray')
         axarr[0].vlines(x=.5,ymin=self.t_ymin,ymax=self.t_ymax,
                         linestyle='--',color='gray')
@@ -306,7 +310,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
             description="the script that plots the ten hiscores")
     argparser.add_argument ( '-N', '--nmax_analyses',
-            help='maximum number per analysis [3]', type=int, default=3 )
+            help='maximum number per analysis [1]', type=int, default=1 )
     argparser.add_argument ( '--ymin',
             help='ymin [auto]', type=float, default=None )
     argparser.add_argument ( '--ymax',
