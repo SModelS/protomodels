@@ -41,10 +41,11 @@ class MassesAndDecays ( LoggerBase ):
             if mass > ymax:
                 ymax = mass
         ymin, ymax = .8 * ymin - 35., 1.05 * ymax + 20.
-        if "ymin" in self.options:
+        if "ymin" in self.options and self.options["ymin"] is not None:
             ymin = self.options["ymin"]
-        if "ymax" in self.options:
+        if "ymax" in self.options and self.options["ymax"] is not None:
             ymax = self.options["ymax"]
+        self.pprint ( f"setting y range to ({ymin},{ymax})" )
         self.yrange = ( ymin, ymax )
 
     def dyLabel ( self, pid ):
@@ -82,6 +83,8 @@ class MassesAndDecays ( LoggerBase ):
             self.ax.hlines ( mass, xpos, xpos+dx_line, color = color )
             self.xpositions[pid]=xpos
             pname = namer.texName ( pid, addDollars=True )
+            if mass + dy_label < self.yrange[0] - 10.:
+                dy_label = self.yrange[0] - 0. - mass
             self.ax.text( xpos+dx_label, mass+dy_label, pname, fontsize=20,
                           color = color )
             ctParticles+=1
@@ -114,11 +117,11 @@ class MassesAndDecays ( LoggerBase ):
         """
         dpid = dpids[0]
         d_products = dpids[1:]
-        opposite_signs = [ (2,1), (11,11), (12,12) ]
+        opposite_signs = [ (2,1), (11,11), (12,12), (13,13), (15,15) ]
         for os_pair in opposite_signs:
             if d_products == os_pair:
                 d_products = ( d_products[0], -d_products[1] )
-        if d_products == (11,-11):
+        if d_products == (11,-11) and br is not None:
             br = 3*br
         label = namer.texName ( d_products, addDollars=True, lightFlavors=False,
                                 addSign = "ifboth", separator = " ")
@@ -153,8 +156,9 @@ class MassesAndDecays ( LoggerBase ):
         y_coord =  y_start + .5 * dy - 7. - di
         if x_coord > 50:
             x_coord += 8
+        if y_coord < self.yrange[0]:
+            y_coord = self.yrange[0]
         plt.text( x_coord, y_coord, label, fontsize=15 )
-        #self.pprint ( mpid, dpids, br, label )
 
     def init ( self ):
         fig, ax = plt.subplots()
@@ -212,6 +216,10 @@ if __name__ == "__main__":
             type=str, default='truth.dict' )
     argparser.add_argument ( '-i', '--interact',
             help='enter interactive mode', action="store_true" )
+    argparser.add_argument ( '--ymin',
+            help='ymin [auto]', type=float, default=None )
+    argparser.add_argument ( '--ymax',
+            help='ymax [auto]', type=float, default=None )
     args=argparser.parse_args()
     model = getModel( args.modelfile )
     options = vars ( args )
