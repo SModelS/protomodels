@@ -50,6 +50,20 @@ class TenHiscores ( LoggerBase ):
             ticks = list ( ticks ) + list ( range ( lim2, ymax, 400 ) )
         return tuple ( ticks )
 
+    def offsetFor ( self, pid : int, idx : int, m : float, 
+                    idxNMass : list ) -> float:
+        """ compute the offset for particle at xvalue idx,
+        yvalue (mass) m """
+        offset = - .1
+        for pid_,i_,m_ in idxNMass:
+            if i_ - idx  == 0. and abs ( m_ - m ) < 8. and pid_ != pid:
+                if pid_ > pid:
+                    offset = .1
+                elif pid_ < pid:
+                    offset = -.3
+        ret = idx + offset
+        return ret
+
     def plotCombos( self, df, masses ):
         """ create the plot that plots the combinations """
         df = df[1:]
@@ -197,8 +211,8 @@ class TenHiscores ( LoggerBase ):
                     masses[pid].append(proto.masses[pid])
                 else:
                     masses[pid].append(-100.0)
-        for pid in masses:
-            masses[pid] = np.array(masses[pid])
+        #for pid in masses:
+        #    masses[pid] = np.array(masses[pid])
         dataDict = {'walkerid': self.walkerid_values, 'K' : Kvalues,
                     'TL': TLvalues, 'nparticles' : nparticles}
         dataDict.update(masses)
@@ -230,10 +244,14 @@ class TenHiscores ( LoggerBase ):
             else:
                 axarr[0].annotate(rf'{row["K"]:1.2f}',(index-.2, self.standardizeK (row['K'], 1 )),fontsize=10)
 
-        amasses=[]
+        amasses,idxNMass=[],[]
         for pid in pids:
             for x in df[pid]:
-                amasses.append ( x )
+                if x > -99.:
+                    amasses.append ( x )
+            for i,m in enumerate(masses[pid]):
+                    idxNMass.append ( (pid,i,m) )
+        for pid in pids:
             label = namer.texName(pid,addDollars=True)
             xvalues = list ( df["walkerid"].keys() )
             sns.scatterplot(x=xvalues,y=df[pid], size=1000,
@@ -244,9 +262,10 @@ class TenHiscores ( LoggerBase ):
                      for j,d in df.iterrows()]
             for i,m in enumerate(masses[pid]):
                 if m < 0: continue
-                xcoord = index[i]-.1
+                xcoord = self.offsetFor ( pid, index[i], m, idxNMass )
+                ycoord = m+2
                 axarr[1].annotate( label,
-                                   (xcoord,m+2),fontsize=10)
+                                   (xcoord,ycoord),fontsize=10)
         ymin, ymax = .8*min(amasses), 1.2*max(amasses)
         if self.args["ymin"] is not None:
             ymin = self.args["ymin"]
