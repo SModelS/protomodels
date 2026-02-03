@@ -247,6 +247,19 @@ class TenHiscores ( LoggerBase ):
         axarr[1].set_ylim( ymin, ymax )
         axarr[1].set_xlabel('walkerid:step', fontsize=15)
         axarr[1].set_ylabel('mass [GeV]', fontsize=15)
+        if self.args["yscale"] not in [ None, "linear" ]:
+            tokens = self.args["yscale"].split(":")
+            if tokens[0] == "symlog":
+                linthresh = 200.
+                linscale = 1.
+                if len(tokens)>1:
+                    linthresh = float ( tokens[1] )
+                if len(tokens)>2:
+                    linscale = float ( tokens[2] )
+                axarr[1].set_yscale('symlog', linthresh=linthresh, 
+                                    linscale=linscale )
+            else:
+                axarr[1].set_yscale( *tokens )
         axarr[1].set_xticks(sorted(df['walkerid'].tolist()), 
                 labels =sorted(df['walkerid'].tolist()),  fontsize=12)
         axarr[1].vlines(x=.5,ymin=ymin,ymax=ymax,linestyle='--',color='gray')
@@ -268,6 +281,8 @@ if __name__ == "__main__":
             help='ymin [auto]', type=float, default=None )
     argparser.add_argument ( '--ymax',
             help='ymax [auto]', type=float, default=None )
+    argparser.add_argument ( '--yscale',
+            help='yscale argument [linear]', type=str, default=None )
     args=argparser.parse_args()
     plotter = TenHiscores( vars(args) )
     plotter.plot()
