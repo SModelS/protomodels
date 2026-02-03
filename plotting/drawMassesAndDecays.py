@@ -2,25 +2,16 @@
 
 """ code that combines the ruler and the decays plotter """
 
-import re
-import numpy as np
 import matplotlib.pyplot as plt
-import glob, math
-#import ast
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import seaborn as sns
-sns.set_style('ticks',{'font.family':'Times New Roman',
-                  'font.serif':'Times New Roman'})
-sns.set_context('paper', font_scale=1.5)
-sns.set_palette(sns.color_palette("deep"))
+import math
+from typing import Union
 
 from smodels_utils.plotting.mpkitty import timg
 from ptools import sparticleNames
 from base.loggerbase import LoggerBase
 namer = sparticleNames.SParticleNames ( susy=False )
 
-def ceil_to_step(x, step=50):
+def ceil_to_step(x : float, step : int = 50) -> float:
     return math.ceil(x / step) * step
 
 class MassesAndDecays ( LoggerBase ):
@@ -96,14 +87,32 @@ class MassesAndDecays ( LoggerBase ):
             ctParticles+=1
 
     def drawDecays ( self ):
+        toDraw = {}
+        ## first we sum up over similar labels
         for mpid,decay in self.decays.items():
-            for i,(dpids,br) in enumerate(decay.items()):
-                self.drawDecay ( mpid, dpids, br, i, len(decay) )
+            if not mpid in toDraw:
+                toDraw[mpid]={}
+            for dpids,br in decay.items():
+                print ( f"draw {mpid} -> {dpids}" )
+                bsm_dpid = dpids[0]
+                label = self.dpidsToStr ( dpids )
+                if not bsm_dpid in toDraw[mpid]:
+                    toDraw[mpid][bsm_dpid]={}
+                if not label in toDraw[mpid][bsm_dpid]:
+                    toDraw[mpid][bsm_dpid][label]=0.
+                toDraw[mpid][bsm_dpid][label]+=br
+        # only then do we draw
+        for mpid,decay in toDraw.items():
+            for bsm_dpid,radiates in decay.items():
+                for i,(label,br) in enumerate(radiates.items()):
+                    self.drawDecay ( mpid, bsm_dpid, label, br, i, len(decay) )
 
-    def drawDecay ( self, mpid : int, dpids : tuple, br : float, 
-                    i : int, n : int ):
-        """ draw a single grey arrow connecting mother pid
-        with daughter pid """
+    def dpidsToStr ( self, dpids : tuple, 
+            br : Union[None,float] = None ) -> str:
+        """ translate the decay pids to a string 
+        e.g. (1000022, 11, 12) -> l+ nu
+        :param br: optional branching ratio
+        """
         dpid = dpids[0]
         d_products = dpids[1:]
         opposite_signs = [ (2,1), (11,11), (12,12) ]
@@ -114,8 +123,15 @@ class MassesAndDecays ( LoggerBase ):
             br = 3*br
         label = namer.texName ( d_products, addDollars=True, lightFlavors=False,
                                 addSign = True, separator = " ")
-        # print ( f"@@0 {d_products} -> {label}" )
-        if br < 1.0:
+        if br is not None and br < 1.0:
+            label = f"{label}:{int(round(100*br)):d}%"
+        return label
+
+    def drawDecay ( self, mpid : int, dpid : int, label : str, br : float, 
+                    i : int, n : int ):
+        """ draw a single grey arrow connecting mother pid
+        with daughter pid """
+        if br is not None and br < 0.999:
             label = f"{label}:{int(round(100*br)):d}%"
         y_start = self.masses[mpid]
         y_end = self.masses[dpid]
