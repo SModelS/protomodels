@@ -422,7 +422,8 @@ class Manipulator ( LoggerBase ):
             D["step"]=self.M.step
             D["protomodels_version"]=self.M.protomodels_version
             D["smodels_version"]=smodels.installation.version()
-            D["database_version"]=self.M.dbversion
+            if hasattr ( self.M, "dbversion" ):
+                D["database_version"]=self.M.dbversion
             D["templateSLHA"]=self.M.environ.templateName
             D["allowN1N1Prod"]=self.M.environ.allowN1N1Prod
             D["susy_mode"]=self.M.environ.susy_mode
