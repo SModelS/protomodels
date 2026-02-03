@@ -915,6 +915,9 @@ class HiscorePlotter ( LoggerBase ):
 
     def drawMassesDecays( self, verbosity : str ):
         from plotting.drawMassesAndDecays import MassesAndDecays
+        cmd = "plotting/drawMassesAndDecays.py"
+        cmdline = f"{cmd} -s 'symlog' -m ./hiscores_global.dict"
+        self.pprint ( f"{cmdline}" )
         options = { "scale": "symlog", "interact": False }
         model = self.protomodel.dict()
         plotter = MassesAndDecays ( model, options )
