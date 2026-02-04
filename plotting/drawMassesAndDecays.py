@@ -14,6 +14,9 @@ namer = sparticleNames.SParticleNames ( susy=False )
 def ceil_to_step(x : float, step : int = 50) -> float:
     return math.ceil(x / step) * step
 
+def floor_to_step(x : float, step : int = 50) -> float:
+    return math.floor(x / step) * step
+
 class MassesAndDecays ( LoggerBase ):
     def __init__ ( self, model, options ):
         super ( MassesAndDecays, self ).__init__ ( "draw" )
@@ -40,31 +43,34 @@ class MassesAndDecays ( LoggerBase ):
                 ymin = mass
             if mass > ymax:
                 ymax = mass
-        ymin, ymax = .8 * ymin - 35., 1.05 * ymax + 20.
+        dy = ymax - ymin
+        # ymin, ymax = .8 * ymin - 35., 1.05 * ymax + 20.
+        # ymin, ymax = .8 * ymin - dy / 20., 1.05 * ymax + dy / 30.
+        ymin, ymax = .95 * ymin - dy / 10., 1.05 * ymax + dy / 30.
         if "ymin" in self.options and self.options["ymin"] is not None:
             ymin = self.options["ymin"]
         if "ymax" in self.options and self.options["ymax"] is not None:
             ymax = self.options["ymax"]
-        self.pprint ( f"setting y range to ({ymin},{ymax})" )
+        self.pprint ( f"setting y range to ({ymin:.1f},{ymax:.1f})" )
         self.yrange = ( ymin, ymax )
+        self.delta_y = ymax - ymin # convenience
 
     def dyLabel ( self, pid ):
         """ get the dy of the label, its a bit involved """
         ret = 11
         if pid == 1000022:
-            ret = -40
+            ret = - self.delta_y / 10.
         if self.options["scale"] == "symlog":
             if pid == 1000022:
-                ret = -20
+                ret = - self.delta_y / 20.
             else:
                 mass = self.masses[pid]
-                ret = 36. * mass / ( self.yrange[1]+self.yrange[0] )
+                ret = self.delta_y / 10. * mass / ( self.yrange[1]+self.yrange[0] )
         if self.options["scale"] == "linear":
-            dy = self.yrange[1] - self.yrange[0]
             if pid == 1000022:
-                ret = -.1 * dy
+                ret = -.1 * self.delta_y
             else:
-                ret = .05 * dy
+                ret = .05 * self.delta_y
 
         return ret
 
@@ -89,7 +95,7 @@ class MassesAndDecays ( LoggerBase ):
             self.ax.hlines ( mass, xpos, xpos+dx_line, color = color )
             self.xpositions[pid]=xpos
             pname = namer.texName ( pid, addDollars=True )
-            if mass + dy_label < self.yrange[0] - 10.:
+            if mass + dy_label < self.yrange[0] - self.delta_y / 60.:
                 dy_label = self.yrange[0] - 0. - mass
             self.ax.text( xpos+dx_label, mass+dy_label, pname, fontsize=20,
                           color = color )
@@ -155,11 +161,12 @@ class MassesAndDecays ( LoggerBase ):
         dx = x_end - x_start
         dy = y_end - y_start
         x_coord =  x_start + .5 * dx
-        di = i * 25
+        di = i * self.delta_y / 20.
+        dm = 100.
         if self.options["scale"]=="symlog":
-            di = i * 13 * y_start / 100.
-        di = di - ( n -1 ) * 10 * y_start / 100.
-        y_coord =  y_start + .5 * dy - 7. - di
+            di = i * self.delta_y / 40. * y_start / dm
+        di = di - ( n -1 ) * self.delta_y / 50. * y_start / dm
+        y_coord =  y_start + .5 * dy - self.delta_y / 60. - di
         if x_coord > 50:
             x_coord += 8
         if y_coord < self.yrange[0]:
@@ -181,16 +188,24 @@ class MassesAndDecays ( LoggerBase ):
         plt.ylabel('Mass [GeV]')
         self.drawMasses()
         self.drawDecays()
+        dm = 100
+        if self.delta_y < 100.:
+            dm = 50
+        if self.delta_y < 50.:
+            dm = 20
+        if self.delta_y < 20.:
+            dm = 10
 
         if self.options["scale"]=="symlog":
-            self.yrange = ( self.yrange[0], self.yrange[1]*1.2 )
+            # self.yrange = ( self.yrange[0], self.yrange[1]*1.2 )
             self.ax.set_yscale('symlog', linthresh=200, linscale=1. )
-            ymin = ceil_to_step ( self.yrange[0], 100 )
-            ymax = ceil_to_step ( self.yrange[1], 100 )
-            ticks = range ( ymin, ymax+1, 100 )
+            ymin = ceil_to_step ( self.yrange[0], dm )
+            ymax = ceil_to_step ( self.yrange[1], dm )
+            ticks = range ( ymin, ymax+1, dm )
             self.ax.yaxis.set_ticks(ticks)
             self.ax.yaxis.set_ticklabels([f"{t}" for t in ticks])
             self.ax.set_xlim(0,100)
+        print ( f"ymax {ymax} dm {dm} yrange {self.yrange}" )
 
         self.ax.yaxis.grid(True)
 
