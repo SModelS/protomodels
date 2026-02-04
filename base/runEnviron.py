@@ -6,6 +6,9 @@ all parameters that are specific to a run
 
 import os
 from ptools.helpers import py_dump, py_dumps
+import time
+from typing import IO, Optional
+
 
 __all__ = [ "RunEnviron" ]
 
@@ -21,6 +24,38 @@ def dict_diff(d1, d2):
         if v1 != v2:
             diff[k] = (v1, v2)
     return diff
+
+def openWithRetry( path: str, mode: str = "r", retries: int = 3,
+                     delay: float = 1.0,) -> IO:
+    """
+    Open a file, retrying on transient I/O errors.
+
+    This is useful for files on network filesystems (e.g., NFS, SMB)
+    where `open()` may fail intermittently.
+
+    Args:
+        path: Path to the file to open.
+        mode: File mode (same as built-in `open`).
+        retries: Number of attempts before giving up.
+        delay: Seconds to sleep between retries.
+
+    Returns:
+        An open file object.
+
+    Raises:
+        Exception: If all retries fail.
+    """
+    last_exc: Optional[Exception] = None
+
+    for attempt in range(retries):
+        try:
+            return open(path, mode)
+        except Exception as exc:
+            last_exc = exc
+            if attempt < retries - 1:
+                time.sleep(delay)
+            else:
+                raise last_exc
 
 class RunEnviron:
     """ captures all parameters that pertain to a specific 'run'
@@ -91,7 +126,7 @@ class RunEnviron:
             newdict["dbversion"]=old_dbver
         py_dump ( newdict, runDictFile )
         ret = RunEnviron ( runDictFile )
-        new_dbver = ret.databaseVersion 
+        new_dbver = ret.databaseVersion
         if check and old_dbver != new_dbver:
             line= f"[RunEnviron] dbver changed from {old_dbver} to {new_dbver}"
             print ( line )
@@ -136,7 +171,7 @@ class RunEnviron:
             import sys; sys.exit()
         self.didReadRunDict = True
         try:
-            with open ( self.runDictFile, "rt" ) as f:
+            with openWithRetry ( self.runDictFile, "rt" ) as f:
                 txt = f.read()
                 d = eval ( txt )
                 self.run_dict.update ( d )
