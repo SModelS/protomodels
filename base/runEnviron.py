@@ -176,8 +176,9 @@ class RunEnviron:
                 d = eval ( txt )
                 self.run_dict.update ( d )
         except ( SyntaxError, ValueError ) as e:
-            print (f"[RunEnviron] something is wrong with {self.runDictFile}: {e}" )
-            print (f"[RunEnviron] fix it!" )
+            self.error (f"when parsing {self.runDictFile}: {e} ({type(e)})" )
+            if "txt" in globals():
+                self.error (f"{txt}" )
             import sys; sys.exit(-1)
         self._setAttrs()
 
