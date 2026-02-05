@@ -179,8 +179,11 @@ class MassesAndDecays ( LoggerBase ):
 
     def init ( self ):
         fig, ax = self.plt.subplots()
-        self.fig = self.plt.intercept ( fig, "fig" )
-        self.ax = self.plt.intercept ( ax, "ax" )
+        if self.options["record"]:
+            self.fig = self.plt.intercept ( fig, "fig" )
+            self.ax = self.plt.intercept ( ax, "ax" )
+        else:
+            self.fig, self.ax = fig, ax
         #self.plt.subplots()
         #self.fig = self.plt.gcf()
         #self.ax = self.plt.gca()
