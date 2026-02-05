@@ -246,6 +246,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-m', '--modelfile',
             help='path to model file [truth.dict]',
             type=str, default='truth.dict' )
+    argparser.add_argument ( '-o', '--outfile',
+            help='output file [mass_hierarchy.png]',
+            type=str, default='mass_hierarchy.png' )
     argparser.add_argument ( '-i', '--interact',
             help='enter interactive mode', action="store_true" )
     argparser.add_argument ( '-r', '--record',
