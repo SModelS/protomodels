@@ -5,10 +5,10 @@ all parameters that are specific to a run
 """
 
 import os
-from ptools.helpers import py_dump, py_dumps
 import time
 from typing import IO, Optional
-
+from ptools.helpers import py_dump, py_dumps
+from base.loggerbase import LoggerBase
 
 __all__ = [ "RunEnviron" ]
 
@@ -57,7 +57,7 @@ def openWithRetry( path: str, mode: str = "r", retries: int = 3,
             else:
                 raise last_exc
 
-class RunEnviron:
+class RunEnviron ( LoggerBase ):
     """ captures all parameters that pertain to a specific 'run'
     A 'run' is characterized a by a slew of similar walkers
     """
@@ -75,6 +75,7 @@ class RunEnviron:
         :ivar rundir(str): the run directory
         for initialisation, or dont use initialiser (None)
         """
+        super ( RunEnviron, self ).__init__ ( "env" )
         self._db = None # we instantiate only when needed
         self.runDictFile = os.path.expanduser ( runDictFile )
         self.didReadRunDict = False # did we get the info from run.dict?
