@@ -2,7 +2,6 @@
 
 """ code that combines the ruler and the decays plotter """
 
-import matplotlib.pyplot as plt
 import math
 from typing import Union
 
@@ -25,7 +24,12 @@ class MassesAndDecays ( LoggerBase ):
         self.decays = model["decays"]
         self.options = self.defaults()
         self.options.update ( options )
+        self.importMatplot()
         self.getYRange()
+
+    def importMatplot ( self ):
+        from smodels_utils.plotting.plottingRecorder import importMatplot
+        self.plt = importMatplot ( self.options["record"], False )
 
     def defaults ( self ):
         ret = { "outfile": "mass_hierarchy.png" }
@@ -138,7 +142,7 @@ class MassesAndDecays ( LoggerBase ):
         label = namer.texName ( d_products, addDollars=True, lightFlavors=False,
                                 addSign = "ifboth", separator = " ")
         if br is not None and br < 1.0:
-            label = f"{label}:{int(round(100*br)):d}%"
+            label = rf"{label}:{int(round(100*br)):d}%"
         return label
 
     def drawDecay ( self, mpid : int, dpid : int, label : str, br : float,
@@ -155,7 +159,7 @@ class MassesAndDecays ( LoggerBase ):
         if dpid == 1000022:
             dx = 10
         arrowprops = dict(color='gray', arrowstyle='<-')
-        plt.annotate( '', ( x_start+5, y_start ),
+        self.plt.annotate( '', ( x_start+5, y_start ),
                       xytext=(x_end+dx,y_end),arrowprops=arrowprops,
                       ha='center')
         dx = x_end - x_start
@@ -171,21 +175,25 @@ class MassesAndDecays ( LoggerBase ):
             x_coord += 8
         if y_coord < self.yrange[0]:
             y_coord = self.yrange[0]
-        plt.text( x_coord, y_coord, label, fontsize=15 )
+        self.plt.text( x_coord, y_coord, label, fontsize=15 )
 
     def init ( self ):
-        fig, ax = plt.subplots()
-        ax.get_xaxis().set_visible(False)
-        ax.spines.top.set_visible(False)
-        ax.set_ylim( self.yrange )
-        self.fig, self.ax = fig, ax
+        fig, ax = self.plt.subplots()
+        self.fig = self.plt.intercept ( fig, "fig" )
+        self.ax = self.plt.intercept ( ax, "ax" )
+        #self.plt.subplots()
+        #self.fig = self.plt.gcf()
+        #self.ax = self.plt.gca()
+        self.ax.get_xaxis().set_visible(False)
+        self.ax.spines.top.set_visible(False)
+        self.ax.set_ylim( self.yrange )
 
     def interact ( self ):
         import sys, IPython; IPython.embed( colors = "neutral" )
 
     def plot ( self ):
         self.init()
-        plt.ylabel('Mass [GeV]')
+        self.plt.ylabel('Mass [GeV]')
         self.drawMasses()
         self.drawDecays()
         dm = 100
@@ -202,16 +210,16 @@ class MassesAndDecays ( LoggerBase ):
             ymin = ceil_to_step ( self.yrange[0], dm )
             ymax = ceil_to_step ( self.yrange[1], dm )
             ticks = range ( ymin, ymax+1, dm )
-            self.ax.yaxis.set_ticks(ticks)
-            self.ax.yaxis.set_ticklabels([f"{t}" for t in ticks])
+            self.ax.set_yticks(ticks)
+            self.ax.set_yticklabels([f"{t}" for t in ticks])
             self.ax.set_xlim(0,100)
-        print ( f"ymax {ymax} dm {dm} yrange {self.yrange}" )
+        # print ( f"@@ ymax {ymax} dm {dm} yrange {self.yrange}" )
 
-        self.ax.yaxis.grid(True)
+        self.ax.get_yaxis().grid(True)
 
-        plt.tight_layout()
+        self.plt.tight_layout()
         outfile = self.options["outfile"]
-        plt.savefig ( outfile )
+        self.plt.savefig ( outfile )
         self.pprint ( f"saving to {outfile}" )
         timg ( outfile )
         if self.options["interact"]:
@@ -237,6 +245,8 @@ if __name__ == "__main__":
             type=str, default='truth.dict' )
     argparser.add_argument ( '-i', '--interact',
             help='enter interactive mode', action="store_true" )
+    argparser.add_argument ( '-r', '--record',
+            help='active plotting recorder', action="store_true" )
     argparser.add_argument ( '--ymin',
             help='ymin [auto]', type=float, default=None )
     argparser.add_argument ( '--ymax',
