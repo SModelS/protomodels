@@ -315,8 +315,9 @@ if __name__ == "__main__":
             help='ymin [auto]', type=float, default=None )
     argparser.add_argument ( '--ymax',
             help='ymax [auto]', type=float, default=None )
-    argparser.add_argument ( '--yscale',
-            help='yscale argument [linear]', type=str, default=None )
+    argparser.add_argument ( '-s', '--yscale',
+            help="yscale argument, e.g. linear, mylog:200:1, symlog [linear]", 
+            type=str, default=None )
     args=argparser.parse_args()
     plotter = TenHiscores( vars(args) )
     plotter.plot()
