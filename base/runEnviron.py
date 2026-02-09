@@ -53,7 +53,7 @@ def openWithRetry( path: str, mode: str = "r", retries: int = 3,
         except Exception as exc:
             last_exc = exc
             if attempt < retries - 1:
-                time.sleep(delay)
+                time.sleep(delay*(attempt**2+1))
             else:
                 raise last_exc
 
