@@ -25,7 +25,7 @@ def dict_diff(d1, d2):
             diff[k] = (v1, v2)
     return diff
 
-def openWithRetry( path: str, mode: str = "r", retries: int = 3,
+def openWithRetry( path: str, mode: str = "r", retries: int = 5,
                      delay: float = 1.0,) -> IO:
     """
     Open a file, retrying on transient I/O errors.
@@ -167,19 +167,20 @@ class RunEnviron ( LoggerBase ):
     def readRunDict ( self ):
         """ read the run.dict file, set runDict """
         if self.runDictFile is None or not os.path.exists ( self.runDictFile ):
-            print ( f"[RunEnviron] no {self.runDictFile} exists" )
-            print ( f"[RunEnviron] you can create one via RunEnviron.create()" )
+            self.error ( f"no {self.runDictFile} exists" )
+            self.error ( f"you can create one via RunEnviron.create()" )
             import sys; sys.exit()
-        self.didReadRunDict = True
+        txt = ""
         try:
-            with openWithRetry ( self.runDictFile, "rt" ) as f:
-                txt = f.read()
-                d = eval ( txt )
-                self.run_dict.update ( d )
+            while txt == "":
+                with openWithRetry ( self.runDictFile, "rt" ) as f:
+                    txt = f.read()
+            d = eval ( txt )
+            self.run_dict.update ( d )
+            self.didReadRunDict = True
         except ( SyntaxError, ValueError ) as e:
-            self.error (f"when parsing {self.runDictFile}: {e} ({type(e)})" )
-            if "txt" in globals():
-                self.error (f"{txt}" )
+            self.error (f"when parsing {os.path.abspath(self.runDictFile)} {type(e)}: {e}" )
+            self.error (f"content: >>{txt}<<" )
             import sys; sys.exit(-1)
         self._setAttrs()
 
