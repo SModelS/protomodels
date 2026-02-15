@@ -27,6 +27,7 @@ from typing import Callable, Dict, Union
 
 from base.runEnviron import RunEnviron
 from base.loggerbase import LoggerBase
+from base.pbase import openWithRetry
 from ptools.sparticleNames import SParticleNames
 from ptools import helpers
 from ptools.helpers import prettyPrint
@@ -254,7 +255,7 @@ class RandomWalker ( LoggerBase ):
                 sys.exit()
             try:
                 logger.info ( f"trying to interpret {dictionary} as a path... " )
-                f = open ( dictionary, "rt" )
+                f = openWithRetry ( dictionary, "rt" )
                 tmp = eval ( f.read() )
                 f.close()
                 if type(tmp) == dict:
@@ -308,7 +309,7 @@ class RandomWalker ( LoggerBase ):
     def writeToDictFile(self, proto_dict):
             # Load existing list or initialize a new one
             if os.path.exists(self.dictfile):
-                with open (self.dictfile, "rt" ) as f:
+                with openWithRetry (self.dictfile, "rt" ) as f:
                     txt = f.read()
                     try:
                         dicts = eval( txt )
