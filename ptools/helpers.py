@@ -15,7 +15,7 @@ from smodels.base.physicsUnits import GeV
 from smodels.matching.theoryPrediction import TheoryPrediction
 import scipy.stats
 from os import PathLike
-from typing import Union, Set
+from typing import Union, Set, List
 import numpy as np
 
 def repr_double_quotes(obj):
@@ -248,7 +248,7 @@ def getAllProdModesOfTheoryPred (pred : TheoryPrediction) -> Set:
                 continue
     return prod_modes
 
-def getAllPidsOfTheoryPred ( pred : TheoryPrediction ) -> Set:
+def getAllPidsOfTheoryPred ( pred : TheoryPrediction ) -> List:
     """ get all pids that make it into a theory prediction """
     def addPDGs ( pids, pid ):
         if type(pid) == int:
@@ -267,6 +267,8 @@ def getAllPidsOfTheoryPred ( pred : TheoryPrediction ) -> Set:
                 if node.isSM:
                     continue
                 addPDGs ( pids, node.pdg )
+    pids = list(pids)
+    pids.sort( reverse=True )
     return pids
 
 def prettyPrint ( value : Union[None,float,numpy.float64],

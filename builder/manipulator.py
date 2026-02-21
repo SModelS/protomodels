@@ -678,7 +678,7 @@ class Manipulator ( LoggerBase ):
 
             allpids = list( getAllPidsOfTheoryPred ( i ) )
             pidline = f"        pids:"
-            for pid in allpids[:2]:
+            for pid in allpids[:]:
                 pidline += f" {self.namer.asciiName(pid)}"
             if len(pidline) > 80:
                 pidline=f"{pidline[:76]} ..."
@@ -706,7 +706,7 @@ class Manipulator ( LoggerBase ):
                 print ( f"   - robs={robs} rexp={rexp}" )
             allpids = list ( getAllPidsOfTheoryPred ( i ) )
             pidline  = f"        pids:"
-            for pid in allpids[:2]:
+            for pid in allpids[:]:
                 pidline += f" {self.namer.asciiName(pid)}"
                 if len(pidline) > 80:
                     pidline=f"{pidline[:76]} ..."
