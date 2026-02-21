@@ -13,7 +13,7 @@ from typing import Union, Dict, List, Tuple, Set
 from unum import Unum
 from os import PathLike
 import tempfile
-from scipy.stats import norm, lognorm, uniform
+from scipy.stats import norm, lognorm, uniform, chi2
 
 from smodels.base.physicsUnits import fb, TeV, GeV
 from smodels.base.crossSection import LO
@@ -635,11 +635,12 @@ class Manipulator ( LoggerBase ):
         self.M.walkerid = Id
 
     def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
-            detailed : bool = False ):
+            detailed : bool = False, add_nlls : bool = False ):
         """ pretty print prediction combos.
             If None, print best combo
         :param combo: None, to print the best combo, else print that combo
         :param detailed: if true, print more detailed report
+        :param add_nlls: if true, also add nll values
         """
         print ( "best combo:" )
         if combo == None:
@@ -661,7 +662,7 @@ class Manipulator ( LoggerBase ):
                     if bgErr == int(bgErr):
                         bgErr=int(bgErr)
                     toterr = math.sqrt ( bgErr**2 + eBG )
-                    line += f"obs={dI.observedN} exp={eBG:.2f}+-{bgErr}"
+                    line += f"obs={dI.observedN:d} exp={eBG:.2f}+-{bgErr}"
                     if toterr > 0.:
                         line += f" Z={RED}{(dI.observedN - eBG ) / toterr :.1f}*sigma{RESET}"
                     print ( line )
@@ -671,10 +672,21 @@ class Manipulator ( LoggerBase ):
                     except Exception as e:
                         eUL = i.getUpperLimit ( evaluationType = True ).asNumber(fb)
                     oUL = i.getUpperLimit ( ).asNumber(fb)
-                    sigma_exp = eUL / 1.96 # the expected scale, sigma
-                    Z = ( oUL - eUL ) / sigma_exp
+                    # sigma_exp = eUL / 1.96 # the expected scale, sigma
+                    # Zold = ( oUL - eUL ) / sigma_exp
+                    nll = i.nll ( mu=1.  )
+                    nll_sm = i.nll ( mu=0.  )
+                    chi2_v = 2 * ( nll_sm - nll )
+                    p = chi2.cdf ( chi2_v, df=1 )
+                    from ptools.helpers import computeZFromP
+                    Z = computeZFromP ( 1. - p )
+                    # line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Zold={Zold:.1f} Z={RED}{Z:.1f}*sigma{RESET}"
                     line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={RED}{Z:.1f}*sigma{RESET}"
                     print ( line )
+            if add_nlls:
+                nll = i.nll ( mu=1.  )
+                nll_sm = i.nll ( mu=0.  )
+                print ( f"        nll={nll:.2f} nll(SM)={nll_sm:.2f}" )
 
             allpids = list( getAllPidsOfTheoryPred ( i ) )
             pidline = f"        pids:"
