@@ -392,8 +392,9 @@ class NLLThread ( LoggerBase ):
             self.M.delXSecs() ## make sure we compute
             xsecs = self.M.getXsecs()
             xsectot = 0.*fb
-            for xsec in xsecs[0]:
-                xsectot += xsec.value
+            if len(xsecs)>0:
+                for xsec in xsecs[0]:
+                    xsectot += xsec.value
             if xsectot.asNumber ( fb ) < 1e-10:
                 self.pprint ( "WARNING no xsec??" )
             for i2,m2 in enumerate(ryvariable):
@@ -462,7 +463,9 @@ class NLLScanner ( LoggerBase ):
         self.M = protomodel
         self.xvariable = xvariable
         self.yvariable = yvariable
-        picklefile = f"{self.output}{namer.asciiName(self.xvariable)}{namer.asciiName(self.yvariable).replace(',','').replace(' ','')}.pcl"
+        x_short = namer.asciiName(self.xvariable).replace(',','').replace(' ','')
+        y_short = namer.asciiName(self.yvariable).replace(',','').replace(' ','')
+        picklefile = f"{self.output}{x_short}{y_short}.pcl"
         self.picklefile = picklefile
         self.nproc = nproc
         self.skip_production = skip_production
