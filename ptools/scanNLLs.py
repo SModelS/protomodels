@@ -375,6 +375,11 @@ class NLLThread ( LoggerBase ):
             self.pprint ( f"now starting with point set #{setnr} [of {nxvariables} in this thread]" )
             self.pprint ( f"this point set contains {len(ryvariable)} points" )
             self.setMass ( self.xvariable, m1 )
+            if type(self.mxvariable)==int:
+                self.M.masses[self.xvariable]=self.mxvariable ## reset LSP mass
+            if type(self.mxvariable)==tuple:
+                ## reset LSP mass
+                self.setSSMultiplier ( self.xvariable, self.mxvariable )
             if type(self.myvariable)==int:
                 self.M.masses[self.yvariable]=self.myvariable ## reset LSP mass
             if type(self.myvariable)==tuple:
@@ -615,16 +620,25 @@ class NLLScanner ( LoggerBase ):
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
                  1000023: "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000024: "electroweakinos,stops,TChiZISRqq,TChiISR",
+                 (1000023,1000024): "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000025: "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000035: "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
         if args.topo == None:
             args.topo = topo[args.xvariable]
-        self.mxvariable = self.M.masses[self.xvariable]
+        # self.mxvariable = self.M.masses[self.xvariable]
+        if type(self.xvariable) == int:
+            self.mxvariable = self.M.masses[self.xvariable]
+        if type(self.xvariable) == tuple:
+            if self.xvariable[0]> self.xvariable[1]:
+                self.xvariable = ( self.xvariable[1], self.xvariable[0] )
+            self.mxvariable = self.M.ssmultipliers[self.xvariable]
         if type(self.yvariable) == int:
             self.myvariable = self.M.masses[self.yvariable]
         if type(self.yvariable) == tuple:
+            if self.yvariable[0]> self.yvariable[1]:
+                self.yvariable = ( self.yvariable[1], self.yvariable[0] )
             self.myvariable = self.M.ssmultipliers[self.yvariable]
         nbinsx, nbinsy = 20, 20 # how many bins do we want per dimension
         if args.minx == None:

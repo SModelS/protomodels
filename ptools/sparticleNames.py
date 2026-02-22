@@ -345,13 +345,19 @@ class SParticleNames:
         :param name: get the pid for particle with that name
         :param signed: if true, return signed value
         """
-        if type ( name ) in [ tuple, int ]: # integers return as they are
+        if type ( name ) in [ int ]: # integers return as they are
             return name
+        if type ( name ) in [ tuple ]: # integers return as they are
+            ret = []
+            for t in tuple:
+                ret.append ( pid ( name, signed ) )
+            return tuple ( ret )
         if "," in name:
             if name.startswith("("):
                 name = name[1:]
             if name.endswith(")"):
                 name = name[:-1]
+            name = name.replace("'","").replace('"','')
             tokens = name.split(",")
             ret = []
             for t in tokens:
