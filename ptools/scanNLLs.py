@@ -70,8 +70,8 @@ class NLLThread ( LoggerBase ):
         self.M.createNewSLHAFileName ( prefix=f"lthrd{self.threadnr}_{obj.xvariable}" )
         self.xvariable = obj.xvariable
         self.yvariable = obj.yvariable
-        self.mxvariable = obj.mxvariable
-        self.myvariable = obj.myvariable
+        self.xvalue = obj.xvalue
+        self.yvalue = obj.yvalue
         self.nevents = obj.nevents
         self.predictor = obj.predictor
         self.critic = obj.critic
@@ -80,8 +80,8 @@ class NLLThread ( LoggerBase ):
     def getDefaultDictionary ( self ):
         """ initialise the dictionary for the pickle file """
         import time
-        d = { "masspoints": [], "mxvariable": self.mxvariable,
-              "myvariable": self.myvariable, "nevents": self.nevents,
+        d = { "parameterpoints": [], "xvalue": self.xvalue,
+              "yvalue": self.yvalue, "nevents": self.nevents,
               "topo": self.topo, "timestamp": time.asctime(),
               "xvariable": self.xvariable, "yvariable": self.yvariable,
               "model": self.M.dict() }
@@ -117,8 +117,8 @@ class NLLThread ( LoggerBase ):
             except Exception as e:
                 pass
 
-    def writePickleFile ( self, d : Dict ):
-        """ write the dictionary into the picklefile """
+    def writeFiles ( self, d : Dict ):
+        """ write the dictionary into the picklefile and dict file """
         # self.createPickleBackup()
         f = open ( self.picklefile, "wb" )
         pickle.dump ( d, f )
@@ -128,9 +128,10 @@ class NLLThread ( LoggerBase ):
             dictfile = self.picklefile.replace(".pcl",".dict")
             self.pprint ( f"writing to {dictfile}" )
             with open ( dictfile, "wt" ) as f:
-                befores = { "mx": "my", "my": "critic", "critic": "oul",
+                befores = { "x": "y", "y": "critic", "critic": "oul",
                             "oul": "eul", "eul": "nll" }
                 d = py_dumps ( d, level = 0, a_before = befores )
+                f.write ( "# file created {time.asctime()}\n" )
                 f.write ( d )
             f.close()
 
@@ -157,8 +158,8 @@ class NLLThread ( LoggerBase ):
 
     def isSameMassPoint ( self, point1 : Dict, point2 : Dict ) -> bool:
         """ are the two points identical? """
-        dx = point1["mx"]-point2["mx"]
-        dy = point1["my"]-point2["my"]
+        dx = point1["x"]-point2["x"]
+        dy = point1["y"]-point2["y"]
         if abs(dx)<1e-10 and abs(dy)<1e-10:
             return True
         return False
@@ -174,14 +175,14 @@ class NLLThread ( LoggerBase ):
 
     def addNewPoint ( self, point : Dict ):
         """ add point to resultsdir. if already in, replace """
-        if not "mx" in point: #dont add anything!
+        if not "x" in point: #dont add anything!
             return
-        point["mx"]=round( point["mx"], 7 )
-        point["my"]=round( point["my"], 7 )
-        dictfile = self.getDictFileName ( point["mx"], point["my"] )
+        point["x"]=round( point["x"], 7 )
+        point["y"]=round( point["y"], 7 )
+        dictfile = self.getDictFileName ( point["x"], point["y"] )
         with open ( dictfile, "wt" ) as f:
             # f.write ( f"{point}\n" )
-            befores = { "mx": "my", "my": "critic", "critic": "oul",
+            befores = { "x": "y", "y": "critic", "critic": "oul",
                         "oul": "eul", "eul": "nll" }
             d = py_dumps ( point, level = 0, a_before = befores )
             f.write ( d + "\n" )
@@ -190,10 +191,11 @@ class NLLThread ( LoggerBase ):
         if nfiles % 100 == 0: # update with every 20th entry
             self.updatePickleFile()
 
-    def getAllMassPoints ( self ) -> list:
+    def getAllParameterPoints ( self ) -> list:
         """ retrieve all mass points from resultsdir """
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
-        masspoints = []
+        print ( f"@@ getAllParameterPoints {list(files)}" )
+        parameterpoints = []
         for fname in files:
             with open ( fname, "rt" ) as h:
                 try:
@@ -201,10 +203,17 @@ class NLLThread ( LoggerBase ):
                 except (SyntaxError,ValueError,TypeError) as e:
                     self.error ( f"could not read: {fname}: {e}" )
                     sys.exit()
-                d["mx"] = float ( d["mx"] )
-                d["my"] = float ( d["my"] )
-                masspoints.append ( d )
-        return masspoints
+                for var in [ "x", "y", "mx", "my" ]:
+                    if var in d:
+                        d[var]=float(d[var])
+                if not "x" in d and "mx" in d:
+                    d["x"]=d["mx"]
+                    d.pop("mx")
+                if not "y" in d and "my" in d:
+                    d["y"]=d["my"]
+                    d.pop("my")
+                parameterpoints.append ( d )
+        return parameterpoints
 
     def updatePickleFile ( self ):
         """ collect all the entries in resultsdir, and compile them
@@ -213,10 +222,10 @@ class NLLThread ( LoggerBase ):
         self.lockPickleFile()
         Dict = self.getDefaultDictionary()
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
-        masspoints = self.getAllMassPoints()
-        Dict["masspoints"] = masspoints
+        parameterpoints = self.getAllParameterPoints()
+        Dict["parameterpoints"] = parameterpoints
         Dict["meta"] = self.getMetaInformation()
-        self.writePickleFile ( Dict )
+        self.writeFiles ( Dict )
         self.unlockPickleFile()
 
     def unlinkResultsDir ( self ):
@@ -243,7 +252,7 @@ class NLLThread ( LoggerBase ):
         :returns: a diction with likelihoods ("nll"), critics' responses ("critic"),
         observed ("oul") and expected ("eul") upper limits on mu.
         """
-        self.debug ( f"asking for predictions for xmy={self.mxvariable:.2f},{self.myvariable:.2g}")
+        self.debug ( f"asking for predictions for xmy={self.xvalue:.2f},{self.yvalue:.2g}")
         slhaf = self.M.createSLHAFile( )
         sigmacut=.02*fb
         if max(self.M.masses)>1600:
@@ -369,7 +378,7 @@ class NLLThread ( LoggerBase ):
     def run ( self, rxvariable, ryvariable ):
         """ run for the points given """
         oldmasses = {}
-        masspoints=self.getAllMassPoints()
+        parameterpoints=self.getAllparameterpoints()
         nxvariables = len(rxvariable)
         ct = 0
         for i1,m1 in enumerate(rxvariable):
@@ -382,16 +391,16 @@ class NLLThread ( LoggerBase ):
             self.pprint ( f"now starting with point set #{setnr} [of {nxvariables} in this thread]" )
             self.pprint ( f"this point set contains {len(ryvariable)} points" )
             self.setParameter ( self.xvariable, m1 )
-            if type(self.mxvariable)==int:
-                self.M.masses[self.xvariable]=self.mxvariable ## reset LSP mass
-            if type(self.mxvariable)==tuple:
+            if type(self.xvalue)==int:
+                self.M.masses[self.xvariable]=self.xvalue ## reset LSP mass
+            if type(self.xvalue)==tuple:
                 ## reset LSP mass
-                self.setSSMultiplier ( self.xvariable, self.mxvariable )
-            if type(self.myvariable)==int:
-                self.M.masses[self.yvariable]=self.myvariable ## reset LSP mass
-            if type(self.myvariable)==tuple:
+                self.setSSMultiplier ( self.xvariable, self.xvalue )
+            if type(self.yvalue)==int:
+                self.M.masses[self.yvariable]=self.yvalue ## reset LSP mass
+            if type(self.yvalue)==tuple:
                 ## reset LSP mass
-                self.setSSMultiplier ( self.yvariable, self.myvariable )
+                self.setSSMultiplier ( self.yvariable, self.yvalue )
             for k,v in oldmasses.items():
                 self.pprint ( f"WARNING: setting mass of {namer.asciiName(k)} back to {v}" )
                 self.M.masses[k]=v
@@ -430,12 +439,14 @@ class NLLThread ( LoggerBase ):
                 for mu,nll in nlls.items():
                     nnlls+=len(nll)
 
-                self.pprint ( f"{i1}/{nxvariables}: m({namer.asciiName(self.xvariable)})={m1:.1f}, m2({namer.asciiName(self.yvariable)})={m2:.1f}, {len(nlls)} mu's, {nnlls} nlls." )
-                point["mx"] = float ( m1 )
-                point["my"] = float ( m2 )
-                masspoints.append ( point )
+                x_name = namer.asciiName(self.xvariable)
+                y_name = namer.asciiName(self.yvariable)
+                self.pprint ( f"{i1}/{nxvariables}: m({x_name})={m1:.1f}, m({y_name})={m2:.1f}, {len(nlls)} mu's, {nnlls} nlls." )
+                point["x"] = float ( m1 )
+                point["y"] = float ( m2 )
+                parameterpoints.append ( point )
                 self.addNewPoint ( point ) ## add the point
-        return masspoints
+        return parameterpoints
 
 def runThread ( threadid: int, obj, rxvariable, ryvariable,
         return_dict : Union[Dict,None] = None ):
@@ -493,11 +504,11 @@ class NLLScanner ( LoggerBase ):
             return f"{r[0]:.2f},{r[1]:.2f}"
         return f"{r[0]:.2f},{r[1]:.2f} ... {r[-1]:.2f} -> {len(r)} points"
 
-    def runForMassPoints ( self, rxvariable, ryvariable ):
+    def runForParameterPoints ( self, rxvariable, ryvariable ):
         """ run for the given mass points
         :param rxvariable: list of masses for xvariable
         :param ryvariable: list of masses for yvariable
-        :returns: masspoints
+        :returns: parameterpoints
         """
         if self.dry_run:
             self.pprint ( f"dry_run. stopping here" )
@@ -557,26 +568,26 @@ class NLLScanner ( LoggerBase ):
         anaIds = c.getAnaIdsWithPids ( self.M.bestCombo, [ xvariable, yvariable ] )
         ## mass range for xvariable
         if type(yvariable) == int:
-            self.myvariable = self.M.masses[yvariable]
+            self.yvalue = self.M.masses[yvariable]
         if type(yvariable) == tuple:
-            self.myvariable = self.M.ssmultipliers[yvariable]
+            self.yvalue = self.M.ssmultipliers[yvariable]
 
         # choose the axis boundaries and step sizes such that the hiscore values
         # are nicely central
         from numpy import ceil
-        ndxmin = int ( ceil (( self.mxvariable - range1["min"] ) / range1["dm"]) )
-        ndxmax = int ( ceil (( range1["max"] - self.mxvariable ) / range1["dm"]) )
-        rxvariable = numpy.arange ( self.mxvariable - ndxmin*range1["dm"],
-                       self.mxvariable + ndxmax * range1["dm"] + 1e-5, range1["dm"] )
+        ndxmin = int ( ceil (( self.xvalue - range1["min"] ) / range1["dm"]) )
+        ndxmax = int ( ceil (( range1["max"] - self.xvalue ) / range1["dm"]) )
+        rxvariable = numpy.arange ( self.xvalue - ndxmin*range1["dm"],
+                       self.xvalue + ndxmax * range1["dm"] + 1e-5, range1["dm"] )
         # rxvariable = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
-        # rxvariable = numpy.insert ( rxvariable, 8, self.mxvariable )
-        ndymin = int ( ceil (( self.myvariable - range2["min"] ) / range2["dm"]) )
-        ndymay = int ( ceil (( range2["max"] - self.myvariable ) / range2["dm"]) )
-        ryvariable = numpy.arange ( self.myvariable - ndymin*range2["dm"],
-                       self.myvariable + ndymay * range2["dm"] + 1e-5, range2["dm"] )
+        # rxvariable = numpy.insert ( rxvariable, 8, self.xvalue )
+        ndymin = int ( ceil (( self.yvalue - range2["min"] ) / range2["dm"]) )
+        ndymay = int ( ceil (( range2["max"] - self.yvalue ) / range2["dm"]) )
+        ryvariable = numpy.arange ( self.yvalue - ndymin*range2["dm"],
+                       self.yvalue + ndymay * range2["dm"] + 1e-5, range2["dm"] )
 
         #ryvariable = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
-        #ryvariable = numpy.insert ( ryvariable, 8, self.myvariable )
+        #ryvariable = numpy.insert ( ryvariable, 8, self.yvalue )
         self.cprint ( "green", f"range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
         self.cprint ( "green", f"range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
         self.cprint ( "green", f"total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}" )
@@ -588,20 +599,20 @@ class NLLScanner ( LoggerBase ):
         thread0 = NLLThread ( "nll0", self )
         thread0.ntotal = len(rxvariable)*len(ryvariable)+1
         thread0.writeRunMeta()
-        if not thread0.hasResultsForPoint ( self.mxvariable, self.myvariable ):
+        if not thread0.hasResultsForPoint ( self.xvalue, self.yvalue ):
             point = thread0.getPredictions ( False )
-            point["mx"] = float ( self.mxvariable )
-            point["my"] = float ( self.myvariable )
+            point["x"] = float ( self.xvalue )
+            point["y"] = float ( self.yvalue )
             thread0.addNewPoint ( point )
             nlls = point["nll"]
             critics = point["critic"]
             thread0.clean()
-            self.pprint ( f"protomodel point: m1({namer.asciiName(self.xvariable)})={self.mxvariable:.2f}, m2({namer.asciiName(self.yvariable)})={self.myvariable:.2f}, {len(nlls)} nlls" )
-            # point [ "mx" ] = float ( self.mxvariable )
-            # point [ "my" ] = float ( self.myvariable )
-            masspoints = [ point ]
+            self.pprint ( f"protomodel point: m1({namer.asciiName(self.xvariable)})={self.xvalue:.2f}, m2({namer.asciiName(self.yvariable)})={self.yvalue:.2f}, {len(nlls)} nlls" )
+            # point [ "x" ] = float ( self.xvalue )
+            # point [ "y" ] = float ( self.yvalue )
+            parameterpoints = [ point ]
         else:
-            masspoints = thread0.getAllMassPoints()
+            parameterpoints = thread0.getAllparameterpoints()
 
         if False:
             ## freeze out all other particles? We shouldnt!
@@ -609,7 +620,7 @@ class NLLScanner ( LoggerBase ):
                 if pid_ not in [ self.xvariable, self.yvariable ]:
                     self.M.masses[pid_]=1e6
 
-        self.runForMassPoints ( rxvariable, ryvariable )
+        self.runForParameterPoints ( rxvariable, ryvariable )
         self.M.delCurrentSLHA()
 
     def cleanFirst ( self ):
@@ -637,37 +648,37 @@ class NLLScanner ( LoggerBase ):
         ### make the LSP scan depend on the mother
         if args.topo == None:
             args.topo = topo[args.xvariable]
-        # self.mxvariable = self.M.masses[self.xvariable]
+        # self.xvalue = self.M.masses[self.xvariable]
         if type(self.xvariable) == int:
-            self.mxvariable = self.M.masses[self.xvariable]
+            self.xvalue = self.M.masses[self.xvariable]
         if type(self.xvariable) == tuple:
             if self.xvariable[0]> self.xvariable[1]:
                 self.xvariable = ( self.xvariable[1], self.xvariable[0] )
-            self.mxvariable = self.M.ssmultipliers[self.xvariable]
+            self.xvalue = self.M.ssmultipliers[self.xvariable]
         if type(self.yvariable) == int:
-            self.myvariable = self.M.masses[self.yvariable]
+            self.yvalue = self.M.masses[self.yvariable]
         if type(self.yvariable) == tuple:
             if self.yvariable[0]> self.yvariable[1]:
                 self.yvariable = ( self.yvariable[1], self.yvariable[0] )
-            self.myvariable = self.M.ssmultipliers[self.yvariable]
+            self.yvalue = self.M.ssmultipliers[self.yvariable]
         nbinsx, nbinsy = 20, 20 # how many bins do we want per dimension
         if args.minx == None:
-            args.minx = self.mxvariable*.6
+            args.minx = self.xvalue*.6
         if args.maxx == None:
-            args.maxx = self.mxvariable*1.7
+            args.maxx = self.xvalue*1.7
         if args.deltamx == None:
             args.deltamx = ( args.maxx - args.minx ) / nbinsx
         if args.miny == None:
             if type(self.yvariable) == int:
-                args.miny = max ( self.myvariable*.6 - 10., 1. )
+                args.miny = max ( self.yvalue*.6 - 10., 1. )
             if type(self.yvariable) == tuple:
-                # args.miny = self.myvariable*.2
+                # args.miny = self.yvalue*.2
                 args.miny = 0.
         if args.maxy == None:
             if type(self.yvariable) == int:
-                args.maxy = self.myvariable*1.9 + 10.
+                args.maxy = self.yvalue*1.9 + 10.
             if type(self.yvariable) == tuple:
-                args.maxy = self.myvariable*5.
+                args.maxy = self.yvalue*5.
         if args.deltamy == None:
             args.deltamy = ( args.maxy - args.miny ) / nbinsy
         return args

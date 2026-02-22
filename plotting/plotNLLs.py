@@ -81,26 +81,26 @@ class NLLPlotter ( LoggerBase ):
         :param critic_type: one of: ul, llhd, both
 
         :returns: list of dictionaries: example:
-        [{ "mx": .. , "my": ..., "robs": ..., "rexp": ..., "passes": ... },...]
+        [{ "x": .. , "y": ..., "robs": ..., "rexp": ..., "passes": ... },...]
         """
         assert critic_type in [ "ul", "llhd", "both" ], \
              f"critic type should be one of: ul, llhd, both"
         ret = []
-        for masspoint in self.data["masspoints"]:
-            mx, my = masspoint["mx"], masspoint["my"]
-            tmp = { "mx": mx, "my": my }
+        for parameterpoint in self.data["parameterpoints"]:
+            mx, my = parameterpoint["x"], parameterpoint["y"]
+            tmp = { "x": mx, "y": my }
             if critic_type == "both":
-                p_ul = masspoint["critic"]["ul"]["passes"]
-                p_llhd = masspoint["critic"]["llhd"]["passes"]
+                p_ul = parameterpoint["critic"]["ul"]["passes"]
+                p_llhd = parameterpoint["critic"]["llhd"]["passes"]
                 passes = p_ul and p_llhd
-                tmp["robs"] = masspoint["critic"]["llhd"]["robs"]
-                tmp["rexp"] = masspoint["critic"]["llhd"]["rexp"]
+                tmp["robs"] = parameterpoint["critic"]["llhd"]["robs"]
+                tmp["rexp"] = parameterpoint["critic"]["llhd"]["rexp"]
                 tmp["passes"]=passes
             else:
-                passes = masspoint["critic"][critic_type]["passes"]
-                tmp["robs"] = masspoint["critic"][critic_type]["robs"]
-                if "rexp" in masspoint["critic"][critic_type]:
-                    tmp["rexp"] = masspoint["critic"][critic_type]["rexp"]
+                passes = parameterpoint["critic"][critic_type]["passes"]
+                tmp["robs"] = parameterpoint["critic"][critic_type]["robs"]
+                if "rexp" in parameterpoint["critic"][critic_type]:
+                    tmp["rexp"] = parameterpoint["critic"][critic_type]["rexp"]
                 tmp["passes"]=passes
             ret.append ( tmp )
         return ret
@@ -125,25 +125,25 @@ class NLLPlotter ( LoggerBase ):
         :param anaid: e.g. CMS-EXO-20-004:(comb):TChiISR, CMS-EXO-20-004:(comb), or joint
         :param removeDisallowed: remove points not allowed by critic
 
-        :returns: list of dictionaries, "mx", "my", "nll" as keys
+        :returns: list of dictionaries, "x", "y", "nll" as keys
         """
         ret = []
-        for masspoint in self.data["masspoints"]:
-            if removeDisallowed and masspoint["critic"]["ul"]["passes"]==False\
-                    or masspoint["critic"]["llhd"]["passes"]==False:
+        for parameterpoint in self.data["parameterpoints"]:
+            if removeDisallowed and parameterpoint["critic"]["ul"]["passes"]==False\
+                    or parameterpoint["critic"]["llhd"]["passes"]==False:
                 continue
-            mx, my = masspoint["mx"], masspoint["my"]
-            anlls = masspoint["nll"]
+            mx, my = parameterpoint["x"], parameterpoint["y"]
+            anlls = parameterpoint["nll"]
             for ssm, anas in anlls.items():
                 if abs(ssm-1.)<1e-5:
                     myId = self.findAnaId ( anaid, anas )
                     if myId != False:
                         nll = anas[myId]
                         llhd = float ( np.exp ( - nll ) )
-                        tmp = { "fullid": myId, "mx": mx, "my": my, "nll": nll, "llhd": llhd }
+                        tmp = { "fullid": myId, "x": mx, "y": my, "nll": nll, "llhd": llhd }
                         ret.append ( tmp )
                         break
-        self.pprint ( f"getNLLList: returning {len(ret)}/{len(self.data['masspoints'])} points for {anaid}" )
+        self.pprint ( f"getNLLList: returning {len(ret)}/{len(self.data['parameterpoints'])} points for {anaid}" )
         return ret
 
     def normalize ( self, points : list[dict], how : str = "max_llhd" ) -> list[dict]:
@@ -158,7 +158,7 @@ class NLLPlotter ( LoggerBase ):
         min_nll = min ( nlls )
         max_llhd = max ( llhds )
         for p in points:
-            tmp = { "mx": p["mx"], "my": p["my"] }
+            tmp = { "x": p["x"], "y": p["y"] }
             tmp["dnll"]=p["nll"]-min_nll
             tmp["llhd_rel"]=p["llhd"]
             if max_llhd > 0.:
@@ -170,7 +170,7 @@ class NLLPlotter ( LoggerBase ):
                              mask_data : list[dict] = [] ) -> bool:
         """ plot the likelihood mass given in nll_points, using a KDE
         :param mask_data: list of dictionaries as we get it for the critic, e.g.
-        [{"mx": ..., "my": ..., "passes": True/False}, ... ]
+        [{"x": ..., "y": ..., "passes": True/False}, ... ]
         :returns: true if successful, else false
         """
         defaults = { "text": False, "colors": ( "red", "darkred" ),
@@ -182,9 +182,9 @@ class NLLPlotter ( LoggerBase ):
         #for p in points[:3]:
         #    print ( f"@@1 {p}" )
         # ---- input data ----
-        # example: points = [{"mx": ..., "my": ..., "llhd_rel": ...}, ...]
-        xs = np.array([d["mx"] for d in points])
-        ys = np.array([d["my"] for d in points])
+        # example: points = [{"x": ..., "y": ..., "llhd_rel": ...}, ...]
+        xs = np.array([d["x"] for d in points])
+        ys = np.array([d["y"] for d in points])
         ll = np.array([d["llhd_rel"] for d in points])
 
         if len(points)<4:
@@ -216,8 +216,8 @@ class NLLPlotter ( LoggerBase ):
                 Z = np.ma.array(Z, mask=~hull_mask )
             else:
                 # take out all excluded by critic
-                c_xs = np.array([d["mx"] for d in mask_data])
-                c_ys = np.array([d["my"] for d in mask_data])
+                c_xs = np.array([d["x"] for d in mask_data])
+                c_ys = np.array([d["y"] for d in mask_data])
                 c_valid = np.array([d["passes"] for d in mask_data], dtype=bool)
 
                 valid_grid = griddata( (c_xs, c_ys), c_valid.astype(float), (X, Y),
@@ -273,7 +273,7 @@ class NLLPlotter ( LoggerBase ):
             llhd_rel_min = .01
             for d in points:
                 if d["llhd_rel"] > llhd_rel_min:
-                    plt.text ( d["mx"], d["my"], f"{d['llhd_rel']:.1g}",
+                    plt.text ( d["x"], d["y"], f"{d['llhd_rel']:.1g}",
                                fontsize=fontsize )
         return len(points)>3
 
@@ -287,9 +287,9 @@ class NLLPlotter ( LoggerBase ):
         opts.update ( options )
         points = self.normalize ( points, "max_llhd" )
         # ---- input data ----
-        # example: points = [{"mx": ..., "my": ..., "llhd_rel": ...}, ...]
-        xs = np.array([d["mx"] for d in points])
-        ys = np.array([d["my"] for d in points])
+        # example: points = [{"x": ..., "y": ..., "llhd_rel": ...}, ...]
+        xs = np.array([d["x"] for d in points])
+        ys = np.array([d["y"] for d in points])
         ll = np.array([d["llhd_rel"] for d in points])
 
         # ---- make a regular grid ----
@@ -352,7 +352,7 @@ class NLLPlotter ( LoggerBase ):
             llhd_rel_min = .01
             for d in points:
                 if d["llhd_rel"] > llhd_rel_min:
-                    plt.text ( d["mx"], d["my"], f"{d['llhd_rel']:.1g}",
+                    plt.text ( d["x"], d["y"], f"{d['llhd_rel']:.1g}",
                                fontsize=fontsize )
         return len(points)>3
 
@@ -367,8 +367,8 @@ class NLLPlotter ( LoggerBase ):
         :returns: set of analysis ids
         """
         ret = set()
-        for masspoint in self.data["masspoints"]:
-            anlls = masspoint["nll"]
+        for parameterpoint in self.data["parameterpoints"]:
+            anlls = parameterpoint["nll"]
             for ssm, anas in anlls.items():
                 for anaid,nll in anas.items():
                     if comb_only and not "(comb)" in anaid:
@@ -382,28 +382,28 @@ class NLLPlotter ( LoggerBase ):
     def combineNLLs ( self, for_combination : dict[list[dict]] )-> list[dict]:
         """ given a dictionary of analyes and mass points, combined their NLLs
         into a joint NLL
-        :param for_combination: e.g. { "CMS-SUS-20-004:(combined)": [ masspoints ] }
-        masspoints is a .e.g [ { "my": ... , "mx": ..., "nll": ... }, ... ]
+        :param for_combination: e.g. { "CMS-SUS-20-004:(combined)": [ parameterpoints ] }
+        parameterpoints is a .e.g [ { "y": ... , "x": ..., "nll": ... }, ... ]
 
-        :returns: list of masspoints with combined NLLs
+        :returns: list of parameterpoints with combined NLLs
         """
         points = {}
         def getHash ( mx : float, my : float ):
             return int ( round(mx,4)*1e10+round(my,4)*1e5 )
         anaids = set( for_combination.keys() )
-        for anaid, masspoints in for_combination.items():
+        for anaid, parameterpoints in for_combination.items():
 
-            for masspoint in masspoints:
-                h = getHash ( masspoint["mx"], masspoint["my"] )
+            for parameterpoint in parameterpoints:
+                h = getHash ( parameterpoint["x"], parameterpoint["y"] )
                 if not h in points:
                     points[h]={}
-                points[h][anaid] = masspoint
+                points[h][anaid] = parameterpoint
         ret = []
         for h,point in points.items():
             comb_point =  { "nll": 0, "llhd": 1, "anas": [] }
             for anaid,values in point.items():
-                comb_point["mx"]=values["mx"]
-                comb_point["my"]=values["my"]
+                comb_point["x"]=values["x"]
+                comb_point["y"]=values["y"]
                 comb_point["nll"]+=values["nll"]
                 comb_point["llhd"]*=values["llhd"]
                 comb_point["anas"].append ( values["fullid"] )
@@ -487,18 +487,18 @@ class NLLPlotter ( LoggerBase ):
 
     def plotBooleanMap ( self, points : list[dict], options : dict  ):
         """ given a list of dicts, draw the contour
-        :param points: a list of dictionaries, "mx", "my", "passes"
+        :param points: a list of dictionaries, "x", "y", "passes"
         """
         import numpy as np
         defaults = { "c_area": "gray", "c_line": "dimgray",
-            "scatter": False, "xlabel": "mx", "ylabel": "my", "hatches": "////",
+            "scatter": False, "xlabel": "x", "ylabel": "y", "hatches": "////",
             "label": "excluded", "text": False }
         opts = defaults
         opts.update ( options )
 
         # Extract arrays
-        x = np.array([d["mx"] for d in points])
-        y = np.array([d["my"] for d in points])
+        x = np.array([d["x"] for d in points])
+        y = np.array([d["y"] for d in points])
         z = np.array([d["passes"] for d in points], dtype=float)
 
         # Create interpolation grid
@@ -538,7 +538,7 @@ class NLLPlotter ( LoggerBase ):
                 if d["passes"]==True:
                     continue
                 if d["robs"] > robs_min:
-                    plt.text ( d["mx"], d["my"], f"{d['robs']:.1f}",
+                    plt.text ( d["x"], d["y"], f"{d['robs']:.1f}",
                                fontsize=fontsize )
 
         if opts["label"] not in [ None, "" ]:
