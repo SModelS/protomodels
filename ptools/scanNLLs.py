@@ -329,8 +329,15 @@ class NLLThread ( LoggerBase ):
         cmd = f"rm {self.M.currentSLHA}"
         subprocess.getoutput ( cmd )
 
-    def setMass ( self, pid : int, mass : float ):
-        """ set mass of <pid> to <mass> """
+    def setSSM ( self, pids : tuple, ssm : float ):
+        """ set the signal strength multiplier
+        """
+        self.M.ssmultipliers[pids]=ssm
+
+    def setParameter ( self, pid : Union[int,tuple], mass : float ):
+        """ set mass or ssm of <pid> to <mass> """
+        if type(pid) == tuple:
+            return self.setSSM ( pid, mass )
         partners = [ ( 1000023, 1000024 ) ]
         self.M.masses[pid]=mass
         for pair in partners:
@@ -374,7 +381,7 @@ class NLLThread ( LoggerBase ):
             setnr = i1+1 + thrnr * ( nxvariables )
             self.pprint ( f"now starting with point set #{setnr} [of {nxvariables} in this thread]" )
             self.pprint ( f"this point set contains {len(ryvariable)} points" )
-            self.setMass ( self.xvariable, m1 )
+            self.setParameter ( self.xvariable, m1 )
             if type(self.mxvariable)==int:
                 self.M.masses[self.xvariable]=self.mxvariable ## reset LSP mass
             if type(self.mxvariable)==tuple:
