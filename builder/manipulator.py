@@ -662,7 +662,7 @@ class Manipulator ( LoggerBase ):
                     if bgErr == int(bgErr):
                         bgErr=int(bgErr)
                     toterr = math.sqrt ( bgErr**2 + eBG )
-                    line += f"obs={dI.observedN:d} exp={eBG:.2f}+-{bgErr}"
+                    line += f"obs={int(dI.observedN):d} exp={eBG:.2f}+-{bgErr}"
                     if toterr > 0.:
                         line += f" Z={RED}{(dI.observedN - eBG ) / toterr :.1f}*sigma{RESET}"
                     print ( line )

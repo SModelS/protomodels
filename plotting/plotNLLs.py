@@ -473,8 +473,14 @@ class NLLPlotter ( LoggerBase ):
         loc = "best"
         loc = "upper left"
         plt.legend( handles=self.handles, loc=loc )
-        plt.xlabel( rf"m$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]" )
-        plt.ylabel( rf"m$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]" )
+        xlabel = rf"m$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]"
+        ylabel = rf"m$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]"
+        if type(self.data["meta"]["xvariable"]) == tuple:
+            xlabel = rf"ssm$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]"
+        if type(self.data["meta"]["yvariable"]) == tuple:
+            ylabel = rf"ssm$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]"
+        plt.xlabel( xlabel )
+        plt.ylabel( ylabel )
         plt.title ( "posteriors" )
         self.savefig()
         self.pprint ( f"plotting {self.args['inputfile']} -> {self.outputfile}" )
