@@ -378,7 +378,7 @@ class NLLThread ( LoggerBase ):
     def run ( self, rxvariable, ryvariable ):
         """ run for the points given """
         oldmasses = {}
-        parameterpoints=self.getAllparameterpoints()
+        parameterpoints=self.getAllParameterPoints()
         nxvariables = len(rxvariable)
         ct = 0
         for i1,m1 in enumerate(rxvariable):
@@ -492,7 +492,9 @@ class NLLScanner ( LoggerBase ):
         self.cprint ( "yellow", f"starting with {nproc} threads" )
         self.pprint ( f"self.predictor = Predictor ( 'nll', environ='{self.environ.runDictFile}' )" )
         yname = moreHelpers.shortYVarName( self.yvariable )
-        self.resultsdir = f"{self.environ.rundir}/nlls_{namer.asciiName(self.xvariable)}{yname}/"
+        #xname = namer.asciiName(self.xvariable)
+        xname = moreHelpers.shortYVarName ( self.xvariable )
+        self.resultsdir = f"{self.environ.rundir}/nlls{xname}{yname}/"
 
     def describeRange ( self, r ):
         """ describe range r in a string """
@@ -612,7 +614,7 @@ class NLLScanner ( LoggerBase ):
             # point [ "y" ] = float ( self.yvalue )
             parameterpoints = [ point ]
         else:
-            parameterpoints = thread0.getAllparameterpoints()
+            parameterpoints = thread0.getAllParameterPoints()
 
         if False:
             ## freeze out all other particles? We shouldnt!
