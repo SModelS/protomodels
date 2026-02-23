@@ -131,7 +131,7 @@ class NLLThread ( LoggerBase ):
                 befores = { "x": "y", "y": "critic", "critic": "oul",
                             "oul": "eul", "eul": "nll" }
                 d = py_dumps ( d, level = 0, a_before = befores )
-                f.write ( "# file created {time.asctime()}\n" )
+                f.write ( f"# file created {time.asctime()}\n" )
                 f.write ( d )
             f.close()
 
@@ -194,7 +194,7 @@ class NLLThread ( LoggerBase ):
     def getAllParameterPoints ( self ) -> list:
         """ retrieve all mass points from resultsdir """
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
-        print ( f"@@ getAllParameterPoints {list(files)}" )
+        # print ( f"@@ getAllParameterPoints {list(files)}" )
         parameterpoints = []
         for fname in files:
             with open ( fname, "rt" ) as h:
@@ -441,7 +441,9 @@ class NLLThread ( LoggerBase ):
 
                 x_name = namer.asciiName(self.xvariable)
                 y_name = namer.asciiName(self.yvariable)
-                self.pprint ( f"{i1}/{nxvariables}: m({x_name})={m1:.1f}, m({y_name})={m2:.1f}, {len(nlls)} mu's, {nnlls} nlls." )
+                sx = "ssm" if type(self.xvariable)==tuple else "m"
+                sy = "ssm" if type(self.yvariable)==tuple else "m"
+                self.pprint ( f"{i1}/{nxvariables}: {sx}({x_name})={m1:.1f}, {sy}({y_name})={m2:.1f}, {len(nlls)} mu's, {nnlls} nlls." )
                 point["x"] = float ( m1 )
                 point["y"] = float ( m2 )
                 parameterpoints.append ( point )
