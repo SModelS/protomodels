@@ -88,8 +88,11 @@ class NLLPlotter ( LoggerBase ):
         assert critic_type in [ "ul", "llhd", "both" ], \
              f"critic type should be one of: ul, llhd, both"
         ret = []
+        selection = self.getOptions ( "selection" )
         for parameterpoint in self.data["parameterpoints"]:
             mx, my = parameterpoint["x"], parameterpoint["y"]
+            if my > selection["ymax"]:
+                continue
             tmp = { "x": mx, "y": my }
             if critic_type == "both":
                 passes = False
@@ -132,6 +135,7 @@ class NLLPlotter ( LoggerBase ):
         :returns: list of dictionaries, "x", "y", "nll" as keys
         """
         ret = []
+        options = self.getOptions("selection")
         for parameterpoint in self.data["parameterpoints"]:
             if parameterpoint["critic"]==None:
                 continue
@@ -139,6 +143,8 @@ class NLLPlotter ( LoggerBase ):
                     or parameterpoint["critic"]["llhd"]["passes"]==False:
                 continue
             mx, my = parameterpoint["x"], parameterpoint["y"]
+            if my > options["ymax"]:
+                continue
             anlls = parameterpoint["nll"]
             for ssm, anas in anlls.items():
                 if abs(ssm-1.)<1e-5:
@@ -345,11 +351,13 @@ class NLLPlotter ( LoggerBase ):
 
     def getOptions( self, which : str ) -> dict:
         """ get the options for builder or critic
-        :param which: one of: builder, critic, combo, all, anaids, rmCritic
+        :param which: one of: builder, critic, combo, all, anaids, rmCritic,
+        selection
         """
         if which == "all":
             ret = {}
-            for i in [ "builder", "critic", "combo", "anaids", "rmCritic" ]:
+            for i in [ "builder", "critic", "combo", "anaids", "rmCritic",
+            "selection" ]:
                 tmp = self.getOptions ( i )
                 if type(tmp) != dict:
                     ret[i]=tmp
@@ -362,6 +370,11 @@ class NLLPlotter ( LoggerBase ):
             ret = { "text": False, "nlevels": 1 }
             if "builder" in self.options:
                 ret.update ( self.options["builder"] )
+            return ret
+        if which == "selection":
+            ret = { "ymax": float("inf") }
+            if "selection" in self.options:
+                ret.update ( self.options["selection"] )
             return ret
 
         if which == "critic":
@@ -380,6 +393,7 @@ class NLLPlotter ( LoggerBase ):
             return ret
         if which == "anaids":
             ret = [ "CMS-EXO-20-004:(comb)", "CMS-SUS-20-004:(comb)" ]
+            ret.append ( "ATLAS-EXOT-2018-06:EM10" )
             if "anaids" in self.options:
                 ret = self.options["anaids"]
             return ret

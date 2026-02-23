@@ -414,11 +414,16 @@ class NLLThread ( LoggerBase ):
             if xsectot.asNumber ( fb ) < 1e-10:
                 self.pprint ( "WARNING no xsec??" )
             for i2,m2 in enumerate(ryvariable):
-                if m2 > m1: ## we assume yvariable to be the daughter
+                x_name = namer.asciiName(self.xvariable)
+                sx = "ssm" if type(self.xvariable)==tuple else "m"
+                y_name = namer.asciiName(self.yvariable)
+                sy = "ssm" if type(self.yvariable)==tuple else "m"
+                if m2 > m1 and type(self.xvariable)==float and \
+                        type(self.yvariable) == float: 
+                    ## for masses we assume yvariable to be the daughter
+                    self.warning ( f"{sx}{x_name}({m1})<{sy}{y_name}({m2}). skipping!" )
                     continue
                 if m2 < 0.:
-                    y_name = namer.asciiName(self.yvariable)
-                    sy = "ssm" if type(self.yvariable)==tuple else "m"
                     self.warning ( f"{sy}({y_name})={m2:.1f}<0. skipping!" )
                     continue
                 if self.hasResultsForPoint ( m1, m2 ):
