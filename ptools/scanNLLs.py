@@ -131,7 +131,7 @@ class NLLThread ( LoggerBase ):
                 befores = { "x": "y", "y": "critic", "critic": "oul",
                             "oul": "eul", "eul": "nll" }
                 d = py_dumps ( d, level = 0, a_before = befores )
-                f.write ( f"# file created {time.asctime()}\n" )
+                # not needed to write comments, there is a meta
                 f.write ( d )
             f.close()
 
@@ -485,7 +485,7 @@ class NLLScanner ( LoggerBase ):
         self.yvariable = yvariable
         x_short = namer.asciiName(self.xvariable).replace(',','').replace(' ','')
         y_short = namer.asciiName(self.yvariable).replace(',','').replace(' ','')
-        picklefile = f"{self.output}{x_short}{y_short}.pcl"
+        picklefile = f"{self.output}{x_short}_{y_short}.pcl"
         self.picklefile = picklefile
         self.nproc = nproc
         self.skip_production = skip_production
