@@ -90,11 +90,13 @@ class NLLPlotter ( LoggerBase ):
             mx, my = parameterpoint["x"], parameterpoint["y"]
             tmp = { "x": mx, "y": my }
             if critic_type == "both":
-                p_ul = parameterpoint["critic"]["ul"]["passes"]
-                p_llhd = parameterpoint["critic"]["llhd"]["passes"]
-                passes = p_ul and p_llhd
-                tmp["robs"] = parameterpoint["critic"]["llhd"]["robs"]
-                tmp["rexp"] = parameterpoint["critic"]["llhd"]["rexp"]
+                passes = False
+                if parameterpoint["critic"]!=None:
+                    p_ul = parameterpoint["critic"]["ul"]["passes"]
+                    p_llhd = parameterpoint["critic"]["llhd"]["passes"]
+                    passes = p_ul and p_llhd
+                    tmp["robs"] = parameterpoint["critic"]["llhd"]["robs"]
+                    tmp["rexp"] = parameterpoint["critic"]["llhd"]["rexp"]
                 tmp["passes"]=passes
             else:
                 passes = parameterpoint["critic"][critic_type]["passes"]
@@ -129,6 +131,8 @@ class NLLPlotter ( LoggerBase ):
         """
         ret = []
         for parameterpoint in self.data["parameterpoints"]:
+            if parameterpoint["critic"]==None:
+                continue
             if removeDisallowed and parameterpoint["critic"]["ul"]["passes"]==False\
                     or parameterpoint["critic"]["llhd"]["passes"]==False:
                 continue
