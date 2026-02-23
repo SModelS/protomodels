@@ -172,14 +172,14 @@ class NLLPlotter ( LoggerBase ):
             ret.append ( tmp )
         return ret
 
-    def plotLikelihoodMass ( self, points : list[dict], options : dict,
+    def plotProbabilityMass ( self, points : list[dict], options : dict,
                              mask_data : list[dict] = [] ) -> bool:
         """ plot the likelihood mass given in nll_points, using a KDE
         :param mask_data: list of dictionaries as we get it for the critic, e.g.
         [{"x": ..., "y": ..., "passes": True/False}, ... ]
         :returns: true if successful, else false
         """
-        defaults = { "text": False, "colors": ( "red", "darkred" ),
+        defaults = { "points": False, "text": False, "colors": ( "red", "darkred" ),
                      "label": "probability mass", "nlevels": 2 }
         opts = defaults
         opts.update ( options )
@@ -194,7 +194,7 @@ class NLLPlotter ( LoggerBase ):
         ll = np.array([d["llhd_rel"] for d in points])
 
         if len(points)<4:
-            self.warn ( f"plotLikelihoodMass, for {options['label']} we have {len(points)} points, thats too few. not plotting contours." )
+            self.warn ( f"plotProbabilityMass, for {options['label']} we have {len(points)} points, thats too few. not plotting contours." )
         else:
             # ---- convert likelihood to probability ----
             #Z = np.maximum(Z, 0)
@@ -271,97 +271,20 @@ class NLLPlotter ( LoggerBase ):
             for legend_element in legend_elements:
                 self.handles.append ( legend_element )
 
-        if opts["text"]:
+        if opts["text"] or opts["points"]:
             pointsize,fontsize=1,8
             if len(points)<10:
                 pointsize,fontsize=3,10
-            plt.scatter ( xs, ys, s=pointsize )
-            llhd_rel_min = .01
-            for d in points:
-                if d["llhd_rel"] > llhd_rel_min:
-                    plt.text ( d["x"], d["y"], f"{d['llhd_rel']:.1g}",
-                               fontsize=fontsize )
+            if opts["text"]:
+                llhd_rel_min = .01
+                for d in points:
+                    if d["llhd_rel"] > llhd_rel_min:
+                        plt.text ( d["x"], d["y"], f"{d['llhd_rel']:.1g}",
+                                   fontsize=fontsize )
+            else:
+                pointsize=2
+                plt.scatter ( xs, ys, c="black", s=pointsize )
         return len(points)>3
-
-    def plotLikelihoodMassOld ( self, points : list[dict], options : dict ) -> bool:
-        """ plot the likelihood mass given in nll_points, linear interpolation
-        :returns: true if successful, else false
-        """
-        defaults = { "text": False, "colors": ( "red", "darkred" ),
-                     "label": "probability mass" }
-        opts = defaults
-        opts.update ( options )
-        points = self.normalize ( points, "max_llhd" )
-        # ---- input data ----
-        # example: points = [{"x": ..., "y": ..., "llhd_rel": ...}, ...]
-        xs = np.array([d["x"] for d in points])
-        ys = np.array([d["y"] for d in points])
-        ll = np.array([d["llhd_rel"] for d in points])
-
-        # ---- make a regular grid ----
-        nx, ny = 100, 100
-        xi = np.linspace(xs.min(), xs.max(), nx)
-        yi = np.linspace(ys.min(), ys.max(), ny)
-        X, Y = np.meshgrid(xi, yi)
-
-        if len(points)<4:
-            self.warn ( f"plotLikelihoodMass, for {options['label']} we have {len(points)} points, thats too few. not plotting contours." )
-        else:
-            Z = griddata((xs, ys), ll, (X, Y), method="linear")
-            Z = np.nan_to_num(Z, nan=0.0)
-
-            # ---- convert likelihood to probability ----
-            Z = np.maximum(Z, 0)
-            Z /= Z.sum()
-
-            # ---- find contour levels for given probability mass ----
-            def contour_level_for_mass(Z, mass):
-                z_sorted = np.sort(Z.ravel())[::-1]
-                cumsum = np.cumsum(z_sorted)
-                idx = np.searchsorted(cumsum, mass)
-                return z_sorted[idx]
-
-            ## 1 and 2 sigma
-            levels = [ float ( 1-np.exp(-.5) ),
-                       float ( 1-np.exp(-2) ) ]
-            level_1s = contour_level_for_mass(Z, levels[0] )
-            level_2s = contour_level_for_mass(Z, levels[1] )
-
-            colors = opts["colors"]
-            #colors = ( "white", colors[1] )
-            plt.contourf( X, Y, Z,
-                levels=[level_2s, level_1s,Z.max()],
-                colors=colors, alpha=0.15 )
-            # ---- plot ----
-            # plt.figure(figsize=(6, 5))
-            cs = plt.contour(X, Y, Z, levels=[level_2s, level_1s],
-                        colors=opts["colors"], linewidths=2 )
-            # Label contours
-            fmt = {
-                level_1s: f"{int(levels[0]*100):d}%",
-                level_2s: f"{int(levels[1]*100):d}%"
-            }
-            plt.clabel(cs, cs.levels, inline=True, fmt=fmt, fontsize=10)
-            from matplotlib.lines import Line2D
-            legend_elements = [
-                Line2D([0], [0], color=opts["colors"][1], lw=2, label=opts["label"] ),
-    #            Line2D([0], [0], color=opts["colors"][0], lw=2, label=opts["label"] ),
-            ]
-            for legend_element in legend_elements:
-                self.handles.append ( legend_element )
-
-        if opts["text"]:
-            pointsize,fontsize=1,8
-            if len(points)<10:
-                pointsize,fontsize=3,10
-            plt.scatter ( xs, ys, s=pointsize )
-            llhd_rel_min = .01
-            for d in points:
-                if d["llhd_rel"] > llhd_rel_min:
-                    plt.text ( d["x"], d["y"], f"{d['llhd_rel']:.1g}",
-                               fontsize=fontsize )
-        return len(points)>3
-
 
     def getAnaIds ( self, comb_only : bool = False,
                     dropTxname : bool = False ) -> set:
@@ -501,13 +424,13 @@ class NLLPlotter ( LoggerBase ):
             options.update ( { "label": anaid, "colors": colors[i] } )
             if anaid in self.options:
                 options.update ( self.options[anaid] )
-            self.plotLikelihoodMass ( nll_points, options, critic_points )
+            self.plotProbabilityMass ( nll_points, options, critic_points )
             for_combination[anaid] = nll_points
         comb_points = self.combineNLLs ( for_combination )
         comb_options = { "colors": ( "0.20", "black" ), "label": "joint posterior", "nlevels": 1 }
         comb_options = self.getOptions ( "combo" )
 
-        self.plotLikelihoodMass ( comb_points, comb_options, critic_points )
+        self.plotProbabilityMass ( comb_points, comb_options, critic_points )
 
         # Existing scatter handles (from plt.scatter calls)
         # handles, labels = plt.gca().get_legend_handles_labels()
@@ -649,5 +572,6 @@ if __name__ == "__main__":
                 sv = f"'{v}'"
             print ( f"'{k}': {sv}" )
         print ( )
-        sys.exit()
+        if args.inputfile == None:
+            sys.exit()
     plotter.run()
