@@ -37,6 +37,7 @@ class MassesAndDecays ( LoggerBase ):
                          1000024: "navy", 1000025: "navy",
                          1000006: "brown" }
         ret["scale"]="symlog"
+        ret["record"]=False
         # ret["scale"]="linear"
         return ret
 
