@@ -24,6 +24,8 @@ class NLLPlotter ( LoggerBase ):
         self.handles = []
         if self.args["inputfile"]==None:
             self.findInputFile()
+
+    def run ( self ):
         self.readInputFile()
         self.plot()
         if self.args["show"]:
@@ -418,6 +420,56 @@ class NLLPlotter ( LoggerBase ):
         # print ( f"@@0 ret {ret}" )
         return ret
 
+    def getOptions( self, which : str ) -> dict:
+        """ get the options for builder or critic
+        :param which: one of: builder, critic, combo, all, anaids, rmCritic
+        """
+        if which == "all":
+            ret = {}
+            for i in [ "builder", "critic", "combo", "anaids", "rmCritic" ]:
+                tmp = self.getOptions ( i )
+                if type(tmp) != dict:
+                    ret[i]=tmp
+                else:
+                    for k,v in tmp.items():
+                        ret[f"{i}:{k}"]=v
+            return ret
+
+        if which == "builder":
+            ret = { "text": False, "nlevels": 1 }
+            if "builder" in self.options:
+                ret.update ( self.options["builder"] )
+            return ret
+
+        if which == "critic":
+            ret = { "c_area": "gray", "c_line": "dimgray", "hatches": "\\\\",
+                    "label": "excluded", "scatter": False,
+                    "text": False }
+            if "critic" in self.options:
+                ret.update ( self.options["critic"] )
+            return ret
+
+        if which == "combo":
+            ret = { "colors": ( "0.20", "black" ), "label": "joint posterior",
+                    "nlevels": 1 }
+            if "combo" in self.options:
+                ret.update ( self.options["combo"] )
+            return ret
+        if which == "anaids":
+            ret = [ "CMS-EXO-20-004:(comb)", "CMS-SUS-20-004:(comb)" ]
+            if "anaids" in self.options:
+                ret = self.options["anaids"]
+            return ret
+        if which == "rmCritic":
+            ret = False
+            if "rmCritic" in self.options:
+                ret = self.options["rmCritic"]
+            return ret
+
+        if which in self.options:
+            return self.options[which]
+
+        return {}
 
     def plot ( self ):
         """ this is the method that controls the entire plot.
@@ -429,30 +481,16 @@ class NLLPlotter ( LoggerBase ):
         self.plotBooleanMap ( critic_points, options )
         """
         critic_points = self.getCriticList( critic_type = "both" )
-        options = { "c_area": "gray", "c_line": "dimgray", "hatches": "\\\\",
-                    "label": "excluded by critic", "scatter": False, "text": False }
-        if "critic" in self.options:
-            options.update ( self.options["critic"] )
-        self.plotBooleanMap ( critic_points, options )
+        critic_options = self.getOptions ( "critic" )
+        self.plotBooleanMap ( critic_points, critic_options )
 
-        colors = [ ( "red", "darkred" ), ( "green", "darkgreen" ), ( "blue", "darkblue" ),
-                   ( "purple", "pink" ), ( "brown", "orange" ) ]
+        colors = [ ( "red", "darkred" ), ( "green", "darkgreen" ),
+                   ( "blue", "darkblue" ), ( "purple", "pink" ),
+                   ( "brown", "orange" ) ]
         anaids = self.getAnaIds( True )
-        # print ( f"@@0 anaid {anaids}" )
-        rmCritic = False
-        #anaid = "CMS-SUS-20-004:(comb):TChiHH"
-        #anaid = "CMS-SUS-20-004:(comb)"
-        # anaid = "CMS-EXO-20-004:(comb):TChiISR"
-        # anaid = "CMS-EXO-20-004:(comb):TChiISR,TChiZISRqq"
-        # anaid = "CMS-EXO-20-004:(comb)"
-        anaids = [ "CMS-EXO-20-004:(comb)", "CMS-SUS-20-004:(comb)" ]
-        builder_options = { "text": False, "nlevels": 1 }
-        if "builder" in self.options:
-            builder_options.update ( self.options["builder"] )
-        if "anaids" in self.options:
-            anaids = self.options["anaids"]
-        if "rmCritic" in self.options:
-            rmCritic = self.options["rmCritic"]
+        builder_options = self.getOptions ( "builder" )
+        anaids = self.getOptions("anaids")
+        rmCritic = self.getOptions("rmCritic")
 
         for_combination = {}
 
@@ -467,7 +505,8 @@ class NLLPlotter ( LoggerBase ):
             for_combination[anaid] = nll_points
         comb_points = self.combineNLLs ( for_combination )
         comb_options = { "colors": ( "0.20", "black" ), "label": "joint posterior", "nlevels": 1 }
-        
+        comb_options = self.getOptions ( "combo" )
+
         self.plotLikelihoodMass ( comb_points, comb_options, critic_points )
 
         # Existing scatter handles (from plt.scatter calls)
@@ -475,7 +514,7 @@ class NLLPlotter ( LoggerBase ):
 
         # Add the area patch to the legend
         loc = "best"
-        loc = "upper left"
+        # loc = "upper left"
         plt.legend( handles=self.handles, loc=loc )
         xlabel = rf"m$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]"
         ylabel = rf"m$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]"
@@ -594,7 +633,21 @@ if __name__ == "__main__":
             help='start interactive shell', action="store_true" )
     argparser.add_argument ( '-O', '--options',
             help="additional options, e.g. { 'critic:scatter': True }", type=str, default="{}" )
+    argparser.add_argument ( '--show_options',
+            help='start interactive shell', action="store_true" )
     argparser.add_argument ( '-s', '--show',
             help='show image', action="store_true" )
     args = argparser.parse_args()
     plotter = NLLPlotter ( vars(args) )
+    if args.show_options:
+        print ( f"\noptions" )
+        print ( f"=========" )
+        ops = plotter.getOptions ( "all" )
+        for k,v in ops.items():
+            sv = v
+            if type(v) in [ str ]:
+                sv = f"'{v}'"
+            print ( f"'{k}': {sv}" )
+        print ( )
+        sys.exit()
+    plotter.run()

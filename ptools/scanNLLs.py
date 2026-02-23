@@ -417,7 +417,9 @@ class NLLThread ( LoggerBase ):
                 if m2 > m1: ## we assume yvariable to be the daughter
                     continue
                 if m2 < 0.:
-                    self.warning ( f"m2({namer.asciiName(self.yvariable)})={m2:.1f}<0. skipping!" )
+                    y_name = namer.asciiName(self.yvariable)
+                    sy = "ssm" if type(self.yvariable)==tuple else "m"
+                    self.warning ( f"{sy}({y_name})={m2:.1f}<0. skipping!" )
                     continue
                 if self.hasResultsForPoint ( m1, m2 ):
                     continue
