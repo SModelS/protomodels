@@ -53,24 +53,6 @@ class Critic ( LoggerBase ):
         self.fetchResults()
         self.combiner = Combiner(self.walkerid)
 
-    # def getMaxAllowedMu(self, protomodel):
-    #     """ Compute the maximum (global) signal strength normalization
-    #         given the predictions.
-    #     """
-    #
-    #     mumax = float("inf")
-    #     if protomodel.ul_type_rvalues[0] > 0.:
-    #         #Set mumax slightly below threshold, so the model is never excluded
-    #         print(f"r value from UL: {protomodel.ul_type_rvalues[0]}")
-    #         mumax_ul = 0.999*self.rthreshold / protomodel.ul_type_rvalues[0]
-    #         #if 0 < protomodel.llhd_type_rvalue < mumax:
-    #         print(f"r value from llhd: {protomodel.llhd_type_rvalue}")
-    #         mumax_llhd = 0.999*self.rthreshold /protomodel.llhd_type_rvalue
-    #         mumax = min(mumax_ul, mumax_llhd)
-    #
-    #     return mumax
-
-
     def fetchResults ( self ):
         """ fetch the list of results, perform all selecting
             and modding """
@@ -90,8 +72,6 @@ class Critic ( LoggerBase ):
         listOfExpRes = self.environ.database.getExpResults( dataTypes = dataTypes,
                                                     txnames = txnames,
                                                     useNonValidated=True )
-        #if self.modifier:
-        #    listOfExpRes = self.modifier.modify ( listOfExpRes )
 
 
         self.listOfExpRes = listOfExpRes
