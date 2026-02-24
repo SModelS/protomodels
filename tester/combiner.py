@@ -119,7 +119,7 @@ class Combiner ( LoggerBase ):
     def noSuchBranching ( self, branchings, br ):
         """ check if a branching ratio similar to br already exists in branchings """
         for cbr in branchings:
-            if abs ( cbr - br ) / ( cbr + br ) < 0.025: ## 5 percent rule
+            if abs ( cbr - br ) / ( cbr + br ) < 0.01 / 2.: ## 1 percent rule
                 return False
         return True
 

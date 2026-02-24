@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+""" small script that converted our python dictionary files to yaml format """
+
 from combinationsmatrix import getMatrix
 import yaml
 
