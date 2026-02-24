@@ -391,7 +391,7 @@ class Critic ( LoggerBase ):
                 rexp = robs
             if keep_predictions:
                 d = { "anaid": pred.analysisId(), "robs": robs, "rexp": rexp, \
-                      "dataset": pred.dataId() }
+                      "dataid": pred.dataId() }
                 dicts.append ( d )
 
             if rexp < self.sensitivity_threshold:
