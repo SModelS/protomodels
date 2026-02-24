@@ -354,11 +354,14 @@ class Critic ( LoggerBase ):
         return predictions
 
 
-    def ul_critic(self, protomodel, predictions : List ) -> Tuple[bool,int,int]:
+    def ul_critic(self, protomodel, predictions : List,
+           keep_predictions : bool = False ) -> Tuple[bool,int,int]:
         """ UL-based critic (can also use best SR results if no UL-type result 
         available for a given analysis).
 
         :param predictions: list of theory predictions (UL-type and EM-type)
+        :param keep_predictions: if true, then keep the list of predictions,
+        together with their r-values
 
         :returns: tuple[bool,int,int]: allowed, n_sensitive, n_excluding
         bool is False if the critic excludes the model, else True.
@@ -374,6 +377,7 @@ class Critic ( LoggerBase ):
         # n_excluding: number of results that do exclude the model
         # (ie robs > r_threshold=1.38)
         n_sensitive, n_excluding = 0, 0
+        dicts = []
 
         for pred in predictions:
             try:
@@ -385,12 +389,20 @@ class Critic ( LoggerBase ):
 
             if rexp is None:
                 rexp = robs
+            if keep_predictions:
+                d = { "anaid": pred.analysisId(), "robs": robs, "rexp": rexp, \
+                      "dataset": pred.dataId() }
+                dicts.append ( d )
+
             if rexp < self.sensitivity_threshold:
                 continue
 
             n_sensitive += 1
             if robs > self.r_threshold:
                 n_excluding += 1
+
+        if keep_predictions:
+            self.predictions = dicts
 
         max_allowed = 0
         # rewrite as max_allowed = binom.ppf(0.66, n_sensitive, 0.05)?
