@@ -8,7 +8,7 @@ def write ( values : dict ):
     meta = { "created": time.asctime() }
     meta["comment"]="keys in dictionary are lepton BRs"
     values["meta"]=meta
-    from ptools.helpers import py_dumps 
+    from ptools.helpers import py_dumps
     d = py_dumps ( values )
     with open ( "dileptons.dict", "wt" ) as f:
         f.write ( d+"\n" )
@@ -52,8 +52,9 @@ def create():
         pr.predict ( ma, keep_predictions = True, force_computation_K = True )
         v = { "K": ma.M.K, "TL": ma.M.TL }
         robsmax, rexpmax = 0., 0.
-        allowed, n_sensitive, n_excluding = cr.ul_critic ( protomodel, 
-                pr.predictions, keep_predictions = True )
+        ## FIXME call ul_critic just like predict_critic would do!!!
+        #allowed, n_sensitive, n_excluding = cr.ul_critic ( protomodel,
+        #        pr.predictions, keep_predictions = True )
         for d in cr.predictions:
             if d["robs"]>robsmax:
                 robsmax = d["robs"]
