@@ -93,6 +93,8 @@ class NLLPlotter ( LoggerBase ):
             mx, my = parameterpoint["x"], parameterpoint["y"]
             if my > selection["ymax"]:
                 continue
+            if mx > selection["xmax"]:
+                continue
             tmp = { "x": mx, "y": my }
             if critic_type == "both":
                 passes = False
@@ -144,6 +146,8 @@ class NLLPlotter ( LoggerBase ):
                 continue
             mx, my = parameterpoint["x"], parameterpoint["y"]
             if my > options["ymax"]:
+                continue
+            if mx > options["xmax"]:
                 continue
             anlls = parameterpoint["nll"]
             for ssm, anas in anlls.items():
@@ -372,7 +376,7 @@ class NLLPlotter ( LoggerBase ):
                 ret.update ( self.options["builder"] )
             return ret
         if which == "selection":
-            ret = { "ymax": float("inf") }
+            ret = { "ymax": float("inf"), "xmax": float("inf") }
             if "selection" in self.options:
                 ret.update ( self.options["selection"] )
             return ret
