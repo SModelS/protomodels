@@ -127,8 +127,11 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
 def updateHiscores( dictfile : os.PathLike = "{rundir}/hiscores_global.dict",
                 cachefile : os.PathLike = "{rundir}/hiscores_global.cache",
                 environ : Union[RunEnviron,None ] = None,
-                walkerid : Union[str,int] = 0 ) -> Dict:
-    """ update the hiscores FIXME """
+                walkerid : Union[str,int] = 0,
+                hiscore_nr : int = 0 ) -> Dict:
+    """ update the hiscores FIXME +
+    :param hiscore_nr: which hiscore, 0 is the firsst
+    """
     assert environ != None, "set RunEnviron"
     assert type(environ) != str, "set RunEnviron, not str"
     dictfile = dictfile.replace("{rundir}",environ.rundir)
@@ -138,8 +141,8 @@ def updateHiscores( dictfile : os.PathLike = "{rundir}/hiscores_global.dict",
             walkerid = walkerid )
 
     from builder.manipulator import Manipulator
-    D = Manipulator ( hi.hiscores[0], environ=environ ).writeDictFile ( None )
-    D["model"]=hi.hiscores[0]
+    D = Manipulator ( hi.hiscores[hiscore_nr], environ=environ ).writeDictFile ( None )
+    D["model"]=hi.hiscores[hiscore_nr]
     return D
 
 def plot( TL : float, K : float, environ : RunEnviron, upload : str ="230",
@@ -183,8 +186,8 @@ def loop( maxruns : Union[None,int] = 3, createPlots : bool=True,
           uploadTo : str = "temp", environ : Union[RunEnviron, None] = None,
           verbose : bool = False, dictfile = "{rundir}/hiscores_global.dict",
           cachefile = "{rundir}/hiscores_global.cache",
-          walkerid : Union[str,int] = 0,
-          git_commit : bool = True  ):
+          walkerid : Union[str,int] = 0, git_commit : bool = True,
+          hiscore_nr : int = 0 ):
     """ loop (maxruns times) that updates hiscores_global.cache
 
     :param maxruns: maximally iterate that many times, if None then loop endlessly
@@ -193,6 +196,7 @@ def loop( maxruns : Union[None,int] = 3, createPlots : bool=True,
     :param verbose: verbosity
     :param environ: the run environ, set to None for default (run.dict)
     :param walkerid: log everything as walker #walkerid
+    :param hiscore_nr: which hiscore, 0 is the firsst
     """
     if environ == None:
         environ = RunEnviron()
@@ -217,7 +221,7 @@ def loop( maxruns : Union[None,int] = 3, createPlots : bool=True,
         if i>1:
             time.sleep(60.)
         D = updateHiscores( dictfile, cachefile, environ,
-                walkerid=walkerid )
+                walkerid=walkerid, hiscore_nr = hiscore_nr )
         TL, step, K = float("nan"),0,float("nan")
         model = D["model"]
         if "TL" in D:
