@@ -355,13 +355,13 @@ class NLLPlotter ( LoggerBase ):
 
     def getOptions( self, which : str ) -> dict:
         """ get the options for builder or critic
-        :param which: one of: builder, critic, combo, all, anaids, rmCritic,
+        :param which: one of: builder, critic, combo, all, anaids, plot,
         selection
         """
         if which == "all":
             ret = {}
-            for i in [ "builder", "critic", "combo", "anaids", "rmCritic",
-            "selection" ]:
+            for i in [ "builder", "critic", "combo", "anaids",
+            "selection", "plot" ]:
                 tmp = self.getOptions ( i )
                 if type(tmp) != dict:
                     ret[i]=tmp
@@ -401,10 +401,10 @@ class NLLPlotter ( LoggerBase ):
             if "anaids" in self.options:
                 ret = self.options["anaids"]
             return ret
-        if which == "rmCritic":
-            ret = False
-            if "rmCritic" in self.options:
-                ret = self.options["rmCritic"]
+        if which == "plot":
+            ret = { "rmCritic": False, "title": "likelihood contours" }
+            if "plot" in self.options:
+                ret.update ( self.options["plot"] )
             return ret
 
         if which in self.options:
@@ -431,7 +431,9 @@ class NLLPlotter ( LoggerBase ):
         anaids = self.getAnaIds( True )
         builder_options = self.getOptions ( "builder" )
         anaids = self.getOptions("anaids")
-        rmCritic = self.getOptions("rmCritic")
+        plot_options = self.getOptions("plot")
+        rmCritic = plot_options["rmCritic"]
+        title = plot_options["title"]
 
         for_combination = {}
 
@@ -465,7 +467,7 @@ class NLLPlotter ( LoggerBase ):
             ylabel = rf"ssm$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]"
         plt.xlabel( xlabel )
         plt.ylabel( ylabel )
-        plt.title ( "posteriors" )
+        plt.title ( title )
         self.savefig()
         self.pprint ( f"plotting {self.args['inputfile']} -> {self.outputfile}" )
 
