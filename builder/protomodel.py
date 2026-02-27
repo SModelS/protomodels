@@ -548,8 +548,6 @@ class ProtoModel ( LoggerBase ):
         """ create a new SLHA file name. Needed when e.g. unpickling
         :returns: slha filename
         """
-        if not keep_old:
-            self.delCurrentSLHA()
         prefix = f".{prefix}{self.walkerid}_"
         slhadir = self.SLHATEMPDIR
         if prefix.startswith("/"):
@@ -573,7 +571,6 @@ class ProtoModel ( LoggerBase ):
 
         :param outputSLHA: name of slha file to write
         """
-        print ( f"@@7 we are now writing into {outputSLHA}" )
         #Get template data:
         with open( self.environ.templateSLHA ) as f:
             lines=f.readlines()

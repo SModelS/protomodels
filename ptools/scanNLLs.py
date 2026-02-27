@@ -84,7 +84,7 @@ class NLLThread ( LoggerBase ):
         :param keep_old: if true, then make sure old version
         does not get deleted
         """
-        self.pprint ( f"slhadir {self.slhadir}" )
+        # self.pprint ( f"slhadir {self.slhadir}" )
         basename = f"lthrd{self.threadnr}_{namer.asciiName(self.xvariable)}{self.xvalue}_{namer.asciiName(self.yvariable)}{self.yvalue}.slha"
         basename = basename.replace(" ","").replace("(","_").replace(")","")
         basename = basename.replace(",","")
@@ -94,9 +94,8 @@ class NLLThread ( LoggerBase ):
             helpers.mkdir ( self.slhadir )
             slhaname = f"{self.slhadir}/{basename}"
             # dont delete previous just set to new value
-            self.pprint ( f"setting to slha file name to {slhaname}" )
+            # self.pprint ( f"setting to slha file name to {slhaname}" )
             self.M.currentSLHA = slhaname
-        self.pprint ( f"@@0 filename: {self.M.currentSLHA}" )
         return self.M.currentSLHA
 
     def getDefaultDictionary ( self ):
@@ -221,7 +220,6 @@ class NLLThread ( LoggerBase ):
     def getAllParameterPoints ( self ) -> list:
         """ retrieve all mass points from resultsdir """
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
-        # print ( f"@@ getAllParameterPoints {list(files)}" )
         parameterpoints = []
         for fname in files:
             with open ( fname, "rt" ) as h:
@@ -285,7 +283,6 @@ class NLLThread ( LoggerBase ):
         if self.slhadir != None:
             slhafile = self.setSLHAFileName()
             keep_old = True
-        print ( f"@@4 createSLHAFile {slhafile} keep_old {keep_old} slhadir {self.slhadir}" )
         slhaf = self.M.createSLHAFile( outputSLHA = slhafile, keep_old = keep_old )
         sigmacut=0.*fb
         ## first get rmax
@@ -515,6 +512,11 @@ class NLLThread ( LoggerBase ):
                 point["y"] = float ( m2 )
                 parameterpoints.append ( point )
                 self.addNewPoint ( point ) ## add the point
+                print ( f"@@66 can we salvage {self.M.currentSLHA} {os.path.exists(self.M.currentSLHA)} {self.slhadir}" )
+                if os.path.exists ( self.M.currentSLHA ):
+                    newf = f"{self.slhadir}/{x_name}{m1:.1f}{y_name}{m2:.1f}.slha"
+                    print ( f"@@67 newf {newf}" )
+                    shutil.copy ( self.M.currentSLHA, newf )
         return parameterpoints
 
 def runThread ( threadid: int, obj, rxvariable, ryvariable,
