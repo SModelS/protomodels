@@ -31,6 +31,7 @@ from tester.critic import Critic
 from ptools.sparticleNames import SParticleNames
 from ptools import moreHelpers, helpers
 from ptools.helpers import py_dumps
+from smodels_utils.helper.terminalcolors import RED, GREEN, YELLOW, RESET
 
 namer = SParticleNames ( False )
 t0 = time.time() ## define t0, to measure how long things took
@@ -293,7 +294,8 @@ class NLLThread ( LoggerBase ):
         if os.path.exists ( slhaf ) and self.slhadir is not None:
             newf = f"{self.slhadir}/{self.getBaseName(m1,m2)}.slha"
             shutil.copy ( slhaf, newf )
-            self.pprint ( f"created {newf}" )
+            snewf = newf.replace ( os.getcwd(), "." )
+            self.pprint ( f"created {snewf}" )
         sigmacut=0.*fb
         if hasattr ( self.predictor, "predictions" ):
             del self.predictor.predictions
@@ -517,7 +519,7 @@ class NLLThread ( LoggerBase ):
                 y_name = namer.asciiName(self.yvariable)
                 sx = "ssm" if type(self.xvariable)==tuple else "m"
                 sy = "ssm" if type(self.yvariable)==tuple else "m"
-                self.pprint ( f"{i1}/{nxvariables}: {sx}({x_name})={m1:.1f}, {sy}({y_name})={m2:.1f}, {len(nlls)} mu's, {nnlls} nlls." )
+                self.pprint ( f"{GREEN}{i1}/{nxvariables}{RESET}: {sx}({x_name})={m1:.1f}, {sy}({y_name})={m2:.1f}, {len(nlls)} mu's, {nnlls} nlls." )
                 point["x"] = float ( m1 )
                 point["y"] = float ( m2 )
                 parameterpoints.append ( point )
