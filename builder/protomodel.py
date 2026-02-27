@@ -544,13 +544,20 @@ class ProtoModel ( LoggerBase ):
             # print ( "[protomodel] del", self.currentSLHA )
             os.unlink ( self.currentSLHA )
 
-    def createNewSLHAFileName ( self, prefix : str = "cur" ) -> str:
+    def createNewSLHAFileName ( self, prefix : str = "cur",
+            keep_old : bool = False ) -> str:
         """ create a new SLHA file name. Needed when e.g. unpickling
         :returns: slha filename
         """
-        self.delCurrentSLHA()
-        self.currentSLHA = tempfile.mktemp( prefix=f".{prefix}{self.walkerid}_",
-                    suffix=".slha",dir=self.SLHATEMPDIR)
+        if not keep_old:
+            self.delCurrentSLHA()
+	      prefix = f".{prefix}{self.walkerid}_"
+		  	slhadir = self.SLHATEMPDIR
+		  	if prefix.startswith("/"):
+					slhadir = os.path.dirname ( prefix )
+	      	prefix = f"{os.path.basename(prefix)}{self.walkerid}_"
+        self.currentSLHA = tempfile.mktemp( prefix=prefix,
+                    suffix=".slha",dir=slhadir)
         return self.currentSLHA
 
     def checkTemplateSLHA ( self ):
@@ -666,12 +673,16 @@ class ProtoModel ( LoggerBase ):
             outF.close()
 
     def createSLHAFile ( self, outputSLHA : Union[str,None] = None,
-                         addXsecs : bool = True ) -> str:
-        """ Creates the SLHA file with the masses, decays and cross-sections stored in the model.
+                         addXsecs : bool = True, keep_old : bool = False ) -> str:
+        """ Creates the SLHA file with the masses, decays and cross-sections
+        stored in the model.
 
-        :param outputSLHA: Name of the SLHA file to be created. If None a tempfile will be created and
-                           its name will be stored in self.currentSLHA.
-        :param addXsecs: If True, include cross-sections in the file, else only write spectrum and decays.
+        :param outputSLHA: Name of the SLHA file to be created. If None a
+        tempfile will be created and its name will be stored in
+        self.currentSLHA.
+        :param addXsecs: If True, include cross-sections in the file, else only
+        write spectrum and decays.
+        :param keep_old: if True, then do not delete old files
 
         :return: Name of the SLHA file created
         """
@@ -679,7 +690,7 @@ class ProtoModel ( LoggerBase ):
 
         #If output is not defined, create file and store in self.currentSLHA
         if outputSLHA is None:
-            self.createNewSLHAFileName()
+            self.createNewSLHAFileName( keep_old = keep_old )
             outputSLHA = self.currentSLHA
 
         #Set template file (if not yet defined)
