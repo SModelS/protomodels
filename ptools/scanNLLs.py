@@ -179,6 +179,10 @@ class NLLThread ( LoggerBase ):
             return
         point["x"]=round( point["x"], 7 )
         point["y"]=round( point["y"], 7 )
+        # this information, xvariable, yvariable is not needed, 
+        # but helpful for debugging
+        point["xvariable"]=self.xvariable
+        point["yvariable"]=self.yvariable
         dictfile = self.getDictFileName ( point["x"], point["y"] )
         with open ( dictfile, "wt" ) as f:
             # f.write ( f"{point}\n" )
@@ -254,6 +258,7 @@ class NLLThread ( LoggerBase ):
         """
         self.debug ( f"asking for predictions for xmy={self.xvalue:.2f},{self.yvalue:.2g}")
         slhaf = self.M.createSLHAFile( )
+        """
         sigmacut=.02*fb
         if max(self.M.masses)>1600:
             sigmacut=.01*fb
@@ -261,6 +266,8 @@ class NLLThread ( LoggerBase ):
             sigmacut=.003*fb
         if max(self.M.masses)>2000:
             sigmacut=.001*fb
+        """
+        sigmacut=0.*fb
         ## first get rmax
         if hasattr ( self.predictor, "predictions" ):
             del self.predictor.predictions
@@ -301,6 +308,7 @@ class NLLThread ( LoggerBase ):
         ret["eul"] = euls
 
         del self.predictor.predictions
+        del self.critic.predictions
 
         return ret
 
