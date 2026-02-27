@@ -686,7 +686,7 @@ class NLLScanner ( LoggerBase ):
         thread0.ntotal = len(rxvariable)*len(ryvariable)+1
         thread0.writeRunMeta()
         if not thread0.hasResultsForPoint ( self.xvalue, self.yvalue ):
-            point = thread0.getPredictions ( False, self.value, self.yvalue )
+            point = thread0.getPredictions ( False, self.xvalue, self.yvalue )
             point["x"] = float ( self.xvalue )
             point["y"] = float ( self.yvalue )
             thread0.addNewPoint ( point )
