@@ -60,6 +60,7 @@ class NLLThread ( LoggerBase ):
         super ( NLLThread, self ).__init__ ( threadnr )
         self.environ = obj.environ
         self.resultsdir = obj.resultsdir
+        self.redo = obj.redo
         self.topo = obj.topo
         self.threadnr = threadnr
         self.dict_file = obj.dict_file
@@ -276,6 +277,7 @@ class NLLThread ( LoggerBase ):
         manipulator = Manipulator ( self.M, self.environ )
         worked = self.predictor.predict ( manipulator, 
             sigmacut = sigmacut, keep_predictions = True )
+
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
         ret = { "nll": None, "critic": None, "oul": None, "eul": None }
 
@@ -298,6 +300,9 @@ class NLLThread ( LoggerBase ):
         ## now get the likelihoods
         nlls={}
         ## start with the SM likelihood
+        # for debugging only!
+        hasCMSSUS20004 = self.checkPredictions ()
+        ret["hasCMSSUS20004"] = hasCMSSUS20004
         nlls[0.] = self.getNLLs ( self.predictor.predictions, mu=0. )
         ## get for the others FIXME should adapt to ssm?
         for mu in numpy.arange(.4,1.8,.05):
@@ -314,6 +319,19 @@ class NLLThread ( LoggerBase ):
             del self.critic.predictions
 
         return ret
+
+    def checkPredictions ( self ):
+        """ a debug function to find out why sometimes CMS-SUS-20-004 gets dropped
+        """
+        # return
+        hasCMSSUS20004 = False
+        for tp in self.predictor.predictions:
+            anaId = tp.analysisId()
+            if anaId == "CMS-SUS-20-004":
+                hasCMSSUS20004 = True
+        if not hasCMSSUS20004:
+            self.error ( f"x {self.xvalue} y {self.yvalue} has no CMS-SUS-20-004" )
+        return hasCMSSUS20004
 
     def getLimits ( self, predictions : List[TheoryPrediction],
                     evaluationType : NllEvalType ) -> Dict:
@@ -392,7 +410,15 @@ class NLLThread ( LoggerBase ):
         parameterpoints=self.getAllParameterPoints()
         nxvariables = len(rxvariable)
         ct = 0
+        lspmass = self.M.masses[self.M.LSP]
         for i1,m1 in enumerate(rxvariable):
+            x_name = namer.asciiName(self.xvariable)
+            sx = "ssm" if type(self.xvariable)==tuple else "m"
+            if type(self.xvariable)==int:
+                ## heed the LSP mass limit
+                if m1 < lspmass:
+                    self.pprint ( f"skipping m({x_name})={m1:.1f} < {lspmass:.1f}" )
+                    continue
             thrnr = 0
             try:
                 thrnr = int ( self.threadnr.replace("nll","") )
@@ -403,12 +429,12 @@ class NLLThread ( LoggerBase ):
             self.pprint ( f"this point set contains {len(ryvariable)} points" )
             self.setParameter ( self.xvariable, m1 )
             if type(self.xvalue)==int:
-                self.M.masses[self.xvariable]=self.xvalue ## reset LSP mass
+                self.M.masses[self.xvariable]=self.xvalue ## reset mass
             if type(self.xvalue)==tuple:
                 ## reset LSP mass
                 self.setSSMultiplier ( self.xvariable, self.xvalue )
             if type(self.yvalue)==int:
-                self.M.masses[self.yvariable]=self.yvalue ## reset LSP mass
+                self.M.masses[self.yvariable]=self.yvalue ## reset mass
             if type(self.yvalue)==tuple:
                 ## reset LSP mass
                 self.setSSMultiplier ( self.yvariable, self.yvalue )
@@ -425,10 +451,13 @@ class NLLThread ( LoggerBase ):
             if xsectot.asNumber ( fb ) < 1e-10:
                 self.pprint ( "WARNING no xsec??" )
             for i2,m2 in enumerate(ryvariable):
-                x_name = namer.asciiName(self.xvariable)
-                sx = "ssm" if type(self.xvariable)==tuple else "m"
                 y_name = namer.asciiName(self.yvariable)
                 sy = "ssm" if type(self.yvariable)==tuple else "m"
+                if type(self.yvariable)==int:
+                    ## heed the LSP mass limit
+                    if m2 < lspmass:
+                        self.pprint ( f"skipping m({y_name})={m2:.1f} < {lspmass:.1f}" )
+                        continue
                 if m2 > m1 and type(self.xvariable)==float and \
                         type(self.yvariable) == float:
                     ## for masses we assume yvariable to be the daughter
