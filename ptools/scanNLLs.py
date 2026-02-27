@@ -89,9 +89,9 @@ class NLLThread ( LoggerBase ):
 
     def getMetaInformation ( self ) -> dict:
         """ the meta information about this nll scan.
-        contains command line arguments, date of production, 
+        contains command line arguments, date of production,
         x, y variables.
-        """ 
+        """
         from smodels_utils.helper.various import getCommandLine
         meta = { "cmdline": getCommandLine() }
         from datetime import datetime
@@ -427,7 +427,7 @@ class NLLThread ( LoggerBase ):
                 y_name = namer.asciiName(self.yvariable)
                 sy = "ssm" if type(self.yvariable)==tuple else "m"
                 if m2 > m1 and type(self.xvariable)==float and \
-                        type(self.yvariable) == float: 
+                        type(self.yvariable) == float:
                     ## for masses we assume yvariable to be the daughter
                     self.warning ( f"{sx}{x_name}({m1})<{sy}{y_name}({m2}). skipping!" )
                     continue
@@ -785,7 +785,8 @@ def main ():
     from ptools.hiscoreTools import fetchHiscoresObj
     hi = fetchHiscoresObj ( args.hiscores, None, environ, walkerid="nll" )
     protomodel = hi.hiscores[0]
-    #self.pprint ( f"fetched {protomodel} from {args.hiscores}" )
+    environ.pprint ( f"fetched {protomodel} from {args.hiscores}" )
+    # environ.pprint ( f"ssms={protomodel.ssmultipliers}" )
 
     xvariables = [ namer.pid ( args.xvariable ) ]
     if args.xvariable == 0:
