@@ -551,11 +551,11 @@ class ProtoModel ( LoggerBase ):
         """
         if not keep_old:
             self.delCurrentSLHA()
-	      prefix = f".{prefix}{self.walkerid}_"
-		  	slhadir = self.SLHATEMPDIR
-		  	if prefix.startswith("/"):
-					slhadir = os.path.dirname ( prefix )
-	      	prefix = f"{os.path.basename(prefix)}{self.walkerid}_"
+        prefix = f".{prefix}{self.walkerid}_"
+        slhadir = self.SLHATEMPDIR
+        if prefix.startswith("/"):
+            slhadir = os.path.dirname ( prefix )
+            prefix = f"{os.path.basename(prefix)}{self.walkerid}_"
         self.currentSLHA = tempfile.mktemp( prefix=prefix,
                     suffix=".slha",dir=slhadir)
         return self.currentSLHA
