@@ -73,30 +73,39 @@ class NLLThread ( LoggerBase ):
         self.yvariable = obj.yvariable
         self.xvalue = obj.xvalue
         self.yvalue = obj.yvalue
-        self.setSLHAFileName( )
+        self.setSLHAFileName( self.xvalue, self.yvalue )
         self.nevents = obj.nevents
         self.predictor = obj.predictor
         self.critic = obj.critic
         helpers.mkdir ( self.resultsdir )
 
-    def setSLHAFileName ( self, keep_old : bool = True ):
+    def setSLHAFileName ( self, m1 : float, m2 : float ):
         """ set the slha file name
-        :param keep_old: if true, then make sure old version
-        does not get deleted
+        :param m1: value of x coordinate
+        :param m2: value of y coordinate
+        :returns: filename
         """
         # self.pprint ( f"slhadir {self.slhadir}" )
-        basename = f"lthrd{self.threadnr}_{namer.asciiName(self.xvariable)}{self.xvalue}_{namer.asciiName(self.yvariable)}{self.yvalue}.slha"
+        fname = f"lthrd{self.threadnr}_{self.getBaseName(m1,m2)}.slha"
+        self.M.createNewSLHAFileName ( prefix=fname )
+        return self.M.currentSLHA
+
+    def getBaseName ( self, m1 : float, m2 : float ):
+        """ get our base name for a parameter point
+        :param m1: value of x coordinate
+        :param m2: value of y coordinate
+        :returns: base name
+        """
+        x_name = namer.asciiName(self.xvariable)
+        y_name = namer.asciiName(self.yvariable)
+        #x_value = f"{self.xvalue:.3f}"
+        #y_value = f"{self.yvalue:.3f}"
+        x_value = f"{m1:.3f}"
+        y_value = f"{m2:.3f}"
+        basename = f"{x_name}_{x_value}-{y_name}_{y_value}"
         basename = basename.replace(" ","").replace("(","_").replace(")","")
         basename = basename.replace(",","")
-        if self.slhadir == None:
-            self.M.createNewSLHAFileName ( prefix=basename, keep_old = False )
-        else:
-            helpers.mkdir ( self.slhadir )
-            slhaname = f"{self.slhadir}/{basename}"
-            # dont delete previous just set to new value
-            # self.pprint ( f"setting to slha file name to {slhaname}" )
-            self.M.currentSLHA = slhaname
-        return self.M.currentSLHA
+        return basename
 
     def getDefaultDictionary ( self ):
         """ initialise the dictionary for the pickle file """
@@ -269,7 +278,8 @@ class NLLThread ( LoggerBase ):
             return True
         return False
 
-    def getPredictions ( self, recycle_xsecs : bool = True ) -> Dict:
+    def getPredictions ( self, recycle_xsecs : bool,
+           m1 : float, m2 : float ) -> Dict:
         """ get predictions, return likelihoods
 
         :param recycle_xsecs: if true, then recycle the cross sections, dont
@@ -278,14 +288,13 @@ class NLLThread ( LoggerBase ):
         observed ("oul") and expected ("eul") upper limits on mu.
         """
         self.debug ( f"asking for predictions for xmy={self.xvalue:.2f},{self.yvalue:.2g}")
-        slhafile = None
-        keep_old = False
-        if self.slhadir != None:
-            slhafile = self.setSLHAFileName()
-            keep_old = True
-        slhaf = self.M.createSLHAFile( outputSLHA = slhafile, keep_old = keep_old )
-        sigmacut=0.*fb
+        slhaf = self.M.createSLHAFile( )
         ## first get rmax
+        if os.path.exists ( slhaf ) and self.slhadir is not None:
+            newf = f"{self.slhadir}/{self.getBaseName(m1,m2)}.slha"
+            shutil.copy ( slhaf, newf )
+            self.pprint ( f"created {newf}" )
+        sigmacut=0.*fb
         if hasattr ( self.predictor, "predictions" ):
             del self.predictor.predictions
         from builder.manipulator import Manipulator
@@ -296,7 +305,8 @@ class NLLThread ( LoggerBase ):
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
         ret = { "nll": None, "critic": None, "oul": None, "eul": None }
 
-        self.M.delCurrentSLHA()
+        if self.slhadir == None:
+            self.M.delCurrentSLHA()
         critics={ "llhd": None, "ul": self.M.ul_critic }
         # max_allowed, n_excluding = critics["ul"]["max_allowed"], critics["ul"]["n_excluding"]
         # critics["ul"]["passes"] = (max_allowed+1) >= n_excluding ## loosened!
@@ -495,7 +505,7 @@ class NLLThread ( LoggerBase ):
                         self.warning ( f"have to raise {namer.asciiName(pid_)} {m_} -> {m2+1.}, so X1Z stays the LSP" )
                         oldmasses[pid_]=m_
                         self.M.masses[pid_]=m2 + 1.
-                point = self.getPredictions ( False )
+                point = self.getPredictions ( False, m1, m2 )
                 nlls = point["nll"]
                 if not nlls: continue
                 nnlls,nnonzeroes=0,0
@@ -512,11 +522,6 @@ class NLLThread ( LoggerBase ):
                 point["y"] = float ( m2 )
                 parameterpoints.append ( point )
                 self.addNewPoint ( point ) ## add the point
-                print ( f"@@66 can we salvage {self.M.currentSLHA} {os.path.exists(self.M.currentSLHA)} {self.slhadir}" )
-                if os.path.exists ( self.M.currentSLHA ):
-                    newf = f"{self.slhadir}/{x_name}{m1:.1f}{y_name}{m2:.1f}.slha"
-                    print ( f"@@67 newf {newf}" )
-                    shutil.copy ( self.M.currentSLHA, newf )
         return parameterpoints
 
 def runThread ( threadid: int, obj, rxvariable, ryvariable,
@@ -571,6 +576,7 @@ class NLLScanner ( LoggerBase ):
         self.slhadir = None
         if keep_slha:
             self.slhadir = f"{self.environ.rundir}/slha{xname}{yname}/"
+            helpers.mkdir  ( self.slhadir )
 
     def describeRange ( self, r ):
         """ describe range r in a string """
@@ -638,8 +644,8 @@ class NLLScanner ( LoggerBase ):
         self.topo = topo
         xvariable = self.xvariable
         yvariable = self.yvariable
-        if yvariable != self.M.LSP:
-            self.pprint ( f"we currently assume yvariable to be the mass of the LSP, but it is {yvariable}" )
+        #if yvariable != self.M.LSP:
+        #    self.pprint ( f"we currently assume yvariable to be the mass of the LSP, but it is {yvariable}" )
         if os.path.exists ( self.picklefile ) and self.skip_production:
             self.pprint ( f"we were asked to skip production: {self.picklefile} exists." )
             return
@@ -680,7 +686,7 @@ class NLLScanner ( LoggerBase ):
         thread0.ntotal = len(rxvariable)*len(ryvariable)+1
         thread0.writeRunMeta()
         if not thread0.hasResultsForPoint ( self.xvalue, self.yvalue ):
-            point = thread0.getPredictions ( False )
+            point = thread0.getPredictions ( False, self.value, self.yvalue )
             point["x"] = float ( self.xvalue )
             point["y"] = float ( self.yvalue )
             thread0.addNewPoint ( point )

@@ -548,13 +548,9 @@ class ProtoModel ( LoggerBase ):
         """ create a new SLHA file name. Needed when e.g. unpickling
         :returns: slha filename
         """
-        prefix = f".{prefix}{self.walkerid}_"
-        slhadir = self.SLHATEMPDIR
-        if prefix.startswith("/"):
-            slhadir = os.path.dirname ( prefix )
-            prefix = f"{os.path.basename(prefix)}{self.walkerid}_"
-        self.currentSLHA = tempfile.mktemp( prefix=prefix,
-                    suffix=".slha",dir=slhadir)
+        self.delCurrentSLHA()
+        self.currentSLHA = tempfile.mktemp( prefix=f".{prefix}{self.walkerid}_",
+                    suffix=".slha",dir=self.SLHATEMPDIR)
         return self.currentSLHA
 
     def checkTemplateSLHA ( self ):
@@ -670,25 +666,20 @@ class ProtoModel ( LoggerBase ):
             outF.close()
 
     def createSLHAFile ( self, outputSLHA : Union[str,None] = None,
-                         addXsecs : bool = True, keep_old : bool = False ) -> str:
-        """ Creates the SLHA file with the masses, decays and cross-sections
-        stored in the model.
+                         addXsecs : bool = True ) -> str:
+        """ Creates the SLHA file with the masses, decays and cross-sections stored in the model.
 
-        :param outputSLHA: Name of the SLHA file to be created. If None a
-        tempfile will be created and its name will be stored in
-        self.currentSLHA.
-        :param addXsecs: If True, include cross-sections in the file, else only
-        write spectrum and decays.
-        :param keep_old: if True, then do not delete old files
+        :param outputSLHA: Name of the SLHA file to be created. If None a tempfile will be created and
+                           its name will be stored in self.currentSLHA.
+        :param addXsecs: If True, include cross-sections in the file, else only write spectrum and decays.
 
         :return: Name of the SLHA file created
         """
-        if not keep_old:
-            self.delCurrentSLHA()
+        self.delCurrentSLHA()
 
         #If output is not defined, create file and store in self.currentSLHA
         if outputSLHA is None:
-            self.createNewSLHAFileName( )
+            self.createNewSLHAFileName()
             outputSLHA = self.currentSLHA
 
         #Set template file (if not yet defined)
