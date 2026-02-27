@@ -482,7 +482,7 @@ class NLLScanner ( LoggerBase ):
     def __init__ ( self, protomodel, xvariable, yvariable, nproc,
                    environ : RunEnviron, skip_production : bool = False,
                    dry_run : bool = False, dict_file : bool = False,
-                   output : str = "nll" ):
+                   output : str = "nll", redo : bool = False ):
         """
         :param rundir: the rundir
         :param environ: the RunEnviron
@@ -491,6 +491,7 @@ class NLLScanner ( LoggerBase ):
         :param output: prefix for output file [nll]
         """
         super ( NLLScanner, self ).__init__ ( "nll" )
+        self.redo = redo
         self.dry_run = dry_run
         self.output = output
         self.dict_file = dict_file
@@ -764,6 +765,9 @@ def main ():
     argparser.add_argument ( '-o', '--output',
             help="prefix for output file [nll]",
             type=str, default="nll" )
+    argparser.add_argument ( '--redo',
+            help="ignore cache, redo all points",
+            action="store_true" )
     argparser.add_argument ( '-u', '--uploadTo',
             help="where do we upload to, on smodels.github.io [latest]",
             type=str, default="latest" )
@@ -796,7 +800,7 @@ def main ():
         scanner = NLLScanner( protomodel, xvariable, yvariable, nproc,
                 environ = environ, skip_production = args.skip_production,
                 dry_run = args.dry_run, dict_file = args.dict_file,
-                output = args.output )
+                output = args.output, redo = args.redo )
         args.xvariable = xvariable
         args = scanner.overrideWithDefaults ( args )
         if args.clean_first:
