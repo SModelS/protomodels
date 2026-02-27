@@ -186,7 +186,8 @@ class NLLThread ( LoggerBase ):
         dictfile = self.getDictFileName ( point["x"], point["y"] )
         with open ( dictfile, "wt" ) as f:
             # f.write ( f"{point}\n" )
-            befores = { "x": "y", "y": "critic", "critic": "oul",
+            befores = { "x": "xvariable", "xvariable": "y", "y": "yvariable",
+                        "yvariable": "critic", "critic": "oul",
                         "oul": "eul", "eul": "nll" }
             d = py_dumps ( point, level = 0, a_before = befores )
             f.write ( d + "\n" )
@@ -273,7 +274,8 @@ class NLLThread ( LoggerBase ):
             del self.predictor.predictions
         from builder.manipulator import Manipulator
         manipulator = Manipulator ( self.M, self.environ )
-        worked = self.predictor.predict ( manipulator, keep_predictions = True )
+        worked = self.predictor.predict ( manipulator, 
+            sigmacut = sigmacut, keep_predictions = True )
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
         ret = { "nll": None, "critic": None, "oul": None, "eul": None }
 
@@ -308,7 +310,8 @@ class NLLThread ( LoggerBase ):
         ret["eul"] = euls
 
         del self.predictor.predictions
-        del self.critic.predictions
+        if hasattr ( self.critic, "predictions" ):
+            del self.critic.predictions
 
         return ret
 
@@ -434,7 +437,7 @@ class NLLThread ( LoggerBase ):
                 if m2 < 0.:
                     self.warning ( f"{sy}({y_name})={m2:.1f}<0. skipping!" )
                     continue
-                if self.hasResultsForPoint ( m1, m2 ):
+                if self.hasResultsForPoint ( m1, m2 ) and not self.redo:
                     continue
                 # self.pprint ( f"processing m({m1:.2f},{m2:.2f})" )
                 if type(self.yvariable)==int:
