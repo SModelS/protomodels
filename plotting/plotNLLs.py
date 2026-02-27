@@ -189,7 +189,7 @@ class NLLPlotter ( LoggerBase ):
         [{"x": ..., "y": ..., "passes": True/False}, ... ]
         :returns: true if successful, else false
         """
-        defaults = { "points": False, "text": False, "colors": ( "red", "darkred" ),
+        defaults = { "points": False, "text": None, "colors": ( "red", "darkred" ),
                      "label": "probability mass", "nlevels": 2 }
         opts = defaults
         opts.update ( options )
@@ -285,12 +285,15 @@ class NLLPlotter ( LoggerBase ):
             pointsize,fontsize=1,8
             if len(points)<10:
                 pointsize,fontsize=3,10
-            if opts["text"]:
+            if opts["text"] != None:
                 llhd_rel_min = .01
-                for d in points:
-                    if d["llhd_rel"] > llhd_rel_min:
-                        plt.text ( d["x"], d["y"], f"{d['llhd_rel']:.1g}",
-                                   fontsize=fontsize )
+                for i,d in enumerate(points):
+                    if not opts["text"] in d:
+                        self.error ( f"{opts['text']} not found in dictionary {d}" )
+                    else:
+                        if True: # i % 30 == 0:
+                            plt.text ( d["x"], d["y"], f"{d[ opts['text'] ]:.1g}",
+                                       fontsize=fontsize )
             else:
                 pointsize=2
                 plt.scatter ( xs, ys, c="black", s=pointsize )
@@ -371,7 +374,7 @@ class NLLPlotter ( LoggerBase ):
             return ret
 
         if which == "builder":
-            ret = { "text": False, "nlevels": 1 }
+            ret = { "text": None, "nlevels": 1 }
             if "builder" in self.options:
                 ret.update ( self.options["builder"] )
             return ret
@@ -519,8 +522,8 @@ class NLLPlotter ( LoggerBase ):
             robs_min = 2.0
             fontsize=8
             for i,d in enumerate(points):
-                #if i % 10 != 0:
-                #    continue
+                if i % 20 != 0:
+                    continue
                 if d["passes"]==True:
                     continue
                 if d["robs"] > robs_min:
