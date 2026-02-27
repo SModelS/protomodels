@@ -584,7 +584,9 @@ class NLLScanner ( LoggerBase ):
             return
 
         if self.nproc == 1:
-            return runThread ( 0, self, rxvariable, ryvariable )
+            ret = runThread ( 0, self, rxvariable, ryvariable )
+            thread.updatePickleFile()
+
         chunkedRxvariable = [ list(rxvariable[i::self.nproc]) for i in range(self.nproc) ]
         processes = []
         manager = multiprocessing.Manager()
