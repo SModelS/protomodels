@@ -256,14 +256,16 @@ class Predictor ( LoggerBase ):
         protomodel.dbversion = self.environ.database.databaseVersion
         return True
 
-    def runSModelS(self, inputFile : PathLike, sigmacut : float, mingap : float, mingapISR:float,
-            allpreds : bool, ULpreds : bool, maxcond : float = 0.2 ) -> List[TheoryPrediction]:
+    def runSModelS(self, inputFile : PathLike, sigmacut : float, mingap : float,
+                   mingapISR:float, allpreds : bool, ULpreds : bool,
+                   maxcond : float = 0.2 ) -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
         :param sigmacut: the cut on the topology weights, typically 0.02*fb
         :param allpreds: if true, return all predictions of analyses, else
                          only best signal region
-        :param ULpreds: if true, also returns the list of theory predictions for UL-type results
+        :param ULpreds: if true, also returns the list of theory predictions for
+        UL-type results
         :param maxcond: maximum relative violation of conditions for valid results
 
         :returns: list of all theory predictions
@@ -311,8 +313,8 @@ class Predictor ( LoggerBase ):
         self.log("start computing preds")
         import time
         start_time = time.time()
-        theoryPredictions = theoryPredictionsFor ( self.environ.database, 
-                topos, useBestDataset=bestDataSet, 
+        theoryPredictions = theoryPredictionsFor ( self.environ.database,
+                topos, useBestDataset=bestDataSet,
                 combinedResults=self.environ.do_srcombine )
         preds = TheoryPredictionList(theoryPredictions, maxcond)
 
