@@ -399,18 +399,18 @@ class NLLThread ( LoggerBase ):
         """
         self.M.ssmultipliers[pids]=ssm
 
-    def setParameter ( self, pid : Union[int,tuple], mass : float ):
+    def setMass ( self, pid : Union[int,tuple], mass : float ):
         """ set mass or ssm of <pid> to <mass> """
         if type(pid) == tuple:
             return self.setSSM ( pid, mass )
         partners = [ ( 1000023, 1000024 ) ]
-        self.M.masses[pid]=mass
+        self.M.masses[pid]=float(mass)
         for pair in partners:
             if not pid in pair:
                 continue
             for p in pair:
                 if p in self.M.masses and self.massesAreTied ( p, pid ):
-                    self.M.masses[p]=mass
+                    self.M.masses[p]=float(mass)
 
     def setSSMultiplier ( self, pids : tuple, ssm : float ):
         """ set the ssm multipliers for pids to ssm.
@@ -454,7 +454,7 @@ class NLLThread ( LoggerBase ):
             setnr = i1+1 + thrnr * ( nxvariables )
             self.pprint ( f"now starting with point set #{setnr} [of {nxvariables} in this thread]" )
             self.pprint ( f"this point set contains {len(ryvariable)} points" )
-            self.setParameter ( self.xvariable, m1 )
+            self.setMass ( self.xvariable, m1 )
             if type(self.xvalue)==int:
                 self.M.masses[self.xvariable]=self.xvalue ## reset mass
             if type(self.xvalue)==tuple:
