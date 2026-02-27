@@ -62,21 +62,42 @@ class NLLThread ( LoggerBase ):
         self.resultsdir = obj.resultsdir
         self.redo = obj.redo
         self.topo = obj.topo
+        self.slhadir = obj.slhadir
         self.threadnr = threadnr
         self.dict_file = obj.dict_file
         self.picklefile = obj.picklefile
         self.M = copy.deepcopy ( obj.M )
         self.origmasses = copy.deepcopy ( self.M.masses )
         self.origssmultipliers = copy.deepcopy ( self.M.ssmultipliers )
-        self.M.createNewSLHAFileName ( prefix=f"lthrd{self.threadnr}_{obj.xvariable}" )
         self.xvariable = obj.xvariable
         self.yvariable = obj.yvariable
         self.xvalue = obj.xvalue
         self.yvalue = obj.yvalue
+        self.setSLHAFileName( )
         self.nevents = obj.nevents
         self.predictor = obj.predictor
         self.critic = obj.critic
         helpers.mkdir ( self.resultsdir )
+
+    def setSLHAFileName ( self, keep_old : bool = True ):
+        """ set the slha file name
+        :param keep_old: if true, then make sure old version
+        does not get deleted
+        """
+        self.pprint ( f"slhadir {self.slhadir}" )
+        basename = f"lthrd{self.threadnr}_{namer.asciiName(self.xvariable)}{self.xvalue}_{namer.asciiName(self.yvariable)}{self.yvalue}.slha"
+        basename = basename.replace(" ","").replace("(","_").replace(")","")
+        basename = basename.replace(",","")
+        if self.slhadir == None:
+            self.M.createNewSLHAFileName ( prefix=basename, keep_old = False )
+        else:
+            helpers.mkdir ( self.slhadir )
+            slhaname = f"{self.slhadir}/{basename}"
+            # dont delete previous just set to new value
+            self.pprint ( f"setting to slha file name to {slhaname}" )
+            self.M.currentSLHA = slhaname
+        self.pprint ( f"@@0 filename: {self.M.currentSLHA}" )
+        return self.M.currentSLHA
 
     def getDefaultDictionary ( self ):
         """ initialise the dictionary for the pickle file """
@@ -259,16 +280,13 @@ class NLLThread ( LoggerBase ):
         observed ("oul") and expected ("eul") upper limits on mu.
         """
         self.debug ( f"asking for predictions for xmy={self.xvalue:.2f},{self.yvalue:.2g}")
-        slhaf = self.M.createSLHAFile( )
-        """
-        sigmacut=.02*fb
-        if max(self.M.masses)>1600:
-            sigmacut=.01*fb
-        if max(self.M.masses)>1800:
-            sigmacut=.003*fb
-        if max(self.M.masses)>2000:
-            sigmacut=.001*fb
-        """
+        slhafile = None
+        keep_old = False
+        if self.slhadir != None:
+            slhafile = self.setSLHAFileName()
+            keep_old = True
+        print ( f"@@4 createSLHAFile {slhafile} keep_old {keep_old} slhadir {self.slhadir}" )
+        slhaf = self.M.createSLHAFile( outputSLHA = slhafile, keep_old = keep_old )
         sigmacut=0.*fb
         ## first get rmax
         if hasattr ( self.predictor, "predictions" ):
@@ -329,8 +347,8 @@ class NLLThread ( LoggerBase ):
             anaId = tp.analysisId()
             if anaId == "CMS-SUS-20-004":
                 hasCMSSUS20004 = True
-        if not hasCMSSUS20004:
-            self.error ( f"x {self.xvalue} y {self.yvalue} has no CMS-SUS-20-004" )
+        #if not hasCMSSUS20004:
+        #    self.error ( f"x {self.xvalue} y {self.yvalue} has no CMS-SUS-20-004" )
         return hasCMSSUS20004
 
     def getLimits ( self, predictions : List[TheoryPrediction],
@@ -364,6 +382,8 @@ class NLLThread ( LoggerBase ):
 
     def clean ( self ):
         """ clean up after the run """
+        if self.slhadir != None:
+            return
         cmd = f"rm {self.M.currentSLHA}"
         subprocess.getoutput ( cmd )
 
@@ -514,7 +534,8 @@ class NLLScanner ( LoggerBase ):
     def __init__ ( self, protomodel, xvariable, yvariable, nproc,
                    environ : RunEnviron, skip_production : bool = False,
                    dry_run : bool = False, dict_file : bool = False,
-                   output : str = "nll", redo : bool = False ):
+                   output : str = "nll", redo : bool = False,
+                   keep_slha : bool = False ):
         """
         :param rundir: the rundir
         :param environ: the RunEnviron
@@ -545,6 +566,9 @@ class NLLScanner ( LoggerBase ):
         #xname = namer.asciiName(self.xvariable)
         xname = moreHelpers.shortYVarName ( self.xvariable )
         self.resultsdir = f"{self.environ.rundir}/nlls{xname}{yname}/"
+        self.slhadir = None
+        if keep_slha:
+            self.slhadir = f"{self.environ.rundir}/slha{xname}{yname}/"
 
     def describeRange ( self, r ):
         """ describe range r in a string """
@@ -645,7 +669,7 @@ class NLLScanner ( LoggerBase ):
         self.cprint ( "green", f"range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
         self.cprint ( "green", f"range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
         self.cprint ( "green", f"total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}" )
-        self.M.createNewSLHAFileName ( prefix=f"nll{xvariable}" )
+        # self.M.createNewSLHAFileName ( prefix=f"nll{xvariable}" )
         #self.M.initializePredictor()
         self.predictor.filterForTopos ( topo )
         self.M.walkerid = 2000
@@ -675,7 +699,11 @@ class NLLScanner ( LoggerBase ):
                     self.M.masses[pid_]=1e6
 
         self.runForParameterPoints ( rxvariable, ryvariable )
-        self.M.delCurrentSLHA()
+        self.removeSLHAFile()
+
+    def removeSLHAFile ( self ):
+        if self.slhadir == None:
+            self.M.delCurrentSLHA()
 
     def cleanFirst ( self ):
         """ clean results dir and pickle file before running """
@@ -802,6 +830,9 @@ def main ():
     argparser.add_argument ( '--redo',
             help="ignore cache, redo all points",
             action="store_true" )
+    argparser.add_argument ( '--keep_slha',
+            help="keep the SLHA files",
+            action="store_true" )
     argparser.add_argument ( '-u', '--uploadTo',
             help="where do we upload to, on smodels.github.io [latest]",
             type=str, default="latest" )
@@ -834,7 +865,7 @@ def main ():
         scanner = NLLScanner( protomodel, xvariable, yvariable, nproc,
                 environ = environ, skip_production = args.skip_production,
                 dry_run = args.dry_run, dict_file = args.dict_file,
-                output = args.output, redo = args.redo )
+                output = args.output, redo = args.redo, keep_slha = args.keep_slha )
         args.xvariable = xvariable
         args = scanner.overrideWithDefaults ( args )
         if args.clean_first:

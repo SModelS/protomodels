@@ -544,8 +544,7 @@ class ProtoModel ( LoggerBase ):
             # print ( "[protomodel] del", self.currentSLHA )
             os.unlink ( self.currentSLHA )
 
-    def createNewSLHAFileName ( self, prefix : str = "cur",
-            keep_old : bool = False ) -> str:
+    def createNewSLHAFileName ( self, prefix : str = "cur" ) -> str:
         """ create a new SLHA file name. Needed when e.g. unpickling
         :returns: slha filename
         """
@@ -574,6 +573,7 @@ class ProtoModel ( LoggerBase ):
 
         :param outputSLHA: name of slha file to write
         """
+        print ( f"@@7 we are now writing into {outputSLHA}" )
         #Get template data:
         with open( self.environ.templateSLHA ) as f:
             lines=f.readlines()
@@ -686,11 +686,12 @@ class ProtoModel ( LoggerBase ):
 
         :return: Name of the SLHA file created
         """
-        self.delCurrentSLHA()
+        if not keep_old:
+            self.delCurrentSLHA()
 
         #If output is not defined, create file and store in self.currentSLHA
         if outputSLHA is None:
-            self.createNewSLHAFileName( keep_old = keep_old )
+            self.createNewSLHAFileName( )
             outputSLHA = self.currentSLHA
 
         #Set template file (if not yet defined)
