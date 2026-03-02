@@ -289,7 +289,7 @@ class NLLThread ( LoggerBase ):
         :returns: a diction with likelihoods ("nll"), critics' responses ("critic"),
         observed ("oul") and expected ("eul") upper limits on mu.
         """
-        self.debug ( f"asking for predictions for xmy={self.xvalue:.2f},{self.yvalue:.2g}")
+        self.info ( f"asking for predictions for x,y={self.xvalue:.2f},{self.yvalue:.2g}")
         slhaf = self.M.createSLHAFile( )
         ## first get rmax
         if os.path.exists ( slhaf ) and self.slhadir is not None:
@@ -418,7 +418,8 @@ class NLLThread ( LoggerBase ):
 
     def setParameter ( self, pid : Union[int,tuple], value : float ):
         assert type(pid) in [ int, tuple ], "pid is neither int nor tuple"
-        self.pprint ( f"setting {pid} to {value}" )
+        sx = "ssm" if type(pid)==tuple else "m"
+        self.pprint ( f"setting {sx}({namer.asciiName(pid)}) to {value:.2f}" )
         if type(pid)==int:
             self.setMass ( pid, value )
             return
@@ -451,8 +452,8 @@ class NLLThread ( LoggerBase ):
         nxvariables = len(rxvariable)
         ct = 0
         lspmass = self.M.masses[self.M.LSP]
+        self.Morig = copy.deepcopy ( self.M )
         for i1,m1 in enumerate(rxvariable):
-            self.setParameter ( self.xvariable, m1 )
             x_name = namer.asciiName(self.xvariable)
             sx = "ssm" if type(self.xvariable)==tuple else "m"
             if type(self.xvariable)==int:
@@ -468,22 +469,6 @@ class NLLThread ( LoggerBase ):
             setnr = i1+1 + thrnr * ( nxvariables )
             self.pprint ( f"now starting with point set #{setnr} [of {nxvariables} in this thread]" )
             self.pprint ( f"this point set contains {len(ryvariable)} points" )
-            """
-            if type(self.xvalue)==int:
-                self.M.masses[self.xvariable]=self.xvalue ## reset mass
-            if type(self.xvalue)==tuple:
-                ## reset LSP mass
-                self.setSSMultiplier ( self.xvariable, self.xvalue )
-            if type(self.yvalue)==int:
-                self.M.masses[self.yvariable]=self.yvalue ## reset mass
-            if type(self.yvalue)==tuple:
-                ## reset LSP mass
-                self.setSSMultiplier ( self.yvariable, self.yvalue )
-            for k,v in oldmasses.items():
-                self.pprint ( f"WARNING: setting mass of {namer.asciiName(k)} back to {v}" )
-                self.setParameter(k,v)
-                # self.M.masses[k]=v
-            """
             oldmasses={}
             self.M.delXSecs() ## make sure we compute
             xsecs = self.M.getXsecs()
@@ -494,6 +479,7 @@ class NLLThread ( LoggerBase ):
             if xsectot.asNumber ( fb ) < 1e-10:
                 self.pprint ( "WARNING no xsec??" )
             for i2,m2 in enumerate(ryvariable):
+                self.M = copy.deepcopy( self.Morig )
                 self.setParameter ( self.xvariable, m1 )
                 self.setParameter ( self.yvariable, m2 )
                 y_name = namer.asciiName(self.yvariable)
@@ -511,20 +497,9 @@ class NLLThread ( LoggerBase ):
                 if m2 < 0.:
                     self.warning ( f"{sy}({y_name})={m2:.1f}<0. skipping!" )
                     continue
-                if self.hasResultsForPoint ( m1, m2 ) and not self.redo:
+                hasResult = self.hasResultsForPoint ( m1, m2 )
+                if hasResult and not self.redo:
                     continue
-                # self.pprint ( f"processing m({m1:.2f},{m2:.2f})" )
-                """
-                if type(self.yvariable)==int:
-                    self.M.masses[self.yvariable]=m2
-                if type(self.yvariable)==tuple:
-                    self.setSSMultiplier ( self.yvariable, m2 )
-                for pid_,m_ in self.M.masses.items():
-                    if pid_ != self.yvariable and m_ < m2: ## make sure LSP remains the LSP
-                        self.warning ( f"have to raise {namer.asciiName(pid_)} {m_} -> {m2+1.}, so X1Z stays the LSP" )
-                        oldmasses[pid_]=m_
-                        self.M.masses[pid_]=m2 + 1.
-                """
                 point = self.getPredictions ( False, m1, m2 )
                 nlls = point["nll"]
                 if not nlls: continue
@@ -685,15 +660,13 @@ class NLLScanner ( LoggerBase ):
         ndxmax = int ( ceil (( range1["max"] - self.xvalue ) / range1["dm"]) )
         rxvariable = numpy.arange ( self.xvalue - ndxmin*range1["dm"],
                        self.xvalue + ndxmax * range1["dm"] + 1e-5, range1["dm"] )
-        # rxvariable = numpy.arange ( range1["min"], range1["max"]+1e-8, range1["dm"] )
-        # rxvariable = numpy.insert ( rxvariable, 8, self.xvalue )
+        rxvariable = rxvariable[rxvariable>0]
         ndymin = int ( ceil (( self.yvalue - range2["min"] ) / range2["dm"]) )
         ndymay = int ( ceil (( range2["max"] - self.yvalue ) / range2["dm"]) )
         ryvariable = numpy.arange ( self.yvalue - ndymin*range2["dm"],
                        self.yvalue + ndymay * range2["dm"] + 1e-5, range2["dm"] )
+        # ryvariable = ryvariable[ryvariable>0]
 
-        #ryvariable = numpy.arange ( range2["min"], range2["max"]+1e-8, range2["dm"] )
-        #ryvariable = numpy.insert ( ryvariable, 8, self.yvalue )
         self.cprint ( "green", f"range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
         self.cprint ( "green", f"range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
         self.cprint ( "green", f"total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}" )
