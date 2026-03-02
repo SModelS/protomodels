@@ -127,7 +127,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
         ## compare one dictentry with one pickleentry,
         ## true, if things are different
         if pentry == None:
-            return True
+            return True, "pentry is None"
         if pentry.K == None: ## picklefile is not working
             # so, update!
             return True, "pentry.K is None"
