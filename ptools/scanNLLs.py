@@ -151,6 +151,11 @@ class NLLThread ( LoggerBase ):
     def writeFiles ( self, d : Dict ):
         """ write the dictionary into the picklefile and dict file """
         # self.createPickleBackup()
+        ## lets see if that removes the extra entries
+        for pm in d["parameterpoints"]:
+            for var in [ "xvariable", "yvariable" ]:
+                if var in pm:
+                    pm.pop ( var )
         f = open ( self.picklefile, "wb" )
         pickle.dump ( d, f )
         f.close()
