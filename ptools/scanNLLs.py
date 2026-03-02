@@ -409,7 +409,7 @@ class NLLThread ( LoggerBase ):
         :param heed_partners: if true, then also set partner particles masses
         """
         partners = [ ( 1000023, 1000024 ) ]
-        self.M.masses[pid]=float(mass)
+        self.M.masses[pid]=mass
         if not heed_partners:
             return
         """
@@ -422,6 +422,7 @@ class NLLThread ( LoggerBase ):
         """
 
     def setParameter ( self, pid : Union[int,tuple], value : float ):
+        value = float(value)
         assert type(pid) in [ int, tuple ], "pid is neither int nor tuple"
         sx = "ssm" if type(pid)==tuple else "m"
         self.pprint ( f"setting {sx}({namer.asciiName(pid)}) to {value:.2f}" )
