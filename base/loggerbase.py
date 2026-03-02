@@ -12,8 +12,10 @@ __all__ = [ "LoggerBase" ]
 class LoggerBase:
     __slots__ = [ "walkerid", "module", "logdir" ]
 
-    def __init__ ( self, walkerid : Union[str,int] = 0 ):
+    def __init__ ( self, walkerid : Union[str,int] = 0,
+                   verbosity : Union[int,str] = 20 ):
         """ instantiate the logger class with a walkerid """
+        self.verbose = self.getVerbosity ( verbosity )
         self.walkerid = walkerid
         self.countLogs = {}
         self.printLogMessages = False
@@ -28,6 +30,19 @@ class LoggerBase:
             self.module = module[p1+1:]
         helpers.mkdir ( self.logdir )
 
+    def getVerbosity ( self, verbosity : Union[int,str] ) -> int:
+        if type(verbosity ) == int:
+            return verbosity
+        verbosity = verbosity.lower()
+        labels = { "error": 40, "warning": 30, "info": 20,
+                   "debug": 10 }
+        labels["warn"]=labels["warning"]
+        labels["err"]=labels["error"]
+        if verbosity.lower() not in labels:
+            self.error ( f"verbosity {verbosity} unknown" )
+            sys.exit()
+        return labels[verbosity]
+        
     def logThrice ( self, *args ):
         """ a method for repetitive log msgs. issue them only three times
         """
@@ -52,7 +67,7 @@ class LoggerBase:
     def info ( self, *args ):
         """ logging to file, but also write to screen """
         self.log ( *args )
-        if self.verbose > 1:
+        if self.verbose > 19:
             print ( f"[expResModifier] {' '.join(map(str, args))}" )
 
     def highlight ( self, msgType : str = "info", *args ):

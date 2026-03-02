@@ -81,7 +81,10 @@ class Predictor ( LoggerBase ):
                 er.datasets = newDS
                 keepExpRes.append ( er )
         nafter=len(keepExpRes)
-        self.pprint ( f"filtered for {topo}, keeping {nafter}/{nbefore} expRes" )
+        stopo = str(topo)
+        if len(stopo)>33:
+            stopo = stopo[:30] + "..."
+        self.pprint ( f"filtered for {stopo}, keeping {nafter}/{nbefore} expRes" )
         self.listOfExpRes = keepExpRes
 
     def matchesTopos ( self, topo, listOfTopos ):
@@ -126,7 +129,10 @@ class Predictor ( LoggerBase ):
             if len(newDS)>0:
                 er.datasets = newDS
                 keepExpRes.append ( er )
-        self.pprint ( f"filtered for {','.join(actualtopos)}, keeping {len(keepExpRes)}/{nbefore} expRes" )
+        stopo = ','.join(actualtopos)
+        if len(stopo)>33:
+            stopo = stopo[:30] + "..."
+        self.pprint ( f"filtered for {stopo}, keeping {len(keepExpRes)}/{nbefore} expRes" )
         self.listOfExpRes = keepExpRes
 
     def filterForSqrts ( self, keep : List = [ 13 ] ):
