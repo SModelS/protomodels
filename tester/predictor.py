@@ -207,7 +207,8 @@ class Predictor ( LoggerBase ):
                   mingap = 10*GeV, mingapISR = 1*GeV,
                   strategy : str = "aggressive",keep_predictions : bool = False,
                   keep_slhafile : bool = False, run_mcmc : bool = False,
-                  force_computation_K : bool = False ) -> bool:
+                  force_computation_K : bool = False,
+                  give_explanation : bool = False ) -> Union[tuple,bool]:
         """ Compute the predictions and statistical variables, for a
             protomodel.
 
@@ -222,12 +223,19 @@ class Predictor ( LoggerBase ):
         :param run_mcmc: if True, run a mcmc without changing dimensions
         :param force_computation_K: if true, the force computation of prior and
         (keep TL = log(L1))
-        :returns: False, if no combinations could be found, else True
+        :param give_explanation: if true, then return a tuple adding
+        an explanation, e.g. ( False, "no predictions" )
+        :returns: False, if no combinations could be found, else True.
+        if give_explanation is true, then return tuple, e.g. 
+        ( False, "no predictions" )
         """
         protomodel = manipulator.M
         predictions = self.obtainPredictions ( protomodel, sigmacut, mingap,
                 mingapISR, keep_predictions )
-        if not predictions: return False
+        if not predictions: 
+            if give_explanation:
+                return ( False, "no predictions" )
+            return False
 
 
         # Compute significance and store in the model:
@@ -238,10 +246,14 @@ class Predictor ( LoggerBase ):
         if protomodel.TL is None:
             self.log ( f"done with prediction. Could not find combinations (TL={protomodel.TL})" )
             protomodel.delCurrentSLHA()
+            if give_explanation:
+                return ( False, "TL is None" )
             return False
         if protomodel.muhat is None:
             self.log(f"done with prediction. Could not find muhat for combination {protomodel.description} (TL={protomodel.TL})" )
             protomodel.delCurrentSLHA()
+            if give_explanation:
+                return ( False, "muhat is None" )
             return False
         else:
             self.log ( f"done with prediction. best TL={protomodel.TL:.2f} (muhat={protomodel.muhat:.2f})" )
@@ -254,6 +266,8 @@ class Predictor ( LoggerBase ):
             protomodel.delCurrentSLHA()
         # we keep track of the database version, when predicting
         protomodel.dbversion = self.environ.database.databaseVersion
+        if give_explanation:
+            return ( True, f"K is {protomodel.K} TL is {protomodel.TL}" )
         return True
 
     def runSModelS(self, inputFile : PathLike, sigmacut : float, mingap : float,
