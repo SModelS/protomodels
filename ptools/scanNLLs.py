@@ -31,7 +31,7 @@ from tester.critic import Critic
 from ptools.sparticleNames import SParticleNames
 from ptools import moreHelpers, helpers
 from ptools.helpers import py_dumps
-from smodels_utils.helper.terminalcolors import RED, GREEN, YELLOW, RESET
+from smodels_utils.helper.terminalcolors import RED, GREEN, YELLOW, RESET, CYAN
 
 namer = SParticleNames ( False )
 t0 = time.time() ## define t0, to measure how long things took
@@ -162,7 +162,7 @@ class NLLThread ( LoggerBase ):
         writeDictFile = False
         if self.dict_file:
             dictfile = self.picklefile.replace(".pcl",".dict")
-            self.pprint ( f"writing to {dictfile}" )
+            self.pprint ( f"writing to {CYAN}{dictfile}{RESET}" )
             with open ( dictfile, "wt" ) as f:
                 befores = { "x": "xvariable", "xvariable": "y",
                     "y": "yvariable", "yvariable": "critic", "critic": "oul",
@@ -259,7 +259,7 @@ class NLLThread ( LoggerBase ):
     def updatePickleFile ( self ):
         """ collect all the entries in resultsdir, and compile them
         into one big pickle file """
-        self.pprint ( f"updating {self.picklefile}" )
+        self.debug ( f"updating {self.picklefile}" )
         self.lockPickleFile()
         Dict = self.getDefaultDictionary()
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
@@ -528,7 +528,7 @@ class NLLThread ( LoggerBase ):
 def runThread ( threadid: int, obj, rxvariable, ryvariable,
         return_dict : Union[Dict,None] = None ):
     """ the method needed for parallelization to work """
-    col, res = f"\033[48;5;{threadid+235}m", RESET # "\033[0m"
+    col, res = f"\033[48;5;{threadid+235}m", "\033[0m"
 
     thread = NLLThread ( f"{col}nll{threadid}{res}", obj )
     newpoints = thread.run ( rxvariable, ryvariable )
