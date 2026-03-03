@@ -82,8 +82,8 @@ class Predictor ( LoggerBase ):
                 keepExpRes.append ( er )
         nafter=len(keepExpRes)
         stopo = str(topo)
-        if len(stopo)>33:
-            stopo = stopo[:30] + "..."
+        if len(stopo)>31:
+            stopo = stopo[:28] + "..."
         self.pprint ( f"filtered for {stopo}, keeping {nafter}/{nbefore} expRes" )
         self.listOfExpRes = keepExpRes
 
@@ -130,8 +130,8 @@ class Predictor ( LoggerBase ):
                 er.datasets = newDS
                 keepExpRes.append ( er )
         stopo = ','.join(actualtopos)
-        if len(stopo)>33:
-            stopo = stopo[:30] + "..."
+        if len(stopo)>31:
+            stopo = stopo[:28] + "..."
         self.pprint ( f"filtered for {stopo}, keeping {len(keepExpRes)}/{nbefore} expRes" )
         self.listOfExpRes = keepExpRes
 
