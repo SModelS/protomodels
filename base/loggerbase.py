@@ -13,8 +13,13 @@ class LoggerBase:
     __slots__ = [ "walkerid", "module", "logdir" ]
 
     def __init__ ( self, walkerid : Union[str,int] = 0,
-                   verbosity : Union[int,str] = 20 ):
-        """ instantiate the logger class with a walkerid """
+                   verbosity : Union[int,str] = "info" ):
+        """ instantiate the logger class with a walkerid 
+        :param walkerid: the label that we identify the log's author
+        with
+        :param verbosity: one of: error (40), warning (30), info (20), 
+        debug (10), or a numerical value
+        """
         self.verbose = self.getVerbosity ( verbosity )
         self.walkerid = walkerid
         self.countLogs = {}

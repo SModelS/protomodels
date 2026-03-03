@@ -58,7 +58,7 @@ class NLLThread ( LoggerBase ):
     def __init__ ( self, threadnr: str, obj ):
         """ the constructor.
         """
-        super ( NLLThread, self ).__init__ ( threadnr )
+        super ( NLLThread, self ).__init__ ( threadnr, "info" )
         self.environ = obj.environ
         self.resultsdir = obj.resultsdir
         self.redo = obj.redo
@@ -294,14 +294,14 @@ class NLLThread ( LoggerBase ):
         :returns: a diction with likelihoods ("nll"), critics' responses ("critic"),
         observed ("oul") and expected ("eul") upper limits on mu.
         """
-        self.info ( f"asking for predictions for x,y={self.xvalue:.2f},{self.yvalue:.2g}")
+        self.debug ( f"asking for predictions for x,y={self.xvalue:.2f},{self.yvalue:.2g}")
         slhaf = self.M.createSLHAFile( )
         ## first get rmax
         if os.path.exists ( slhaf ) and self.slhadir is not None:
             newf = f"{self.slhadir}/{self.getBaseName(m1,m2)}.slha"
             shutil.copy ( slhaf, newf )
             snewf = newf.replace ( os.getcwd(), "." )
-            self.pprint ( f"created {snewf}" )
+            self.debug ( f"created {snewf}" )
         sigmacut=0.*fb
         if hasattr ( self.predictor, "predictions" ):
             del self.predictor.predictions
@@ -425,7 +425,7 @@ class NLLThread ( LoggerBase ):
         value = float(value)
         assert type(pid) in [ int, tuple ], "pid is neither int nor tuple"
         sx = "ssm" if type(pid)==tuple else "m"
-        self.pprint ( f"setting {sx}({namer.asciiName(pid)}) to {value:.2f}" )
+        self.pprint ( f"{sx}({namer.asciiName(pid)})={value:.2f}" )
         if type(pid)==int:
             self.setMass ( pid, value )
             return
@@ -528,8 +528,9 @@ class NLLThread ( LoggerBase ):
 def runThread ( threadid: int, obj, rxvariable, ryvariable,
         return_dict : Union[Dict,None] = None ):
     """ the method needed for parallelization to work """
+    col, res = f"\033[48;5;{threadid+235}m", RESET # "\033[0m"
 
-    thread = NLLThread ( f"nll{threadid}", obj )
+    thread = NLLThread ( f"{col}nll{threadid}{res}", obj )
     newpoints = thread.run ( rxvariable, ryvariable )
     if return_dict != None:
         return_dict[threadid]=newpoints
@@ -551,7 +552,7 @@ class NLLScanner ( LoggerBase ):
         :param dry_run: dont actually perform the actions
         :param output: prefix for output file [nll]
         """
-        super ( NLLScanner, self ).__init__ ( "nll" )
+        super ( NLLScanner, self ).__init__ ( "nll", "info" )
         self.redo = redo
         self.dry_run = dry_run
         self.output = output
