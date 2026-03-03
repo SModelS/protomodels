@@ -425,7 +425,6 @@ class NLLThread ( LoggerBase ):
         value = float(value)
         assert type(pid) in [ int, tuple ], "pid is neither int nor tuple"
         sx = "ssm" if type(pid)==tuple else "m"
-        self.pprint ( f"{sx}({namer.asciiName(pid)})={value:.2f}" )
         if type(pid)==int:
             self.setMass ( pid, value )
             return
@@ -505,6 +504,7 @@ class NLLThread ( LoggerBase ):
                     continue
                 hasResult = self.hasResultsForPoint ( m1, m2 )
                 if hasResult and not self.redo:
+                    self.pprint ( f"loading from cache: {sx}({x_name})={m1:.2f} {sy}({y_name})={m2:.2f}" )
                     continue
                 point = self.getPredictions ( False, m1, m2 )
                 nlls = point["nll"]
