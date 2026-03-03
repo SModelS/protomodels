@@ -666,12 +666,12 @@ class NLLScanner ( LoggerBase ):
         ndxmax = int ( ceil (( range1["max"] - self.xvalue ) / range1["dm"]) )
         rxvariable = numpy.arange ( self.xvalue - ndxmin*range1["dm"],
                        self.xvalue + ndxmax * range1["dm"] + 1e-5, range1["dm"] )
-        rxvariable = rxvariable[rxvariable>0]
+        rxvariable = rxvariable[rxvariable>=0.]
         ndymin = int ( ceil (( self.yvalue - range2["min"] ) / range2["dm"]) )
         ndymay = int ( ceil (( range2["max"] - self.yvalue ) / range2["dm"]) )
         ryvariable = numpy.arange ( self.yvalue - ndymin*range2["dm"],
                        self.yvalue + ndymay * range2["dm"] + 1e-5, range2["dm"] )
-        # ryvariable = ryvariable[ryvariable>0]
+        ryvariable = ryvariable[ryvariable>=0.]
 
         self.cprint ( "green", f"range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
         self.cprint ( "green", f"range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
