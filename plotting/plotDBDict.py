@@ -43,14 +43,15 @@ class Plotter ( LoggerBase ):
         :param filtervalue: filter out signal regions with expectedBG < filtervalue
         :param comment: an optional comment, to write in the plot
         :param likelihood: form of likelihood: "gauss", "gauss+poisson", or
-                           "lognormal+poisson"
-                           "gauss" or "g" means only a Gaussian for everything
-                           "gauss+poisson" or "gp" means Gauss * Poisson
-                           "lognormal+poisson" or "lp" means Lognormal * Poisson
+        "lognormal+poisson"
+        "gauss" or "g" means only a Gaussian for everything
+        "gauss+poisson" or "gp" means Gauss * Poisson
+        "lognormal+poisson" or "lp" means Lognormal * Poisson
         :param topologies: if not None, then filter for these topologies (e.g. T2tt)
         :param unscale: unscale, i.e. use the fudged bgError also for computing likelihoods
         :param signalmodel: use the signal+bg model for computing likelihoods
-        :param filtersigma: filter out signal regions with expectedBG/bgErr < filtersigma
+        :param filtersigma: filter out signal regions with 
+        expectedBG/bgErr < filtersigma
         :param collaboration: select a specific collaboration
         :param fakes: add fakes to the plot
         :param analyses: if not None, then filter for these analyses
@@ -293,7 +294,7 @@ class Plotter ( LoggerBase ):
 
     def filterSigma ( self, ratio : float ) -> bool:
         """ filter according to self.filtersigma
-        :param ratio: expectedBG / bgError
+        :param ratio: sqrt(expectedBG) / bgError
         :returns: true: if we wish to keep the value, else false
         """
         if self.filternegativesigma != None:
@@ -321,7 +322,7 @@ class Plotter ( LoggerBase ):
                 if not self.filterByTime ( v ):
                     continue
                 if "expectedBG" in v and v["expectedBG"]>=self.filter and \
-                        self.filterSigma ( v["expectedBG"] / v["bgError"] ):
+                        self.filterSigma ( math.sqrt(v["expectedBG"]) / v["bgError"] ):
 #                        v["expectedBG"]/v["bgError"]>=self.filtersigma:
                     newdata[i]=v
                 else:
@@ -478,7 +479,7 @@ class Plotter ( LoggerBase ):
                         bgErr = v["bgError"]
                     if vexp < self.filter:
                         continue
-                    if not self.filterSigma ( vexp / bgErr ):
+                    if not self.filterSigma ( math.sqrt(vexp) / bgErr ):
                     # if vexp / bgErr < self.filtersigma:
                         continue
                     sigN = None
@@ -911,10 +912,10 @@ def getArgs( cmdline = None ):
             help='filter out signal regions with expectedBG<x [x=0.]',
             type=float, default=0. )
     argparser.add_argument ( '-s', '--filtersigma', nargs='?',
-            help='filter out signal regions with expectedBG/bgErr<x. [x=0.]',
+            help='filter out (remove) systematics dominated signal regions with sqrt(expectedBG)/bgErr<x. [x=0.]',
             type=float, default=0. )
     argparser.add_argument ( '-ns', '--filternegativesigma', nargs='?',
-            help='filter out signal regions with expectedBG/bgErr>x. [x=None]',
+            help='filter out (remove) statistics dominated signal regions with sqrt(expectedBG)/bgErr>x. [x=None]',
             type=float, default=None )
     argparser.add_argument ( '-C', '--select_collaboration', nargs='?',
             help='select a specific collaboration CMS, ATLAS, all [all]',
