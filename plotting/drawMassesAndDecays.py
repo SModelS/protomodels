@@ -223,7 +223,9 @@ class MassesAndDecays ( LoggerBase ):
 
         self.plt.tight_layout()
         outfile = self.options["outfile"]
-        self.plt.savefig ( outfile )
+        from smodels_utils.helper.various import pngMetaInfo
+        metadata = pngMetaInfo()
+        self.plt.savefig ( outfile, metadata = metadata )
         self.pprint ( f"saving to {outfile}" )
         timg ( outfile )
         if self.options["interact"]:
