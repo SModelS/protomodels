@@ -88,6 +88,8 @@ class Plotter ( LoggerBase ):
                     print ( f"[plotDBDict] you supplied {args['topologies']} as topologies. Did you supply the validation file instead?" )
                 args["topologies"], descr = namesForSetsOfTopologies ( args['topologies'] )
                 self.description = descr
+                if args["topologies"].startswith("^"):
+                    self.description = f"all but {descr} searches"
         if "select_topologies" in args and args['select_topologies'] not in  [ None, [] ]:
                 args["select_topologies"], descr = namesForSetsOfTopologies ( args['select_topologies'] )
         if 'select_collaboration' in args:
@@ -120,7 +122,7 @@ class Plotter ( LoggerBase ):
             topos = topologies.split(",")
             for t in topos:
                 if t.startswith ( "^" ):
-                    self.negativetopos.append ( t[1:] )
+                    self.negative_topologies.append ( t[1:] )
                 else:
                     self.topologies.append ( t )
         if "select_topologies" in args:
@@ -225,7 +227,7 @@ class Plotter ( LoggerBase ):
         self.topologies = []
         self.select_topologies = []
         self.ignore_sqrts = False
-        self.negativetopos = []
+        self.negative_topologies = []
         self.negativeanalyses = []
         self.outfile = "not_specified.png"
         self.title = None
@@ -411,15 +413,15 @@ class Plotter ( LoggerBase ):
                 if "txns" in v:
                     txns = v["txns"] # .split(",")
                 passesTx=False
-                if len(self.topologies)==0 and len(self.negativetopos)==0:
+                if len(self.topologies)==0 and len(self.negative_topologies)==0:
                     passesTx=True
                 for tx in self.topologies:
                     if tx in txns:
                         passesTx=True
                         break
-                if len(self.negativetopos) != 0:
+                if len(self.negative_topologies) != 0:
                     passesTx=True
-                    for tx in self.negativetopos:
+                    for tx in self.negative_topologies:
                         if tx in txns:
                             passesTx=False
                             break
@@ -553,7 +555,7 @@ class Plotter ( LoggerBase ):
         if outfile is None:
             return "tmp.png"
         origt = self.origtopos.replace(" ","").replace(",","_")
-        flt = f"_{origt}{'_not'.join(self.negativetopos)}"
+        flt = f"_{origt}{'_not'.join(self.negative_topologies)}"
         flt += "_".join(self.analyses) # 
         if len(self.negativeanalyses)>0:
             flt += "_not"
@@ -624,15 +626,15 @@ class Plotter ( LoggerBase ):
                     stopos += ";"
             title += f", {selecting}{stopos}"
             selecting = ""
-        if len (self.negativetopos )>0:
+        if len (self.negative_topologies )>0 and self.description == None:
             stopos = ""
-            for i,t in enumerate(self.negativetopos):
+            for i,t in enumerate(self.negative_topologies):
                 stopos += f"^{prettyDescriptions.prettyTxname(t, False, 'latex')}"
                 if i < len(self.topologies)-1:
                     stopos += ";"
             title += f", {selecting}{stopos}"
             selecting = ""
-        if len ( self.topologies ) + len ( self.negativetopos ) == 0:
+        if len ( self.topologies ) + len ( self.negative_topologies ) == 0:
             title += f", all topologies"
         if len ( self.analyses ) > 0:
             title += f", {selecting}"
