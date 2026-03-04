@@ -109,7 +109,9 @@ class TenHiscores ( LoggerBase ):
         axarr[1].set_yticks(self.analyses, labels =self.analyses,  fontsize=12)
         fname = self.outfile.replace(".png",".combs.png")
         print ( f"saving to {fname}" )
-        plt.savefig ( fname )
+        from smodels_utils.helper.various import pngMetaInfo
+        metadata = pngMetaInfo()
+        plt.savefig ( fname, metadata = metadata )
         show_steps.show(True,self.folder)
 
     def plot( self ):
@@ -300,7 +302,9 @@ class TenHiscores ( LoggerBase ):
         axarr[0].vlines(x=.5,ymin=self.t_ymin,ymax=self.t_ymax,
                         linestyle='--',color='gray')
         self.pprint ( f"saving to {self.outfile}" )
-        plt.savefig ( f"{self.outfile}" )
+        from smodels_utils.helper.various import pngMetaInfo
+        metadata = pngMetaInfo()
+        plt.savefig ( f"{self.outfile}", metadata = metadata )
         timg ( f"{self.outfile}" )
         if False:
             self.plotCombos( df, masses )
