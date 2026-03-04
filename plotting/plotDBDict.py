@@ -291,6 +291,17 @@ class Plotter ( LoggerBase ):
             return True
         return False
 
+    def filterSigma ( self, ratio : float ) -> bool:
+        """ filter according to self.filtersigma
+        :param ratio: expectedBG / bgError
+        :returns: true: if we wish to keep the value, else false
+        """
+        if self.filternegativesigma != None:
+            return ratio <= self.filternegativesigma
+        if self.filtersigma >= 0.:
+            return ratio >= self.filtersigma
+        return ratio <= self.filtersigma
+
     def read ( self ):
         """ read in content of self.filenames """
         from multiverse.expResModifier import readDatabaseDictFile
@@ -310,7 +321,8 @@ class Plotter ( LoggerBase ):
                 if not self.filterByTime ( v ):
                     continue
                 if "expectedBG" in v and v["expectedBG"]>=self.filter and \
-                        v["expectedBG"]/v["bgError"]>=self.filtersigma:
+                        self.filterSigma ( v["expectedBG"] / v["bgError"] ):
+#                        v["expectedBG"]/v["bgError"]>=self.filtersigma:
                     newdata[i]=v
                 else:
                     if ":ul" in i:
@@ -466,7 +478,8 @@ class Plotter ( LoggerBase ):
                         bgErr = v["bgError"]
                     if vexp < self.filter:
                         continue
-                    if vexp / bgErr < self.filtersigma:
+                    if not self.filterSigma ( vexp / bgErr ):
+                    # if vexp / bgErr < self.filtersigma:
                         continue
                     sigN = None
                     if "sigN" in v:
@@ -895,8 +908,11 @@ def getArgs( cmdline = None ):
             help='filter out signal regions with expectedBG<x [x=0.]',
             type=float, default=0. )
     argparser.add_argument ( '-s', '--filtersigma', nargs='?',
-            help='filter out signal regions with expectedBG/bgErr<x [x=0.]',
+            help='filter out signal regions with expectedBG/bgErr<x. [x=0.]',
             type=float, default=0. )
+    argparser.add_argument ( '-ns', '--filternegativesigma', nargs='?',
+            help='filter out signal regions with expectedBG/bgErr>x. [x=None]',
+            type=float, default=None )
     argparser.add_argument ( '-C', '--select_collaboration', nargs='?',
             help='select a specific collaboration CMS, ATLAS, all [all]',
             type=str, default="all" )
