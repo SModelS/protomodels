@@ -567,6 +567,7 @@ class Plotter ( LoggerBase ):
                 outfile = self.options["outfile"]
         if outfile is None:
             return "tmp.png"
+        """
         origt = self.origtopos.replace(" ","").replace(",","_")
         flt = f"_{origt}{'_not'.join(self.negative_topologies)}"
         flt += "_".join(self.analyses) # 
@@ -574,6 +575,8 @@ class Plotter ( LoggerBase ):
             flt += "_not"
             flt += "_not".join(self.negativeanalyses )
         flt = flt.replace("*","star").replace("?","questionmark")
+        """
+        flt = self.description.replace(" ","_")
         outfile = outfile.replace("@@FILTER@@", flt )
         return outfile
 
