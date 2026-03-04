@@ -63,6 +63,8 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
         name = name.replace("+",",")
         if "," in name:
             name = name.split(",")
+
+    ## manage lists
     if type(name) in [ list, tuple ]:
         topos, descriptions = [], []
         for n in name:
@@ -72,6 +74,12 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
                 descr = topo
             descriptions.append ( descr )
         return ( ",".join(topos), "+".join(descriptions) )
+
+    # manage negations
+    if name.startswith("^"):
+        nname,description = namesForSetsOfTopologies(name[1:])
+        neg_name = "^"+nname.replace(",",",^")
+        return neg_name,description
 
     shorts, description = { }, {}
     shorts["gauginos"]="TChiWZ,TChiWH,TChiZZ,TChiHH,TChiWW,TChiZH,TChiZ,TChiH"
