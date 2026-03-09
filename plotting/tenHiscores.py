@@ -129,6 +129,9 @@ class TenHiscores ( LoggerBase ):
         environ=RunEnviron()
 
         log_file = glob.glob(path)
+        if len(log_file)==0:
+            self.error ( f"could not find any log files at {path}" )
+            sys.exit()
         print ( os.path.abspath ( log_file[0] ) )
 
         #Set colors:
