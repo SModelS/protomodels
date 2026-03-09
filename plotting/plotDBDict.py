@@ -577,7 +577,10 @@ class Plotter ( LoggerBase ):
             flt += "_not".join(self.negativeanalyses )
         flt = flt.replace("*","star").replace("?","questionmark")
         """
-        flt = self.description.replace(" ","_")
+        if self.description == None:
+            flt = ""
+        else:
+            flt = self.description.replace(" ","_")
         outfile = outfile.replace("@@FILTER@@", flt )
         return outfile
 
@@ -716,7 +719,7 @@ class Plotter ( LoggerBase ):
         savgp13l = f"{avgp13lt:.2f}".lstrip('0').replace("-0","-")
         savgp13g = f"{avgp13gt:.2f}".lstrip('0').replace("-0","-")
         labels = [ "8 TeV", "13 TeV, $\\mathcal{L}<78/fb$", "13 TeV, full $\\mathcal{L}$" ]
-        plotAverages = True
+        plotAverages = False
         if "plot_averages" in self.options:
             plotAverages = self.options["plot_averages"]
         if plotAverages:
@@ -784,16 +787,24 @@ class Plotter ( LoggerBase ):
         self.discussPs ( P, Pfake, weights, weightsfake )
         loc, bbox_to_anchor = "best", None
         _, stdnmx = list (self.getBins ( 100 ) )
-        scale = 1. / 0.39894 * .75
-        stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+        nmcolor = "red"
+        nmcolor = "black"
         if self.pvalues:
             loc = "upper right"
             bbox_to_anchor = (1.12,1.02)
+            if self.options["draw_reference"]:
+                Ptot = float(sum(np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
+                                          Pfake["13_gt"] ] )) )
+                ex = Ptot / self.nbins
+                plt.plot ( [0,1], [ex,ex], c=nmcolor, linestyle="dotted",
+                           label="SM hypothesis" )
+
         else:
-            nmcolor = "red"
-            nmcolor = "black"
-            plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
-                       label="standard normal" )
+            if self.option["draw_reference"]:
+                scale = 1. / 0.39894 * .75
+                stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+                plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
+                           label="standard normal" )
         if nLegendEntries > 1 or self.options["alwayslegend"]:
             legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.2),
                     bbox_to_anchor = bbox_to_anchor )
@@ -881,6 +892,8 @@ def getArgs( cmdline = None ):
             help='weighted plot, i.e. each analysis (not each SR) counts equally', action='store_true' )
     argparser.add_argument ( '-F', '--fakes',
             help='add the fakes to the plot', action='store_true' )
+    argparser.add_argument ( '--draw_reference',
+            help='draw the reference distribution', action='store_true' )
     argparser.add_argument ( '-p', '--pvalues',
             help='plot p-values, not significances', action='store_true' )
     argparser.add_argument ( '-b', '--before',
