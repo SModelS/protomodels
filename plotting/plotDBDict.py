@@ -725,7 +725,8 @@ class Plotter ( LoggerBase ):
         if plotAverages:
             labels = [ f"8 TeV [{savgp8}]", f"13 TeV, $\\mathcal{{L}}<100/fb$ [{savgp13l}]", f"13 TeV, $\\mathcal{{L}}>100/fb$ [{savgp13g}]" ]
         if self.ignore_sqrts:
-            labels = [ self.select_text, "--", "rest" ]
+            rest_text = "all other searches"
+            labels = [ self.select_text, "--", rest_text ]
         nLegendEntries=0
         for c,l in enumerate(labels):
             if not nontrivial[c]:
