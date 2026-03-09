@@ -815,6 +815,8 @@ class Plotter ( LoggerBase ):
             title += " (simple)"
         if self.collaboration != "ALL":
             title += f", {self.collaboration} only"
+        title = title.replace("\\n","\n")
+        title = title.replace("<<newline>>","\n")
         plt.title  ( title )
         if self.pvalues:
             plt.plot ( [ .5, .5 ], [ -.003, .2 ], c="tab:grey", linewidth=1,
