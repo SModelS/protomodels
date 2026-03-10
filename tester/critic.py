@@ -355,7 +355,7 @@ class Critic ( LoggerBase ):
         # n_sensitive: number of results that are in principle sensitive
         # (i.e. rexp > sensitivy_threshold=0.7)
         # n_excluding: number of results that do exclude the model
-        # (ie robs > r_threshold=1.38)
+        # (ie robs > r_threshold=1.33)
         n_sensitive, n_excluding = 0, 0
         dicts = []
 
