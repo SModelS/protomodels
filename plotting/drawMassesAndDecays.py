@@ -232,11 +232,15 @@ class MassesAndDecays ( LoggerBase ):
             self.interact()
 
 
-def getModel( modelfile : str = "truth.dict" ) -> dict:
+def getModel( modelfile : str = "truth.dict", 
+              model_index : int = 0 ) -> dict:
     with open ( modelfile, "rt" ) as f:
         ret = eval(f.read())
         if type(ret) == list and type(ret[0]) == dict:
-            return ret[0]
+            if model_index >= len(ret):
+                print ( f"[drawMassesAndDecays] error, list does not have {model_index+1} entries" )
+                import sys; sys.exit()
+            return ret[model_index]
         return ret
 
 if __name__ == "__main__":
@@ -249,6 +253,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-m', '--modelfile',
             help='path to model file [truth.dict]',
             type=str, default='truth.dict' )
+    argparser.add_argument ( '--model_index',
+            help='which model within the model file, in case its a list [0]',
+            type=int, default=0 )
     argparser.add_argument ( '-o', '--outfile',
             help='output file [mass_hierarchy.png]',
             type=str, default='mass_hierarchy.png' )
@@ -261,7 +268,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '--ymax',
             help='ymax [auto]', type=float, default=None )
     args=argparser.parse_args()
-    model = getModel( args.modelfile )
+    model = getModel( args.modelfile, args.model_index )
     options = vars ( args )
     plotter = MassesAndDecays( model, options )
     plotter.plot()
