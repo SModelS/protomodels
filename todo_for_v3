@@ -1,0 +1,6 @@
+List of things we wish to improve for v3:
+=========================================
+
+*) fast critic: do not simply prefer UL over EM, use most sensitive
+*) fast critic: it seems it was too constraining in some scenarios,
+	 make sure it's not more constraining than the slow critic
