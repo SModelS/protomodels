@@ -516,23 +516,19 @@ class RefXSecComputer ( LoggerBase ):
                 channel["label"] = f"{int(sqrts)} TeV ({orderStr})"
                 a = self.dictToXSection ( channel )
                 a.comment = comment
-                # print ( "adding", a, hasattr ( a, "comment" ) )
                 xsecs.add ( a )
             else:
                 self.debug (f"No signal strength multiplier for {pids}")
                 self.debug (pids,pids in ssmultipliers)
                 self.debug (ssmultipliers)
             
-        # print ( "xdding", xsecs, hasattr ( xsecs[0], "comment" ) )
         self.xsecs = xsecs
         #if len(self.xsecs)>0:
         #    self.xsecs[0].comment = comment
-        # print ( "xdding", self.xsecs, hasattr ( self.xsecs[0], "comment" ) )
 
     def findOpenChannels ( self, slhafile ):
         slhadata = pyslha.readSLHAFile ( slhafile )
         masses = slhadata.blocks["MASS"]
-        # print ( "findOpenChannels" )
         channels = []
 
         for pid,mass in masses.items():
@@ -709,7 +705,8 @@ class RefXSecComputer ( LoggerBase ):
             order = NNLL # 4
             if masses[0] < 500:
                 order = NLL
-        if pid1 in [ 1000001, 1000002, 1000003, 1000004, 1000005, 2000005, 1000006, 2000006 ] and pid2 in [ 1000021 ]: # Gluino-squark productions
+        if (pid1 in [ 1000001, 1000002, 1000003, 1000004, 1000005, 1000006 ] and pid2 in [ 1000021 ]) or (pid1 in [ 1000021 ] and pid2 in [ 2000005, 2000006 ]):
+        # Gluino-squark productions
             filename = f"xsecsquark{int(sqrts)}.txt"
             columns["xsec"] = 2
             order = NNLL
