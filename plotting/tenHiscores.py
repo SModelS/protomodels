@@ -126,6 +126,7 @@ class TenHiscores ( LoggerBase ):
         sns.set_context('paper', font_scale=2.0)
         # sns.set_palette(sns.color_palette("Paired"))
         sns.set_palette(sns.color_palette("deep"))
+
         environ=RunEnviron()
 
         log_file = glob.glob(path)
@@ -188,7 +189,13 @@ class TenHiscores ( LoggerBase ):
         self.Kstd = Karr.std()
         self.Kmin = min ( Karr )
         print( f'K (avg) = {self.Kavg:1.2f} +- {self.Kstd:1.2f} >= {self.Kmin:1.2f}' )
-
+        if self.args["TL"]:
+            TLarr = np.array([proto.TL for proto in p])
+            self.TLavg = TLarr.mean()
+            self.TLstd = TLarr.std()
+            self.TLmin = min ( TLarr )
+            print( f'TL (avg) = {self.TLavg:1.2f} +- {self.TLstd:1.2f} >= {self.TLmin:1.2f}' )
+            
         #Get all particles which appears in all models:
         particles = []
         self.analyses = []
@@ -238,6 +245,8 @@ class TenHiscores ( LoggerBase ):
 
         axarr[0].scatter(df['walkerid'],standardizedKs,s=50,c='gray')
         axarr[0].set_ylabel(r'$K$', fontsize=15)
+        if False and self.args["TL"]:
+            axarr[0].set_ylabel(r"$K,TL$", fontsize=15 )
         axarr[0].set_ylim( self.t_ymin, self.t_ymax )
         axarr[0].set_yticks([])
 
@@ -322,6 +331,8 @@ if __name__ == "__main__":
             help='ymin [auto]', type=float, default=None )
     argparser.add_argument ( '--ymax',
             help='ymax [auto]', type=float, default=None )
+    argparser.add_argument ( '--TL',
+            help='add TL to K', action="store_true" )
     argparser.add_argument ( '-s', '--yscale',
             help="yscale argument, e.g. linear, mylog:200:1, symlog [linear]", 
             type=str, default=None )
