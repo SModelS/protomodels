@@ -33,7 +33,14 @@ class TenHiscores ( LoggerBase ):
         self.folder = "./"
 
     def standardizeK ( self, K, offset : float = 0. ):
-        return ( K - self.Kmin ) / self.Kstd * 2.5 + offset
+        xmin = self.Kmin
+        xstd = self.Kstd
+        sigmas = 2.5
+        if False and self.args["TL"]:
+            xmin = min ( self.Kmin, self.TLmin )
+            xstd = max ( self.Kstd, self.TLstd )
+            sigmas = 5.
+        return ( K - xmin ) / xstd * sigmas + offset
 
     def getTicks ( self, ymin : float, ymax : float ) -> tuple:
         ymin = ceil_to_step ( ymin, 100 )
@@ -50,7 +57,7 @@ class TenHiscores ( LoggerBase ):
             ticks = list ( ticks ) + list ( range ( lim2, ymax, 400 ) )
         return tuple ( ticks )
 
-    def offsetFor ( self, pid : int, idx : int, m : float, 
+    def offsetFor ( self, pid : int, idx : int, m : float,
                     idxNMass : list ) -> float:
         """ compute the offset for particle at xvalue idx,
         yvalue (mass) m """
@@ -87,21 +94,16 @@ class TenHiscores ( LoggerBase ):
         for i,row in df.iterrows():
             index = np.where(self.walkerid_values == row['walkerid'])[0][0]
             # print(index)
-            if row['K'] == max(df['K']):
-                axarr[0].annotate(rf'{row["K"]:1.2f}',(index-1-.2,
-                                  self.standardizeK ( row["K"], 1 )),fontsize=10)
-                #axarr[0].annotate(r'$\mathbf{%1.2f}$' %row['TL'],(index-0.2,row['TL']+0.5),
-                #                  fontsize=10)
-            else:
-                # axarr[0].annotate(r'$%1.2f$' %row['K'],(index-0.2,row['K']+0.5),fontsize=10)
-                axarr[0].annotate(rf'{row["K"]:1.2f}',(index-1-.2, self.standardizeK (row['K'], 1 )),fontsize=10)
-                #axarr[0].annotate(r'$%1.2f$' %row['TL'],(index-0.2,row['TL']+0.5),fontsize=10)
+            axarr[0].annotate(rf'{row["K"]:1.2f}',(index-1-.2, self.standardizeK (row['K'], 1 )),fontsize=10)
+            if self.args["TL"]:
+                print ( f"@@0 annotate" )
+                axarr[0].annotate(rf'{row["TL"]:1.2f}',(index-1-.2, self.standardizeK (row['TL'], 1 )),fontsize=10,color="darkred")
+
             bC = sorted(row['bestCombo'].split(','))
             # print(bC)
             for j, b in enumerate(bC):
                 axarr[1].scatter(row['walkerid'], b, c="black", marker='s', s=150)
                 index2 = self.analyses.index(b)
-                #axarr[1].annotate(f'{b}',(index-0.2,index2),fontsize=10)
         axarr[1].set_xlabel('walkerid:step', fontsize=20)
         axarr[1].set_ylabel('Analyses', fontsize=20)
         axarr[1].set_ylabel('', fontsize=20)
@@ -195,7 +197,7 @@ class TenHiscores ( LoggerBase ):
             self.TLstd = TLarr.std()
             self.TLmin = min ( TLarr )
             print( f'TL (avg) = {self.TLavg:1.2f} +- {self.TLstd:1.2f} >= {self.TLmin:1.2f}' )
-            
+
         #Get all particles which appears in all models:
         particles = []
         self.analyses = []
@@ -234,29 +236,48 @@ class TenHiscores ( LoggerBase ):
         df = pd.DataFrame(dataDict)
 
         standardizedKs = list ( self.standardizeK ( df["K"], 0. ) )
+        standardizedTLs = []
+        if self.args["TL"]:
+            standardizedTLs = list ( self.standardizeK ( df["TL"], 0. ) )
 
-        self.t_ymin, self.t_ymax = min(standardizedKs)-.8,max(standardizedKs)+2.2
+        self.t_ymin, self.t_ymax = min(standardizedKs+standardizedTLs)-.8,\
+                                   max(standardizedKs+standardizedTLs)+2.2
 
-        f, axarr = plt.subplots(2,sharex=True, gridspec_kw = {'height_ratios':[1, 4]},figsize=(10,8))
-        plt.subplots_adjust(left=0.12, bottom=0.12, right=0.97, top=None, wspace=None, hspace=0)
+        f, axarr = plt.subplots(2,sharex=True,
+                gridspec_kw = {'height_ratios':[1, 4]},figsize=(10,8))
+        plt.subplots_adjust(left=0.12, bottom=0.12, right=0.97,
+                top=None, wspace=None, hspace=0)
 
         nsteps = 10
         pids = sorted(list(masses.keys()))
 
         axarr[0].scatter(df['walkerid'],standardizedKs,s=50,c='gray')
-        axarr[0].set_ylabel(r'$K$', fontsize=15)
-        if False and self.args["TL"]:
-            axarr[0].set_ylabel(r"$K,TL$", fontsize=15 )
+        if self.args["TL"]:
+            axarr[0].scatter(df['walkerid'],standardizedTLs,s=50,c='darkred')
+        if self.args["TL"]:
+            axarr[0].set_ylabel(r"")
+            # Anchor near the left of the axes; tweak x = -0.10 to your taste
+            anchor_x, anchor_y = -0.10, 0.5
+            axarr[0].text(anchor_x, anchor_y, "K,",  color="gray",
+                    ha="center", va="top", rotation=90,
+                    transform=axarr[0].transAxes, clip_on=False)
+
+            axarr[0].text(anchor_x, anchor_y, "TL", color="darkred",
+                    ha="center",  va="bottom", rotation=90,
+                    transform=axarr[0].transAxes, clip_on=False)
+        else:
+            axarr[0].set_ylabel(r'$K$', fontsize=15)
         axarr[0].set_ylim( self.t_ymin, self.t_ymax )
         axarr[0].set_yticks([])
 
         for i,row in df.iterrows():
             index = np.where(self.walkerid_values == row['walkerid'])[0][0]
-            #print(index)
-            if row['K'] == max(df['K']):
-                axarr[0].annotate(rf'{row["K"]:1.2f}',(index-.2, self.standardizeK ( row["K"], 1)),fontsize=10)
-            else:
-                axarr[0].annotate(rf'{row["K"]:1.2f}',(index-.2, self.standardizeK (row['K'], 1 )),fontsize=10)
+            axarr[0].annotate(rf'{row["K"]:1.2f}',(index-.2,
+                        self.standardizeK (row['K'], 1 )),fontsize=10)
+            if self.args["TL"]:
+                axarr[0].annotate(rf'{row["TL"]:1.2f}',(index-.2,
+                            self.standardizeK (row['TL'], 1 )),fontsize=10,
+                            color="darkred" )
 
         amasses,idxNMass=[],[]
         for pid in pids:
@@ -308,7 +329,7 @@ class TenHiscores ( LoggerBase ):
                 labels =sorted(df['walkerid'].tolist()),  fontsize=12)
         doRotateTicks = True
         if doRotateTicks:
-            plt.setp( axarr[1].get_xticklabels(), rotation=30, ha="right", 
+            plt.setp( axarr[1].get_xticklabels(), rotation=30, ha="right",
                       rotation_mode="anchor" )
         axarr[1].vlines(x=.5,ymin=ymin,ymax=ymax,linestyle='--',color='gray')
         axarr[0].vlines(x=.5,ymin=self.t_ymin,ymax=self.t_ymax,
@@ -334,7 +355,7 @@ if __name__ == "__main__":
     argparser.add_argument ( '--TL',
             help='add TL to K', action="store_true" )
     argparser.add_argument ( '-s', '--yscale',
-            help="yscale argument, e.g. linear, mylog:200:1, symlog [linear]", 
+            help="yscale argument, e.g. linear, mylog:200:1, symlog [linear]",
             type=str, default=None )
     args=argparser.parse_args()
     plotter = TenHiscores( vars(args) )
