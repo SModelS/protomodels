@@ -861,7 +861,7 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( '<table style="width:80%">\n' )
         f.write ( "<td width=40%>" )
         # f.write ( f"<img height=580px src=./ruler.png?{t0}>" )
-        f.write ( f"<img height=500px src=./mass_hierarchy.png?{t0}>" )
+        f.write ( f"<img height=450px src=./mass_hierarchy.png?{t0}>" )
         f.write ( "<td width=60%>" )
         # f.write ( f"<img height=220px src=./decays.png?{t0}>\n" )
         f.write ( f'<font size=-3><iframe type="text/html" height="350px" width="100%" frameborder="0" src="./rawnumbers.html?{t0}"></iframe></font>\n' )
