@@ -193,6 +193,9 @@ if __name__ == "__main__":
     argparser.add_argument ( '-a', '--analysisId',
             help='analysisId [ATLAS-EXOT-2018-06]',
             type=str, default='ATLAS-EXOT-2018-06' )
+    argparser.add_argument ( '-f', '--filterBySRName',
+            help='filter on the SR name, wild cards allowed [None]',
+            type=str, default=None )
     argparser.add_argument ( '-s', '--show_options',
             action = "store_true" )
     for k,v in plotter.default_options.items():
@@ -215,7 +218,8 @@ if __name__ == "__main__":
     eRs = db.getExpResults( analysisIDs = anaIds, dataTypes=["efficiencyMap"] )
     er = eRs[0]
     d = plotter.createDictionary( er )
-    # d = plotter.filterBySRName ( d, "SR_2018*" )
+    if args.filterBySRName not in [ None, "" ]:
+        d = plotter.filterBySRName ( d, args.filterBySRName )
     opts = {}
     plotter.plot ( d, opts )
     if True:
