@@ -62,6 +62,7 @@ class NLLThread ( LoggerBase ):
         self.environ = obj.environ
         self.resultsdir = obj.resultsdir
         self.redo = obj.redo
+        self.y_is_dm = obj.y_is_dm
         self.topo = obj.topo
         self.slhadir = obj.slhadir
         self.threadnr = threadnr
@@ -450,6 +451,18 @@ class NLLThread ( LoggerBase ):
             return True
         return False
 
+    def getVariableName ( self, var : str ) -> str:
+        """ """
+        if var == "y":
+            if type(self.yvariable)==int:
+                return "m"
+            if self.y_is_dm:
+                return "dm"
+            return "ssm"
+        if type(self.xvariable)==int:
+            return "m"
+        return "ssm"
+
     def run ( self, rxvariable, ryvariable ):
         """ run for the points given """
         oldmasses = {}
@@ -488,7 +501,7 @@ class NLLThread ( LoggerBase ):
                 self.setParameter ( self.xvariable, m1 )
                 self.setParameter ( self.yvariable, m2 )
                 y_name = namer.asciiName(self.yvariable)
-                sy = "ssm" if type(self.yvariable)==tuple else "m"
+                sy = self.getVariableName ( "y" )
                 if type(self.yvariable)==int:
                     ## heed the LSP mass limit
                     if m2 < lspmass:
@@ -516,8 +529,8 @@ class NLLThread ( LoggerBase ):
 
                 x_name = namer.asciiName(self.xvariable)
                 y_name = namer.asciiName(self.yvariable)
-                sx = "ssm" if type(self.xvariable)==tuple else "m"
-                sy = "ssm" if type(self.yvariable)==tuple else "m"
+                sx = self.getVariableName ( "x" )
+                sy = self.getVariableName ( "y" )
                 self.pprint ( f"{GREEN}{i1}/{nxvariables}{RESET}: {sx}({x_name})={GREEN}{m1:.1f}{RESET}, {sy}({y_name})={GREEN}{m2:.1f}{RESET}, {len(nlls)} mu's, {nnlls} nlls." )
                 point["x"] = float ( m1 )
                 point["y"] = float ( m2 )
@@ -544,16 +557,18 @@ class NLLScanner ( LoggerBase ):
                    environ : RunEnviron, skip_production : bool = False,
                    dry_run : bool = False, dict_file : bool = False,
                    output : str = "nll", redo : bool = False,
-                   keep_slha : bool = False ):
+                   keep_slha : bool = False, y_is_dm : bool = False ):
         """
         :param rundir: the rundir
         :param environ: the RunEnviron
         :param skip_production: if possible, skip production, go to plotting
         :param dry_run: dont actually perform the actions
         :param output: prefix for output file [nll]
+        :param y_is_dm: y variable is delta_m, not ssm
         """
         super ( NLLScanner, self ).__init__ ( "nll", "info" )
         self.redo = redo
+        self.y_is_dm = y_is_dm
         self.dry_run = dry_run
         self.output = output
         self.dict_file = dict_file
@@ -574,6 +589,9 @@ class NLLScanner ( LoggerBase ):
         yname = moreHelpers.shortYVarName( self.yvariable )
         #xname = namer.asciiName(self.xvariable)
         xname = moreHelpers.shortYVarName ( self.xvariable )
+        dmy = ""
+        if self.y_is_dm:
+            yname = yname.replace("_","_dm")
         self.resultsdir = f"{self.environ.rundir}/nlls{xname}{yname}/"
         self.slhadir = None
         if keep_slha:
@@ -674,6 +692,7 @@ class NLLScanner ( LoggerBase ):
                        self.yvalue + ndymay * range2["dm"] + 1e-5, range2["dm"] )
         ryvariable = ryvariable[ryvariable>=0.]
 
+        FIXME make a method that returns m(X1Z), dm(X2Z,X1Z), etc
         self.cprint ( "green", f"range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
         self.cprint ( "green", f"range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
         self.cprint ( "green", f"total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}" )
@@ -784,7 +803,7 @@ def main ():
             help='variable for x axis, e.g. 1000006 or "Xt" [Xt]',
             type=str, default='Xt' )
     argparser.add_argument ( '-y', '--yvariable',
-            help='variable for y axis, e.g. 1000022 or "(Xt,Xt)", [X1Z]',
+            help='variable for y axis, e.g. 1000022 or "ssm(Xt,Xt)" or "dm(X2Z,X1Z)", [X1Z]',
             type=str, default="X1Z" )
     argparser.add_argument ( '-P', '--nproc',
             help='number of processes to run in parallel. zero is autodetect.'\
@@ -866,14 +885,19 @@ def main ():
     # environ.pprint ( f"ssms={protomodel.ssmultipliers}" )
 
     xvariables = [ namer.pid ( args.xvariable ) ]
+    args.xvariable = args.xvariable.replace("ssm","")
+    args.yvariable = args.yvariable.replace("ssm","")
+
     if args.xvariable == 0:
         xvariables = findPids( environ.rundir )
     for xvariable in xvariables:
-        yvariable = namer.pid ( args.yvariable )
+        s_yvariable = args.yvariable.replace("dm","")
+        yvariable = namer.pid ( s_yvariable )
         scanner = NLLScanner( protomodel, xvariable, yvariable, nproc,
                 environ = environ, skip_production = args.skip_production,
                 dry_run = args.dry_run, dict_file = args.dict_file,
-                output = args.output, redo = args.redo, keep_slha = args.keep_slha )
+                output = args.output, redo = args.redo, keep_slha = args.keep_slha,
+                y_is_dm = args.yvariable.startswith("dm") )
         args.xvariable = xvariable
         args = scanner.overrideWithDefaults ( args )
         if args.clean_first:
