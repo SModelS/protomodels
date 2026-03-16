@@ -126,6 +126,7 @@ class NLLThread ( LoggerBase ):
         hostname = socket.gethostname()
         meta["hostname"]=socket.gethostname()
         meta["dt[h]"]=(time.time()-t0)/60./60. # time it took in hours
+        meta["y_is_dm"] = self.obj.y_is_dm
         meta["xvariable"]=self.obj.xvariable
         meta["yvariable"]=self.obj.yvariable
         return meta
