@@ -127,6 +127,7 @@ class NLLThread ( LoggerBase ):
         meta["hostname"]=socket.gethostname()
         meta["dt[h]"]=(time.time()-t0)/60./60. # time it took in hours
         meta["y_is_dm"] = self.obj.y_is_dm
+        meta["profile_mu"] = self.obj.args["profile_mu"]
         meta["xvariable"]=self.obj.xvariable
         meta["yvariable"]=self.obj.yvariable
         return meta
@@ -301,8 +302,10 @@ class NLLThread ( LoggerBase ):
             del self.predictor.predictions
         from builder.manipulator import Manipulator
         manipulator = Manipulator ( self.M, self.obj.environ )
+        force_K = self.obj.args["profile_mu"]
         worked, explanation = self.predictor.predict ( manipulator,
             sigmacut = sigmacut, keep_predictions = True,
+            force_computation_K = force_K,
             give_explanation = True )
 
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
@@ -548,8 +551,7 @@ def runThread ( threadid: int, obj, rxvariable, ryvariable,
 class NLLScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, xvariable, yvariable, nproc,
-                   environ : RunEnviron, args,
-                   y_is_dm : bool = False ):
+                   environ : RunEnviron, args : dict ):
         """
         :param rundir: the rundir
         :param environ: the RunEnviron
@@ -560,10 +562,10 @@ class NLLScanner ( LoggerBase ):
         """
         super ( NLLScanner, self ).__init__ ( "nll", "info" )
         self.args = args
+        self.y_is_dm = args["yvariable"].startswith("dm")
         self.M = protomodel
         self.origmasses = copy.deepcopy ( self.M.masses )
         self.origssmultipliers = copy.deepcopy ( self.M.ssmultipliers )
-        self.y_is_dm = y_is_dm
         self.environ = environ
         self.xvariable = xvariable
         self.yvariable = yvariable
@@ -904,7 +906,7 @@ def main ():
     from ptools.hiscoreTools import fetchHiscoresObj
     hi = fetchHiscoresObj ( args.hiscores, None, environ, walkerid="nll" )
     protomodel = hi.hiscores[0]
-    environ.pprint ( f"fetched {protomodel}\n             from {prettyFileName(args.hiscores)}" )
+    environ.pprint ( f"fetched {protomodel}\n                 from {prettyFileName(args.hiscores)}" )
     # environ.pprint ( f"ssms={protomodel.ssmultipliers}" )
 
     xvariables = [ namer.pid ( args.xvariable ) ]
@@ -917,8 +919,7 @@ def main ():
         s_yvariable = args.yvariable.replace("dm","")
         yvariable = namer.pid ( s_yvariable )
         scanner = NLLScanner( protomodel, xvariable, yvariable, nproc,
-                environ = environ, args = vars(args),
-                y_is_dm = args.yvariable.startswith("dm") )
+                environ = environ, args = vars(args) )
         args.xvariable = xvariable
         args = scanner.overrideWithDefaults ( args )
         if args.clean_first:
