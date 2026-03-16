@@ -59,26 +59,15 @@ class NLLThread ( LoggerBase ):
         """ the constructor.
         """
         super ( NLLThread, self ).__init__ ( threadnr, "info" )
-        self.environ = obj.environ
+        self.obj = obj
+        self.predictor = copy.deepcopy ( obj.predictor )
+        self.critic = copy.deepcopy ( obj.critic )
         self.resultsdir = obj.resultsdir
-        self.redo = obj.redo
-        self.y_is_dm = obj.y_is_dm
-        self.topo = obj.topo
-        self.slhadir = obj.slhadir
         self.threadnr = threadnr
-        self.dict_file = obj.dict_file
-        self.picklefile = obj.picklefile
         self.M = copy.deepcopy ( obj.M )
-        self.origmasses = copy.deepcopy ( self.M.masses )
-        self.origssmultipliers = copy.deepcopy ( self.M.ssmultipliers )
-        self.xvariable = obj.xvariable
-        self.yvariable = obj.yvariable
         self.xvalue = obj.xvalue
         self.yvalue = obj.yvalue
         self.setSLHAFileName( self.xvalue, self.yvalue )
-        self.nevents = obj.nevents
-        self.predictor = obj.predictor
-        self.critic = obj.critic
         helpers.mkdir ( self.resultsdir )
 
     def setSLHAFileName ( self, m1 : float, m2 : float ):
@@ -87,7 +76,7 @@ class NLLThread ( LoggerBase ):
         :param m2: value of y coordinate
         :returns: filename
         """
-        # self.pprint ( f"slhadir {self.slhadir}" )
+        # self.pprint ( f"slhadir {self.obj.slhadir}" )
         fname = f"lthrd{self.threadnr}_{self.getBaseName(m1,m2)}.slha"
         self.M.createNewSLHAFileName ( prefix=fname )
         return self.M.currentSLHA
@@ -98,8 +87,8 @@ class NLLThread ( LoggerBase ):
         :param m2: value of y coordinate
         :returns: base name
         """
-        x_name = namer.asciiName(self.xvariable)
-        y_name = namer.asciiName(self.yvariable)
+        x_name = namer.asciiName(self.obj.xvariable)
+        y_name = namer.asciiName(self.obj.yvariable)
         #x_value = f"{self.xvalue:.3f}"
         #y_value = f"{self.yvalue:.3f}"
         x_value = f"{m1:.3f}"
@@ -113,9 +102,9 @@ class NLLThread ( LoggerBase ):
         """ initialise the dictionary for the pickle file """
         import time
         d = { "parameterpoints": [], "xvalue": self.xvalue,
-              "yvalue": self.yvalue, "nevents": self.nevents,
-              "topo": self.topo, "timestamp": time.asctime(),
-              "xvariable": self.xvariable, "yvariable": self.yvariable,
+              "yvalue": self.yvalue, "nevents": self.obj.nevents,
+              "topo": self.obj.topo, "timestamp": time.asctime(),
+              "xvariable": self.obj.xvariable, "yvariable": self.obj.yvariable,
               "model": self.M.dict() }
         return d
 
@@ -134,17 +123,17 @@ class NLLThread ( LoggerBase ):
         hostname = socket.gethostname()
         meta["hostname"]=socket.gethostname()
         meta["dt[h]"]=(time.time()-t0)/60./60. # time it took in hours
-        meta["xvariable"]=self.xvariable
-        meta["yvariable"]=self.yvariable
+        meta["xvariable"]=self.obj.xvariable
+        meta["yvariable"]=self.obj.yvariable
         return meta
 
     def createPickleBackup ( self ):
-        if os.path.exists ( self.picklefile ) and \
-                os.stat ( self.picklefile ).st_size > 1000:
+        if os.path.exists ( self.obj.picklefile ) and \
+                os.stat ( self.obj.picklefile ).st_size > 1000:
             try:
-                f = open ( self.picklefile, "rb" )
+                f = open ( self.obj.picklefile, "rb" )
                 d = pickle.load(f) ## ok can read. copy, then!
-                cmd = f"cp {self.picklefile} {self.picklefile}.old"
+                cmd = f"cp {self.obj.picklefile} {self.obj.picklefile}.old"
                 subprocess.getoutput ( cmd )
             except Exception as e:
                 pass
@@ -157,12 +146,12 @@ class NLLThread ( LoggerBase ):
             for var in [ "xvariable", "yvariable" ]:
                 if var in pm:
                     pm.pop ( var )
-        f = open ( self.picklefile, "wb" )
+        f = open ( self.obj.picklefile, "wb" )
         pickle.dump ( d, f )
         f.close()
         writeDictFile = False
-        if self.dict_file:
-            dictfile = self.picklefile.replace(".pcl",".dict")
+        if self.obj.dict_file:
+            dictfile = self.obj.picklefile.replace(".pcl",".dict")
             self.pprint ( f"writing to {CYAN}{dictfile}{RESET}" )
             with open ( dictfile, "wt" ) as f:
                 befores = { "x": "xvariable", "xvariable": "y",
@@ -175,7 +164,7 @@ class NLLThread ( LoggerBase ):
 
     def lockPickleFile ( self ):
         """ make sure we write sequentially """
-        lockfile = f"{self.picklefile}.lock"
+        lockfile = f"{self.obj.picklefile}.lock"
         ctr = 0
         while os.path.exists ( lockfile ):
             ctr+=1
@@ -187,7 +176,7 @@ class NLLThread ( LoggerBase ):
         Path ( lockfile ).touch()
 
     def unlockPickleFile ( self ):
-        lockfile = f"{self.picklefile}.lock"
+        lockfile = f"{self.obj.picklefile}.lock"
         if os.path.exists ( lockfile ):
             try:
                 os.unlink ( lockfile )
@@ -219,8 +208,8 @@ class NLLThread ( LoggerBase ):
         point["y"]=round( point["y"], 7 )
         # this information, xvariable, yvariable is not needed,
         # but helpful for debugging
-        point["xvariable"]=self.xvariable
-        point["yvariable"]=self.yvariable
+        point["xvariable"]=self.obj.xvariable
+        point["yvariable"]=self.obj.yvariable
         dictfile = self.getDictFileName ( point["x"], point["y"] )
         with open ( dictfile, "wt" ) as f:
             # f.write ( f"{point}\n" )
@@ -260,7 +249,7 @@ class NLLThread ( LoggerBase ):
     def updatePickleFile ( self ):
         """ collect all the entries in resultsdir, and compile them
         into one big pickle file """
-        self.debug ( f"updating {self.picklefile}" )
+        self.debug ( f"updating {self.obj.picklefile}" )
         self.lockPickleFile()
         Dict = self.getDefaultDictionary()
         files = glob.glob ( f"{self.resultsdir}/*.dict" )
@@ -277,11 +266,11 @@ class NLLThread ( LoggerBase ):
 
     def massesAreTied ( self, xvariable, yvariable ):
         """ are the masses of xvariable and yvariable tied originally? """
-        if not xvariable in self.origmasses:
+        if not xvariable in self.obj.origmasses:
             return False
-        if not yvariable in self.origmasses:
+        if not yvariable in self.obj.origmasses:
             return False
-        dm = self.origmasses[xvariable] - self.origmasses[yvariable]
+        dm = self.obj.origmasses[xvariable] - self.obj.origmasses[yvariable]
         if abs(dm)<1e-5:
             return True
         return False
@@ -298,8 +287,8 @@ class NLLThread ( LoggerBase ):
         self.debug ( f"asking for predictions for x,y={self.xvalue:.2f},{self.yvalue:.2g}")
         slhaf = self.M.createSLHAFile( )
         ## first get rmax
-        if os.path.exists ( slhaf ) and self.slhadir is not None:
-            newf = f"{self.slhadir}/{self.getBaseName(m1,m2)}.slha"
+        if os.path.exists ( slhaf ) and self.obj.slhadir is not None:
+            newf = f"{self.obj.slhadir}/{self.getBaseName(m1,m2)}.slha"
             shutil.copy ( slhaf, newf )
             snewf = newf.replace ( os.getcwd(), "." )
             self.debug ( f"created {snewf}" )
@@ -307,7 +296,7 @@ class NLLThread ( LoggerBase ):
         if hasattr ( self.predictor, "predictions" ):
             del self.predictor.predictions
         from builder.manipulator import Manipulator
-        manipulator = Manipulator ( self.M, self.environ )
+        manipulator = Manipulator ( self.M, self.obj.environ )
         worked, explanation = self.predictor.predict ( manipulator,
             sigmacut = sigmacut, keep_predictions = True,
             give_explanation = True )
@@ -315,7 +304,7 @@ class NLLThread ( LoggerBase ):
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
         ret = { "nll": None, "critic": None, "oul": None, "eul": None }
 
-        if self.slhadir == None:
+        if self.obj.slhadir == None:
             self.M.delCurrentSLHA()
         critics={ "llhd": None, "ul": self.M.ul_critic }
         # max_allowed, n_excluding = critics["ul"]["max_allowed"], critics["ul"]["n_excluding"]
@@ -399,7 +388,7 @@ class NLLThread ( LoggerBase ):
 
     def clean ( self ):
         """ clean up after the run """
-        if self.slhadir != None:
+        if self.obj.slhadir != None:
             return
         cmd = f"rm {self.M.currentSLHA}"
         subprocess.getoutput ( cmd )
@@ -425,7 +414,6 @@ class NLLThread ( LoggerBase ):
     def setParameter ( self, pid : Union[int,tuple], value : float ):
         value = float(value)
         assert type(pid) in [ int, tuple ], "pid is neither int nor tuple"
-        sx = "ssm" if type(pid)==tuple else "m"
         if type(pid)==int:
             self.setMass ( pid, value )
             return
@@ -451,18 +439,6 @@ class NLLThread ( LoggerBase ):
             return True
         return False
 
-    def getVariableName ( self, var : str ) -> str:
-        """ """
-        if var == "y":
-            if type(self.yvariable)==int:
-                return "m"
-            if self.y_is_dm:
-                return "dm"
-            return "ssm"
-        if type(self.xvariable)==int:
-            return "m"
-        return "ssm"
-
     def run ( self, rxvariable, ryvariable ):
         """ run for the points given """
         oldmasses = {}
@@ -472,12 +448,11 @@ class NLLThread ( LoggerBase ):
         lspmass = self.M.masses[self.M.LSP]
         self.Morig = copy.deepcopy ( self.M )
         for i1,m1 in enumerate(rxvariable):
-            x_name = namer.asciiName(self.xvariable)
-            sx = "ssm" if type(self.xvariable)==tuple else "m"
-            if type(self.xvariable)==int:
+            sx = self.obj.getFullVariableName ( self.obj.xvariable, "x" )
+            if type(self.obj.xvariable)==int:
                 ## heed the LSP mass limit
                 if m1 < lspmass:
-                    self.pprint ( f"skipping m({x_name})={m1:.1f} < {lspmass:.1f}" )
+                    self.pprint ( f"skipping {sx}={m1:.1f} < {lspmass:.1f}" )
                     continue
             thrnr = 0
             try:
@@ -498,26 +473,26 @@ class NLLThread ( LoggerBase ):
                 self.pprint ( "WARNING no xsec??" )
             for i2,m2 in enumerate(ryvariable):
                 self.M = copy.deepcopy( self.Morig )
-                self.setParameter ( self.xvariable, m1 )
-                self.setParameter ( self.yvariable, m2 )
-                y_name = namer.asciiName(self.yvariable)
-                sy = self.getVariableName ( "y" )
-                if type(self.yvariable)==int:
+                self.setParameter ( self.obj.xvariable, m1 )
+                self.setParameter ( self.obj.yvariable, m2 )
+                y_name = namer.asciiName(self.obj.yvariable)
+                sy = self.obj.getFullVariableName ( self.obj.yvariable, "y" )
+                if type(self.obj.yvariable)==int:
                     ## heed the LSP mass limit
                     if m2 < lspmass:
                         self.pprint ( f"skipping m({y_name})={m2:.1f} < {lspmass:.1f}" )
                         continue
-                if m2 > m1 and type(self.xvariable)==float and \
-                        type(self.yvariable) == float:
+                if m2 > m1 and type(obj.self.xvariable)==float and \
+                        type(self.obj.yvariable) == float:
                     ## for masses we assume yvariable to be the daughter
-                    self.warning ( f"{sx}{x_name}({m1})<{sy}{y_name}({m2}). skipping!" )
+                    self.warning ( f"{sx}={m1} < {sy}={m2}. skipping!" )
                     continue
                 if m2 < 0.:
-                    self.warning ( f"{sy}({y_name})={m2:.1f}<0. skipping!" )
+                    self.warning ( f"{sy}={m2:.1f}<0. skipping!" )
                     continue
                 hasResult = self.hasResultsForPoint ( m1, m2 )
-                if hasResult and not self.redo:
-                    self.pprint ( f"loading from cache: {sx}({x_name})={m1:.2f} {sy}({y_name})={m2:.2f}" )
+                if hasResult and not self.obj.redo:
+                    self.pprint ( f"loading from cache: {sx}={m1:.2f} {sy}({y_name})={m2:.2f}" )
                     continue
                 point = self.getPredictions ( False, m1, m2 )
                 nlls = point["nll"]
@@ -527,11 +502,9 @@ class NLLThread ( LoggerBase ):
                 for mu,nll in nlls.items():
                     nnlls+=len(nll)
 
-                x_name = namer.asciiName(self.xvariable)
-                y_name = namer.asciiName(self.yvariable)
-                sx = self.getVariableName ( "x" )
-                sy = self.getVariableName ( "y" )
-                self.pprint ( f"{GREEN}{i1}/{nxvariables}{RESET}: {sx}({x_name})={GREEN}{m1:.1f}{RESET}, {sy}({y_name})={GREEN}{m2:.1f}{RESET}, {len(nlls)} mu's, {nnlls} nlls." )
+                sx = self.obj.getFullVariableName ( self.obj.xvariable, "x" )
+                sy = self.obj.getFullVariableName ( self.obj.yvariable, "y" )
+                self.pprint ( f"{GREEN}{i1}/{nxvariables}{RESET}: {sx}={GREEN}{m1:.1f}{RESET}, {sy}={GREEN}{m2:.1f}{RESET}, {len(nlls)} mu's, {nnlls} nlls." )
                 point["x"] = float ( m1 )
                 point["y"] = float ( m2 )
                 parameterpoints.append ( point )
@@ -568,16 +541,18 @@ class NLLScanner ( LoggerBase ):
         """
         super ( NLLScanner, self ).__init__ ( "nll", "info" )
         self.redo = redo
+        self.M = protomodel
+        self.origmasses = copy.deepcopy ( self.M.masses )
+        self.origssmultipliers = copy.deepcopy ( self.M.ssmultipliers )
         self.y_is_dm = y_is_dm
         self.dry_run = dry_run
         self.output = output
         self.dict_file = dict_file
         self.environ = environ
-        self.M = protomodel
         self.xvariable = xvariable
         self.yvariable = yvariable
-        x_short = namer.asciiName(self.xvariable).replace(',','').replace(' ','')
-        y_short = namer.asciiName(self.yvariable).replace(',','').replace(' ','')
+        x_short = self.getFullVariableName(self.xvariable,"x",True)
+        y_short = self.getFullVariableName(self.yvariable,"y",True)
         picklefile = f"{self.output}{x_short}_{y_short}.pcl"
         self.picklefile = picklefile
         self.nproc = nproc
@@ -597,6 +572,36 @@ class NLLScanner ( LoggerBase ):
         if keep_slha:
             self.slhadir = f"{self.environ.rundir}/slha{xname}{yname}/"
             helpers.mkdir  ( self.slhadir )
+
+    def getVariableName ( self, variable, var_type : str ) -> str:
+        """ 
+        :returns: ssm, dm, or m
+        """
+        if var_type == "y":
+            if type( variable )==int:
+                return "m"
+            if self.y_is_dm:
+                return "dm"
+            return "ssm"
+        if type( variable )==int:
+            return "m"
+        return "ssm"
+
+    def getFullVariableName ( self, variable : Union[str,int], 
+            var_type : str, for_filename : bool = False ) -> str:
+        """
+        :param var: e.g. 1000006
+        :param for_filename: ssmXtXt instead of ssm(Xt,Xt)
+        :returns: e.g. ssm(Xt,Xt)
+        """
+        prefix = self.getVariableName ( variable, var_type )
+        name = namer.asciiName(variable)
+        if for_filename:
+            name = name.replace(",","").replace(" ","")
+            name = name.replace("(","").replace(")","")
+            return f"{prefix}{name}"
+        ret = f"{prefix}({name})"
+        return ret
 
     def describeRange ( self, r ):
         """ describe range r in a string """
@@ -692,7 +697,7 @@ class NLLScanner ( LoggerBase ):
                        self.yvalue + ndymay * range2["dm"] + 1e-5, range2["dm"] )
         ryvariable = ryvariable[ryvariable>=0.]
 
-        FIXME make a method that returns m(X1Z), dm(X2Z,X1Z), etc
+        # FIXME make a method that returns m(X1Z), dm(X2Z,X1Z), etc
         self.cprint ( "green", f"range for {namer.asciiName(xvariable)}: {self.describeRange( rxvariable )}" )
         self.cprint ( "green", f"range for {namer.asciiName(yvariable)}: {self.describeRange( ryvariable )}" )
         self.cprint ( "green", f"total {len(rxvariable)*len(ryvariable)} points, {nevents} events for {topo}" )
