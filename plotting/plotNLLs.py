@@ -211,6 +211,9 @@ class NLLPlotter ( LoggerBase ):
             # KDE
             kpoints = np.vstack([xs, ys])
             from scipy.stats import gaussian_kde
+            print ( f"@@000 points xs {xs}" )
+            print ( f"@@001 points ys {ys}" )
+            print ( f"@@002 points ll {ll}" )
             kde = gaussian_kde(kpoints,weights=ll)
 
             # Grid
@@ -415,6 +418,20 @@ class NLLPlotter ( LoggerBase ):
 
         return {}
 
+    def getVariableName ( self, variable, var_type : str ) -> str:
+        """
+        :returns: ssm, dm, or m
+        """
+        if var_type == "y":
+            if type( variable )==int:
+                return "m"
+            if self.data["meta"]["y_is_dm"]:
+                return "dm"
+            return "ssm"
+        if type( variable )==int:
+            return "m"
+        return "ssm"
+
     def plot ( self ):
         """ this is the method that controls the entire plot.
         adapt according to your purpose!!
@@ -462,12 +479,10 @@ class NLLPlotter ( LoggerBase ):
         loc = "best"
         # loc = "upper left"
         plt.legend( handles=self.handles, loc=loc )
-        xlabel = rf"m$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]"
-        ylabel = rf"m$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]"
-        if type(self.data["meta"]["xvariable"]) == tuple:
-            xlabel = rf"ssm$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]"
-        if type(self.data["meta"]["yvariable"]) == tuple:
-            ylabel = rf"ssm$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]"
+        sx = self.getVariableName ( self.data['meta']['xvariable'], "x" )
+        sy = self.getVariableName ( self.data['meta']['yvariable'], "y" )
+        xlabel = rf"{sx}$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]"
+        ylabel = rf"{sy}$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]"
         plt.xlabel( xlabel )
         plt.ylabel( ylabel )
         plt.title ( title )
