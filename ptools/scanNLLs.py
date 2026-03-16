@@ -154,7 +154,7 @@ class NLLThread ( LoggerBase ):
         pickle.dump ( d, f )
         f.close()
         writeDictFile = False
-        if self.obj.dict_file:
+        if self.obj.args["dict_file"]:
             dictfile = self.obj.picklefile.replace(".pcl",".dict")
             self.pprint ( f"writing to {CYAN}{dictfile}{RESET}" )
             with open ( dictfile, "wt" ) as f:
@@ -512,7 +512,7 @@ class NLLThread ( LoggerBase ):
                     self.warning ( f"{sy}={m2:.1f}<0. skipping!" )
                     continue
                 hasResult = self.hasResultsForPoint ( m1, m2 )
-                if hasResult and not self.obj.redo:
+                if hasResult and not self.obj.args["redo"]:
                     self.pprint ( f"loading from cache: {sx}={m1:.2f} {sy}={m2:.2f}" )
                     continue
                 point = self.getPredictions ( False, m1, m2 )
@@ -548,10 +548,8 @@ def runThread ( threadid: int, obj, rxvariable, ryvariable,
 class NLLScanner ( LoggerBase ):
     """ class that encapsulates a likelihood sweep """
     def __init__ ( self, protomodel, xvariable, yvariable, nproc,
-                   environ : RunEnviron, skip_production : bool = False,
-                   dry_run : bool = False, dict_file : bool = False,
-                   output : str = "nll", redo : bool = False,
-                   keep_slha : bool = False, y_is_dm : bool = False ):
+                   environ : RunEnviron, args,
+                   y_is_dm : bool = False ):
         """
         :param rundir: the rundir
         :param environ: the RunEnviron
@@ -561,23 +559,19 @@ class NLLScanner ( LoggerBase ):
         :param y_is_dm: y variable is delta_m, not ssm
         """
         super ( NLLScanner, self ).__init__ ( "nll", "info" )
-        self.redo = redo
+        self.args = args
         self.M = protomodel
         self.origmasses = copy.deepcopy ( self.M.masses )
         self.origssmultipliers = copy.deepcopy ( self.M.ssmultipliers )
         self.y_is_dm = y_is_dm
-        self.dry_run = dry_run
-        self.output = output
-        self.dict_file = dict_file
         self.environ = environ
         self.xvariable = xvariable
         self.yvariable = yvariable
         x_short = self.getFullVariableName(self.xvariable,"x",True)
         y_short = self.getFullVariableName(self.yvariable,"y",True)
-        picklefile = f"{self.output}{x_short}_{y_short}.pcl"
+        picklefile = f"{self.args['output']}{x_short}_{y_short}.pcl"
         self.picklefile = picklefile
         self.nproc = nproc
-        self.skip_production = skip_production
         self.predictor = Predictor ( 'nll', environ=self.environ )
         self.critic = Critic ( 'nll', environ=self.environ )
         self.cprint ( "yellow", f"starting with {nproc} threads" )
@@ -589,7 +583,7 @@ class NLLScanner ( LoggerBase ):
         #    yname = yname.replace("_","_dm")
         self.resultsdir = f"{self.environ.rundir}/nlls{xname}{yname}/"
         self.slhadir = None
-        if keep_slha:
+        if args["keep_slha"]:
             self.slhadir = f"{self.environ.rundir}/slha{xname}{yname}/"
             helpers.mkdir  ( self.slhadir )
 
@@ -639,7 +633,7 @@ class NLLScanner ( LoggerBase ):
         :param ryvariable: list of masses for yvariable
         :returns: parameterpoints
         """
-        if self.dry_run:
+        if self.args["dry_run"]:
             self.pprint ( f"dry_run. stopping here" )
             sys.exit()
             self.pprint ( f"dry_run. would run for xvariable={rxvariable}" )
@@ -691,7 +685,7 @@ class NLLScanner ( LoggerBase ):
         yvariable = self.yvariable
         #if yvariable != self.M.LSP:
         #    self.pprint ( f"we currently assume yvariable to be the mass of the LSP, but it is {yvariable}" )
-        if os.path.exists ( self.picklefile ) and self.skip_production:
+        if os.path.exists ( self.picklefile ) and self.args["skip_production"]:
             self.pprint ( f"we were asked to skip production: {self.picklefile} exists." )
             return
         import numpy
@@ -762,7 +756,7 @@ class NLLScanner ( LoggerBase ):
         if os.path.exists ( self.picklefile ):
             self.pprint ( f"cleaning out {prettyFileName(self.picklefile)}" )
             os.unlink ( self.picklefile )
-        if self.dict_file:
+        if self.args["dict_file"]:
             dictfile = self.picklefile.replace(".pcl",".dict")
             if os.path.exists ( dictfile ):
                 self.pprint ( f"cleaning out {dictfile}" )
@@ -886,6 +880,9 @@ def main ():
     argparser.add_argument ( '--keep_slha',
             help="keep the SLHA files",
             action="store_true" )
+    argparser.add_argument ( '--profile_mu',
+            help="profile the overall signal strength parameter",
+            action="store_true" )
     argparser.add_argument ( '-u', '--uploadTo',
             help="where do we upload to, on smodels.github.io [latest]",
             type=str, default="latest" )
@@ -920,9 +917,7 @@ def main ():
         s_yvariable = args.yvariable.replace("dm","")
         yvariable = namer.pid ( s_yvariable )
         scanner = NLLScanner( protomodel, xvariable, yvariable, nproc,
-                environ = environ, skip_production = args.skip_production,
-                dry_run = args.dry_run, dict_file = args.dict_file,
-                output = args.output, redo = args.redo, keep_slha = args.keep_slha,
+                environ = environ, args = vars(args),
                 y_is_dm = args.yvariable.startswith("dm") )
         args.xvariable = xvariable
         args = scanner.overrideWithDefaults ( args )

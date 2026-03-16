@@ -162,7 +162,8 @@ class NLLPlotter ( LoggerBase ):
         self.pprint ( f"getNLLList: returning {len(ret)}/{len(self.data['parameterpoints'])} points for {anaid}" )
         return ret
 
-    def normalize ( self, points : list[dict], how : str = "max_llhd" ) -> list[dict]:
+    def normalize ( self, points : list[dict], 
+                    how : str = "max_llhd" ) -> list[dict]:
         """ normalize the likelihoods given in points, in various ways
         :param how: one of: max_llhd
 
@@ -179,6 +180,8 @@ class NLLPlotter ( LoggerBase ):
             tmp["llhd_rel"]=p["llhd"]
             if max_llhd > 0.:
                 tmp["llhd_rel"]=p["llhd"]/max_llhd
+            if abs(p["llhd"]-max_llhd)/(max_llhd)<1e-7:
+                self.pprint ( f"maximum sits at {p['x']},{p['y']}" )
             ret.append ( tmp )
         return ret
 
@@ -194,42 +197,39 @@ class NLLPlotter ( LoggerBase ):
         opts = defaults
         opts.update ( options )
         points = self.normalize ( points, "max_llhd" )
-        #print ( f"@@0 for {options['label']}:" )
-        #for p in points[:3]:
-        #    print ( f"@@1 {p}" )
-        # ---- input data ----
         # example: points = [{"x": ..., "y": ..., "llhd_rel": ...}, ...]
         xs = np.array([d["x"] for d in points])
         ys = np.array([d["y"] for d in points])
         ll = np.array([d["llhd_rel"] for d in points])
 
-        if len(points)<4:
-            self.warn ( f"plotProbabilityMass, for {options['label']} we have {len(points)} points, thats too few. not plotting contours." )
+        if len(points)<4 or sum(ll)<2.:
+            if len(points)<4:
+                self.warn ( f"plotProbabilityMass, for {options['label']} we have {len(points)} points, thats too few. not plotting contours." )
+            if sum(ll)<2.:
+                self.warn ( f"plotProbabilityMass, for {options['label']} we have sum(ll)={sum(ll)}, thats too little. not plotting contours." )
         else:
             # ---- convert likelihood to probability ----
             #Z = np.maximum(Z, 0)
             # KDE
-            kpoints = np.vstack([xs, ys])
-            from scipy.stats import gaussian_kde
-            print ( f"@@000 points xs {xs}" )
-            print ( f"@@001 points ys {ys}" )
-            print ( f"@@002 points ll {ll}" )
-            kde = gaussian_kde(kpoints,weights=ll)
-
             # Grid
             nx, ny = 100, 100
             xi = np.linspace(xs.min(), xs.max(), nx)
             yi = np.linspace(ys.min(), ys.max(), ny)
             X, Y = np.meshgrid(xi, yi)
-
             grid_points = np.vstack([X.ravel(), Y.ravel()])
-            Z = kde(grid_points).reshape(X.shape)
 
             from scipy.spatial import ConvexHull, Delaunay
             ## confine to the convex hull
             tri = Delaunay(np.column_stack([xs, ys]))
-            hull_mask = tri.find_simplex(np.column_stack([X.ravel(), Y.ravel()])) >= 0
+            hull_mask = tri.find_simplex(\
+                    np.column_stack([X.ravel(), Y.ravel()])) >= 0
             hull_mask = hull_mask.reshape(X.shape)
+
+            kpoints = np.vstack([xs, ys])
+            from scipy.stats import gaussian_kde
+
+            kde = gaussian_kde(kpoints,weights=ll)
+            Z = kde(grid_points).reshape(X.shape)
 
             if len(mask_data)==0:
                 Z = np.ma.array(Z, mask=~hull_mask )
@@ -418,14 +418,19 @@ class NLLPlotter ( LoggerBase ):
 
         return {}
 
-    def getVariableName ( self, variable, var_type : str ) -> str:
+    def getVariableName ( self, variable, var_type : str,
+                          latex : bool = False ) -> str:
         """
+        :param latex: if true, say delta_m not dm
         :returns: ssm, dm, or m
         """
         if var_type == "y":
             if type( variable )==int:
                 return "m"
-            if self.data["meta"]["y_is_dm"]:
+            if "y_is_dm" in self.data["meta"] and \
+                    self.data["meta"]["y_is_dm"]:
+                if latex:
+                    return r"$\Delta$m"
                 return "dm"
             return "ssm"
         if type( variable )==int:
@@ -479,8 +484,8 @@ class NLLPlotter ( LoggerBase ):
         loc = "best"
         # loc = "upper left"
         plt.legend( handles=self.handles, loc=loc )
-        sx = self.getVariableName ( self.data['meta']['xvariable'], "x" )
-        sy = self.getVariableName ( self.data['meta']['yvariable'], "y" )
+        sx = self.getVariableName ( self.data['meta']['xvariable'], "x", True )
+        sy = self.getVariableName ( self.data['meta']['yvariable'], "y", True )
         xlabel = rf"{sx}$\left({namer.texName(self.data['meta']['xvariable'])}\right)$ [GeV]"
         ylabel = rf"{sy}$\left({namer.texName(self.data['meta']['yvariable'])}\right)$ [GeV]"
         plt.xlabel( xlabel )
