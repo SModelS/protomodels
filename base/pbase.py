@@ -5,6 +5,16 @@
 
 from typing import IO, Optional
 import time
+import os
+
+def prettyFileName ( path : os.PathLike ) -> os.PathLike:
+    """ /home/walten/git/ -> ~/git/ """
+    ret = path
+    if os.getcwd() in ret:
+        ret = ret.replace( os.getcwd(), "." )
+    if os.environ["HOME"] in ret:
+        ret = ret.replace( os.environ["HOME"], "~" )
+    return ret
 
 def openWithRetry( path: str, mode: str = "r", retries: int = 5,
                      delay: float = 1.0,) -> IO:

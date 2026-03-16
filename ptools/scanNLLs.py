@@ -8,6 +8,7 @@ import os, sys, multiprocessing, time, numpy, subprocess, copy, glob
 import pickle, random, shutil
 import numpy as np
 from typing import Dict, Tuple, Union, List
+from base.pbase import prettyFileName
 
 try:
     from csetup import setup
@@ -60,8 +61,10 @@ class NLLThread ( LoggerBase ):
         """
         super ( NLLThread, self ).__init__ ( threadnr, "info" )
         self.obj = obj
-        self.predictor = copy.deepcopy ( obj.predictor )
-        self.critic = copy.deepcopy ( obj.critic )
+        #self.predictor = copy.deepcopy ( obj.predictor )
+        # self.critic = copy.deepcopy ( obj.critic )
+        self.predictor = obj.predictor
+        self.critic = obj.critic
         self.resultsdir = obj.resultsdir
         self.threadnr = threadnr
         self.M = copy.deepcopy ( obj.M )
@@ -325,8 +328,8 @@ class NLLThread ( LoggerBase ):
         nlls={}
         ## start with the SM likelihood
         # for debugging only!
-        hasCMSSUS20004 = self.checkPredictions ()
-        ret["hasCMSSUS20004"] = hasCMSSUS20004
+        # hasCMSSUS20004 = self.checkPredictions ()
+        # ret["hasCMSSUS20004"] = hasCMSSUS20004
         nlls[0.] = self.getNLLs ( self.predictor.predictions, mu=0. )
         ## get for the others FIXME should adapt to ssm?
         for mu in numpy.arange(.4,1.8,.05):
@@ -344,14 +347,14 @@ class NLLThread ( LoggerBase ):
 
         return ret
 
-    def checkPredictions ( self ):
+    def checkPredictions ( self, anaId : str = "CMS-SUS-20-004" ):
         """ a debug function to find out why sometimes CMS-SUS-20-004 gets dropped
         """
         # return
         hasCMSSUS20004 = False
         for tp in self.predictor.predictions:
-            anaId = tp.analysisId()
-            if anaId == "CMS-SUS-20-004":
+            my_anaId = tp.analysisId()
+            if my_anaId == anaId:
                 hasCMSSUS20004 = True
         #if not hasCMSSUS20004:
         #    self.error ( f"x {self.xvalue} y {self.yvalue} has no CMS-SUS-20-004" )
@@ -411,13 +414,31 @@ class NLLThread ( LoggerBase ):
                     self.M.masses[p]=float(mass)
         """
 
-    def setParameter ( self, pid : Union[int,tuple], value : float ):
+    def setParameter ( self, pid : Union[int,tuple], value : float,
+                       coord : str ):
+        """
+        :param coord: "x" or "y"
+        """
         value = float(value)
         assert type(pid) in [ int, tuple ], "pid is neither int nor tuple"
         if type(pid)==int:
             self.setMass ( pid, value )
             return
+        if coord == "y" and self.obj.y_is_dm:
+            self.setDM ( pid, value, coord )
         self.setSSMultiplier ( pid, value )
+
+    def setDM ( self, pid : tuple, dm : float, coord : str ):
+        """ set the delta_m
+        :param pid: e.g. ( 1000022, 1000023 )
+        :param dm: delta_m
+        """
+        assert len(pid)==2, "setDM needs two pids"
+        assert coord == "y", "y coordinates only"
+        if self.obj.xvariable == pid[1]:
+            self.M.masses[ pid[0] ] = self.M.masses[ pid[1] ]- dm
+        else:
+            self.M.masses[ pid[1] ] = self.M.masses[ pid[0] ]+ dm
 
     def setSSMultiplier ( self, pids : tuple, ssm : float ):
         """ set the ssm multipliers for pids to ssm.
@@ -473,16 +494,15 @@ class NLLThread ( LoggerBase ):
                 self.pprint ( "WARNING no xsec??" )
             for i2,m2 in enumerate(ryvariable):
                 self.M = copy.deepcopy( self.Morig )
-                self.setParameter ( self.obj.xvariable, m1 )
-                self.setParameter ( self.obj.yvariable, m2 )
-                y_name = namer.asciiName(self.obj.yvariable)
+                self.setParameter ( self.obj.xvariable, m1, "x" )
+                self.setParameter ( self.obj.yvariable, m2, "y" )
                 sy = self.obj.getFullVariableName ( self.obj.yvariable, "y" )
                 if type(self.obj.yvariable)==int:
                     ## heed the LSP mass limit
                     if m2 < lspmass:
-                        self.pprint ( f"skipping m({y_name})={m2:.1f} < {lspmass:.1f}" )
+                        self.pprint ( f"skipping {sy}={m2:.1f} < {lspmass:.1f}" )
                         continue
-                if m2 > m1 and type(obj.self.xvariable)==float and \
+                if m2 > m1 and type(self.obj.xvariable)==float and \
                         type(self.obj.yvariable) == float:
                     ## for masses we assume yvariable to be the daughter
                     self.warning ( f"{sx}={m1} < {sy}={m2}. skipping!" )
@@ -492,7 +512,7 @@ class NLLThread ( LoggerBase ):
                     continue
                 hasResult = self.hasResultsForPoint ( m1, m2 )
                 if hasResult and not self.obj.redo:
-                    self.pprint ( f"loading from cache: {sx}={m1:.2f} {sy}({y_name})={m2:.2f}" )
+                    self.pprint ( f"loading from cache: {sx}={m1:.2f} {sy}={m2:.2f}" )
                     continue
                 point = self.getPredictions ( False, m1, m2 )
                 nlls = point["nll"]
@@ -561,12 +581,11 @@ class NLLScanner ( LoggerBase ):
         self.critic = Critic ( 'nll', environ=self.environ )
         self.cprint ( "yellow", f"starting with {nproc} threads" )
         self.pprint ( f"self.predictor = Predictor ( 'nll', environ='{self.environ.runDictFile}' )" )
-        yname = moreHelpers.shortYVarName( self.yvariable )
-        #xname = namer.asciiName(self.xvariable)
-        xname = moreHelpers.shortYVarName ( self.xvariable )
-        dmy = ""
-        if self.y_is_dm:
-            yname = yname.replace("_","_dm")
+        yname = self.getFullVariableName ( self.yvariable, "y", True )
+        xname = self.getFullVariableName ( self.xvariable, "x", True )
+        # dmy = ""
+        #if self.y_is_dm:
+        #    yname = yname.replace("_","_dm")
         self.resultsdir = f"{self.environ.rundir}/nlls{xname}{yname}/"
         self.slhadir = None
         if keep_slha:
@@ -574,7 +593,7 @@ class NLLScanner ( LoggerBase ):
             helpers.mkdir  ( self.slhadir )
 
     def getVariableName ( self, variable, var_type : str ) -> str:
-        """ 
+        """
         :returns: ssm, dm, or m
         """
         if var_type == "y":
@@ -587,7 +606,7 @@ class NLLScanner ( LoggerBase ):
             return "m"
         return "ssm"
 
-    def getFullVariableName ( self, variable : Union[str,int], 
+    def getFullVariableName ( self, variable : Union[str,int],
             var_type : str, for_filename : bool = False ) -> str:
         """
         :param var: e.g. 1000006
@@ -717,7 +736,7 @@ class NLLScanner ( LoggerBase ):
             nlls = point["nll"]
             critics = point["critic"]
             thread0.clean()
-            self.pprint ( f"protomodel point: m1({namer.asciiName(self.xvariable)})={self.xvalue:.2f}, m2({namer.asciiName(self.yvariable)})={self.yvalue:.2f}, {len(nlls)} nlls" )
+            self.pprint ( f"protomodel point: {self.getFullVariableName(self.xvariable,'x')}={self.xvalue:.2f}, {self.getFullVariableName(self.yvariable,'y')}={self.yvalue:.2f}, {len(nlls)} nlls" )
             # point [ "x" ] = float ( self.xvalue )
             # point [ "y" ] = float ( self.yvalue )
             parameterpoints = [ point ]
@@ -740,7 +759,7 @@ class NLLScanner ( LoggerBase ):
     def cleanFirst ( self ):
         """ clean results dir and pickle file before running """
         if os.path.exists ( self.picklefile ):
-            self.pprint ( f"cleaning out {self.picklefile}" )
+            self.pprint ( f"cleaning out {prettyFileName(self.picklefile)}" )
             os.unlink ( self.picklefile )
         if self.dict_file:
             dictfile = self.picklefile.replace(".pcl",".dict")
@@ -754,6 +773,7 @@ class NLLScanner ( LoggerBase ):
     def overrideWithDefaults ( self, args ):
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
                  1000023: "electroweakinos,stops,TChiZISRqq,TChiISR",
+                 1000022: "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000024: "electroweakinos,stops,TChiZISRqq,TChiISR",
                  (1000024,1000023): "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000025: "electroweakinos,stops,TChiZISRqq,TChiISR",
@@ -848,7 +868,7 @@ def main ():
             help='remove resultsdir after finished',
             action='store_true' )
     argparser.add_argument ( '-c', '--clean_first',
-            help='clean pickle files and results dir before running',
+            help='clean pickle files, results dir before running',
             action='store_true' )
     argparser.add_argument ( '--dry_run',
             help='just tell us what you would be doing, dont actually do it',
@@ -886,7 +906,7 @@ def main ():
     from ptools.hiscoreTools import fetchHiscoresObj
     hi = fetchHiscoresObj ( args.hiscores, None, environ, walkerid="nll" )
     protomodel = hi.hiscores[0]
-    environ.pprint ( f"fetched {protomodel} from {args.hiscores}" )
+    environ.pprint ( f"fetched {protomodel}\n             from {prettyFileName(args.hiscores)}" )
     # environ.pprint ( f"ssms={protomodel.ssmultipliers}" )
 
     xvariables = [ namer.pid ( args.xvariable ) ]
