@@ -476,8 +476,8 @@ class NLLThread ( LoggerBase ):
             sx = self.obj.getFullVariableName ( self.obj.xvariable, "x" )
             if type(self.obj.xvariable)==int:
                 ## heed the LSP mass limit
-                if m1 < lspmass:
-                    self.pprint ( f"skipping {sx}={m1:.1f} < {lspmass:.1f}" )
+                if m1 < lspmass and self.obj.xvariable != self.M.LSP:
+                    self.pprint ( f"skipping {sx}={m1:.1f} < m(LSP)={lspmass:.1f}" )
                     continue
             thrnr = 0
             try:
@@ -697,7 +697,10 @@ class NLLScanner ( LoggerBase ):
         if type(yvariable) == int:
             self.yvalue = self.M.masses[yvariable]
         if type(yvariable) == tuple:
-            self.yvalue = self.M.ssmultipliers[yvariable]
+            if self.y_is_dm:
+                self.yvalue = self.M.masses[ yvariable[1] ] - self.M.masses[ yvariable[0] ]
+            else:
+                self.yvalue = self.M.ssmultipliers[yvariable]
 
         # choose the axis boundaries and step sizes such that the hiscore values
         # are nicely central
