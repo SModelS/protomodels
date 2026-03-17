@@ -23,8 +23,12 @@ from smodels.matching.theoryPrediction import TheoryPrediction
 from smodels.statistics.basicStats import observed, apriori, aposteriori,\
          NllEvalType
 
+from smodels_utils.helper.terminalcolors import RED, GREEN, YELLOW, RESET, CYAN
+
 from base.loggerbase import LoggerBase
 from base.runEnviron import RunEnviron
+
+from builder.manipulator import Manipulator
 
 from tester.combiner import Combiner
 from tester.predictor import Predictor
@@ -32,7 +36,6 @@ from tester.critic import Critic
 from ptools.sparticleNames import SParticleNames
 from ptools import moreHelpers, helpers
 from ptools.helpers import py_dumps
-from smodels_utils.helper.terminalcolors import RED, GREEN, YELLOW, RESET, CYAN
 
 namer = SParticleNames ( False )
 t0 = time.time() ## define t0, to measure how long things took
@@ -127,7 +130,7 @@ class NLLThread ( LoggerBase ):
         meta["hostname"]=socket.gethostname()
         meta["dt[h]"]=round((time.time()-t0)/60./60.,3) # time it took in hours
         meta["y_is_dm"] = self.obj.y_is_dm
-        meta["profile_mu"] = self.obj.args["profile_mu"]
+        meta["profile_ssms"] = self.obj.args["profile_ssms"]
         meta["xvariable"]=self.obj.xvariable
         meta["yvariable"]=self.obj.yvariable
         return meta
@@ -300,13 +303,12 @@ class NLLThread ( LoggerBase ):
         sigmacut=0.*fb
         if hasattr ( self.predictor, "predictions" ):
             del self.predictor.predictions
-        from builder.manipulator import Manipulator
+        if self.obj.args["profile_ssms"]:
+            self.profileSSMs ( )
         manipulator = Manipulator ( self.M, self.obj.environ )
-        force_K = self.obj.args["profile_mu"]
-        # print ( f"@@XX predict force_K {force_K}" )
         worked, explanation = self.predictor.predict ( manipulator,
             sigmacut = sigmacut, keep_predictions = True,
-            force_computation_K = force_K,
+            force_computation_K = False,
             give_explanation = True )
 
         cr, _ = self.critic.predict_critic ( self.M, keep_predictions = True )
@@ -381,6 +383,26 @@ class NLLThread ( LoggerBase ):
             limits[ name ] = tp.getUpperLimitOnMu (
                     evaluationType = evaluationType )
         return limits
+
+    def profileSSMs ( self ):
+        """ profile the SSMs """
+        self.pprint ( f"profile SSMs for {self.M.ssmultipliers}" )
+        self.pprint ( f"ma.M.K = {self.M.K:.5f}" )
+        manipulator = Manipulator ( self.M, self.obj.environ )
+        origSSMs = copy.deepcopy ( self.M.ssmultipliers )
+        sigmacut=0.*fb
+        def objective ( ssms : float ):
+            print ( f"@@0 objective ssms {ssms}" )
+            for k,v in manipulator.M.ssmultipliers.items():
+                manipulator.M.ssmultipliers[k]=origSSMs[k]*ssms[0]
+            worked = self.predictor.predict ( manipulator, 
+                sigmacut = sigmacut, keep_predictions = False,
+                force_computation_K = True )
+            return manipulator.ma.K
+        import scipy.optimize
+        scipy.optimize.minimize ( objective, 1. )
+        self.pprint ( f"min at ma.M.K = {self.M.K}" )
+        sys.exit()
 
     def getNLLs ( self, predictions, mu = 1. ) -> Dict:
         """ return dictionary with the nlls per analysis """
@@ -883,8 +905,8 @@ def main ():
     argparser.add_argument ( '--keep_slha',
             help="keep the SLHA files",
             action="store_true" )
-    argparser.add_argument ( '--profile_mu',
-            help="profile the overall signal strength parameter",
+    argparser.add_argument ( '--profile_ssms',
+            help="profile the signal strength parameters",
             action="store_true" )
     argparser.add_argument ( '-u', '--uploadTo',
             help="where do we upload to, on smodels.github.io [latest]",
