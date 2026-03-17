@@ -125,7 +125,7 @@ class NLLThread ( LoggerBase ):
         import socket
         hostname = socket.gethostname()
         meta["hostname"]=socket.gethostname()
-        meta["dt[h]"]=(time.time()-t0)/60./60. # time it took in hours
+        meta["dt[h]"]=round((time.time()-t0)/60./60.,3) # time it took in hours
         meta["y_is_dm"] = self.obj.y_is_dm
         meta["profile_mu"] = self.obj.args["profile_mu"]
         meta["xvariable"]=self.obj.xvariable
@@ -303,6 +303,7 @@ class NLLThread ( LoggerBase ):
         from builder.manipulator import Manipulator
         manipulator = Manipulator ( self.M, self.obj.environ )
         force_K = self.obj.args["profile_mu"]
+        # print ( f"@@XX predict force_K {force_K}" )
         worked, explanation = self.predictor.predict ( manipulator,
             sigmacut = sigmacut, keep_predictions = True,
             force_computation_K = force_K,
@@ -512,11 +513,11 @@ class NLLThread ( LoggerBase ):
                     self.warning ( f"{sx}={m1} < {sy}={m2}. skipping!" )
                     continue
                 if m2 < 0.:
-                    self.warning ( f"{sy}={m2:.1f}<0. skipping!" )
+                    self.warning(f"{sy}={m2:.1f}<0. skipping!")
                     continue
                 hasResult = self.hasResultsForPoint ( m1, m2 )
-                if hasResult and not self.obj.args["redo"]:
-                    self.pprint ( f"loading from cache: {sx}={m1:.2f} {sy}={m2:.2f}" )
+                if hasResult:
+                    self.pprint(f"loading from cache: {sx}={m1:.2f} {sy}={m2:.2f}")
                     continue
                 point = self.getPredictions ( False, m1, m2 )
                 nlls = point["nll"]
@@ -879,9 +880,6 @@ def main ():
     argparser.add_argument ( '-o', '--output',
             help="prefix for output file [nll]",
             type=str, default="nll" )
-    argparser.add_argument ( '--redo',
-            help="ignore cache, redo all points",
-            action="store_true" )
     argparser.add_argument ( '--keep_slha',
             help="keep the SLHA files",
             action="store_true" )
