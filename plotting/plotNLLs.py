@@ -163,7 +163,7 @@ class NLLPlotter ( LoggerBase ):
         return ret
 
     def normalize ( self, points : list[dict], 
-                    how : str = "max_llhd" ) -> list[dict]:
+                    how : str = "max_llhd", anaid : str = "" ) -> list[dict]:
         """ normalize the likelihoods given in points, in various ways
         :param how: one of: max_llhd
 
@@ -174,6 +174,7 @@ class NLLPlotter ( LoggerBase ):
         llhds = [ x["llhd"] for x in points ]
         min_nll = min ( nlls )
         max_llhd = max ( llhds )
+        sum_rel = 0.
         for p in points:
             tmp = { "x": p["x"], "y": p["y"] }
             tmp["dnll"]=p["nll"]-min_nll
@@ -181,12 +182,17 @@ class NLLPlotter ( LoggerBase ):
             if max_llhd > 0.:
                 tmp["llhd_rel"]=p["llhd"]/max_llhd
             if abs(p["llhd"]-max_llhd)/(max_llhd)<1e-7:
-                self.pprint ( f"maximum sits at {p['x']},{p['y']}" )
+                line = f"maximum of {anaid} sits at {p['x']:.2f}, {p['y']:.2f}"
+                self.pprint ( line )
             ret.append ( tmp )
+            sum_rel += p["llhd"]
+        if sum_rel < 1.01:
+            self.pprint ( f"when normalizing {anaid}: max_llhd={max_llhd:.3g}" )
+            import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         return ret
 
     def plotProbabilityMass ( self, points : list[dict], options : dict,
-                             mask_data : list[dict] = [] ) -> bool:
+            mask_data : list[dict] = [], anaid : str = "" ) -> bool:
         """ plot the likelihood mass given in nll_points, using a KDE
         :param mask_data: list of dictionaries as we get it for the critic, e.g.
         [{"x": ..., "y": ..., "passes": True/False}, ... ]
@@ -196,7 +202,7 @@ class NLLPlotter ( LoggerBase ):
                      "label": "probability mass", "nlevels": 2 }
         opts = defaults
         opts.update ( options )
-        points = self.normalize ( points, "max_llhd" )
+        points = self.normalize ( points, "max_llhd", anaid )
         # example: points = [{"x": ..., "y": ..., "llhd_rel": ...}, ...]
         xs = np.array([d["x"] for d in points])
         ys = np.array([d["y"] for d in points])
@@ -206,7 +212,7 @@ class NLLPlotter ( LoggerBase ):
             if len(points)<4:
                 self.warn ( f"plotProbabilityMass, for {options['label']} we have {len(points)} points, thats too few. not plotting contours." )
             if sum(ll)<2.:
-                self.warn ( f"plotProbabilityMass, for {options['label']} we have sum(ll)={sum(ll)}, thats too little. not plotting contours." )
+                self.warn ( f"plotProbabilityMass, for {options['label']} we have sum(ll)={sum(ll):.3f}, thats too little. not plotting contours." )
         else:
             # ---- convert likelihood to probability ----
             #Z = np.maximum(Z, 0)
@@ -469,13 +475,15 @@ class NLLPlotter ( LoggerBase ):
             options.update ( { "label": anaid, "colors": colors[i] } )
             if anaid in self.options:
                 options.update ( self.options[anaid] )
-            self.plotProbabilityMass ( nll_points, options, critic_points )
+            self.plotProbabilityMass ( nll_points, options, critic_points,
+                                       anaid )
             for_combination[anaid] = nll_points
         comb_points = self.combineNLLs ( for_combination )
         comb_options = { "colors": ( "0.20", "black" ), "label": "joint posterior", "nlevels": 1 }
         comb_options = self.getOptions ( "combo" )
 
-        self.plotProbabilityMass ( comb_points, comb_options, critic_points )
+        self.plotProbabilityMass ( comb_points, comb_options, critic_points,
+                                   "combination" )
 
         # Existing scatter handles (from plt.scatter calls)
         # handles, labels = plt.gca().get_legend_handles_labels()
