@@ -382,15 +382,20 @@ class Predictor ( LoggerBase ):
             return predictions
 
     def printPredictions ( self, predictions : Union[list,None] = None,
-            add_index : bool = False ):
+            add_index : bool = False, sort : bool = False ):
         """ pretty print a list of predictions
         :param predictions: if None, print self.predictions (if exist)
         :param add_index: add an index in front
+        :param sort: if true, sort lexigraphically by data id
         """
         if not hasattr ( self, "predictions" ):
             print ( "[predictor] no predictions. did you run .predict( ..., keep_predictions=True )?" )
         if predictions == None and hasattr ( self, "predictions" ):
             predictions = self.predictions
+        if sort:
+            orig_predictions = predictions[:]
+            predictions = sorted ( predictions, 
+                key = lambda x: f"{x.analysisId()}:{x.dataset.dataInfo.dataId}" )
         print ( )
         print ( f"[predictor] {len(self.predictions)} predictions for combiner:" )
         for i,p in enumerate(predictions):
@@ -400,7 +405,11 @@ class Predictor ( LoggerBase ):
             if dataId == None:
                 dataId = "UL"
             txns = ",".join ( set ( map ( str, p.txnames ) ) )
-            sidx = f"{i}: " if add_index else ""
+            sidx = ""
+            if add_index:
+                if sort:
+                    i = orig_predictions.index ( p )
+                sidx = f"{i}: "
             print ( f" - {sidx}{p.analysisId()}:{dataId}: {txns}" )
         if hasattr ( self, "critic_preds" ):
             print ( )

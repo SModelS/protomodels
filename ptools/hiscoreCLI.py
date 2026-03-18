@@ -14,13 +14,18 @@ pmpath =os.path.abspath ( f"{os.path.dirname (  __file__ )}/../../" )
 sys.path.insert(0,pmpath)
 
 from typing import Union
+from smodels_utils.helper.terminalcolors import LIGHTGREEN, RESET, CYAN
+
+def pprint ( *args ):
+    """ logging """
+    print ( f"{CYAN}[hiscoreCLI]{RESET} {' '.join(map(str,args))}" )
 
 def cli( infile : str = "hiscores_global.dict",
          dbpath : str = "official", do_srcombine : bool= True,
          walkerid : Union[str,int] = 0 ):
     """ fire up the interactive shell, preconfigured!
 
-    :param infile: read hiscore from infile, can contain a single hiscore as a 
+    :param infile: read hiscore from infile, can contain a single hiscore as a
     dictionary, or a list of hiscores.
     :param dbpath: path to database
     :param do_srcombine: if true, do sr-combinations (when would you not?)
@@ -39,18 +44,18 @@ def cli( infile : str = "hiscores_global.dict",
     sys.path.insert(0,"../../")
     import csetup
     csetup.setup()
-    from smodels_utils.helper.terminalcolors import RED, GREEN, YELLOW, RESET
-    print ( "[hiscoreCLI] starting interactive session." )
+    from smodels_utils.helper.terminalcolors import RED, GREEN, YELLOW
+    pprint ( "starting interactive session." )
     import copy, numpy, scipy, scipy.stats
-    print ( f"[hiscoreCLI]         python: {RED}copy, numpy, scipy, scipy.stats, math{RESET}" )
+    pprint ( f"        python: {RED}copy, numpy, scipy, scipy.stats, math{RESET}" )
     from smodels.base.physicsUnits import pb, fb, GeV, TeV
-    print ( f"[hiscoreCLI]      Constants: {RED}pb, fb, GeV, TeV{RESET}" )
+    pprint ( f"     Constants: {RED}pb, fb, GeV, TeV{RESET}" )
     from ptools.hiscoreTools import fetchHiscoresObj
     from builder import manipulator
     from walker import hiscores
     from tester import combiner, predictor
     from ptools import helpers
-    print ( f"[hiscoreCLI]        Modules: {RED}manipulator, hiscores, combiner, predictor, helpers{RESET}" )
+    pprint ( f"       Modules: {RED}manipulator, hiscores, combiner, predictor, helpers{RESET}" )
     from walker.hiscores import Hiscores
     from base.runEnviron import RunEnviron
     from builder.protomodel import ProtoModel
@@ -61,25 +66,30 @@ def cli( infile : str = "hiscores_global.dict",
     from ptools.sparticleNames import SParticleNames
     from smodels.experiment.databaseObj import Database
     environ = RunEnviron()
-    print ( f"[hiscoreCLI]        Classes: {RED}ProtoModel, Combiner, Predictor, Hiscores, Database," )
-    print ( f"                             SParticleNames{RESET}" )
+    pprint ( f"       Classes: {RED}ProtoModel, Combiner, Predictor, Hiscores, Database,{RESET}" )
+    pprint ( f"                {RED}SParticleNames{RESET}" )
     hi = fetchHiscoresObj ( infile, None, environ = environ, walkerid = walkerid )
-    print ( f"[hiscoreCLI] {RED}hi = fetchHiscoresObj ('{infile}', ... ) # Hiscore {RESET}" )
+    pprint ( f"{RED}hi = fetchHiscoresObj ('{infile}', ... ) # Hiscore {RESET}" )
     namer = SParticleNames()
     from importlib import reload
-    print ( f"[hiscoreCLI] {RED}namer = SParticleNames(){RESET}" )
+    pprint ( f"{RED}namer = SParticleNames(){RESET}" )
     protomodel = hi.hiscores[0]
     protomodel.walkerid = walkerid
-    print ( f"[hiscoreCLI] {RED}protomodel = hi.hiscores[0]{RESET}" )
+    pprint ( f"{RED}protomodel = hi.hiscores[0]{RESET}" )
     ma = Manipulator ( protomodel, environ )
-    print ( f"[hiscoreCLI] {RED}ma = Manipulator ( protomodel ){RESET}" )
+    pprint ( f"{RED}ma = Manipulator ( protomodel ){RESET}" )
     ma.M.createNewSLHAFileName()
-    print ( f"[hiscoreCLI] {RED}co = Combiner ( protomodel ){RESET}" )
+    pprint ( f"{RED}co = Combiner ( protomodel ){RESET}" )
     co = Combiner( walkerid ) # instantiate for convenience
-    print ( f"[hiscoreCLI] {RED}pr = Predictor ( ){RESET}" )
+    pprint ( f"{RED}pr = Predictor ( ){RESET}" )
     pr = Predictor( walkerid, environ = environ ) # instantiate for convenience
-    print ( f"[hiscoreCLI] {RED}cr = Critic ( ){RESET}" )
+    pprint ( f"{RED}cr = Critic ( ){RESET}" )
     cr = Critic ( walkerid, environ = environ )
+    cr = Critic ( walkerid, environ = environ )
+    pprint ( f"{YELLOW}pr.predict(ma,keep_predictions=True,force_computation_K=False,{RESET}" )
+    pprint ( f"{YELLOW}           keep_slhafile=True{RESET}" )
+    pr.predict( ma, keep_predictions=True, force_computation_K=False,
+                keep_slhafile=True )
 
     # print ( f"[hiscoreCLI] Instantiations: {RED}ma, co, hi, pr{RESET}" )
 
@@ -126,10 +136,10 @@ if __name__ == "__main__":
     #        print ( f"[hiscoreCLI] really? no srcombine? will anyhow set to true" )
     #        args.do_srcombine = True
     if not os.path.exists ( args.infile ):
-        print ( f"[hiscoreCLI] error: input file {args.infile} does not exist." )
+        pprint ( f"error: input file {args.infile} does not exist." )
         sys.exit()
     if os.path.exists ( "./run.dict" ):
-        print ( f"[hiscoreCLI] found run.dict file. will use its values." )
+        pprint ( f"found run.dict file. will use its values." )
         with open ( "./run.dict", "rt" ) as f:
             txt = f.read()
             f.close()
@@ -137,6 +147,6 @@ if __name__ == "__main__":
             if "do_srcombine" in d:
                 do_srcombine = d["do_srcombine"]
             if args.dbpath in [ "auto", None ] and "dbpath" in d:
-                print ( f"[hiscoreCLI] setting dbpath to {d['dbpath']}" )
+                pprint ( f"setting dbpath to {d['dbpath']}" )
                 args.dbpath = d['dbpath']
     cli ( args.infile, args.dbpath, do_srcombine, args.walkerid )
