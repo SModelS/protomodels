@@ -398,7 +398,7 @@ class NLLThread ( LoggerBase ):
             worked = self.predictor.predict ( manipulator, 
                 sigmacut = sigmacut, keep_predictions = False,
                 force_computation_K = True )
-            return manipulator.ma.K
+            return manipulator.M.K
         import scipy.optimize
         scipy.optimize.minimize ( objective, 1. )
         self.pprint ( f"min at ma.M.K = {self.M.K}" )

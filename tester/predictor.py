@@ -12,9 +12,10 @@ from os import PathLike
 from typing import List, Union
 
 from smodels.decomposition import decomposer
-from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction, TheoryPredictionList, TheoryPredictionsCombiner
+from smodels.matching.theoryPrediction import theoryPredictionsFor, \
+        TheoryPrediction, TheoryPredictionList, TheoryPredictionsCombiner
 from smodels.share.models.SMparticles import SMList
-from smodels.base.physicsUnits import fb, GeV, TeV
+from smodels.base.physicsUnits import fb, GeV, TeV, UnitXSec, UnitEnergy
 from smodels.base.model import Model
 from smodels.base.exceptions import SModelSBaseError as SModelSError
 
@@ -180,8 +181,9 @@ class Predictor ( LoggerBase ):
                 f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
             f.close()
 
-    def obtainPredictions ( self, protomodel : ProtoModel, sigmacut = 0.02*fb,
-            mingap = 10*GeV, mingapISR = 1*GeV,
+    def obtainPredictions ( self, protomodel : ProtoModel,
+            sigmacut : UnitXSec = 0.02*fb,
+            mingap : UnitEnergy = 10*GeV, mingapISR : UnitEnergy = 1*GeV,
             keep_predictions : bool = False ) -> List:
         """ obtain all predictions.
 
@@ -209,8 +211,9 @@ class Predictor ( LoggerBase ):
 
         return predictions
 
-    def predict ( self, manipulator : Manipulator, sigmacut = 0.02*fb,
-                  mingap = 10*GeV, mingapISR = 1*GeV,
+    def predict ( self, manipulator : Manipulator,
+                  sigmacut : UnitXSec = 0.02*fb,
+                  mingap : UnitEnergy = 10*GeV, mingapISR : UnitEnergy = 1*GeV,
                   strategy : str = "aggressive",keep_predictions : bool = False,
                   keep_slhafile : bool = False, run_mcmc : bool = False,
                   force_computation_K : bool = False,
@@ -232,13 +235,13 @@ class Predictor ( LoggerBase ):
         :param give_explanation: if true, then return a tuple adding
         an explanation, e.g. ( False, "no predictions" )
         :returns: False, if no combinations could be found, else True.
-        if give_explanation is true, then return tuple, e.g. 
+        if give_explanation is true, then return tuple, e.g.
         ( False, "no predictions" )
         """
         protomodel = manipulator.M
         predictions = self.obtainPredictions ( protomodel, sigmacut, mingap,
                 mingapISR, keep_predictions )
-        if not predictions: 
+        if not predictions:
             if give_explanation:
                 return ( False, "no predictions" )
             return False
@@ -276,17 +279,21 @@ class Predictor ( LoggerBase ):
             return ( True, f"K is {protomodel.K} TL is {protomodel.TL}" )
         return True
 
-    def runSModelS(self, inputFile : PathLike, sigmacut : float, mingap : float,
-                   mingapISR:float, allpreds : bool, ULpreds : bool,
-                   maxcond : float = 0.2 ) -> List[TheoryPrediction]:
+    def runSModelS(self, inputFile : PathLike, sigmacut : UnitXSec = 0.02*fb,
+           mingap : UnitEnergy = 10*GeV, mingapISR : UnitEnergy = 1*GeV,
+           allpreds : bool = False, ULpreds : bool = False,
+           maxcond : float = 0.2, do_srcombine : Union[None,bool]=None ) \
+                -> List[TheoryPrediction]:
         """ run smodels proper.
         :param inputFile: the input slha file
         :param sigmacut: the cut on the topology weights, typically 0.02*fb
         :param allpreds: if true, return all predictions of analyses, else
-                         only best signal region
+        only best signal region
         :param ULpreds: if true, also returns the list of theory predictions for
         UL-type results
         :param maxcond: maximum relative violation of conditions for valid results
+        :param do_srcombine: if not None, then override the RunEnviron's
+        do_srcombine with this
 
         :returns: list of all theory predictions
         """
@@ -302,19 +309,14 @@ class Predictor ( LoggerBase ):
                 # okay, everything under control, we just return empty list
                 # of theory predictions
                 self.log(f"No cross-sections found for protomodel point: {e}")
-                #self.log(f" `inputFile {inputFile}" )
-                #with open ( inputFile, "rt" ) as f:
-                #    self.log ( f.read() )
-                #self.log("^^^")
                 return []
             else:
                 # no idea what that is. pass it on.
                 raise e
 
-        #mingap=3*GeV
-
         # self.log ( "Now decomposing" )
-        topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap, minmassgapISR = mingapISR )
+        topos = decomposer.decompose ( model, sigmacut, minmassgap=mingap,
+                    minmassgapISR = mingapISR )
         self.log ( f"decomposed model into {len(topos)} topologies." )
 
         if allpreds:
@@ -333,9 +335,12 @@ class Predictor ( LoggerBase ):
         self.log("start computing preds")
         import time
         start_time = time.time()
+        if do_srcombine == None:
+            do_srcombine = self.environ.do_srcombine
         theoryPredictions = theoryPredictionsFor ( self.environ.database,
                 topos, useBestDataset=bestDataSet,
-                combinedResults=self.environ.do_srcombine )
+                combinedResults= do_srcombine )
+        print ( f"@@30 len {len(theoryPredictions)}" )
         preds = TheoryPredictionList(theoryPredictions, maxcond)
 
         end_time = time.time()
@@ -348,16 +353,24 @@ class Predictor ( LoggerBase ):
                     continue
                 EMpreds.append ( pred )
 
-        for pred in EMpreds:
-            if pred.dataType() == "combined":
+        print ( f"@@31 len EMpreds {len(EMpreds)}" )
+        print ( f"@@33 do_srcombine {do_srcombine}" )
+        if not do_srcombine:
+            predictions = EMpreds[:]
+        else:
+            for pred in EMpreds:
+                if pred.dataType() == "combined":
+                    predictions.append ( pred )
+                    if do_srcombine:
+                        combinedIds.add ( pred.dataset.globalInfo.id )
+            for pred in EMpreds:
+                if pred.dataset.globalInfo.id in combinedIds:
+                    continue
+                if hasattr(pred.dataset.globalInfo, "covariance") or \
+                        hasattr(pred.dataset.globalInfo, "jsonFiles"):
+                    continue
                 predictions.append ( pred )
-                combinedIds.add ( pred.dataset.globalInfo.id )
-        for pred in EMpreds:
-            if pred.dataset.globalInfo.id in combinedIds:
-                continue
-            if hasattr(pred.dataset.globalInfo, "covariance") or hasattr(pred.dataset.globalInfo, "jsonFiles"):
-                continue
-            predictions.append ( pred )
+        print ( f"@@43 len preds {len(predictions)}" )
 
         sap = "best preds"
         if allpreds:
@@ -372,20 +385,27 @@ class Predictor ( LoggerBase ):
         else:
             return predictions
 
-    def printPredictions ( self ):
-        """ if self.predictions exists, pretty print them """
+    def printPredictions ( self, predictions : Union[list,None] = None,
+            add_index : bool = False ):
+        """ pretty print a list of predictions
+        :param predictions: if None, print self.predictions (if exist)
+        :param add_index: add an index in front
+        """
         if not hasattr ( self, "predictions" ):
             print ( "[predictor] no predictions. did you run .predict( ..., keep_predictions=True )?" )
-        if hasattr ( self, "predictions" ):
-            print ( f"[predictor] {len(self.predictions)} predictions for combiner:" )
-            for p in self.predictions:
-                dataId = "combined"
-                if hasattr ( p.dataset, "dataInfo" ):
-                    dataId = p.dataset.dataInfo.dataId
-                if dataId == None:
-                    dataId = "UL"
-                txns = ",".join ( set ( map ( str, p.txnames ) ) )
-                print ( f" - {p.analysisId()}:{dataId}: {txns}" )
+        if predictions == None and hasattr ( self, "predictions" ):
+            predictions = self.predictions
+        print ( )
+        print ( f"[predictor] {len(self.predictions)} predictions for combiner:" )
+        for i,p in enumerate(predictions):
+            dataId = "combined"
+            if hasattr ( p.dataset, "dataInfo" ):
+                dataId = p.dataset.dataInfo.dataId
+            if dataId == None:
+                dataId = "UL"
+            txns = ",".join ( set ( map ( str, p.txnames ) ) )
+            sidx = f"{i}: " if add_index else ""
+            print ( f" - {sidx}{p.analysisId()}:{dataId}: {txns}" )
         if hasattr ( self, "critic_preds" ):
             print ( )
             print ( f"[predictor] {len(self.critic_preds)} predictions for critic:" )
