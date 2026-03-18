@@ -340,7 +340,6 @@ class Predictor ( LoggerBase ):
         theoryPredictions = theoryPredictionsFor ( self.environ.database,
                 topos, useBestDataset=bestDataSet,
                 combinedResults= do_srcombine )
-        print ( f"@@30 len {len(theoryPredictions)}" )
         preds = TheoryPredictionList(theoryPredictions, maxcond)
 
         end_time = time.time()
@@ -353,8 +352,6 @@ class Predictor ( LoggerBase ):
                     continue
                 EMpreds.append ( pred )
 
-        print ( f"@@31 len EMpreds {len(EMpreds)}" )
-        print ( f"@@33 do_srcombine {do_srcombine}" )
         if not do_srcombine:
             predictions = EMpreds[:]
         else:
@@ -370,7 +367,6 @@ class Predictor ( LoggerBase ):
                         hasattr(pred.dataset.globalInfo, "jsonFiles"):
                     continue
                 predictions.append ( pred )
-        print ( f"@@43 len preds {len(predictions)}" )
 
         sap = "best preds"
         if allpreds:
