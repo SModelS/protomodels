@@ -51,6 +51,20 @@ class RunEnviron ( LoggerBase ):
         self.readRunDict()
         self._setAttrs()
 
+
+    def setAcceptedExtrapolationErrors ( self, err : float ):
+        """ set the extrapolation errors of all results in the
+        database to err
+        :param err: default is 0.05
+        """
+        assert 0. <= err, "error {err} makes no sense"
+        for er in self.database.expResultList:
+            for ds in er.datasets:
+                for txn in ds.txnameList:
+                    txn.txnameData._accept_errors_upto = err
+                    if txn.txnameDataExp is not None:
+                        txn.txnameDataExp._accept_errors_upto = err
+
     @classmethod
     def create ( cls, **args ):
         """ create the run.dict, return the object """

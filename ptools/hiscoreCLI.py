@@ -47,6 +47,7 @@ def cli( infile : str = "hiscores_global.dict",
     from smodels_utils.helper.terminalcolors import RED, GREEN, YELLOW
     pprint ( "starting interactive session." )
     import copy, numpy, scipy, scipy.stats
+    import numpy as np
     pprint ( f"        python: {RED}copy, numpy, scipy, scipy.stats, math{RESET}" )
     from smodels.base.physicsUnits import pb, fb, GeV, TeV
     pprint ( f"     Constants: {RED}pb, fb, GeV, TeV{RESET}" )
