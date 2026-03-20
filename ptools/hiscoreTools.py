@@ -92,11 +92,12 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
                            picklefile : str = "hiscores_global.cache",
                            entrynr : Union[None,int] = 0,
                            walkerid : Union[str,int] = 0 ) -> bool:
-    """ is hiscores_global.cache behind hiscores_global.dict, so it needs an update?
-    :param entrynr: check for for this entry, 0 is first.
+    """ is hiscores_global.cache behind hiscores_global.dict, 
+    so it needs an update?
+    :param entrynr: check for this entry, 0 is first.
     If None, check all
-    :param walkerid: log everything as walker #walkerid
 
+    :param walkerid: log everything as walker #walkerid
     :returns: true if update is needed
     """
     if not os.path.exists ( dictfile ):
@@ -146,7 +147,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
             newV += dentry["TL"]
             oldV += pentry.TL
         delta = 2. * abs( newV - oldV ) / ( newV + oldV ) 
-        if delta > 1e-4:
+        if delta > 1e-6:
             # print ( f"[hiscoreTools] top V value changed {newV:.3f}..{oldV:.3f}" )
             return True, "Vs are different by {delta}"
         return False, "entries are the same"

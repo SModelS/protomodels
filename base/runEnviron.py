@@ -45,10 +45,12 @@ class RunEnviron ( LoggerBase ):
         """
         super ( RunEnviron, self ).__init__ ( "env" )
         self._db = None # we instantiate only when needed
+        # at least for now, lets make this the default
         self.runDictFile = os.path.expanduser ( runDictFile )
         self.didReadRunDict = False # did we get the info from run.dict?
         self.run_dict = self.defaults()
         self.readRunDict()
+        self.setAcceptedExtrapolationErrors ( 0. )
         self._setAttrs()
 
 
