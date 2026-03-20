@@ -68,6 +68,7 @@ class RunEnviron ( LoggerBase ):
                     txn.txnameData._accept_errors_upto = err
                     if txn.txnameDataExp is not None:
                         txn.txnameDataExp._accept_errors_upto = err
+        self.extrapolation_acceptance = err
 
     @classmethod
     def create ( cls, **args ):

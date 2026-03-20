@@ -1069,14 +1069,19 @@ Just filter the database:
         filename = f"{self.rundir}/{self.suffix}.dict".replace("//","/")
         if statsname != None:
             filename = statsname
-        meta = { "dbpath": self.dbpath, "Zmax": self.max,
-                 "database": self.dbversion, "fudge": self.fudge,
+        meta = { "orig_database": self.orig_dbversion,
+                 "orig_dbpath": self.dbpath,
+                 "Zmax": self.max,
+                 "fake_database": self.dbversion,
+                 "fudge": self.fudge,
                  "timestamp": time.asctime(),
                  "allowN1N1Prod": self.allowN1N1Prod,
-                 "lognormal": self.lognormal, "ulmassscale": self.ulmassscale,
+                 "lognormal": self.lognormal,
+                 "ulmassscale": self.ulmassscale,
                  "fixedsignals": self.fixedsignals,
                  "bsm_file": self.pmodel,
-                 "fixedbackgrounds": self.fixedbackgrounds }
+                 "fixedbackgrounds": self.fixedbackgrounds
+        }
         if "K" in self.truth:
             meta["K_true"]=self.truth["K"]
         #meta["protomodel"]=None
@@ -1749,6 +1754,7 @@ Just filter the database:
                 logger.error("Combination matrix not loaded correctly.")
             self.pprint ( f"loading database {self.dbpath}" )
             db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix )
+            self.orig_dbversion = db.databaseVersion
             self.pprint ( f"built database at {self.dbpath}." )
             # sys.exit()
         if self.rundir == None:
