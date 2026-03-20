@@ -40,8 +40,10 @@ class RunEnviron ( LoggerBase ):
         :ivar allowN1N1Prod(bool): allow production of N1 N1
         :ivar susy_mode(bool): susy mode (penalize for unusual xsecs)
         :ivar use_initialiser(Union[None,str]): use given dict file
-        :ivar rundir(str): the run directory
         for initialisation, or dont use initialiser (None)
+        :ivar rundir(str): the run directory
+        :ivar extrapolation_acceptance(float): the extrapolation acceptance
+        in SModelS txnameObj
         """
         super ( RunEnviron, self ).__init__ ( "env" )
         self._db = None # we instantiate only when needed
@@ -142,7 +144,9 @@ class RunEnviron ( LoggerBase ):
             "templateSLHA": "template_default.slha",
             "allowN1N1Prod": False, "susy_mode": False,
             "rundir": os.getcwd(), "strategy": "aggressive",
-            "use_initialiser": None, "dbversion": "???" }
+            "use_initialiser": None, "dbversion": "???",
+            "extrapolation_acceptance": 0.
+        }
         return defaults
 
     def __str__ ( self ):
