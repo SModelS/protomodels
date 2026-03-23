@@ -629,6 +629,8 @@ class Hiscores ( LoggerBase ):
             return
         onlyNones = True
         for i in self.hiscores:
+            del i.bestCombo # remove
+        for i in self.hiscores:
             if i != None:
                 onlyNones = False
                 break
