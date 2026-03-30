@@ -486,6 +486,7 @@ Just filter the database:
             self.db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
             self.pprint ( f"loaded db v{self.db.databaseVersion}" )
         self.dbversion = self.db.databaseVersion
+        self.orig_dbversion = self.dbversion
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
         self.produceProtoModel ( self.pmodel, self.db.databaseVersion,
                                  self.allowN1N1Prod )
@@ -1060,8 +1061,7 @@ Just filter the database:
         return dataset
 
     def writeStats ( self, statsname : os.PathLike = None ):
-        """ write out the collected stats, so we can discuss experimentalists'
-            conservativeness
+        """ write out the collected stats
         :param statsname: sth like *_database.dict
         """
         if self.suffix in [ None, "None", "", "none" ]:
@@ -1084,6 +1084,9 @@ Just filter the database:
         }
         if "K" in self.truth:
             meta["K_true"]=self.truth["K"]
+        if "TL" in self.truth:
+            meta["TL_true"]=self.truth["TL"]
+        meta["signal_model"]=self.protomodel.dict()
         #meta["protomodel"]=None
         #if self.protomodel!= None:
         #    meta["protomodel"] = f'{str(self.protomodel)}'
