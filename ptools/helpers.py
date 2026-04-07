@@ -382,12 +382,12 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
         down = max ( 0, int ( obs - 7 * ( bg + bgerr ) )  )
         for k in range ( down, obs ):
             i,e = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
-            if p> 0 and i/p < 1e-10:
-                break
             add = i
             if countObsAtExp == "half" and k == obs:
                 add = i/2
             p += add
+            if p > 0 and add/p < 1e-10:
+                break
         ret = 1 - p
         return ret
     p = 0.
@@ -395,13 +395,13 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
 
     for k in range ( obs, up ):
         i,e = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
-        if p> 0 and i/p < 1e-10:
-            break
         add = i
         # print ( f"k {k} obs {obs} countObsAtExp {countObsAtExp} add {add}" )
         if countObsAtExp == "half" and k == obs:
             add = i/2
         p += add
+        if p > 0 and add/p < 1e-10:
+            break
     return p
 
 def roughZValue ( obs : float, bg : float , bgerr : float ):
