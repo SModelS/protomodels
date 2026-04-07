@@ -335,6 +335,44 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
         print ( f"[helpers] {dataset.globalInfo.id}:{dataset.dataInfo.id} has p={p}" )
     return p
 
+def computePAnalytically ( obs : float, bg : float, bgerr : float,
+        lognormal : bool = False, sigN : Union[None,float] = None ) -> float:
+    """ compute P value, gaussian or log-normal nuisance model, w.r.t
+    SM hypothesis, analytical version:
+
+    :param obs: observed number of events
+    :param bg: number of expected background events
+    :param bgerr: error on number of expected bg events
+    :param lognormal: if true, model the enveloping nuisance parameter
+    as a lognormal instead of a normal
+    :param nmax: maximum number of toys
+    :param nmin: minimum number of toys
+
+    :returns: p-value
+    """
+    up = int ( 7 * ( bg + bgerr ) )
+    p = 0.
+    from scipy import integrate
+
+    def integrand(x,k):
+        f = scipy.stats.poisson.pmf ( k, mu=x ) * scipy.stats.norm.pdf ( x, loc=bg, scale=bgerr )
+        # f = scipy.stats.norm.pdf ( x, loc=bg, scale=bgerr )
+        if not np.isfinite ( f ):
+            f = 0
+        return f
+
+    for k in range ( obs, up ):
+        i = scipy.stats.poisson.pmf ( k, mu=bg )
+        i = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
+        if p> 0 and i[0]/p < 1e-10:
+            break
+        p += i[0]
+    return p
+
+
+    r = integrate.quad ( integrand, bg - 7*(bg+bgerr), bg )
+    return r
+
 def computeP ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False, nmax : int = 100000000,
         sigN : Union[None,float] = None, nmin : int = 50000 ) -> float:
@@ -348,20 +386,21 @@ def computeP ( obs : float, bg : float, bgerr : float,
     as a lognormal instead of a normal
     :param nmax: maximum number of toys
     :param nmin: minimum number of toys
+    :param sigN: if not none, then compute for this signal hypothesis
 
     :returns: p-value
     """
     n = min ( nmin, nmax )
     ret = 0.
+    central = bg
+    if sigN != None:
+        central = bg + sigN
     while ret < .9 / nmax or ret > 1. - .9 / nmax:
         if n > nmax:
             # print ( f"[helpers] when computing p: n={n}>{nmax}. breaking off with ret={ret} obs={obs} bg={bg} bgerr={bgerr}" )
             break
         if lognormal:
             # for lognormal and signals
-            central = bg
-            if sigN != None:
-                central = bg + sigN
             if lognormal and central > ( bgerr / 4. ):
                 loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
                 stderr = float ( np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) ) )
@@ -370,8 +409,8 @@ def computeP ( obs : float, bg : float, bgerr : float,
                 # lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
                 lmbda = fast_rvs ( "lognorm", n, s=stderr, scale=loc, loc=0. )
         else:
-            # lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
-            lmbda = fast_rvs ( "normal", n, loc=bg, scale=bgerr )
+            # lmbda = scipy.stats.norm.rvs ( loc=[central]*n, scale=[bgerr]*n )
+            lmbda = fast_rvs ( "normal", n, loc=central, scale=bgerr )
             lmbda = lmbda[lmbda>0.]
         # fakeobs = scipy.stats.poisson.rvs ( lmbda )
         fakeobs = fast_rvs ( "poisson", n, mu=lmbda )
@@ -666,3 +705,14 @@ def lightObjCopy(obj,rmAttr=['elements','avgElement', 'computer', 'txnameList',
             if key in rmAttr: continue
             setattr(newObj,lightObjCopy(key,rmAttr=rmAttr),lightObjCopy(val,rmAttr=rmAttr))
         return newObj
+
+if __name__ == "__main__":
+    obs, bg, bgerr = 1, 3., 0.3
+    import time
+    t0 = time.time()
+    p = computeP ( obs, bg, bgerr )
+    t1 = time.time()
+    print ( f"monte carlo: {p} in {t1-t0:.2f}" )
+    p_ana = computePAnalytically ( obs, bg, bgerr )
+    t2 = time.time()
+    print ( f"analytically: {p_ana} in {t2-t1:.2f}" )
