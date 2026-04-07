@@ -19,6 +19,12 @@ from typing import Union, Set, List
 import numpy as np
 from ptools.randomNumbers import fast_rvs
 
+## (fake) observations that sit exactly at the expectation
+## for p-value computation,
+## shall count them "half" (so that obs=0 -> p = 0.5)
+## or shall we count them "full" (so that obs=0 -> p = 1.0 )
+countObsAtExp = "half"
+
 def repr_double_quotes(obj):
     import json, math
     if isinstance(obj, str):
@@ -313,7 +319,7 @@ def computeZFromP ( pvalue : float ) -> float:
     return float ( - scipy.stats.norm.ppf ( pvalue ) )
 
 def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
-       nmax : int = 100000000, nmin : int = 200000 ) -> float:
+       nmax : int = 100_000_000, nmin : int = 200_000 ) -> float:
     """ given a dataset, compute p for SM hypothesis
     :param obsN: if not None, compute for the observation
     :param nmax: maximum number of toys
@@ -332,7 +338,7 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
     else:
         p = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax, nmin = nmin )
     if p < 1e-100:
-        print ( f"[helpers] {dataset.globalInfo.id}:{dataset.dataInfo.id} has p={p}" )
+        print ( f"[helpers] {dataset.globalInfo.id}:{dataset.dataInfo.dataId} has p={p}: obs={obsN}, bg={exp}+-{err}" )
     return p
 
 def computePAnalytically ( obs : float, bg : float, bgerr : float,
@@ -350,8 +356,8 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
 
     :returns: p-value
     """
-    up = int ( 7 * ( bg + bgerr ) )
-    p = 0.
+    assert obs == int(obs), f"non-integral observation {obs}"
+    obs = int ( obs )
     from scipy import integrate
 
     def integrand(x,k):
@@ -361,21 +367,95 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
             f = 0
         return f
 
+    if obs == 0:
+        # the chances of observing zero or more is always one
+        if countObsAtExp == "half":
+            i = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(0,) )
+            return 1-i[0]/2
+        return 1.
+    p = 0.
+
+
+    if obs < bg:
+        # compute the inverse!
+        down = max ( 0, int ( obs - 7 * ( bg + bgerr ) )  )
+        for k in range ( down, obs ):
+            i = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
+            if p> 0 and i[0]/p < 1e-10:
+                break
+            add = i[0]
+            if countObsAtExp == "half" and k == obs:
+                add = add/2
+            p += add
+        ret = 1 - p
+        return ret
+    p = 0.
+    up = int ( obs + 7 * ( bg + bgerr ) )
+
     for k in range ( obs, up ):
-        i = scipy.stats.poisson.pmf ( k, mu=bg )
         i = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
         if p> 0 and i[0]/p < 1e-10:
             break
-        p += i[0]
+        add = i[0]
+        # print ( f"k {k} obs {obs} countObsAtExp {countObsAtExp} add {add}" )
+        if countObsAtExp == "half" and k == obs:
+            add = i[0]/2
+        p += add
     return p
 
-
-    r = integrate.quad ( integrand, bg - 7*(bg+bgerr), bg )
-    return r
+def roughZValue ( obs : float, bg : float , bgerr : float ):
+    """ compute a very rough significance, so we know whether
+    to go analytical or monte carlo for the more exact method """
+    Z = float ( ( obs - bg ) / ( np.sqrt ( bg + bgerr**2 ) ) )
+    return Z
 
 def computeP ( obs : float, bg : float, bgerr : float,
-        lognormal : bool = False, nmax : int = 100000000,
-        sigN : Union[None,float] = None, nmin : int = 50000 ) -> float:
+        lognormal : bool = False, nmax : int = 100_000_000,
+        sigN : Union[None,float] = None, nmin : int = 200_000,
+        force : str = "any" ) -> float:
+    """ compute P value, gaussian or log-normal nuisance model, w.r.t
+    SM hypothesis
+
+    :param obs: observed number of events
+    :param bg: number of expected background events
+    :param bgerr: error on number of expected bg events
+    :param lognormal: if true, model the enveloping nuisance parameter
+    as a lognormal instead of a normal
+    :param nmax: maximum number of toys
+    :param nmin: minimum number of toys
+    :param sigN: if not none, then compute for this signal hypothesis
+    :param force: if "numerical" then force numerical method
+    if "analytical" then force analytical method
+
+    :returns: p-value
+    """
+    if force == "analytical":
+        return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+    """
+    if obs == 0:
+        print ( f"@@XF {obs} {bg}+-{bgerr}" )
+        # nmin,nmax = 1000,10000
+        ret = computePNumerically ( obs, bg, bgerr, lognormal, 
+            nmax = nmax, sigN = sigN, nmin = nmin )
+        print ( f"@@XF ret {ret}" )
+        return ret
+    """
+    if not force == "numerical":
+        if obs < 10 and not lognormal:
+            return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+        Z = roughZValue ( obs, bg, bgerr )
+        if abs(Z)>4 and obs < 100 and not lognormal:
+            ## these extremes, better do them analytically
+            return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+        if abs(Z)>5 and obs < 1000 and not lognormal:
+            ## these extremes, better do them analytically
+            return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+    return computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN, 
+            nmin = nmin, nmax = nmax )
+
+def computePNumerically ( obs : float, bg : float, bgerr : float,
+        lognormal : bool = False, nmax : int = 100_000_000,
+        sigN : Union[None,float] = None, nmin : int = 200_000 ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
 
@@ -415,7 +495,10 @@ def computeP ( obs : float, bg : float, bgerr : float,
         # fakeobs = scipy.stats.poisson.rvs ( lmbda )
         fakeobs = fast_rvs ( "poisson", n, mu=lmbda )
         ## == we count half
-        ret = float ( ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs) )
+        if countObsAtExp == "half":
+            ret = float ( ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs) )
+        else:
+            ret = float ( sum(fakeobs>=obs) / len(fakeobs) )
         n *= 5
     return ret
 
@@ -707,12 +790,18 @@ def lightObjCopy(obj,rmAttr=['elements','avgElement', 'computer', 'txnameList',
         return newObj
 
 if __name__ == "__main__":
-    obs, bg, bgerr = 1, 3., 0.3
+    obs, bg, bgerr = 2, 3., 0.3
+    obs, bg, bgerr = 0, 0.007, 0.002
+    obs, bg, bgerr = 0, 0.7, 0.4
+
     import time
+    p = computePNumerically ( obs, bg, bgerr, nmax = 10, nmin = 5 )
     t0 = time.time()
-    p = computeP ( obs, bg, bgerr )
+    p = computePNumerically ( obs, bg, bgerr )
     t1 = time.time()
     print ( f"monte carlo: {p} in {t1-t0:.2f}" )
     p_ana = computePAnalytically ( obs, bg, bgerr )
     t2 = time.time()
     print ( f"analytically: {p_ana} in {t2-t1:.2f}" )
+    p_mixed = computeP ( obs, bg, bgerr )
+    print ( f"mixed: {p_mixed} " )

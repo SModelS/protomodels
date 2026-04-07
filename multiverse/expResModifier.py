@@ -96,6 +96,8 @@ def readDatabaseDictFile ( filename : str = "default.dict",
                 if "expectedBG" in v:
                     eBG = v["expectedBG"]
     basename = os.path.basename ( filename ).replace(".dict","")
+    from ptools.helpers import countObsAtExp
+    meta["countObsAtExp"]=countObsAtExp
     return { "meta": meta, "data": newdata, "basename": basename }
 
 class ExpResModifier ( LoggerBase ):
@@ -593,7 +595,7 @@ Just filter the database:
         if self.compute_ps:
             p = self.computeP ( orig, exp, err, thirdMoment )
             self.checkIfZero ( p, dataset )
-            if True: # abs(self.fudge-1.)>1e-10:
+            if abs(self.fudge-1.)>1e-10:
                 self.comments["orig_p_fudged"]="p-value (Gaussian nuisance) of original observation (with fudge factor applied -- is this useful?)"
                 D["orig_p_fudged"]=p
                 origZ = computeZFromP ( p )
@@ -1100,7 +1102,8 @@ Just filter the database:
             meta["K_true"]=self.truth["K"]
         if "TL" in self.truth:
             meta["TL_true"]=self.truth["TL"]
-        meta["signal_model"]=self.protomodel.dict()
+        if self.protomodel != None:
+            meta["signal_model"]=self.protomodel.dict()
         #meta["protomodel"]=None
         #if self.protomodel!= None:
         #    meta["protomodel"] = f'{str(self.protomodel)}'
@@ -1467,6 +1470,7 @@ Just filter the database:
         ret = []
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
+            t0 = time.time()
             if hasattr ( expRes.globalInfo, "covariance" ):
                 self.fakeBackgroundsForSL ( expRes )
             elif hasattr ( expRes.globalInfo, "jsonFiles" ):
@@ -1481,6 +1485,10 @@ Just filter the database:
                     else:
                         print ( f"[expResModifier] dataset type {dt} unknown" )
             ret.append ( expRes )
+            t1 = time.time()
+            dt = t1 - t0
+            if dt > 3:
+                self.pprint ( f"{expRes.globalInfo.id} took {t1-t0:.2f}s" )
         self.log ( "done faking the backgrounds" )
         return ret
 

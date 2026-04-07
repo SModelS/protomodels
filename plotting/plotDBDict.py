@@ -486,6 +486,8 @@ class Plotter ( LoggerBase ):
                     if "sigN" in v:
                         sigN = v["sigN"]
                     # bgErr = v["bgError"]# /v["fudge"]
+                    if abs(v["fudge"]-1)<1e-3:
+                        v["orig_p_fudged"]=v["orig_p"]
                     if "orig_p_fudged" in v and self.likelihood == "gauss+poisson":
                         p = v["orig_p_fudged"]
                     else:
@@ -696,8 +698,11 @@ class Plotter ( LoggerBase ):
         if "weighted" in self.options:
             weighted = self.options["weighted"]
         if not "database" in self.meta:
-            self.pprint ( "error: database not defined in meta. did you pick up any dict files at all?" )
-            sys.exit()
+            if "orig_dbpath" in self.meta:
+                self.meta["database"]=self.meta["orig_dbpath"]
+            else:
+                self.pprint ( "error: database not defined in meta. did you pick up any dict files at all?" )
+                sys.exit()
         title = self.getTitle()
 
         fig, ax = plt.subplots()
@@ -801,7 +806,7 @@ class Plotter ( LoggerBase ):
                            label="SM hypothesis" )
 
         else:
-            if self.option["draw_reference"]:
+            if self.options["draw_reference"]:
                 scale = 1. / 0.39894 * .75
                 stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
                 plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
