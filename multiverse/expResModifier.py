@@ -475,6 +475,8 @@ Just filter the database:
         """ remove the ML models from updatedListOfExpRes.
         In a more refined version, we can actually compare against listOfExpRes,
         to retain situations where nobs has not changed """
+        if self.no_synthesis:
+            return # no need to remove
         for er in updatedListOfExpRes:
             if hasattr ( er.globalInfo, "mlModels" ):
                 del er.globalInfo.mlModels
