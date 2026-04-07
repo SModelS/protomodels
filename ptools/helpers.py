@@ -17,6 +17,7 @@ import scipy.stats
 from os import PathLike
 from typing import Union, Set, List
 import numpy as np
+from ptools.randomNumbers import fast_rvs
 
 def repr_double_quotes(obj):
     import json, math
@@ -356,8 +357,6 @@ def computeP ( obs : float, bg : float, bgerr : float,
         if n > nmax:
             # print ( f"[helpers] when computing p: n={n}>{nmax}. breaking off with ret={ret} obs={obs} bg={bg} bgerr={bgerr}" )
             break
-        lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
-        lmbda = lmbda[lmbda>0.]
         if lognormal:
             # for lognormal and signals
             central = bg
@@ -368,8 +367,14 @@ def computeP ( obs : float, bg : float, bgerr : float,
                 stderr = float ( np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) ) )
                 if stderr == 0.:
                     return 0.
-                lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
-        fakeobs = scipy.stats.poisson.rvs ( lmbda )
+                # lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
+                lmbda = fast_rvs ( "lognorm", n, s=stderr, scale=loc, loc=0. )
+        else:
+            # lmbda = scipy.stats.norm.rvs ( loc=[bg]*n, scale=[bgerr]*n )
+            lmbda = fast_rvs ( "normal", n, loc=bg, scale=bgerr )
+            lmbda = lmbda[lmbda>0.]
+        # fakeobs = scipy.stats.poisson.rvs ( lmbda )
+        fakeobs = fast_rvs ( "poisson", n, mu=lmbda )
         ## == we count half
         ret = float ( ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs) )
         n *= 5

@@ -3,6 +3,8 @@
 """ simple numba methods to make random number generation ultra fast
 round model. """
 
+__all__ = [ "fast_rvs" ]
+
 import numpy as np
 from numba import njit, prange
 
@@ -26,14 +28,14 @@ def lognorm_parallel(n, s, scale=1.0, loc=0.0):
 
 # POISSON
 @njit(parallel=True)
-def poisson_parallel(n, lam):
+def poisson_parallel(n, mu ):
     out = np.empty(n, dtype=np.int64)
     for i in prange(n):
-        out[i] = np.random.poisson(lam)
+        out[i] = np.random.poisson( mu[i] )
     return out
 
 def fast_rvs(dist, n, **p):
-    if n < 100000:
+    if False: # n < 100000:
         import scipy.stats
         if dist == "normal":
             return scipy.stats.norm.rvs ( [p.get("loc",0.0)]*n,
@@ -49,18 +51,23 @@ def fast_rvs(dist, n, **p):
     if dist == "lognorm":
         return lognorm_parallel(n, p["s"], p.get("scale",1.0), p.get("loc",0.0))
     if dist == "poisson":
-        return poisson_parallel(n, p["mu"])
+        arg = p["mu"]
+        if isinstance(arg,float) or isinstance(arg,np.float64):
+            arg = np.array( [ arg ]*n )
+        return poisson_parallel(n, arg )
 
 if __name__ == "__main__":
     import time
     import scipy.stats
-    x = fast_rvs ( "lognorm", 1, s=1., scale=1., loc=0. )
+    x = fast_rvs ( "poisson", 1, mu=[1.] )
     n = 100_000_000
     # n = 100000
     t0 = time.time()
-    x = fast_rvs ( "lognorm", n, s=1., scale=1., loc=0. )
+    x = fast_rvs ( "poisson", n, mu=np.array([1.]*n) )
     t1 = time.time()
-    print ( "numba", np.mean(x), np.std(x), t1-t0 )
+    print ( "numba", x, np.mean(x), np.std(x), t1-t0 )
+    """
     x = scipy.stats.lognorm.rvs ( s=[1.]*n, scale=[1.]*n, loc=[0.]*n )
     t2 = time.time()
     print ( "scipy", np.mean(x), np.std(x), t2-t1 )
+    """

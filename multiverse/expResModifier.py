@@ -41,6 +41,11 @@ from typing import Dict, List, Text, Callable, Union
 # from icecream import ic
 from smodels_utils.helper.terminalcolors import *
 
+from smodels.base.runtime import _deltas_rel_default
+from smodels.statistics.statsTools import StatsComputer
+from smodels.experiment.datasetObj import CombinedDataSet
+import pyhf
+
 logger.setLevel("ERROR")
 
 hasWarned = { "noupperlimits": 0 }
@@ -466,6 +471,14 @@ Just filter the database:
                 self.info ( f"{er.globalInfo.id} has only empty datasets, will remove." )
         return ret
 
+    def removeMLModels ( self, updatedListOfExpRes : list, listOfExpRes : list ):
+        """ remove the ML models from updatedListOfExpRes.
+        In a more refined version, we can actually compare against listOfExpRes,
+        to retain situations where nobs has not changed """
+        for er in updatedListOfExpRes:
+            if hasattr ( er.globalInfo, "mlModels" ):
+                del er.globalInfo.mlModels
+
     def modifyDatabase ( self ):
         """ modify the database, possibly write out to a pickle file
         :param outfile: if not empty, write the database into file
@@ -490,13 +503,12 @@ Just filter the database:
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
         self.produceProtoModel ( self.pmodel, self.db.databaseVersion,
                                  self.allowN1N1Prod )
-        # print ( "pm produced", os.path.exists ( self.protomodel.currentSLHA ) )
         self.log ( f"{len(listOfExpRes)} results before faking bgs" )
         updatedListOfExpRes = self.fakeBackgrounds ( listOfExpRes )
-        # print ( "fb produced", os.path.exists ( self.protomodel.currentSLHA ) )
         self.log ( f"{len(updatedListOfExpRes)} results after faking bgs" )
         updatedListOfExpRes = self.addSignals ( updatedListOfExpRes )
         self.log ( f"{len(updatedListOfExpRes)} results after adding signals" )
+        self.removeMLModels ( updatedListOfExpRes, listOfExpRes )
         if hasattr ( self.db, "subs" ): ## for smodels 2.1
             self.db.subs[0].expResultList = updatedListOfExpRes
             self.db.subs = [ self.db.subs[0] ]
@@ -1366,10 +1378,6 @@ Just filter the database:
         #srNsigDict.update({pred.dataset.getID() :
         #              (pred.xsection*pred.dataset.getLumi()).asNumber()
         #              for pred in self.datasetPredictions})
-        from smodels.base.runtime import _deltas_rel_default
-        from smodels.statistics.statsTools import StatsComputer
-        from smodels.experiment.datasetObj import CombinedDataSet
-        import pyhf
 
         #create combined dataset for pyhf pred
         cdataset = CombinedDataSet ( expRes )
@@ -1450,8 +1458,6 @@ Just filter the database:
                 self.replaceObservation ( expRes, sr, newObs, ws_i )
                 # this replaces the observation in the json with the new bg
 
-        #if anaId == "ATLAS-SUSY-2018-31":
-        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
 
     def fakeBackgrounds ( self, listOfExpRes ):
