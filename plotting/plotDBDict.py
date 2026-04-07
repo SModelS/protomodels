@@ -625,7 +625,10 @@ class Plotter ( LoggerBase ):
     def getTitle ( self ):
         """ determine the plot title """
         dbname = os.path.basename ( self.meta["database"] )
-        title = f"SModelS database v{dbname}"
+        vdbname = f"v{dbname}"
+        if dbname in [ "official" ]:
+            vdbname = f"'{dbname}'"
+        title = f"SModelS database {vdbname}"
         if "+" in dbname: ## too long
             title = f"v{dbname}"
         # title = f"$p$-values, SModelS database v{dbname}"
