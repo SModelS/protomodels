@@ -23,7 +23,8 @@ from ptools.randomNumbers import fast_rvs
 ## for p-value computation,
 ## shall count them "half" (so that obs=0 -> p = 0.5)
 ## or shall we count them "full" (so that obs=0 -> p = 1.0 )
-countObsAtExp = "half"
+# countObsAtExp = "half"
+countObsAtExp = "full"
 
 def repr_double_quotes(obj):
     import json, math
@@ -369,10 +370,10 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
 
     if obs == 0:
         # the chances of observing zero or more is always one
+        i,e = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(0,) )
         if countObsAtExp == "half":
-            i = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(0,) )
-            return 1-i[0]/2
-        return 1.
+            return 1-i/2
+        return 1.-i
     p = 0.
 
 
@@ -380,12 +381,12 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
         # compute the inverse!
         down = max ( 0, int ( obs - 7 * ( bg + bgerr ) )  )
         for k in range ( down, obs ):
-            i = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
-            if p> 0 and i[0]/p < 1e-10:
+            i,e = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
+            if p> 0 and i/p < 1e-10:
                 break
-            add = i[0]
+            add = i
             if countObsAtExp == "half" and k == obs:
-                add = add/2
+                add = i/2
             p += add
         ret = 1 - p
         return ret
@@ -393,13 +394,13 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
     up = int ( obs + 7 * ( bg + bgerr ) )
 
     for k in range ( obs, up ):
-        i = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
-        if p> 0 and i[0]/p < 1e-10:
+        i,e = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
+        if p> 0 and i/p < 1e-10:
             break
-        add = i[0]
+        add = i
         # print ( f"k {k} obs {obs} countObsAtExp {countObsAtExp} add {add}" )
         if countObsAtExp == "half" and k == obs:
-            add = i[0]/2
+            add = i/2
         p += add
     return p
 
@@ -797,7 +798,8 @@ if __name__ == "__main__":
     import time
     p = computePNumerically ( obs, bg, bgerr, nmax = 10, nmin = 5 )
     t0 = time.time()
-    p = computePNumerically ( obs, bg, bgerr )
+    p = 1.
+    # p = computePNumerically ( obs, bg, bgerr )
     t1 = time.time()
     print ( f"monte carlo: {p} in {t1-t0:.2f}" )
     p_ana = computePAnalytically ( obs, bg, bgerr )
