@@ -364,13 +364,15 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
     def integrand(x,k):
         f = scipy.stats.poisson.pmf ( k, mu=x ) * scipy.stats.norm.pdf ( x, loc=bg, scale=bgerr )
         # f = scipy.stats.norm.pdf ( x, loc=bg, scale=bgerr )
-        if not np.isfinite ( f ):
-            f = 0
+        #if not np.isfinite ( f ):
+        #    f = 0
         return f
 
+    lo,hi = max(0,bg - 5*(bg+bgerr)), bg + 5*(bg+bgerr)
     if obs == 0:
         # the chances of observing zero or more is always one
-        i,e = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(0,) )
+        i,e = integrate.quad ( integrand, lo, hi, args=(0,),
+                               epsabs = 1e-5, epsrel = 1e-5 )
         if countObsAtExp == "half":
             return 1-i/2
         return 1.-i
@@ -381,7 +383,9 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
         # compute the inverse!
         down = max ( 0, int ( obs - 7 * ( bg + bgerr ) )  )
         for k in range ( down, obs ):
-            i,e = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
+            #lo, hi = max(0, k - 5*(bg+bgerr)), k + 5*(bg+bgerr)
+            i,e = integrate.quad ( integrand, lo, hi, args=(k,),
+                                   epsabs = 1e-5, epsrel = 1e-5 )
             add = i
             if countObsAtExp == "half" and k == obs:
                 add = i/2
@@ -394,7 +398,9 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
     up = int ( obs + 7 * ( bg + bgerr ) )
 
     for k in range ( obs, up ):
-        i,e = integrate.quad ( integrand, bg - 5*(bg+bgerr), bg + 5*(bg+bgerr), args=(k,) )
+        # lo, hi = max(0, k - 5*(bg+bgerr)), k + 5*(bg+bgerr)
+        i,e = integrate.quad ( integrand, lo, hi, args=(k,),
+                               epsabs = 1e-5, epsrel = 1e-5 )
         add = i
         # print ( f"k {k} obs {obs} countObsAtExp {countObsAtExp} add {add}" )
         if countObsAtExp == "half" and k == obs:
@@ -432,15 +438,6 @@ def computeP ( obs : float, bg : float, bgerr : float,
     """
     if force == "analytical":
         return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
-    """
-    if obs == 0:
-        print ( f"@@XF {obs} {bg}+-{bgerr}" )
-        # nmin,nmax = 1000,10000
-        ret = computePNumerically ( obs, bg, bgerr, lognormal, 
-            nmax = nmax, sigN = sigN, nmin = nmin )
-        print ( f"@@XF ret {ret}" )
-        return ret
-    """
     if not force == "numerical":
         if obs < 10 and not lognormal:
             return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
@@ -451,7 +448,7 @@ def computeP ( obs : float, bg : float, bgerr : float,
         if abs(Z)>5 and obs < 1000 and not lognormal:
             ## these extremes, better do them analytically
             return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
-    return computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN, 
+    return computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN,
             nmin = nmin, nmax = nmax )
 
 def computePNumerically ( obs : float, bg : float, bgerr : float,
@@ -505,7 +502,7 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
 
 def computePSLv2 ( obs : float, bg : float, bgerr : float,
         third : float, nmax : int = 100000000,
-	      nmin : int = 200000 ) -> float:
+        nmin : int = 200000 ) -> float:
     """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2
 
     :param obs: observed number of events
@@ -522,7 +519,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
     while 8*bgerr**6 - third**2 < 0.:
         if printErr:
             ## FIXME ugly hack, shrink the third momenta
-            print ( f"[helpers] third moments too large (bgerr**2={bgerr**2:.3g}, third={third:.3g}). shrink them!" )
+            print ( f"[helpers] third moments too large (bgerr**2={bgerr**2:.3g}, third={third:.3g}, db={8*bgerr**6 - third**2}). shrink them!" )
             printErr = False
         third *= 0.9
     d = Data ( obs, bg, bgerr**2, third )
