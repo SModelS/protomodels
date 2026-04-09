@@ -744,7 +744,8 @@ Just filter the database:
         self.log ( f"add EM matching tpred {tpred.analysisId()}/{tpred.dataId()} {','.join(txns)}: {tpred.xsection.asNumber(fb):.2g} fb" )
         label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
         if not label in self.stats:
-            print ( f"[expResModifier] {label} not found in stats! (dunno if that is a problem)" )
+            if not "CR" in label:
+                print ( f"[expResModifier] {label} not found in stats! (dunno if that is a problem)" )
             return dataset
         orig = dataset.dataInfo.observedN
         sigLambda = float ( tpred.xsection * lumi )
@@ -1148,7 +1149,6 @@ Just filter the database:
         """ thats the method that adds a typical signal """
         if self.protomodel == None:
             return listOfExpRes
-        ret = []
         self.produceTopoList()
         ctr,els = 0, ""
         for topo in self.topos:
@@ -1165,10 +1165,9 @@ Just filter the database:
         for l,expRes in enumerate(listOfExpRes):
             self.db.selectExpResults ( analysisIDs = [ expRes.globalInfo.id ] )
             print ( ".", flush=True, end="" )
-            tpreds = theoryPredictionsFor ( self.db, self.topos, useBestDataset=False,
-                                            combinedResults=False )
+            tpreds = theoryPredictionsFor ( self.db, self.topos,
+                    useBestDataset=False, combinedResults=False )
             if tpreds == None:
-                ret.append ( expRes )
                 continue
             lumi = expRes.globalInfo.lumi
             for i,dataset in enumerate(expRes.datasets):
