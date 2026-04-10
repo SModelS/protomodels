@@ -519,7 +519,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
     while 8*bgerr**6 - third**2 < 0.:
         if printErr:
             ## FIXME ugly hack, shrink the third momenta
-            print ( f"[helpers] third moments too large (bgerr**2={bgerr**2:.3g}, third={third:.3g}, db={8*bgerr**6 - third**2}). shrink them!" )
+            print ( f"[helpers] third moments too large: bgerr**2={bgerr**2:.2g}, third={third:.2g}, db={8*bgerr**6 - third**2:.2g}. shrinking!" )
             printErr = False
         third *= 0.9
     d = Data ( obs, bg, bgerr**2, third )

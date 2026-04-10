@@ -677,11 +677,18 @@ class Manipulator ( LoggerBase ):
                     nll = i.nll ( mu=1.  )
                     nll_sm = i.nll ( mu=0.  )
                     chi2_v = 2 * ( nll_sm - nll )
-                    p = chi2.cdf ( chi2_v, df=1 )
+                    sign = ""
+                    if chi2_v < 0.:
+                        # if the SM is actually the better fit, lets just
+                        # revert the roles, neither is really nll_min though
+                        chi2_v = abs ( chi2_v )
+                        sign = "-"
+                    df = 1
+                    p = chi2.cdf ( chi2_v, df= df )
                     from ptools.helpers import computeZFromP
                     Z = computeZFromP ( 1. - p )
                     # line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Zold={Zold:.1f} Z={RED}{Z:.1f}*sigma{RESET}"
-                    line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={RED}{Z:.1f}*sigma{RESET}"
+                    line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={RED}{sign}{Z:.1f}*sigma{RESET}"
                     print ( line )
             if add_nlls:
                 nll = i.nll ( mu=1.  )
