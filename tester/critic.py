@@ -35,7 +35,7 @@ except Exception as e:
     pass
 
 class Critic ( LoggerBase ):
-    def __init__ ( self, walkerid : Union[str,int], 
+    def __init__ ( self, walkerid : Union[str,int],
             environ : RunEnviron,
             expected : bool = False ):
         """
@@ -49,7 +49,7 @@ class Critic ( LoggerBase ):
         self.r_threshold = 1.33
         self.sensitivity_threshold = 0.7
         self.verbose = 1
-        
+
         self.fetchResults()
         self.combiner = Combiner(self.walkerid)
 
@@ -80,7 +80,7 @@ class Critic ( LoggerBase ):
             for expRes in self.listOfExpRes:
                 f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
             f.close()
-    
+
     def updateModelPredictionsWithULPreds(self, protomodel, predictions, keep_predictions):
         """ Extract information from list of theory predictions and store list of dict with r_obs,
             r_exp and theory prediction(sorted according to decreasing r_obs values) in the protomodel.
@@ -144,7 +144,7 @@ class Critic ( LoggerBase ):
         return
 
 
-    def updateModelPredictionsWithCombinedPreds(self, 
+    def updateModelPredictionsWithCombinedPreds(self,
             protomodel, mostSensiComb, robsComb : float, rexpComb : float ):
         """ Extract information from list of theory predictions and store r_obs from
             the most sensitive combination of analyses in the protomodel.
@@ -200,7 +200,7 @@ class Critic ( LoggerBase ):
         ulpreds = []
 
         try:
-            theoryPredictions = theoryPredictionsFor ( self.environ.database, 
+            theoryPredictions = theoryPredictionsFor ( self.environ.database,
                     topos, useBestDataset=True, combinedResults=combineSRs )
         except Exception as e:
             import time
@@ -235,18 +235,18 @@ class Critic ( LoggerBase ):
 
         return predictions
 
-    def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb, 
-            mingap = 10*GeV, mingapISR = 1*GeV, keep_predictions : bool = True, 
+    def predict_critic(self, protomodel : ProtoModel, sigmacut = 0.02*fb,
+            mingap = 10*GeV, mingapISR = 1*GeV, keep_predictions : bool = True,
             keep_slhafile : bool = False ) -> Tuple[bool,Text]:
-        """ Compute the critic predictions and statistical variables, 
+        """ Compute the critic predictions and statistical variables,
         for a protomodel. Exposes the model to _both_ critics!
 
         :param sigmacut: weight cut on the predict xsecs for theoryPredictions
-        :param keep_predictions: if True, then keep *all* predictions -- 
+        :param keep_predictions: if True, then keep *all* predictions --
         not just the one that make it into the combination, store them as
-        protomodel(self).predictions. Store the predictions for the critic in 
+        protomodel(self).predictions. Store the predictions for the critic in
         protomodel(self).critic_preds.
-        :param keep_slhafile: if True, then keep the temporary slha file, 
+        :param keep_slhafile: if True, then keep the temporary slha file,
         print out its name
 
         :returns: Tuple[bool, Text]: bool is False, if the critic failed, true if passed
@@ -262,9 +262,11 @@ class Critic ( LoggerBase ):
         num_preds = 0
         # --- UL-based critic ---
 
-        # Run SModelS to get for UL-type predictions, and best SR preditcions if no UL-type result.
+        # Run SModelS to get for UL-type predictions,
+        # and best SR preditcions if no UL-type result.
         UL_preds, bestSR_preds = None, None
-        rSM = self.runSModelS( slhafile, combineSRs=False, ULpreds=True, sigmacut=sigmacut, mingap=mingap, mingapISR=mingapISR)
+        rSM = self.runSModelS( slhafile, combineSRs=False, ULpreds=True,
+                sigmacut=sigmacut, mingap=mingap, mingapISR=mingapISR)
         if rSM not in ( None, [] ):
             UL_preds, bestSR_preds = rSM
 
@@ -273,7 +275,7 @@ class Critic ( LoggerBase ):
         allowed_by_ul_critic, n_sensitive, n_excluding = self.ul_critic(protomodel, predictions)
         if n_sensitive: num_preds = n_sensitive
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictionsWithULPreds(protomodel, predictions, 
+        self.updateModelPredictionsWithULPreds(protomodel, predictions,
                 keep_predictions)
 
         if not allowed_by_ul_critic:
@@ -291,7 +293,7 @@ class Critic ( LoggerBase ):
         allowed_by_llhd_critic, mostSensiComb, robsComb, rexpComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
         if mostSensiComb: num_preds += len(predictions)
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictionsWithCombinedPreds(protomodel, 
+        self.updateModelPredictionsWithCombinedPreds(protomodel,
                 mostSensiComb, robsComb, rexpComb)
 
         if keep_slhafile:
@@ -336,7 +338,7 @@ class Critic ( LoggerBase ):
 
     def ul_critic(self, protomodel, predictions : List,
            keep_predictions : bool = False ) -> Tuple[bool,int,int]:
-        """ UL-based critic (can also use best SR results if no UL-type result 
+        """ UL-based critic (can also use best SR results if no UL-type result
         available for a given analysis).
 
         :param predictions: list of theory predictions (UL-type and EM-type)
@@ -391,24 +393,24 @@ class Critic ( LoggerBase ):
 
         max_allowed = max ( max_allowed, 1 )
 
-        protomodel.ul_critic = {'n_sensitive': n_sensitive, 
-            'n_excluding': n_excluding, 'max_allowed': max_allowed, 
+        protomodel.ul_critic = {'n_sensitive': n_sensitive,
+            'n_excluding': n_excluding, 'max_allowed': max_allowed,
             'passes': max_allowed >= n_excluding}
 
         self.log(f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}")
         return max_allowed >= n_excluding, n_sensitive, n_excluding
 
 
-    def llhd_critic(self, predictions, cut : float =0, 
+    def llhd_critic(self, predictions, cut : float =0,
             keep_predictions : bool = False) -> Tuple:
         """ llhd-based critic.
 
-        :param predictions: list of theory predictions (EM-type only). 
+        :param predictions: list of theory predictions (EM-type only).
         Combined dataset when available, best SR otherwise.
-        :param cut: theory predictions giving an r_exp below this cut will 
+        :param cut: theory predictions giving an r_exp below this cut will
         not enter the combination
 
-        :returns: tuple of: final decision(bool), most sensitive combination, 
+        :returns: tuple of: final decision(bool), most sensitive combination,
         robs_comb, rexp_comb.
         final decision: False if the critic excludes the model, else True.
         """
