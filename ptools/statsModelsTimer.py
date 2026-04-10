@@ -22,6 +22,9 @@ def printTimes():
     for k,v in sorted_pairs:
         print ( f"{k:20} {v:.2f}s" )
 
+def reset():
+    statsForStats, curTimings = {}, {}
+
 def start(name, owner, args, kwargs):
     """ start the timing """
     # owner is instance for instance methods, class for classmethods, 
