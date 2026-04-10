@@ -2,7 +2,7 @@
 
 """
 .. module:: hiscoreCLI
-   :synposis: a command line interface to hiscore lists. to browser, interact,
+   :synopsis: a command line interface to hiscore lists. to browser, interact,
     experiment.
 
 .. moduleauthor:: Wolfgang Waltenberger <wolfgang.waltenberger@gmail.com>
@@ -12,6 +12,7 @@
 import os, sys
 pmpath =os.path.abspath ( f"{os.path.dirname (  __file__ )}/../../" )
 sys.path.insert(0,pmpath)
+from protomodels.ptools import statsModelsTimer
 
 from typing import Union
 from smodels_utils.helper.terminalcolors import LIGHTGREEN, RESET, CYAN
@@ -89,6 +90,7 @@ def cli( infile : str = "hiscores_global.dict",
     cr = Critic ( walkerid, environ = environ )
     pprint ( f"{YELLOW}pr.predict(ma,keep_predictions=True,force_computation_K=False,{RESET}" )
     pprint ( f"{YELLOW}           keep_slhafile=True{RESET}" )
+    pprint ( f"{RED}statsModelsTimer{RESET}" )
     pr.predict( ma, keep_predictions=True, force_computation_K=False,
                 keep_slhafile=True )
 
