@@ -12,7 +12,7 @@
 import os, sys
 pmpath =os.path.abspath ( f"{os.path.dirname (  __file__ )}/../../" )
 sys.path.insert(0,pmpath)
-from protomodels.ptools import statsModelsTimer
+from ptools import statsModelsTimer
 
 from typing import Union
 from smodels_utils.helper.terminalcolors import LIGHTGREEN, RESET, CYAN
