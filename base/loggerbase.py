@@ -28,11 +28,11 @@ class LoggerBase:
         # self.printHigherThan = "critical"
         module = str(type(self)).replace("<class '","").replace("'>","")
         p1 = module.find(".")
+        p2 = module.rfind(".")
         if module.count(".")==2:
-            p2 = module.rfind(".")
             self.module = module[p1+1:p2]
         else:
-            self.module = module[p1+1:]
+            self.module = module[p2+1:]
         helpers.mkdir ( self.logdir )
 
     def getVerbosity ( self, verbosity : Union[int,str] ) -> int:
