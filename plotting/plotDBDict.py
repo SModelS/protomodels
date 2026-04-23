@@ -752,7 +752,7 @@ class Plotter ( LoggerBase ):
         stacked = True
         alpha = [ 1., 1., 1. ]
         if self.options["no_stacked"]==True:
-            histtype="stepfilled"
+            histtype="step"
             stacked = False
             alpha = [ 1., .5, .5 ]
 
@@ -760,7 +760,8 @@ class Plotter ( LoggerBase ):
         for xi,wi,li,ci,ai in zip ( x, wlist, labels, colors, alpha ):
             (n,bins_out,patches) = plt.hist ( xi, weights = wi, bins=bins,
                        label= li, color= ci, stacked=stacked,
-                       histtype=histtype, alpha=ai )
+                       histtype=histtype, alpha=ai,
+                       linewidth=2 )
             n_list.append(n)
             patches_list.append ( patches )
         H1 =  ( n_list, bins_out, patches_list )
