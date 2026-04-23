@@ -50,7 +50,7 @@ class Plotter ( LoggerBase ):
         :param topologies: if not None, then filter for these topologies (e.g. T2tt)
         :param unscale: unscale, i.e. use the fudged bgError also for computing likelihoods
         :param signalmodel: use the signal+bg model for computing likelihoods
-        :param filtersigma: filter out signal regions with 
+        :param filtersigma: filter out signal regions with
         expectedBG/bgErr < filtersigma
         :param collaboration: select a specific collaboration
         :param fakes: add fakes to the plot
@@ -269,7 +269,7 @@ class Plotter ( LoggerBase ):
         return False
 
     def filterByTime ( self, D : Dict ) -> bool:
-        """ filter by time, let everything before self.before pass! 
+        """ filter by time, let everything before self.before pass!
         :returns: true means pass the filter
         """
         if self.before == None:
@@ -342,7 +342,7 @@ class Plotter ( LoggerBase ):
             self.data[ret["basename"]] = newdata
 
     def getSqrts100 ( self, anaid : str, lumi : Union[int,float] ) -> str:
-        """ get the sqrts of anaid plus > 100 fb^-1 lumi, as string 
+        """ get the sqrts of anaid plus > 100 fb^-1 lumi, as string
         :param anaid: e.g. CMS-SUS-20-004
         :param lumi: lumi as number in 1/fb, e.g. 136
         :returns: e.g. '13_gt'
@@ -573,7 +573,7 @@ class Plotter ( LoggerBase ):
         """
         origt = self.origtopos.replace(" ","").replace(",","_")
         flt = f"_{origt}{'_not'.join(self.negative_topologies)}"
-        flt += "_".join(self.analyses) # 
+        flt += "_".join(self.analyses) #
         if len(self.negativeanalyses)>0:
             flt += "_not"
             flt += "_not".join(self.negativeanalyses )
@@ -748,8 +748,17 @@ class Plotter ( LoggerBase ):
             if f"color{i}" in self.options:
                 colors[i] = self.options[f"color{i}"]
 
-        H1 = plt.hist ( x, weights = wlist, bins=bins, histtype="bar",
-                   label= labels, color= colors, stacked=True )
+        histtype="bar"
+        stacked = True
+        alpha = [ 1., 1., 1. ]
+        if self.options["no_stacked"]==True:
+            histtype="stepfilled"
+            stacked = False
+            alpha = .5
+
+        H1 = plt.hist ( x, weights = wlist, bins=bins,
+                   label= labels, color= colors, stacked=stacked,
+                   histtype=histtype, alpha=alpha )
         if "yrange" in self.options and self.options["yrange"]!=None:
             ax = plt.gca()
             ax.set_ylim(self.options["yrange"])
@@ -789,10 +798,18 @@ class Plotter ( LoggerBase ):
                 linewidth = 3
                 if not self.pvalues:
                     linewidth = 2
+                histtype = "step"
+                alpha = 1.
+                stacked = True
+                if self.options["no_stacked"] == True:
+                    stacked = False
+                    histtype = "stepfilled"
+                    alpha = .5
                 H2 = plt.hist ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
                         Pfake["13_gt"] ] ), weights = fweights, bins=bins,
-                        stacked=True, zorder=9, label="synthetic SM-only data",
-                        color=["red" ], linewidth=linewidth, histtype="step" )
+                        stacked=stacked, zorder=9, label="synthetic SM-only data",
+                        color=["red" ], linewidth=linewidth, histtype=histtype,
+                        alpha=alpha )
         self.discussPs ( P, Pfake, weights, weightsfake )
         loc, bbox_to_anchor = "best", None
         _, stdnmx = list (self.getBins ( 100 ) )
@@ -885,6 +902,8 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '-c', '--comment', nargs='?',
             help='an optional comment, to put in the plot [None]',
             type=str, default=None )
+    argparser.add_argument ( '--no_stacked',
+            help='do not stack', action="store_true" )
     argparser.add_argument ( '-u', '--unscale',
             help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
     argparser.add_argument ( '--nosuperseded',
@@ -980,7 +999,7 @@ def getArgs( cmdline = None ):
             print ( f"         {YELLOW}''{descr}''{RESET}" )
         print ( )
         sys.exit()
-        
+
     if type(args.options) == str:
         args.options = eval ( args.options )
     if args.options is None:
