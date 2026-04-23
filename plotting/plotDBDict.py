@@ -754,11 +754,16 @@ class Plotter ( LoggerBase ):
         if self.options["no_stacked"]==True:
             histtype="stepfilled"
             stacked = False
-            alpha = .5
+            alpha = [ 1., .5, .5 ]
 
-        H1 = plt.hist ( x, weights = wlist, bins=bins,
-                   label= labels, color= colors, stacked=stacked,
-                   histtype=histtype, alpha=alpha )
+        n_list, patches_list = [], []
+        for xi,wi,li,ci,ai in zip ( x, wlist, labels, colors, alpha ):
+            (n,bins_out,patches) = plt.hist ( xi, weights = wi, bins=bins,
+                       label= li, color= ci, stacked=stacked,
+                       histtype=histtype, alpha=ai )
+            n_list.append(n)
+            patches_list.append ( patches )
+        H1 =  ( n_list, bins_out, patches_list )
         if "yrange" in self.options and self.options["yrange"]!=None:
             ax = plt.gca()
             ax.set_ylim(self.options["yrange"])
