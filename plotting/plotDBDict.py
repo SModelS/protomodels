@@ -833,10 +833,28 @@ class Plotter ( LoggerBase ):
 
         else:
             if self.options["draw_reference"]:
-                scale = 1. / 0.39894 * .75
-                stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
-                plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
-                           label="standard normal" )
+                if True:
+                    nmcolor = "tab:blue"
+                    scale = 1. / 0.39894 * .75
+                    stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+                    plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
+                               label="standard normal" )
+                else:
+                    nmcolor = "tab:blue"
+                    scale = 1. / 0.39894 * .75
+                    stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+                    plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
+                               label="" )
+                    nmcolor = "tab:red"
+                    scale = 1. / 0.39894 * .75 *.6
+                    stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+                    plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
+                               label="" )
+                    nmcolor = "tab:red"
+                    scale = 0. / 0.39894 * .75 *.6
+                    stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+                    plt.plot ( stdnmx, stdnmy, c="black", linestyle="dotted",
+                               label="dotted: standard normals" )
         if nLegendEntries > 1 or self.options["alwayslegend"]:
             legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.2),
                     bbox_to_anchor = bbox_to_anchor )
