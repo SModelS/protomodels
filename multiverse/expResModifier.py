@@ -146,6 +146,8 @@ Just filter the database:
           prediction as the background yield, dont draw from Poissonian
           - seed: if int and not None, set random number seed
           - ulmassscale: maximum distance (in GeV) for the euclidean space in
+          - nMCMC_min: minimum number of MCMC events for p-value computation
+          - nMCMC_max: maximum number of MCMC events for p-value computation
           masses, for a signal to populate an UL map
         """
         super ( ExpResModifier, self ).__init__ ( "erm" )

@@ -440,16 +440,20 @@ def computeP ( obs : float, bg : float, bgerr : float,
         return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
     if not force == "numerical":
         if obs < 10 and not lognormal:
-            return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+            ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+            return ret
         Z = roughZValue ( obs, bg, bgerr )
         if abs(Z)>4 and obs < 100 and not lognormal:
             ## these extremes, better do them analytically
-            return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+            ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+            return ret
         if abs(Z)>5 and obs < 1000 and not lognormal:
             ## these extremes, better do them analytically
-            return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
-    return computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN,
+            ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+            return ret
+    ret = computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN,
             nmin = nmin, nmax = nmax )
+    return ret
 
 def computePNumerically ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False, nmax : int = 100_000_000,

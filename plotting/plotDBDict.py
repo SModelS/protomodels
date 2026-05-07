@@ -228,11 +228,13 @@ class Plotter ( LoggerBase ):
         self.topologies = []
         self.select_topologies = []
         self.ignore_sqrts = False
+        self.filternegativesigma = None
         self.negative_topologies = []
         self.negativeanalyses = []
         self.outfile = "not_specified.png"
         self.title = None
-        self.options = { "alwayslegend": False }
+        self.options = { "alwayslegend": False, "no_stacked": False,
+                         "draw_reference": True }
         self.yrange = None
         self.unscale = False
         self.signalmodel = False
@@ -245,13 +247,13 @@ class Plotter ( LoggerBase ):
 
     def determineZmax ( self ):
         """ obtain self.Zmax from data """
-        Zmax = 0.
+        Zmax = 2.
         for dictfile,filecontent in self.data.items():
             for anaid,values in filecontent.items():
                 if not "orig_Z_fudged" in values:
                     # if no fudged version in values, then use original version
-                    # self.pprint ( "no orig_Z_fudged in dictionaries, did you forget the '-C' flag when calling expResModifier.py?" )
-                    # sys.exit(-1)
+                    #self.pprint ( "no orig_Z_fudged in dictionaries, did you forget the '-C' flag when calling expResModifier.py? {values}" )
+                    #sys.exit(-1)
                     if values["orig_Z"] > Zmax and np.isfinite ( values["orig_Z"] ):
                         Zmax = values["orig_Z"]
                 else:
@@ -757,14 +759,19 @@ class Plotter ( LoggerBase ):
             alpha = [ 1., .5, .5 ]
 
         n_list, patches_list = [], []
-        for xi,wi,li,ci,ai in zip ( x, wlist, labels, colors, alpha ):
-            (n,bins_out,patches) = plt.hist ( xi, weights = wi, bins=bins,
-                       label= li, color= ci, stacked=stacked,
-                       histtype=histtype, alpha=ai,
-                       linewidth=2 )
-            n_list.append(n)
-            patches_list.append ( patches )
-        H1 =  ( n_list, bins_out, patches_list )
+        if stacked:
+            H1 = plt.hist ( x, weights = wlist, bins=bins,
+                       label= labels, color= colors,
+                       histtype="bar", stacked = True )
+        else:
+            for xi,wi,li,ci,ai in zip ( x, wlist, labels, colors, alpha ):
+                (n,bins_out,patches) = plt.hist ( xi, weights = wi, bins=bins,
+                           label= li, color= ci, stacked=stacked,
+                           histtype=histtype, alpha=ai,
+                           linewidth=2 )
+                n_list.append(n)
+                patches_list.append ( patches )
+            H1 =  ( n_list, bins_out, patches_list )
         if "yrange" in self.options and self.options["yrange"]!=None:
             ax = plt.gca()
             ax.set_ylim(self.options["yrange"])
@@ -834,7 +841,7 @@ class Plotter ( LoggerBase ):
         else:
             if self.options["draw_reference"]:
                 if True:
-                    nmcolor = "tab:blue"
+                    nmcolor = "black"
                     scale = 1. / 0.39894 * .75
                     stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
                     plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
