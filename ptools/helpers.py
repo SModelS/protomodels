@@ -322,7 +322,7 @@ def computeZFromP ( pvalue : float ) -> float:
     return float ( - scipy.stats.norm.ppf ( pvalue ) )
 
 def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
-       nmax : int = 100_000_000, nmin : int = 200_000 ) -> float:
+       nmax : int = 200_000, nmin : int = 50_000 ) -> float:
     """ given a dataset, compute p for SM hypothesis
     :param obsN: if not None, compute for the observation
     :param nmax: maximum number of toys
@@ -419,8 +419,8 @@ def roughZValue ( obs : float, bg : float , bgerr : float ):
     return Z
 
 def computeP ( obs : float, bg : float, bgerr : float,
-        lognormal : bool = False, nmax : int = 100_000_000,
-        sigN : Union[None,float] = None, nmin : int = 200_000,
+        lognormal : bool = False, nmax : int = 200_000,
+        sigN : Union[None,float] = None, nmin : int = 50_000,
         force : str = "any" ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
@@ -465,8 +465,8 @@ def computeP ( obs : float, bg : float, bgerr : float,
     return ret
 
 def computePNumerically ( obs : float, bg : float, bgerr : float,
-        lognormal : bool = False, nmax : int = 100_000_000,
-        sigN : Union[None,float] = None, nmin : int = 200_000 ) -> float:
+        lognormal : bool = False, nmax : int = 200_000,
+        sigN : Union[None,float] = None, nmin : int = 50_000 ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
 
@@ -514,8 +514,8 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
     return ret
 
 def computePSLv2 ( obs : float, bg : float, bgerr : float,
-        third : float, nmax : int = 100000000,
-        nmin : int = 200000 ) -> float:
+        third : float, nmax : int = 200_000,
+        nmin : int = 50_000 ) -> float:
     """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2
 
     :param obs: observed number of events

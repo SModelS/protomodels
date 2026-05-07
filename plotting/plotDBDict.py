@@ -494,7 +494,9 @@ class Plotter ( LoggerBase ):
                         p = v["orig_p_fudged"]
                     else:
                         if not hasComplained:
-                            self.pprint ( "computing the p-values -- this might take a while, so consider doing this at expResModifier.py" )
+                            self.pprint ( "computing the fudged p-values -- this might take a while" )
+                            if abs(v["fudge"]-1)<1e-3:
+                                self.error ( f"fudge factor is {v['fudge']} so consider computing this at expResModifier" )
                             hasComplained = True
                         lognormal = False
                         if self.likelihood == "lognormal+poisson":
