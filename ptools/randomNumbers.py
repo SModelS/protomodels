@@ -6,8 +6,9 @@ round model. """
 __all__ = [ "fast_rvs" ]
 
 import numpy as np
-from numba import njit, prange
+from numba import njit, prange, set_num_threads
 
+# set_num_threads(4)
 parallel = True
 
 # NORMAL
@@ -32,7 +33,10 @@ def lognorm_parallel(n, s, scale=1.0, loc=0.0):
 def poisson_parallel(n, mu ):
     out = np.empty(n, dtype=np.int64)
     for i in prange(n):
-        out[i] = np.random.poisson( mu[i] )
+        lam = mu[i]
+        if lam < 0.:
+            lam = 0.0
+        out[i] = np.random.poisson( lam )
     return out
 
 def fast_rvs(dist, n, **p):
