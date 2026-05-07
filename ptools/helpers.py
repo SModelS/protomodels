@@ -26,6 +26,8 @@ from ptools.randomNumbers import fast_rvs
 # countObsAtExp = "half"
 countObsAtExp = "full"
 
+hasWritten = { "computeP": 0 }
+
 def repr_double_quotes(obj):
     import json, math
     if isinstance(obj, str):
@@ -437,7 +439,8 @@ def computeP ( obs : float, bg : float, bgerr : float,
     :returns: p-value
     """
     if force == "analytical":
-        return computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+        ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+        return ret
     if not force == "numerical":
         if obs < 10 and not lognormal:
             ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
@@ -451,8 +454,14 @@ def computeP ( obs : float, bg : float, bgerr : float,
             ## these extremes, better do them analytically
             ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
             return ret
+    if hasWritten["computeP"]<2:
+        print ( f"[helpers] computeding p numerically (sometimes this hangs)" )
+
     ret = computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN,
             nmin = nmin, nmax = nmax )
+    if hasWritten["computeP"]<2:
+        print ( f"[helpers] computed p numerically: {ret} (didnt hang)" )
+        hasWritten["computeP"]+=1
     return ret
 
 def computePNumerically ( obs : float, bg : float, bgerr : float,

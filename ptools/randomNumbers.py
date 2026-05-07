@@ -8,17 +8,18 @@ __all__ = [ "fast_rvs" ]
 import numpy as np
 from numba import njit, prange
 
+parallel = True
+
 # NORMAL
-@njit(parallel=True)
+@njit(parallel=parallel)
 def normal_parallel(n, mu, sigma):
     out = np.empty(n)
     for i in prange(n):
         out[i] = mu + sigma * np.random.normal()
     return out
 
-
 # LOGNORMAL
-@njit(parallel=True)
+@njit(parallel=parallel)
 def lognorm_parallel(n, s, scale=1.0, loc=0.0):
     out = np.empty(n)
     for i in prange(n):
@@ -27,7 +28,7 @@ def lognorm_parallel(n, s, scale=1.0, loc=0.0):
     return out
 
 # POISSON
-@njit(parallel=True)
+@njit(parallel=parallel)
 def poisson_parallel(n, mu ):
     out = np.empty(n, dtype=np.int64)
     for i in prange(n):
