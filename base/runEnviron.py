@@ -224,6 +224,6 @@ class RunEnviron ( LoggerBase ):
             setattr ( self, key, value )
 
 if __name__ == "__main__":
-    #environ = RunEnviron()
+    environ = RunEnviron.create()
     #print ( "environment at environ. Try e.g. environ.templateSLHA" )
     import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
