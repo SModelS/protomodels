@@ -842,7 +842,7 @@ class Plotter ( LoggerBase ):
 
         else:
             if self.options["draw_reference"]:
-                if True:
+                if self.options["no_stacked"]==False:
                     nmcolor = "black"
                     scale = 1. / 0.39894 * .75
                     stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
