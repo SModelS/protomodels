@@ -8,7 +8,7 @@ dirname = os.path.dirname ( os.path.abspath ( __file__ ) )
 dirname = dirname.replace("/plotting","").replace("/protomodels","")
 sys.path.insert(0,dirname)
 
-from smodels_utils.plotting import mpkitty as plt
+import matplotlib.pyplot as plt
 from smodels_utils.helper import prettyDescriptions
 import numpy as np
 import os, glob, sys, math, fnmatch
@@ -918,7 +918,13 @@ class Plotter ( LoggerBase ):
                        rotation=35, c="#ff3333", fontsize=20 )
         from installation import version as protomodels_version
         metadata = { "protomodels_version": protomodels_version() }
-        plt.kittyPlot ( self.outfile, self.show, metadata )
+        plt.savefig ( self.outfile, metadata = metadata )
+        if self.options["add_logo"]:
+            from validation.addLogoToPlots import addLogo
+            addLogo ( self.outfile )
+        if self.show:
+            from smodels_utils.plotting.mpkitty import timg
+            timg ( self.outfile )
 
         plt.clf()
         plt.close()
@@ -937,6 +943,8 @@ def getArgs( cmdline = None ):
             type=str, default=None )
     argparser.add_argument ( '--no_stacked',
             help='do not stack', action="store_true" )
+    argparser.add_argument ( '--add_logo',
+            help='add a SModelS logo', action="store_true" )
     argparser.add_argument ( '-u', '--unscale',
             help='unscale, i.e. use the fudged bgError also for computing likelihoods', action='store_true' )
     argparser.add_argument ( '--nosuperseded',
