@@ -234,7 +234,7 @@ class Plotter ( LoggerBase ):
         self.outfile = "not_specified.png"
         self.title = None
         self.options = { "alwayslegend": False, "no_stacked": False,
-                         "draw_reference": True }
+                         "draw_reference": True, "add_logo": True }
         self.yrange = None
         self.unscale = False
         self.signalmodel = False
