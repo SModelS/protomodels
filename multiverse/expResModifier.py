@@ -1261,7 +1261,10 @@ Just filter the database:
         # self.error ( f"FIXME fake SL backgrounds for {expRes.globalInfo.id}" )
         import numpy as np
         import scipy.stats
-        covm = np.array ( expRes.globalInfo.covariance )
+        cachedModels = list ( expRes.globalInfo.cachedModels.values() )
+        assert  len (statModels) == 1, "assuming one SL per analysis only" 
+        covm = cachedModels[0]
+        # covm = np.array ( expRes.globalInfo.stat )
         if abs ( self.fudge - 1 ) > 1e-8:
             covm = self.fudge**2 * covm
         # diag = np.array ([expRes.globalInfo.covariance[i][i] for i in range(len(covm))])
@@ -1391,7 +1394,12 @@ Just filter the database:
                 _deltas_rel_default )
         if abs ( self.fudge - 1. ) > 1e-5:
             self.fudgePyhfModel ( expRes, computer )
-        srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
+        r_regions = []
+        for srSetName,models in expRes.globalInfo.statModels.items():
+            if models[0].endswith(".json"):
+                r_regions += expRes.globalInfo.srSets[srSetName]
+        srs_in_workspaces = list(set(r_regions))
+        # srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
         anaId = expRes.globalInfo.id
 
         for ws_i, (ws, srs) in enumerate(zip(
@@ -1471,11 +1479,20 @@ Just filter the database:
         ret = []
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
+            self.pprint ( f"starting {expRes.globalInfo.id}" )
             t0 = time.time()
-            if hasattr ( expRes.globalInfo, "covariance" ):
-                self.fakeBackgroundsForSL ( expRes )
-            elif hasattr ( expRes.globalInfo, "jsonFiles" ):
-                self.fakeBackgroundsForPyhf ( expRes )
+            if hasattr ( expRes.globalInfo, "statModels" ):
+                for srSetName,models in expRes.globalInfo.statModels.items():
+                    if models[0].endswith ( ".cov" ):
+                        self.fakeBackgroundsForSL ( expRes )
+                        break
+                    if models[0].endswith ( ".json" ):
+                        self.fakeBackgroundsForPyhf ( expRes )
+                        break
+            #if hasattr ( expRes.globalInfo, "covariance" ):
+            ##    self.fakeBackgroundsForSL ( expRes )
+            #elif hasattr ( expRes.globalInfo, "jsonFiles" ):
+            #    self.fakeBackgroundsForPyhf ( expRes )
             else:
                 for i,dataset in enumerate(expRes.datasets):
                     dt = dataset.dataInfo.dataType
