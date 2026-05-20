@@ -501,7 +501,7 @@ class Plotter ( LoggerBase ):
                         lognormal = False
                         if self.likelihood == "lognormal+poisson":
                             lognormal = True
-                        p = computeP ( obs, vexp, bgErr )
+                        p, computer = computeP ( obs, vexp, bgErr )
                     if self.use_aggregated:
                         if anaid+"-agg" in hasEffMaps:
                             if not anaid in self.skippedAgg:
@@ -528,7 +528,7 @@ class Plotter ( LoggerBase ):
                         pfake = v["new_p"]
                     else:
                         if not math.isnan ( fakeobs):
-                            pfake = computeP ( fakeobs, vexp, bgErr,
+                            pfake, computer = computeP ( fakeobs, vexp, bgErr,
                                                lognormal = lognormal )
                     if not math.isnan ( pfake):
                         Pfake[sqrts].append( pfake )

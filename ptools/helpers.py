@@ -454,8 +454,8 @@ def computeP ( obs : float, bg : float, bgerr : float,
             ## these extremes, better do them analytically
             ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
             return ret, "analytical"
-    if hasWritten["computeP"]<2:
-        print ( f"[helpers] computing p numerically nmax={nmax} (sometimes this hangs)" )
+    #if hasWritten["computeP"]<2:
+    #    print ( f"[helpers] computing p numerically nmax={nmax} (sometimes this hangs)" )
 
     ret = computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN,
             nmin = nmin, nmax = nmax )

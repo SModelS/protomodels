@@ -1503,7 +1503,7 @@ Just filter the database:
         ret = []
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
-            print ( ".", flush=True )
+            print ( ".", flush=True, end="" )
             # self.pprint ( f"starting {expRes.globalInfo.id} {datetime.now().strftime('%H:%M:%S')}")
             t0 = time.time()
             if hasattr ( expRes.globalInfo, "statModels" ):
