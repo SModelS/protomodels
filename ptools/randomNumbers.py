@@ -8,7 +8,7 @@ __all__ = [ "fast_rvs" ]
 import numpy as np
 from numba import njit, prange, set_num_threads
 
-# set_num_threads(4)
+# set_num_threads(10)
 parallel = True
 
 # NORMAL
@@ -30,13 +30,14 @@ def lognorm_parallel(n, s, scale=1.0, loc=0.0):
 
 # POISSON
 @njit(parallel=parallel)
-def poisson_parallel(n, mu ):
-    out = np.empty(n, dtype=np.int64)
+def poisson_parallel( n, mu ):
+    out = np.empty( n, dtype=np.int64)
     for i in prange(n):
         lam = mu[i]
         if lam < 0.:
-            lam = 0.0
-        out[i] = np.random.poisson( lam )
+            out[i]=0
+        else:
+            out[i] = np.random.poisson( lam )
     return out
 
 def fast_rvs(dist, n, **p):
@@ -56,10 +57,7 @@ def fast_rvs(dist, n, **p):
     if dist == "lognorm":
         return lognorm_parallel(n, p["s"], p.get("scale",1.0), p.get("loc",0.0))
     if dist == "poisson":
-        arg = p["mu"]
-        if isinstance(arg,float) or isinstance(arg,np.float64):
-            arg = np.array( [ arg ]*n )
-        return poisson_parallel(n, arg )
+        return poisson_parallel( n, p["mu"] )
 
 if __name__ == "__main__":
     import time

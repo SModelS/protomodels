@@ -9,6 +9,7 @@ __all__ = [ "readDatabaseDictFile", "ExpResModifier" ]
 # https://link.springer.com/content/pdf/10.1007/JHEP02(2015)004.pdf
 
 import copy, os, sys, time, subprocess, math, numpy, shutil
+from datetime import datetime
 import scipy.spatial
 sys.path.insert( 0, "../" )
 sys.path.append('../smodels')
@@ -37,12 +38,12 @@ from smodels.experiment.databaseObj import Database
 from base.loggerbase import LoggerBase
 from base.runEnviron import RunEnviron
 from tester.combinationsmatrix import getYamlMatrix
-from typing import Dict, List, Text, Callable, Union
+from typing import Dict, List, Text, Callable, Union, Optional
 # from icecream import ic
 from smodels_utils.helper.terminalcolors import *
 
 from smodels.base.runtime import _deltas_rel_default
-from smodels.statistics.statsTools import StatsComputer
+from smodels.statistics.statsTools import CompRetriever
 from smodels.experiment.datasetObj import CombinedDataSet
 import pyhf
 
@@ -532,20 +533,30 @@ Just filter the database:
     def computeP ( self, obsN : float, bgExp : float, bgErr : float,
             thirdMoment : Union[float,None] ):
         """ a convenience function for computation of p values """
+        assert  obsN != None, f"obsN is none?"
+        nmin, nmax = self.nMCMC_min, self.nMCMC_max
+        if abs ( self.fudge -1 ) > 1e-4:
+            nmin, nmax = int ( nmin / 3 ), int ( nmax / 3 )
         if thirdMoment is None:
-            p = computeP ( obsN, bgExp, bgErr, nmin = self.nMCMC_min,
-                           nmax = self.nMCMC_max )
+            p, computer = computeP ( obsN, bgExp, bgErr, nmin = nmin,
+                           nmax = nmax )
             return p
-        p = computePSLv2 ( obsN, bgExp, bgErr, thirdMoment,
-                nmin = self.nMCMC_min, nmax = self.nMCMC_max )
+        p, computer = computePSLv2 ( obsN, bgExp, bgErr, thirdMoment,
+                nmin = nmin, nmax = nmax )
         return p
 
     def computePForDataSet ( self, dataset,
-            obsN : Union[int,None] = None )-> float:
+            obsN : Optional[int] = None )-> float:
         """ convenience function to compute p for dataset, with right
         nmin and nmax """
-        return computePForDataSet ( dataset, obsN, nmin = self.nMCMC_min,
-                                    nmax = self.nMCMC_max )
+        nmin, nmax = self.nMCMC_min, self.nMCMC_max
+        if abs ( self.fudge -1 ) > 1e-4:
+            nmin, nmax = int ( nmin / 4 ), int ( nmax / 4 )
+        if obsN == None:
+            obsN = dataset.dataInfo.observedN
+        p, computer = computePForDataSet ( dataset, obsN, nmin = nmin,
+                                    nmax = nmax )
+        return p
 
     def sampleEfficiencyMap ( self, dataset ):
         """ for the given dataset,
@@ -710,11 +721,18 @@ Just filter the database:
         return D
 
     def getPyhfname ( self, dataset ):
+        dId = dataset.dataInfo.dataId
+        if not dId in dataset.globalInfo.srMappingsDict:
+            return None
+        region= dataset.globalInfo.srMappingsDict[dId]
+        return region["pyhf"]
+        """
         for jsonfile, SRs in dataset.globalInfo.jsonFiles.items():
             for sr in SRs:
                 if sr["smodels"] == dataset.dataInfo.dataId:
                     return sr["pyhf"]
         return None
+        """
 
     def addSignalForPyhf ( self, dataset, sigN ):
         """ add sigN to the json file in dataset.globalInfo.jsons """
@@ -1262,8 +1280,8 @@ Just filter the database:
         import numpy as np
         import scipy.stats
         cachedModels = list ( expRes.globalInfo.cachedModels.values() )
-        assert  len (statModels) == 1, "assuming one SL per analysis only" 
-        covm = cachedModels[0]
+        assert  len (cachedModels) == 1, "assuming one SL per analysis only (though can be easily fixed)" 
+        covm = np.array ( cachedModels[0] )
         # covm = np.array ( expRes.globalInfo.stat )
         if abs ( self.fudge - 1 ) > 1e-8:
             covm = self.fudge**2 * covm
@@ -1330,13 +1348,13 @@ Just filter the database:
                 ret.append ( channel )
         return ret
 
-    def fudgePyhfModel ( self, expRes, computer ):
+    def fudgePyhfModel ( self, expRes, computers ):
         """ fudge the pyhf model, ie multiply all errors with self.fudge """
         anaId = expRes.globalInfo.id
-        # self.error ( f"FIXME fudge factors not yet implemented for pyhf ({anaId})" )
         # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         ## FIXME this needs more thought: which errors get rescaled, which dont, etc
-        for iws,ws in enumerate(computer.likelihoodComputer.workspaces):
+        for computer in computers:
+            ws = computer.workspace
             for ich,channel in enumerate(ws["channels"]):
                 for ism,sample in enumerate(channel["samples"]):
                     if not "modifiers" in sample:
@@ -1359,8 +1377,9 @@ Just filter the database:
                                 data["hi_data"][idd] = center + delta * self.fudge
                                 data["lo_data"][idd] = center - delta * self.fudge
 
-    def replaceObservation ( self, expRes, sr, newObs, ws_i ):
-        jsonEntries = expRes.globalInfo.jsons[ ws_i ]["observations"]
+    def replaceObservation ( self, expRes, sr, newObs, name ):
+        #jsonEntries = expRes.globalInfo.jsons[ ws_i ]["observations"]
+        jsonEntries = expRes.globalInfo.cachedModels[ name ]["observations"]
         for i,jsonEntry in enumerate(jsonEntries):
             idx = 0
             pyhfbasename = sr["pyhf"]
@@ -1372,7 +1391,7 @@ Just filter the database:
             oldE = data[idx]
             if jsonEntry["name"]==pyhfbasename:
                 # print ( f"[expResModifier] replacing {oldE} with {newObs} in {jsonEntry} {expRes.globalInfo.id}" )
-                expRes.globalInfo.jsons[ ws_i ]["observations"][i]["data"][idx]=newObs
+                expRes.globalInfo.cachedModels[ name ]["observations"][i]["data"][idx]=newObs
                 continue
 
     def fakeBackgroundsForPyhf ( self, expRes ):
@@ -1390,25 +1409,32 @@ Just filter the database:
 
         #create combined dataset for pyhf pred
         cdataset = CombinedDataSet ( expRes )
-        computer = StatsComputer.forPyhf( cdataset, srNsigDict,
+        computers = CompRetriever.forPyhf( cdataset, srNsigDict,
                 _deltas_rel_default )
         if abs ( self.fudge - 1. ) > 1e-5:
-            self.fudgePyhfModel ( expRes, computer )
+            self.fudgePyhfModel ( expRes, computers )
         r_regions = []
+        srs_in_workspaces = []
         for srSetName,models in expRes.globalInfo.statModels.items():
             if models[0].endswith(".json"):
-                r_regions += expRes.globalInfo.srSets[srSetName]
-        srs_in_workspaces = list(set(r_regions))
+                srs = []
+                regions = expRes.globalInfo.srSets[srSetName]
+                r_regions.append ( regions )
+                for region in regions:
+                    srs.append ( expRes.globalInfo.srMappingsDict[region] )
+                srs_in_workspaces.append ( srs )
         # srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
+        # srs_in_workspaces = r_regions
         anaId = expRes.globalInfo.id
 
-        for ws_i, (ws, srs) in enumerate(zip(
-                    computer.likelihoodComputer.workspaces, srs_in_workspaces) ):
+        for ws_i, (comp, srs) in enumerate(zip(
+                    computers, srs_in_workspaces) ):
+            ws = comp.workspace
             ## srs are the names of the signal regions
             try:
                 model = ws.model()
             except pyhf.exceptions.InvalidModel as e:
-                print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{list(expRes.globalInfo.jsonFiles.keys())[ws_i]}][{ws_i}]: {e}" )
+                print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{list(expRes.globalInfo.statModels.keys())[ws_i]}][{ws_i}]: {e}" )
                 continue
                 # sys.exit(-1)
             channelnames = self.getChannelNames ( model.config.channels )
@@ -1469,17 +1495,16 @@ Just filter the database:
                 ## as the very last measure, we replace the observation with
                 ## the fake observation
                 dataset.dataInfo.observedN = newObs
-                self.replaceObservation ( expRes, sr, newObs, ws_i )
+                self.replaceObservation ( expRes, sr, newObs, comp.name )
                 # this replaces the observation in the json with the new bg
-
-
 
     def fakeBackgrounds ( self, listOfExpRes ):
         """ thats the method that samples the backgrounds """
         ret = []
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
-            self.pprint ( f"starting {expRes.globalInfo.id}" )
+            print ( ".", flush=True )
+            # self.pprint ( f"starting {expRes.globalInfo.id} {datetime.now().strftime('%H:%M:%S')}")
             t0 = time.time()
             if hasattr ( expRes.globalInfo, "statModels" ):
                 for srSetName,models in expRes.globalInfo.statModels.items():
@@ -1489,10 +1514,6 @@ Just filter the database:
                     if models[0].endswith ( ".json" ):
                         self.fakeBackgroundsForPyhf ( expRes )
                         break
-            #if hasattr ( expRes.globalInfo, "covariance" ):
-            ##    self.fakeBackgroundsForSL ( expRes )
-            #elif hasattr ( expRes.globalInfo, "jsonFiles" ):
-            #    self.fakeBackgroundsForPyhf ( expRes )
             else:
                 for i,dataset in enumerate(expRes.datasets):
                     dt = dataset.dataInfo.dataType

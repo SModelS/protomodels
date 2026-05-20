@@ -337,12 +337,12 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
     if hasattr ( dataset.dataInfo, "thirdMoment" ):
         thirdMoment = dataset.dataInfo.thirdMoment
     if thirdMoment is None:
-        p = computeP ( obsN, exp, err, nmax = nmax, nmin = nmin )
+        p, computer = computeP ( obsN, exp, err, nmax = nmax, nmin = nmin )
     else:
-        p = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax, nmin = nmin )
+        p, computer = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax, nmin = nmin )
     if p < 1e-100:
-        print ( f"[helpers] {dataset.globalInfo.id}:{dataset.dataInfo.dataId} has p={p}: obs={obsN}, bg={exp}+-{err}" )
-    return p
+        print ( f"[helpers] {dataset.globalInfo.id}:{dataset.dataInfo.dataId} has p={p}: obs={obsN}, bg={exp:.3f}+-{err:.4f}" )
+    return p, computer
 
 def computePAnalytically ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False, sigN : Union[None,float] = None ) -> float:
@@ -436,24 +436,24 @@ def computeP ( obs : float, bg : float, bgerr : float,
     :param force: if "numerical" then force numerical method
     if "analytical" then force analytical method
 
-    :returns: p-value
+    :returns: p-value, computer
     """
     if force == "analytical":
         ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
-        return ret
+        return ret, "analytical"
     if not force == "numerical":
         if obs < 20 and not lognormal:
             ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
-            return ret
+            return ret, "numerical"
         Z = roughZValue ( obs, bg, bgerr )
         if abs(Z)>4 and obs < 200 and not lognormal:
             ## these extremes, better do them analytically
             ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
-            return ret
+            return ret, "analytical"
         if abs(Z)>5 and obs < 2000 and not lognormal:
             ## these extremes, better do them analytically
             ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
-            return ret
+            return ret, "analytical"
     if hasWritten["computeP"]<2:
         print ( f"[helpers] computing p numerically nmax={nmax} (sometimes this hangs)" )
 
@@ -462,7 +462,7 @@ def computeP ( obs : float, bg : float, bgerr : float,
     if hasWritten["computeP"]<2:
         print ( f"[helpers] computed p numerically: {ret} (didnt hang)" )
         hasWritten["computeP"]+=1
-    return ret
+    return ret, "numerical"
 
 def computePNumerically ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False, nmax : int = 200_000,
@@ -486,7 +486,10 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
     central = bg
     if sigN != None:
         central = bg + sigN
+    ctr = 0
     while ret < .9 / nmax or ret > 1. - .9 / nmax:
+        if ctr > 100:
+            break
         if n > nmax:
             # print ( f"[helpers] when computing p: n={n}>{nmax}. breaking off with ret={ret} obs={obs} bg={bg} bgerr={bgerr}" )
             break
@@ -502,15 +505,16 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
         else:
             # lmbda = scipy.stats.norm.rvs ( loc=[central]*n, scale=[bgerr]*n )
             lmbda = fast_rvs ( "normal", n, loc=central, scale=bgerr )
-            lmbda = lmbda[lmbda>0.]
+            # lmbda = lmbda[lmbda>0.]
         # fakeobs = scipy.stats.poisson.rvs ( lmbda )
-        fakeobs = fast_rvs ( "poisson", n, mu=lmbda )
+        fakeobs = fast_rvs ( "poisson", len(lmbda), mu=lmbda )
         ## == we count half
         if countObsAtExp == "half":
             ret = float ( ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs) )
         else:
             ret = float ( sum(fakeobs>=obs) / len(fakeobs) )
         n *= 5
+        ctr += 1
     return ret
 
 def computePSLv2 ( obs : float, bg : float, bgerr : float,
@@ -524,7 +528,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
     :param third: the third moment
     :param nmax: maximum number of toys
 
-    :returns: p-value
+    :returns: p-value, computer
     """
     # return -1
     from smodels.statistics.simplifiedLikelihoods import Data
@@ -572,7 +576,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
         ## == we count half
         ret = float ( ( sum(fakeobs>obs) + .5*sum(fakeobs==obs) ) / len(fakeobs) )
         n *= 5
-    return ret
+    return ret, "numerical"
 
 
 def stripUnits( container ):
@@ -804,11 +808,15 @@ if __name__ == "__main__":
     obs, bg, bgerr = 2, 3., 0.3
     obs, bg, bgerr = 0, 0.007, 0.002
     obs, bg, bgerr = 0, 0.7, 0.4
+    obs, bg, bgerr = 39, 27.5, 21.82888
+    nmin = 10000
+    nmax = 25000
 
     import time
-    p = computePNumerically ( obs, bg, bgerr, nmax = 10, nmin = 5 )
+    print ( f"lets compute" )
     t0 = time.time()
-    p = 1.
+    p = computeP ( obs, bg, bgerr, nmax = nmax, nmin = nmin )
+    # p = 1.
     # p = computePNumerically ( obs, bg, bgerr )
     t1 = time.time()
     print ( f"monte carlo: {p} in {t1-t0:.2f}" )
@@ -816,4 +824,5 @@ if __name__ == "__main__":
     t2 = time.time()
     print ( f"analytically: {p_ana} in {t2-t1:.2f}" )
     p_mixed = computeP ( obs, bg, bgerr )
-    print ( f"mixed: {p_mixed} " )
+    t3 = time.time()
+    print ( f"mixed: {p_mixed} in {t3-t2:.2f}" )
