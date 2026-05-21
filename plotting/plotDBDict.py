@@ -903,6 +903,15 @@ class Plotter ( LoggerBase ):
                         self.pprint ( ana )
                     f.write ( f"{ana}\n" )
             f.close()
+        if self.verbose > 9:
+            with open ( "srs.log", "wt" ) as f:
+                anaids = list ( self.srCounts.keys() )
+                anaids.sort()
+                for anaid in anaids:
+                    srs = list ( self.srCounts[anaid] )
+                    srs.sort()
+                    for sr in srs:
+                        f.write ( f"{anaid}:{sr}\n" )
         nSRs = int ( len(Ptot) / len(self.filenames ) )
         plotStats = True
         if "plotStats" in self.options:
