@@ -1279,9 +1279,11 @@ Just filter the database:
         # self.error ( f"FIXME fake SL backgrounds for {expRes.globalInfo.id}" )
         import numpy as np
         import scipy.stats
-        cachedModels = list ( expRes.globalInfo.cachedModels.values() )
-        assert  len (cachedModels) == 1, "assuming one SL per analysis only (though can be easily fixed)" 
-        covm = np.array ( cachedModels[0] )
+        cachedModels = expRes.globalInfo.cachedModels
+        keys = list ( expRes.globalInfo.cachedModels.keys() )
+        assert len (keys) == 1, "assuming one SL per analysis only (though can be easily fixed)"
+        key = keys[0]
+        covm = np.array ( cachedModels[ key ] )
         # covm = np.array ( expRes.globalInfo.stat )
         if abs ( self.fudge - 1 ) > 1e-8:
             covm = self.fudge**2 * covm
@@ -1416,13 +1418,18 @@ Just filter the database:
         r_regions = []
         srs_in_workspaces = []
         for srSetName,models in expRes.globalInfo.statModels.items():
-            if models[0].endswith(".json"):
-                srs = []
-                regions = expRes.globalInfo.srSets[srSetName]
-                r_regions.append ( regions )
-                for region in regions:
-                    srs.append ( expRes.globalInfo.srMappingsDict[region] )
-                srs_in_workspaces.append ( srs )
+            for model in models:
+                stopThis = False
+                if model.endswith(".json"):
+                    srs = []
+                    regions = expRes.globalInfo.srSets[srSetName]
+                    r_regions.append ( regions )
+                    for region in regions:
+                        srs.append ( expRes.globalInfo.srMappingsDict[region] )
+                    srs_in_workspaces.append ( srs )
+                    stopThis = True
+                if stopThis:
+                    break
         # srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
         # srs_in_workspaces = r_regions
         anaId = expRes.globalInfo.id
@@ -1508,11 +1515,16 @@ Just filter the database:
             t0 = time.time()
             if hasattr ( expRes.globalInfo, "statModels" ):
                 for srSetName,models in expRes.globalInfo.statModels.items():
-                    if models[0].endswith ( ".cov" ):
-                        self.fakeBackgroundsForSL ( expRes )
-                        break
-                    if models[0].endswith ( ".json" ):
-                        self.fakeBackgroundsForPyhf ( expRes )
+                    stopThis = False
+                    for model in models:
+                        if model.endswith ( ".cov" ):
+                            self.fakeBackgroundsForSL ( expRes )
+                            stopThis = True
+                        if model.endswith ( ".json" ):
+                            self.fakeBackgroundsForPyhf ( expRes )
+                            stopThis = True
+                    if stopThis:
+                        ## stop after the first model this is pyhf or SL
                         break
             else:
                 for i,dataset in enumerate(expRes.datasets):
