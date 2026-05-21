@@ -721,10 +721,14 @@ Just filter the database:
         return D
 
     def getPyhfname ( self, dataset ):
+        ## FIXME does this still get used
         dId = dataset.dataInfo.dataId
+        print ( f"@@00 [expResModifier] getPyhfname {dId}" )
         if not dId in dataset.globalInfo.srMappingsDict:
+            print ( f"@@00 None" )
             return None
         region= dataset.globalInfo.srMappingsDict[dId]
+        #print ( f"@@00 region['pyhf']" )
         return region["pyhf"]
         #for jsonfile, SRs in dataset.globalInfo.jsonFiles.items():
         #    for sr in SRs:
@@ -1406,6 +1410,10 @@ Just filter the database:
         #srNsigDict.update({pred.dataset.getID() :
         #              (pred.xsection*pred.dataset.getLumi()).asNumber()
         #              for pred in self.datasetPredictions})
+        for srSetName,models in expRes.globalInfo.statModels.items():
+            while len(models)>0 and models[0].endswith(".onnx"):
+                models.pop ( 0 )
+            expRes.globalInfo.statModels[srSetName]=models
 
         #create combined dataset for pyhf pred
         cdataset = CombinedDataSet ( expRes )
@@ -1473,7 +1481,7 @@ Just filter the database:
                 dataset = datasetDict[srname]
                 D = self.createEMStatsDict ( dataset )
                 if not srname in sampleDictSModelS:
-                    import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+                    logger.error ( f"{srname} is not in {sampleDictSModelS}" )
                 newObs = int( sampleDictSModelS[ srname ] )
                 if self.fixedbackgrounds:
                     D["newObs"]=dataset.dataInfo.expectedBG
@@ -1510,8 +1518,10 @@ Just filter the database:
         ret = []
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
-            print ( ".", flush=True, end="" )
-            # self.pprint ( f"starting {expRes.globalInfo.id} {datetime.now().strftime('%H:%M:%S')}")
+            if self.verbose:
+                self.pprint ( f"starting {expRes.globalInfo.id} {datetime.now().strftime('%H:%M:%S')}")
+            else:
+                print ( ".", flush=True, end="" )
             t0 = time.time()
             if hasattr ( expRes.globalInfo, "statModels" ):
                 for srSetName,models in expRes.globalInfo.statModels.items():
@@ -1520,9 +1530,11 @@ Just filter the database:
                         if model.endswith ( ".cov" ):
                             self.fakeBackgroundsForSL ( expRes )
                             stopThis = True
+                            break
                         if model.endswith ( ".json" ):
                             self.fakeBackgroundsForPyhf ( expRes )
                             stopThis = True
+                            break
                     if stopThis:
                         ## stop after the first model this is pyhf or SL
                         break

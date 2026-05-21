@@ -893,11 +893,16 @@ class Plotter ( LoggerBase ):
         plt.xlabel ( xlabel )
         plt.ylabel ( ylabel )
         Ptot = np.concatenate ( [ P["8"], P["13_lt"], P["13_gt"] ] )
-        nAnas = len ( self.nanas )
-        if False:
+        nAnas = len(self.nanas)
+        if self.verbose > 3:
             nanas = list ( self.nanas )
             nanas.sort()
-            self.pprint ( nanas )
+            with open ( "anas.log", "wt" ) as f:
+                for ana in nanas:
+                    if self.verbose > 4:
+                        self.pprint ( ana )
+                    f.write ( f"{ana}\n" )
+            f.close()
         nSRs = int ( len(Ptot) / len(self.filenames ) )
         plotStats = True
         if "plotStats" in self.options:

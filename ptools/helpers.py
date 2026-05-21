@@ -191,6 +191,7 @@ def formatObject ( obj, fmt_str : Union[int,str] = ".2f" ) -> str:
 
 def getJsonFileName(dset: DataSet) -> str:
     "get file name of json used by the combined dataset dset"
+    print ( f"@@XXY getJsonFileName" )
 
     jsonFileDict = dset.globalInfo.jsonFiles
     dsId = [ds.getID() for ds in dset._datasets]            #get the dataset ids in the combined dataset dset
@@ -199,11 +200,15 @@ def getJsonFileName(dset: DataSet) -> str:
         for ds in dslist:
             if ds['smodels'] in dsId:                               #check which json file has the corresponding datasets
                 file = file.split(".")[0]                       #get only name of json file, not the .json part
+                print ( f"@@XXY getJsonFileName {file}" )
+                sys.exit()
                 return file
 
     # if no file got matched with dataset
     print(f"JSON file present for {dset.globalInfo.id} but combined dataset does not match to any JSON file")
 
+    print ( f"@@XXY getJsonFileName" )
+    sys.exit()
     return "NoJsonFound"
 
 def experimentalId(pred : TheoryPrediction) -> str:
@@ -217,6 +222,8 @@ def experimentalId(pred : TheoryPrediction) -> str:
 
     anaId = pred.analysisId()
     dtype = pred.dataType()
+    print ( f"@@FFFF experimentalId {dtype}" )
+    sys.exit()
 
     if dtype == "upperLimit":
         return f"{anaId}:{dtype}"
