@@ -726,13 +726,11 @@ Just filter the database:
             return None
         region= dataset.globalInfo.srMappingsDict[dId]
         return region["pyhf"]
-        """
-        for jsonfile, SRs in dataset.globalInfo.jsonFiles.items():
-            for sr in SRs:
-                if sr["smodels"] == dataset.dataInfo.dataId:
-                    return sr["pyhf"]
-        return None
-        """
+        #for jsonfile, SRs in dataset.globalInfo.jsonFiles.items():
+        #    for sr in SRs:
+        #        if sr["smodels"] == dataset.dataInfo.dataId:
+        #            return sr["pyhf"]
+        #return None
 
     def addSignalForPyhf ( self, dataset, sigN ):
         """ add sigN to the json file in dataset.globalInfo.jsons """
@@ -1416,7 +1414,7 @@ Just filter the database:
         if abs ( self.fudge - 1. ) > 1e-5:
             self.fudgePyhfModel ( expRes, computers )
         r_regions = []
-        srs_in_workspaces = []
+        srs_in_workspaces = {}
         for srSetName,models in expRes.globalInfo.statModels.items():
             for model in models:
                 stopThis = False
@@ -1426,7 +1424,7 @@ Just filter the database:
                     r_regions.append ( regions )
                     for region in regions:
                         srs.append ( expRes.globalInfo.srMappingsDict[region] )
-                    srs_in_workspaces.append ( srs )
+                    srs_in_workspaces[model] = ( srs )
                     stopThis = True
                 if stopThis:
                     break
@@ -1434,14 +1432,14 @@ Just filter the database:
         # srs_in_workspaces = r_regions
         anaId = expRes.globalInfo.id
 
-        for ws_i, (comp, srs) in enumerate(zip(
-                    computers, srs_in_workspaces) ):
+        for comp in computers:
+            srs = srs_in_workspaces[comp.name]
             ws = comp.workspace
             ## srs are the names of the signal regions
             try:
                 model = ws.model()
             except pyhf.exceptions.InvalidModel as e:
-                print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{list(expRes.globalInfo.statModels.keys())[ws_i]}][{ws_i}]: {e}" )
+                print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{comp.name}]: {e}" )
                 continue
                 # sys.exit(-1)
             channelnames = self.getChannelNames ( model.config.channels )
@@ -1474,6 +1472,8 @@ Just filter the database:
                     continue
                 dataset = datasetDict[srname]
                 D = self.createEMStatsDict ( dataset )
+                if not srname in sampleDictSModelS:
+                    import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
                 newObs = int( sampleDictSModelS[ srname ] )
                 if self.fixedbackgrounds:
                     D["newObs"]=dataset.dataInfo.expectedBG
