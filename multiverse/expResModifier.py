@@ -1410,10 +1410,12 @@ Just filter the database:
         #srNsigDict.update({pred.dataset.getID() :
         #              (pred.xsection*pred.dataset.getLumi()).asNumber()
         #              for pred in self.datasetPredictions})
-        for srSetName,models in expRes.globalInfo.statModels.items():
-            while len(models)>0 and models[0].endswith(".onnx"):
-                models.pop ( 0 )
-            expRes.globalInfo.statModels[srSetName]=models
+        for srSetName,model_types in expRes.globalInfo.statModels.items():
+            while len(model_types)>0:
+                model_type = model_types[0][0]
+                if model_type == "onnx":
+                    model_types.pop ( 0 )
+            expRes.globalInfo.statModels[srSetName]=model_types
 
         #create combined dataset for pyhf pred
         cdataset = CombinedDataSet ( expRes )
@@ -1423,16 +1425,18 @@ Just filter the database:
             self.fudgePyhfModel ( expRes, computers )
         r_regions = []
         srs_in_workspaces = {}
-        for srSetName,models in expRes.globalInfo.statModels.items():
-            for model in models:
+        for srSetName,model_types in expRes.globalInfo.statModels.items():
+            for model_type in model_types:
                 stopThis = False
-                if model.endswith(".json"):
+                model_name = model_type[1]
+                mtype = model_type[0]
+                if "pyhf" in mtype:
                     srs = []
                     regions = expRes.globalInfo.srSets[srSetName]
                     r_regions.append ( regions )
                     for region in regions:
                         srs.append ( expRes.globalInfo.srMappingsDict[region] )
-                    srs_in_workspaces[model] = ( srs )
+                    srs_in_workspaces[model_name] = ( srs )
                     stopThis = True
                 if stopThis:
                     break
@@ -1524,14 +1528,16 @@ Just filter the database:
                 print ( ".", flush=True, end="" )
             t0 = time.time()
             if hasattr ( expRes.globalInfo, "statModels" ):
-                for srSetName,models in expRes.globalInfo.statModels.items():
+                for srSetName,model_types in expRes.globalInfo.statModels.items():
                     stopThis = False
-                    for model in models:
-                        if model.endswith ( ".cov" ):
+                    for model_type in model_types:
+                        mtype = model_type[0]
+                        mname = model_type[1]
+                        if mtype == "sl":
                             self.fakeBackgroundsForSL ( expRes )
                             stopThis = True
                             break
-                        if model.endswith ( ".json" ):
+                        if "pyhf" in mtype:
                             self.fakeBackgroundsForPyhf ( expRes )
                             stopThis = True
                             break
