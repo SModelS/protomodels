@@ -1540,7 +1540,7 @@ Just filter the database:
         ret = []
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
-            if self.verbose < 25:
+            if self.verbose < 15:
                 self.pprint ( f"starting {expRes.globalInfo.id} {datetime.now().strftime('%H:%M:%S')}")
             else:
                 print ( ".", flush=True, end="" )
@@ -1551,7 +1551,7 @@ Just filter the database:
                     for model_type in model_types:
                         mtype = model_type[0]
                         mname = model_type[1]
-                        if self.verbose < 15:
+                        if self.verbose < 5:
                             self.pprint ( f" `-  {srSetName}:{mtype}" )
                         if mtype == "onnx":
                             stopThis = False
