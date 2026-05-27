@@ -506,7 +506,8 @@ Just filter the database:
         spmodel = f"protomodel is '{self.pmodel}'"
         if self.pmodel == "":
             spmodel = "no protomodel given"
-        self.info ( f"starting to create {self.outfile} from {self.dbpath}. suffix is '{self.suffix}', {spmodel}." )
+        if self.outfile != None:
+            self.info ( f"starting to create {self.outfile} from {self.dbpath}. suffix is '{self.suffix}', {spmodel}." )
         if self.db == None:
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
