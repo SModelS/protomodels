@@ -247,7 +247,7 @@ class Plotter ( LoggerBase ):
 
     def determineZmax ( self ):
         """ obtain self.Zmax from data """
-        Zmax = 2.
+        Zmax = 3.
         for dictfile,filecontent in self.data.items():
             for anaid,values in filecontent.items():
                 if not "orig_Z_fudged" in values:
