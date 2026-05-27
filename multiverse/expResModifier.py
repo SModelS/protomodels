@@ -465,7 +465,8 @@ Just filter the database:
         self.protomodel = ma.M
         return self.protomodel
 
-    def removeEmpty ( self, listOfExpRes ):
+    def removeEmpty ( self, listOfExpRes : list ) -> list:
+        """ remove all empty entries """
         ret = []
         for er in listOfExpRes:
             hasEntry = False
@@ -516,6 +517,8 @@ Just filter the database:
         self.dbversion = self.db.databaseVersion
         self.orig_dbversion = self.dbversion
         listOfExpRes = self.removeEmpty ( self.db.expResultList ) ## seems to be the safest bet?
+        for er in listOfExpRes:
+            self.removeOnnxes ( er )
         self.produceProtoModel ( self.pmodel, self.db.databaseVersion,
                                  self.allowN1N1Prod )
         self.log ( f"{len(listOfExpRes)} results before faking bgs" )
@@ -1406,6 +1409,19 @@ Just filter the database:
                 expRes.globalInfo.cachedModels[ name ]["observations"][i]["data"][idx]=newObs
                 continue
 
+    def removeOnnxes ( self, expRes : ExpResult ):
+        """ from an experimental result, remove
+        the onnxModels """
+        if not hasattr ( expRes.globalInfo, "statModels" ):
+            return
+        for srSetName,model_types in expRes.globalInfo.statModels.items():
+            n_models = []
+            for model_type in model_types:
+                mtype = model_type[0]
+                if mtype != "onnx":
+                    n_models.append ( model_type )
+            expRes.globalInfo.statModels[srSetName]=n_models
+
     def fakeBackgroundsForPyhf ( self, expRes ):
         """ synthesize fake observations by sampling a pyhf model
         :param expRes: the experimental result to do this for
@@ -1418,12 +1434,6 @@ Just filter the database:
         #srNsigDict.update({pred.dataset.getID() :
         #              (pred.xsection*pred.dataset.getLumi()).asNumber()
         #              for pred in self.datasetPredictions})
-        for srSetName,model_types in expRes.globalInfo.statModels.items():
-            while len(model_types)>0:
-                model_type = model_types[0][0]
-                if model_type == "onnx":
-                    model_types.pop ( 0 )
-            expRes.globalInfo.statModels[srSetName]=model_types
 
         #create combined dataset for pyhf pred
         cdataset = CombinedDataSet ( expRes )
@@ -1530,7 +1540,7 @@ Just filter the database:
         ret = []
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
-            if self.verbose > 15:
+            if self.verbose < 25:
                 self.pprint ( f"starting {expRes.globalInfo.id} {datetime.now().strftime('%H:%M:%S')}")
             else:
                 print ( ".", flush=True, end="" )
@@ -1541,6 +1551,11 @@ Just filter the database:
                     for model_type in model_types:
                         mtype = model_type[0]
                         mname = model_type[1]
+                        if self.verbose < 15:
+                            self.pprint ( f" `-  {srSetName}:{mtype}" )
+                        if mtype == "onnx":
+                            stopThis = False
+                            continue
                         if mtype == "sl":
                             self.fakeBackgroundsForSL ( expRes )
                             stopThis = True
