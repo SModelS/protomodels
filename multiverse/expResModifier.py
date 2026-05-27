@@ -161,6 +161,14 @@ Just filter the database:
         if "max" in args and args["max"] == None:
             args["max"] = 100
         for a,value in args.items():
+            if a in [ "verbose" ] and type(value)==str:
+                d = { "info": 20, "error": 40, "warning": 30,
+                      "debug": 10 }
+                if value in d:
+                    self.verbose = d[value]
+                else:
+                    logger.error(f"verbosity {v} unknown" )
+                continue
             setattr ( self, a, value )
         if "rundir" in args:
             self.rundir = setup( args["rundir"] )
@@ -213,7 +221,7 @@ Just filter the database:
         self.pmodel = ""
         self.allowN1N1Prod = True
         self.playback = ""
-        self.verbose = 0
+        self.verbose = 30
         self.interactive = False
         self.build = False
         self.check = False
@@ -1522,7 +1530,7 @@ Just filter the database:
         ret = []
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
-            if self.verbose:
+            if self.verbose > 15:
                 self.pprint ( f"starting {expRes.globalInfo.id} {datetime.now().strftime('%H:%M:%S')}")
             else:
                 print ( ".", flush=True, end="" )
@@ -1713,6 +1721,14 @@ Just filter the database:
             self.db =Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
         for k,v in D.items():
             if k in [ "dbpath", "database" ]:
+                continue
+            if k in [ "verbose" ] and type(v)==str:
+                d = { "info": 20, "error": 40, "warning": 30,
+                      "debug": 10 }
+                if v in d:
+                    self.verbose = d[v]
+                else:
+                    logger.error(f"verbosity {v} unknown" )
                 continue
             setattr ( self, k, v )
         ## now the remaining lines
