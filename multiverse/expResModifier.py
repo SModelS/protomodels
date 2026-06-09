@@ -1364,34 +1364,35 @@ Just filter the database:
                 ret.append ( channel )
         return ret
 
-    def fudgePyhfModel ( self, expRes, computers ):
+    def fudgePyhfModel ( self, expRes, computer ):
         """ fudge the pyhf model, ie multiply all errors with self.fudge """
         anaId = expRes.globalInfo.id
         # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
-        ## FIXME this needs more thought: which errors get rescaled, which dont, etc
-        for computer in computers:
-            ws = computer.workspace
-            for ich,channel in enumerate(ws["channels"]):
-                for ism,sample in enumerate(channel["samples"]):
-                    if not "modifiers" in sample:
+        ## FIXME this needs more thought: which errors get rescaled, 
+        ## which dont, etc
+
+        ws = computer.workspace
+        for ich,channel in enumerate(ws["channels"]):
+            for ism,sample in enumerate(channel["samples"]):
+                if not "modifiers" in sample:
+                    continue
+                for im,modifier in enumerate(sample["modifiers"] ):
+                    if not "data" in modifier:
                         continue
-                    for im,modifier in enumerate(sample["modifiers"] ):
-                        if not "data" in modifier:
-                            continue
-                        if modifier["data"] is None:
-                            continue
-                        data = modifier["data"]
-                        if "hi" in data:
-                            center = (data["hi"]+data["lo"])/2.
-                            delta = data["hi"] - center
-                            data["hi"] = center + delta * self.fudge
-                            data["lo"] = center - delta * self.fudge
-                        if "hi_data" in data:
-                            for idd,(hi,lo) in enumerate ( zip ( data["hi_data"],data["lo_data"] ) ):
-                                center = (hi+lo)/2.
-                                delta = hi - center
-                                data["hi_data"][idd] = center + delta * self.fudge
-                                data["lo_data"][idd] = center - delta * self.fudge
+                    if modifier["data"] is None:
+                        continue
+                    data = modifier["data"]
+                    if "hi" in data:
+                        center = (data["hi"]+data["lo"])/2.
+                        delta = data["hi"] - center
+                        data["hi"] = center + delta * self.fudge
+                        data["lo"] = center - delta * self.fudge
+                    if "hi_data" in data:
+                        for idd,(hi,lo) in enumerate ( zip ( data["hi_data"],data["lo_data"] ) ):
+                            center = (hi+lo)/2.
+                            delta = hi - center
+                            data["hi_data"][idd] = center + delta * self.fudge
+                            data["lo_data"][idd] = center - delta * self.fudge
 
     def replaceObservation ( self, expRes, sr, newObs, name ):
         #jsonEntries = expRes.globalInfo.jsons[ ws_i ]["observations"]
@@ -1438,13 +1439,13 @@ Just filter the database:
 
         #create combined dataset for pyhf pred
         cdataset = CombinedDataSet ( expRes )
-        computers = CompRetriever.forPyhf( cdataset, srNsigDict,
-                _deltas_rel_default )
-        if abs ( self.fudge - 1. ) > 1e-5:
-            self.fudgePyhfModel ( expRes, computers )
         r_regions = []
         srs_in_workspaces = {}
+        anaId = expRes.globalInfo.id
         for srSetName,model_types in expRes.globalInfo.statModels.items():
+            computer = CompRetriever.forPyhf( srSetName, cdataset, srNsigDict )
+            if abs ( self.fudge - 1. ) > 1e-5:
+                self.fudgePyhfModel ( expRes, computer )
             for model_type in model_types:
                 stopThis = False
                 model_name = model_type[1]
@@ -1459,18 +1460,16 @@ Just filter the database:
                     stopThis = True
                 if stopThis:
                     break
-        # srs_in_workspaces = list(expRes.globalInfo.jsonFiles.values())
-        # srs_in_workspaces = r_regions
-        anaId = expRes.globalInfo.id
-
-        for comp in computers:
-            srs = srs_in_workspaces[comp.name]
-            ws = comp.workspace
+            srs = srs_in_workspaces[computer.name]
+            ws = computer.workspace
+            #if ws is None:
+            #    print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{computer.name}]" )
+            #    continue
             ## srs are the names of the signal regions
             try:
                 model = ws.model()
             except pyhf.exceptions.InvalidModel as e:
-                print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{comp.name}]: {e}" )
+                print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{computer.name}]: {e}" )
                 continue
                 # sys.exit(-1)
             channelnames = self.getChannelNames ( model.config.channels )
@@ -1533,7 +1532,7 @@ Just filter the database:
                 ## as the very last measure, we replace the observation with
                 ## the fake observation
                 dataset.dataInfo.observedN = newObs
-                self.replaceObservation ( expRes, sr, newObs, comp.name )
+                self.replaceObservation ( expRes, sr, newObs, computer.name )
                 # this replaces the observation in the json with the new bg
 
     def fakeBackgrounds ( self, listOfExpRes ):
