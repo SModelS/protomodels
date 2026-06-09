@@ -27,7 +27,7 @@ from smodels.base.model import Model
 from smodels.share.models.SMparticles import SMList
 from share.model_spec import BSMList
 from smodels.matching.theoryPrediction import theoryPredictionsFor
-from smodels.statistics.simplifiedLikelihoods import Data, UpperLimitComputer, \
+from smodels.statistics.simplifiedLikelihoods import Data, SLUpperLimitComputer, \
          LikelihoodComputer
 from smodels.statistics.basicStats import observed, apriori, \
          aposteriori, NllEvalType
@@ -851,7 +851,7 @@ Just filter the database:
         if orig == 0.0:
             orig = 0.00001
         m = Data( orig+sigN, orig, err**2, nsignal = 1. )
-        computer = UpperLimitComputer( LikelihoodComputer ( m ) )
+        computer = SLUpperLimitComputer( LikelihoodComputer ( m ) )
         lumi = dataset.globalInfo.lumi# .asNumber(1./fb)
         maxSignalXsec = computer.getUpperLimitOnMu ( ) / lumi
         dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit

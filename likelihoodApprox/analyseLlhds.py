@@ -17,7 +17,7 @@ import numpy as np
 sys.path.append(os.path.abspath('../smodels'))
 from smodels.base.physicsUnits import fb
 from smodels.tools import statistics
-from smodels.statistics.simplifiedLikelihoods import UpperLimitComputer, Data
+from smodels.statistics.simplifiedLikelihoods import SLUpperLimitComputer, Data
 if False:
     from smodels.base import runtime
     runtime._experimental = True
@@ -61,7 +61,7 @@ def run ( nobs, nExp, nExpErr, nsig ):
     """
     print ( "Starting run with nobs", nobs, "nExp", nExp )
     data = Data ( nobs, nExp, nExpErr**2, nsignal = nsig )
-    computer = UpperLimitComputer ( 10000 )
+    computer = SLUpperLimitComputer ( 10000 )
     marginalize = False # True
     ULobs = computer.ulSigma ( data, marginalize=marginalize )
 
