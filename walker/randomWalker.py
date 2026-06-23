@@ -16,7 +16,15 @@ try:
     import smodels
 except:
     from ptools import setPath
-sys.path.insert(0,f"/scratch-cbe/users/{os.environ['USER']}/git/smodels-utils/protomodels/")
+
+def getUserName():
+    user = "user"
+    if "USER" in os.environ:
+        user = os.environ["USER"]
+    return user
+
+if os.path.exists ( "/scratch-cbe" ):
+    sys.path.insert(0,f"/scratch-cbe/users/{getUserName()}/git/smodels-utils/protomodels/")
 sys.path.insert(0,"../")
 sys.path.insert(0,"../../")
 sys.path.insert(0,"../smodels/")
