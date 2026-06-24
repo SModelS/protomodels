@@ -96,7 +96,7 @@ class Initialiser ( LoggerBase ):
     effscachefile = "xsecs.cache"
 
     def __init__ ( self, walkerid : Union[str,int],
-            dictfile : os.PathLike, environ : RunEnviron, 
+            dictfile : os.PathLike, environ : RunEnviron,
             verbose : bool = False ):
         """ constructor.
 
@@ -195,7 +195,7 @@ class Initialiser ( LoggerBase ):
             return lspmass + avg_delta
 
         def renameParticle ( newpid : int, oldpid : int, model : dict ) -> dict:
-            """ rename the particle oldpid to newpid in model 
+            """ rename the particle oldpid to newpid in model
 
             :returns: model with oldpid replaced by newpid
             """
@@ -233,7 +233,7 @@ class Initialiser ( LoggerBase ):
             model["ssmultipliers"] = newssms
             self.debug ( f'renameParticle returning {model}' )
             return model
-                
+
 
         def computeAverageDecaysForPid ( pid : int, models : List[Dict] ) -> Dict:
             decays = {}
@@ -318,7 +318,7 @@ class Initialiser ( LoggerBase ):
 
     def getHighestXSecsFromDatabase( self, force_build : bool = False ):
         """ we sift through the database, and note the points with the
-        highest efficiencies, write into a file 
+        highest efficiencies, write into a file
         :param force_build: if true, then ignore cache
         """
         self.log ( f"effs cache {self.effscachefile}" )
@@ -354,7 +354,7 @@ class Initialiser ( LoggerBase ):
                 if False: # obsN < expBG: # not interesting
                     continue
                 bgErr = ds.dataInfo.bgError
-                p = computeP ( obsN, expBG, bgErr )
+                p = computeP ( obsN, expBG, bgErr, srName = ds.dataInfo.dataId )
                 if p > 0.3:
                     # not interesting
                     continue
@@ -480,7 +480,7 @@ class Initialiser ( LoggerBase ):
         for txname in dataset.txnameList:
             txn = txname.txName
             if txn in self.mapTxnames:
-                if self.mapTxnames[txn] is None: # like TRS1, skip 
+                if self.mapTxnames[txn] is None: # like TRS1, skip
                     continue
                 txn =  self.mapTxnames[txn]
             if not txn in self.pidsForTxnames: # skip this
@@ -502,7 +502,7 @@ class Initialiser ( LoggerBase ):
                 # in the mass plane
                 massvec = data.inversePCAtransf(pt)
                 masses = self.massVecToDict ( massvec, txname )
-                refxsec = self.getRefXSecsFor ( 
+                refxsec = self.getRefXSecsFor (
                         txname, tuple(masses.items()), tuple(pids) )
                 if refxsec is None:
                     refxsec = 1e-6 # worst case we fall back to effs,
@@ -551,7 +551,7 @@ class Initialiser ( LoggerBase ):
             self.massRanges[i] = squarkrange # ~b
 
     def decaysAllowedBySLHA ( self, decays : dict ) -> dict:
-        """ for txname are decays <ids> allowed for 
+        """ for txname are decays <ids> allowed for
         mother <pid>, according to the slha template file? """
         self.log ( f"filter decays allowed by template slha file" )
         ret = {}
@@ -793,7 +793,7 @@ class Initialiser ( LoggerBase ):
             self.pvalues[anaAndSRName]={ "p": p }
         if len(prels)==0:
             self.error ( "computePDict: no results returned" )
-        self.probs = dict ( sorted ( [ (k/ptot,v) for k,v in prels.items() ], 
+        self.probs = dict ( sorted ( [ (k/ptot,v) for k,v in prels.items() ],
                             reverse = True ) )
         #probkeys = list ( self.probs.keys() )
         #probkeys.sort (reverse = True )
@@ -801,7 +801,7 @@ class Initialiser ( LoggerBase ):
 
     def randomlyChooseFromDataset ( self, result : dict ) -> dict:
         """ ok, we found a dataset, now we choose a random
-        txn and mass point 
+        txn and mass point
 
         :returns: result dictionary but enriched with txn and mass point
         """
@@ -874,7 +874,7 @@ class Initialiser ( LoggerBase ):
         self.dsIdsInProposal.add ( Id )
         result = self.randomlyChooseFromDataset ( result )
         return result
- 
+
     def tiePids ( self, pid : int, pids : List[int] ) -> Union[None,int]:
         """ determine if we tie this pid to another pid, meaning
         we set the mass of another pid to the value of this pid.
@@ -950,7 +950,7 @@ class Initialiser ( LoggerBase ):
         allowed_particles = self.getAllowedParticles ( constraints )
 
         good_channels = {}
-        self.debug ( f"for {txname} we filter:" ) 
+        self.debug ( f"for {txname} we filter:" )
         for mother,decays in all_channels.items():
             #if mother == 1000024:
             #    self.log ( f"debug allowed {allowed_particles} constraints {constraints}" )
@@ -1048,7 +1048,7 @@ class Initialiser ( LoggerBase ):
             if tpid is not None and tpid < pid:
                 continue
             wasOnshell = self.isOnshell ( pid, masses )
-            nmass = -1. 
+            nmass = -1.
 
             scale = .2
             while nmass < lspmass + 1: ## at least 1 gev distance to lsp
@@ -1062,11 +1062,11 @@ class Initialiser ( LoggerBase ):
                     nmass = -1. # continue
                 scale *= 1.3
             self.log ( f"we randomly smear m({pid}): {mass:.1f} -> {nmass:.1f}" )
-            
+
             if tpid is not None:
                 self.log ( f"we randomly smear m({tpid}): {mass:.1f} -> {nmass:.1f}" )
                 newmasses[tpid]=nmass
-                
+
         if 1000023 in newmasses and 1000024 in newmasses:
             p = np.random.uniform ( 0, 1 )
             if p < .2:
@@ -1108,7 +1108,7 @@ class Initialiser ( LoggerBase ):
             submodels.append ( submodel )
         self.submodels = submodels
         model = self.mergeNModels ( submodels )
-        
+
         if self.environ.allowN1N1Prod and model is not None:
             ## the factor of .2 below is because our reference xsecs for N1N1 are those of C1C1
             ## so too high
@@ -1126,7 +1126,7 @@ class Initialiser ( LoggerBase ):
         if model == None:
             model = self.propose()
             self.debug ( f"predictForModel {model}" )
-        ma = Manipulator( model, walkerid = self.walkerid, 
+        ma = Manipulator( model, walkerid = self.walkerid,
                           environ = self.environ )
 
         self.pr = Predictor( self.walkerid, self.environ )

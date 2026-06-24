@@ -333,6 +333,7 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
     """ given a dataset, compute p for SM hypothesis
     :param obsN: if not None, compute for the observation
     :param nmax: maximum number of toys
+    :param nmin: minimum number of toys
 
     :returns: p-value
     """
@@ -344,15 +345,18 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
     if hasattr ( dataset.dataInfo, "thirdMoment" ):
         thirdMoment = dataset.dataInfo.thirdMoment
     if thirdMoment is None:
-        p, computer = computeP ( obsN, exp, err, nmax = nmax, nmin = nmin )
+        p, computer = computeP ( obsN, exp, err, nmax = nmax, nmin = nmin,
+               srName = dataset.dataInfo.dataId )
     else:
-        p, computer = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax, nmin = nmin )
+        p, computer = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax,
+                nmin = nmin, srName = dataset.dataInfo.dataId )
     if p < 1e-100:
         print ( f"[helpers] {dataset.globalInfo.id}:{dataset.dataInfo.dataId} has p={p}: obs={obsN}, bg={exp:.3f}+-{err:.4f}" )
     return p, computer
 
 def computePAnalytically ( obs : float, bg : float, bgerr : float,
-        lognormal : bool = False, sigN : Union[None,float] = None ) -> float:
+        lognormal : bool = False, sigN : Union[None,float] = None,
+        srName : str = "? ana" ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis, analytical version:
 
@@ -363,6 +367,7 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
     as a lognormal instead of a normal
     :param nmax: maximum number of toys
     :param nmin: minimum number of toys
+    :param srName: name of signal region
 
     :returns: p-value
     """
@@ -428,7 +433,7 @@ def roughZValue ( obs : float, bg : float , bgerr : float ):
 def computeP ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False, nmax : int = 200_000,
         sigN : Union[None,float] = None, nmin : int = 50_000,
-        force : str = "any" ) -> float:
+        force : str = "any", srName : str = "?" ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
 
@@ -446,26 +451,30 @@ def computeP ( obs : float, bg : float, bgerr : float,
     :returns: p-value, computer
     """
     if force == "analytical":
-        ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+        ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN,
+               srName = srName )
         return ret, "analytical"
     if not force == "numerical":
         if obs < 20 and not lognormal:
-            ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+            ret = computePAnalytically ( obs, bg, bgerr, lognormal,
+               sigN = sigN, srName = srName )
             return ret, "numerical"
         Z = roughZValue ( obs, bg, bgerr )
         if abs(Z)>4 and obs < 200 and not lognormal:
             ## these extremes, better do them analytically
-            ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+            ret = computePAnalytically ( obs, bg, bgerr, lognormal,
+               sigN = sigN, srName = srName )
             return ret, "analytical"
         if abs(Z)>5 and obs < 2000 and not lognormal:
             ## these extremes, better do them analytically
-            ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN )
+            ret = computePAnalytically ( obs, bg, bgerr, lognormal,
+               sigN = sigN, srName = srName )
             return ret, "analytical"
     #if hasWritten["computeP"]<2:
     #    print ( f"[helpers] computing p numerically nmax={nmax} (sometimes this hangs)" )
 
     ret = computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN,
-            nmin = nmin, nmax = nmax )
+            nmin = nmin, nmax = nmax, srName = srName )
     if hasWritten["computeP"]<2:
         print ( f"[helpers] computed p numerically: {ret} (didnt hang)" )
         hasWritten["computeP"]+=1
@@ -526,7 +535,7 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
 
 def computePSLv2 ( obs : float, bg : float, bgerr : float,
         third : float, nmax : int = 200_000,
-        nmin : int = 50_000 ) -> float:
+        nmin : int = 50_000, srName : str = "?" ) -> float:
     """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2
 
     :param obs: observed number of events
@@ -534,6 +543,8 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
     :param bgerr: error on number of expected bg events
     :param third: the third moment
     :param nmax: maximum number of toys
+    :param nmin: minimum number of toys
+    :param srName: name of this signal region
 
     :returns: p-value, computer
     """
@@ -546,7 +557,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
             print ( f"[helpers] third moments too large: bgerr**2={bgerr**2:.2g}, third={third:.2g}, db={8*bgerr**6 - third**2:.2g}. shrinking!" )
             printErr = False
         third *= 0.9
-    d = SLData ( obs, bg, bgerr**2, third )
+    d = SLData ( obs, bg, bgerr**2, third, name = srName )
     from icecream import ic
     #ic ( "FIXME needs implementation! computePSLv2" )
     n = nmin
