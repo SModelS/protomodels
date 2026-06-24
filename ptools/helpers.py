@@ -482,7 +482,8 @@ def computeP ( obs : float, bg : float, bgerr : float,
 
 def computePNumerically ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False, nmax : int = 200_000,
-        sigN : Union[None,float] = None, nmin : int = 50_000 ) -> float:
+        sigN : Union[None,float] = None, nmin : int = 50_000,
+        srName : str = "?" ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
 
@@ -492,8 +493,9 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
     :param lognormal: if true, model the enveloping nuisance parameter
     as a lognormal instead of a normal
     :param nmax: maximum number of toys
-    :param nmin: minimum number of toys
     :param sigN: if not none, then compute for this signal hypothesis
+    :param nmin: minimum number of toys
+    :param srName: name of signal region
 
     :returns: p-value
     """
