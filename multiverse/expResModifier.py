@@ -27,8 +27,8 @@ from smodels.base.model import Model
 from smodels.share.models.SMparticles import SMList
 from share.model_spec import BSMList
 from smodels.matching.theoryPrediction import theoryPredictionsFor
-from smodels.statistics.simplifiedLikelihoods import Data, SLUpperLimitComputer, \
-         LikelihoodComputer
+from smodels.statistics.simplifiedLikelihoods import SLData, SLUpperLimitComputer, \
+         SLLikelihoodComputer
 from smodels.statistics.basicStats import observed, apriori, \
          aposteriori, NllEvalType
 from smodels.base.physicsUnits import fb, GeV, TeV
@@ -850,8 +850,8 @@ Just filter the database:
         ## now recompute the limits!!
         if orig == 0.0:
             orig = 0.00001
-        m = Data( orig+sigN, orig, err**2, nsignal = 1. )
-        computer = SLUpperLimitComputer( LikelihoodComputer ( m ) )
+        m = SLData( orig+sigN, orig, err**2, nsignal = 1. )
+        computer = SLUpperLimitComputer( SLLikelihoodComputer ( m ) )
         lumi = dataset.globalInfo.lumi# .asNumber(1./fb)
         maxSignalXsec = computer.getUpperLimitOnMu ( ) / lumi
         dataset.dataInfo.origUpperLimit = dataset.dataInfo.upperLimit
@@ -1313,8 +1313,8 @@ Just filter the database:
             tpe = "SLv2"
             thirdMoments = [ x.dataInfo.thirdMoment * self.fudge**3 for x in expRes.datasets ]
         self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
-        from smodels.statistics.simplifiedLikelihoods import Data
-        data = Data ( observed, expectedBGs, covm, thirdMoments )
+        from smodels.statistics.simplifiedLikelihoods import SLData
+        data = SLData ( observed, expectedBGs, covm, thirdMoments )
         for i,dataset in enumerate(expRes.datasets):
             newObs = dataset.dataInfo.observedN
             if not self.no_synthesis:

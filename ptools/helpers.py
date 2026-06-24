@@ -538,7 +538,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
     :returns: p-value, computer
     """
     # return -1
-    from smodels.statistics.simplifiedLikelihoods import Data
+    from smodels.statistics.simplifiedLikelihoods import SLData
     printErr = True
     while 8*bgerr**6 - third**2 < 0.:
         if printErr:
@@ -546,7 +546,7 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
             print ( f"[helpers] third moments too large: bgerr**2={bgerr**2:.2g}, third={third:.2g}, db={8*bgerr**6 - third**2:.2g}. shrinking!" )
             printErr = False
         third *= 0.9
-    d = Data ( obs, bg, bgerr**2, third )
+    d = SLData ( obs, bg, bgerr**2, third )
     from icecream import ic
     #ic ( "FIXME needs implementation! computePSLv2" )
     n = nmin
