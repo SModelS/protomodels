@@ -736,10 +736,10 @@ Just filter the database:
         ## FIXME does this still get used
         dId = dataset.dataInfo.dataId
         print ( f"@@00 [expResModifier] getPyhfname {dId}" )
-        if not dId in dataset.globalInfo.srMappingsDict:
+        if not dId in dataset.globalInfo.srMappings:
             print ( f"@@00 None" )
             return None
-        region= dataset.globalInfo.srMappingsDict[dId]
+        region= dataset.globalInfo.srMappings[dId]
         #print ( f"@@00 region['pyhf']" )
         return region["pyhf"]
         #for jsonfile, SRs in dataset.globalInfo.jsonFiles.items():
@@ -1455,7 +1455,7 @@ Just filter the database:
                     regions = expRes.globalInfo.srSets[srSetName]
                     r_regions.append ( regions )
                     for region in regions:
-                        srs.append ( expRes.globalInfo.srMappingsDict[region] )
+                        srs.append ( expRes.globalInfo.srMappings[region] )
                     srs_in_workspaces[model_name] = ( srs )
                     stopThis = True
                 if stopThis:
