@@ -850,7 +850,9 @@ Just filter the database:
         ## now recompute the limits!!
         if orig == 0.0:
             orig = 0.00001
-        m = SLData( orig+sigN, orig, err**2, nsignal = 1. )
+        srname = dataset.globalInfo.id + ":" + dataset.dataInfo.dataId
+        m = SLData( orig+sigN, orig, err**2, nsignal = 1.,
+               name = srname )
         computer = SLUpperLimitComputer( SLLikelihoodComputer ( m ) )
         lumi = dataset.globalInfo.lumi# .asNumber(1./fb)
         maxSignalXsec = computer.getUpperLimitOnMu ( ) / lumi
@@ -1314,7 +1316,9 @@ Just filter the database:
             thirdMoments = [ x.dataInfo.thirdMoment * self.fudge**3 for x in expRes.datasets ]
         self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
         from smodels.statistics.simplifiedLikelihoods import SLData
-        data = SLData ( observed, expectedBGs, covm, thirdMoments )
+        anaId = expRes.globalInfo.id
+        data = SLData ( observed, expectedBGs, covm, thirdMoments,
+               name = [ f"{anaId}:{x.dataInfo.dataId}" for x in expRes.datasets ] )
         for i,dataset in enumerate(expRes.datasets):
             newObs = dataset.dataInfo.observedN
             if not self.no_synthesis:
