@@ -1287,38 +1287,56 @@ Just filter the database:
         ## print ( "ret=", ret )
         return ret
 
-    def fakeBackgroundsForSL ( self, expRes ):
+    def fakeBackgroundsForSL ( self, expRes : ExpResult ):
+        for srSetName, t_covname in expRes.globalInfo.statModels.items():
+            self.fakeBackgroundsForOneMatrix ( expRes, srSetName )
+
+    def fakeBackgroundsForOneMatrix ( self, expRes : ExpResult, srSetName : str ):
         """ synthesize fake observations by sampling a simplified likelihood
         model
         :param expRes: the experimental result to do this for
+        :param srSetName: usually "all", but name of srSet
         """
+        cov_type = expRes.globalInfo.statModels[srSetName][0]
+        assert cov_type[0] == "sl", f"{expRes.globalInfo.id} has {cov_type}??"
+        cov_name = cov_type[1]
+
         # self.error ( f"FIXME fake SL backgrounds for {expRes.globalInfo.id}" )
         import numpy as np
         import scipy.stats
         cachedModels = expRes.globalInfo.cachedModels
-        keys = list ( expRes.globalInfo.cachedModels.keys() )
-        assert len (keys) == 1, "assuming one SL per analysis only (though can be easily fixed)"
-        key = keys[0]
-        covm = np.array ( cachedModels[ key ] )
-        # covm = np.array ( expRes.globalInfo.stat )
+        covm = np.array ( cachedModels[ cov_name ] )
         if abs ( self.fudge - 1 ) > 1e-8:
             covm = self.fudge**2 * covm
         # diag = np.array ([expRes.globalInfo.covariance[i][i] for i in range(len(covm))])
-        expectedBGs = np.array([ x.dataInfo.expectedBG for x in expRes.datasets ] )
-        observed = np.array([ x.dataInfo.observedN for x in expRes.datasets ] )
+        observed, expectedBGs, thirdMoments = [], [], None
+        srSet = expRes.globalInfo.srSets[srSetName]
+        tpe = "SLv1"
+        hasThirdMoments = hasattr ( expRes.datasets[0].dataInfo, "thirdMoment" )
+        if hasThirdMoments:
+            thirdMoments = []
+            tpe = "SLv2"
+        for srName in srSet:
+            ds = expRes.getDataset ( srName )
+            obs = ds.dataInfo.observedN
+            eBG = ds.dataInfo.expectedBG
+            observed.append ( obs )
+            expectedBG.append ( eBG )
+            if hasThirdMoments:
+                tM = ds.dataInfo.thirdMoment * self.fudge ** 3
+                thirdMoments.append ( tM )
+        expectedBGs = np.array( expectedBGs )
+        observed = np.array( observed )
         zeroes = np.array ( [0.]*len(covm) )
         rvs = scipy.stats.multivariate_normal.rvs ( zeroes, covm )
         ## FIXME SLv2 needed also!
-        thirdMoments = None
-        tpe = "SLv1"
-        if hasattr ( expRes.datasets[0].dataInfo, "thirdMoment" ):
-            tpe = "SLv2"
-            thirdMoments = [ x.dataInfo.thirdMoment * self.fudge**3 for x in expRes.datasets ]
         self.comments["type"]="result type (None, SLv1, SLv2, pyhf)"
         from smodels.statistics.simplifiedLikelihoods import SLData
         anaId = expRes.globalInfo.id
         data = SLData ( observed, expectedBGs, covm, thirdMoments,
-               name = [ f"{anaId}:{x.dataInfo.dataId}" for x in expRes.datasets ] )
+               name = [ f"{anaId}:{x}" for x in srSet ] )
+        if anaId == "CMS-SUS-20-004":
+            import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         for i,dataset in enumerate(expRes.datasets):
             newObs = dataset.dataInfo.observedN
             if not self.no_synthesis:
@@ -1356,7 +1374,6 @@ Just filter the database:
             expRes.datasets[i].dataInfo.observedN = newObs
             label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
             self.addToStats ( label, D, dataset.globalInfo )
-
 
     def getChannelNames ( self, channels : List[Text] ) -> List:
         """ get the names of channels from the pyhf entry """
