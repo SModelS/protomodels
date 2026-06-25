@@ -1321,7 +1321,7 @@ Just filter the database:
             obs = ds.dataInfo.observedN
             eBG = ds.dataInfo.expectedBG
             observed.append ( obs )
-            expectedBG.append ( eBG )
+            expectedBGs.append ( eBG )
             if hasThirdMoments:
                 tM = ds.dataInfo.thirdMoment * self.fudge ** 3
                 thirdMoments.append ( tM )
@@ -1335,8 +1335,6 @@ Just filter the database:
         anaId = expRes.globalInfo.id
         data = SLData ( observed, expectedBGs, covm, thirdMoments,
                name = [ f"{anaId}:{x}" for x in srSet ] )
-        if anaId == "CMS-SUS-20-004":
-            import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         for i,dataset in enumerate(expRes.datasets):
             newObs = dataset.dataInfo.observedN
             if not self.no_synthesis:
