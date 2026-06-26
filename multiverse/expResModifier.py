@@ -1599,7 +1599,7 @@ Just filter the database:
             t1 = time.time()
             dt = t1 - t0
             if dt > 3:
-                self.pprint ( f"\n{expRes.globalInfo.id} took {t1-t0:.2f}s" )
+                self.pprint ( f"{expRes.globalInfo.id} took {t1-t0:.2f}s" )
         self.log ( "done faking the backgrounds" )
         return ret
 
