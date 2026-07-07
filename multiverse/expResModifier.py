@@ -736,10 +736,10 @@ Just filter the database:
         ## FIXME does this still get used
         dId = dataset.dataInfo.dataId
         print ( f"@@00 [expResModifier] getPyhfname {dId}" )
-        if not dId in dataset.globalInfo.srMappings:
+        if not dId in dataset.globalInfo.regionMappings:
             print ( f"@@00 None" )
             return None
-        region= dataset.globalInfo.srMappings[dId]
+        region= dataset.globalInfo.regionMappings[dId]
         #print ( f"@@00 region['pyhf']" )
         return region["pyhf"]
         #for jsonfile, SRs in dataset.globalInfo.jsonFiles.items():
@@ -1288,16 +1288,16 @@ Just filter the database:
         return ret
 
     def fakeBackgroundsForSL ( self, expRes : ExpResult ):
-        for srSetName, t_covname in expRes.globalInfo.statModels.items():
-            self.fakeBackgroundsForOneMatrix ( expRes, srSetName )
+        for regionSetName, t_covname in expRes.globalInfo.statModels.items():
+            self.fakeBackgroundsForOneMatrix ( expRes, regionSetName )
 
-    def fakeBackgroundsForOneMatrix ( self, expRes : ExpResult, srSetName : str ):
+    def fakeBackgroundsForOneMatrix ( self, expRes : ExpResult, regionSetName : str ):
         """ synthesize fake observations by sampling a simplified likelihood
         model
         :param expRes: the experimental result to do this for
-        :param srSetName: usually "all", but name of srSet
+        :param regionSetName: usually "all", but name of regionSet
         """
-        cov_type = expRes.globalInfo.statModels[srSetName][0]
+        cov_type = expRes.globalInfo.statModels[regionSetName][0]
         assert cov_type[0] == "sl", f"{expRes.globalInfo.id} has {cov_type}??"
         cov_name = cov_type[1]
 
@@ -1310,13 +1310,13 @@ Just filter the database:
             covm = self.fudge**2 * covm
         # diag = np.array ([expRes.globalInfo.covariance[i][i] for i in range(len(covm))])
         observed, expectedBGs, thirdMoments = [], [], None
-        srSet = expRes.globalInfo.srSets[srSetName]
+        regionSet = expRes.globalInfo.regionSets[regionSetName]
         tpe = "SLv1"
         hasThirdMoments = hasattr ( expRes.datasets[0].dataInfo, "thirdMoment" )
         if hasThirdMoments:
             thirdMoments = []
             tpe = "SLv2"
-        for srName in srSet:
+        for srName in regionSet:
             ds = expRes.getDataset ( srName )
             obs = ds.dataInfo.observedN
             eBG = ds.dataInfo.expectedBG
@@ -1334,7 +1334,7 @@ Just filter the database:
         from smodels.statistics.simplifiedLikelihoods import SLData
         anaId = expRes.globalInfo.id
         data = SLData ( observed, expectedBGs, covm, thirdMoments,
-               name = [ f"{anaId}:{x}" for x in srSet ] )
+               name = [ f"{anaId}:{x}" for x in regionSet ] )
         for i,dataset in enumerate(expRes.datasets):
             newObs = dataset.dataInfo.observedN
             if not self.no_synthesis:
@@ -1435,13 +1435,13 @@ Just filter the database:
         the onnxModels """
         if not hasattr ( expRes.globalInfo, "statModels" ):
             return
-        for srSetName,model_types in expRes.globalInfo.statModels.items():
+        for regionSetName,model_types in expRes.globalInfo.statModels.items():
             n_models = []
             for model_type in model_types:
                 mtype = model_type[0]
                 if mtype != "onnx":
                     n_models.append ( model_type )
-            expRes.globalInfo.statModels[srSetName]=n_models
+            expRes.globalInfo.statModels[regionSetName]=n_models
 
     def fakeBackgroundsForPyhf ( self, expRes ):
         """ synthesize fake observations by sampling a pyhf model
@@ -1461,8 +1461,8 @@ Just filter the database:
         r_regions = []
         srs_in_workspaces = {}
         anaId = expRes.globalInfo.id
-        for srSetName,model_types in expRes.globalInfo.statModels.items():
-            computer = CompRetriever.forPyhf( srSetName, cdataset, srNsigDict )
+        for regionSetName,model_types in expRes.globalInfo.statModels.items():
+            computer = CompRetriever.forPyhf( regionSetName, cdataset, srNsigDict )
             if abs ( self.fudge - 1. ) > 1e-5:
                 self.fudgePyhfModel ( expRes, computer )
             for model_type in model_types:
@@ -1471,10 +1471,10 @@ Just filter the database:
                 mtype = model_type[0]
                 if "pyhf" in mtype:
                     srs = []
-                    regions = expRes.globalInfo.srSets[srSetName]
+                    regions = expRes.globalInfo.regionSets[regionSetName]
                     r_regions.append ( regions )
                     for region in regions:
-                        srs.append ( expRes.globalInfo.srMappings[region] )
+                        srs.append ( expRes.globalInfo.regionMappings[region] )
                     srs_in_workspaces[model_name] = ( srs )
                     stopThis = True
                 if stopThis:
@@ -1565,13 +1565,13 @@ Just filter the database:
                 print ( ".", flush=True, end="" )
             t0 = time.time()
             if hasattr ( expRes.globalInfo, "statModels" ):
-                for srSetName,model_types in expRes.globalInfo.statModels.items():
+                for regionSetName,model_types in expRes.globalInfo.statModels.items():
                     stopThis = False
                     for model_type in model_types:
                         mtype = model_type[0]
                         mname = model_type[1]
                         if self.verbose < 5:
-                            self.pprint ( f" `-  {srSetName}:{mtype}" )
+                            self.pprint ( f" `-  {regionSetName}:{mtype}" )
                         if mtype == "onnx":
                             stopThis = False
                             continue
