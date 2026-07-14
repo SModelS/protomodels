@@ -1590,10 +1590,8 @@ Just filter the database:
                         ## stop after the first model this is pyhf or SL
                         break
             else:
-                print ( f"@@ datasets {len(expRes.datasets)}" )
                 for i,dataset in enumerate(expRes.datasets):
                     dt = dataset.dataInfo.dataType
-                    print ( f"@@   dt {dt}" )
                     if dt == "upperLimit":
                         expRes.datasets[i] = self.bgUpperLimit ( dataset )
                     elif dt == "efficiencyMap":
