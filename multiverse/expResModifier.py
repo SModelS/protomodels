@@ -477,7 +477,9 @@ Just filter the database:
                     hasEntry = True
                     dses.append ( dataset )
                 else:
-                    self.info( f"{er.globalInfo.id}:{dataset.dataInfo.dataId} has only empty txnames. will remove." )
+                    self.debug( f"{er.globalInfo.id}:{dataset.dataInfo.dataId} has only empty txnames. accepting though because we now accept yields_only entries." )
+                    hasEntry = True
+                    dses.append ( dataset )
                 er.datasets = dses
             if hasEntry:
                 ret.append ( er )
@@ -523,6 +525,7 @@ Just filter the database:
         self.produceProtoModel ( self.pmodel, self.db.databaseVersion,
                                  self.allowN1N1Prod )
         self.log ( f"{len(listOfExpRes)} results before faking bgs" )
+        self.pprint ( f"{len(listOfExpRes)} results before faking bgs" )
         updatedListOfExpRes = self.fakeBackgrounds ( listOfExpRes )
         self.log ( f"{len(updatedListOfExpRes)} results after faking bgs" )
         updatedListOfExpRes = self.addSignals ( updatedListOfExpRes )
@@ -594,7 +597,7 @@ Just filter the database:
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
         if len ( txnames ) == 0:
-            self.warning ( f"no txnames for {label}." )
+            self.debug ( f"no txnames for {label}." )
         D["txns"]=tuple(txnames )
         self.comments["txns"]="tuple of txnames that populate this signal region / analysis"
         if self.timestamps:
@@ -1560,7 +1563,7 @@ Just filter the database:
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
             if self.verbose < 15:
-                self.pprint ( f"starting {expRes.globalInfo.id} {datetime.now().strftime('%H:%M:%S')}")
+                self.pprint ( f"starting {expRes.globalInfo.id} at {datetime.now().strftime('%H:%M:%S')}")
             else:
                 print ( ".", flush=True, end="" )
             t0 = time.time()
@@ -1587,8 +1590,10 @@ Just filter the database:
                         ## stop after the first model this is pyhf or SL
                         break
             else:
+                print ( f"@@ datasets {len(expRes.datasets)}" )
                 for i,dataset in enumerate(expRes.datasets):
                     dt = dataset.dataInfo.dataType
+                    print ( f"@@   dt {dt}" )
                     if dt == "upperLimit":
                         expRes.datasets[i] = self.bgUpperLimit ( dataset )
                     elif dt == "efficiencyMap":
