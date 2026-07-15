@@ -636,6 +636,10 @@ class Plotter ( LoggerBase ):
     def getTitle ( self ):
         """ determine the plot title """
         dbname = os.path.basename ( self.meta["database"] )
+        if "orig_database" in self.meta:
+            dbname = self.meta["orig_database"]
+        if "fake_database" in self.meta:
+            dbname = self.meta["fake_database"]
         vdbname = f"v{dbname}"
         if dbname in [ "official" ]:
             vdbname = f"'{dbname}'"
@@ -1043,7 +1047,7 @@ def getArgs( cmdline = None ):
             help='show plot', action='store_true' )
     argparser.add_argument ( '--Zmax',
             help='maximum Z signifances to plot (|Z|) [None]',
-            type=float, default=None )
+            type=float, default=5. )
     if type(cmdline) in [ str ]:
         cmdline = cmdline.split()
         if "plotDBDict.py" in cmdline[0]:
