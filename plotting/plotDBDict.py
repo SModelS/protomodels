@@ -22,11 +22,14 @@ from ptools.moreHelpers import namesForSetsOfTopologies
 from protomodels.base.loggerbase import LoggerBase
 from smodels_utils.helper.various import hasLLHD, removeAnaIdSuffices
 from smodels_utils.helper.terminalcolors import GREEN, YELLOW, RESET, RED
+from pathlib import Path
 
 def isSelectedCustomFunction ( anaid, txns : List ) -> bool:
-    """ a generic hook to make it easy to select based on any requirement.
+    """ a generic hook to makes it easy to select based on any requirement.
     just write the python code here. """
-    mets = {'CMS-SUS-16-034','ATLAS-SUSY-2018-22','CMS-SUS-19-009','CMS-SUS-19-011','ATLAS-SUSY-2018-10','CMS-SUS-16-048','CMS-SUS-13-019','ATLAS-SUSY-2013-20','CMS-SUS-19-010','CMS-SUS-16-035','ATLAS-SUSY-2013-08','ATLAS-SUSY-2013-15','ATLAS-SUSY-2016-28','ATLAS-SUSY-2018-05','ATLAS-SUSY-2013-23','CMS-EXO-19-010','CMS-SUS-13-013','CMS-SUS-16-033','CMS-SUS-19-013','CMS-SUS-12-028','CMS-SUS-16-041','CMS-SUS-16-047','ATLAS-SUSY-2017-02','ATLAS-SUSY-2016-15','CMS-SUS-17-005','CMS-SUS-13-006','CMS-SUS-16-009','ATLAS-SUSY-2016-14','CMS-SUS-21-002','CMS-EXO-19-001','ATLAS-SUSY-2014-03','ATLAS-SUSY-2015-09','ATLAS-SUSY-2018-04','CMS-SUS-16-046','ATLAS-SUSY-2019-02','ATLAS-SUSY-2013-18','ATLAS-SUSY-2015-01','CMS-PAS-SUS-16-052','CMS-SUS-20-002','CMS-SUS-14-010','ATLAS-SUSY-2013-12','CMS-SUS-16-037','CMS-SUS-18-007','CMS-SUS-16-051','ATLAS-SUSY-2013-05','ATLAS-SUSY-2016-27','ATLAS-SUSY-2013-09','ATLAS-SUSY-2016-16','ATLAS-SUSY-2018-23','CMS-SUS-13-011','ATLAS-SUSY-2016-24','CMS-PAS-SUS-13-023','CMS-SUS-17-004','ATLAS-SUSY-2013-02','CMS-SUS-20-001','ATLAS-SUSY-2018-42','CMS-SUS-20-004','ATLAS-SUSY-2018-41','ATLAS-SUSY-2018-14','ATLAS-EXOT-2018-06','ATLAS-SUSY-2013-21','ATLAS-SUSY-2013-04','CMS-SUS-16-043','CMS-PAS-SUS-13-018','ATLAS-SUSY-2016-06','ATLAS-SUSY-2018-31','ATLAS-SUSY-2013-19','CMS-EXO-20-004','ATLAS-SUSY-2013-16','CMS-SUS-16-032','CMS-SUS-16-050','ATLAS-SUSY-2017-03','CMS-SUS-19-006','CMS-SUS-14-021','CMS-SUS-18-004','ATLAS-SUSY-2015-02','ATLAS-SUSY-2019-08','ATLAS-SUSY-2016-08','CMS-SUS-16-042','CMS-SUS-18-002','CMS-SUS-16-045','CMS-SUS-17-009','ATLAS-SUSY-2016-33','ATLAS-SUSY-2018-09','CMS-SUS-13-002','ATLAS-SUSY-2018-40','CMS-SUS-19-008','CMS-SUS-17-010','CMS-SUS-13-007','ATLAS-SUSY-2013-11','ATLAS-SUSY-2018-08','ATLAS-SUSY-2016-07','ATLAS-SUSY-2016-26','CMS-SUS-13-012','CMS-SUS-21-007','CMS-SUS-16-036','ATLAS-SUSY-2019-09','CMS-EXO-13-006','ATLAS-SUSY-2015-06','ATLAS-SUSY-2018-12','CMS-SUS-17-006','ATLAS-SUSY-2017-01','ATLAS-SUSY-2016-19','ATLAS-SUSY-2016-32','CMS-SUS-12-024','ATLAS-SUSY-2018-32','ATLAS-SUSY-2016-17','CMS-SUS-13-004','ATLAS-SUSY-2018-16','ATLAS-SUSY-2018-06','CMS-PAS-SUS-13-015','CMS-SUS-16-039','CMS-PAS-SUS-13-016','CMS-SUS-17-003'}
+    mdir = Path(__file__).resolve().parent
+    with open ( f"{mdir}/met_searches.py" ) as f:
+        mets = eval ( f.read() )
     return anaid in mets
     #print ( f"isSelectedCustomFunction {anaid} {txns}" )
     #for tx in txns:
@@ -34,21 +37,25 @@ def isSelectedCustomFunction ( anaid, txns : List ) -> bool:
     #return False
 
 class Plotter ( LoggerBase ):
-    """ the meta statistics plotter, see eg https://smodels.github.io/validation/300/significances.png
+    """ the meta statistics plotter, see eg
+    https://smodels.github.io/validation/300/significances.png
     """
 
     def __init__ ( self, args : Dict ):
         """
         :param filename: filename of dictionary
-        :param filtervalue: filter out signal regions with expectedBG < filtervalue
+        :param filtervalue: filter out signal regions with
+         expectedBG < filtervalue
         :param comment: an optional comment, to write in the plot
         :param likelihood: form of likelihood: "gauss", "gauss+poisson", or
         "lognormal+poisson"
         "gauss" or "g" means only a Gaussian for everything
         "gauss+poisson" or "gp" means Gauss * Poisson
         "lognormal+poisson" or "lp" means Lognormal * Poisson
-        :param topologies: if not None, then filter for these topologies (e.g. T2tt)
-        :param unscale: unscale, i.e. use the fudged bgError also for computing likelihoods
+        :param topologies: if not None, then filter for these topologies
+        e.g. T2tt
+        :param unscale: unscale, i.e. use the fudged bgError also for
+        computing likelihoods
         :param signalmodel: use the signal+bg model for computing likelihoods
         :param filtersigma: filter out signal regions with
         expectedBG/bgErr < filtersigma

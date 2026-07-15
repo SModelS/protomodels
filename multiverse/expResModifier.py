@@ -573,6 +573,32 @@ Just filter the database:
                                     nmax = nmax )
         return p
 
+    def addTxns ( self, D, txnames, dataset ):
+        """ add the 'txns' field """
+        anaid = dataset.globalInfo.id
+        if len ( txnames ) == 0:
+            label = f"{anaid}:{dataset.dataInfo.dataId}"
+            self.debug ( f"no txnames for {label}." )
+        D["txns"]=tuple(txnames )
+        self.comments["txns"]="tuple of txnames that populate this signal region / analysis"
+        if len(txnames) > 0:
+            return
+        D["yields_only"]=True
+        self.comments["yields_only"] = "true if we have a yields-only result, that is a result with neither UL nor eff maps"
+        if not hasattr ( dataset.globalInfo, "comment" ):
+           self.pprint ( f"{anaid} has no comment in {dataset.globalInfo.path}" )
+           return
+
+        cline = dataset.globalInfo.comment
+        p = cline.find("txnames:")
+        if p < 0:
+            self.pprint ( f"{anaid} has no txnames but no txnames mentioned in comment either. fix in {dataset.globalInfo.path}." )
+            return
+        import re
+        cline = cline[p+8:].strip()
+        ntxnames = re.split(r"[,\s]+", cline )
+        D["txns"]=tuple(ntxnames)
+
     def sampleEfficiencyMap ( self, dataset ):
         """ for the given dataset,
         sample from background and put the value as observed """
@@ -596,10 +622,7 @@ Just filter the database:
         label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
-        if len ( txnames ) == 0:
-            self.debug ( f"no txnames for {label}." )
-        D["txns"]=tuple(txnames )
-        self.comments["txns"]="tuple of txnames that populate this signal region / analysis"
+        self.addTxns ( D, txnames, dataset )
         if self.timestamps:
             D["timestamp"]=dataset.globalInfo.lastUpdate
         constraints = set()
@@ -720,17 +743,12 @@ Just filter the database:
             self.comments["orig_Z_fudged"]="the significance Z of the original observation (fudge factor applied)"
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
-        if len ( txnames ) == 0:
-
-            self.warning ( f"no txnames for {label}." )
-        D["txns"]=tuple(txnames )
-        self.comments["txns"]="tuple of txnames that populate this signal region / analysis"
+        self.addTxns ( D, txnames, dataset )
         constraints = set()
         for txni in dataset.txnameList:
             constraints.add ( txni.constraint )
         D["constraints"]=tuple( constraints )
         self.comments["constraints"]="tuple of the sms constraints"
-        # D["txns"]=",".join(txnames )
         if self.timestamps:
             D["timestamp"]=dataset.globalInfo.lastUpdate
         return D
@@ -1631,7 +1649,7 @@ Just filter the database:
             combinationsmatrix, status = getYamlMatrix()
             if not combinationsmatrix or status != 0:
                 logger.error("Combination matrix not loaded correctly.")
-            self.db =Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
+            self.db = Database ( self.dbpath, combinationsmatrix=combinationsmatrix)
         listOfExpRes = self.db.expResultList ## seems to be the safest bet?
         if self.remove_nonagg:
             from smodels_utils.helper.databaseManipulations import filterNonAggregatedFromList
@@ -1777,8 +1795,10 @@ Just filter the database:
         D = eval ( "\n".join ( cleaned ) )
 
         self.dbversion = self.db.databaseVersion
-        self.lExpRes = self.db.expResultList ## seems to be the safest bet?
-        # self.lExpRes = db.getExpResults ( [ "CMS-SUS-19-006" ] ) ## for debugging
+        # self.lExpRes = self.db.expResultList ## seems to be the safest bet?
+        ## the next one sorts out non-validated
+        self.lExpRes = self.db.getExpResults()
+        # self.lExpRes = self.db.getExpResults ( [ "CMS-SUS-19-006" ] ) ## for debugging
         for anaids,values in D.items():
             #if not "CMS-SUS-19-006" in anaids: # for debugging
             #    continue
