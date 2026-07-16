@@ -219,6 +219,7 @@ class Plotter ( LoggerBase ):
     def defaults ( self ):
         self.nbins = None # 10 for p-values, 13 for significances
         self.fudge = 1.
+        self.dpi = 600
         self.Zmax = None
         self.use_custom_function= False
         self.before = None
