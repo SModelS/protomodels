@@ -72,6 +72,8 @@ class Plotter ( LoggerBase ):
         self.defaults()
         for a,value in args.items():
             if a=="options":
+                if type(value)==dict and "options" in value:
+                    value.pop ( "options" )
                 self.options.update ( value )
                 continue
             if a not in [ "topologies", "analyses", "select_topologies" ]:
@@ -943,7 +945,8 @@ class Plotter ( LoggerBase ):
                        rotation=35, c="#ff3333", fontsize=20 )
         from installation import version as protomodels_version
         metadata = { "protomodels_version": protomodels_version() }
-        plt.savefig ( self.outfile, metadata = metadata )
+        dpi = self.options["dpi"]
+        plt.savefig ( self.outfile, dpi=dpi, metadata = metadata )
         if self.options["add_logo"]:
             from validation.addLogoToPlots import addLogo
             addLogo ( self.outfile )
@@ -968,6 +971,8 @@ def getArgs( cmdline = None ):
             type=str, default=None )
     argparser.add_argument ( '--no_stacked',
             help='do not stack', action="store_true" )
+    argparser.add_argument ( '--dpi',
+            help='plot quality', type=int, default=600 )
     argparser.add_argument ( '--add_logo',
             help='add a SModelS logo', action="store_true" )
     argparser.add_argument ( '-u', '--unscale',
