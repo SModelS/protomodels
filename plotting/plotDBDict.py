@@ -219,7 +219,6 @@ class Plotter ( LoggerBase ):
     def defaults ( self ):
         self.nbins = None # 10 for p-values, 13 for significances
         self.fudge = 1.
-        self.dpi = 600
         self.Zmax = None
         self.use_custom_function= False
         self.before = None
@@ -244,7 +243,8 @@ class Plotter ( LoggerBase ):
         self.outfile = "not_specified.png"
         self.title = None
         self.options = { "alwayslegend": False, "no_stacked": False,
-                         "draw_reference": True, "add_logo": True }
+                         "draw_reference": True, "add_logo": True,
+                         "dpi": 600 }
         self.yrange = None
         self.unscale = False
         self.signalmodel = False
