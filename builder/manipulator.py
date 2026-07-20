@@ -129,23 +129,32 @@ class Manipulator ( LoggerBase ):
             ret.remove(pid)
         return ret
 
-    def getClosestPair ( self, pids ):
-        """ of <n> PIDs, identify the two that are closest in mass """
-        if len(pids)<2:
-            return None
-        dmin = float("inf")
-        pair = (0,0)
-        for pid1 in pids:
-            for pid2 in pids:
-                if pid1 == pid2:
-                    continue
-                dm = abs ( self.M.masses[pid2] - self.M.masses[pid1] )
-                if dm < dmin:
-                    dmin = dm
-                    pair = ( pid1, pid2 )
-        return pair,dmin
+    def getClosestPair ( self, pids : list ) -> Union[None, Tuple[Tuple[int,int], float]]:
+        """Of *n* PIDs, identify the two that are closest in mass.
 
-    def checkIfOffshell(self, pid, protomodel=None):
+        :param pids: list of PDG particle IDs
+        :returns: ((pid_a, pid_b), mass_difference) or None if < 2 pids
+        """
+        if len(pids) < 2:
+            return None
+        masses = [(pid, self.M.masses[pid]) for pid in pids]
+        masses.sort(key=lambda x: x[1])
+        dmin = float("inf")
+        pair = (0, 0)
+        for i in range(len(masses) - 1):
+            dm = masses[i + 1][1] - masses[i][1]
+            if dm < dmin:
+                dmin = dm
+                pair = (masses[i][0], masses[i + 1][0])
+        return pair, dmin
+
+    def checkIfOffshell(self, pid: int, protomodel=None) -> bool:
+        """Check if particle *pid* is off-shell given the current masses.
+
+        :param pid: PDG particle ID (1000023 or 1000024)
+        :param protomodel: model to check against (defaults to self.M)
+        :returns: True if the mass splitting is too small for on-shell decay
+        """
         if protomodel is None:
             protomodel = self.M
         offshell = False
@@ -157,9 +166,12 @@ class Manipulator ( LoggerBase ):
 
         return offshell
 
-    def teleportToHiscore ( self ):
-        """ without further ado, discard your current model and start
-            fresh with the hiscore model. """
+    def teleportToHiscore ( self ) -> None:
+        """Discard the current model and start fresh with the hiscore model.
+
+        Reads ``hiscores.dict``, selects a model with exponential weighting
+        (favouring higher entries), and loads it.
+        """
         ## FIXME this is currently not used.
         fname = "hiscores.dict"
         if not os.path.exists ( fname ):

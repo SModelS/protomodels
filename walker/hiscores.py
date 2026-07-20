@@ -47,7 +47,7 @@ class Hiscores ( LoggerBase ):
         self.mtime = 0 ## last modification time of current list
         self.namer = sparticleNames.SParticleNames ( susy = False )
         self.keep_separate_hiscores = keep_separate_hiscores
-        if hiscores == None:
+        if hiscores is None:
             self.updateListFromPickle ( )
         else:
             self.hiscores = hiscores
@@ -56,10 +56,9 @@ class Hiscores ( LoggerBase ):
     @classmethod
     def writeDictionariesToFile ( cls, filename : os.PathLike,
            objs : list ) -> bool:
-        """ class method, write the dictionaries objs in a
-        formatted manner to file filename
+        """Write the dictionaries *objs* in a formatted manner to *filename*.
 
-        :returns: True if worked
+        :returns: True on success
         """
         ds = []
         for obj in objs:
@@ -81,33 +80,34 @@ class Hiscores ( LoggerBase ):
         unlock ( filename )
         return True
 
-    def currentMinTL ( self ):
-        """ the current minimum TL to make it into the list. """
-        if self.hiscores[-1] == None:
+    def currentMinTL ( self ) -> float:
+        """Return the current minimum TL to make it into the list."""
+        if self.hiscores[-1] is None:
             return 0.
         return self.hiscores[-1].TL
 
-    def currentMinK ( self, zeroIsMin=False ):
-        """ the current minimum K to make it into the list.
-        :param zeroIsMin:  if false, min k can become negative
+    def currentMinK ( self, zeroIsMin: bool = False ) -> float:
+        """Return the current minimum K to make it into the list.
+
+        :param zeroIsMin: if True, the minimum K cannot be negative
         """
-        if self.hiscores[-1] == None or len(self.hiscores)<10:
+        if self.hiscores[-1] is None or len(self.hiscores) < 10:
             if zeroIsMin:
                 return 0.
             return -30.
         mk = -10.
-        if hasattr ( self.hiscores[-1], "K" ):
+        if self.hiscores[-1] is not None and hasattr(self.hiscores[-1], "K"):
             mk = self.hiscores[-1].K
-            if mk == None:
+            if mk is None:
                 mk = -10.
         if zeroIsMin:
             return max ( mk, 0. )
         return mk
 
-    def globalMaxTL ( self ):
-        """ globally (across all walkers), the highest TL """
+    def globalMaxTL ( self ) -> float:
+        """Globally (across all walkers), the highest TL."""
         ret = 0.
-        if self.hiscores[0] != None:
+        if self.hiscores[0] is not None:
             if self.hiscores[0].TL > ret:
                 ret = self.hiscores[0].TL
         TLoldfile = "TLold.conf"
@@ -119,10 +119,10 @@ class Hiscores ( LoggerBase ):
                 f.close()
         return ret
 
-    def globalMaxK ( self ):
-        """ globally (across all walkers), the highest K """
-        ret = -3. ## set to negative if no hiscore exists
-        if self.hiscores[0] != None:
+    def globalMaxK ( self ) -> float:
+        """Globally (across all walkers), the highest K."""
+        ret = -3.  # set to negative if no hiscore exists
+        if self.hiscores[0] is not None:
             if self.hiscores[0].K > ret:
                 ret = self.hiscores[0].K
         Koldfile = "Kold.conf"
@@ -134,8 +134,8 @@ class Hiscores ( LoggerBase ):
                 f.close()
         return ret
 
-    def globalMinK ( self ):
-        """ the minimum K needed to make it into hiscore list """
+    def globalMinK ( self ) -> float:
+        """Return the minimum K needed to make it into hiscore list."""
         Kminfile = "Kmin.conf"
         ret = -99
         if not os.path.exists ( Kminfile ):
@@ -222,7 +222,7 @@ class Hiscores ( LoggerBase ):
         :param walkerid: log everything as walker #walkerid
         :returns: Hiscores object
         """
-        assert environ != None, "set environment"
+        assert environ is not None, "set environment"
         if not cls.dbpathExists ( environ.dbpath ):
             print ( f"[hiscores] database path {environ.dbpath} does not exist" )
             import sys; sys.exit()
@@ -239,7 +239,7 @@ class Hiscores ( LoggerBase ):
                 force_computation_K = force_computation_K )
             hiscores.append ( m.M )
             c+=1
-            if type(firstn) == int and c > firstn:
+            if isinstance(firstn, int) and c > firstn:
                 break
         return cls ( hiscores= hiscores, predictor = predictor,
                      walkerid = walkerid )

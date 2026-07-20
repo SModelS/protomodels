@@ -1,93 +1,112 @@
 #!/usr/bin/env python3
 
-""" code that implements a file locking mechanism
+"""File locking mechanism for multiprocess safety.
+
+Provides file-based locking using lockfiles to prevent concurrent
+processes from corrupting shared state (hiscores, databases, etc.).
 """
 
-import os, signal, subprocess
+import os
+import signal
+import socket
+import subprocess
+import sys
+import time
+import random
+from typing import Set
 
-ignore_locks = False
-__locks__ = set()
-    
+ignore_locks: bool = False
+__locks__: Set[str] = set()
+
 old_handler = signal.getsignal(signal.SIGINT)
 
-def signal_handler(sig, frame):
+
+def signal_handler(sig: int, frame) -> None:
+    """Clean up all acquired locks on SIGINT and exit gracefully."""
     if sig == signal.SIGINT:
-        print( f'You pressed Ctrl+C (sig {sig}), remove all {len(__locks__)} locks!' )
-    for l in __locks__: ## remove always
-        cmd = f"rm -f {l}"
-        subprocess.getoutput ( cmd )
-        print ( cmd )
-    # os.kill ( os.getpid(), sig )
+        print(
+            f"You pressed Ctrl+C (sig {sig}), remove all {len(__locks__)} locks!"
+        )
+    for lock_path in __locks__:
+        cmd = f"rm -f {lock_path}"
+        subprocess.getoutput(cmd)
+        print(cmd)
     if old_handler is signal.SIG_DFL:
-        # Default behavior for SIGINT is to raise KeyboardInterrupt,
-        # which usually exits with code 130.
         print("[locker] Exiting gracefully...")
         sys.exit(130)
     elif old_handler is signal.SIG_IGN:
         print("[locker] Old handler ignored SIGINT, continuing.")
     else:
-        # Call previous custom handler
         old_handler(sig, frame)
+
 
 signal.signal(signal.SIGINT, signal_handler)
 
-def lockfile ( basefile : os.PathLike ) -> os.PathLike:
-    lock_file = "."+os.path.basename(basefile)+".lock"
-    return lock_file
 
-def lock ( filename : os.PathLike ) -> bool:
-    """ lock the file filename, to make sure processes dont
-    overwrite each other
+def lockfile(basefile: os.PathLike) -> str:
+    """Return the lockfile path corresponding to *basefile*.
 
-    :returns: True if it was able to lock
+    :param basefile: The original file to protect.
+    :returns: Path of the lock file (hidden, in the same directory).
     """
-    import time, socket, random
+    return "." + os.path.basename(basefile) + ".lock"
+
+
+def lock(filename: os.PathLike) -> bool:
+    """Acquire a file lock for *filename*.
+
+    Blocks until the lock is acquired or forced after repeated failures.
+    Uses an exponential back-off when waiting for another process.
+
+    :param filename: Path of the file to lock.
+    :returns: ``True`` if the lock was acquired (or faked after timeout).
+    """
     if ignore_locks:
         return False
-    if not os.path.exists ( filename ):
-        # dont lock non-existing file
+    if not os.path.exists(filename):
         return False
-    lock_file = lockfile ( filename )
 
-    ## a lock file exists already? wait!
+    lf = lockfile(filename)
+
     ctr = 0
-    if os.path.exists ( lock_file ):
-        while ( os.path.exists ( lock_file ) ):
-            time.sleep ( .5*ctr + .2 )
+    if os.path.exists(lf):
+        while os.path.exists(lf):
+            time.sleep(0.5 * ctr + 0.2)
             ctr += 1
-            if ctr > 6: # we force an unlock after some time
-                unlock ( filename )
+            if ctr > 6:
+                unlock(filename)
+
     for i in range(5):
         try:
-            with open ( lock_file, "wt" ) as f:
-                f.write ( f"{{ 'time': '{time.asctime()}', 'host': '{socket.gethostname()}', 't': {time.time()} }}\n" )
-                f.close()
-            __locks__.add ( lock_file )
+            with open(lf, "wt") as f:
+                f.write(
+                    f"{{ 'time': '{time.asctime()}', "
+                    f"'host': '{socket.gethostname()}', "
+                    f"'t': {time.time()} }}\n"
+                )
+            __locks__.add(lf)
             return True
-        except FileNotFoundError as e:
-            t0 = random.uniform(2.,4.*i)
-            print ( f"[locker] FileNotFoundError #{i} {e}. Sleep for {t0:.1f}s" )
-            time.sleep( t0 )
-    __locks__.add ( lock_file )
-    return True ## pretend there is a lock
+        except FileNotFoundError:
+            t0 = random.uniform(2.0, 4.0 * i)
+            print(f"[locker] FileNotFoundError #{i}. Sleep for {t0:.1f}s")
+            time.sleep(t0)
 
-def unlock ( filename : os.PathLike ) -> bool:
-    """ unlock filename, to make sure processes dont
-        overwrite each other 
+    __locks__.add(lf)
+    return True  # pretend there is a lock
 
-    :returns: true if there really was a lock 
+
+def unlock(filename: os.PathLike) -> bool:
+    """Release the file lock for *filename*.
+
+    :param filename: Path of the file whose lock should be released.
+    :returns: ``True`` if there was a lock that got removed.
     """
-    #if ignore_locks:
-    #    return
-    lock_file = lockfile( filename )
-    if lock_file in __locks__:
-        __locks__.remove ( lock_file )
-    if os.path.exists ( lock_file ):
+    lf = lockfile(filename)
+    __locks__.discard(lf)
+    if os.path.exists(lf):
         try:
-            os.unlink ( lock_file )
+            os.unlink(lf)
             return True
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             pass
-        #cmd = f"rm -f {lock_file}"
-        #subprocess.getoutput ( cmd )
     return False

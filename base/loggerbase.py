@@ -1,154 +1,201 @@
 #!/usr/bin/env python3
 
-""" Class for all things around logging """
+"""Logging mixin for all protomodels classes.
 
-import time, os
-from typing import Union
+Provides a ``LoggerBase`` class that can be inherited to gain structured
+logging to both files and the terminal, with rate-limited message
+quenching for repetitive output.
+"""
+
+import sys
+import time
+import os
+from typing import Dict, Union
+
 from ptools import helpers
-from smodels_utils.helper.terminalcolors import *
 
-__all__ = [ "LoggerBase" ]
+try:
+    from smodels_utils.helper.terminalcolors import GREEN, RED, YELLOW, RESET
+except ImportError:
+    GREEN = RED = YELLOW = RESET = ""
+
+__all__ = ["LoggerBase"]
+
 
 class LoggerBase:
-    __slots__ = [ "walkerid", "module", "logdir" ]
+    """Mixin that provides logging to file and terminal.
 
-    def __init__ ( self, walkerid : Union[str,int] = 0,
-                   verbosity : Union[int,str] = "info" ):
-        """ instantiate the logger class with a walkerid 
-        :param walkerid: the label that we identify the log's author
-        with
-        :param verbosity: one of: error (40), warning (30), info (20), 
-        debug (10), or a numerical value
-        """
-        self.verbose = self.getVerbosity ( verbosity )
+    Every subclass automatically gets a per-walker log file under the
+    ``logs/`` directory.  Messages can be rate-limited so that
+    repetitive lines are printed at most three times.
+
+    :param walkerid: Identifier for the walker producing the log.
+    :param verbosity: Minimum severity to print (``"debug"``,
+        ``"info"``, ``"warning"``/``"warn"``, ``"error"`` or an int).
+    """
+
+    __slots__ = ["walkerid", "module", "logdir"]
+
+    _VERBOSITY_MAP: Dict[str, int] = {
+        "error": 40,
+        "err": 40,
+        "warning": 30,
+        "warn": 30,
+        "info": 20,
+        "debug": 10,
+    }
+
+    def __init__(
+        self,
+        walkerid: Union[str, int] = 0,
+        verbosity: Union[int, str] = "info",
+    ) -> None:
+        self.verbose = self.getVerbosity(verbosity)
         self.walkerid = walkerid
-        self.countLogs = {}
-        self.printLogMessages = False
-        self.logdir = "logs/"
-        # self.printHigherThan = "critical"
-        module = str(type(self)).replace("<class '","").replace("'>","")
+        self.countLogs: Dict[str, int] = {}
+        self.printLogMessages: bool = False
+        self.logdir: str = "logs/"
+        # Derive short module name from fully-qualified class name
+        module = str(type(self)).replace("<class '", "").replace("'>", "")
         p1 = module.find(".")
         p2 = module.rfind(".")
-        if module.count(".")==2:
-            self.module = module[p1+1:p2]
+        if module.count(".") == 2:
+            self.module = module[p1 + 1 : p2]
         else:
-            self.module = module[p2+1:]
-        helpers.mkdir ( self.logdir )
+            self.module = module[p2 + 1 :]
+        helpers.mkdir(self.logdir)
 
-    def getVerbosity ( self, verbosity : Union[int,str] ) -> int:
-        if type(verbosity ) == int:
-            return verbosity
-        verbosity = verbosity.lower()
-        labels = { "error": 40, "warning": 30, "info": 20,
-                   "debug": 10 }
-        labels["warn"]=labels["warning"]
-        labels["err"]=labels["error"]
-        if verbosity.lower() not in labels:
-            self.error ( f"verbosity {verbosity} unknown" )
-            sys.exit()
-        return labels[verbosity]
-        
-    def logThrice ( self, *args ):
-        """ a method for repetitive log msgs. issue them only three times
+    def getVerbosity(self, verbosity: Union[int, str]) -> int:
+        """Translate a verbosity label or integer into a numeric level.
+
+        :param verbosity: e.g. ``"info"`` (→ 20) or ``30``.
+        :returns: Numeric verbosity level.
         """
-        txt = " ".join(map(str,args))
-        if not txt in self.countLogs:
-            self.countLogs[txt]=0
-        if self.countLogs[txt]<3:
-            self.log (  *args )
-        if self.countLogs[txt]==3:
-            self.log ( "(quenching repeating log messages)" )
-        self.countLogs[txt]+=1
+        if isinstance(verbosity, int):
+            return verbosity
+        key = verbosity.lower()
+        if key not in self._VERBOSITY_MAP:
+            self.error(f"verbosity {verbosity} unknown")
+            sys.exit()
+        return self._VERBOSITY_MAP[key]
 
-    def error ( self, *args ):
-        self.highlight ( "error", *args )
+    def logThrice(self, *args) -> None:
+        """Log a message at most three times, then quench."""
+        txt = " ".join(map(str, args))
+        if txt not in self.countLogs:
+            self.countLogs[txt] = 0
+        if self.countLogs[txt] < 3:
+            self.log(*args)
+        if self.countLogs[txt] == 3:
+            self.log("(quenching repeating log messages)")
+        self.countLogs[txt] += 1
 
-    def warn ( self, *args ):
-        self.highlight ( "warn", *args )
-        
-    def warning ( self, *args ):
-        self.highlight ( "warn", *args )
+    def error(self, *args) -> None:
+        """Log an error message (highlighted in red)."""
+        self.highlight("error", *args)
 
-    def info ( self, *args ):
-        """ logging to file, but also write to screen """
-        self.log ( *args )
+    def warn(self, *args) -> None:
+        """Log a warning message (highlighted in yellow)."""
+        self.highlight("warn", *args)
+
+    def warning(self, *args) -> None:
+        """Alias for :meth:`warn`."""
+        self.highlight("warn", *args)
+
+    def info(self, *args) -> None:
+        """Log to file and print to screen if verbosity ≥ 20."""
+        self.log(*args)
         if self.verbose > 19:
-            print ( f"[logger] {' '.join(map(str, args))}" )
+            print(f"[logger] {' '.join(map(str, args))}")
 
-    def highlight ( self, msgType : str = "info", *args ):
-        """ logging, hilit """
+    def highlight(self, msgType: str = "info", *args) -> None:
+        """Log a coloured message to screen and to file."""
         col = GREEN
-        if msgType.lower() in [ "error", "red" ]:
+        if msgType.lower() in ("error", "red"):
             col = RED
-        elif msgType.lower() in [ "warn", "warning", "yellow" ]:
+        elif msgType.lower() in ("warn", "warning", "yellow"):
             col = YELLOW
-        elif msgType.lower() in [ "green", "info" ]:
+        elif msgType.lower() in ("green", "info"):
             col = GREEN
         else:
-            self.highlight ( "red", "I think we called highlight without msg type" )
-        print ( f'{col}[{self.module}:{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}{RESET}' )
-        self.log ( *args )
+            self.highlight("red", "called highlight without msg type")
+        print(
+            f"{col}[{self.module}:{time.strftime('%H:%M:%S')}] "
+            f"{' '.join(map(str, args))}{RESET}"
+        )
+        self.log(*args)
 
-    def debug ( self, *args ):
-        tmp = list ( args )
-        for i,arg in enumerate ( tmp ):
-            if type ( arg ) == str:
-                tmp[i] = 'DEBUG: ' + arg
-                break 
-        args = tuple ( tmp )
-        self.log ( *args )
+    def debug(self, *args) -> None:
+        """Log a debug-level message (written to file only)."""
+        tmp = list(args)
+        for i, arg in enumerate(tmp):
+            if isinstance(arg, str):
+                tmp[i] = "DEBUG: " + arg
+                break
+        args = tuple(tmp)
+        self.log(*args)
 
-    def pprint ( self, *args ):
-        """ logging """
-        line = ' '.join(map(str,args))
-        if not line in self.countLogs:
-            self.countLogs[line]=0
+    def pprint(self, *args) -> None:
+        """Pretty-print log with quenching after 3 identical messages."""
+        line = " ".join(map(str, args))
+        if line not in self.countLogs:
+            self.countLogs[line] = 0
         self.countLogs[line] += 1
-        if self.countLogs[line]==3:
-            self.pprint ( f"skipping repeating messages" )
+        if self.countLogs[line] == 3:
+            print(f"[{self.module}:{self.walkerid}] skipping repeating messages")
             return
-        if self.countLogs[line]>3:
+        if self.countLogs[line] > 3:
             return
-        print ( f"[{self.module}:{self.walkerid}] {line}" )
+        print(f"[{self.module}:{self.walkerid}] {line}")
         self.prevMessage = line
-        self.log ( *args )
+        self.log(*args)
 
-    def cprint ( self, color, *args ):
-        """ logging, colored version """
-        line = ' '.join(map(str,args))
-        from smodels_utils.helper.terminalcolors import colordict, RESET
-        if not line in self.countLogs:
-            self.countLogs[line]=0
+    def cprint(self, color: str, *args) -> None:
+        """Coloured pretty-print with quenching."""
+        line = " ".join(map(str, args))
+        from smodels_utils.helper.terminalcolors import colordict, RESET as RST
+
+        if line not in self.countLogs:
+            self.countLogs[line] = 0
         self.countLogs[line] += 1
-        if self.countLogs[line]==3:
-            self.pprint ( f"skipping repeating messages" )
+        if self.countLogs[line] == 3:
+            print(f"[{self.module}:{self.walkerid}] skipping repeating messages")
             return
-        if self.countLogs[line]>3:
+        if self.countLogs[line] > 3:
             return
-        print ( f"[{self.module}:{self.walkerid}] {colordict[color]}{line}{RESET}" )
+        print(
+            f"[{self.module}:{self.walkerid}] {colordict[color]}{line}{RST}"
+        )
         self.prevMessage = line
-        self.log ( *args )
+        self.log(*args)
 
-    def log ( self, *args ):
-        """ logging to file """
-        helpers.mkdir ( self.logdir )
+    def log(self, *args) -> None:
+        """Append a timestamped message to the walker's log file.
+
+        Retries up to 10 times on ``OSError`` to handle transient
+        network filesystem failures.
+        """
+        helpers.mkdir(self.logdir)
         ctr = 0
         while True:
             try:
-                with open( f"{self.logdir}/walker_{self.walkerid}.log", "a" ) as f:
-                    f.write ( f'[{self.module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
+                with open(
+                    f"{self.logdir}/walker_{self.walkerid}.log", "a"
+                ) as f:
+                    f.write(
+                        f"[{self.module}-{time.strftime('%H:%M:%S')}] "
+                        f"{' '.join(map(str, args))}\n"
+                    )
                 if self.printLogMessages:
-                    print ( f'[{self.module}-log] {" ".join(map(str,args))}' )
-
+                    print(f"[{self.module}-log] {' '.join(map(str, args))}")
                 return
             except OSError as e:
-                # lets try a few times, we are using network file systems,
-                # the network might be acting out
-                ctr+=1
-                time.sleep ( ctr**2 )
+                ctr += 1
+                time.sleep(ctr**2)
                 if ctr > 10:
                     raise e
 
+
 if __name__ == "__main__":
-    logger = LoggerBase ( 0 )
-    logger.pprint ( "what now!" )
+    logger = LoggerBase(0)
+    logger.pprint("what now!")

@@ -1,61 +1,80 @@
 #!/usr/bin/env python3
 
-""" Class that encapsulates a BSM model. """
+"""Data class representing a BSM physics model.
 
-__all__ = [ "ProtoModel" ]
+Encodes one theoretical model: particles, their masses, branchings,
+and signal strength modifiers.  Provides SLHA file creation and
+cross-section computation.
+"""
 
-import random, tempfile, os, time, colorama, copy, sys, pickle
-from typing import Union, List, Tuple
+__all__ = ["ProtoModel"]
+
+import copy
+import os
+import pickle
+import sys
+import tempfile
+import time
+from typing import Dict, List, Optional, Set, Tuple, Union
+
 import numpy as np
-sys.path.insert(0,"../")
-sys.path.insert(0,f"{os.environ['HOME']}/git/smodels/")
+
+sys.path.insert(0, "../")
+
 from smodels.tools.wrapperBase import WrapperBase
 from smodels.base.physicsUnits import TeV, fb
 from smodels.base.smodelsLogging import setLogLevel
 
 from base.loggerbase import LoggerBase
 from base.runEnviron import RunEnviron
-
-# the default tempdir of wrapper base is /tmp
-# WrapperBase.defaulttempdir="./" ## keep the temps in our folder
-# WrapperBase.defaulttempdir="/dev/shm" ## keep the temps in shared memory
 from ptools.refxsecComputer import RefXSecComputer
 from ptools import helpers
 from ptools.helpers import formatObject
 from ptools.sparticleNames import SParticleNames
-setLogLevel ( "error" )
+
+setLogLevel("error")
 
 
-class ProtoModel ( LoggerBase ):
-    """ encodes one theoretical model, i.e. the particles, their masses, their
-        branchings, their signal strength modifiers.
+class ProtoModel(LoggerBase):
+    """Encodes one BSM model: particle content, masses, branchings, and
+    signal-strength modifiers.
+
+    The class is deliberately kept data-centric; algorithms that modify
+    models live in :class:`builder.manipulator.Manipulator`.
     """
-    # __slots__ = [ "walkerid", "keep_meta" ]
 
-    LSP = 1000022 ## the LSP is hard coded
-    SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
-    #SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
+    LSP: int = 1000022  # the LSP is hard coded
+    SLHATEMPDIR: str = "/tmp/"
 
-    def __init__ ( self, walkerid : Union[str,int] = 0,
-            keep_meta : bool = True, environ : RunEnviron = None ):
+    def __init__(
+        self,
+        walkerid: Union[str, int] = 0,
+        keep_meta: bool = True,
+        environ: Optional[RunEnviron] = None,
+    ) -> None:
         """
-        :param keep_meta: If True, keep also all the data in best combo (makes
-        this a heavyweight object)
-        :param walkerid: id of current walker
-        :param environ: a RunEnviron (not None)
+        :param keep_meta: If ``True``, keep all data in best combo (heavyweight).
+        :param walkerid: ID of current walker.
+        :param environ: A :class:`RunEnviron` instance (must not be ``None``).
         """
-        assert environ != None, "set environ!"
-        super(ProtoModel,self).__init__ ( walkerid )
+        assert environ is not None, "set environ!"
+        super().__init__(walkerid)
         self.walkerid = walkerid
-        self.keep_meta = keep_meta ## keep all meta info? big!
-        self.version = 1 ## version of this class
-        self.maxMass = 2400. ## maximum masses we consider
+        self.keep_meta = keep_meta
+        self.version: int = 1
+        self.maxMass: float = 2400.0
         self.environ = environ
-        self.step = 0 ## count the steps
+        self.step: int = 0
+        # Cache invalidation markers for particle lists
+        self._unfrozen_cache: Optional[List[int]] = None
+        self._frozen_cache: Optional[List[int]] = None
+        self._masses_snapshot: Optional[Dict] = None
         self.getParticleContent()
-        self.computer = RefXSecComputer( verbose = False,
-                                         allowN1N1Prod = environ.allowN1N1Prod,
-                                         walkerid = walkerid )
+        self.computer = RefXSecComputer(
+            verbose=False,
+            allowN1N1Prod=environ.allowN1N1Prod,
+            walkerid=walkerid,
+        )
         self.protomodels_version = "2.0"
         self.initializeModel()
 
@@ -125,31 +144,32 @@ class ProtoModel ( LoggerBase ):
                 assert mass_param == pid, f"we assume that the mass parameter {mass} has the same number as the particle {pid}"
         self.particles = list ( particles ) # thats the particles
 
-    def initializeModel(self):
-        """Use the template SLHA file to store possible decays and initialize the LSP"""
+    def initializeModel(self) -> None:
+        """Initialise model attributes from the template SLHA file.
 
-        #Make sure the masses, decays and multipliers are empty
-        self.ul_critic_tpList = [] ## store information about the theory predictions
-        self.rvalues = [] ## store the r values of the exclusion attempt
-        self.llhd=0.
-        self.muhat = 1.
-        self.mumax = None # the maximum mu allowed by the critic
+        Sets up decays, mass parameters, and the LSP mass.
+        """
+        self._invalidateParticleCache()
+        self.ul_critic_tpList = []
+        self.rvalues = []
+        self.llhd = 0.0
+        self.muhat = 1.0
+        self.mumax = None
         self.TL = 0.0
         self.K = None
         self.letters = ""
         self.description = ""
         self.bestCombo = None
-        self.decays = {} ## the actual branchings
-        self.masses = {}
-        self.possibledecays = {} ## list all possible decay channels
-        self.decay_keys = {} # { pid: { dpid: slha_label } }
-        self.inv_decay_keys = {} # { pid: { slha_label: [ dpids ] } }
-        #list the tuples used in the slha template file with each decay of a pid
-        self.decay_tuples = {} # { pid: { dpids: [ pid_tuples ] } }
-        self._stored_xsecs = () #Store cross-sections. It should only be accesses through getXsecs()!
-        self._xsecMasses = {} #Store the masses used for computing the cross-sections
-        self._xsecSSMs = {} #Store the signal strenght multiplier used for computing the cross-sections
-        self.ssmultipliers = {} ## signal strength multipliers
+        self.decays: Dict[int, Dict] = {}
+        self.masses: Dict[int, float] = {}
+        self.possibledecays: Dict[int, list] = {}
+        self.decay_keys: Dict[int, Dict] = {}
+        self.inv_decay_keys: Dict[int, Dict] = {}
+        self.decay_tuples: Dict[int, Dict] = {}
+        self._stored_xsecs: Tuple = ()
+        self._xsecMasses: Dict = {}
+        self._xsecSSMs: Dict = {}
+        self.ssmultipliers: Dict = {}
         ## Inititiaze LSP
         if False and self.environ.allowN1N1Prod:
             ## if we allow this, we might also start with this
@@ -211,8 +231,10 @@ class ProtoModel ( LoggerBase ):
             self.inv_decay_keys[p] = dinvkey
             self.decay_tuples[p] = dtuples
 
-    def __str__(self):
-        """ return basic information on model
+    def __str__(self) -> str:
+        """Return a short human-readable summary of the model.
+
+        Includes unfrozen particle names, K value, and likelihood ratio.
         """
         namer = SParticleNames ( susy=False )
 
@@ -236,40 +258,43 @@ class ProtoModel ( LoggerBase ):
         pStr = f'ProtoModel ({sK}, {sTL})'
         return pStr
 
-    def hasAntiParticle ( self, pid ):
-        """ for a given pid, do i also have to consider its antiparticle
-            -pid in the signal strength multipliers? """
-        if pid in [ 1000021, 1000022, 1000023, 1000025, 1000035, 1000012,
-                    1000014, 1000016, 2000012, 2000014, 2000016, 2000021 ]:
-            return False
-        return True
+    def hasAntiParticle(self, pid: int) -> bool:
+        """Determine if particle *pid* needs its antiparticle considered
+        in signal-strength multipliers.
 
-    def toTuple ( self, pid1 : int, pid2 : int ):
-        """ turn pid1, pid2 into a sorted tuple """
-        a=[pid1,pid2]
-        a.sort()
-        return tuple(a)
+        Self-conjugate particles (gluino, neutralinos, sneutrinos, etc.)
+        return ``False``.
 
-    def getXsecs(self) -> Tuple[List,str]:
+        :param pid: PDG particle ID.
+        :returns: ``True`` if the antiparticle must be tracked.
         """
-        Return the cross-sections.
-        If they have already been computed (and stored in self._stored_xsecs)
-        AND the masses and signal strength multipliers habe not been modified, return the stored value.
-        Otherwise, re-compute the cross-sections.
+        _SELF_CONJUGATE = frozenset({
+            1000021, 1000022, 1000023, 1000025, 1000035,
+            1000012, 1000014, 1000016,
+            2000012, 2000014, 2000016, 2000021,
+        })
+        return abs(pid) not in _SELF_CONJUGATE
+
+    def toTuple(self, pid1: int, pid2: int) -> Tuple[int, int]:
+        """Return *pid1*, *pid2* as a canonically sorted tuple."""
+        return tuple(sorted((pid1, pid2)))
+
+    def getXsecs(self) -> list:
+        """Return the cross-sections.
+
+        If they have already been computed (and stored in
+        ``self._stored_xsecs``) **and** the masses and signal-strength
+        multipliers have not been modified, return the cached value.
+        Otherwise re-compute the cross-sections.
 
         :return: list of cross-sections
         """
-
-        #If xsecMasses has not been defined or differs from current masses,
-        #recompute xsecs
         if self.masses == self._xsecMasses and self.ssmultipliers == self._xsecSSMs:
-            if self._stored_xsecs and len(self._stored_xsecs)>0:
+            if self._stored_xsecs:
                 return self._stored_xsecs
 
         self.delXSecs()
-        #If something has changed, re-compute the cross-sections.
-        #Xsecs are computed, self._xsecMasses and self._xsecSSM are updated.
-        #The results are sored in the SLHA and self._stored_xsec.
+        # Recompute — updates _xsecMasses, _xsecSSMs, and _stored_xsecs.
         self.computeXSecs()
 
         return self._stored_xsecs
@@ -294,25 +319,23 @@ class ProtoModel ( LoggerBase ):
         for modes in channels:
             prodModes.append(modes['pids'])
         if len(prodModes) == 0:
-            print("huh? we have 0 prod modes? We have {len(channels)} channels.")
+            print(f"huh? we have 0 prod modes? We have {len(channels)} channels.")
         return prodModes
 
     def getOpenChannels(self, pid : int ):
-        """get the list of open decay channels for particle pid. Open channels are
-        the decays to unfrozen particles and to lighter particles.
+        """Get the list of open decay channels for particle *pid*.
 
-        :param pid: PID for particle
+        Open channels are decays to unfrozen particles and to lighter
+        particles.
 
-        :return: List with the daughter pids for each decay channel
+        :param pid: PDG particle ID
+        :return: list of daughter-pid tuples for each open decay channel
         """
-
-        #Get list of possible decay channels:
-        openChannels = set()
-        unfrozen = self.unFrozenParticles()
         from base.constants import smMasses, smWidths
-        #Get all relevant masses
-        allMasses = dict([[pid,mass] for pid,mass in self.masses.items()])
-        allMasses.update(smMasses)
+
+        openChannels: list = []
+        unfrozen = self.unFrozenParticles()
+        allMasses = {**self.masses, **smMasses}
 
         offshell = False
         if pid == 1000023 and pid in self.masses and self.LSP in self.masses and \
@@ -331,116 +354,132 @@ class ProtoModel ( LoggerBase ):
                 self.highlight ( "warn", f"a decay channel without the SM particle is specified in {pid}:{str(dpid)}" )
                 pidList = [abs(dpid)]
             #Skip decays to unfrozen particles
-            if not all([dp in unfrozen for dp in pidList]):
+            if not all(dp in unfrozen for dp in pidList):
                 continue
             #Get total daughter mass (it should only be a single mass)
-            mdaughter = sum([allMasses[abs(p)] for p in dpid if abs(p) in allMasses])
+            mdaughter = sum(allMasses.get(abs(p), 0) for p in dpid)
 
             #Skip decays to heavier particles
-            if not pid in self.masses or mdaughter >= self.masses[pid]:
+            if pid not in self.masses or mdaughter >= self.masses[pid]:
                 continue
 
-            if not offshell and len(dpid) == 3 and pid in [1000023, 1000024]:       #turn off 3-body decays for onshell X^2_Z and X^1_W
+            if not offshell and len(dpid) == 3 and pid in (1000023, 1000024):
                 continue
 
-            openChannels.add ( dpid )
+            openChannels.append(dpid)
 
-        openChannels = list(openChannels)
-
-        #remove all decay channels assoaciated with a dkey if one of them is
+        #remove all decay channels associated with a dkey if one of them is
         # not present for offshell decays to ensure flavor democracy
         if offshell:
+            dk_groups: dict = {}
+            for dpid, dk in self.decay_keys[pid].items():
+                dk_groups.setdefault(dk, []).append(dpid)
             for dpid, dk in self.decay_keys[pid].items():
                 if dpid in openChannels:
-                    decay_chan = [key for key,value in self.decay_keys[pid].items() if value == dk]
-                    dec_not_present = [dc for dc in decay_chan if dc not in openChannels]
-                    if len(dec_not_present) > 0:
+                    dec_not_present = [dc for dc in dk_groups.get(dk, []) if dc not in openChannels]
+                    if dec_not_present:
                         self.highlight("warn", f"{dec_not_present} not in the open channels {openChannels} -- it's probably not open. but {dpid} is open. For now we will remove {dpid} from the open channels, ok?")
                         openChannels.remove(dpid)
                         self.highlight("info", f"Open channels are now {openChannels}")
 
         return openChannels
 
-    def frozenParticles ( self ):
-        """ returns a list of all particles that can be regarded as frozen, i.e.
-        are not in the unfrozen list."""
+    def _invalidateParticleCache(self) -> None:
+        """Mark the cached particle lists as stale."""
+        self._unfrozen_cache = None
+        self._frozen_cache = None
+        self._masses_snapshot = None
 
-        unfrozen = self.unFrozenParticles()
-        ret = [pid for pid in self.particles if not pid in unfrozen]
-        return ret
+    def _ensure_cache_valid(self) -> None:
+        """Rebuild cache if masses dict has changed."""
+        if self._masses_snapshot is not self.masses:
+            self._invalidateParticleCache()
+            self._masses_snapshot = self.masses
 
-    def cleanBestCombo ( self ):
-        """ remove unneeded stuff before storing """
-        if hasattr ( self, "keep_meta" ) and self.keep_meta:
-            return ## dont remove best combo
+    def frozenParticles(self) -> List[int]:
+        """Return PIDs of all particles that are *not* in the unfrozen list.
+
+        Cached per masses-dict identity to avoid repeated O(n) scans.
+
+        :returns: List of frozen particle IDs.
+        """
+        self._ensure_cache_valid()
+        if self._frozen_cache is not None:
+            return self._frozen_cache
+        unfrozen = set(self.unFrozenParticles())
+        self._frozen_cache = [pid for pid in self.particles if pid not in unfrozen]
+        return self._frozen_cache
+
+    def cleanBestCombo(self) -> None:
+        """Remove unneeded data from bestCombo before storing."""
+        if hasattr(self, "keep_meta") and self.keep_meta:
+            return
         from tester.combiner import Combiner
-        combiner = Combiner( self.walkerid )
-        if hasattr ( self, "bestCombo" ) and self.bestCombo != None:
-            self.bestCombo = combiner.removeDataFromBestCombo ( self.bestCombo )
+        combiner = Combiner(self.walkerid)
+        if hasattr(self, "bestCombo") and self.bestCombo is not None:
+            self.bestCombo = combiner.removeDataFromBestCombo(self.bestCombo)
 
-    def almostSameAs ( self, other ):
-        """ check if a model is essentially the same as <other> """
+    def almostSameAs(self, other: "ProtoModel") -> bool:
+        """Check if a model is essentially the same as *other*.
 
+        Compares masses (relative tolerance 1e-5), signal-strength
+        multipliers, and branching ratios.
+
+        :param other: Another ProtoModel to compare against.
+        :returns: ``True`` if the two models are indistinguishable.
+        """
         if self.masses.keys() != other.masses.keys():
             return False
 
-        massDiff = [abs(m-other.masses[pid])/m for pid,m in self.masses.items() if m]
-        if max(massDiff) > 1e-5:
+        massDiff = [abs(m - other.masses[pid]) / m for pid, m in self.masses.items() if m]
+        if massDiff and max(massDiff) > 1e-5:
             return False
 
-        ## now check ssmultipliers
-        pidpairs = set ( self.ssmultipliers.keys() )
-        pidpairs = pidpairs.union ( set ( other.ssmultipliers.keys() ) )
+        # Compare signal-strength multipliers
+        pidpairs = set(self.ssmultipliers.keys()) | set(other.ssmultipliers.keys())
         for pidpair in pidpairs:
-            ss = 1.
-            if pidpair in self.ssmultipliers.keys():
-                ss = self.ssmultipliers[pidpair]
-            os = 1.
-            if pidpair in other.ssmultipliers.keys():
-                os = other.ssmultipliers[pidpair]
-            if ss == 0.:
-                if os == 0.:
+            ss = self.ssmultipliers.get(pidpair, 1.0)
+            os_val = other.ssmultipliers.get(pidpair, 1.0)
+            if ss == 0.0:
+                if os_val == 0.0:
                     continue
-                else:
-                    return False
-            if abs ( ss - os ) / ss > 1e-6:
                 return False
-        ## now check decays
-        pids = set ( self.decays.keys() )
-        pids = pids.union ( set ( other.decays.keys() ) )
+            if abs(ss - os_val) / ss > 1e-6:
+                return False
+
+        # Compare decays
+        pids = set(self.decays.keys()) | set(other.decays.keys())
         for pid in pids:
-            sdecays, odecays = {}, {}
-            if pid in self.decays:
-                sdecays = self.decays[pid]
-            if pid in other.decays:
-                odecays = other.decays[pid]
-            dpids = set ( sdecays.keys() )
-            dpid = dpids.union ( set ( odecays.keys() ) )
+            sdecays = self.decays.get(pid, {})
+            odecays = other.decays.get(pid, {})
+            dpids = set(sdecays.keys()) | set(odecays.keys())
             for dpid in dpids:
-                sbr, obr = 0., 0.
-                if dpid in sdecays:
-                    sbr = sdecays[dpid]
-                if dpid in odecays:
-                    obr = odecays[dpid]
-                if sbr == 0.:
+                sbr = sdecays.get(dpid, 0.0)
+                obr = odecays.get(dpid, 0.0)
+                if sbr == 0.0:
                     if obr < 1e-6:
                         continue
-                    else:
-                        return False
-                if abs ( sbr - obr ) / sbr > 1e-6:
+                    return False
+                if abs(sbr - obr) / sbr > 1e-6:
                     return False
         return True
 
-    def unFrozenParticles ( self, withLSP : bool = True ):
-        """ returns a list of all particles in self.masses with
-            mass less than 100 TeV """
+    def unFrozenParticles(self, withLSP: bool = True) -> List[int]:
+        """Return PIDs of all particles with mass < 100 TeV.
 
-        ret = []
-        for m,v in self.masses.items():
-            if abs(v)<1e5:
-                ret.append(m)
+        Results are cached and invalidated when ``self.masses`` is mutated.
+
+        :param withLSP: If ``False``, exclude the LSP from the result.
+        :returns: List of unfrozen particle IDs.
+        """
+        self._ensure_cache_valid()
+        if self._unfrozen_cache is not None:
+            ret = self._unfrozen_cache
+        else:
+            ret = [pid for pid, v in self.masses.items() if abs(v) < 1e5]
+            self._unfrozen_cache = ret
         if not withLSP and self.LSP in ret:
-            ret.remove(self.LSP)
+            return [pid for pid in ret if pid != self.LSP]
         return ret
 
     def printMasses( self ):
@@ -715,51 +754,58 @@ class ProtoModel ( LoggerBase ):
 
         return outputSLHA
 
-    def dict ( self, sort_dict=False ):
-        """ return the dictionary that can be written out """
+    def dict(self, sort_dict: bool = False) -> Dict:
+        """Return a JSON-serialisable dictionary of the model state.
+
+        :param sort_dict: If ``True``, sort keys for deterministic output.
+        :returns: Dictionary with ``masses``, ``ssmultipliers``, ``decays``,
+            and ``xsecs[fb]``.
+        """
         xsecs = {}
         tmp = self.getXsecs()
-        if len(tmp)>0:
+        if len(tmp) > 0:
             for xsec in tmp[0]:
-                xsecs[(xsec.pid,xsec.info.sqrts.asNumber(TeV))]=xsec.value.asNumber(fb)
+                xsecs[(xsec.pid, xsec.info.sqrts.asNumber(TeV))] = xsec.value.asNumber(fb)
         if sort_dict:
-            pmodel_dict = {}
-            pmodel_dict['masses'] = {pid:self.masses[pid] for pid in sorted(self.masses)}
-            pmodel_dict['ssmultipliers'] = {ppair:self.ssmultipliers[ppair] for ppair in sorted(self.ssmultipliers)}
-            decay_dict = {pid:{dpid:self.decays[pid][dpid] for dpid in sorted(self.decays[pid])} for pid in sorted(self.decays)}
-            pmodel_dict['decays'] = decay_dict
-            pmodel_dict['xsecs[fb]'] = xsecs
-            return pmodel_dict
+            return {
+                "masses": {pid: self.masses[pid] for pid in sorted(self.masses)},
+                "ssmultipliers": {pp: self.ssmultipliers[pp] for pp in sorted(self.ssmultipliers)},
+                "decays": {
+                    pid: {dpid: self.decays[pid][dpid] for dpid in sorted(self.decays[pid])}
+                    for pid in sorted(self.decays)
+                },
+                "xsecs[fb]": xsecs,
+            }
+        return {
+            "masses": self.masses,
+            "ssmultipliers": self.ssmultipliers,
+            "decays": self.decays,
+            "xsecs[fb]": xsecs,
+        }
 
-        return { "masses": self.masses, "ssmultipliers": self.ssmultipliers,
-                 "decays": self.decays, "xsecs[fb]": xsecs }
+    def relevantSSMultipliers(self) -> Dict:
+        """Return only signal-strength multipliers for unfrozen particles
+        with values that deviate from unity.
 
-    def relevantSSMultipliers ( self ):
-        """ of all the ss mulipliers, return only the relevant ones,
-            i.e. the ones for unfrozen particles and value != 1 """
-        ret = {}
-        frozen = self.frozenParticles()
-        for pids,v in self.ssmultipliers.items():
-            if abs ( v - 1. ) < 1e-5:
-                continue
-            isRelevant = True
-            for pid in pids:
-                if abs(pid) in frozen:
-                    isRelevant = False
-            if isRelevant:
-                ret[pids]=v
-        return ret
+        :returns: Filtered SSM dictionary.
+        """
+        frozen = set(self.frozenParticles())
+        return {
+            pids: v
+            for pids, v in self.ssmultipliers.items()
+            if abs(v - 1.0) >= 1e-5 and not any(abs(pid) in frozen for pid in pids)
+        }
 
-    def describe ( self ):
-        """ describe a bit the protomodel """
-        ndecays,nd = 0, 0
-        for k,v in self.decays.items():
-            if k == ProtoModel.LSP: ## dont count LSP
+    def describe(self) -> None:
+        """Print a brief summary of the model contents."""
+        ndecays, nd = 0, 0
+        for k, v in self.decays.items():
+            if k == ProtoModel.LSP:
                 continue
             ndecays += len(v)
             nd += 1
         nssms = len(self.ssmultipliers)
-        print ( f"{len(self.masses)} masses, {ndecays}[{nd}] decays, {nssms} ss multipliers" )
+        print(f"{len(self.masses)} masses, {ndecays}[{nd}] decays, {nssms} ss multipliers")
 
     def delXSecs ( self ):
         """ delete stored cross section, if they exist """
@@ -767,18 +813,14 @@ class ProtoModel ( LoggerBase ):
         self._xsecMasses = {}
         self._xsecSSMs = {}
 
-    def copy(self, cp_predictions : bool = False):
+    def copy(self, cp_predictions: bool = False) -> "ProtoModel":
+        """Create a deep copy of this model.
+
+        :param cp_predictions: If ``True``, also copy ``bestCombo`` and
+            ``ul_critic_tpList`` via ``deepcopy``.
+        :returns: A new ProtoModel instance with identical state.
         """
-        Create a copy of self. If cp_predictions the bestCombo and
-        ul_critic_tpList attributes is copied using deepcopy.
-
-        :returns: copy of protomodel
-        """
-
-        #Initialize empty model:
-        newmodel = self.__class__( self.walkerid, self.keep_meta, self.environ )
-
-        #Copy information
+        newmodel = self.__class__(self.walkerid, self.keep_meta, self.environ)
         newmodel.keep_meta = self.keep_meta
         newmodel.maxMass = self.maxMass
         newmodel.step = self.step
@@ -787,13 +829,10 @@ class ProtoModel ( LoggerBase ):
         newmodel.decaylessParticles = self.decaylessParticles
         newmodel.particles = self.particles[:]
         newmodel.environ = self.environ
-        newmodel.possibledecays = dict([[key,val] for key,val in self.possibledecays.items()])
-        decayDict = {}
-        for pid,dec in self.decays.items():
-            decayDict[pid] = dict([[dpids,br] for dpids,br in dec.items()])
-        newmodel.decays = decayDict
-        newmodel.masses = dict([[pid,mass] for pid,mass in self.masses.items()])
-        newmodel.ssmultipliers = dict([[pidPair,mass] for pidPair,mass in self.ssmultipliers.items()])
+        newmodel.possibledecays = dict(self.possibledecays)
+        newmodel.decays = {pid: dict(dec) for pid, dec in self.decays.items()}
+        newmodel.masses = dict(self.masses)
+        newmodel.ssmultipliers = dict(self.ssmultipliers)
         newmodel.rvalues = self.rvalues[:]
         newmodel.llhd = self.llhd
         newmodel.muhat = self.muhat
@@ -803,13 +842,12 @@ class ProtoModel ( LoggerBase ):
         newmodel.letters = self.letters[:]
         newmodel.description = self.description[:]
         newmodel._stored_xsecs = copy.deepcopy(self._stored_xsecs)
-        newmodel._xsecSSMs = dict([[pid,ssm] for pid,ssm in self._xsecSSMs.items()])
-        newmodel._xsecMasses = dict([[pid,m] for pid,m in self._xsecMasses.items()])
+        newmodel._xsecSSMs = dict(self._xsecSSMs)
+        newmodel._xsecMasses = dict(self._xsecMasses)
         if cp_predictions:
             newmodel.bestCombo = copy.deepcopy(self.bestCombo)
             newmodel.ul_critic_tpList = copy.deepcopy(self.ul_critic_tpList)
             newmodel.llhd_critic_preds = copy.deepcopy(self.llhd_critic_preds)
-
         return newmodel
 
     def lightCopy(self,rmAttr=None):
