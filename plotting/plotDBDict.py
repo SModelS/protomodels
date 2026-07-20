@@ -950,7 +950,7 @@ class Plotter ( LoggerBase ):
         plt.savefig ( self.outfile, dpi=dpi, metadata = metadata )
         if self.options["add_logo"]:
             from validation.addLogoToPlots import addLogo
-            addLogo ( self.outfile )
+            addLogo ( self.outfile, dpi=dpi )
         if self.show:
             from smodels_utils.plotting.mpkitty import timg
             timg ( self.outfile )
