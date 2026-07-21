@@ -475,9 +475,11 @@ def computeP ( obs : float, bg : float, bgerr : float,
 
     ret = computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN,
             nmin = nmin, nmax = nmax, srName = srName )
+    """
     if hasWritten["computeP"]<2:
         print ( f"[helpers] computed p numerically: {ret} (didnt hang)" )
         hasWritten["computeP"]+=1
+    """
     return ret, "numerical"
 
 def computePNumerically ( obs : float, bg : float, bgerr : float,
@@ -513,13 +515,22 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
             break
         if lognormal:
             # for lognormal and signals
-            if lognormal and central > ( bgerr / 4. ):
+            if central > ( bgerr / 4. ):
                 loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
                 stderr = float ( np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) ) )
                 if stderr == 0.:
                     return 0.
                 # lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
                 lmbda = fast_rvs ( "lognorm", n, s=stderr, scale=loc, loc=0. )
+            elif central == 0.:
+                lmbda = np.array ( [0.]*n )
+            else:
+                loc = central**2 / np.sqrt ( central**2 + bgerr**2 )
+                stderr = float ( np.sqrt ( np.log ( 1 + bgerr**2 / central**2 ) ) )
+                if stderr == 0.:
+                    return 0.
+                # lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
+                lmbda = fast_rvs ( "lognorm", n/10., s=stderr, scale=loc, loc=0. )
         else:
             # lmbda = scipy.stats.norm.rvs ( loc=[central]*n, scale=[bgerr]*n )
             lmbda = fast_rvs ( "normal", n, loc=central, scale=bgerr )
