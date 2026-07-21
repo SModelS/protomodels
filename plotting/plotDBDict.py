@@ -843,9 +843,7 @@ class Plotter ( LoggerBase ):
             loc = "upper right"
             bbox_to_anchor = (1.12,1.02)
             if self.options["draw_reference"]:
-                Ptot = float(sum(np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
-                                          Pfake["13_gt"] ] )) )
-                ex = Ptot / self.nbins
+                ex = np.mean ( H2[0] )
                 plt.plot ( [0,1], [ex,ex], c=nmcolor, linestyle="dotted",
                            label="SM hypothesis" )
 
