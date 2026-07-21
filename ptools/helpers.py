@@ -530,7 +530,8 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
                 if stderr == 0.:
                     return 0.
                 # lmbda = scipy.stats.lognorm.rvs ( s=[stderr]*n, scale=[loc]*n )
-                lmbda = fast_rvs ( "lognorm", n/10., s=stderr, scale=loc, loc=0. )
+                lmbda = fast_rvs ( "lognorm", int(n/10.), s=stderr,
+                        scale=loc, loc=0. )
         else:
             # lmbda = scipy.stats.norm.rvs ( loc=[central]*n, scale=[bgerr]*n )
             lmbda = fast_rvs ( "normal", n, loc=central, scale=bgerr )
