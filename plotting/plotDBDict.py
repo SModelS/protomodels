@@ -584,20 +584,15 @@ class Plotter ( LoggerBase ):
                 outfile = self.options["outfile"]
         if outfile is None:
             return "tmp.png"
-        """
-        origt = self.origtopos.replace(" ","").replace(",","_")
-        flt = f"_{origt}{'_not'.join(self.negative_topologies)}"
-        flt += "_".join(self.analyses) #
-        if len(self.negativeanalyses)>0:
-            flt += "_not"
-            flt += "_not".join(self.negativeanalyses )
-        flt = flt.replace("*","star").replace("?","questionmark")
-        """
         if self.description == None:
             flt = ""
         else:
             flt = self.description.replace(" ","_")
         outfile = outfile.replace("@@FILTER@@", flt )
+        typ = "significances"
+        if self.options["pvalues"]:
+            typ = "pvalues"
+        outfile = outfile.replace("@@TYPE@@", typ )
         return outfile
 
     def toSignificance ( self, p ):
@@ -960,13 +955,13 @@ class Plotter ( LoggerBase ):
 
 def getArgs( cmdline = None ):
     import argparse
-    argparser = argparse.ArgumentParser(description="meta statistics plotter, i.e. the thing that plots pDatabase.png")
+    argparser = argparse.ArgumentParser(description="meta statistics plotter, i.e. the thing that plots significances.png")
     argparser.add_argument ( '-d', '--dictfile', nargs='*',
             help='input dictionary file(s) or directory, as generated eg via "expResModifier.py -d <smodels-database> -C" [./dicts/]',
             type=str, default='./dicts/' )
     argparser.add_argument ( '-o', '--outfile', nargs='?',
-            help='output file [./pDatabase@@FILTER@@.png]',
-            type=str, default='./pDatabase@@FILTER@@.png' )
+            help='output file [./@@TYPE@@@@FILTER@@.png]',
+            type=str, default='./@@TYPE@@@@FILTER@@.png' )
     argparser.add_argument ( '-c', '--comment', nargs='?',
             help='an optional comment, to put in the plot [None]',
             type=str, default=None )
