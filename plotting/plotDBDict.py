@@ -844,12 +844,12 @@ class Plotter ( LoggerBase ):
             loc = "upper right"
             bbox_to_anchor = (1.12,1.02)
             if self.options["draw_reference"]:
-                if H2 is not None:
-                    ex = np.mean ( H2[0] )
-                else:
-                    Ptot = float(sum(np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
-                                              Pfake["13_gt"] ] )) )
-                    ex = Ptot / self.nbins
+                #Ptot = float(sum(np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
+                #                          Pfake["13_gt"] ] )) )
+                hh = np.histogram ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
+                        Pfake["13_gt"] ] ) )
+                ex = np.mean(hh[0])/3.
+                # ex = Ptot / self.nbins
                 plt.plot ( [0,1], [ex,ex], c=nmcolor, linestyle="dotted",
                            label="SM hypothesis" )
 
