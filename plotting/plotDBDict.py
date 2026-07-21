@@ -800,6 +800,7 @@ class Plotter ( LoggerBase ):
         if l13gt > h13gt:
             l13gt, h13gt = h13gt, l13gt
 
+        H2 = None
         if plotAverages:
             if 8 in self.sqrts and ( avgp8 > 0. or not self.pvalues):
                 l81 = plt.plot ( [ avgp8, avgp8 ], [l8, h8 ], color = "darkgreen", zorder=1, label = r"averages of $p$-values, $\bar{p}$", linewidth=2 )
@@ -843,7 +844,12 @@ class Plotter ( LoggerBase ):
             loc = "upper right"
             bbox_to_anchor = (1.12,1.02)
             if self.options["draw_reference"]:
-                ex = np.mean ( H2[0] )
+                if H2 is not None:
+                    ex = np.mean ( H2[0] )
+                else:
+                    Ptot = float(sum(np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
+                                              Pfake["13_gt"] ] )) )
+                    ex = Ptot / self.nbins
                 plt.plot ( [0,1], [ex,ex], c=nmcolor, linestyle="dotted",
                            label="SM hypothesis" )
 
