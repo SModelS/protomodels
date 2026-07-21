@@ -242,6 +242,15 @@ Just filter the database:
         import IPython
         IPython.embed( using=False )
 
+    def augmentStatsFromDataset ( self, D, info ):
+        for i in [ "observedN", "origN", "expectedBG", "lmbda", "bgError",
+                   "origUpperLimit", "origExpectedUpperLimit", "upperLimit",
+                   "expectedUpperLimit", "thirdMoment" ]:
+            if hasattr ( info, i ):
+                D[i] = getattr ( info, i )
+                if i in [ "expectedUpperLimit", "upperLimit" ]:
+                    D[i]=float ( D[i].asNumber(fb) )
+
     def extractStats ( self ):
         """ dont produce a new fake database, extract a stats dict
             from an existing database. """
@@ -275,13 +284,9 @@ Just filter the database:
                     for txname in dataset.txnameList:
                         D[txname.txName]=list ( map ( float, txname.txnameData.y_values ) )
 
-                for i in [ "observedN", "origN", "expectedBG", "lmbda", "bgError",
-                           "origUpperLimit", "origExpectedUpperLimit", "upperLimit",
-                           "expectedUpperLimit", "thirdMoment" ]:
-                    if hasattr ( info, i ):
-                        D[i] = getattr ( info, i )
-                        if i in [ "expectedUpperLimit", "upperLimit" ]:
-                            D[i]=float ( D[i].asNumber(fb) )
+                self.augmentStatsFromDataset ( D, info )
+
+
                 if self.timestamps:
                     D["timestamp"]=dataset.globalInfo.lastUpdate
                 self.addToStats ( label, D, dataset.globalInfo )
@@ -330,7 +335,7 @@ Just filter the database:
                     x = self.drawNuisance() * self.fudge # draw but once from standard-normal
                 # x = stats.norm.rvs() * self.fudge # draw but once from standard-normal
             D["x"] = float(x)
-            D["lumi"] =float ( globalInfo.lumi * fb)
+            self.addGlobalInfo ( D, globalInfo )
             allpositive = True
             for i,y in enumerate( expected.y_values ):
                 sigma_exp = y / 1.96 ## the sigma of the Gaussian
@@ -584,7 +589,7 @@ Just filter the database:
         if len(txnames) > 0:
             return
         D["yields_only"]=True
-        self.comments["yields_only"] = "true if we have a yields-only result, that is a result with neither UL nor eff maps"
+        self.comments["yields_only"] = [ "true if we have a yields-only result,", "that is a result with neither UL nor eff maps" ]
         if not hasattr ( dataset.globalInfo, "comment" ):
            self.pprint ( f"{anaid} has no comment in {dataset.globalInfo.path}" )
            return
@@ -611,14 +616,15 @@ Just filter the database:
         if not self.fixedbackgrounds:
             err = dataset.dataInfo.bgError * self.fudge
         D = { "origN": int(orig), "expectedBG": exp, "bgError": err,
-              "fudge": self.fudge, "lumi": float(dataset.globalInfo.lumi * fb) }
+              "fudge": self.fudge }
+        self.addGlobalInfo ( D, dataset.globalInfo )
         porig = self.computePForDataSet ( dataset )
         self.checkIfZero ( porig, dataset )
         D["orig_p"]=porig
-        self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation (no fudge factor applied)"
+        self.comments["orig_p"]= [ "p-value (Gaussian nuisance) of original observation", "(no fudge factor applied)" ]
         origZ = computeZFromP ( porig )
         D["orig_Z"]=origZ
-        self.comments["orig_Z"]="the significance Z of the original observation (no fudge factor applied)"
+        self.comments["orig_Z"]= [ "the significance Z of the original observation", "(no fudge factor applied)" ]
         label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
@@ -638,7 +644,7 @@ Just filter the database:
             D["newObs"] = D["origN"]
             D["new_p"]=D["orig_p"]
             D["new_Z"]=D["orig_Z"]
-            self.comments["newObs"]="the new fake observation (signal + background) -- in our case same as 'origN'"
+            self.comments["newObs"]= [ "the new fake observation (signal + background)", "-- in our case same as 'origN'" ]
             self.comments["new_p"]="p-value (Gaussian nuisance) of newObs -- in our case same as 'orig_p'"
             self.comments["new_Z"]="significance (Gaussian nuisance) of newObs -- in our case same as 'orig_Z'"
             self.addToStats ( label, D, dataset.globalInfo )
@@ -711,6 +717,16 @@ Just filter the database:
         self.addToStats ( label, D, dataset.globalInfo )
         return dataset
 
+    def addGlobalInfo ( self, D, globalInfo ):
+        """ add the global Info to D """
+        D["lumi"] = float(globalInfo.lumi * fb)
+        sqrts=float(globalInfo.sqrts/TeV)
+        if sqrts == int(sqrts):
+            sqrts = int(sqrts)
+        D["sqrts"]=sqrts
+        self.comments["sqrts"] = "sqrt(s) [TeV]"
+        self.comments["lumi"] = "instantaneous luminosity [1/fb]"
+
     def createEMStatsDict ( self, dataset ) -> Dict:
         """ given the dataset, create a stats dictionary, for SL and pyhf
         datasets """
@@ -722,8 +738,9 @@ Just filter the database:
         err = 0.
         if not self.fixedbackgrounds:
             err = dataset.dataInfo.bgError * self.fudge
-        D = { "origN": int(orig), "expectedBG": exp, "bgError": err, "fudge": self.fudge,
-              "lumi": float(dataset.globalInfo.lumi * fb) }
+        D = { "origN": int(orig), "expectedBG": exp, "bgError": err, 
+              "fudge": self.fudge }
+        self.addGlobalInfo ( D, dataset.globalInfo )
         if thirdMoment is not None:
             D["thirdMoment"]=thirdMoment
             self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
@@ -1180,14 +1197,21 @@ Just filter the database:
             ds = ds.replace( r'"\"None\""', 'None')
             f.write ( ds + "\n"  )
             # f.write ( f"{meta!s}\n" )
-            f.write ( f"# this file was created with {' '.join(sys.argv)}\n" )
+            f.write ( f"# this file was created with:\n" )
+            f.write ( f"# {' '.join(sys.argv)}\n" )
             if len(self.comments)>0:
                 f.write ( "# explanations on the used variables:\n" )
                 f.write ( "# =====================================\n" )
             else:
                 f.write ( "# no explanations for variables have been given\n" )
             for k,v in self.comments.items():
-                f.write ( f"# {k}: {v}\n" )
+                if type(v) == str:
+                    f.write ( f"# {k}: {v}\n" )
+                else:
+                    sk = k
+                    for line in v:
+                        f.write ( f"# {sk}: {line}\n" )
+                        sk = " "*len(k)
             ds = py_dumps ( self.stats, indent=4 )
             # ds = ds.replace( "inf", "float('inf')" )
             f.write ( ds+ "\n" )
