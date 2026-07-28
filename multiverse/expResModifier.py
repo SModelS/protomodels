@@ -594,6 +594,14 @@ Just filter the database:
            self.pprint ( f"{anaid} has no comment in {dataset.globalInfo.path}" )
            return
 
+        if not hasattr ( dataset.globalInfo, "txnames" ):
+            self.pprint ( f"{anaid} has no txnames but no txnames line in globalInfo either! fix in {dataset.globalInfo.path}!" )
+            return
+        ntxs = dataset.globalInfo.txnames.split(",")
+        ntxs = tuple ( set ( map ( strip, ntxs ) ) )
+        D["txns"]=ntxs
+        print ( f"@@expResModifier.XX {dataset.globalInfo.txnames} -> {ntxs}" )
+        """
         cline = dataset.globalInfo.comment
         p = cline.find("txnames:")
         if p < 0:
@@ -603,6 +611,7 @@ Just filter the database:
         cline = cline[p+8:].strip()
         ntxnames = re.split(r"[,\s]+", cline )
         D["txns"]=tuple(ntxnames)
+        """
 
     def sampleEfficiencyMap ( self, dataset ):
         """ for the given dataset,
