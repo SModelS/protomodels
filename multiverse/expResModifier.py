@@ -598,7 +598,7 @@ Just filter the database:
             self.pprint ( f"{anaid} has no txnames but no txnames line in globalInfo either! fix in {dataset.globalInfo.path}!" )
             return
         ntxs = dataset.globalInfo.txnames.split(",")
-        ntxs = tuple ( set ( map ( strip, ntxs ) ) )
+        ntxs = tuple ( set ( [ x.strip() for x in ntxs ] ) )
         D["txns"]=ntxs
         print ( f"@@expResModifier.XX {dataset.globalInfo.txnames} -> {ntxs}" )
         """
