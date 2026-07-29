@@ -600,18 +600,6 @@ Just filter the database:
         ntxs = dataset.globalInfo.txnames.split(",")
         ntxs = tuple ( set ( [ x.strip() for x in ntxs ] ) )
         D["txns"]=ntxs
-        print ( f"@@expResModifier.XX {dataset.globalInfo.txnames} -> {ntxs}" )
-        """
-        cline = dataset.globalInfo.comment
-        p = cline.find("txnames:")
-        if p < 0:
-            self.pprint ( f"{anaid} has no txnames but no txnames mentioned in comment either. fix in {dataset.globalInfo.path}." )
-            return
-        import re
-        cline = cline[p+8:].strip()
-        ntxnames = re.split(r"[,\s]+", cline )
-        D["txns"]=tuple(ntxnames)
-        """
 
     def sampleEfficiencyMap ( self, dataset ):
         """ for the given dataset,
