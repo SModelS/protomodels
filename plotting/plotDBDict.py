@@ -590,7 +590,7 @@ class Plotter ( LoggerBase ):
             flt = self.description.replace(" ","_")
         outfile = outfile.replace("@@FILTER@@", flt )
         typ = "significances"
-        if self.options["pvalues"]:
+        if "pvalues" in self.options and self.options["pvalues"]:
             typ = "pvalues"
         outfile = outfile.replace("@@TYPE@@", typ )
         return outfile
