@@ -326,6 +326,11 @@ class Plotter ( LoggerBase ):
                 if self.nosuperseded and 'superseded' in v and v['superseded']:
                     continue
                 if self.nofastlim and 'fastlim' in v and v['fastlim']:
+                    ## skip fastlim
+                    continue
+                if self.noyieldsonly and "yields_only" in v and \
+                        v["yields_only"]==True:
+                    # skip yields only entries
                     continue
                 if not self.selectedCollaboration ( i ):
                     continue
@@ -988,6 +993,9 @@ def getArgs( cmdline = None ):
             action='store_true' )
     argparser.add_argument ( '--nofastlim',
             help='ignore entries in the .dict file that are marked as fastlim',
+            action='store_true' )
+    argparser.add_argument ( '--noyieldsonly',
+            help='ignore entries in the .dict file that have only yields, no maps',
             action='store_true' )
     argparser.add_argument ( '-w', '--weighted',
             help='weighted plot, i.e. each analysis (not each SR) counts equally', action='store_true' )
