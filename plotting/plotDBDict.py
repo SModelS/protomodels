@@ -642,7 +642,7 @@ class Plotter ( LoggerBase ):
         dbname = os.path.basename ( self.meta["database"] )
         if "orig_database" in self.meta:
             dbname = self.meta["orig_database"]
-        if "fake_database" in self.meta:
+        if False and "fake_database" in self.meta:
             dbname = self.meta["fake_database"]
         vdbname = f"v{dbname}"
         if dbname in [ "official" ]:
