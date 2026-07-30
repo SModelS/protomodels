@@ -225,6 +225,7 @@ class Plotter ( LoggerBase ):
         self.nosuperseded = False # yes superseded
         self.use_aggregated = False # yes add non-aggregated
         self.nofastlim = False # yes fastlim
+        self.noyieldsonly = False # yes yiels only also
         self.show = False
         self.pvalues = False # if False, then p-values if true then significances
         self.skippedAgg = set() # log all aggregated analyses that have been skipped
