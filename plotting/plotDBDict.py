@@ -952,7 +952,9 @@ class Plotter ( LoggerBase ):
             plt.text ( .3, .3, self.disclaimer, transform=ax.transAxes,
                        rotation=35, c="#ff3333", fontsize=20 )
         from installation import version as protomodels_version
-        metadata = { "protomodels_version": protomodels_version() }
+        from smodels_utils.helper.various import pngMetaInfo
+        metadata = pngMetaInfo()
+        metadata[ "protomodels_version" ] = protomodels_version()
         dpi = self.options["dpi"]
         plt.savefig ( self.outfile, dpi=dpi, metadata = metadata )
         if self.options["add_logo"]:
