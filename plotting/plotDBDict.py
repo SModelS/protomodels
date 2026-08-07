@@ -883,6 +883,8 @@ class Plotter ( LoggerBase ):
                     #stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
                     #plt.plot ( stdnmx, stdnmy, c="black", linestyle="dotted",
                     #           label="dotted: standard normals" )
+        if "legend_placement" in self.options:
+            loc = self.options["legend_placement"]
         if nLegendEntries > 1 or self.options["alwayslegend"]:
             legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.2),
                     bbox_to_anchor = bbox_to_anchor )
@@ -1051,7 +1053,7 @@ def getArgs( cmdline = None ):
     argparser.add_argument ( '--ignore_sqrts',
             help='plot results from all runs with the same color', action='store_true' )
     argparser.add_argument ( '-O', '--options',
-            help='dictionary of options, given as string {try nbins, xlabel, ylabel, plotStats, plot_averages, weighted, yrange, color0, color1, color2} [None]',
+            help='dictionary of options, given as string {try nbins, xlabel, ylabel, plotStats, plot_averages, weighted, yrange, color0, color1, color2, legend_placement} [None]',
             type=str, default=None )
     argparser.add_argument ( '-U', '--ulalso',
             help='upper limit results also (but also if not eff maps exist for a given analysis)', action='store_true' )
