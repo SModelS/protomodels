@@ -886,9 +886,10 @@ class Plotter ( LoggerBase ):
         if "legend_placement" in self.options:
             loc = self.options["legend_placement"]
         if nLegendEntries > 1 or self.options["alwayslegend"]:
-            legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.2),
-                    bbox_to_anchor = bbox_to_anchor )
-            legend.set_zorder ( 10 )
+            if loc not in [ "nowhere" ]:
+                legend = plt.legend( loc = loc, facecolor=(1, 1, 1, 0.2),
+                        bbox_to_anchor = bbox_to_anchor )
+                legend.set_zorder ( 10 )
         if self.likelihood == "lognormal+poisson":
             title += " (lognormal)"
         if self.likelihood == "gauss":
