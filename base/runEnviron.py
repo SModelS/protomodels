@@ -115,7 +115,7 @@ class RunEnviron ( LoggerBase ):
         py_dump ( newdict, runDictFile )
         ret = RunEnviron ( runDictFile )
         new_dbver = ret.databaseVersion
-        if check and old_dbver != new_dbver:
+        if check and old_dbver != "???" and old_dbver != new_dbver:
             line= f"[RunEnviron] dbver changed from {old_dbver} to {new_dbver}"
             print ( line )
             raise Exception ( line )
