@@ -13,8 +13,8 @@ from smodels.tools.wrapperBase import WrapperBase
 from smodels.base.physicsUnits import TeV, fb
 from smodels.base.smodelsLogging import setLogLevel
 
-from base.loggerbase import LoggerBase
-from base.runEnviron import RunEnviron
+from pbase.loggerbase import LoggerBase
+from pbase.runEnviron import RunEnviron
 
 # the default tempdir of wrapper base is /tmp
 # WrapperBase.defaulttempdir="./" ## keep the temps in our folder
@@ -309,7 +309,7 @@ class ProtoModel ( LoggerBase ):
         #Get list of possible decay channels:
         openChannels = set()
         unfrozen = self.unFrozenParticles()
-        from base.constants import smMasses, smWidths
+        from pbase.constants import smMasses, smWidths
         #Get all relevant masses
         allMasses = dict([[pid,mass] for pid,mass in self.masses.items()])
         allMasses.update(smMasses)

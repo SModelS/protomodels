@@ -35,8 +35,8 @@ from smodels.base.physicsUnits import fb, GeV, TeV
 from smodels.decomposition import decomposer
 from smodels.base.smodelsLogging import logger
 from smodels.experiment.databaseObj import Database
-from base.loggerbase import LoggerBase
-from base.runEnviron import RunEnviron
+from pbase.loggerbase import LoggerBase
+from pbase.runEnviron import RunEnviron
 from tester.combinationsmatrix import getYamlMatrix
 from typing import Dict, List, Text, Callable, Union, Optional
 # from icecream import ic

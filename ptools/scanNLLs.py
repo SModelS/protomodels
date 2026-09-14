@@ -8,7 +8,7 @@ import os, sys, multiprocessing, time, numpy, subprocess, copy, glob
 import pickle, random, shutil
 import numpy as np
 from typing import Dict, Tuple, Union, List
-from base.pbase import prettyFileName
+from pbase.pbase import prettyFileName
 
 try:
     from csetup import setup
@@ -25,8 +25,8 @@ from smodels.statistics.basicStats import observed, apriori, aposteriori,\
 
 from smodels_utils.helper.terminalcolors import RED, GREEN, YELLOW, RESET, CYAN
 
-from base.loggerbase import LoggerBase
-from base.runEnviron import RunEnviron
+from pbase.loggerbase import LoggerBase
+from pbase.runEnviron import RunEnviron
 
 from builder.manipulator import Manipulator
 

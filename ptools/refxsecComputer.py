@@ -25,7 +25,7 @@ from smodels.base import crossSection
 from smodels.base.exceptions import SModelSBaseError as SModelSError
 from smodels import installation as smodelsinstallation
 import os, sys, io, shutil, pyslha
-from base.loggerbase import LoggerBase
+from pbase.loggerbase import LoggerBase
 from typing import Union
 
 

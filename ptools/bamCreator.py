@@ -14,7 +14,7 @@ from typing import Iterable, Dict, List, Optional, Union
 from numpy.typing import NDArray
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
 from smodels.statistics.basicStats import apriori, observed
-#from base.loggerbase import LoggerBase
+#from pbase.loggerbase import LoggerBase
 
 __all__ = [ "selectMostSignificantSRs", "bamAndWeights", "find_best_comb"  ]
 

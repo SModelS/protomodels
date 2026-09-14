@@ -33,7 +33,7 @@ def loadPoint ( lr ):
 def create():
     if not os.path.exists ( "points" ):
         os.mkdir ( "points" )
-    from base.runEnviron import RunEnviron
+    from pbase.runEnviron import RunEnviron
     environ = RunEnviron()
     walkerid = "dilepton"
     from ptools.hiscoreTools import fetchHiscoresObj

@@ -22,9 +22,9 @@ import smodels
 
 from smodels_utils.helper.terminalcolors import *
 
-from base.loggerbase import LoggerBase
-from base.constants import smMasses, smWidths
-from base.runEnviron import RunEnviron
+from pbase.loggerbase import LoggerBase
+from pbase.constants import smMasses, smWidths
+from pbase.runEnviron import RunEnviron
 from builder.protomodel import ProtoModel
 from ptools.sparticleNames import SParticleNames
 from ptools.helpers import nround, getAllPidsOfTheoryPred, py_dumps, mkdir, \

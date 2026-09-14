@@ -33,9 +33,9 @@ from pympler.asizeof import asizeof
 from smodels.base.smodelsLogging import logger
 from typing import Callable, Dict, Union
 
-from base.runEnviron import RunEnviron
-from base.loggerbase import LoggerBase
-from base.pbase import openWithRetry
+from pbase.runEnviron import RunEnviron
+from pbase.loggerbase import LoggerBase
+from pbase.pbase import openWithRetry
 from ptools.sparticleNames import SParticleNames
 from ptools import helpers
 from ptools.helpers import prettyPrint
@@ -168,7 +168,7 @@ class RandomWalker ( LoggerBase ):
                 logger.error ( f"cheatcode takes precedence" )
             else:
                 from walker.initialiser import Initialiser
-                from base.runEnviron import RunEnviron
+                from pbase.runEnviron import RunEnviron
                 environ = RunEnviron()
                 self.initialiser  = Initialiser ( self.walkerid, 
                         self.use_initialiser, environ, verbose = False )

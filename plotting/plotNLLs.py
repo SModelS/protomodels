@@ -3,7 +3,7 @@
 """ a second attempt at plotting likelihoods """
 
 import os, copy, sys
-from base.loggerbase import LoggerBase
+from pbase.loggerbase import LoggerBase
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
 import numpy as np

@@ -7,7 +7,7 @@ from typing import Union
 
 from smodels_utils.plotting.mpkitty import timg
 from ptools import sparticleNames
-from base.loggerbase import LoggerBase
+from pbase.loggerbase import LoggerBase
 namer = sparticleNames.SParticleNames ( susy=False )
 
 def ceil_to_step(x : float, step : int = 50) -> float:

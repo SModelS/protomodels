@@ -5,7 +5,7 @@ from clip.cliphelpers import getJobStatus, readJobIds
 
 def writeJobIds( jobids : set ):
     """ write the job ids from jobs files """
-    from base.locker import lock, unlock
+    from pbase.locker import lock, unlock
     lock ( "jobs" )
     with open ( "jobs", "wt" ) as f:
         for jobid in jobids:

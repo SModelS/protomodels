@@ -17,7 +17,7 @@ sys.path.insert(0,path)
 from protomodels.csetup import setup
 setup()
 
-from base.runEnviron import RunEnviron
+from pbase.runEnviron import RunEnviron
 from builder.manipulator import Manipulator
 from builder.protomodel import ProtoModel
 from ptools.helpers import formatObject

@@ -9,7 +9,7 @@ import time, types, sys, os, subprocess
 from os import PathLike
 from typing import Union, Dict
 
-from base.runEnviron import RunEnviron
+from pbase.runEnviron import RunEnviron
 
 def setup( rundir = None ):
     if "CODEDIR" in os.environ:

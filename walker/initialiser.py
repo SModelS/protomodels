@@ -15,9 +15,9 @@ from functools import lru_cache
 
 from smodels_utils.helper.terminalcolors import *
 
-from base.loggerbase import LoggerBase
-from base.runEnviron import RunEnviron
-from base.locker import lock, unlock
+from pbase.loggerbase import LoggerBase
+from pbase.runEnviron import RunEnviron
+from pbase.locker import lock, unlock
 
 from ptools.sparticleNames import SParticleNames
 from ptools.helpers import formatObject
@@ -638,7 +638,7 @@ class Initialiser ( LoggerBase ):
         self.getDefaultSSMs ( filename )
 
         if True:
-            from base.locker import lock, unlock
+            from pbase.locker import lock, unlock
             self.fixPidsForTxnames()
             lock ( self.cachefile )
             with open ( self.cachefile, "wt" ) as f:
@@ -904,7 +904,7 @@ class Initialiser ( LoggerBase ):
             return None
         massG = 0.
         if pid in [ 1000023, 1000024, 1000006 ]:
-            from base.constants import smMasses
+            from pbase.constants import smMasses
             massG = smMasses[pid-1000000]
         else:
             return None

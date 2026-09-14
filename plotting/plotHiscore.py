@@ -23,8 +23,8 @@ from smodels_utils.helper.bibtexTools import BibtexWriter
 from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
 from smodels_utils.helper.prettyDescriptions import prettyTexAnalysisName
 
-from base.runEnviron import RunEnviron
-from base.loggerbase import LoggerBase
+from pbase.runEnviron import RunEnviron
+from pbase.loggerbase import LoggerBase
 from builder.manipulator import Manipulator
 from builder import protomodel
 from builder.protomodel import ProtoModel

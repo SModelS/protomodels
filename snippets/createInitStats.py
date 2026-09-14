@@ -5,7 +5,7 @@ better than starting with the SM / any first 5 steps
 """
 
 from ptools.helpers import py_dumps
-from base.locker import lock, unlock
+from pbase.locker import lock, unlock
 import time
 
 def writeModel( model : dict, outfile : str = "init5.stats" ):
@@ -42,7 +42,7 @@ def createStatsForInit( args : dict ):
     # dbpath = "official"
     from walker.initialiser import Initialiser
     # dictfile = "signal_database.dict"
-    from base.runEnviron import RunEnviron
+    from pbase.runEnviron import RunEnviron
     environ = RunEnviron()
     initialiser = Initialiser ( walkerid = "stats",
         dictfile = dictfile, environ = environ )
@@ -57,7 +57,7 @@ def createStatsForInit( args : dict ):
 
 def createRunDict():
     """ create a simple, default run.dict file """
-    from base.runEnviron import RunEnviron
+    from pbase.runEnviron import RunEnviron
     RunEnviron.create()
 
 if __name__ == "__main__":

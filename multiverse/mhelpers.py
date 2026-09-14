@@ -25,7 +25,7 @@ def createMyTruthFile ( signal_model : str = "signal_model.dict",
     # from builder.protomodel import ProtoModel
     from tester.predictor import Predictor
     from tester.critic import Critic
-    from base.runEnviron import RunEnviron
+    from pbase.runEnviron import RunEnviron
     from ptools.helpers import formatObject
     from smodels.experiment.databaseObj import Database
     environ = RunEnviron ( )

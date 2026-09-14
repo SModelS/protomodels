@@ -13,8 +13,8 @@ from typing import Union
 from scipy import stats
 from csetup import setup
 setup()
-from base.loggerbase import LoggerBase
-from base.runEnviron import RunEnviron
+from pbase.loggerbase import LoggerBase
+from pbase.runEnviron import RunEnviron
 from builder.manipulator import Manipulator
 from ptools import helpers
 from ptools.helpers import formatObject
@@ -66,7 +66,7 @@ class Hiscores ( LoggerBase ):
             d = py_dumps ( obj, level = 1 )
             d = " "*4 + d
             ds.append ( d )
-        from base.locker import lock, unlock
+        from pbase.locker import lock, unlock
         lock ( filename )
         with open ( filename, "wt" ) as f:
             f.write("[\n")

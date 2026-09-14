@@ -4,7 +4,7 @@
 """
 
 import sys, os
-from base.loggerbase import LoggerBase
+from pbase.loggerbase import LoggerBase
 
 class ModelManipulator ( LoggerBase ):
     def __init__ ( self, inputfile, outputfile ):

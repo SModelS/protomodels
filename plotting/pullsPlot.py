@@ -6,7 +6,7 @@ import numpy as np
 
 from smodels.experiment.expResultObj import ExpResult
 from typing import Union
-from base.loggerbase import LoggerBase
+from pbase.loggerbase import LoggerBase
 
 class PullsPlotter ( LoggerBase ):
     def __init__ ( self ):
@@ -211,7 +211,7 @@ if __name__ == "__main__":
         plotter.printOptions()
         import sys; sys.exit()
 
-    from base.runEnviron import RunEnviron
+    from pbase.runEnviron import RunEnviron
     environ = RunEnviron( "run.dict" )
     db = environ.database
     anaIds = [ args.analysisId ]

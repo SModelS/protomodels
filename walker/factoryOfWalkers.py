@@ -19,7 +19,7 @@ try:
 except:
     import multiprocessing
 
-from base.runEnviron import RunEnviron
+from pbase.runEnviron import RunEnviron
 
 def _run ( walker, catch_exceptions, seed ):
     if seed is not None:

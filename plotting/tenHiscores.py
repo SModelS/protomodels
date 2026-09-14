@@ -14,12 +14,12 @@ from smodels.base import runtime
 
 from smodels_utils.plotting.mpkitty import timg
 
-from base.loggerbase import LoggerBase
+from pbase.loggerbase import LoggerBase
 from builder.protomodel import ProtoModel
 from builder.manipulator import Manipulator
 from tester.predictor import Predictor
 from tester.combiner import Combiner
-from base.runEnviron import RunEnviron
+from pbase.runEnviron import RunEnviron
 from ptools.sparticleNames import SParticleNames
 from snippets import show_steps
 
