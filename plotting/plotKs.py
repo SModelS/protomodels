@@ -146,6 +146,6 @@ if __name__ == "__main__":
              "signalprefix": args.signalprefix }
     """
     opts = vars ( args )
-    from helpers.various import viewImage
+    from ptools.helpers import viewImage
     plot( opts )
     viewImage ( opts["outputfile"] )

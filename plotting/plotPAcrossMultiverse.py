@@ -60,7 +60,7 @@ def plotPValues( info, anas, outfile, nbins : int ):
     from smodels_utils.helper.various import pngMetaInfo
     metadata = pngMetaInfo()
     plt.savefig ( outfile, metadata = metadata )
-    from helpers.various import viewImage
+    from ptools.helpers import viewImage
     viewImage ( outfile )
     # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 

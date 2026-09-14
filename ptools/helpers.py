@@ -836,6 +836,18 @@ def lightObjCopy(obj,rmAttr=['elements','avgElement', 'computer', 'txnameList',
             setattr(newObj,lightObjCopy(key,rmAttr=rmAttr),lightObjCopy(val,rmAttr=rmAttr))
         return newObj
 
+def viewImage ( imgfile : str ):                                                    
+    """ view an image on the terminal, if the timg tool exists. """                 
+    from smodels_utils.plotting.mpkitty import timg                                 
+    timg ( imgfile )                                                                
+    """                                                                             
+    import shutil                                                                   
+    if shutil.which ("timg") is not None:                                           
+        import subprocess                                                           
+        o = subprocess.getoutput ( f"timg {imgfile}" )                              
+        print ( o )                                                                 
+    """
+
 if __name__ == "__main__":
     obs, bg, bgerr = 2, 3., 0.3
     obs, bg, bgerr = 0, 0.007, 0.002
