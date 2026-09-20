@@ -8,8 +8,9 @@ from smodels.decomposition import decomposer
 from smodels.share.models.SMparticles import SMList
 from share.model_spec import BSMList
 from smodels.base.physicsUnits import fb
-from smodels.base.model import Model
-from smodels.matching.theoryPrediction import TheoryPrediction, TheoryPredictionsCombiner
+from smodels.statistics.basicStats import NllEvalType, observed
+from smodels.matching.theoryPrediction import TheoryPrediction, \
+         TheoryPredictionsCombiner
 import sys, os
 sys.path.insert(0,os.path.abspath ( os.path.dirname(__file__) ) )
 from pbase.loggerbase import LoggerBase
@@ -17,7 +18,8 @@ import numpy, math, copy, sys, time
 from colorama import Fore
 from typing import List, Union, Tuple, Set
 from ptools.helpers import getAllPidsOfTheoryPred, getAllProdModesOfTheoryPred
-from ptools.bamCreator import selectMostSignificantSRs, bamAndWeights, find_best_comb
+from ptools.bamCreator import selectMostSignificantSRs, bamAndWeights, \
+         find_best_comb
 
 class Combiner ( LoggerBase ):
     def __init__ ( self, walkerid: int=0 ):
@@ -378,14 +380,15 @@ class Combiner ( LoggerBase ):
             given the list of theory predictions.
         """
         self.log(f"Finding most significant combination for {len(predictions)}")
-        comb_dict = bamAndWeights(predictions, expected=False)        #get the true/false comb matrix, along with weights
+        comb_dict = bamAndWeights(predictions, evaluationType=observed)        
+        #get the true/false comb matrix, along with weights
         pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
 
         if use_pathfinder: most_significant_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
 
         else:
             from tester.alternate_pf import getBestComb
-            most_significant_comb_dict = getBestComb(predictions, expected=False)
+            most_significant_comb_dict = getBestComb(predictions, evaluationType = observed)
 
         comb_lbl, weight = most_significant_comb_dict['best'], most_significant_comb_dict['weight']
 
@@ -407,13 +410,17 @@ class Combiner ( LoggerBase ):
             given the list of theory predictions.
         """
         self.log(f"Finding most sensitive combination for {len(predictions)}")
-        comb_dict = bamAndWeights(predictions, expected=True, excl_mode=True)        #get the true/false comb matrix, along with weights
-        pred_dict = comb_dict['theoryPred']                     #a dict with tpId and correspond tpred
+        comb_dict = bamAndWeights(predictions, evaluationType=apriori, 
+                excl_mode=True)        
+        # get the true/false comb matrix, along with weights
+        pred_dict = comb_dict['theoryPred']                     
+        # a dict with tpId and correspond tpred
 
-        if use_pathfinder: most_sensitive_comb_dict = find_best_comb(comb_dict)  #get the best combination given the matrix and weights
+        if use_pathfinder: most_sensitive_comb_dict = find_best_comb(comb_dict)  
+        # get the best combination given the matrix and weights
         else:
             from tester.alternate_pf import getBestComb
-            most_sensitive_comb_dict = getBestComb(predictions, expected=True)
+            most_sensitive_comb_dict = getBestComb(predictions, evaluationType = apriori )
 
         comb_lbl, weight = most_sensitive_comb_dict['best'], most_sensitive_comb_dict['weight']
 

@@ -72,7 +72,9 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction],
 
     return ret
 
-def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = False, excl_mode: bool = False) -> Dict:
+def bamAndWeights( theorypredictions: list[TheoryPrediction], 
+                   evaluationType: NllEvalType, 
+                   excl_mode: bool = False) -> Dict:
     """
     A simple function that takes a list of theory predictions,
     and from this computes a small binary acceptance matrix (bam) in the guise
@@ -87,12 +89,12 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
 
     for i, tpred in enumerate(theorypredictions):
         # nll0 = tpred.lsm(expected=expected)
-        try:
-            nll0 = tpred.nll(mu=0, expected=expected)
-            nll1 = tpred.nll(mu=1, expected=expected)
-        except Exception as e:
-            nll0 = tpred.nll(mu=0, evaluationType=expected)
-            nll1 = tpred.nll(mu=1, evaluationType=expected)
+        #try:
+        #    nll0 = tpred.nll(mu=0, expected=expected)
+        #    nll1 = tpred.nll(mu=1, expected=expected)
+        #except Exception as e:
+        nll0 = tpred.nll(mu=0, evaluationType=evaluationType)
+        nll1 = tpred.nll(mu=1, evaluationType=evaluationType)
         w = np.nan
         if nll0 is not None and nll1 is not None:
             # w = -2 * (ll0 - ll1) = 2 * (ll1 - ll0) = 2 * (-ll0 - (-ll1)) = 2 * (nll0 - nll1) for anamoly mode
