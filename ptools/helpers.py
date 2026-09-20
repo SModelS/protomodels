@@ -229,6 +229,7 @@ def experimentalId(pred : TheoryPrediction) -> str:
         return f"{anaId}:{dtype}"
 
     elif dtype == "combined":
+        # if pred.dataType() == "pyhf":
         if pred._statsComputer.dataType == "pyhf":
             jfile = getJsonFileName(pred.dataset)
             return f"{anaId}:{jfile}"

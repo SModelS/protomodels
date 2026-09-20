@@ -581,5 +581,5 @@ if __name__ == "__main__":
         pred.computeStatistics()
         tpe = pred.dataType(True)
         tpe += f":{','.join(map(str, pred.txnames))}"
-        print ( f"  `- llhd [{tpe}] SM={pred.likelihood(0.0, expected=args.expected):.3g} BSM={pred.likelihood(1.0, expected=args.expected):.3g}" )
+        print ( f"  `- llhd [{tpe}] SM={pred.likelihood(0.0, evaluationType=args.expected):.3g} BSM={pred.likelihood(1.0, evaluationType=args.expected):.3g}" )
     comb = Combiner()

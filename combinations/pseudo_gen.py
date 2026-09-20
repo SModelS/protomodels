@@ -200,12 +200,8 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
 
     bam, weights, theoryPred = {}, {}, {}
     for i, tpred in enumerate(theorypredictions):
-        try:
-            nll0 = tpred.lsm(evaluationType=expected, return_nll=True)
-            nll1 = tpred.likelihood(evaluationType=expected, return_nll=True)
-        except Exception as e:
-            nll0 = tpred.lsm(expected=expected, return_nll=True)
-            nll1 = tpred.likelihood(expected=expected, return_nll=True)
+        nll0 = tpred.nllsm(evaluationType=expected)
+        nll1 = tpred.nll(evaluationType=expected)
         w = np.NaN
         if nll0 is not None and nll1 is not None:
             # w = -2 * (ll0 - ll1) = 2 * (ll1 - ll0) = 2 * (-ll0 - (-ll1)) = 2 * (nll0 - nll1)
