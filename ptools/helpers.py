@@ -222,8 +222,8 @@ def experimentalId(pred : TheoryPrediction) -> str:
 
     anaId = pred.analysisId()
     dtype = pred.dataType()
-    print ( f"@@FFFF experimentalId {dtype}" )
-    sys.exit()
+    # print ( f"@@FFFF experimentalId {dtype}" )
+    # sys.exit()
 
     if dtype == "upperLimit":
         return f"{anaId}:{dtype}"
