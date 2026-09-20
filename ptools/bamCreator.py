@@ -46,10 +46,10 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction],
 
         maxRatio, ratioList = -float("inf"), {}
         for pred in preds:
-            nll0 = pred.likelihood(mu=0, return_nll=True)
-            #nll0 = pred.likelihood(mu=0, evaluationType=observed, return_nll=True)
-            nll1 = pred.likelihood(mu=1, return_nll=True)
-            #nll1 = pred.likelihood(mu=1, evaluationType=observed, return_nll=True)
+            nll0 = pred.nll(mu=0 )
+            #nll0 = pred.nll(mu=0, evaluationType=observed )
+            nll1 = pred.nll(mu=1 )
+            #nll1 = pred.nll(mu=1, evaluationType=observed )
             if nll0 is None or nll1 is None: continue
             ratio = 2 * (nll0 - nll1)
             ratioList[pred] = ratio
@@ -86,13 +86,13 @@ def bamAndWeights(theorypredictions: list[TheoryPrediction], expected: bool = Fa
     bam, weights, theoryPred = {}, {}, {}
 
     for i, tpred in enumerate(theorypredictions):
-        # nll0 = tpred.lsm(expected=expected, return_nll=True)
+        # nll0 = tpred.lsm(expected=expected)
         try:
-            nll0 = tpred.likelihood(mu=0, expected=expected, return_nll=True)
-            nll1 = tpred.likelihood(mu=1, expected=expected, return_nll=True)
+            nll0 = tpred.nll(mu=0, expected=expected)
+            nll1 = tpred.nll(mu=1, expected=expected)
         except Exception as e:
-            nll0 = tpred.likelihood(mu=0, evaluationType=expected, return_nll=True)
-            nll1 = tpred.likelihood(mu=1, evaluationType=expected, return_nll=True)
+            nll0 = tpred.nll(mu=0, evaluationType=expected)
+            nll1 = tpred.nll(mu=1, evaluationType=expected)
         w = np.nan
         if nll0 is not None and nll1 is not None:
             # w = -2 * (ll0 - ll1) = 2 * (ll1 - ll0) = 2 * (-ll0 - (-ll1)) = 2 * (nll0 - nll1) for anamoly mode
