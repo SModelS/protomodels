@@ -70,6 +70,9 @@ class HiscorePlotter ( LoggerBase ):
         return True
 
     def discussPredictions ( self ):
+        if not hasattr ( self.protomodel, "bestCombo" ):
+            print ( "[plotHiscore] ERROR: protomodel has no best combo" )
+            return
         print ( "How the K comes about. Best combo:" )
         combo = self.protomodel.bestCombo
         self.pprint ( "best combination:" )
@@ -141,8 +144,8 @@ class HiscorePlotter ( LoggerBase ):
             Z = ( oUL - eUL ) / sigma_exp
             return Z
         if dtype == "combined":
-            llhd = tp.likelihood( evaluationType = observed, return_nll=True )
-            l0 = tp.lsm ( return_nll = True )
+            llhd = tp.nll( evaluationType = observed )
+            l0 = tp.nllsm ( )
             chi2 = 2 * ( l0 - llhd )
             if chi2 < 0.:
                 ## wait, what? check this!
@@ -1023,6 +1026,9 @@ class HiscorePlotter ( LoggerBase ):
             self.plotDecays ( verbosity )
         if options["masses_decays"]:
             self.drawMassesDecays( verbosity )
+        if not hasattr ( self.protomodel, "bestCombo" ):
+            self.predictor.predict ( m, keep_predictions = True,
+                                     force_computation_K = True )
         if options["predictions"]:
             self.discussPredictions ( )
         if options["html"] or options["tex"]:
