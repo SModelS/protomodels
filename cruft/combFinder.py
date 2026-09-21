@@ -185,29 +185,6 @@ class combFinder(object):
         aids = [[c.analysisId() for c in comb] for comb in combinables]
         return combinables
 
-
-        '''
-        def get_weights()
-        combMatrix = np.array(combMatrix)
-
-
-        #get weights
-        lbsm = numpy.array([preds.likelihood(1., expected = exp) for preds in self.listoftp], dtype=object)
-        lsm = numpy.array([preds.likelihood(0., expected = exp) for preds in self.listoftp], dtype=object)
-        weight_vector = np.log(lbsm/lsm)              #return llh ratio as discovery mode #check if sm is ever zero?
-
-        #call pathfinder
-        bam = pf.BinaryAcceptance(combMatrix, weights=np.array(weight_vector))
-
-        #Get the allowed list of combinations with decreasing weights
-        whdfs = pf.WHDFS(bam, top=self.ntop)
-        whdfs.find_paths()
-
-        #return list of theory predictions for which the combination has max weight
-        top_path = whdfs.get_paths[0]  # gets indices of analyses which are best combinable
-        best_comb = [self.listoftp[i] for i in top_path]
-        '''
-
 if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     from smodels.base.model import Model
