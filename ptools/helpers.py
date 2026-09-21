@@ -235,10 +235,10 @@ def experimentalId(pred : TheoryPrediction) -> str:
         # if pred.dataType() == "pyhf":
         sc0 = pred._statsComputer.subComputers[0]
         sc0_type = sc0.dataType 
-        print ( f"@@sc:{anaId} {pred._statsComputer.subComputers[0]}:: {sc0_type}" )
-        print ( f"@@sc: ---    {anaId}:{sc0.name}" )
         return f"{anaId}:{sc0.name}"
         """
+        print ( f"@@sc:{anaId} {pred._statsComputer.subComputers[0]}:: {sc0_type}" )
+        print ( f"@@sc: ---    {anaId}:{sc0.name}" )
         if sc0_type == "nn":
             jfile = getOnnxFileName(pred.dataset)
             return f"{anaId}:{jfile}"
@@ -334,12 +334,14 @@ def simplifyUnixPath ( path : str ) -> str:
         path = path.replace("//","/")
     return path
 
-def computeZFromP ( pvalue : float ) -> float:
+def computeZFromP ( pvalue : float|tuple ) -> float:
     """ compute significance Z from p-value, i.e. compute Phi^-1 ( p )
 
     :param pvalue: the p-value
     :returns: the corresponding significance Z
     """
+    if type(pvalue)==tuple:
+        pvalue = pvalue[0]
     return float ( - scipy.stats.norm.ppf ( pvalue ) )
 
 def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,

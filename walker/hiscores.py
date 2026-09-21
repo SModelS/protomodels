@@ -577,7 +577,7 @@ class Hiscores ( LoggerBase ):
         # except OSError or BlockingIOError or EOFError or pickle.UnpicklingError or TypeError as e:
             self.fileAttempts+=1
             if self.fileAttempts<20: # try again
-                self.pprint ( f"Exception[X] {e!s}: type({type(e)}), Waiting for {self.pickleFile} file, {int(self.fileAttempts)}" )
+                self.pprint ( f"Exception[{self.pickleFile}] {e!s}: type({type(e)}), Waiting for {self.pickleFile} file, {int(self.fileAttempts)}" )
                 time.sleep ( (.2 + np.random.uniform(0.,1.))*self.fileAttempts )
                 self.updateListFromPickle()
                 self.pprint ( "Loading hiscores worked this time" )
