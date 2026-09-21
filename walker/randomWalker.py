@@ -617,7 +617,7 @@ class RandomWalker ( LoggerBase ):
                 self.writeToDictFile(proto_dict)
                 self.manipulator.restoreModel( reportReversion=True )
             else:
-                self.highlight ( "info", f"u={u:.2f} <= {acceptance_ratio:.2f};K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )   #SN: <+ and not > right?
+                self.highlight ( "info", f"u={u:.2f} <= {acceptance_ratio:.2f}; K: {prettyPrint(K)} -> {prettyPrint(newK)}; Check Critics." )   #SN: <+ and not > right?
 
                 cr, _ = self.critic.predict_critic(self.protomodel, keep_predictions=True)
                 if cr:
