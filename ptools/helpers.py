@@ -189,11 +189,12 @@ def formatObject ( obj, fmt_str : Union[int,str] = ".2f" ) -> str:
         fmt_str = f".{fmt_str}f"
     return f"{obj:{fmt_str}}"
 
+"""
 def getJsonFileName(dset: DataSet) -> str:
     "get file name of json used by the combined dataset dset"
-    print ( f"@@XXY getJsonFileName" )
 
     jsonFileDict = dset.globalInfo.jsonFiles
+    print ( f"@@XXY getJsonFileName {jsonFileDict}" )
     dsId = [ds.getID() for ds in dset._datasets]            #get the dataset ids in the combined dataset dset
 
     for file, dslist in jsonFileDict.items():
@@ -210,14 +211,16 @@ def getJsonFileName(dset: DataSet) -> str:
     print ( f"@@XXY getJsonFileName" )
     sys.exit()
     return "NoJsonFound"
+"""
 
 def experimentalId(pred : TheoryPrediction) -> str:
     """
     Return Id of tpred's expresult
         - anaId:upperLimit      if dataType = upperLimit
         - anaId:dataId          if dataType = efficiencyMap
-        - anaId:combined        if dataType = combined,SLv1,v2
+        - anaId:matrixname      if dataType = combined,SLv1,v2
         - anaId:jsonFileName    if dataType = combined,pyhf
+        - anaId:onnxFileName    if dataType = combined,nn
     """
 
     anaId = pred.analysisId()
@@ -230,11 +233,21 @@ def experimentalId(pred : TheoryPrediction) -> str:
 
     elif dtype == "combined":
         # if pred.dataType() == "pyhf":
-        if pred._statsComputer.dataType == "pyhf":
+        sc0 = pred._statsComputer.subComputers[0]
+        sc0_type = sc0.dataType 
+        print ( f"@@sc:{anaId} {pred._statsComputer.subComputers[0]}:: {sc0_type}" )
+        print ( f"@@sc: ---    {anaId}:{sc0.name}" )
+        return f"{anaId}:{sc0.name}"
+        """
+        if sc0_type == "nn":
+            jfile = getOnnxFileName(pred.dataset)
+            return f"{anaId}:{jfile}"
+        elif sc0_type == "pyhf":
             jfile = getJsonFileName(pred.dataset)
             return f"{anaId}:{jfile}"
         else:
             return f"{anaId}:{dtype}"                       #SLv1,v2
+        """
     else:
         dsId = pred.dataId()                                #for em-type results
         return f"{anaId}:{dsId}"
