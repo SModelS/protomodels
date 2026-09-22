@@ -279,9 +279,10 @@ class Hiscores ( LoggerBase ):
         with open ( "Kold.conf", "wt" ) as f:
             f.write ( f"{m.M.K}\n" )
             f.close()
-        with open ( "Kmin.conf", "wt" ) as f:
-            f.write ( f"{newlist[-1]['K']}\n" )
-            f.close()
+        if len(oldhiscores)>9: # write only if we have enough
+            with open ( "Kmin.conf", "wt" ) as f:
+                f.write ( f"{newlist[-1]['K']}\n" )
+                f.close()
         return True
 
     def updateTopHiscoreFile ( self, m : Manipulator,

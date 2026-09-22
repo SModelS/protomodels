@@ -37,7 +37,8 @@ class RefXSecComputer ( LoggerBase ):
     version = "1.0" ## make sure we can trace changes in the tables
     hasWarned = { "omitted": 0 }
 
-    def __init__( self, verbose : int = 1, allowN1N1Prod : bool = False, walkerid : Union[None,int] = 0 ):
+    def __init__( self, verbose : int = 1, allowN1N1Prod : bool = False, 
+                  walkerid : Union[None,int] = 0 ):
         """
         :param verbose: turn on verbose mode, for debugging
         :param allowN1N1Prod: if true, then allow also N1 N1 production
@@ -518,8 +519,8 @@ class RefXSecComputer ( LoggerBase ):
                 a.comment = comment
                 xsecs.add ( a )
             else:
-                self.debug (f"No signal strength multiplier for {pids}")
-                self.debug (pids,pids in ssmultipliers)
+                self.debug ( f"No signal strength multiplier for {pids}" )
+                # self.debug ( f"pids {pids} in ssms {pids in ssmultipliers}" )
                 self.debug (ssmultipliers)
             
         self.xsecs = xsecs
