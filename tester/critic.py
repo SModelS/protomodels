@@ -81,7 +81,7 @@ class Critic ( LoggerBase ):
                 f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
             f.close()
 
-    def updateModelPredictionsWithULPreds(self, protomodel, predictions, keep_predictions):
+    def updateModelWithULPreds(self, protomodel, predictions, keep_predictions):
         """ Extract information from list of theory predictions and store list of dict with r_obs,
             r_exp and theory prediction(sorted according to decreasing r_obs values) in the protomodel.
             Also store description about the critic_tp in the protomodel.
@@ -144,8 +144,9 @@ class Critic ( LoggerBase ):
         return
 
 
-    def updateModelPredictionsWithCombinedPreds(self,
-            protomodel, mostSensiComb, robsComb : float, rexpComb : float ):
+    def updateModelWithCombinedPreds(self,
+            protomodel, mostSensiComb, robsComb : float, rexpComb : float,
+            allowed_by_llhd_critic : bool ):
         """ Extract information from list of theory predictions and store r_obs from
             the most sensitive combination of analyses in the protomodel.
 
@@ -163,6 +164,7 @@ class Critic ( LoggerBase ):
             datasets = [experimentalId(comb) for comb in mostSensiComb]
             protomodel.llhd_critic = {'datasets': datasets,
                 'robs': round(robsComb,2), 'rexp': round(rexpComb,2)
+                'passed': allowed_by_llhd_critic
             }
 
 
@@ -278,7 +280,7 @@ class Critic ( LoggerBase ):
         allowed_by_ul_critic, n_sensitive, n_excluding = self.ul_critic(protomodel, predictions)
         if n_sensitive: num_preds = n_sensitive
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictionsWithULPreds(protomodel, predictions,
+        self.updateModelWithULPreds(protomodel, predictions,
                 keep_predictions)
 
         if not allowed_by_ul_critic:
@@ -294,11 +296,10 @@ class Critic ( LoggerBase ):
 
         predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut, mingap=mingap, mingapISR=mingapISR )
         allowed_by_llhd_critic, mostSensiComb, robsComb, rexpComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
-        protomodel.llhd_critic["passed"]=allowed_by_llhd_critic
         if mostSensiComb: num_preds += len(predictions)
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictionsWithCombinedPreds(protomodel,
-                mostSensiComb, robsComb, rexpComb)
+        self.updateModelWithCombinedPreds(protomodel,
+                mostSensiComb, robsComb, rexpComb,allowed_by_llhd_critic)
 
         if keep_slhafile:
             self.info(f"Keeping {protomodel.currentSLHA}, as requested" )

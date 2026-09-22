@@ -37,14 +37,13 @@ class RefXSecComputer ( LoggerBase ):
     version = "1.0" ## make sure we can trace changes in the tables
     hasWarned = { "omitted": 0 }
 
-    def __init__( self, verbose : int = 1, allowN1N1Prod : bool = False, 
+    def __init__( self, allowN1N1Prod : bool = False, 
                   walkerid : Union[None,int] = 0 ):
         """
-        :param verbose: turn on verbose mode, for debugging
         :param allowN1N1Prod: if true, then allow also N1 N1 production
         """
-        super ( RefXSecComputer, self ).__init__ ( walkerid )
-        self.verbose = verbose
+        super ( RefXSecComputer, self ).__init__ ( walkerid = walkerid, 
+                verbosity = "info" )
         self._allowN1N1Prod = allowN1N1Prod
         codedir = "../"
         try:
@@ -788,7 +787,7 @@ if __name__ == "__main__":
     sqrts = args.sqrts
     if sqrts == None:
         sqrts = [ 8, 13 ]
-    tool = RefXSecComputer( verbose = 2, allowN1N1Prod = False, walkerid = 0 )
+    tool = RefXSecComputer( allowN1N1Prod = False, walkerid = 0 )
     slhapaths = args.inputfile
     ssmultipliers = { (1000021,1000021):2. }
     ssmultipliers = None
