@@ -192,8 +192,8 @@ class RandomWalker ( LoggerBase ):
             else:
                 self.predict(self.manipulator)
                 if type(self.manipulator.M.TL) != type(None) and type(self.manipulator.M.K) != type(None):
-                    self.log ( f"Cheat model gets TL={self.manipulator.M.TL:.2f}, "\
-                                  f"K={self.manipulator.M.K:.2f}" )
+                    self.log ( f"Cheat model gets K={self.manipulator.M.K:.2f}, "\
+                                  f"TL={self.manipulator.M.TL:.2f}" )
                     # self.printStats ( substep=4 )
                     self.manipulator.backupModel()
                     self.hiscoreList.newResult ( self.manipulator )
