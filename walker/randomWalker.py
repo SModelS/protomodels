@@ -529,12 +529,12 @@ class RandomWalker ( LoggerBase ):
         if not self.test_param_space:
             ## possibly add to hiscore list
             self.log ( f"Step {self.protomodel.step} check if result goes into hiscore list" )
-            #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )    #protomodel.rvalues were used before to find the max allowed mu
-            #self.log ( f"r values before calling .newResult are at {srs}" )
+            # srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )    #protomodel.rvalues were used before to find the max allowed mu
+            # self.log ( f"r values before calling .newResult are at {srs}" )
             self.hiscoreList.newResult ( self.manipulator ) ## add to high score list
-            #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
-            #self.log ( f"r values after calling .newResult are at {srs}" )
-            self.log ( "done check for result to go into hiscore list" )
+            # srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
+            # self.log ( f"r values after calling .newResult are at {srs}" )
+            # self.log ( "done check for result to go into hiscore list" )
         ## Backup model
         self.manipulator.backupModel()
         # Update current K and TL values

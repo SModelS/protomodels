@@ -400,11 +400,13 @@ class Hiscores ( LoggerBase ):
             # if there is no ul_critic result, we assume we're fine
             passes = ma.M.ul_critic["passes"]
             if passes == False:
+                self.pprint ( f"not saving: failed ul_critic ({ma.M.ul_critic})" )
                 return False
         if hasattr ( ma.M, "llhd_critic" ):
             # if there is no ul_critic result, we assume we're fine
             passes = ma.M.llhd_critic["robs"]<1.0
             if passes == False:
+                self.pprint ( f"not saving: failed llhd_critic ({ma.M.llhd_critic})" )
                 return False
 
 

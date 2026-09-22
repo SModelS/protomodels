@@ -2133,8 +2133,8 @@ class Manipulator ( LoggerBase ):
         """
 
 
-        self.log ( "trying to simplify model" )
-        #Make a copy of the model:
+        # self.log ( "trying to simplify model" )
+        # Make a copy of the model:
         newModel = self.M.copy()
         merged = True
         nMerges = 0
@@ -2143,6 +2143,7 @@ class Manipulator ( LoggerBase ):
             merged = self.mergeParticles(dm,newModel)
             nMerges += merged #Count number of mergers
 
+        self.log ( f"When trying to simplify model: {nMerges} merges" )
         if nMerges > 0:
             #Update cross-sections (if needed)
             newModel.getXsecs()
