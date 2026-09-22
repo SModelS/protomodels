@@ -160,7 +160,10 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.llhd_critic = {'datasets': [experimentalId(comb) for comb in mostSensiComb], 'robs': round(robsComb,2), 'rexp': round(rexpComb,2)}
+            datasets = [experimentalId(comb) for comb in mostSensiComb]
+            protomodel.llhd_critic = {'datasets': datasets,
+                'robs': round(robsComb,2), 'rexp': round(rexpComb,2)
+            }
 
 
     def runSModelS(self, inputFile : PathLike, combineSRs : bool, ULpreds: bool, sigmacut : float, mingap:float,
@@ -291,6 +294,7 @@ class Critic ( LoggerBase ):
 
         predictions = self.runSModelS( slhafile, combineSRs=True, ULpreds=False, sigmacut=sigmacut, mingap=mingap, mingapISR=mingapISR )
         allowed_by_llhd_critic, mostSensiComb, robsComb, rexpComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
+        protomodel.llhd_critic["passed"]=allowed_by_llhd_critic
         if mostSensiComb: num_preds += len(predictions)
         # Extract the relevant prediction information and store in the protomodel:
         self.updateModelPredictionsWithCombinedPreds(protomodel,
