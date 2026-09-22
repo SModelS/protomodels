@@ -163,7 +163,7 @@ class Critic ( LoggerBase ):
         else:
             datasets = [experimentalId(comb) for comb in mostSensiComb]
             protomodel.llhd_critic = {'datasets': datasets,
-                'robs': round(robsComb,2), 'rexp': round(rexpComb,2)
+                'robs': round(robsComb,2), 'rexp': round(rexpComb,2),
                 'passed': allowed_by_llhd_critic
             }
 
