@@ -121,6 +121,7 @@ def createWalkers ( rvars: dict ):
              "use_initialiser": use_initialiser }
     from ptools.moreHelpers import namesForSetsOfPids
     meta["forbiddenparticles"] = namesForSetsOfPids ( forbiddenparticles )
+    meta["extrapolation_acceptance"] = rvars["extrapolation_acceptance"]
     environ = RunEnviron.create ( **meta )
     from builder.manipulator import Manipulator
     # writeMetaInfo ( rundir, meta )
