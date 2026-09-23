@@ -171,7 +171,7 @@ class RandomWalker ( LoggerBase ):
                 from pbase.runEnviron import RunEnviron
                 environ = RunEnviron()
                 self.initialiser  = Initialiser ( self.walkerid, 
-                        self.use_initialiser, environ, verbose = False )
+                        self.use_initialiser, environ, verbosity = "info" )
                 #init_model = self.initialiser.propose()
                 init_model = self.initialiser.bestOfN(5)
                 if init_model != None:

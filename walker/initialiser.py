@@ -97,16 +97,16 @@ class Initialiser ( LoggerBase ):
 
     def __init__ ( self, walkerid : Union[str,int],
             dictfile : os.PathLike, environ : RunEnviron,
-            verbose : bool = False ):
+            verbosity : str = "info" ):
         """ constructor.
 
         :param walkerid: the walkerid we run this under
         :param environ: a run environment
-        :param verbose: true if verbose
+        :param verbosity: verbosity level: debug, info, warn, or error
         """
-        super ( Initialiser, self ).__init__ ( walkerid )
+        super ( Initialiser, self ).__init__ ( walkerid,
+               verbosity = verbosity )
         self.dictfile = dictfile
-        self.printLogMessages = verbose
         self.environ = environ
         self.warnings= {}
         self._pm = ProtoModel ( walkerid, environ = self.environ )
@@ -1200,10 +1200,12 @@ if __name__ == "__main__":
     argparser.add_argument ( '-d', '--dictfile',
             help='input database dict file ["signal_database.dict"]',
             type=str, default="*_database.dict" )
-    argparser.add_argument ( '-v', '--verbose',
-            help='verbose', action="store_true" )
+    argparser.add_argument ( '-v', '--verbosity',
+            help='verbosity level: debug, info, warn, error', 
+            type=str, default="info"
     argparser.add_argument ( '-r', '--recompute_cache',
-            help='dont use pids.cache and xsecs.cache cache files', action="store_true" )
+            help='dont use pids.cache and xsecs.cache cache files', 
+            action="store_true" )
     ## 310.dict is also a good default, for the actual observations
     args = argparser.parse_args()
     if args.recompute_cache:
@@ -1225,5 +1227,6 @@ if __name__ == "__main__":
             print ( f"[initialiser] potential dict files are {files}. specify!")
             sys.exit(-1)
     environ = RunEnviron( "run.dict" )
-    ini = Initialiser( "ini", args.dictfile, environ, verbose = args.verbose )
+    ini = Initialiser( "ini", args.dictfile, environ, 
+                       verbosity = args.verbosity )
     ini.interact()
