@@ -52,8 +52,8 @@ class RunEnviron ( LoggerBase ):
         self.didReadRunDict = False # did we get the info from run.dict?
         self.run_dict = self.defaults()
         self.readRunDict()
-        self.setAcceptedExtrapolationErrors ( 0. )
         self._setAttrs()
+        self.setAcceptedExtrapolationErrors ( self.run_dict["extrapolation_acceptance"] )
 
 
     def setAcceptedExtrapolationErrors ( self, err : float ):
