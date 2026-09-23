@@ -163,7 +163,7 @@ class RefXSecComputer ( LoggerBase ):
         if len(xsecs) == 0:
             self.debug(f"No cross sections available for {slhafile}.")
             return False
-        self.debug ( f"I have xsecs: {', '.join(map(str,xsecs))}" )
+        # self.debug ( f"I have xsecs: {', '.join(map(str,xsecs))}" )
         # Check if file already contain cross section blocks
         xSectionList = crossSection.getXsecFromSLHAFile(slhafile)
         if xSectionList and complain:
