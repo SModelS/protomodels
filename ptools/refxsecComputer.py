@@ -38,12 +38,13 @@ class RefXSecComputer ( LoggerBase ):
     hasWarned = { "omitted": 0 }
 
     def __init__( self, allowN1N1Prod : bool = False, 
-                  walkerid : Union[None,int] = 0 ):
+                  walkerid : Union[None,int] = 0,
+                  verbosity : str = "warn" ):
         """
         :param allowN1N1Prod: if true, then allow also N1 N1 production
         """
         super ( RefXSecComputer, self ).__init__ ( walkerid = walkerid, 
-                verbosity = "info" )
+                verbosity = verbosity )
         self._allowN1N1Prod = allowN1N1Prod
         codedir = "../"
         try:

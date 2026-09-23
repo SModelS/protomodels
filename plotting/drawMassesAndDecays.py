@@ -39,7 +39,7 @@ class MassesAndDecays ( LoggerBase ):
         ret = { "outfile": "mass_hierarchy.png" }
         ret["colors"]= { 1000022: "black", 1000023: "navy",
                          1000024: "navy", 1000025: "navy",
-                         1000006: "brown" }
+                         1000006: "brown", 1000016: "gold" }
         ret["scale"]="symlog"
         ret["record"]=False
         # ret["scale"]="linear"
