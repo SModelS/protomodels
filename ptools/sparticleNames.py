@@ -408,7 +408,7 @@ class SParticleNames:
             return "l"
         return str(q)
 
-    def shortName ( self, productiontuple ):
+    def shortName ( self, productiontuple : tuple ) -> str:
         """ assign a particle category to a tuple of two particle pids """
         p1,p2=abs( productiontuple[0] ),abs( productiontuple[1] )
         # p1,p2= productiontuple
@@ -416,7 +416,7 @@ class SParticleNames:
         if q1>q2: q1,q2=q2,q1 ## swap, give a canonical order
         return q1+q2
 
-    def longName ( self, letter ):
+    def longName ( self, letter : str ) -> str:
         """ gives long names to particle categories """
         if letter=="l": return "slepton"
         if letter=="n": return "weakino"
@@ -426,91 +426,20 @@ class SParticleNames:
         if letter=="g": return "gluino"
         return "?"
 
-    def tilde ( self, text ):
+    def tilde ( self, text : str ) -> str:
         """ put a tilde over text """
         return f"<math display='inline'><mover><mi>{text}</mi><mo stretchy='true'>~</mo></mover></math>"
 
-    def sub ( self, text ):
+    def sub ( self, text : str ) -> str:
         return f"<sub>{text}</sub>"
 
-    def sup ( self, text ):
+    def sup ( self, text : str ) -> str:
         return f"<sup>{text}</sup>"
 
-    """
-    def toHtml ( self, name ):
-        # translate particle names to html code
-        #if name=="~chi2+":
-        #    name=self.tilde("&chi;")+"xxx" ## sup("+")+"2"#+sub("2")
-        #if name=="~chi1+": return self.tilde("&chi;")+"1+" ## sup("+")+"2"#+sub("2")
-        #if name=="~chi30": return self.tilde("&chi;")+sup("0")#+sub("2")
-        name=name.replace("_eL","<sub>eL</sub>")
-        name=name.replace("_muL","<sub>muL</sub>")
-        name=name.replace("_tauL","<sub>tauL</sub>")
-        name=name.replace("chi10","chi<sub>1</sub><sup>0</sup>")
-        name=name.replace("chi20","chi<sub>2</sub><sup>0</sup>")
-        name=name.replace("chi30","chi<sub>3</sub><sup>0</sup>")
-        name=name.replace("chi40","chi<sub>4</sub><sup>0</sup>")
-        name=name.replace("chi50","chi<sub>5</sub><sup>0</sup>")
-        name=name.replace("chi1+","chi<sub>1</sub><sup>+</sup>")
-        name=name.replace("chi2+","chi<sub>2</sub><sup>+</sup>")
-        name=name.replace("chi3+","chi<sub>3</sub><sup>+</sup>")
-        name=name.replace("chi1-","chi<sub>1</sub><sup>-</sup>")
-        name=name.replace("chi2-","chi<sub>2</sub><sup>-</sup>")
-        name=name.replace("chi3-","chi<sub>3</sub><sup>-</sup>")
-        name=name.replace("chi","&chi;")
-        name=name.replace("nu","&nu;")
-        name=name.replace("mu","&mu;")
-        name=name.replace("tau","&tau;")
-        name=name.replace("_L","<sub>L</sub>")
-        name=name.replace("uL","u<sub>L</sub>")
-        name=name.replace("dL","d<sub>L</sub>")
-        name=name.replace("cL","c<sub>L</sub>")
-        name=name.replace("sL","s<sub>L</sub>")
-        name=name.replace("uR","u<sub>R</sub>")
-        name=name.replace("dR","d<sub>R</sub>")
-        name=name.replace("cR","c<sub>R</sub>")
-        name=name.replace("sR","s<sub>R</sub>")
-        name=name.replace("_R","<sub>R</sub>")
-        name=name.replace("_1","<sub>1</sub>")
-        name=name.replace("A0","A<sup>0</sup>")
-        name=name.replace("H+","H<sup>+</sup>")
-        name=name.replace("_2","<sub>2</sub>")
-        name=name.replace("b1","b<sub>1</sub>")
-        name=name.replace("b2","b<sub>2</sub>")
-        name=name.replace("t1","t<sub>1</sub>")
-        name=name.replace("t2","t<sub>2</sub>")
-        name=name.replace("^*","<sup>*</sup>")
-        #name=name.replace("+","<sup>+</sup>")
-        if name.find("~")==0:
-            if name.find("<su")==-1:
-                name=self.tilde(name[1:])
-            else:
-                pos=name.find("<su")
-                name=self.tilde(name[1:pos])+name[pos:]
-        # print name,"<br>"
-        return "<nobr>"+name+"</nobr>"
-    """
-
+namer = SParticleNames ( susy = False )
 
 if __name__ == "__main__":
     """ as a script, we simply print out the paths """
     print ( "sparticle names" )
     namer = SParticleNames()
     print ( namer.htmlName ( 25 ) )
-    """
-    ctr=0
-    f=open("index.html","wt" )
-    f.write ( "<html><body>\n" )
-    for (key,value) in namer.ids.items():
-       ctr+=1
-       print ()
-       line = "pid %d: %s" % ( key, namer.htmlName ( key ) )
-       print ( line )
-       print ()
-       f.write ( line + "<br>\n" )
-    f.close()
-       # print ( "%8d %8s   |" % (key,value), end="" )
-       #if ctr==3:
-       #  print ()
-       #  ctr=0
-    """
