@@ -819,7 +819,8 @@ class Manipulator ( LoggerBase ):
     def sumBranchings ( self, protomodel, pid : int )-> float:
         """ sum up the current branchings, so we can rescale
         correctly """
-        # BRtot = sum(protomodel.decays[pid].values())
+        #BRtot = sum(protomodel.decays[pid].values())
+        #return BRtot
         BRtot = 0.
         for dtuple,value in protomodel.decays[pid].items():
             dkey = protomodel.decay_keys[pid][dtuple]
@@ -1364,6 +1365,9 @@ class Manipulator ( LoggerBase ):
             decay_chan = [key for key,value in protomodel.decay_keys[pid].items() if value == dk]
             if decay_chan[0] in protomodel.decays[pid]:
                 oldbr = self.M.decays[pid][decay_chan[0]]
+            ## see if this fixes things
+            if len(decay_chan)> 1:
+                decay_chan = [ decay_chan[0] ]
 
             if oldbr > 0:
                 #Close channel(s) (with zeroBRprob probability)

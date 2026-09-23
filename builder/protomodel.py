@@ -650,7 +650,7 @@ class ProtoModel ( LoggerBase ):
                     self.error ( f"contributions are:" )
                     for dpids_br in totalBRs[pid]:
                         self.error ( f"{dpids_br[0]}: {dpids_br[1]:.3f}" )
-                    sys.exit(-1)
+                    # sys.exit(-1)
             frozen = self.frozenParticles()
             # now make the frozen particles stable (to quench smodels warnings,
             # nothing else)
