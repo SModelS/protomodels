@@ -819,7 +819,7 @@ class Manipulator ( LoggerBase ):
     def sumBranchings ( self, protomodel, pid : int )-> float:
         """ sum up the current branchings, so we can rescale
         correctly """
-        BRtot = sum(protomodel.decays[pid].values())
+        # BRtot = sum(protomodel.decays[pid].values())
         BRtot = 0.
         for dtuple,value in protomodel.decays[pid].items():
             dkey = protomodel.decay_keys[pid][dtuple]
@@ -847,7 +847,7 @@ class Manipulator ( LoggerBase ):
             protomodel.pprint(f"When attempting to normalize: {pid} not in decays")
             return False
 
-        BRtot = self.sumBranchings ( self, protomodel, pid )
+        BRtot = self.sumBranchings ( protomodel, pid )
         if BRtot == 0:
             self.log ( f"the decayless particles are {namer.asciiName(self.M.decaylessParticles)} [{self.M.decaylessParticles}]" )
             if pid not in self.M.decaylessParticles:
