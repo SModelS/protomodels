@@ -799,6 +799,7 @@ class HiscorePlotter ( LoggerBase ):
                 f.write ( f"{sanaid}:: {col}r<sub>obs</sub>={robs}, r<sub>exp</sub>={rexp}{endcol}<br>\n" )
         else:
             f.write( f"<br><b>No UL Critic results!!</b>\n" )
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         if hasattr ( self.protomodel, "llhd_critic" ):
             sdatasets = ", ".join ( self.protomodel.llhd_critic["datasets"] )
             robs = self.protomodel.llhd_critic['robs']
@@ -1158,7 +1159,7 @@ def main ():
             help='which hiscore to plot [0]',
             type=int, default=0 )
     argparser.add_argument ( '-f', '--hiscorefile',
-            help='pickle file to draw from [<rundir>/hiscores_global.cache]',
+            help='pickle file to draw from [<rundir>/hiscores_global.dict]',
             type=str, default="default"  )
     argparser.add_argument ( '-v', '--verbosity',
             help='verbosity -- debug, info, warn, err [info]',
@@ -1169,8 +1170,8 @@ def main ():
     argparser.add_argument ( '-R', '--ruler',
             help='produce ruler plot',
             action="store_true" )
-    argparser.add_argument ( '-D', '--decays',
-            help='produce decays plot',
+    argparser.add_argument ( '-D', '--masses_decays',
+            help='produce masses and decays plot',
             action="store_true" )
     argparser.add_argument ( '-P', '--predictions',
             help='list all predictions',
@@ -1213,8 +1214,10 @@ def main ():
         args.predictions = True
         args.tex = True
     if args.hiscorefile == "default":
-        args.hiscorefile = f"{rundir}/hiscores_global.cache"
+        args.hiscorefile = f"{rundir}/hiscores_global.dict"
     args.walkerid = 0
+    environ = RunEnviron()
+    args.environ = environ
     runPlotting ( args )
     if args.test:
         compileTestText()
