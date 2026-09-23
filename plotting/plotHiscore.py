@@ -787,7 +787,10 @@ class HiscorePlotter ( LoggerBase ):
             c_result, c_reason = self.critic.predict_critic( self.protomodel, keep_predictions=True )
         f.write ( f"<br><b>Critics:</b> {c_reason}<br>\n" )
         if hasattr ( self.protomodel, "ul_critic" ):
-            f.write( f"<br><b>UL Critic:</b>\n" )
+            ulc = self.protomodel.ul_critic
+            stats = f"{ulc['n_excluding']}/{ulc['n_sensitive']} analyses exclude"
+            # 'max_allowed' would be the third variable
+            f.write( f"<br><b>UL Critic: {stats}</b><br>\n" )
             for anaid,stats in self.protomodel.ul_critic["datasets"].items():
                 if anaid == "...":
                     continue
@@ -799,7 +802,6 @@ class HiscorePlotter ( LoggerBase ):
                 f.write ( f"{sanaid}:: {col}r<sub>obs</sub>={robs}, r<sub>exp</sub>={rexp}{endcol}<br>\n" )
         else:
             f.write( f"<br><b>No UL Critic results!!</b>\n" )
-        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         if hasattr ( self.protomodel, "llhd_critic" ):
             sdatasets = ", ".join ( self.protomodel.llhd_critic["datasets"] )
             robs = self.protomodel.llhd_critic['robs']
@@ -937,8 +939,9 @@ class HiscorePlotter ( LoggerBase ):
             fname = "horizontal.png"
         print ( f"[plotHiscore] now draw {fname}" )
         resultsForPIDs = {}
-        for tpred in self.protomodel.bestCombo:
-            resultsForPIDs = self.getPIDsOfTPred ( tpred, resultsForPIDs )
+        if hasattr ( self.protomodel, "bestCombo" ):
+            for tpred in self.protomodel.bestCombo:
+                resultsForPIDs = self.getPIDsOfTPred ( tpred, resultsForPIDs )
         resultsFor = {}
         for pid,values in resultsForPIDs.items():
             if pid in self.protomodel.masses:
@@ -997,7 +1000,7 @@ class HiscorePlotter ( LoggerBase ):
         :param dbpath: path to database
         :param interact: if true, start interactive shell at the end
         """
-        print ( f"[plotHiscore] plot #{number}" )
+        print ( f"[plotHiscore] plot hiscore #{number}" )
 
         pm = hiscoreTools.obtainHiscore ( number, hiscorefile, 
                 walkerid=walkerid, environ = environ )
