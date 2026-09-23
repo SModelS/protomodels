@@ -796,7 +796,7 @@ class HiscorePlotter ( LoggerBase ):
                 sanaid = anaid.replace("None","ul")
                 if robs>1.0:
                     col = "<span style='color: darkred;'>"
-                f.write ( f"{sanaid}:: {col}robs={robs}, rexp={rexp}{endcol}<br>\n" )
+                f.write ( f"{sanaid}:: {col}r<sub>obs</sub>={robs}, r<sub>exp</sub>={rexp}{endcol}<br>\n" )
         else:
             f.write( f"<br><b>No UL Critic results!!</b>\n" )
         if hasattr ( self.protomodel, "llhd_critic" ):
@@ -806,7 +806,7 @@ class HiscorePlotter ( LoggerBase ):
             col, endcol = "<span style='color: darkgreen;'>", "</span>"
             if robs>1.0:
                 col = "<span style='color: darkred;'>"
-            f.write ( f"<br><b>LLHD Critic:</b> {sdatasets}:: {col}robs={robs}, rexp={rexp}{endcol}<br>\n" )
+            f.write ( f"<br><b>LLHD Critic:</b> {sdatasets}:: {col}r<sub>obs</sub>={robs}, r<sub>exp</sub>={rexp}{endcol}<br>\n" )
         else:
             f.write ( f"<br><b>No LLHD Critic results!!</b><br>" )
         rvalues=self.protomodel.ul_critic_tpList
