@@ -792,7 +792,7 @@ class HiscorePlotter ( LoggerBase ):
             # cr = Critic(self.protomodel.walkerid,do_srcombine=True, dbpath = xxx )
             c_result, c_reason = self.critic.predict_critic( self.protomodel, keep_predictions=True )
         f.write ( f"<br><b>Critics:</b> {c_reason}<br>\n" )
-        from tester.critic.Critic import r_threshold
+        from tester.critic import Critic
         if hasattr ( self.protomodel, "ul_critic" ):
             ulc = self.protomodel.ul_critic
             stats = f"{ulc['n_excluding']}/{ulc['n_sensitive']} analyses exclude"
@@ -804,7 +804,7 @@ class HiscorePlotter ( LoggerBase ):
                 robs, rexp = stats['robs'], stats['rexp']
                 col, endcol = "<span style='color: darkgreen;'>", "</span>"
                 sanaid = anaid.replace("None","ul")
-                if robs>r_threshold:
+                if robs>Critic.r_threshold:
                     col = "<span style='color: darkred;'>"
                 f.write ( f"{sanaid}:: {col}r<sub>obs</sub>={robs}, r<sub>exp</sub>={rexp}{endcol}<br>\n" )
         else:
