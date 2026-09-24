@@ -843,9 +843,10 @@ class Manipulator ( LoggerBase ):
 
         if not protomodel:
             protomodel = self.M
+        pid_name = namer.asciiName(pid)
 
         if not pid in protomodel.decays:
-            protomodel.pprint(f"When attempting to normalize: {pid} not in decays")
+            protomodel.pprint(f"When attempting to normalize: {pid_name}({pid}) not in decays")
             return False
 
         BRtot = self.sumBranchings ( protomodel, pid )
@@ -853,7 +854,7 @@ class Manipulator ( LoggerBase ):
             self.log ( f"the decayless particles are {namer.asciiName(self.M.decaylessParticles)} [{self.M.decaylessParticles}]" )
             if pid not in self.M.decaylessParticles:
                 #print(f"decay of {pid}: {protomodel.decays[pid]}")
-                self.log(f"decay of {pid}: {protomodel.decays[pid]}")
+                self.log(f"decay of {pid_name}: {protomodel.decays[pid]}")
                 protomodel.pprint ( f"When attempting to normalize: total BR of ({pid}) is zero, and it is not in decaylessParticles. we need to take out {pid}." )
                 ## we need to freeze also <pid> now
                 ## (since we have no sensible channels anymore)
@@ -864,32 +865,29 @@ class Manipulator ( LoggerBase ):
             #BRs are already normalized.
             return True
 
-        self.log ( f"Scaled branchings of {namer.asciiName(pid)} by 1/{BRtot:.2f}" )
+        self.log ( f"Scaled branchings of {pid_name} by 1/{BRtot:.2f}" )
 
         for dpid in protomodel.decays[pid]:
             protomodel.decays[pid][dpid] *= 1/BRtot
             self.log ( f"for {pid}:{dpid} we now have {protomodel.decays[pid][dpid]}" )
-
-        """
-        self.log ( f"decays({pid}) {protomodel.decays[pid]}" )
-        self.log ( f"decay_keys {protomodel.decay_keys}" )
-        self.log ( f"inv_decay_keys {protomodel.inv_decay_keys}" )
-        self.log ( f"decay_tuples {protomodel.decay_tuples}" )
-        self.log ( f"possibledecays {protomodel.possibledecays}" )
-        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
-        """
+        if len(protomodel.decays[pid])==1:
+            # make sure this always is exactly 1, not 0.999999999
+            dpid = list ( protomodel.decays[pid].keys() )[0]
+            protomodel.decays[pid][dpid]=1.0
 
         ## adjust the signal strength multipliers to keep everything else
         ## as it was
         if not rescaleSSMs:
             return True
 
-        #rescaling ssms?
+        # rescaling ssms?
         for pidpair,ssm in protomodel.ssmultipliers.items():
             if pidpair in [ (pid,pid),(-pid,-pid),(-pid,pid),(pid,-pid) ]:
-                newssm = min(1e5,ssm*BRtot*BRtot) #Rescale pair production by BRtot^2
+                # Rescale pair production by BRtot^2
+                newssm = min(1e5,ssm*BRtot*BRtot) 
             elif (pid in pidpair) or (-pid in pidpair):
-                newssm = min(1e5,ssm*BRtot) #Rescale associated production by BRtot
+                # Rescale associated production by BRtot
+                newssm = min(1e5,ssm*BRtot) 
             else:
                 continue
             protomodel.ssmultipliers[pidpair]=newssm
@@ -1306,8 +1304,13 @@ class Manipulator ( LoggerBase ):
         """ randomly change the branching a particle pid
         :returns: number of changes
         """
-        # old_log = self.log
-        # self.log = print
+
+        """
+        show_logs = False
+        if show_logs:
+            old_log = self.log
+            self.log = print
+        """
 
         if protomodel is None:
             protomodel = self.M
@@ -1326,7 +1329,10 @@ class Manipulator ( LoggerBase ):
         if len(openChannels) < 2:
             self.log( f"Number of open channels of {pid_name} is {len(openChannels)}. Cannot change branchings." )
             # not enough channels open to tamper with branchings!
-            # self.log = old_log
+            """
+            if show_logs:
+                self.log = old_log
+            """
             return 0
 
         self.proposal_ratio['br']['rem'] = 1.0
@@ -1342,6 +1348,12 @@ class Manipulator ( LoggerBase ):
             dk = np.random.choice(dkeys)
             #get decay channel assocaiated with key, make sure all channels assocaited with same key get same branchings
             decay_chan = [key for key,value in protomodel.decay_keys[pid].items() if value == dk]
+            """
+            if show_logs:
+                print ( f"@@01 decay_chan {decay_chan}" )
+                print ( f"@@01 dkeys {dkeys}" )
+                print ( f"@@01 dk {dk}" )
+            """
             #Get proposal ratio for removing old br
             #proposal ratio for rem br =  p(i+1 -> i)/ p(i->i+1) = p(add br to i+1 to go to i)/p(rem br to go to i+1)
             #p(add) = p(addBR)
@@ -1352,7 +1364,9 @@ class Manipulator ( LoggerBase ):
 
             protomodel.decays[pid] = {}
             br = 1.0/len(decay_chan)
-            for dpid in decay_chan:
+            if len(decay_chan)>0:
+                dpid = decay_chan[0]
+            #for dpid in decay_chan:
                 self.record ( f"change decay of {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                 p_name = namer.asciiName(pid)
                 dp_name = namer.asciiName(dpid)
@@ -1361,7 +1375,8 @@ class Manipulator ( LoggerBase ):
 
             # print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
             # self.log = old_log
-            if protomodel.decays[pid] == old_decays:
+            # if protomodel.decays[pid] == old_decays:
+            if self.equalDecays ( old_decays, protomodel.decays[pid] ):
                 return 0
             return 1
 
@@ -1376,8 +1391,6 @@ class Manipulator ( LoggerBase ):
             ## see if this fixes things
             if len(decay_chan)> 1:
                 decay_chan = [ decay_chan[0] ]
-            # print ( f"@@01 decay_chan {decay_chan}" )
-            # print ( f"@@01 oldbr {oldbr}" )
 
             if oldbr > 0:
                 #Close channel(s) (with zeroBRprob probability)
@@ -1444,8 +1457,26 @@ class Manipulator ( LoggerBase ):
         self.normalizeBranchings(pid, protomodel=protomodel)
         # print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
         # print(f"Prob to add {self.proposal_ratio['br']['add']}")
-        # self.log = old_log
+        # if show_logs:
+        #    self.log = old_log
+        # if protomodel.decays[pid] == old_decays:
+        if self.equalDecays ( old_decays, protomodel.decays[pid] ):
+            return 0
         return 1
+
+    def equalDecays ( self, old_decays, new_decays ):
+        """ check for equality between two decays dictionaries
+        dictionaries are for one mother, so e.g. {(1000022, 5, 5): 1.0}
+
+        :returns: True if equal
+        """
+        if old_decays.keys() != new_decays.keys():
+            return False
+        for dpid in old_decays.keys():
+            dp = abs ( old_decays[dpid] - new_decays[dpid] )
+            if dp>1e-10:
+                return False
+        return True
 
     def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25,
             probSingle : float =0.8, ssmSigma : float = 1.0,
