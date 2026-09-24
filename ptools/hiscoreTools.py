@@ -91,7 +91,7 @@ def obtainHiscore ( number : int,
 def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
                            picklefile : str = "hiscores_global.cache",
                            entrynr : Union[None,int] = 0,
-                           walkerid : Union[str,int] = 0 ) -> bool:
+                           walkerid : None|str|int = 0 ) -> bool:
     """ is hiscores_global.cache behind hiscores_global.dict, 
     so it needs an update?
     :param entrynr: check for this entry, 0 is first.
@@ -117,6 +117,8 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
             return False
         f.close()
     from walker.hiscores import Hiscores
+    # set walkerid to none so we get the original walkerids
+    # hi = Hiscores ( None, False, picklefile )
     hi = Hiscores ( walkerid, False, picklefile )
 
     def compare ( dentry, pentry ) -> Tuple[bool,str]:
@@ -193,7 +195,8 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
     picklefile = os.path.expanduser ( picklefile )
     from ptools import helpers
     shortname = helpers.simplifyUnixPath ( picklefile )
-    if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=walkerid ):
+
+    if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=None ):
         dname = os.path.dirname ( picklefile )
         if os.path.exists ( picklefile ):
             print ( f"[hiscoreTools:{walkerid}] can reuse cache: {shortname}" )
@@ -201,7 +204,8 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
             print ( f"[hiscoreTools:{walkerid}] directory {dname} does not exist: maybe change rundir?" )
             sys.exit()
 
-        return Hiscores ( walkerid, False, picklefile )
+        hi = Hiscores ( None, False, picklefile )
+        return hi
     print ( f"[hiscoreTools] updating cache: {shortname} ... " )
     hi = Hiscores.fromDictionaryFile ( path = dictfile, environ = environ, 
             walkerid = None )

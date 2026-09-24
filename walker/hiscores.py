@@ -256,7 +256,7 @@ class Hiscores ( LoggerBase ):
             if type(firstn) == int and c > firstn:
                 break
         return cls ( hiscores= hiscores, predictor = predictor,
-                     walkerid = walkerid )
+                     walkerid = None )
 
         # assert False, "implement me"
 
