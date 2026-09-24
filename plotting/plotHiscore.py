@@ -765,7 +765,7 @@ class HiscorePlotter ( LoggerBase ):
         # f.write ( f" combination strategy <a href=./matrix.png>{strategy}</a>")
         acc = self.environ.extrapolation_acceptance
         f.write ( f" extrapolation {acc}" )
-        # f.write ( f" in walker {self.protomodel.walkerid}" )
+        f.write ( f" in walker {self.protomodel.walkerid}" )
         # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         f.write ( f" step {self.protomodel.step}.</b> " )
         if hasattr ( self.protomodel, "particleContributions" ):
@@ -1008,8 +1008,9 @@ class HiscorePlotter ( LoggerBase ):
         """
         print ( f"[plotHiscore] plot hiscore #{number}" )
 
+        # obtain hiscore but retain walkerid
         pm = hiscoreTools.obtainHiscore ( number, hiscorefile, 
-                walkerid=walkerid, environ = environ )
+                walkerid=None, environ = environ )
         pm.walkerid = walkerid
         self.environ = environ
         self.protomodel = pm
@@ -1167,6 +1168,9 @@ def main ():
     argparser.add_argument ( '-n', '--number',
             help='which hiscore to plot [0]',
             type=int, default=0 )
+    argparser.add_argument ( '-w', '--walkerid',
+            help="run with what walkerid ['cmd']",
+            type=str, default="cmd" )
     argparser.add_argument ( '-f', '--hiscorefile',
             help='pickle file to draw from [<rundir>/hiscores_global.dict]',
             type=str, default="default"  )
@@ -1225,7 +1229,7 @@ def main ():
         args.tex = True
     if args.hiscorefile == "default":
         args.hiscorefile = f"{rundir}/hiscores_global.dict"
-    args.walkerid = 0
+    # args.walkerid = 0
     environ = RunEnviron()
     args.environ = environ
     runPlotting ( args )

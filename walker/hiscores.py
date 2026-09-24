@@ -24,10 +24,11 @@ from tester.combiner import Combiner
 
 class Hiscores ( LoggerBase ):
     """ encapsulates the hiscore list. """
-    def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
-                   picklefile: PathLike="hiscores.cache", backup : bool = True,
-                   keep_separate_hiscores = False,
-                   hiscores = None, predictor = None ):
+    def __init__ ( self, walkerid: str|int|None = 0,
+            save_hiscores: bool = False,
+            picklefile: PathLike="hiscores.cache", backup : bool = True,
+            keep_separate_hiscores = False,
+            hiscores = None, predictor = None ):
         """ the constructor
         :param save_hiscores: if true, then assume you want to save, not just read.
         :param picklefile: path of pickle file name to connect hiscore list with
@@ -213,7 +214,7 @@ class Hiscores ( LoggerBase ):
     def fromDictionaryFile ( cls, path : PathLike,
            firstn : Union[None,int] = 0,
            environ : Union[RunEnviron,None] = None,
-           walkerid : Union[str,int] = 0 ):
+           walkerid : str|int|None = 0 ):
         """ initialise from a dictionary file
 
         :param path: filename of .dict file
@@ -233,7 +234,8 @@ class Hiscores ( LoggerBase ):
         c = 0
         while True:
             m = Manipulator( path, nth = c, walkerid = walkerid, environ=environ )
-            m.M.walkerid = walkerid
+            if walkerid != None:
+                m.M.walkerid = walkerid
             force_computation_K = m.M.K is None
             predictor.predict ( m, keep_predictions=True,
                 force_computation_K = force_computation_K )

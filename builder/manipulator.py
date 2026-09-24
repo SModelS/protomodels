@@ -53,7 +53,7 @@ class Manipulator ( LoggerBase ):
     def __init__ ( self, protomodel : Union[ProtoModel,Dict,PathLike],
             environ : RunEnviron, verbose : bool = False,
             do_record : bool = False, seed : Union[bool,int] = None,
-            nth : int = 0, walkerid : Union[None,int] = None,
+            nth : int = 0, walkerid : None|str|int = None,
             initTestStats : bool = False ):
         """
         :param protomodel: is either a protomodel, or a hiscore dictionary,

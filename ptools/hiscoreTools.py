@@ -69,7 +69,7 @@ def pprintEvs ( protomodel ):
 
 def obtainHiscore ( number : int,
         hiscorefile : PathLike = "hiscores_global.dict",
-        walkerid : Union[str,int] = 0,
+        walkerid : str|int|None = 0,
         environ : Union[RunEnviron,None] = None ) -> ProtoModel:
     """ obtain hiscore number <number> from <hiscorefile>
 
@@ -171,7 +171,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
 def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
                        picklefile : Union[None,str] = None,
                        environ : Union[RunEnviron,None] = None,
-                       walkerid : Union[str,int] = 0 ) -> Hiscores:
+                       walkerid : str|int|None = 0 ) -> Hiscores:
     """ create Hiscores object from hiscores_global.cache file.
     update hiscores_global.cache file before, if needed.
 
