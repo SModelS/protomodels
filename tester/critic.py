@@ -135,7 +135,8 @@ class Critic ( LoggerBase ):
             if tp['rexp'] is not None:
                 # rexp = f"{tp['rexp']:.2f}"
                 rexp = float ( np.round ( tp['rexp'], 3 ) )
-            tmp = {f'{tp["tp"].analysisId()}:{dataId}': {'robs': robs, 'rexp': rexp}}
+            stats = {'robs': robs, 'rexp': rexp }
+            tmp = { f'{tp["tp"].analysisId()}:{dataId}': stats }
             critic_description.update(tmp)
         if len(tpList)>5:
             critic_description.update({'...':'...'})
