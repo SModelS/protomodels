@@ -82,6 +82,18 @@ class Hiscores ( LoggerBase ):
         unlock ( filename )
         return True
 
+    def __getitem__ ( self, idx ):
+        """ convenience """
+        return self.hiscores[idx]
+
+    def __len__(self):
+        """ convenience """
+        return len(self.hiscores)
+
+    def __iter__(self):
+        """ convenience """
+        return iter(self.hiscores)
+
     def currentMinTL ( self ):
         """ the current minimum TL to make it into the list. """
         if self.hiscores[-1] == None:
