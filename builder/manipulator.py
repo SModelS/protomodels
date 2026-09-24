@@ -81,7 +81,7 @@ class Manipulator ( LoggerBase ):
             >>> # best combination, most constraining analyses, etc
             >>> m.describe()
         """
-        super(Manipulator, self).__init__ ( walkerid if walkerid is not None else 0 )
+        super(Manipulator, self).__init__ ( walkerid )
         if type ( protomodel ) == ProtoModel:
             ## make sure we log correctly asap
             self.walkerid = protomodel.walkerid
@@ -564,8 +564,8 @@ class Manipulator ( LoggerBase ):
                 self.M.decays[mpid][dpid]=v
         if "step" in D: ## keep track of number of steps
             self.M.step = D["step"]
-        #if "walkerid" in D:
-        #    self.M.walkerid = D["walkerid"]
+        if "walkerid" in D and self.walkerid == None:
+            self.M.walkerid = D["walkerid"]
         if initTestStats:
             if "TL" in D:
                 self.M.TL = D["TL"]
