@@ -204,7 +204,7 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
         return Hiscores ( walkerid, False, picklefile )
     print ( f"[hiscoreTools] updating cache: {shortname} ... " )
     hi = Hiscores.fromDictionaryFile ( path = dictfile, environ = environ, 
-            walkerid = walkerid )
+            walkerid = None )
     hi.writeListToPickle ( picklefile )
     print ( f"[hiscoreTools] cache {shortname} updated!" )
     return hi
