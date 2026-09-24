@@ -15,6 +15,7 @@ from smodels.experiment.databaseObj import Database
 from smodels.base.smodelsLogging import logger
 logger.setLevel("ERROR")
 
+sys.path.insert(0,"../")
 sys.path.insert(0,"../../")
 from protomodels.csetup import setup
 setup()
@@ -760,8 +761,13 @@ class HiscorePlotter ( LoggerBase ):
         dotlessv = dbver.replace(".","")
         dt = int ( time.time() - 1593000000 )
         f.write ( "<b><a href=./hiscore.slha>ProtoModel</a> <a href=./pmodel.dict>(dict)</a> " )
-        f.write ( f"produced with <a href={self.url}/docs/Validation{dotlessv}>database v{dbver}</a>" )
-        f.write ( f", combination strategy <a href=./matrix.png>{strategy}</a> in walker {self.protomodel.walkerid} step {self.protomodel.step}.</b> " )
+        f.write ( f"produced with <a href={self.url}/docs/Validation{dotlessv}>database v{dbver}</a>," )
+        # f.write ( f" combination strategy <a href=./matrix.png>{strategy}</a>")
+        acc = self.environ.extrapolation_acceptance
+        f.write ( f" extrapolation {acc}" )
+        # f.write ( f" in walker {self.protomodel.walkerid}" )
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        f.write ( f" step {self.protomodel.step}.</b> " )
         if hasattr ( self.protomodel, "particleContributions" ):
             f.write ( f"<i>K</i> plots for: <a href=./M1000022.png?{dt}>{namer.htmlName(1000022)}</a>" )
             for k,v in self.protomodel.particleContributions.items():
@@ -1210,10 +1216,11 @@ def main ():
             help="learn more about the upload destinations", action="store_true" )
     args = argparser.parse_args()
     rundir = setup( args.rundir )
+    args.decays = False
     if args.all:
         args.html = True
         args.ruler = True
-        args.decays = True
+        args.masses_decays = True
         args.predictions = True
         args.tex = True
     if args.hiscorefile == "default":
