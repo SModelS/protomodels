@@ -35,6 +35,10 @@ except Exception as e:
     pass
 
 class Critic ( LoggerBase ):
+        
+    r_threshold = 1.33
+    sensitivity_threshold = 0.7
+
     def __init__ ( self, walkerid : Union[str,int],
             environ : RunEnviron,
             expected : bool = False ):
@@ -46,8 +50,6 @@ class Critic ( LoggerBase ):
         super ( Critic, self ).__init__ ( walkerid )
         self.walkerid = walkerid
         self.environ = environ
-        self.r_threshold = 1.33
-        self.sensitivity_threshold = 0.7
         self.verbose = 1
 
         self.fetchResults()

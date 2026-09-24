@@ -764,7 +764,7 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( f"produced with <a href={self.url}/docs/Validation{dotlessv}>database v{dbver}</a>," )
         # f.write ( f" combination strategy <a href=./matrix.png>{strategy}</a>")
         acc = self.environ.extrapolation_acceptance
-        f.write ( f" extrapolation {acc}" )
+        f.write ( f" allowed_extr {acc}" )
         f.write ( f" in walker {self.protomodel.walkerid}" )
         # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         f.write ( f" step {self.protomodel.step}.</b> " )
@@ -792,6 +792,7 @@ class HiscorePlotter ( LoggerBase ):
             # cr = Critic(self.protomodel.walkerid,do_srcombine=True, dbpath = xxx )
             c_result, c_reason = self.critic.predict_critic( self.protomodel, keep_predictions=True )
         f.write ( f"<br><b>Critics:</b> {c_reason}<br>\n" )
+        from tester.critic.Critic import r_threshold
         if hasattr ( self.protomodel, "ul_critic" ):
             ulc = self.protomodel.ul_critic
             stats = f"{ulc['n_excluding']}/{ulc['n_sensitive']} analyses exclude"
@@ -803,7 +804,7 @@ class HiscorePlotter ( LoggerBase ):
                 robs, rexp = stats['robs'], stats['rexp']
                 col, endcol = "<span style='color: darkgreen;'>", "</span>"
                 sanaid = anaid.replace("None","ul")
-                if robs>1.0:
+                if robs>r_threshold:
                     col = "<span style='color: darkred;'>"
                 f.write ( f"{sanaid}:: {col}r<sub>obs</sub>={robs}, r<sub>exp</sub>={rexp}{endcol}<br>\n" )
         else:
