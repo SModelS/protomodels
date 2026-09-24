@@ -819,24 +819,9 @@ class HiscorePlotter ( LoggerBase ):
             f.write ( f"<br><b>LLHD Critic:</b> {sdatasets}:: {col}r<sub>obs</sub>={robs}, r<sub>exp</sub>={rexp}{endcol}<br>\n" )
         else:
             f.write ( f"<br><b>No LLHD Critic results!!</b><br>" )
+
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
-        f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
-        for rv in rvalues[:4]:
-            c_in, c_out =  "" , ""
-            if not c_result and rv["robs"] in [ float, np.float64, np.float32 ] \
-                    and rv["robs"]>1.0:
-                c_in = '<p style="color: red;">'
-                c_out = '</p>'
-            srv="N/A"
-            if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
-                srv= f"{rv['rexp']:.2f}"
-            elif type(rv['rexp']) != type(None):
-                srv=str(rv['rexp'])
-            dataId = rv['tp'].dataId()
-            if dataId in [ None, "None" ]:
-                dataId = "ul"
-            f.write ( f"<li>{c_in}{self.anaNameAndUrl ( rv['tp'] )}:{dataId}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>{c_out}\n" )
         f.write("</ul>\n")
 
         if hasattr ( self.protomodel, "analysisContributions" ):
@@ -870,6 +855,22 @@ class HiscorePlotter ( LoggerBase ):
         t0 = int(time.time())
         f.write ( f"<td><img width=600px src=./texdoc.png?{t0}>\n" )
         f.write ( f"<br><span style='font-size: smaller; color: darkred;'>Last updated: {time.asctime()}</span>\n" )
+        f.write ( f"<br><br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
+        for rv in rvalues[:4]:
+            c_in, c_out =  "" , ""
+            if not c_result and rv["robs"] in [ float, np.float64, np.float32 ] \
+                    and rv["robs"]>1.0:
+                c_in = '<p style="color: red;">'
+                c_out = '</p>'
+            srv="N/A"
+            if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
+                srv= f"{rv['rexp']:.2f}"
+            elif type(rv['rexp']) != type(None):
+                srv=str(rv['rexp'])
+            dataId = rv['tp'].dataId()
+            if dataId in [ None, "None" ]:
+                dataId = "ul"
+            f.write ( f"<li>{c_in}{self.anaNameAndUrl ( rv['tp'] )}:{dataId}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>{c_out}\n" )
         f.write ( "</table>" )
         f.write ( '<table style="width:80%">\n' )
         f.write ( "<td width=40%>" )
