@@ -82,7 +82,10 @@ def create():
 
         # Use best SR preds only if no UL-type result.
         predictions = cr.merge_preds(UL_preds,bestSR_preds)
-        allowed, n_sensitive, n_excluding = cr.ul_critic(protomodel, predictions, keep_predictions=True )
+        ul_c = cr.ul_critic(protomodel, predictions, keep_predictions=True )
+        allowed = ul_c["allowed"]
+        n_sensitive = ul_c["n_sensitive"]
+        n_excluding = ul_c["n_excluding"]
 
         for d in cr.predictions:
             if d["robs"]>robsmax:

@@ -278,8 +278,12 @@ class Critic ( LoggerBase ):
 
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
-        allowed_by_ul_critic, n_sensitive, n_excluding = self.ul_critic(protomodel, predictions)
-        if n_sensitive: num_preds = n_sensitive
+        ul_c = self.ul_critic(protomodel, predictions)
+        allowed_by_ul_critic = ul_c["allowed"]
+        n_sensitive = ul_c["n_sensitive"]
+        n_excluding = ul_c["n_excluding"]
+        if n_sensitive: 
+            num_preds = n_sensitive
         # Extract the relevant prediction information and store in the protomodel:
         self.updateModelWithULPreds(protomodel, predictions,
                 keep_predictions)
@@ -343,7 +347,7 @@ class Critic ( LoggerBase ):
 
 
     def ul_critic(self, protomodel, predictions : List,
-           keep_predictions : bool = False ) -> Tuple[bool,int,int]:
+           keep_predictions : bool = False ) -> dict:
         """ UL-based critic (can also use best SR results if no UL-type result
         available for a given analysis).
 
@@ -353,6 +357,7 @@ class Critic ( LoggerBase ):
 
         :returns: tuple[bool,int,int]: allowed, n_sensitive, n_excluding
         bool is False if the critic excludes the model, else True.
+        :returns: dict: allowed(bool), n_sensitive(int), n_excluding(int)
         """
 
         if not predictions: # If empty list
@@ -404,7 +409,12 @@ class Critic ( LoggerBase ):
             'passes': max_allowed >= n_excluding}
 
         self.log(f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}")
-        return max_allowed >= n_excluding, n_sensitive, n_excluding
+        ret = { "allowed": max_allowed >= n_excluding, 
+                "n_sensitive": n_sensitive,
+                "n_excluding": n_excluding }
+        return ret
+        # return max_allowed >= n_excluding, n_sensitive, n_excluding
+
 
 
     def llhd_critic(self, predictions, cut : float =0,
