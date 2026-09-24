@@ -64,16 +64,17 @@ class LoggerBase:
         self.highlight ( "error", *args )
 
     def warn ( self, *args ):
-        self.highlight ( "warn", *args )
+        return self.warning ( *args )
         
     def warning ( self, *args ):
-        self.highlight ( "warn", *args )
+        if self.verbose < 31:
+           self.highlight ( "warn", *args )
 
     def info ( self, *args ):
         """ logging to file, but also write to screen """
         self.log ( *args )
-        if self.verbose > 19:
-            print ( f"[logger] {' '.join(map(str, args))}" )
+        if self.verbose < 21:
+            print ( f"[self.module] {' '.join(map(str, args))}" )
 
     def highlight ( self, msgType : str = "info", *args ):
         """ logging, hilit """
