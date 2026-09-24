@@ -1306,21 +1306,27 @@ class Manipulator ( LoggerBase ):
         """ randomly change the branching a particle pid
         :returns: number of changes
         """
+        # old_log = self.log
+        # self.log = print
 
         if protomodel is None:
             protomodel = self.M
+
+        old_decays = copy.deepcopy ( protomodel.decays[pid] )
 
         openChannels = protomodel.getOpenChannels(pid)
         dkeys = set()
         for dpid in openChannels:
             dk = protomodel.decay_keys[pid][dpid]
             dkeys.add(dk)
+        pid_name = namer.asciiName(pid)
 
         dkeys = list(dkeys)
-        self.log( f"Trying to change branchings of {pid} ({namer.asciiName(pid)})." )
+        self.log( f"Trying to change branchings of {pid_name}({pid})." )
         if len(openChannels) < 2:
-            self.log( f"Number of open channels of {pid} is {len(openChannels)}. Cannot change branchings." )
+            self.log( f"Number of open channels of {pid_name} is {len(openChannels)}. Cannot change branchings." )
             # not enough channels open to tamper with branchings!
+            # self.log = old_log
             return 0
 
         self.proposal_ratio['br']['rem'] = 1.0
@@ -1331,8 +1337,7 @@ class Manipulator ( LoggerBase ):
         #Keep only one channel (with probability singleBRprob)
         uSingle = np.random.uniform( 0., 1. )
         if uSingle < singleBRprob:
-            p_name = namer.asciiName(pid)
-            self.log(f"Keeping only one decay channel for {pid} ({p_name}).")
+            self.log(f"Keeping only one decay channel for {pid_name}({pid}).")
             #Choose random decay key:
             dk = np.random.choice(dkeys)
             #get decay channel assocaiated with key, make sure all channels assocaited with same key get same branchings
@@ -1351,10 +1356,13 @@ class Manipulator ( LoggerBase ):
                 self.record ( f"change decay of {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                 p_name = namer.asciiName(pid)
                 dp_name = namer.asciiName(dpid)
-                self.log ( f"changed decay of {p_name} -> {dp_name} to {br:.2f}" )
+                self.log ( f"changed decay of {pid_name} -> {dp_name} to {br:.2f}" )
                 protomodel.decays[pid].update({dpid: br})
 
-            #print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
+            # print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
+            # self.log = old_log
+            if protomodel.decays[pid] == old_decays:
+                return 0
             return 1
 
         #Otherwise randomly change each channel(s) (based on the current BR)
@@ -1368,6 +1376,8 @@ class Manipulator ( LoggerBase ):
             ## see if this fixes things
             if len(decay_chan)> 1:
                 decay_chan = [ decay_chan[0] ]
+            # print ( f"@@01 decay_chan {decay_chan}" )
+            # print ( f"@@01 oldbr {oldbr}" )
 
             if oldbr > 0:
                 #Close channel(s) (with zeroBRprob probability)
@@ -1380,7 +1390,7 @@ class Manipulator ( LoggerBase ):
                     self.proposal_ratio['br']['rem'] *= addBRprob/zeroBRprob
                     for dpid in decay_chan:
                         self.record ( f"Removed decay {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} with br {oldbr:.2f}." )
-                        self.log ( f"Removed decay {namer.asciiName(pid)} -> {namer.asciiName(dpid)} with br {oldbr:.2f}." )
+                        self.log ( f"Removed decay {pid_name} -> {namer.asciiName(dpid)} with br {oldbr:.2f}." )
                         if dpid in protomodel.decays[pid]:
                             protomodel.decays[pid].pop(dpid)
                         else:
@@ -1395,7 +1405,7 @@ class Manipulator ( LoggerBase ):
                 for dpid in decay_chan:
                     protomodel.decays[pid][dpid] = br
                     self.record ( f"Change branchings of {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} to {br:.2f}" )
-                    self.log ( f"Changed  branchings of {namer.asciiName(pid)} -> {namer.asciiName(dpid)} to {br:.2f}" )
+                    self.log ( f"Changed branchings of {pid_name} -> {namer.asciiName(dpid)} to {br:.2f}" )
 
             else:
                 #Add channel(s) (with addBRprob probability)
@@ -1403,37 +1413,38 @@ class Manipulator ( LoggerBase ):
                 if uAdd < addBRprob:
                     br = float(norm.rvs ( 1. / len(openChannels), np.sqrt ( .5 / len(openChannels) )  ))
                     br = max(0.001, br)
-                    #Get proposal ratio for adding new br
-                    #proposal ratio for add br = p(rem)/p(add) = p(i+1 -> i)/ p(i->i+1)
-                    #p(add) = p(addBR)
-                    #p(rem) = p(singleBR*p(rem br) + zeroBR)
+                    # Get proposal ratio for adding new br
+                    # proposal ratio for add br = p(rem)/p(add) = p(i+1 -> i)/ p(i->i+1)
+                    # p(add) = p(addBR)
+                    # p(rem) = p(singleBR*p(rem br) + zeroBR)
                     prob_add = addBRprob
                     prob_rem = singleBRprob * (1.0 - 1/len(dkeys)) + zeroBRprob
                     self.proposal_ratio['br']['add'] *= prob_rem/prob_add
                     for dpid in decay_chan:
                         protomodel.decays[pid][dpid] = br
                         self.record ( f"Added decay of {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} with br {br:.2f}" )
-                        self.log ( f"Added decay of {namer.asciiName(pid)} -> {namer.asciiName(dpid)} with br {br:.2f}" )
+                        self.log ( f"Added decay of {pid_name} -> {namer.asciiName(dpid)} with br {br:.2f}" )
 
 
-        #Make sure there is at least one open channel:
+        # Make sure there is at least one open channel:
         # BRtot = sum(protomodel.decays[pid].values())
         BRtot = self.sumBranchings ( protomodel, pid )
         if BRtot == 0.0:
-            self.log(f"BRtot = 0 for {pid} ({namer.asciiName(pid)}). Randomly Choosing one decay channel.")
+            self.log(f"BRtot = 0 for {pid} ({pid_name}). Randomly Choosing one decay channel.")
             dk = np.random.choice(dkeys)
             decay_chan = [key for key,value in protomodel.decay_keys[pid].items() if value == dk]
             br = 1.0/len(decay_chan)
             protomodel.decays[pid] = {}
             for dpid in decay_chan:
                 self.record ( f"Canged decay of {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} to {br:.2f}" )
-                self.log ( f"Changed decay of {namer.asciiName(pid)} -> {namer.asciiName(dpid)} to {br:.2f}" )
+                self.log ( f"Changed decay of {pid_name} -> {namer.asciiName(dpid)} to {br:.2f}" )
                 protomodel.decays[pid].update({dpid: br})
 
-        #Make sure BRsprot add up to 1:
+        # Make sure BRsprot add up to 1:
         self.normalizeBranchings(pid, protomodel=protomodel)
-        #print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
-        #print(f"Prob to add {self.proposal_ratio['br']['add']}")
+        # print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
+        # print(f"Prob to add {self.proposal_ratio['br']['add']}")
+        # self.log = old_log
         return 1
 
     def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25,
