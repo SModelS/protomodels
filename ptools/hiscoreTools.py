@@ -79,7 +79,7 @@ def obtainHiscore ( number : int,
     """
     assert environ != None, "set RunEnviron"
     assert type(environ) != str, "set RunEnviron"
-    hi = fetchHiscoresObj ( hiscorefile, walkerid = walkerid,
+    hi = fetchHiscoresObj ( hiscorefile, walkerid = None,
            environ = environ )
     TL = hi.hiscores[number].TL
     K = hi.hiscores[number].K

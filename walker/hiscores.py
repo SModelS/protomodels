@@ -37,7 +37,7 @@ class Hiscores ( LoggerBase ):
                          then these are the hiscore protomodels.
         """
         super ( Hiscores, self ).__init__ ( walkerid )
-        self.walkerid = walkerid
+        self.walkerid = walkerid # the hiscore walkerid
         self.save_hiscores = save_hiscores
         self.backup = backup ## backup hiscore lists?
         self.nkeep = 3 ## how many do we keep.
