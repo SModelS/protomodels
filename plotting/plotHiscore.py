@@ -1013,7 +1013,7 @@ class HiscorePlotter ( LoggerBase ):
         # obtain hiscore but retain walkerid
         pm = hiscoreTools.obtainHiscore ( number, hiscorefile, 
                 walkerid=None, environ = environ )
-        pm.walkerid = walkerid
+        # pm.walkerid = walkerid
         self.environ = environ
         self.protomodel = pm
         self.combiner = Combiner ( self.protomodel.walkerid )
