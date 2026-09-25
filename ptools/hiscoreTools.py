@@ -81,11 +81,11 @@ def obtainHiscore ( number : int,
     assert type(environ) != str, "set RunEnviron"
     hi = fetchHiscoresObj ( hiscorefile, walkerid = None,
            environ = environ )
-    TL = hi.hiscores[number].TL
-    K = hi.hiscores[number].K
+    TL = hi[number].TL
+    K = hi[number].K
     sK = formatObject ( K, 3 )
-    print ( f"[hiscoreTools:{walkerid}] obtaining #{number}: K={sK}" )
-    ret = hi.hiscores[ number ]
+    ret = hi[ number ]
+    print ( f"[hiscoreTools:{walkerid}] obtaining #{number}(walkerid {ret.walkerid}): K={sK}" )
     return ret
 
 def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
