@@ -83,7 +83,8 @@ class Critic ( LoggerBase ):
                 f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
             f.close()
 
-    def updateModelWithULPreds(self, protomodel, predictions, keep_predictions):
+    def updateModelWithULPreds(self, protomodel, predictions : list, 
+            keep_predictions : bool ):
         """ Extract information from list of theory predictions and store list of dict with r_obs,
             r_exp and theory prediction(sorted according to decreasing r_obs values) in the protomodel.
             Also store description about the critic_tp in the protomodel.
