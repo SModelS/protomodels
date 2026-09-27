@@ -704,12 +704,26 @@ class Manipulator ( LoggerBase ):
                           pidline += f" ..."
             print ( pidline )
 
-    def printAllTheoryPredictions ( self, detailed : bool = False ):
+    def printAllTheoryPredictions ( self, detailed : bool = False,
+           sort_by : str = "robs", reverse : bool = False ):
         """ pretty print all theory predictions for the model
         :param detailed: if true, give more details
+        :param sort_by: one of: robs, lexigraphically
         """
         print ( "theory predictions:" )
         combo = self.M.ul_critic_tpList
+        if len(combo)==0:
+            print ( f"did you run cr.predict_critic?" )
+        #assert sort_by in [ "robs", "lexigraphically" ], \
+        #    f"sort_by must be one of: robs, lexigraphically"
+        if "lexigraphically".startswith ( sort_by ):
+            combo.sort( key = lambda x: x["tp"].dataset.globalInfo.id, 
+                        reverse = reverse )
+        elif "robs".startswith ( sort_by ):
+            combo.sort( key = lambda x: x["robs"],
+                        reverse = reverse )
+        else:
+            raise ValueError ( f"printAllTheoryPredictions: do not understand sorty_by {sort_by}" )
         for c in combo:
             i = c["tp"]
             dId = i.dataId() if i.dataId() != None else "UL"
