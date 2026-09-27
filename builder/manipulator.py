@@ -728,7 +728,7 @@ class Manipulator ( LoggerBase ):
             i = c["tp"]
             dId = i.dataId() if i.dataId() != None else "UL"
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
-            print ( f" - {i.analysisId()}:{dId}:{txns}" )
+            print ( f" - {GREEN}{i.analysisId()}{RESET}:{dId}:{txns}" )
             if detailed:
                 robs, rexp = "n/a", "n/a"
                 if c['robs'] is not None:
