@@ -233,6 +233,7 @@ def experimentalId(pred : TheoryPrediction) -> str:
 
     elif dtype == "combined":
         # if pred.dataType() == "pyhf":
+        print ( f"@@127 FIXME this is wrong" )
         sc0 = pred._statsComputer.subComputers[0]
         sc0_type = sc0.dataType 
         return f"{anaId}:{sc0.name}"
