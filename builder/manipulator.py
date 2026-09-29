@@ -2754,8 +2754,8 @@ class Manipulator ( LoggerBase ):
 
     def backupModel ( self ):
         """ backup the current state """
-        print(self.M)
-        bestCombo = copy.deepcopy(self.M.bestCombo)
+        # print(self.M)
+        # bestCombo = copy.deepcopy(self.M.bestCombo)
         bestCombo = []
         for tp in self.M.bestCombo:
             #for the tps in best combo, unset the statsComputer
