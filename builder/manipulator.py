@@ -2755,20 +2755,29 @@ class Manipulator ( LoggerBase ):
     def backupModel ( self ):
         """ backup the current state """
         print(self.M)
-        self._backup = { "llhd": self.M.llhd, "letters": self.M.letters, "TL": self.M.TL,
-                         "K": self.M.K, "muhat": self.M.muhat,
-                         "description": self.M.description,
-                         "ul_critic_tpList": copy.deepcopy(self.M.ul_critic_tpList),
-                         "bestCombo": copy.deepcopy(self.M.bestCombo),
-                         "masses": copy.deepcopy(self.M.masses),
-                         "ssmultipliers": copy.deepcopy(self.M.ssmultipliers),
-                         "decays": copy.deepcopy(self.M.decays),
-                         "environ": copy.deepcopy(self.M.environ),
-                         "rvalues": copy.deepcopy(self.M.rvalues),
-                         "_stored_xsecs" : copy.deepcopy(self.M._stored_xsecs),
-                         "_xsecMasses" : copy.deepcopy(self.M._xsecMasses),
-                         "_xsecSSMs" : copy.deepcopy(self.M._xsecSSMs),
-                        }
+        bestCombo = copy.deepcopy(self.M.bestCombo)
+        bestCombo = []
+        for tp in self.M.bestCombo:
+            #for the tps in best combo, unset the statsComputer
+            sc = tp._statsComputer
+            tp._statsComputer = None
+            cp_tp = copy.deepcopy ( tp )
+            tp._statsComputer = sc
+            bestCombo.append ( cp_tp )
+        self._backup = { "llhd": self.M.llhd, "letters": self.M.letters, 
+            "TL": self.M.TL, "K": self.M.K, "muhat": self.M.muhat,
+            "description": self.M.description,
+            "ul_critic_tpList": copy.deepcopy(self.M.ul_critic_tpList),
+            "bestCombo": bestCombo,
+            "masses": copy.deepcopy(self.M.masses),
+            "ssmultipliers": copy.deepcopy(self.M.ssmultipliers),
+            "decays": copy.deepcopy(self.M.decays),
+            "environ": copy.deepcopy(self.M.environ),
+            "rvalues": copy.deepcopy(self.M.rvalues),
+            "_stored_xsecs" : copy.deepcopy(self.M._stored_xsecs),
+            "_xsecMasses" : copy.deepcopy(self.M._xsecMasses),
+            "_xsecSSMs" : copy.deepcopy(self.M._xsecSSMs),
+        }
         if hasattr ( self.M, "ul_critic" ): self._backup["ul_critic"]=self.M.ul_critic
         if hasattr ( self.M, "llhd_critic" ): self._backup["llhd_critic"]=self.M.llhd_critic
 
@@ -2784,6 +2793,8 @@ class Manipulator ( LoggerBase ):
             self.record ( "revert step" )
         for k,v in self._backup.items(): ## do not!! shallow copy here
             setattr ( self.M, k, copy.deepcopy(v) )
+        for c in self.M.bestCombo:
+            c.setStatsComputer()
 
     def delBackup ( self ):
         """ delete protomodel backup dictionary"""
