@@ -233,22 +233,11 @@ def experimentalId(pred : TheoryPrediction) -> str:
 
     elif dtype == "combined":
         # if pred.dataType() == "pyhf":
-        print ( f"@@127 FIXME this is wrong" )
-        sc0 = pred._statsComputer.subComputers[0]
+        sc0 = pred._statsComputer.getMostSensitiveModel()
+        # print ( f"@@127 FIXME this is wrong" )
+        # sc0 = pred._statsComputer.subComputers[0]
         sc0_type = sc0.dataType 
         return f"{anaId}:{sc0.name}"
-        """
-        print ( f"@@sc:{anaId} {pred._statsComputer.subComputers[0]}:: {sc0_type}" )
-        print ( f"@@sc: ---    {anaId}:{sc0.name}" )
-        if sc0_type == "nn":
-            jfile = getOnnxFileName(pred.dataset)
-            return f"{anaId}:{jfile}"
-        elif sc0_type == "pyhf":
-            jfile = getJsonFileName(pred.dataset)
-            return f"{anaId}:{jfile}"
-        else:
-            return f"{anaId}:{dtype}"                       #SLv1,v2
-        """
     else:
         dsId = pred.dataId()                                #for em-type results
         return f"{anaId}:{dsId}"
