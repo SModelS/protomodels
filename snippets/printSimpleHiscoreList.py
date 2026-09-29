@@ -188,6 +188,12 @@ def printTruth():
         sparticles += f"{CYAN}{name}{RESET}={RED}{mass:.1f}{RESET}"
     print ( f"{RED}Truth:{RESET}    K={GREEN}{sK}{RESET}; TL={formatObject(TL,'6.3f')}; {sparticles}" )
 
+def reportExceptionsLog():
+    fname = "exceptions.log"
+    # fname = "old_exceptions.log"
+    if os.path.exists ( fname ):
+        print ( f"{RED}ALERT: There is an {fname}!!!{RESET}" )
+
 if __name__ == "__main__":
     import argparse
     argparser = argparse.ArgumentParser(
@@ -206,6 +212,7 @@ if __name__ == "__main__":
     args = argparser.parse_args()
     import colorama
     colorama.init()
+    reportExceptionsLog()
     while True:
         nlines = runSlurmWalk()
         nlines += summarizeJobsForThisDir()
@@ -215,3 +222,4 @@ if __name__ == "__main__":
             break
         time.sleep(10.)
         print( colorama.Cursor.UP()*(nlines+2) )
+    reportExceptionsLog()
