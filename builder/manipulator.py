@@ -2752,10 +2752,19 @@ class Manipulator ( LoggerBase ):
 
         return nfrozen
 
+    def removeStatsComputers ( self ):
+        """ remove the stats computers from bestCombo """
+        if not hasattr ( self.M, "bestCombo" ):
+            return
+        for tp in self.M.bestCombo:
+            tp._statsComputer = None
+
     def backupModel ( self ):
         """ backup the current state """
         # print(self.M)
-        # bestCombo = copy.deepcopy(self.M.bestCombo)
+        self.removeStatsComputers()
+        bestCombo = copy.deepcopy(self.M.bestCombo)
+        """
         bestCombo = []
         for tp in self.M.bestCombo:
             #for the tps in best combo, unset the statsComputer
@@ -2764,6 +2773,7 @@ class Manipulator ( LoggerBase ):
             cp_tp = copy.deepcopy ( tp )
             tp._statsComputer = sc
             bestCombo.append ( cp_tp )
+        """
         self._backup = { "llhd": self.M.llhd, "letters": self.M.letters, 
             "TL": self.M.TL, "K": self.M.K, "muhat": self.M.muhat,
             "description": self.M.description,

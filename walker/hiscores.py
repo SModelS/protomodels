@@ -450,6 +450,7 @@ class Hiscores ( LoggerBase ):
 
             if mi==None or ma.M.K > mi.K: ## ok, <i>th best result!
                 self.demote ( i )
+                ma.removeStatsComputers()
                 self.hiscores[i] = copy.deepcopy ( ma.M )
                 self.hiscores[i].cleanBestCombo( )
                 break
