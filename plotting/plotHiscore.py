@@ -351,16 +351,20 @@ class HiscorePlotter ( LoggerBase ):
         if dtype == "efficiencyMap":
             dI = tp.dataset.dataInfo
             obsN = dI.observedN
+            eBG = dI.expectedBG
+            bgErr = dI.bgError
             if ( obsN - int(obsN) ) < 1e-6:
                 obsN=int(obsN)
-            print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError}" )
+            Zsigma = ""
+            err = np.sqrt ( eBG + bgErr**2 ) 
+            sigma = ( obsN - eBG ) / err
+            Zsigma = "{sigma:.1f} sigma"
+            print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError} {Zsigma}" )
             did = dI.dataId.replace("_",r"\_")
             if len(did)>9:
                 did=f"{did[:6]} ..."
-            eBG = dI.expectedBG
             if eBG == int(eBG):
                 eBG=int(eBG)
-            bgErr = dI.bgError
             if bgErr == int(bgErr):
                 bgErr=int(bgErr)
             S = "N/A"
