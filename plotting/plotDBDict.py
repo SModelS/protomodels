@@ -905,7 +905,7 @@ class Plotter ( LoggerBase ):
         xlabel  = "$p$-values"
         ylabel = "# SRs"
         if not self.pvalues:
-            xlabel = "significances"
+            xlabel = "significances Z"
         if weighted:
             ylabel = "#analyses (weighted)"
         if "ylabel" in self.options:
