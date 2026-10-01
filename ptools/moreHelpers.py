@@ -135,6 +135,10 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
         #    return name, None
     except ImportError as e:
         pass
+    if not name.startswith ( "T" ):
+        print ( f"[moreHelpers.namesForSetsOfTopologies] ERROR: did not recognize {name}" )
+        import sys; sys.exit()
+
     return name, None
 
 def findLargestExcess ( db ):
