@@ -39,7 +39,8 @@ class MassesAndDecays ( LoggerBase ):
         ret = { "outfile": "mass_hierarchy.png" }
         ret["colors"]= { 1000022: "black", 1000023: "navy",
                          1000024: "navy", 1000025: "navy",
-                         1000006: "brown", 1000016: "gold" }
+                         1000006: "brown", 1000016: "gold",
+                         1000012: "gold" }
         ret["scale"]="symlog"
         ret["record"]=False
         # ret["scale"]="linear"
@@ -91,7 +92,9 @@ class MassesAndDecays ( LoggerBase ):
         self.xpositions = {}
         masses.sort ( key = lambda x: x[1] )
         for pid, mass in masses:
-            color = self.options["colors"][pid]
+            color = "chocolate"
+            if pid in self.options["colors"]:
+                color = self.options["colors"][pid]
             sgn = 1 if ctParticles % 2 == 0 else -1
             xpos = 45 + sgn * ctParticles * 10
             dx_line = 10 # length of the line
