@@ -7,7 +7,7 @@ The "moreHelpers" module is meant to contain those that do depend on protomodels
 code.
 """
 
-import copy, math, time, random, subprocess, os, unum, numpy
+import copy, math, time, random, subprocess, os, unum
 from smodels.experiment.datasetObj import DataSet
 from smodels.experiment.expResultObj import ExpResult
 from smodels.experiment.infoObj import Info
@@ -292,13 +292,13 @@ def getAllPidsOfTheoryPred ( pred : TheoryPrediction ) -> List:
     pids.sort( reverse=True )
     return pids
 
-def prettyPrint ( value : Union[None,float,numpy.float64],
+def prettyPrint ( value : Union[None,float,np.float64],
         ndecimals : int = 2, maxrows : int = 0 ) -> str:
     """ pretty print a value, but allow for it to also be None
 
     :param maxrows: maximum number of rows for lists and tuples. zero is all.
     """
-    if type(value) in [ float, numpy.float64 ]:
+    if type(value) in [ float, np.float64 ]:
         return f"{value:.{ndecimals}f}"
     if type(value) in [ list, tuple ]:
         if maxrows == 0:
@@ -388,7 +388,8 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
         #    f = 0
         return f
 
-    lo,hi = max(0,bg - 5*(bg+bgerr)), bg + 5*(bg+bgerr)
+    total_err = np.sqrt ( bg + bgerr**2 )
+    lo,hi = max(0,bg - 5*total_err), bg + 5*total_err
     if obs == 0:
         # the chances of observing zero or more is always one
         i,e = integrate.quad ( integrand, lo, hi, args=(0,),
@@ -397,7 +398,6 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
             return 1-i/2
         return 1.-i
     p = 0.
-
 
     if obs < bg:
         # compute the inverse!
@@ -592,11 +592,11 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
         # thtas = thtadbn.rvs( n )
         thtas = scipy.stats.norm.rvs ( loc=[0.]*n, scale=[1.]*n )
         lmbdas = d.A + d.B * thtas + d.C * thtas**2
-        indices = numpy.where ( lmbdas < 0. )[0]
+        indices = np.where ( lmbdas < 0. )[0]
         while len(indices)>0:
             thta = scipy.stats.norm.rvs( loc=[0.]*len(indices), scale=[1.]*len(indices) )
             lmbdas [ indices ] = thta
-            indices = numpy.where ( lmbdas < 0. )[0]
+            indices = np.where ( lmbdas < 0. )[0]
             ctr += 1
             if ctr > 20: # after trying 20 times we set to almost zero
                 lmbdas [ indices ] = [0.]*len(indices)
@@ -688,7 +688,7 @@ def countDecays( templatefile = "../builder/templates/template_default.slha" ):
 
 def seedRandomNumbers ( seed ):
     """ seed all random number generation """
-    ## scipy takes random numbers from numpy.random, so
+    ## scipy takes random numbers from np.random, so
     np.random.seed ( seed )
     import scipy.stats as s
     r = s.norm.rvs()
@@ -812,7 +812,7 @@ def lightObjCopy(obj,rmAttr=['elements','avgElement', 'computer', 'txnameList',
 
     if obj is None:
         return obj
-    elif isinstance(obj,(int,float,unum.Unum,str,numpy.float,numpy.bool_)):
+    elif isinstance(obj,(int,float,unum.Unum,str,np.float,np.bool_)):
         return obj
     elif isinstance(obj,list):
         return [lightObjCopy(x,rmAttr=rmAttr) for x in obj]
