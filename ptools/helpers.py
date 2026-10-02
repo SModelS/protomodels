@@ -189,30 +189,6 @@ def formatObject ( obj, fmt_str : Union[int,str] = ".2f" ) -> str:
         fmt_str = f".{fmt_str}f"
     return f"{obj:{fmt_str}}"
 
-"""
-def getJsonFileName(dset: DataSet) -> str:
-    "get file name of json used by the combined dataset dset"
-
-    jsonFileDict = dset.globalInfo.jsonFiles
-    print ( f"@@XXY getJsonFileName {jsonFileDict}" )
-    dsId = [ds.getID() for ds in dset._datasets]            #get the dataset ids in the combined dataset dset
-
-    for file, dslist in jsonFileDict.items():
-        for ds in dslist:
-            if ds['smodels'] in dsId:                               #check which json file has the corresponding datasets
-                file = file.split(".")[0]                       #get only name of json file, not the .json part
-                print ( f"@@XXY getJsonFileName {file}" )
-                sys.exit()
-                return file
-
-    # if no file got matched with dataset
-    print(f"JSON file present for {dset.globalInfo.id} but combined dataset does not match to any JSON file")
-
-    print ( f"@@XXY getJsonFileName" )
-    sys.exit()
-    return "NoJsonFound"
-"""
-
 def experimentalId(pred : TheoryPrediction) -> str:
     """
     Return Id of tpred's expresult
