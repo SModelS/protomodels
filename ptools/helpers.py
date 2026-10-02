@@ -464,7 +464,7 @@ def computeP ( obs : float, bg : float, bgerr : float,
         if obs < 20 and not lognormal:
             ret = computePAnalytically ( obs, bg, bgerr, lognormal,
                sigN = sigN, srName = srName )
-            return ret, "numerical"
+            return ret, "analytical"
         Z = roughZValue ( obs, bg, bgerr )
         if abs(Z)>4 and obs < 200 and not lognormal:
             ## these extremes, better do them analytically
