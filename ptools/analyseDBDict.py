@@ -145,7 +145,7 @@ class Analyzer ( LoggerBase ):
             #tret = ret.split(",")
             ret = tret
             if type(tret)==tuple:
-                ret = "".join(tret)
+                ret = " ".join(tret)
             isIn = False
             for t in tret:
                 if self.topoIsIn ( t ) == True:
