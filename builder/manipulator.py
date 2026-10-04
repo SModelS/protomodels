@@ -2803,8 +2803,9 @@ class Manipulator ( LoggerBase ):
             self.record ( "revert step" )
         for k,v in self._backup.items(): ## do not!! shallow copy here
             setattr ( self.M, k, copy.deepcopy(v) )
-        for c in self.M.bestCombo:
-            c.setStatsComputer()
+        if hasattr ( self.M, "bestCombo" ) and self.M.bestCombo is not None:
+            for c in self.M.bestCombo:
+                c.setStatsComputer()
 
     def delBackup ( self ):
         """ delete protomodel backup dictionary"""
