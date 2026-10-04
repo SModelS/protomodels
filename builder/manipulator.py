@@ -2754,7 +2754,7 @@ class Manipulator ( LoggerBase ):
 
     def removeStatsComputers ( self ):
         """ remove the stats computers from bestCombo """
-        if not hasattr ( self.M, "bestCombo" ):
+        if not hasattr ( self.M, "bestCombo" ) or self.M.bestCombo is None:
             return
         for tp in self.M.bestCombo:
             tp._statsComputer = None
