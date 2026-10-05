@@ -65,6 +65,38 @@ class ProtoModel ( LoggerBase ):
     def allowN1N1Prod(self,flag : bool ):
         self.computer.allowN1N1Prod = flag
 
+    def getPidsWithWidths ( self ):
+        """ get all pids for which we are allowed to also play with the widths
+        in addition to the masses
+        """
+        self.pids_with_widths = set() # the list with all pids we can change
+        self.widths = {} # the actual width values
+        with open ( self.environ.templateSLHA, "rt" ) as f:
+            lines = f.readlines()
+            for line in lines:
+                # stop at the decays
+                if not line.startswith ( "DECAY" ):
+                    continue
+                p1 = line.find ( "#" )
+                if p1 >= 0:
+                    line = line[:p1]
+                line = line.replace("	"," ")
+                if not " W" in line:
+                    continue
+                p1 = line.find ( " W" )
+                pid = line[p1+2:]
+                pid = pid.strip()
+                try:
+                    pid = int(pid)
+                except Exception as e:
+                    logger.error ( f"could not parse {line} in {self.environ.templateSLHA}" )
+                    sys.exit()
+                if pid in self.widths:
+                    logger.error ( f"pid {pid} appears more than once in {self.environ.templateSLHA}" )
+                    sys.exit()
+                self.pids_with_widths.add ( pid )
+                self.widths[pid]=1. # we start with widths at 1 GeV
+
     def getParticleContent ( self ):
         """ for self.environ.templateSLHA, get its particle content as a list.
         save the content in self.particles.  also, define potential forced_degeneracies.
@@ -72,13 +104,13 @@ class ProtoModel ( LoggerBase ):
         """
         assert os.path.exists ( self.environ.templateSLHA ), \
                 f"{self.environ.templateSLHA} does not exist"
+        self.getPidsWithWidths ( )
         particles = set()
         mass_params = set()
         slha = ""
         ## this is a list of force degeneracies
         self.forced_degeneracies = []
         self.decaylessParticles = ( ProtoModel.LSP, )
-        self.widths = []
         # decaylessParticles = [ ProtoModel.LSP, 1000023, 1000024 ]
         with open ( self.environ.templateSLHA, "rt" ) as f:
             lines = f.readlines()
@@ -123,8 +155,6 @@ class ProtoModel ( LoggerBase ):
                 particles.add ( pid )
                 assert mass_param == pid, f"we assume that the mass parameter {mass} has the same number as the particle {pid}"
         self.particles = list ( particles ) # thats the particles
-        print ( f"@@particles {self.particles}" )
-        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
     def initializeModel(self):
         """Use the template SLHA file to store possible decays and initialize the LSP"""
