@@ -764,6 +764,8 @@ class ProtoModel ( LoggerBase ):
             pmodel_dict['ssmultipliers'] = {ppair:self.ssmultipliers[ppair] for ppair in sorted(self.ssmultipliers)}
             decay_dict = {pid:{dpid:self.decays[pid][dpid] for dpid in sorted(self.decays[pid])} for pid in sorted(self.decays)}
             pmodel_dict['decays'] = decay_dict
+            widths = self.widths
+            pmodel_dict['widths'] = widths
             pmodel_dict['xsecs[fb]'] = xsecs
             return pmodel_dict
 
