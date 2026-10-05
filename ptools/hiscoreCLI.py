@@ -70,13 +70,13 @@ def cli( infile : str = "hiscores_global.dict",
     environ = RunEnviron()
     pprint ( f"       Classes: {RED}ProtoModel, Combiner, Predictor, Hiscores, Database,{RESET}" )
     pprint ( f"                {RED}SParticleNames{RESET}" )
-    hi = fetchHiscoresObj ( infile, None, environ = environ, walkerid = walkerid )
+    hi = fetchHiscoresObj ( infile, None, environ = environ, walkerid = None )
     pprint ( f"{RED}hi = fetchHiscoresObj ('{infile}', ... ) # Hiscore {RESET}" )
     namer = SParticleNames()
     from importlib import reload
     pprint ( f"{RED}namer = SParticleNames(){RESET}" )
-    protomodel = hi.hiscores[0]
-    protomodel.walkerid = walkerid
+    protomodel = hi[0]
+    # protomodel.walkerid = walkerid
     pprint ( f"{RED}protomodel = hi.hiscores[0]{RESET}" )
     ma = Manipulator ( protomodel, environ )
     pprint ( f"{RED}ma = Manipulator ( protomodel ){RESET}" )

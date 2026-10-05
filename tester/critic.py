@@ -35,6 +35,10 @@ except Exception as e:
     pass
 
 class Critic ( LoggerBase ):
+        
+    r_threshold = 1.33
+    sensitivity_threshold = 0.7
+
     def __init__ ( self, walkerid : Union[str,int],
             environ : RunEnviron,
             expected : bool = False ):
@@ -46,8 +50,6 @@ class Critic ( LoggerBase ):
         super ( Critic, self ).__init__ ( walkerid )
         self.walkerid = walkerid
         self.environ = environ
-        self.r_threshold = 1.33
-        self.sensitivity_threshold = 0.7
         self.verbose = 1
 
         self.fetchResults()
@@ -81,7 +83,8 @@ class Critic ( LoggerBase ):
                 f.write ( f"{expRes.id()} {expRes.datasets[0].dataInfo.dataId}\n" )
             f.close()
 
-    def updateModelPredictionsWithULPreds(self, protomodel, predictions, keep_predictions):
+    def updateModelWithULPreds(self, protomodel, predictions : list, 
+            keep_predictions : bool ):
         """ Extract information from list of theory predictions and store list of dict with r_obs,
             r_exp and theory prediction(sorted according to decreasing r_obs values) in the protomodel.
             Also store description about the critic_tp in the protomodel.
@@ -135,7 +138,8 @@ class Critic ( LoggerBase ):
             if tp['rexp'] is not None:
                 # rexp = f"{tp['rexp']:.2f}"
                 rexp = float ( np.round ( tp['rexp'], 3 ) )
-            tmp = {f'{tp["tp"].analysisId()}:{dataId}': {'robs': robs, 'rexp': rexp}}
+            stats = {'robs': robs, 'rexp': rexp }
+            tmp = { f'{tp["tp"].analysisId()}:{dataId}': stats }
             critic_description.update(tmp)
         if len(tpList)>5:
             critic_description.update({'...':'...'})
@@ -144,8 +148,9 @@ class Critic ( LoggerBase ):
         return
 
 
-    def updateModelPredictionsWithCombinedPreds(self,
-            protomodel, mostSensiComb, robsComb : float, rexpComb : float ):
+    def updateModelWithCombinedPreds(self,
+            protomodel, mostSensiComb, robsComb : float, rexpComb : float,
+            allowed_by_llhd_critic : bool ):
         """ Extract information from list of theory predictions and store r_obs from
             the most sensitive combination of analyses in the protomodel.
 
@@ -160,7 +165,11 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
-            protomodel.llhd_critic = {'datasets': [experimentalId(comb) for comb in mostSensiComb], 'robs': round(robsComb,2), 'rexp': round(rexpComb,2)}
+            datasets = [experimentalId(comb) for comb in mostSensiComb]
+            protomodel.llhd_critic = {'datasets': datasets,
+                'robs': round(robsComb,2), 'rexp': round(rexpComb,2),
+                'passed': allowed_by_llhd_critic
+            }
 
 
     def runSModelS(self, inputFile : PathLike, combineSRs : bool, ULpreds: bool, sigmacut : float, mingap:float,
@@ -272,10 +281,14 @@ class Critic ( LoggerBase ):
 
         # Use best SR preds only if no UL-type result.
         predictions = self.merge_preds(UL_preds,bestSR_preds)
-        allowed_by_ul_critic, n_sensitive, n_excluding = self.ul_critic(protomodel, predictions)
-        if n_sensitive: num_preds = n_sensitive
+        ul_c = self.ul_critic(protomodel, predictions)
+        allowed_by_ul_critic = ul_c["allowed"]
+        n_sensitive = ul_c["n_sensitive"]
+        n_excluding = ul_c["n_excluding"]
+        if n_sensitive: 
+            num_preds = n_sensitive
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictionsWithULPreds(protomodel, predictions,
+        self.updateModelWithULPreds(protomodel, predictions,
                 keep_predictions)
 
         if not allowed_by_ul_critic:
@@ -293,8 +306,8 @@ class Critic ( LoggerBase ):
         allowed_by_llhd_critic, mostSensiComb, robsComb, rexpComb = self.llhd_critic(predictions, cut=0.1, keep_predictions=keep_predictions)
         if mostSensiComb: num_preds += len(predictions)
         # Extract the relevant prediction information and store in the protomodel:
-        self.updateModelPredictionsWithCombinedPreds(protomodel,
-                mostSensiComb, robsComb, rexpComb)
+        self.updateModelWithCombinedPreds(protomodel,
+                mostSensiComb, robsComb, rexpComb,allowed_by_llhd_critic)
 
         if keep_slhafile:
             self.info(f"Keeping {protomodel.currentSLHA}, as requested" )
@@ -337,7 +350,7 @@ class Critic ( LoggerBase ):
 
 
     def ul_critic(self, protomodel, predictions : List,
-           keep_predictions : bool = False ) -> Tuple[bool,int,int]:
+           keep_predictions : bool = False ) -> dict:
         """ UL-based critic (can also use best SR results if no UL-type result
         available for a given analysis).
 
@@ -347,6 +360,7 @@ class Critic ( LoggerBase ):
 
         :returns: tuple[bool,int,int]: allowed, n_sensitive, n_excluding
         bool is False if the critic excludes the model, else True.
+        :returns: dict: allowed(bool), n_sensitive(int), n_excluding(int)
         """
 
         if not predictions: # If empty list
@@ -398,7 +412,12 @@ class Critic ( LoggerBase ):
             'passes': max_allowed >= n_excluding}
 
         self.log(f"UL-based critic: n_sensitive={n_sensitive}, n_excluding={n_excluding}, max_allowed={max_allowed} => passes critic: {max_allowed >= n_excluding}")
-        return max_allowed >= n_excluding, n_sensitive, n_excluding
+        ret = { "allowed": max_allowed >= n_excluding, 
+                "n_sensitive": n_sensitive,
+                "n_excluding": n_excluding }
+        return ret
+        # return max_allowed >= n_excluding, n_sensitive, n_excluding
+
 
 
     def llhd_critic(self, predictions, cut : float =0,

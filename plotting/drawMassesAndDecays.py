@@ -26,6 +26,10 @@ class MassesAndDecays ( LoggerBase ):
         self.options.update ( options )
         self.importMatplot()
         self.getYRange()
+        from pbase.runEnviron import RunEnviron
+        environ = RunEnviron()
+        from builder.protomodel import ProtoModel
+        self.M = ProtoModel ( walkerid = "mad", environ = environ )
 
     def importMatplot ( self ):
         from smodels_utils.plotting.plottingRecorder import importMatplot
@@ -35,7 +39,8 @@ class MassesAndDecays ( LoggerBase ):
         ret = { "outfile": "mass_hierarchy.png" }
         ret["colors"]= { 1000022: "black", 1000023: "navy",
                          1000024: "navy", 1000025: "navy",
-                         1000006: "brown" }
+                         1000006: "brown", 1000016: "gold",
+                         1000012: "gold" }
         ret["scale"]="symlog"
         ret["record"]=False
         # ret["scale"]="linear"
@@ -87,7 +92,9 @@ class MassesAndDecays ( LoggerBase ):
         self.xpositions = {}
         masses.sort ( key = lambda x: x[1] )
         for pid, mass in masses:
-            color = self.options["colors"][pid]
+            color = "chocolate"
+            if pid in self.options["colors"]:
+                color = self.options["colors"][pid]
             sgn = 1 if ctParticles % 2 == 0 else -1
             xpos = 45 + sgn * ctParticles * 10
             dx_line = 10 # length of the line
@@ -113,6 +120,9 @@ class MassesAndDecays ( LoggerBase ):
             if not mpid in toDraw:
                 toDraw[mpid]={}
             for dpids,br in decay.items():
+                dkey = self.M.decay_keys[mpid][dpids]
+                n = len ( self.M.inv_decay_keys[mpid][dkey] )
+                br = n*br
                 bsm_dpid = dpids[0]
                 label = self.dpidsToStr ( dpids )
                 if not bsm_dpid in toDraw[mpid]:

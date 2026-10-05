@@ -155,7 +155,7 @@ class RandomWalker ( LoggerBase ):
         # self.pprint ( f"Ramping up with slurm jobid {jobid} using template {templateSLHA} allowN1N1 {allowN1N1Prod} susy_mode {susy_mode}" )
         self.pprint ( f"Ramping up with slurm jobid {jobid}" )
         self.pprint ( f"It is {time.asctime()}" )
-        self.pprint ( f"template {self.environ.templateSLHA} allowN1N1 {self.environ.allowN1N1Prod} susy_mode {self.environ.susy_mode}" )
+        self.pprint ( f"Template {self.environ.templateSLHA} allowN1N1={self.environ.allowN1N1Prod} susy_mode={self.environ.susy_mode}" )
         
         #keep track of log llhd ratio
         self.trace_logllhdratio = []
@@ -171,7 +171,7 @@ class RandomWalker ( LoggerBase ):
                 from pbase.runEnviron import RunEnviron
                 environ = RunEnviron()
                 self.initialiser  = Initialiser ( self.walkerid, 
-                        self.use_initialiser, environ, verbose = False )
+                        self.use_initialiser, environ, verbosity = "info" )
                 #init_model = self.initialiser.propose()
                 init_model = self.initialiser.bestOfN(5)
                 if init_model != None:
@@ -529,12 +529,12 @@ class RandomWalker ( LoggerBase ):
         if not self.test_param_space:
             ## possibly add to hiscore list
             self.log ( f"Step {self.protomodel.step} check if result goes into hiscore list" )
-            #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )    #protomodel.rvalues were used before to find the max allowed mu
-            #self.log ( f"r values before calling .newResult are at {srs}" )
+            # srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )    #protomodel.rvalues were used before to find the max allowed mu
+            # self.log ( f"r values before calling .newResult are at {srs}" )
             self.hiscoreList.newResult ( self.manipulator ) ## add to high score list
-            #srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
-            #self.log ( f"r values after calling .newResult are at {srs}" )
-            self.log ( "done check for result to go into hiscore list" )
+            # srs = ", ".join ( [ f"{x:.2f}" for x in self.protomodel.rvalues[:3] ] )
+            # self.log ( f"r values after calling .newResult are at {srs}" )
+            # self.log ( "done check for result to go into hiscore list" )
         ## Backup model
         self.manipulator.backupModel()
         # Update current K and TL values
@@ -753,28 +753,26 @@ def model1():
 def model2():
     D={
         'masses': {
-            1000022: 35.00333930498704,
-            1000023: 67.46989452437126,
-            1000024: 86.39134410603818,
-            1000006: 466.77198888781453
+            1000022: 100.,
+            1000023: 110.,
+            1000024: 110.,
         },
         'ssmultipliers': {
-            (1000022, 1000022): 3.076810727833559,
-            (1000022, 1000023): 0.45615298790558134,
-            (1000022, 1000024): 0.2420703888833409,
-            (1000023, 1000024): 13.70830463164829,
-            (1000023, 1000023): 0.2420703888833409,
-            (-1000006, 1000006): 0.7140157447902225
+            (1000022, 1000022): 3.,
+            (1000022, 1000023): 0.5,
+            (1000022, 1000024): 0.25,
+            (1000023, 1000024): 1.,
+            (1000023, 1000023): 0.25,
         },
         'decays': {
             1000022: {},
-            1000023: {},
-            1000006: {
-                (1000022, 6): 0.17524601220007244,
-                (1000023, 6): 0.35964987901179013,
-                (1000024, 5): 0.4651041087881375
+            1000023: {
+                (1000022, 12, 12): 1.0
+            },
+            1000024: {
+                (1000022, 2, 1): 1.0
             }
-        }
+        },
     }
     return D
 

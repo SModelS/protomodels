@@ -15,6 +15,7 @@ from smodels.experiment.databaseObj import Database
 from smodels.base.smodelsLogging import logger
 logger.setLevel("ERROR")
 
+sys.path.insert(0,"../")
 sys.path.insert(0,"../../")
 from protomodels.csetup import setup
 setup()
@@ -350,16 +351,20 @@ class HiscorePlotter ( LoggerBase ):
         if dtype == "efficiencyMap":
             dI = tp.dataset.dataInfo
             obsN = dI.observedN
+            eBG = dI.expectedBG
+            bgErr = dI.bgError
             if ( obsN - int(obsN) ) < 1e-6:
                 obsN=int(obsN)
-            print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError}" )
+            Zsigma = ""
+            err = np.sqrt ( eBG + bgErr**2 ) 
+            sigma = ( obsN - eBG ) / err
+            Zsigma = "{sigma:.1f} sigma"
+            print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError} {Zsigma}" )
             did = dI.dataId.replace("_",r"\_")
             if len(did)>9:
                 did=f"{did[:6]} ..."
-            eBG = dI.expectedBG
             if eBG == int(eBG):
                 eBG=int(eBG)
-            bgErr = dI.bgError
             if bgErr == int(bgErr):
                 bgErr=int(bgErr)
             S = "N/A"
@@ -760,8 +765,13 @@ class HiscorePlotter ( LoggerBase ):
         dotlessv = dbver.replace(".","")
         dt = int ( time.time() - 1593000000 )
         f.write ( "<b><a href=./hiscore.slha>ProtoModel</a> <a href=./pmodel.dict>(dict)</a> " )
-        f.write ( f"produced with <a href={self.url}/docs/Validation{dotlessv}>database v{dbver}</a>" )
-        f.write ( f", combination strategy <a href=./matrix.png>{strategy}</a> in walker {self.protomodel.walkerid} step {self.protomodel.step}.</b> " )
+        f.write ( f"produced with <a href={self.url}/docs/Validation{dotlessv}>database v{dbver}</a>," )
+        # f.write ( f" combination strategy <a href=./matrix.png>{strategy}</a>")
+        acc = self.environ.extrapolation_acceptance
+        f.write ( f" allowed_extr {acc}" )
+        f.write ( f" in walker {self.protomodel.walkerid}" )
+        # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+        f.write ( f" step {self.protomodel.step}.</b> " )
         if hasattr ( self.protomodel, "particleContributions" ):
             f.write ( f"<i>K</i> plots for: <a href=./M1000022.png?{dt}>{namer.htmlName(1000022)}</a>" )
             for k,v in self.protomodel.particleContributions.items():
@@ -786,17 +796,21 @@ class HiscorePlotter ( LoggerBase ):
             # cr = Critic(self.protomodel.walkerid,do_srcombine=True, dbpath = xxx )
             c_result, c_reason = self.critic.predict_critic( self.protomodel, keep_predictions=True )
         f.write ( f"<br><b>Critics:</b> {c_reason}<br>\n" )
+        from tester.critic import Critic
         if hasattr ( self.protomodel, "ul_critic" ):
-            f.write( f"<br><b>UL Critic:</b>\n" )
+            ulc = self.protomodel.ul_critic
+            stats = f"{ulc['n_excluding']}/{ulc['n_sensitive']} analyses exclude"
+            # 'max_allowed' would be the third variable
+            f.write( f"<br><b>UL Critic: {stats}</b><br>\n" )
             for anaid,stats in self.protomodel.ul_critic["datasets"].items():
                 if anaid == "...":
                     continue
                 robs, rexp = stats['robs'], stats['rexp']
                 col, endcol = "<span style='color: darkgreen;'>", "</span>"
                 sanaid = anaid.replace("None","ul")
-                if robs>1.0:
+                if robs>Critic.r_threshold:
                     col = "<span style='color: darkred;'>"
-                f.write ( f"{sanaid}:: {col}robs={robs}, rexp={rexp}{endcol}<br>\n" )
+                f.write ( f"{sanaid}:: {col}r<sub>obs</sub>={robs}, r<sub>exp</sub>={rexp}{endcol}<br>\n" )
         else:
             f.write( f"<br><b>No UL Critic results!!</b>\n" )
         if hasattr ( self.protomodel, "llhd_critic" ):
@@ -806,27 +820,12 @@ class HiscorePlotter ( LoggerBase ):
             col, endcol = "<span style='color: darkgreen;'>", "</span>"
             if robs>1.0:
                 col = "<span style='color: darkred;'>"
-            f.write ( f"<br><b>LLHD Critic:</b> {sdatasets}:: {col}robs={robs}, rexp={rexp}{endcol}<br>\n" )
+            f.write ( f"<br><b>LLHD Critic:</b> {sdatasets}:: {col}r<sub>obs</sub>={robs}, r<sub>exp</sub>={rexp}{endcol}<br>\n" )
         else:
             f.write ( f"<br><b>No LLHD Critic results!!</b><br>" )
+
         rvalues=self.protomodel.ul_critic_tpList
         rvalues.sort(key=lambda x: x['robs'],reverse=True )
-        f.write ( f"<br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
-        for rv in rvalues[:4]:
-            c_in, c_out =  "" , ""
-            if not c_result and rv["robs"] in [ float, np.float64, np.float32 ] \
-                    and rv["robs"]>1.0:
-                c_in = '<p style="color: red;">'
-                c_out = '</p>'
-            srv="N/A"
-            if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
-                srv= f"{rv['rexp']:.2f}"
-            elif type(rv['rexp']) != type(None):
-                srv=str(rv['rexp'])
-            dataId = rv['tp'].dataId()
-            if dataId in [ None, "None" ]:
-                dataId = "ul"
-            f.write ( f"<li>{c_in}{self.anaNameAndUrl ( rv['tp'] )}:{dataId}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>{c_out}\n" )
         f.write("</ul>\n")
 
         if hasattr ( self.protomodel, "analysisContributions" ):
@@ -860,6 +859,22 @@ class HiscorePlotter ( LoggerBase ):
         t0 = int(time.time())
         f.write ( f"<td><img width=600px src=./texdoc.png?{t0}>\n" )
         f.write ( f"<br><span style='font-size: smaller; color: darkred;'>Last updated: {time.asctime()}</span>\n" )
+        f.write ( f"<br><br><b>{len(rvalues)} predictions available. Highest r values are:</b><br><ul>\n" )
+        for rv in rvalues[:4]:
+            c_in, c_out =  "" , ""
+            if not c_result and rv["robs"] in [ float, np.float64, np.float32 ] \
+                    and rv["robs"]>1.0:
+                c_in = '<p style="color: red;">'
+                c_out = '</p>'
+            srv="N/A"
+            if type(rv['rexp']) in [ float, np.float64, np.float32 ]:
+                srv= f"{rv['rexp']:.2f}"
+            elif type(rv['rexp']) != type(None):
+                srv=str(rv['rexp'])
+            dataId = rv['tp'].dataId()
+            if dataId in [ None, "None" ]:
+                dataId = "ul"
+            f.write ( f"<li>{c_in}{self.anaNameAndUrl ( rv['tp'] )}:{dataId}:{','.join ( set (map(str,rv['tp'].txnames) ) )} r={rv['robs']:.2f}, r<sub>exp</sub>={srv}<br>{c_out}\n" )
         f.write ( "</table>" )
         f.write ( '<table style="width:80%">\n' )
         f.write ( "<td width=40%>" )
@@ -936,8 +951,9 @@ class HiscorePlotter ( LoggerBase ):
             fname = "horizontal.png"
         print ( f"[plotHiscore] now draw {fname}" )
         resultsForPIDs = {}
-        for tpred in self.protomodel.bestCombo:
-            resultsForPIDs = self.getPIDsOfTPred ( tpred, resultsForPIDs )
+        if hasattr ( self.protomodel, "bestCombo" ):
+            for tpred in self.protomodel.bestCombo:
+                resultsForPIDs = self.getPIDsOfTPred ( tpred, resultsForPIDs )
         resultsFor = {}
         for pid,values in resultsForPIDs.items():
             if pid in self.protomodel.masses:
@@ -996,11 +1012,12 @@ class HiscorePlotter ( LoggerBase ):
         :param dbpath: path to database
         :param interact: if true, start interactive shell at the end
         """
-        print ( f"[plotHiscore] plot #{number}" )
+        print ( f"[plotHiscore] plot hiscore #{number}" )
 
+        # obtain hiscore but retain walkerid
         pm = hiscoreTools.obtainHiscore ( number, hiscorefile, 
-                walkerid=walkerid, environ = environ )
-        pm.walkerid = walkerid
+                walkerid=None, environ = environ )
+        # pm.walkerid = walkerid
         self.environ = environ
         self.protomodel = pm
         self.combiner = Combiner ( self.protomodel.walkerid )
@@ -1157,8 +1174,11 @@ def main ():
     argparser.add_argument ( '-n', '--number',
             help='which hiscore to plot [0]',
             type=int, default=0 )
+    argparser.add_argument ( '-w', '--walkerid',
+            help="run with what walkerid ['cmd']",
+            type=str, default="cmd" )
     argparser.add_argument ( '-f', '--hiscorefile',
-            help='pickle file to draw from [<rundir>/hiscores_global.cache]',
+            help='pickle file to draw from [<rundir>/hiscores_global.dict]',
             type=str, default="default"  )
     argparser.add_argument ( '-v', '--verbosity',
             help='verbosity -- debug, info, warn, err [info]',
@@ -1169,8 +1189,8 @@ def main ():
     argparser.add_argument ( '-R', '--ruler',
             help='produce ruler plot',
             action="store_true" )
-    argparser.add_argument ( '-D', '--decays',
-            help='produce decays plot',
+    argparser.add_argument ( '-D', '--masses_decays',
+            help='produce masses and decays plot',
             action="store_true" )
     argparser.add_argument ( '-P', '--predictions',
             help='list all predictions',
@@ -1206,15 +1226,18 @@ def main ():
             help="learn more about the upload destinations", action="store_true" )
     args = argparser.parse_args()
     rundir = setup( args.rundir )
+    args.decays = False
     if args.all:
         args.html = True
         args.ruler = True
-        args.decays = True
+        args.masses_decays = True
         args.predictions = True
         args.tex = True
     if args.hiscorefile == "default":
-        args.hiscorefile = f"{rundir}/hiscores_global.cache"
-    args.walkerid = 0
+        args.hiscorefile = f"{rundir}/hiscores_global.dict"
+    # args.walkerid = 0
+    environ = RunEnviron()
+    args.environ = environ
     runPlotting ( args )
     if args.test:
         compileTestText()

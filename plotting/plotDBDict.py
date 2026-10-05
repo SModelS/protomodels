@@ -19,7 +19,7 @@ from typing import Union, List, Dict
 
 from ptools.helpers import computeP
 from ptools.moreHelpers import namesForSetsOfTopologies
-from protomodels.base.loggerbase import LoggerBase
+from protomodels.pbase.loggerbase import LoggerBase
 from smodels_utils.helper.various import hasLLHD, removeAnaIdSuffices
 from smodels_utils.helper.terminalcolors import GREEN, YELLOW, RESET, RED
 from pathlib import Path
@@ -905,7 +905,7 @@ class Plotter ( LoggerBase ):
         xlabel  = "$p$-values"
         ylabel = "# SRs"
         if not self.pvalues:
-            xlabel = "significances"
+            xlabel = "significances Z"
         if weighted:
             ylabel = "#analyses (weighted)"
         if "ylabel" in self.options:

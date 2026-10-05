@@ -24,10 +24,11 @@ from tester.combiner import Combiner
 
 class Hiscores ( LoggerBase ):
     """ encapsulates the hiscore list. """
-    def __init__ ( self, walkerid: int = 0, save_hiscores: bool = False,
-                   picklefile: PathLike="hiscores.cache", backup : bool = True,
-                   keep_separate_hiscores = False,
-                   hiscores = None, predictor = None ):
+    def __init__ ( self, walkerid: str|int|None = 0,
+            save_hiscores: bool = False,
+            picklefile: PathLike="hiscores.cache", backup : bool = True,
+            keep_separate_hiscores = False,
+            hiscores = None, predictor = None ):
         """ the constructor
         :param save_hiscores: if true, then assume you want to save, not just read.
         :param picklefile: path of pickle file name to connect hiscore list with
@@ -36,7 +37,7 @@ class Hiscores ( LoggerBase ):
                          then these are the hiscore protomodels.
         """
         super ( Hiscores, self ).__init__ ( walkerid )
-        self.walkerid = walkerid
+        self.walkerid = walkerid # the hiscore walkerid
         self.save_hiscores = save_hiscores
         self.backup = backup ## backup hiscore lists?
         self.nkeep = 3 ## how many do we keep.
@@ -80,6 +81,18 @@ class Hiscores ( LoggerBase ):
             f.close()
         unlock ( filename )
         return True
+
+    def __getitem__ ( self, idx ):
+        """ convenience """
+        return self.hiscores[idx]
+
+    def __len__(self):
+        """ convenience """
+        return len(self.hiscores)
+
+    def __iter__(self):
+        """ convenience """
+        return iter(self.hiscores)
 
     def currentMinTL ( self ):
         """ the current minimum TL to make it into the list. """
@@ -213,7 +226,7 @@ class Hiscores ( LoggerBase ):
     def fromDictionaryFile ( cls, path : PathLike,
            firstn : Union[None,int] = 0,
            environ : Union[RunEnviron,None] = None,
-           walkerid : Union[str,int] = 0 ):
+           walkerid : str|int|None = 0 ):
         """ initialise from a dictionary file
 
         :param path: filename of .dict file
@@ -233,7 +246,8 @@ class Hiscores ( LoggerBase ):
         c = 0
         while True:
             m = Manipulator( path, nth = c, walkerid = walkerid, environ=environ )
-            m.M.walkerid = walkerid
+            if walkerid != None:
+                m.M.walkerid = walkerid
             force_computation_K = m.M.K is None
             predictor.predict ( m, keep_predictions=True,
                 force_computation_K = force_computation_K )
@@ -242,7 +256,7 @@ class Hiscores ( LoggerBase ):
             if type(firstn) == int and c > firstn:
                 break
         return cls ( hiscores= hiscores, predictor = predictor,
-                     walkerid = walkerid )
+                     walkerid = None )
 
         # assert False, "implement me"
 
@@ -279,9 +293,10 @@ class Hiscores ( LoggerBase ):
         with open ( "Kold.conf", "wt" ) as f:
             f.write ( f"{m.M.K}\n" )
             f.close()
-        with open ( "Kmin.conf", "wt" ) as f:
-            f.write ( f"{newlist[-1]['K']}\n" )
-            f.close()
+        if len(oldhiscores)>9: # write only if we have enough
+            with open ( "Kmin.conf", "wt" ) as f:
+                f.write ( f"{newlist[-1]['K']}\n" )
+                f.close()
         return True
 
     def updateTopHiscoreFile ( self, m : Manipulator,
@@ -399,11 +414,14 @@ class Hiscores ( LoggerBase ):
             # if there is no ul_critic result, we assume we're fine
             passes = ma.M.ul_critic["passes"]
             if passes == False:
+                self.pprint ( f"not saving: failed ul_critic ({ma.M.ul_critic})" )
                 return False
         if hasattr ( ma.M, "llhd_critic" ):
             # if there is no ul_critic result, we assume we're fine
-            passes = ma.M.llhd_critic["robs"]<1.0
+            passes = ma.M.llhd_critic["passed"]
+            # passes = ma.M.llhd_critic["robs"]<1.05
             if passes == False:
+                self.pprint ( f"not saving: failed llhd_critic ({ma.M.llhd_critic})" )
                 return False
 
 
@@ -432,6 +450,7 @@ class Hiscores ( LoggerBase ):
 
             if mi==None or ma.M.K > mi.K: ## ok, <i>th best result!
                 self.demote ( i )
+                ma.removeStatsComputers()
                 self.hiscores[i] = copy.deepcopy ( ma.M )
                 self.hiscores[i].cleanBestCombo( )
                 break

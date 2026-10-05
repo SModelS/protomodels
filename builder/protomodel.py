@@ -22,9 +22,8 @@ from pbase.runEnviron import RunEnviron
 from ptools.refxsecComputer import RefXSecComputer
 from ptools import helpers
 from ptools.helpers import formatObject
-from ptools.sparticleNames import SParticleNames
+from ptools.sparticleNames import namer
 setLogLevel ( "error" )
-
 
 class ProtoModel ( LoggerBase ):
     """ encodes one theoretical model, i.e. the particles, their masses, their
@@ -53,9 +52,8 @@ class ProtoModel ( LoggerBase ):
         self.environ = environ
         self.step = 0 ## count the steps
         self.getParticleContent()
-        self.computer = RefXSecComputer( verbose = False,
-                                         allowN1N1Prod = environ.allowN1N1Prod,
-                                         walkerid = walkerid )
+        self.computer = RefXSecComputer( allowN1N1Prod = environ.allowN1N1Prod,
+                                         walkerid = walkerid, verbosity = "warn" )
         self.protomodels_version = "2.0"
         self.initializeModel()
 
@@ -214,7 +212,6 @@ class ProtoModel ( LoggerBase ):
     def __str__(self):
         """ return basic information on model
         """
-        namer = SParticleNames ( susy=False )
 
         pNames = [namer.asciiName ( pid ) for pid in self.unFrozenParticles()]
         pNames = ','.join(pNames)
@@ -446,7 +443,6 @@ class ProtoModel ( LoggerBase ):
     def printMasses( self ):
         """ convenience function to print masses with particle names """
         particles = []
-        namer = SParticleNames ( susy=False )
         for pid,m in self.masses.items():
             if m > 99000:
                 continue
@@ -483,7 +479,6 @@ class ProtoModel ( LoggerBase ):
                 comment = f"produced at step {self.step}"
                 pidsp = self.unFrozenParticles()
                 pidsp.sort()
-                namer = SParticleNames ( susy=False )
                 prtcles = ", ".join ( map ( namer.asciiName, pidsp ) )
                 self.log ( f"done computing {len(xsecs)} xsecs for pids {prtcles}" )
                 self._stored_xsecs = ( xsecs, comment )
@@ -651,11 +646,11 @@ class ProtoModel ( LoggerBase ):
             for pid, allbrs in totalBRs.items():
                 totalbr = sum( [ x[1] for x in allbrs ])
                 if abs(totalbr-0.) > 1e-3 and abs(totalbr-1.) > 1e-3:
-                    self.error ( f"total brs for {pid} add up to {totalbr:.3f} != 1." )
+                    self.error ( f"total brs for {namer.asciiName(pid)}({pid}) add up to {totalbr:.3f} != 1." )
                     self.error ( f"contributions are:" )
                     for dpids_br in totalBRs[pid]:
-                        self.error ( f"{dpids_br[0]}: {dpids_br[1]}" )
-                    sys.exit(-1)
+                        self.error ( f"{dpids_br[0]}: {dpids_br[1]:.3f}" )
+                    # sys.exit(-1)
             frozen = self.frozenParticles()
             # now make the frozen particles stable (to quench smodels warnings,
             # nothing else)

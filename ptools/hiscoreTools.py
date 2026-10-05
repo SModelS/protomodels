@@ -69,7 +69,7 @@ def pprintEvs ( protomodel ):
 
 def obtainHiscore ( number : int,
         hiscorefile : PathLike = "hiscores_global.dict",
-        walkerid : Union[str,int] = 0,
+        walkerid : str|int|None = 0,
         environ : Union[RunEnviron,None] = None ) -> ProtoModel:
     """ obtain hiscore number <number> from <hiscorefile>
 
@@ -79,19 +79,19 @@ def obtainHiscore ( number : int,
     """
     assert environ != None, "set RunEnviron"
     assert type(environ) != str, "set RunEnviron"
-    hi = fetchHiscoresObj ( hiscorefile, walkerid = walkerid,
+    hi = fetchHiscoresObj ( hiscorefile, walkerid = None,
            environ = environ )
-    TL = hi.hiscores[number].TL
-    K = hi.hiscores[number].K
+    TL = hi[number].TL
+    K = hi[number].K
     sK = formatObject ( K, 3 )
-    print ( f"[hiscoreTools:{walkerid}] obtaining #{number}: K={sK}" )
-    ret = hi.hiscores[ number ]
+    ret = hi[ number ]
+    print ( f"[hiscoreTools:{walkerid}] obtaining #{number}(walkerid {ret.walkerid}): K={sK}" )
     return ret
 
 def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
                            picklefile : str = "hiscores_global.cache",
                            entrynr : Union[None,int] = 0,
-                           walkerid : Union[str,int] = 0 ) -> bool:
+                           walkerid : None|str|int = 0 ) -> bool:
     """ is hiscores_global.cache behind hiscores_global.dict, 
     so it needs an update?
     :param entrynr: check for this entry, 0 is first.
@@ -117,6 +117,8 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
             return False
         f.close()
     from walker.hiscores import Hiscores
+    # set walkerid to none so we get the original walkerids
+    # hi = Hiscores ( None, False, picklefile )
     hi = Hiscores ( walkerid, False, picklefile )
 
     def compare ( dentry, pentry ) -> Tuple[bool,str]:
@@ -171,7 +173,7 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
 def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
                        picklefile : Union[None,str] = None,
                        environ : Union[RunEnviron,None] = None,
-                       walkerid : Union[str,int] = 0 ) -> Hiscores:
+                       walkerid : str|int|None = 0 ) -> Hiscores:
     """ create Hiscores object from hiscores_global.cache file.
     update hiscores_global.cache file before, if needed.
 
@@ -193,7 +195,8 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
     picklefile = os.path.expanduser ( picklefile )
     from ptools import helpers
     shortname = helpers.simplifyUnixPath ( picklefile )
-    if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=walkerid ):
+
+    if not hiscoreHiNeedsUpdate ( dictfile, picklefile, walkerid=None ):
         dname = os.path.dirname ( picklefile )
         if os.path.exists ( picklefile ):
             print ( f"[hiscoreTools:{walkerid}] can reuse cache: {shortname}" )
@@ -201,10 +204,11 @@ def fetchHiscoresObj ( dictfile : str = "hiscores_global.dict",
             print ( f"[hiscoreTools:{walkerid}] directory {dname} does not exist: maybe change rundir?" )
             sys.exit()
 
-        return Hiscores ( walkerid, False, picklefile )
+        hi = Hiscores ( None, False, picklefile )
+        return hi
     print ( f"[hiscoreTools] updating cache: {shortname} ... " )
     hi = Hiscores.fromDictionaryFile ( path = dictfile, environ = environ, 
-            walkerid = walkerid )
+            walkerid = None )
     hi.writeListToPickle ( picklefile )
     print ( f"[hiscoreTools] cache {shortname} updated!" )
     return hi

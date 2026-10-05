@@ -13,7 +13,7 @@ import matplotlib.mlab as mlab
 from smodels_utils.helper.various import getSqrts, findCollaboration
 from ptools.moreHelpers import namesForSetsOfTopologies
 from typing import Union, Text, List, Dict
-from protomodels.base.loggerbase import LoggerBase
+from protomodels.pbase.loggerbase import LoggerBase
 import subprocess, shutil
 from smodels_utils.helper.terminalcolors import *
 
@@ -145,7 +145,7 @@ class Analyzer ( LoggerBase ):
             #tret = ret.split(",")
             ret = tret
             if type(tret)==tuple:
-                ret = "".join(tret)
+                ret = " ".join(tret)
             isIn = False
             for t in tret:
                 if self.topoIsIn ( t ) == True:
