@@ -770,7 +770,7 @@ class ProtoModel ( LoggerBase ):
             return pmodel_dict
 
         return { "masses": self.masses, "ssmultipliers": self.ssmultipliers,
-                 "decays": self.decays, "xsecs[fb]": xsecs }
+                 "decays": self.decays, "xsecs[fb]": xsecs, "widths": self.widths }
 
     def relevantSSMultipliers ( self ):
         """ of all the ss mulipliers, return only the relevant ones,
