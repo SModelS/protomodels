@@ -1289,7 +1289,7 @@ class Manipulator ( LoggerBase ):
         width = self.widths[pid]*p
         width = max(10**-20, min(width, 10**-14))
         self.widths[pid]=width
-        assert ( 10**-20 < width < 10**-14 ), f"width {width} out of bounds"
+        assert ( 10**-20 <= width <= 10**-14 ), f"width {width} out of bounds"
         return 1
 
     def randomlyUnfreezeParticle ( self, cap_ssm : float = 100. ) -> int:
