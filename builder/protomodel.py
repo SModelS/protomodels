@@ -67,8 +67,8 @@ class ProtoModel ( LoggerBase ):
 
     def getParticleContent ( self ):
         """ for self.environ.templateSLHA, get its particle content as a list.
-        save the content in self.particles.
-        also, define potential forced_degeneracies
+        save the content in self.particles.  also, define potential forced_degeneracies.
+        Also, find out which particles have widths we are allowed to vary
         """
         assert os.path.exists ( self.environ.templateSLHA ), \
                 f"{self.environ.templateSLHA} does not exist"
@@ -78,6 +78,7 @@ class ProtoModel ( LoggerBase ):
         ## this is a list of force degeneracies
         self.forced_degeneracies = []
         self.decaylessParticles = ( ProtoModel.LSP, )
+        self.widths = []
         # decaylessParticles = [ ProtoModel.LSP, 1000023, 1000024 ]
         with open ( self.environ.templateSLHA, "rt" ) as f:
             lines = f.readlines()
@@ -122,6 +123,8 @@ class ProtoModel ( LoggerBase ):
                 particles.add ( pid )
                 assert mass_param == pid, f"we assume that the mass parameter {mass} has the same number as the particle {pid}"
         self.particles = list ( particles ) # thats the particles
+        print ( f"@@particles {self.particles}" )
+        import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
 
     def initializeModel(self):
         """Use the template SLHA file to store possible decays and initialize the LSP"""
