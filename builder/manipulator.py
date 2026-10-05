@@ -1247,7 +1247,7 @@ class Manipulator ( LoggerBase ):
 
     def randomlyChangeWidthOf ( self, pid : int ) -> int:
         """ randomly change the width of pid """
-        cw = self.width[pid] ## current width
+        cw = self.widths[pid] ## current width
         ## we have three categories:
         # cw = 1.0 GeV -> promptly decaying
         # cw in [ 10**-14, 10**-18 ]  long lived
@@ -1257,38 +1257,38 @@ class Manipulator ( LoggerBase ):
             p = np.random.uniform ( 0,1)
             if p < .2:
                 # make it detector stable
-                self.width[pid]=10**-20
+                self.widths[pid]=10**-20
                 return 1
             # make it long lived
             p = np.random.uniform ( 14, 18 )
-            self.width[pid]=10**(-p)
+            self.widths[pid]=10**(-p)
             return 1
         if abs(cw*10**20)<1e-6:
             ## currently its detector stable
             p = np.random.uniform ( 0,1)
             if p < .2:
                 # make it promptly decaying
-                self.width[pid]=1.
+                self.widths[pid]=1.
                 return 1
             # make it long lived
             p = np.random.uniform ( 14, 18 )
-            self.width[pid]=10**(-p)
+            self.widths[pid]=10**(-p)
             return 1
         ## currently its long lived
         p = np.random.uniform ( 0,1)
         if p < .1:
             # make it promptly decaying
-            self.width[pid]=1.
+            self.widths[pid]=1.
             return 1
         if p > .9:
             # make it detector stable
-            self.width[pid]=10**-20
+            self.widths[pid]=10**-20
             return 1
         ## change by a random factor
         p = random.uniform ( .3, 3. )
-        width = self.width[pid]*p
+        width = self.widths[pid]*p
         width = max(10**-20, min(width, 10**-14))
-        self.width[pid]=width
+        self.widths[pid]=width
         assert ( 10**-20 < width < 10**-14 ), f"width {width} out of bounds"
         return 1
 
