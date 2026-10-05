@@ -212,6 +212,11 @@ def experimentalId(pred : TheoryPrediction) -> str:
         sc0 = pred._statsComputer.getMostSensitiveModel()
         # print ( f"@@127 FIXME this is wrong" )
         # sc0 = pred._statsComputer.subComputers[0]
+        if sc0 is None:
+            dsId = pred.dataId()
+            print ( f"[helpers] ERROR in experimentalId: sc0 is None in {pred.dataset.globalInfo.id} dsId is {dsId}" )
+            return f"{anaId}:{dsId}"
+
         sc0_type = sc0.dataType 
         return f"{anaId}:{sc0.name}"
     else:

@@ -47,10 +47,12 @@ class ProtoModel ( LoggerBase ):
         super(ProtoModel,self).__init__ ( walkerid )
         self.walkerid = walkerid
         self.keep_meta = keep_meta ## keep all meta info? big!
-        self.version = 1 ## version of this class
+        self.version = 32101 ## version of this class
         self.maxMass = 2400. ## maximum masses we consider
         self.environ = environ
         self.step = 0 ## count the steps
+        self.widths = {}
+        self.pids_with_widths = set()
         self.getParticleContent()
         self.computer = RefXSecComputer( allowN1N1Prod = environ.allowN1N1Prod,
                                          walkerid = walkerid, verbosity = "warn" )
@@ -610,6 +612,12 @@ class ProtoModel ( LoggerBase ):
 
         with open(outputSLHA,'wt') as outF:
             for i,l in enumerate(lines):
+                if hasattr ( self, "widths" ) and len(self.widths)>0:
+                    for pid,value in self.widths.items():
+                        if not f"W{pid}" in l:
+                            continue
+                        l = l.replace ( f"W{pid}", str(value) )
+
                 for pid in self.particles:
                     #Skip lines which have no mass or decay tags
                     if not f"M{pid}" in l and not f"D{pid}" in l:
