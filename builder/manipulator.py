@@ -1239,15 +1239,16 @@ class Manipulator ( LoggerBase ):
         :returns: number of changes made
         """
         if not hasattr ( self.M, "widths" ):
+            self.log ( f"protomodel has no widths?" )
             return 0
         n_changes = 0
         ## get a list of unfrozen particles with widths -> "candidates"
         unfrozen = self.M.unFrozenParticles ( withLSP = False )
         candidates = [ x for x in unfrozen if x in self.M.widths ]
-        for c in candidates:
+        for cpid in candidates:
             u = np.random.uniform(0,1)
             if u < pb:
-                n_changes += self.randomlyChangeWidthOf ( c )
+                n_changes += self.randomlyChangeWidthOf ( cpid )
         return n_changes
 
     def randomlyChangeWidthOf ( self, pid : int ) -> int:

@@ -134,7 +134,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
             name = SParticleNames( False).asciiName(p)
             mass = entry["masses"][p]
             color = CYAN
-            if p in entry["widths"]:
+            if "widths" in entry and p in entry["widths"]:
                 w = entry["widths"][p]
                 if 10**-19<=w<=10**-10:
                     color = ORANGE
