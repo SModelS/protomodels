@@ -19,18 +19,15 @@ from smodels_utils.helper.terminalcolors import *
 
 class Analyzer ( LoggerBase ):
     def __init__ ( self, args : dict ):
-    #def __init__ ( self, pathname : str, topos : Union[Text,None,List], 
-    #               nocolors : bool = False, latex : bool = False,
-    #               enum : bool = False ):
         """
         :param pathname: filename of dictionary
         :param topos: topologies to filter for
         """
-        super ( Analyzer, self ).__init__ ( 0 )
+        super ( Analyzer, self ).__init__ ( "a_dbd" )
+        self.args = args
         self.setColors ( args["nocolors"] )
         self.latex = args["latex"]
         self.enum = args["enumerate"]
-        self.args = args
         self.latexHeader()
         self.reportZvalues = True
         self.filenames = []
@@ -100,6 +97,8 @@ class Analyzer ( LoggerBase ):
     def summarize ( self ):
         if self.reportZvalues:
             Ztot = self.Zvalues[8]+self.Zvalues[13]
+            if len(Ztot)==0:
+                return
             self.pprint ( f"Zavg(total) =  {np.mean(Ztot):.2f}+-{np.std(Ztot)/np.sqrt(len(Ztot)):.3f}" )
             if len ( self.Zvalues[8] ) > 0:
                 self.pprint ( f"Zavg( 8tev) = {np.mean(self.Zvalues[8]):.2f}+-{np.std(self.Zvalues[8])/np.sqrt(len(self.Zvalues[8])):.3f}" )
@@ -110,8 +109,12 @@ class Analyzer ( LoggerBase ):
             self.pprint ( f"pavg(13tev)={np.mean(pavg13):.2f}" )
 
     def analyze ( self, nlargest : int, nsmallest : int ):
+        analysis_level = self.args["analysis_level"]
         for filename in self.filenames:
-            self.analyzeFile ( filename, nlargest, nsmallest )
+            if analysis_level:
+                self.analysisLevelReport ( filename, nlargest, nsmallest )
+            else:
+                self.analyzeFile ( filename, nlargest, nsmallest )
 
     def read ( self, fname ):
         from multiverse.expResModifier import readDatabaseDictFile 
@@ -271,6 +274,53 @@ class Analyzer ( LoggerBase ):
         self.summarize()
         self.latexFooter()
 
+    def analysisLevelReport ( self, filename : str, nlargest : int, nsmallest : int ):
+        self.pprint ( f"reading {filename}" )
+        meta, data = self.read ( filename )
+        anas = set()
+        Zvalues, Z_max = {}, {}
+        a_topos = {}
+        for anaid, values in data.items():
+            topos = self.getTopos ( values, anaid )
+            if topos == None:
+                continue
+            aid = anaid[:anaid.find(":")]
+            anas.add ( aid )
+            Z = values["orig_Z"]
+            if not aid in a_topos:
+                a_topos[aid]=set()
+                Zvalues[aid]= []
+            txns = values["txns"]
+            if type(txns)==str:
+                a_topos[aid].add ( txns )
+            else:
+                for t in values["txns"]:
+                    a_topos[aid].add ( t )
+            Zvalues[aid].append(Z)
+        for anaid,Zvals in Zvalues.items():
+            Zm = max(Zvals)
+            while Zm in Z_max:
+                Zm += 1e-8
+            Z_max [ Zm ] = anaid
+        colls = [ findCollaboration(x) for x in anas ]
+        self.pprint ( f"{colls.count('CMS')} CMS and {colls.count('ATLAS')} ATLAS results" )
+        if len(colls)==0:
+            return
+        keys = list ( Z_max.keys() )
+        reverse = True
+        keys.sort( reverse = reverse )
+        for key in keys[:nlargest]:
+            ana = Z_max[key]
+            lo = min(Zvalues[ana])
+            hi = max(Zvalues[ana])
+            mean = float ( np.mean ( Zvalues[ana]) )
+            ts = " ".join ( a_topos[ana] )
+            print ( f"Z={GREEN}[{lo:.2f},{mean:.2f},{hi:.2f}]{RESET} {YELLOW}{ana}{RESET}" )
+            print ( f"         {ts}" )
+        
+        #self.summarize()
+        #self.latexFooter()
+
 
 
 def main():
@@ -290,7 +340,7 @@ def main():
             type=int, default=3 )
     argparser.add_argument ( '-e', '--enumerate',
             help='enumerate the list', action="store_true" )
-    argparser.add_argument ( '-s', '--summarize',
+    argparser.add_argument ( '-a', '--analysis_level',
             help='summarize to the analysis level', action="store_true" )
     argparser.add_argument ( '--nocolors',
             help='dont use colors in output', action="store_true" )
