@@ -90,7 +90,9 @@ class Combiner ( LoggerBase ):
             ret += self.letters[c]
         return ret
 
-    def priorForNDF ( self, nparticles, nbranchings, nssms, name="expo1", verbose=False, nll=False ):
+    def priorForNDF ( self, nparticles : int, nbranchings : int, nssms : int, 
+                    name : str ="expo1", verbose : bool = False, 
+                      nll : bool =False ) -> float:
         """ Get the prior for this and this many degrees of freedom in the model.
         :param nparticles: number of unfrozen particles
         :param nbranchings: number of branchings > 0 and < 1
@@ -125,8 +127,8 @@ class Combiner ( LoggerBase ):
                 return False
         return True
 
-    def computePrior ( self, protomodel, nll : bool =False, verbose : bool =False, 
-                       name : str ="expo1" ) -> float:
+    def computePrior ( self, protomodel, nll : bool = False, 
+                  verbose : bool =False, name : str ="expo1" ) -> float:
         """ compute the prior for protomodel, used to introduce regularization,
             i.e. penalizing for non-zero parameters, imposing sparsity.
 
@@ -144,7 +146,8 @@ class Combiner ( LoggerBase ):
         for mpid,decays in protomodel.decays.items():
             if not mpid in unfrozen or mpid == protomodel.LSP:
                 continue ## frozen particles dont count
-            memBRs = set() ## memorize branchings, similar branchings count only once
+            ## memorize branchings, similar branchings count only once
+            memBRs = set() 
             for dpid,br in decays.items():
                 if br > 1e-5 and self.noSuchBranching ( memBRs, br ):
                     memBRs.add ( br )
@@ -216,12 +219,29 @@ class Combiner ( LoggerBase ):
                 ret += nll_penalty
             else:
                 ret *= numpy.exp ( - nll_penalty )
-            # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
-
+        pen_widths = self.penaltyForSillyWidths ( protomodel )
+        if nll:
+            ret += pen_widths
+        else:
+            ret *= np.exp ( pen_widths )
         return float(ret)
 
-    def penaltyForMissingResults ( self, predictions : List[TheoryPrediction] ) -> float:
-        """ very simple hack for now, penalize if predictions are all from the same experiment
+      def penaltyForSillyWidths ( self, protomodel )-> float:
+        """ if widths dont fit with the mass gaps, penalize for this here
+        :returns: penalty, as nll!!
+        """
+        if not hasattr ( protomodel, "widths" ):
+            return 0.
+        if protomodel.widths == None:
+            return 0.
+        if len ( protomodel.widths ) == 0:
+            return 0.
+        return 0.
+
+    def penaltyForMissingResults ( self, predictions : List[TheoryPrediction] )\
+                -> float:
+        """ very simple hack for now, penalize if predictions are all from 
+            the same experiment
         :returns: penalty -- 1e-3 if experiment is missing
         """
         if len(predictions)==0:
@@ -449,7 +469,7 @@ class Combiner ( LoggerBase ):
         # min_rel_weight = 0.05 ## default
         min_rel_weight = 0.10
         filtered_preds = selectMostSignificantSRs(predictions,
-				        min_rel_weight=min_rel_weight)
+                        min_rel_weight=min_rel_weight)
         self.letters = self.getLetters ( filtered_preds )
 
         self.log(f"Filtered predictions from {len(predictions)} to {len(filtered_preds)} (min_rel_weight {min_rel_weight:.2f})")
