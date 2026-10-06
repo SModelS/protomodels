@@ -1302,7 +1302,7 @@ class Manipulator ( LoggerBase ):
         assert ( 10**-20 <= nw <= 10**-14 ), f"width {width} out of bounds"
         self.widths[pid]=nw
         self.log ( f"Randomly changed width of {namer.asciiName(pid)}({pid}) from {cw:.3g} to {nw:.3g}" )
-        return n_chances
+        return n_changes
 
     def randomlyUnfreezeParticle ( self, cap_ssm : float = 100. ) -> int:
         """ Unfreezes a (random) frozen particle according to gaussian distribution

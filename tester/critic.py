@@ -132,6 +132,8 @@ class Critic ( LoggerBase ):
         for tp in tpList[:3]:
             # rtype = tp['tp'].dataType(short=True)
             dataId = tp['tp'].dataId()
+            if dataId is None:
+                dataId = "ul"
             # robs = f"{tp['robs']:.2f}"
             robs = float ( np.round ( tp['robs'], 3 ) )
             rexp = None
