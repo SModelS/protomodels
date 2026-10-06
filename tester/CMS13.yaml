@@ -10,6 +10,9 @@ CMS-SUS-18-004-wbplus-agg: # MET + two or three soft leptons FIXME check
 - CMS-SUS-16-050
 - CMS-SUS-16-050-agg
 - CMS-SUS-16-048
+- CMS-SUS-16-047
+- CMS-SUS-16-046
+- CMS-SUS-16-037
 - CMS-SUS-16-033
 CMS-SUS-18-004-wbplus: # MET + two or three soft leptons FIXME check
 - CMS-SUS-21-002
@@ -22,6 +25,9 @@ CMS-SUS-18-004-wbplus: # MET + two or three soft leptons FIXME check
 - CMS-SUS-16-050
 - CMS-SUS-16-050-agg
 - CMS-SUS-16-048
+- CMS-SUS-16-047
+- CMS-SUS-16-046
+- CMS-SUS-16-037
 - CMS-SUS-16-033
 CMS-SUS-18-004: # MET + two or three soft leptons FIXME check
 - CMS-SUS-21-002
@@ -34,6 +40,9 @@ CMS-SUS-18-004: # MET + two or three soft leptons FIXME check
 - CMS-SUS-16-050
 - CMS-SUS-16-050-agg
 - CMS-SUS-16-048
+- CMS-SUS-16-047
+- CMS-SUS-16-046
+- CMS-SUS-16-037
 - CMS-SUS-16-033
 CMS-EXO-19-001:
 - CMS-EXO-19-010
