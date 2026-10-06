@@ -226,7 +226,7 @@ class Combiner ( LoggerBase ):
             ret *= np.exp ( pen_widths )
         return float(ret)
 
-      def penaltyForSillyWidths ( self, protomodel )-> float:
+    def penaltyForSillyWidths ( self, protomodel )-> float:
         """ if widths dont fit with the mass gaps, penalize for this here
         :returns: penalty, as nll!!
         """
