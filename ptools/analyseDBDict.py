@@ -278,7 +278,7 @@ class Analyzer ( LoggerBase ):
         self.pprint ( f"reading {filename}" )
         meta, data = self.read ( filename )
         anas = set()
-        Zvalues, Z_max = {}, {}
+        Zvalues, Z_mean = {}, {}
         a_topos = {}
         for anaid, values in data.items():
             topos = self.getTopos ( values, anaid )
@@ -298,25 +298,42 @@ class Analyzer ( LoggerBase ):
                     a_topos[aid].add ( t )
             Zvalues[aid].append(Z)
         for anaid,Zvals in Zvalues.items():
-            Zm = max(Zvals)
-            while Zm in Z_max:
+            Zm = float(np.mean(Zvals))
+            while Zm in Z_mean:
                 Zm += 1e-8
-            Z_max [ Zm ] = anaid
+            Z_mean [ Zm ] = anaid
         colls = [ findCollaboration(x) for x in anas ]
         self.pprint ( f"{colls.count('CMS')} CMS and {colls.count('ATLAS')} ATLAS results" )
         if len(colls)==0:
             return
-        keys = list ( Z_max.keys() )
+        keys = list ( Z_mean.keys() )
         reverse = True
         keys.sort( reverse = reverse )
+        prettyName = True
+        if prettyName:
+            from smodels.experiment.databaseObj import Database
+            db = Database ( "../smodels-database/" )
         for key in keys[:nlargest]:
-            ana = Z_max[key]
+            ana = Z_mean[key]
             lo = min(Zvalues[ana])
             hi = max(Zvalues[ana])
             mean = float ( np.mean ( Zvalues[ana]) )
             ts = " ".join ( a_topos[ana] )
-            print ( f"Z={GREEN}[{lo:.2f},{mean:.2f},{hi:.2f}]{RESET} {YELLOW}{ana}{RESET}" )
-            print ( f"         {ts}" )
+            pName = ""
+            if prettyName:
+                er = db.getExpResults ( analysisIDs = [ ana ] )
+                if len(er)>0:
+                    pName = f": {er[0].globalInfo.prettyName}"
+            print ( f"Z={GREEN}[{lo:.2f},{mean:.2f},{hi:.2f}]{RESET} {YELLOW}{ana}{RESET}{pName}" )
+            """
+            if prettyName:
+                er = db.getExpResults ( analysisIDs = [ ana ] )
+                if len(er)>0:
+                    pName = er[0].globalInfo.prettyName
+                    print ( f"    {pName}: {ts}" )
+            else:
+                print ( f"    {ts}" )
+            """
         
         #self.summarize()
         #self.latexFooter()
