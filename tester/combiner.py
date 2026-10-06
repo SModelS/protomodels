@@ -223,7 +223,7 @@ class Combiner ( LoggerBase ):
         if nll:
             ret += pen_widths
         else:
-            ret *= np.exp ( pen_widths )
+            ret *= numpy.exp ( pen_widths )
         return float(ret)
 
     def penaltyForSillyWidths ( self, protomodel )-> float:
