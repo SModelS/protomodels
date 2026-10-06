@@ -1133,10 +1133,12 @@ class Manipulator ( LoggerBase ):
             self.log(f"Log of total proposal ratio after {move}: {np.log(self.proposal_ratio['q_total']):.2f}")
             return True
 
-    def randomlyChangeModel(self,force_move : bool = False, probBR : float = 0.2,
-            probSS : float = 0.25, probSSingle : float = 0.8, ssmSigma : float = 1.0,
+    def randomlyChangeModel(self,force_move : bool = False, 
+            probBR : float = 0.2, probSS : float = 0.25, 
+            probSSingle : float = 0.8, ssmSigma : float = 1.0,
             probMerge : float = 0.05, sigmaFreeze : float = 0.5,
-            probMassive : float = 0.3, probMass : float = 0.05, run_mcmc= False, cap_ssm=100):
+            probMassive : float = 0.3, probMass : float = 0.05, 
+            run_mcmc : bool = False, cap_ssm : floor = 100 ):
         """Randomly modify the proto-model following the steps:
 
         1) A random particle can be unfrozen with a probability
@@ -1151,20 +1153,23 @@ class Manipulator ( LoggerBase ):
         with probability of probMass
         """
 
-        self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
+        self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 
+            'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
         self.run_mcmc = run_mcmc
         if self.run_mcmc: old_model = self.M.copy()
         else: self.propose_model = self.M.copy()
         changeDesc = {}
         nChanges = 0
 
-        # If TL < = 0, try to drastically change model, else will be stuck in a model with low TL for many steps
+        # If TL < = 0, try to drastically change model, 
+        # else will be stuck in a model with low TL for many steps
         if self.M.TL == None or self.M.TL <=0 :
             probSS = 1.0
             probBR = 1.0
             probMass = 1.0
             force_move = True
-            #do we want to not freeze particles? -> not freezing if less than or equal to 3 particles
+            # do we want to not freeze particles? -> not freezing if 
+            # less than or equal to 3 particles
 
         if not self.run_mcmc:
             recentlyUnfrozen = self.randomlyUnfreezeParticle(cap_ssm=cap_ssm)
@@ -1252,45 +1257,51 @@ class Manipulator ( LoggerBase ):
         # cw = 1.0 GeV -> promptly decaying
         # cw in [ 10**-14, 10**-18 ]  long lived
         # cw == 10**-20 detector stable
+        n_changes = 0
         if abs (cw-1.0) < 1e-6:
             # currently it is promptly decaying
             p = np.random.uniform ( 0,1)
             if p < .2:
                 # make it detector stable
-                self.widths[pid]=10**-20
-                return 1
-            # make it long lived
-            p = np.random.uniform ( 14, 18 )
-            self.widths[pid]=10**(-p)
-            return 1
-        if abs(cw*10**20)<1e-6:
+                nw=10**-20
+                n_changes = 1
+            else:
+                # make it long lived
+                p = np.random.uniform ( 14, 18 )
+                nw = 10**(-p)
+                n_changes = 1
+        elif abs(cw*10**20)<1e-6:
             ## currently its detector stable
             p = np.random.uniform ( 0,1)
             if p < .2:
                 # make it promptly decaying
-                self.widths[pid]=1.
-                return 1
-            # make it long lived
-            p = np.random.uniform ( 14, 18 )
-            self.widths[pid]=10**(-p)
-            return 1
-        ## currently its long lived
-        p = np.random.uniform ( 0,1)
-        if p < .1:
-            # make it promptly decaying
-            self.widths[pid]=1.
-            return 1
-        if p > .9:
-            # make it detector stable
-            self.widths[pid]=10**-20
-            return 1
-        ## change by a random factor
-        p = random.uniform ( .3, 3. )
-        width = self.widths[pid]*p
-        width = max(10**-20, min(width, 10**-14))
-        self.widths[pid]=width
-        assert ( 10**-20 <= width <= 10**-14 ), f"width {width} out of bounds"
-        return 1
+                nw = 1.
+                n_changes = 1
+            else:
+                # make it long lived
+                p = np.random.uniform ( 14, 18 )
+                nw = 10**(-p)
+                n_changes = 1
+        else:
+            ## currently its long lived
+            p = np.random.uniform ( 0,1)
+            if p < .1:
+                # make it promptly decaying
+                nw = 1.
+                n_changes = 1
+            elif p > .9:
+                # make it detector stable
+                nw = 10**-20
+                n_changes = 1
+            else:
+                ## change by a random factor
+                p = random.uniform ( .3, 3. )
+                nw = cw*p
+                nw = max(10**-20, min(nw, 10**-14))
+        assert ( 10**-20 <= nw <= 10**-14 ), f"width {width} out of bounds"
+        self.widths[pid]=nw
+        self.log ( f"Randomly changed width of {namer.asciiName(pid)}({pid}) from {cw:.3g} to {nw:.3g}" )
+        return n_chances
 
     def randomlyUnfreezeParticle ( self, cap_ssm : float = 100. ) -> int:
         """ Unfreezes a (random) frozen particle according to gaussian distribution
