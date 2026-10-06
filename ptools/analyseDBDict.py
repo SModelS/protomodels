@@ -18,21 +18,23 @@ import subprocess, shutil
 from smodels_utils.helper.terminalcolors import *
 
 class Analyzer ( LoggerBase ):
-    def __init__ ( self, pathname : str, topos : Union[Text,None,List], 
-                   nocolors : bool = False, latex : bool = False,
-                   enum : bool = False ):
+    def __init__ ( self, args : dict ):
+    #def __init__ ( self, pathname : str, topos : Union[Text,None,List], 
+    #               nocolors : bool = False, latex : bool = False,
+    #               enum : bool = False ):
         """
         :param pathname: filename of dictionary
         :param topos: topologies to filter for
         """
         super ( Analyzer, self ).__init__ ( 0 )
-        self.setColors ( nocolors )
-        self.latex = latex
-        self.enum = enum
+        self.setColors ( args["nocolors"] )
+        self.latex = args["latex"]
+        self.enum = args["enumerate"]
+        self.args = args
         self.latexHeader()
         self.reportZvalues = True
         self.filenames = []
-        topos, _ = namesForSetsOfTopologies ( topos )
+        topos, _ = namesForSetsOfTopologies ( args["topos"] )
         if topos == "all":
             topos = None
         
@@ -40,7 +42,7 @@ class Analyzer ( LoggerBase ):
         if topos != None:
             for k in topos.split(","):
                 self.topos.add ( k.strip() )
-        for pname in pathname:
+        for pname in args["dictfile"]:
             if os.path.isdir ( pname ):
                 pname = f"{pname}/db*dict"
             self.filenames += glob.glob ( pname )
@@ -288,13 +290,16 @@ def main():
             type=int, default=3 )
     argparser.add_argument ( '-e', '--enumerate',
             help='enumerate the list', action="store_true" )
+    argparser.add_argument ( '-s', '--summarize',
+            help='summarize to the analysis level', action="store_true" )
     argparser.add_argument ( '--nocolors',
             help='dont use colors in output', action="store_true" )
     argparser.add_argument ( '-l', '--latex', help='create a latex version',
             action="store_true" )
     args=argparser.parse_args()
-    analyzer = Analyzer ( args.dictfile, args.topos, args.nocolors, args.latex,
-                          args.enumerate )
+    analyzer = Analyzer ( vars(args) )
+    #analyzer = Analyzer ( args.dictfile, args.topos, args.nocolors, args.latex,
+    #                      args.enumerate )
     analyzer.analyze ( args.nlargest, args.nsmallest )
 
 if __name__ == "__main__":
