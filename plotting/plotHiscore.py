@@ -358,7 +358,7 @@ class HiscorePlotter ( LoggerBase ):
             Zsigma = ""
             err = np.sqrt ( eBG + bgErr**2 ) 
             sigma = ( obsN - eBG ) / err
-            Zsigma = "{sigma:.1f} sigma"
+            Zsigma = f"{sigma:.1f} sigma"
             print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError} {Zsigma}" )
             did = dI.dataId.replace("_",r"\_")
             if len(did)>9:
