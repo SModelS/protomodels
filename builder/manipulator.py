@@ -555,6 +555,9 @@ class Manipulator ( LoggerBase ):
         #Set attributes to dictionary values:
         for k,v in D["masses"].items():
             self.M.masses[k]=v
+        if "widths" in D:
+            for k,v in D["widths"].items():
+                self.M.widths[k]=v
         for k,v in D["ssmultipliers"].items():
             self.M.ssmultipliers[k]=v
         for mpid,decays in D["decays"].items():
@@ -1439,16 +1442,12 @@ class Manipulator ( LoggerBase ):
             dk = np.random.choice(dkeys)
             #get decay channel assocaiated with key, make sure all channels assocaited with same key get same branchings
             decay_chan = [key for key,value in protomodel.decay_keys[pid].items() if value == dk]
-            """
-            if show_logs:
-                print ( f"@@01 decay_chan {decay_chan}" )
-                print ( f"@@01 dkeys {dkeys}" )
-                print ( f"@@01 dk {dk}" )
-            """
-            #Get proposal ratio for removing old br
-            #proposal ratio for rem br =  p(i+1 -> i)/ p(i->i+1) = p(add br to i+1 to go to i)/p(rem br to go to i+1)
-            #p(add) = p(addBR)
-            #p(rem) = p(singleBR)p(not choosing dk) = singleBRprob * (1 - 1/(len(dkeys))
+            # Get proposal ratio for removing old br
+            # proposal ratio for rem br =  p(i+1 -> i)/ p(i->i+1) =  \
+            # p(add br to i+1 to go to i)/p(rem br to go to i+1)
+            # p(add) = p(addBR)
+            # p(rem) = p(singleBR)p(not choosing dk) = \
+            # singleBRprob * (1 - 1/(len(dkeys))
             prob_add = addBRprob
             prob_rem = singleBRprob * (1.0 - 1/len(dkeys))
             self.proposal_ratio['br']['rem'] *= prob_add/prob_rem
@@ -1458,7 +1457,9 @@ class Manipulator ( LoggerBase ):
             if len(decay_chan)>0:
                 dpid = decay_chan[0]
             #for dpid in decay_chan:
-                self.record ( f"change decay of {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} to {br:.2f}" )
+                tName = namer.texName(pid,addDollars=True)
+                tDName = namer.texName(dpid,addDollars=True)
+                self.record ( f"change decay of {tName} -> {tDName} to {br:.2f}" )
                 p_name = namer.asciiName(pid)
                 dp_name = namer.asciiName(dpid)
                 self.log ( f"changed decay of {pid_name} -> {dp_name} to {br:.2f}" )
