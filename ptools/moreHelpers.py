@@ -94,7 +94,10 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
     shorts["darkmatter"]="TRV1,TRS1,TRV1nunu"
     shorts["resonances"]="TRV1bb,TRV1qq"
     #shorts["massdegenerate"]="TRHadGM1,TDTM1F,TDTM2F"
-    shorts["longlived"]="TRHadDM1,TRHadGM1,TRHadQM1,TRHadUM1,TDTM1F,TDTM2F,TDTM1S,TDTM2S,THSCPM1,THSCPM2,THSCPM3,THSCPM4,THSCPM5,THSCPM6,THSCPM7,THSCPM8,THSCPM9,THSCPM1b,THSCPM2b,THSCPM10"
+    shorts["hscp"]="THSCPM1,THSCPM2,THSCPM3,THSCPM4,THSCPM5,THSCPM6,THSCPM7,THSCPM8,THSCPM9,THSCPM1b,THSCPM2b,THSCPM10"
+    shorts["llp"]="TDTM1F,TDTM2F,TDTM1S,TDTM2S"
+    # shorts["longlived"]="TRHadDM1,TRHadGM1,TRHadQM1,TRHadUM1,TDTM1F,TDTM2F,TDTM1S,TDTM2S,THSCPM1,THSCPM2,THSCPM3,THSCPM4,THSCPM5,THSCPM6,THSCPM7,THSCPM8,THSCPM9,THSCPM1b,THSCPM2b,THSCPM10"
+    shorts["rhadrons"]="TRHadDM1,TRHadGM1,TRHadQM1,TRHadUM1"
     shorts["colored"]="T1,T2,TGQ,T3W,T3GQ,T5GQ,TGQqtt,TGQbtq,TGQbbq,T1bbbb,T1tttt,T1bbbboff,T1ttttoff,T1btbt,T6WW,T5,T5tttt,T5bbbb,T5WW,T5ZZ,T5WWoff,T5tctc,T5tbtt,T5tbtb,T5bbbt,T5tbtt,T5tbtb,T5HH,T5HZ,T5AAT5bbbbZg,T5ttttZg,T5ttbbWWoff,T5ttofftt,T5gg,T5WZh,T5Zg,T6gg"
     description["gauginos"]="ewkinos + onshell gauge bosons"
     description["gauginos_offshell"]="ewkinos + offshell gauge bosons"
@@ -111,7 +114,9 @@ def namesForSetsOfTopologies ( name : Union[Text,List,Tuple,None] ) \
     description["sbottoms"]="sbottoms"
     description["gluinos"]="gluinos"
     description["colored"]="light squarks and gluinos"
-    description["longlived"]="r-hadrons, long lived particles"
+    description["hscp"]="heavy stable charged particles"
+    description["llp"]="long lived particles"
+    description["rhadrons"]="r-hadrons"
     description["resonances"]="Resonances, like Z' -> q q"
     if name == "list": ## list them all
         return shorts, description
