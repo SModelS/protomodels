@@ -640,6 +640,18 @@ class Manipulator ( LoggerBase ):
         """ set the walker id of protomodel """
         self.M.walkerid = Id
 
+    def printCritic ( self ):
+        """ form ul_critic_tpList nicely """
+        if not hasattr ( self, "ul_critic_tpList" ):
+            return
+        for d in self.ul_critic_tpList:
+            tp=d["tp"]
+            anaId = tp.analysisId()
+            dId = tp.dataId()
+            sId = f"{anaId}:{dId}"
+            txnames = " ".join ( map ( str,  tp.txnames ) )
+            print ( f"- {sId:40s} {txnames} robs={d['robs']:.2f} rexp={d['rexp']:.2f}" )
+
     def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
             detailed : bool = False, add_nlls : bool = False ):
         """ pretty print prediction combos.
@@ -1140,11 +1152,11 @@ class Manipulator ( LoggerBase ):
             self.log(f"Log of total proposal ratio after {move}: {np.log(self.proposal_ratio['q_total']):.2f}")
             return True
 
-    def randomlyChangeModel(self,force_move : bool = False, 
-            probBR : float = 0.2, probSS : float = 0.25, 
+    def randomlyChangeModel(self,force_move : bool = False,
+            probBR : float = 0.2, probSS : float = 0.25,
             probSSingle : float = 0.8, ssmSigma : float = 1.0,
             probMerge : float = 0.05, sigmaFreeze : float = 0.5,
-            probMassive : float = 0.3, probMass : float = 0.05, 
+            probMassive : float = 0.3, probMass : float = 0.05,
             run_mcmc : bool = False, cap_ssm : floor = 100 ):
         """Randomly modify the proto-model following the steps:
 
@@ -1160,7 +1172,7 @@ class Manipulator ( LoggerBase ):
         with probability of probMass
         """
 
-        self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 
+        self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0},
             'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
         self.run_mcmc = run_mcmc
         if self.run_mcmc: old_model = self.M.copy()
@@ -1168,14 +1180,14 @@ class Manipulator ( LoggerBase ):
         changeDesc = {}
         nChanges = 0
 
-        # If TL < = 0, try to drastically change model, 
+        # If TL < = 0, try to drastically change model,
         # else will be stuck in a model with low TL for many steps
         if self.M.TL == None or self.M.TL <=0 :
             probSS = 1.0
             probBR = 1.0
             probMass = 1.0
             force_move = True
-            # do we want to not freeze particles? -> not freezing if 
+            # do we want to not freeze particles? -> not freezing if
             # less than or equal to 3 particles
 
         if not self.run_mcmc:
