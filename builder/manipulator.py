@@ -464,7 +464,11 @@ class Manipulator ( LoggerBase ):
         with open ( filename, "rt" ) as f:
             txt=f.read()
             txt = txt.replace( "null", "float('nan')" ) # json has 'null'
-            D = eval ( txt )
+            try:
+                D = eval ( txt )
+            except (SyntaxError,ValueError) as e:
+                self.error ( f"when parsing {filename}: {e}" )
+                sys.exit(-1)
         if type(D) == list:
             if len(D)<nth+1:
                 self.pprint ( f"asking for {nth}th entry, but we only have {len(D)}" )
