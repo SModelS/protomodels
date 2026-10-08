@@ -23,8 +23,8 @@ from ptools.randomNumbers import fast_rvs
 ## for p-value computation,
 ## shall count them "half" (so that obs=0 -> p = 0.5)
 ## or shall we count them "full" (so that obs=0 -> p = 1.0 )
-# countObsAtExp = "half"
-countObsAtExp = "full"
+countObsAtExp = "half"
+# countObsAtExp = "full"
 
 hasWritten = { "computeP": 0 }
 
