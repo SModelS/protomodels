@@ -141,10 +141,20 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
             sparticles += f"{color}{name}{RESET}={mass:.1f}"
         timestamp = ""
         if "timestamp" in entry:
+            from datetime import datetime
+            from zoneinfo import ZoneInfo
             timestamp = entry["timestamp"]
+            when = datetime.strptime(timestamp, "%a %b %d %H:%M:%S %Y")
             r1 = timestamp.find(" ")
             r2 = timestamp.rfind(" ")
             timestamp = timestamp[r1:r2]
+            timestamp = timestamp.strip()
+            tz = ZoneInfo("Europe/Vienna")
+            now = datetime.now(tz)
+            when = when.replace(year=now.year, tzinfo=tz)
+            hours_ago = (now - when).total_seconds() / 3600
+            if hours_ago < 2:
+                timestamp = f"{GREY}{timestamp}{RESET}"
         if extended:
             step = entry["step"]
             print ( f"#{i+1:2d}({wid:3d}): K={GREEN}{K:6.3f}{RESET} TL={TL:6.3f}; {sparticles}" )
