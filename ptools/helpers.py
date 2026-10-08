@@ -23,8 +23,8 @@ from ptools.randomNumbers import fast_rvs
 ## for p-value computation,
 ## shall count them "half" (so that obs=0 -> p = 0.5)
 ## or shall we count them "full" (so that obs=0 -> p = 1.0 )
-# countObsAtExp = "half"
-countObsAtExp = "full"
+# g_countObsAtExp = "half"
+g_countObsAtExp = "full"
 
 hasWritten = { "computeP": 0 }
 
@@ -343,7 +343,7 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
 
 def computePAnalytically ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False, sigN : Union[None,float] = None,
-        srName : str = "? ana" ) -> float:
+        srName : str = "? ana", countObsAtExp : None| str = None ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis, analytical version:
 
@@ -358,6 +358,8 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
 
     :returns: p-value
     """
+    if countObsAtExp is None:
+        countObsAtExp = g_countObsAtExp
     assert obs == int(obs), f"non-integral observation {obs}"
     obs = int ( obs )
     from scipy import integrate
@@ -382,7 +384,7 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
 
     if obs < bg:
         # compute the inverse!
-        down = max ( 0, int ( obs - 7 * ( bg + bgerr ) )  )
+        down = max ( 0, int ( obs - 7 * total_err )  )
         for k in range ( down, obs ):
             #lo, hi = max(0, k - 5*(bg+bgerr)), k + 5*(bg+bgerr)
             i,e = integrate.quad ( integrand, lo, hi, args=(k,),
@@ -396,7 +398,7 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
         ret = 1 - p
         return ret
     p = 0.
-    up = int ( obs + 7 * ( bg + bgerr ) )
+    up = int ( obs + 7 * total_err )
 
     for k in range ( obs, up ):
         # lo, hi = max(0, k - 5*(bg+bgerr)), k + 5*(bg+bgerr)
@@ -420,7 +422,8 @@ def roughZValue ( obs : float, bg : float , bgerr : float ):
 def computeP ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False, nmax : int = 200_000,
         sigN : Union[None,float] = None, nmin : int = 50_000,
-        force : str = "any", srName : str = "?" ) -> float:
+        force : str = "any", srName : str = "?",
+        countObsAtExp : None|str=None ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
 
@@ -439,29 +442,30 @@ def computeP ( obs : float, bg : float, bgerr : float,
     """
     if force == "analytical":
         ret = computePAnalytically ( obs, bg, bgerr, lognormal, sigN = sigN,
-               srName = srName )
+               srName = srName, countObsAtExp = countObsAtExp )
         return ret, "analytical"
     if not force == "numerical":
         if obs < 20 and not lognormal:
             ret = computePAnalytically ( obs, bg, bgerr, lognormal,
-               sigN = sigN, srName = srName )
+               sigN = sigN, srName = srName, countObsAtExp = countObsAtExp )
             return ret, "analytical"
         Z = roughZValue ( obs, bg, bgerr )
         if abs(Z)>4 and obs < 200 and not lognormal:
             ## these extremes, better do them analytically
             ret = computePAnalytically ( obs, bg, bgerr, lognormal,
-               sigN = sigN, srName = srName )
+               sigN = sigN, srName = srName, countObsAtExp = countObsAtExp )
             return ret, "analytical"
         if abs(Z)>5 and obs < 2000 and not lognormal:
             ## these extremes, better do them analytically
             ret = computePAnalytically ( obs, bg, bgerr, lognormal,
-               sigN = sigN, srName = srName )
+               sigN = sigN, srName = srName, countObsAtExp = countObsAtExp )
             return ret, "analytical"
     #if hasWritten["computeP"]<2:
     #    print ( f"[helpers] computing p numerically nmax={nmax} (sometimes this hangs)" )
 
     ret = computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN,
-            nmin = nmin, nmax = nmax, srName = srName )
+            nmin = nmin, nmax = nmax, srName = srName, 
+            countObsAtExp = countObsAtExp )
     """
     if hasWritten["computeP"]<2:
         print ( f"[helpers] computed p numerically: {ret} (didnt hang)" )
@@ -472,7 +476,7 @@ def computeP ( obs : float, bg : float, bgerr : float,
 def computePNumerically ( obs : float, bg : float, bgerr : float,
         lognormal : bool = False, nmax : int = 200_000,
         sigN : Union[None,float] = None, nmin : int = 50_000,
-        srName : str = "?" ) -> float:
+        srName : str = "?", countObsAtExp : str|None = None ) -> float:
     """ compute P value, gaussian or log-normal nuisance model, w.r.t
     SM hypothesis
 
@@ -536,7 +540,8 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
 
 def computePSLv2 ( obs : float, bg : float, bgerr : float,
         third : float, nmax : int = 200_000,
-        nmin : int = 50_000, srName : str = "?" ) -> float:
+        nmin : int = 50_000, srName : str = "?",
+        countObsAtExp : None|str = None ) -> float:
     """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2
 
     :param obs: observed number of events
@@ -549,6 +554,8 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
 
     :returns: p-value, computer
     """
+    if countObsAtExp is None:
+        countObsAtExp = g_countObsAtExp
     # return -1
     from smodels.statistics.simplifiedLikelihoods import SLData
     printErr = True

@@ -97,8 +97,8 @@ def readDatabaseDictFile ( filename : str = "default.dict",
                 if "expectedBG" in v:
                     eBG = v["expectedBG"]
     basename = os.path.basename ( filename ).replace(".dict","")
-    from ptools.helpers import countObsAtExp
-    meta["countObsAtExp"]=countObsAtExp
+    from ptools.helpers import g_countObsAtExp
+    meta["countObsAtExp"]=g_countObsAtExp
     return { "meta": meta, "data": newdata, "basename": basename }
 
 class ExpResModifier ( LoggerBase ):
