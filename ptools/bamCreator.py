@@ -60,11 +60,13 @@ def selectMostSignificantSRs ( predictions: list[TheoryPrediction],
         signPreds = [pred for pred, ratio in ratioList.items() if ratio/maxRatio >= min_rel_weight ]
 
         if len(signPreds) == 0:
-            pred = list(ratioList.keys())[0]
-            signPreds.append(pred)
+            if len(ratioList)>0:
+                pred = list(ratioList.keys())[0]
+                signPreds.append(pred)
         if len(signPreds) == 1:
-            secondPred = list(ratioList.keys())[1]
-            signPreds.append(secondPred)
+            if len(ratioList)>1:
+                secondPred = list(ratioList.keys())[1]
+                signPreds.append(secondPred)
 
         ret = ret + signPreds
         #keptThese = keptThese + [pred.experimentalId() for pred in signPreds]

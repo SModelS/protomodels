@@ -47,10 +47,12 @@ class ProtoModel ( LoggerBase ):
         super(ProtoModel,self).__init__ ( walkerid )
         self.walkerid = walkerid
         self.keep_meta = keep_meta ## keep all meta info? big!
-        self.version = 1 ## version of this class
+        self.version = 32101 ## version of this class
         self.maxMass = 2400. ## maximum masses we consider
         self.environ = environ
         self.step = 0 ## count the steps
+        self.widths = {}
+        self.pids_with_widths = set()
         self.getParticleContent()
         self.computer = RefXSecComputer( allowN1N1Prod = environ.allowN1N1Prod,
                                          walkerid = walkerid, verbosity = "warn" )
@@ -65,13 +67,46 @@ class ProtoModel ( LoggerBase ):
     def allowN1N1Prod(self,flag : bool ):
         self.computer.allowN1N1Prod = flag
 
+    def getPidsWithWidths ( self ):
+        """ get all pids for which we are allowed to also play with the widths
+        in addition to the masses
+        """
+        self.pids_with_widths = set() # the list with all pids we can change
+        self.widths = {} # the actual width values
+        with open ( self.environ.templateSLHA, "rt" ) as f:
+            lines = f.readlines()
+            for line in lines:
+                # stop at the decays
+                if not line.startswith ( "DECAY" ):
+                    continue
+                p1 = line.find ( "#" )
+                if p1 >= 0:
+                    line = line[:p1]
+                line = line.replace("	"," ")
+                if not " W" in line:
+                    continue
+                p1 = line.find ( " W" )
+                pid = line[p1+2:]
+                pid = pid.strip()
+                try:
+                    pid = int(pid)
+                except Exception as e:
+                    logger.error ( f"could not parse {line} in {self.environ.templateSLHA}" )
+                    sys.exit()
+                if pid in self.widths:
+                    logger.error ( f"pid {pid} appears more than once in {self.environ.templateSLHA}" )
+                    sys.exit()
+                self.pids_with_widths.add ( pid )
+                self.widths[pid]=1. # we start with widths at 1 GeV
+
     def getParticleContent ( self ):
         """ for self.environ.templateSLHA, get its particle content as a list.
-        save the content in self.particles.
-        also, define potential forced_degeneracies
+        save the content in self.particles.  also, define potential forced_degeneracies.
+        Also, find out which particles have widths we are allowed to vary
         """
         assert os.path.exists ( self.environ.templateSLHA ), \
                 f"{self.environ.templateSLHA} does not exist"
+        self.getPidsWithWidths ( )
         particles = set()
         mass_params = set()
         slha = ""
@@ -577,6 +612,12 @@ class ProtoModel ( LoggerBase ):
 
         with open(outputSLHA,'wt') as outF:
             for i,l in enumerate(lines):
+                if hasattr ( self, "widths" ) and len(self.widths)>0:
+                    for pid,value in self.widths.items():
+                        if not f"W{pid}" in l:
+                            continue
+                        l = l.replace ( f"W{pid}", str(value) )
+
                 for pid in self.particles:
                     #Skip lines which have no mass or decay tags
                     if not f"M{pid}" in l and not f"D{pid}" in l:
@@ -723,11 +764,13 @@ class ProtoModel ( LoggerBase ):
             pmodel_dict['ssmultipliers'] = {ppair:self.ssmultipliers[ppair] for ppair in sorted(self.ssmultipliers)}
             decay_dict = {pid:{dpid:self.decays[pid][dpid] for dpid in sorted(self.decays[pid])} for pid in sorted(self.decays)}
             pmodel_dict['decays'] = decay_dict
+            widths = self.widths
+            pmodel_dict['widths'] = widths
             pmodel_dict['xsecs[fb]'] = xsecs
             return pmodel_dict
 
         return { "masses": self.masses, "ssmultipliers": self.ssmultipliers,
-                 "decays": self.decays, "xsecs[fb]": xsecs }
+                 "decays": self.decays, "xsecs[fb]": xsecs, "widths": self.widths }
 
     def relevantSSMultipliers ( self ):
         """ of all the ss mulipliers, return only the relevant ones,

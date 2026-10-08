@@ -133,7 +133,12 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
                 sparticles += ", "
             name = SParticleNames( False).asciiName(p)
             mass = entry["masses"][p]
-            sparticles += f"{CYAN}{name}{RESET}={mass:.1f}"
+            color = CYAN
+            if "widths" in entry and p in entry["widths"]:
+                w = entry["widths"][p]
+                if 10**-19<=w<=10**-10:
+                    color = ORANGE
+            sparticles += f"{color}{name}{RESET}={mass:.1f}"
         timestamp = ""
         if "timestamp" in entry:
             timestamp = entry["timestamp"]

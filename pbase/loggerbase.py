@@ -110,7 +110,10 @@ class LoggerBase:
             return
         if self.countLogs[line]>3:
             return
-        print ( f"[{self.module}:{self.walkerid}] {line}" )
+        swalkerid=""
+        if self.walkerid is not None:
+            swalkerid=f":{self.walkerid}"
+        print ( f"[{self.module}{swalkerid}] {line}" )
         self.prevMessage = line
         self.log ( *args )
 

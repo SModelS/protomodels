@@ -92,19 +92,30 @@ class MassesAndDecays ( LoggerBase ):
         self.xpositions = {}
         masses.sort ( key = lambda x: x[1] )
         for pid, mass in masses:
+            stable = False
+            if pid == 1000022:
+                stable = True
             color = "chocolate"
             if pid in self.options["colors"]:
                 color = self.options["colors"][pid]
+            linestyle="solid"
+            if "widths" in self.model and pid in self.model["widths"]:
+                w = self.model["widths"][pid]
+                if 8*10**-19 <= w <=10**-14:
+                    linestyle = "dotted"
+                if w <= 8*10**-19:
+                    stable = True
             sgn = 1 if ctParticles % 2 == 0 else -1
             xpos = 45 + sgn * ctParticles * 10
             dx_line = 10 # length of the line
             dx_label = 2 # dx of the label
-            if pid == 1000022:
+            if stable: # pid == 1000022:
                 xpos = 45
                 dx_line = 20
                 dx_label = 10
             dy_label = self.dyLabel ( pid )
-            self.ax.hlines ( mass, xpos, xpos+dx_line, color = color )
+            self.ax.hlines ( mass, xpos, xpos+dx_line, color = color,
+                             linestyle=linestyle )
             self.xpositions[pid]=xpos
             pname = namer.texName ( pid, addDollars=True )
             if mass + dy_label < self.yrange[0] - self.delta_y / 60.:

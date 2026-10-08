@@ -464,7 +464,11 @@ class Manipulator ( LoggerBase ):
         with open ( filename, "rt" ) as f:
             txt=f.read()
             txt = txt.replace( "null", "float('nan')" ) # json has 'null'
-            D = eval ( txt )
+            try:
+                D = eval ( txt )
+            except (SyntaxError,ValueError) as e:
+                self.error ( f"when parsing {filename}: {e}" )
+                sys.exit(-1)
         if type(D) == list:
             if len(D)<nth+1:
                 self.pprint ( f"asking for {nth}th entry, but we only have {len(D)}" )
@@ -555,6 +559,9 @@ class Manipulator ( LoggerBase ):
         #Set attributes to dictionary values:
         for k,v in D["masses"].items():
             self.M.masses[k]=v
+        if "widths" in D:
+            for k,v in D["widths"].items():
+                self.M.widths[k]=v
         for k,v in D["ssmultipliers"].items():
             self.M.ssmultipliers[k]=v
         for mpid,decays in D["decays"].items():
@@ -632,6 +639,18 @@ class Manipulator ( LoggerBase ):
     def setWalkerId ( self, Id : int ):
         """ set the walker id of protomodel """
         self.M.walkerid = Id
+
+    def printCritic ( self ):
+        """ form ul_critic_tpList nicely """
+        if not hasattr ( self, "ul_critic_tpList" ):
+            return
+        for d in self.ul_critic_tpList:
+            tp=d["tp"]
+            anaId = tp.analysisId()
+            dId = tp.dataId()
+            sId = f"{anaId}:{dId}"
+            txnames = " ".join ( map ( str,  tp.txnames ) )
+            print ( f"- {sId:40s} {txnames} robs={d['robs']:.2f} rexp={d['rexp']:.2f}" )
 
     def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
             detailed : bool = False, add_nlls : bool = False ):
@@ -717,7 +736,7 @@ class Manipulator ( LoggerBase ):
         #assert sort_by in [ "robs", "lexigraphically" ], \
         #    f"sort_by must be one of: robs, lexigraphically"
         if "lexigraphically".startswith ( sort_by ):
-            combo.sort( key = lambda x: x["tp"].dataset.globalInfo.id, 
+            combo.sort( key = lambda x: x["tp"].dataset.globalInfo.id,
                         reverse = reverse )
         elif "robs".startswith ( sort_by ):
             combo.sort( key = lambda x: x["robs"],
@@ -839,7 +858,7 @@ class Manipulator ( LoggerBase ):
         for dtuple,value in protomodel.decays[pid].items():
             dkey = protomodel.decay_keys[pid][dtuple]
             n_occ = len(protomodel.inv_decay_keys[pid][dkey])
-            BRtot += n_occ * value 
+            BRtot += n_occ * value
         return BRtot
 
     def normalizeBranchings(self, pid : int, rescaleSSMs : bool =False,
@@ -898,10 +917,10 @@ class Manipulator ( LoggerBase ):
         for pidpair,ssm in protomodel.ssmultipliers.items():
             if pidpair in [ (pid,pid),(-pid,-pid),(-pid,pid),(pid,-pid) ]:
                 # Rescale pair production by BRtot^2
-                newssm = min(1e5,ssm*BRtot*BRtot) 
+                newssm = min(1e5,ssm*BRtot*BRtot)
             elif (pid in pidpair) or (-pid in pidpair):
                 # Rescale associated production by BRtot
-                newssm = min(1e5,ssm*BRtot) 
+                newssm = min(1e5,ssm*BRtot)
             else:
                 continue
             protomodel.ssmultipliers[pidpair]=newssm
@@ -1133,10 +1152,12 @@ class Manipulator ( LoggerBase ):
             self.log(f"Log of total proposal ratio after {move}: {np.log(self.proposal_ratio['q_total']):.2f}")
             return True
 
-    def randomlyChangeModel(self,force_move : bool = False, probBR : float = 0.2,
-            probSS : float = 0.25, probSSingle : float = 0.8, ssmSigma : float = 1.0,
+    def randomlyChangeModel(self,force_move : bool = False,
+            probBR : float = 0.2, probSS : float = 0.25,
+            probSSingle : float = 0.8, ssmSigma : float = 1.0,
             probMerge : float = 0.05, sigmaFreeze : float = 0.5,
-            probMassive : float = 0.3, probMass : float = 0.05, run_mcmc= False, cap_ssm=100):
+            probMassive : float = 0.3, probMass : float = 0.05,
+            run_mcmc : bool = False, cap_ssm : floor = 100 ):
         """Randomly modify the proto-model following the steps:
 
         1) A random particle can be unfrozen with a probability
@@ -1151,20 +1172,23 @@ class Manipulator ( LoggerBase ):
         with probability of probMass
         """
 
-        self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
+        self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0},
+            'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
         self.run_mcmc = run_mcmc
         if self.run_mcmc: old_model = self.M.copy()
         else: self.propose_model = self.M.copy()
         changeDesc = {}
         nChanges = 0
 
-        # If TL < = 0, try to drastically change model, else will be stuck in a model with low TL for many steps
+        # If TL < = 0, try to drastically change model,
+        # else will be stuck in a model with low TL for many steps
         if self.M.TL == None or self.M.TL <=0 :
             probSS = 1.0
             probBR = 1.0
             probMass = 1.0
             force_move = True
-            #do we want to not freeze particles? -> not freezing if less than or equal to 3 particles
+            # do we want to not freeze particles? -> not freezing if
+            # less than or equal to 3 particles
 
         if not self.run_mcmc:
             recentlyUnfrozen = self.randomlyUnfreezeParticle(cap_ssm=cap_ssm)
@@ -1210,6 +1234,7 @@ class Manipulator ( LoggerBase ):
             changes = self.randomlyChangeSignalStrengths(protomodel=self.M, prob=0.4, probSingle=1.0, ssmSigma=ssmSigma)
             nChanges += changes
 
+        self.randomlyChangeWidths ( protomodel=self.M )
 
         if not nChanges: #If nothing has changed, force a random change of masses
             changes = self.randomlyChangeMasses(prob=1.0)
@@ -1226,6 +1251,77 @@ class Manipulator ( LoggerBase ):
         #print(f"q_total = {self.proposal_ratio['q_total']}")
         #Update cross-sections (if needed)
         self.M.getXsecs()
+
+    def randomlyChangeWidths ( self, protomodel, pb : float = 0.05 ) -> int:
+        """ randomly change the widths of particles
+        :param pb: probability for each particle per step to have its width changed
+        :returns: number of changes made
+        """
+        if not hasattr ( self.M, "widths" ):
+            self.log ( f"protomodel has no widths?" )
+            return 0
+        n_changes = 0
+        ## get a list of unfrozen particles with widths -> "candidates"
+        unfrozen = self.M.unFrozenParticles ( withLSP = False )
+        candidates = [ x for x in unfrozen if x in self.M.widths ]
+        for cpid in candidates:
+            u = np.random.uniform(0,1)
+            if u < pb:
+                n_changes += self.randomlyChangeWidthOf ( cpid )
+        return n_changes
+
+    def randomlyChangeWidthOf ( self, pid : int ) -> int:
+        """ randomly change the width of pid """
+        cw = self.widths[pid] ## current width
+        ## we have three categories:
+        # cw = 1.0 GeV -> promptly decaying
+        # cw in [ 10**-14, 10**-18 ]  long lived
+        # cw == 10**-20 detector stable
+        n_changes = 0
+        if abs (cw-1.0) < 1e-6:
+            # currently it is promptly decaying
+            p = np.random.uniform ( 0,1)
+            if p < .2:
+                # make it detector stable
+                nw=10**-20
+                n_changes = 1
+            else:
+                # make it long lived
+                p = np.random.uniform ( 14, 18 )
+                nw = 10**(-p)
+                n_changes = 1
+        elif abs(cw*10**20)<1e-6:
+            ## currently its detector stable
+            p = np.random.uniform ( 0,1)
+            if p < .2:
+                # make it promptly decaying
+                nw = 1.
+                n_changes = 1
+            else:
+                # make it long lived
+                p = np.random.uniform ( 14, 18 )
+                nw = 10**(-p)
+                n_changes = 1
+        else:
+            ## currently its long lived
+            p = np.random.uniform ( 0,1)
+            if p < .1:
+                # make it promptly decaying
+                nw = 1.
+                n_changes = 1
+            elif p > .9:
+                # make it detector stable
+                nw = 10**-20
+                n_changes = 1
+            else:
+                ## change by a random factor
+                p = random.uniform ( .3, 3. )
+                nw = cw*p
+                nw = max(10**-20, min(nw, 10**-14))
+                assert ( 10**-20 <= nw <= 10**-14 ), f"width {nw} out of bounds"
+        self.widths[pid]=nw
+        self.log ( f"Randomly changed width of {namer.asciiName(pid)}({pid}) from {cw:.3g} to {nw:.3g}" )
+        return n_changes
 
     def randomlyUnfreezeParticle ( self, cap_ssm : float = 100. ) -> int:
         """ Unfreezes a (random) frozen particle according to gaussian distribution
@@ -1362,16 +1458,12 @@ class Manipulator ( LoggerBase ):
             dk = np.random.choice(dkeys)
             #get decay channel assocaiated with key, make sure all channels assocaited with same key get same branchings
             decay_chan = [key for key,value in protomodel.decay_keys[pid].items() if value == dk]
-            """
-            if show_logs:
-                print ( f"@@01 decay_chan {decay_chan}" )
-                print ( f"@@01 dkeys {dkeys}" )
-                print ( f"@@01 dk {dk}" )
-            """
-            #Get proposal ratio for removing old br
-            #proposal ratio for rem br =  p(i+1 -> i)/ p(i->i+1) = p(add br to i+1 to go to i)/p(rem br to go to i+1)
-            #p(add) = p(addBR)
-            #p(rem) = p(singleBR)p(not choosing dk) = singleBRprob * (1 - 1/(len(dkeys))
+            # Get proposal ratio for removing old br
+            # proposal ratio for rem br =  p(i+1 -> i)/ p(i->i+1) =  \
+            # p(add br to i+1 to go to i)/p(rem br to go to i+1)
+            # p(add) = p(addBR)
+            # p(rem) = p(singleBR)p(not choosing dk) = \
+            # singleBRprob * (1 - 1/(len(dkeys))
             prob_add = addBRprob
             prob_rem = singleBRprob * (1.0 - 1/len(dkeys))
             self.proposal_ratio['br']['rem'] *= prob_add/prob_rem
@@ -1381,7 +1473,9 @@ class Manipulator ( LoggerBase ):
             if len(decay_chan)>0:
                 dpid = decay_chan[0]
             #for dpid in decay_chan:
-                self.record ( f"change decay of {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} to {br:.2f}" )
+                tName = namer.texName(pid,addDollars=True)
+                tDName = namer.texName(dpid,addDollars=True)
+                self.record ( f"change decay of {tName} -> {tDName} to {br:.2f}" )
                 p_name = namer.asciiName(pid)
                 dp_name = namer.asciiName(dpid)
                 self.log ( f"changed decay of {pid_name} -> {dp_name} to {br:.2f}" )
@@ -2774,7 +2868,7 @@ class Manipulator ( LoggerBase ):
             tp._statsComputer = sc
             bestCombo.append ( cp_tp )
         """
-        self._backup = { "llhd": self.M.llhd, "letters": self.M.letters, 
+        self._backup = { "llhd": self.M.llhd, "letters": self.M.letters,
             "TL": self.M.TL, "K": self.M.K, "muhat": self.M.muhat,
             "description": self.M.description,
             "ul_critic_tpList": copy.deepcopy(self.M.ul_critic_tpList),
