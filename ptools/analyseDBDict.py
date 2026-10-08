@@ -27,7 +27,6 @@ class Analyzer ( LoggerBase ):
         self.args = args
         self.setColors ( args["nocolors"] )
         self.latex = args["latex"]
-        self.enum = args["enumerate"]
         self.latexHeader()
         self.reportZvalues = True
         self.filenames = []
@@ -55,13 +54,13 @@ class Analyzer ( LoggerBase ):
         self.latexfile.write ( f"% file created {time.asctime()}\n" )
         self.latexfile.write ( f"\n" )
         lformat = "{|l|l|l|l|r|r|}"
-        if self.enum:
+        if self.args["enumerate"]:
             lformat = f"{lformat[:2]}l|{lformat[2:]}"
         # self.latexfile.write ( r"\resizebox{\textwidth}{!}{" )
         self.latexfile.write ( r"\begin{tabular}"+lformat )
         self.latexfile.write ( "\n" )
         self.latexfile.write ( r"\hline" )
-        if self.enum:
+        if self.args["enumerate"]:
             self.latexfile.write ( r"{\bf nr} & " )
         self.latexfile.write ( r"{\bf Z} & {\bf analysis} & {\bf SR} & {\bf topo} & {\bf obsN} & {\bf expected} \\" )
         self.latexfile.write ( "\n" )
@@ -231,7 +230,7 @@ class Analyzer ( LoggerBase ):
                 bcol = r"\color{darkgreen} "
                 if coll == "CMS":
                     bcol = r"\color{darkblue} "
-            if self.enum:
+            if self.args["enumerate"]:
                 line += f"#{ctr+1:2d}: "
                 self.writeLatex ( f"{bcol}{ctr+1:2d} & " )
             if self.reportZvalues:
@@ -259,7 +258,7 @@ class Analyzer ( LoggerBase ):
                 anaonly = ana[:ana.find(":")]
                 sr = ana[ana.find(":")+1:].replace("_",r"\_")
                 line = ""
-                if self.enum:
+                if self.args["enumerate"]:
                     line += f"#{ctr+1:2d}: "
                     self.writeLatex ( f"{bcol}{ctr+1:2d} & " )
                 if self.reportZvalues:
@@ -274,12 +273,15 @@ class Analyzer ( LoggerBase ):
         self.summarize()
         self.latexFooter()
 
-    def analysisLevelReport ( self, filename : str, nlargest : int, nsmallest : int ):
+    def analysisLevelReport ( self, filename : str, nlargest : int, 
+            nsmallest : int ):
+        """ report but report one line per analysis """
         self.pprint ( f"reading {filename}" )
         meta, data = self.read ( filename )
         anas = set()
         Zvalues, Z_mean = {}, {}
         a_topos = {}
+        sort_by = "max"
         for anaid, values in data.items():
             topos = self.getTopos ( values, anaid )
             if topos == None:
@@ -298,7 +300,12 @@ class Analyzer ( LoggerBase ):
                     a_topos[aid].add ( t )
             Zvalues[aid].append(Z)
         for anaid,Zvals in Zvalues.items():
-            Zm = float(np.mean(Zvals))
+            if self.args["sort_by"] == "mean":
+                Zm = float(np.mean(Zvals))
+            elif self.args["sort_by"] == "max":
+                Zm = max(Zvals)
+            else:
+                raise Exception( f"sort_by {self.sort_by} unknown" )
             while Zm in Z_mean:
                 Zm += 1e-8
             Z_mean [ Zm ] = anaid
@@ -313,27 +320,32 @@ class Analyzer ( LoggerBase ):
         if prettyName:
             from smodels.experiment.databaseObj import Database
             db = Database ( "../smodels-database/" )
-        for key in keys[:nlargest]:
+        for i,key in enumerate(keys[:nlargest]):
             ana = Z_mean[key]
             lo = min(Zvalues[ana])
             hi = max(Zvalues[ana])
             mean = float ( np.mean ( Zvalues[ana]) )
-            ts = " ".join ( a_topos[ana] )
+            ts = ",".join ( list(a_topos[ana])[:4] )
+            if len(a_topos[ana])>4:
+                    ts+=",..."
             pName = ""
             if prettyName:
                 er = db.getExpResults ( analysisIDs = [ ana ] )
                 if len(er)>0:
                     pName = f": {er[0].globalInfo.prettyName}"
-            print ( f"Z={GREEN}[{lo:.2f},{mean:.2f},{hi:.2f}]{RESET} {YELLOW}{ana}{RESET}{pName}" )
-            """
-            if prettyName:
-                er = db.getExpResults ( analysisIDs = [ ana ] )
-                if len(er)>0:
-                    pName = er[0].globalInfo.prettyName
-                    print ( f"    {pName}: {ts}" )
-            else:
-                print ( f"    {ts}" )
-            """
+            shi = f"{GREEN}{hi:.2f}{RESET}"
+            if self.args["sort_by"] == "max":
+                shi = f"{LIGHTGREEN}{hi:.2f}{RESET}"
+            smean = f"{GREEN}{mean:.2f}{RESET}"
+            if self.args["sort_by"] == "mean":
+                smean = f"{LIGHTGREEN}{mean:.2f}{RESET}"
+            sts = ""
+            if self.args["add_topos"]:
+                sts = f"\n      - {ts}"
+            sen = ""
+            if self.args["enumerate"]:
+                sen=f"#{i+1:2d}: "
+            print ( f"{sen}Z={GREEN}[{lo:.2f},{smean},{shi}{GREEN}]{RESET} {YELLOW}{ana}{RED}{pName}{RESET}{sts}" )
         
         #self.summarize()
         #self.latexFooter()
@@ -349,6 +361,9 @@ def main():
     argparser.add_argument ( '-t', '--topos', nargs='*',
             help='filter for topologies, comma separated list or multiple arguments. prefix with ^ is negation. [None]',
             type=str, default=None )
+    argparser.add_argument ( '--sort_by',
+            help='sort_by criterion, mean or max [max]',
+            type=str, default="max" )
     argparser.add_argument ( '-n', '--nlargest',
             help='number of result to list with largest Z values [10]',
             type=int, default=10 )
@@ -362,6 +377,8 @@ def main():
     argparser.add_argument ( '--nocolors',
             help='dont use colors in output', action="store_true" )
     argparser.add_argument ( '-l', '--latex', help='create a latex version',
+            action="store_true" )
+    argparser.add_argument ( '--add_topos', help='add topologies',
             action="store_true" )
     args=argparser.parse_args()
     analyzer = Analyzer ( vars(args) )
