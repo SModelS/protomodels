@@ -1,37 +1,77 @@
 ---
-CMS-SUS-18-004-wbplus-agg: # MET + two or three soft leptons FIXME check
-- CMS-SUS-21-002
-- CMS-PAS-EXO-16-036
+CMS-EXO-20-004: # Monojet
+- CMS-SUS-21-007            #eff-maps not implemented in SModelS
 - CMS-SUS-20-004
-- CMS-EXO-20-004
-- CMS-SUS-19-006
-- CMS-SUS-19-006-agg
-- CMS-SUS-16-050
-- CMS-SUS-16-050-agg
+- CMS-SUS-20-001            #eff-maps not implemented in SModelS
+- CMS-SUS-19-011            #eff-maps not implemented in SModelS
+- CMS-SUS-19-009            #eff-maps not implemented in SModelS
+- CMS-SUS-19-008            #eff-maps not implemented in SModelS
+- CMS-SUS-18-007            #eff-maps not implemented in SModelS
+- CMS-SUS-18-004            #eff-maps not implemented in SModelS
+- CMS-SUS-18-004-wbplus-agg
+- CMS-SUS-18-004-wbplus
+- CMS-SUS-18-002            #eff-maps not implemented in SModelS
+- CMS-SUS-17-010            #eff-maps not implemented in SModelS
+- CMS-SUS-17-009            #eff-maps not implemented in SModelS
+- CMS-SUS-17-005            #eff-maps not implemented in SModelS
+- CMS-SUS-17-004            #eff-maps not implemented in SModelS
+ -CMS-SUS-17-003            #eff-maps not implemented in SModelS
+- CMS-SUS-16-051            #eff-maps not implemented in SModelS
 - CMS-SUS-16-048
-- CMS-SUS-16-033
-CMS-SUS-18-004-wbplus: # MET + two or three soft leptons FIXME check
-- CMS-SUS-21-002
-- CMS-PAS-EXO-16-036
-- CMS-SUS-20-004
+- CMS-SUS-16-047            #eff-maps not implemented in SModelS
+- CMS-SUS-16-046            #eff-maps not implemented in SModelS
+- CMS-SUS-16-045            #eff-maps not implemented in SModelS
+- CMS-SUS-16-043            #eff-maps not implemented in SModelS
+- CMS-SUS-16-042            #eff-maps not implemented in SModelS
+- CMS-SUS-16-039
+- CMS-SUS-16-039-agg
+- CMS-SUS-16-037            #eff-maps not implemented in SModelS
+- CMS-SUS-16-035            #eff-maps not implemented in SModelS
+- CMS-SUS-16-034            #eff-maps not implemented in SModelS
+- CMS-PAS-SUS-17-004        #eff-maps not implemented in SModelS
+- CMS-PAS-SUS-16-052
+- CMS-PAS-SUS-16-052-agg
+- CMS-PAS-SUS-16-022        #eff-maps not implemented in SModelS
+- CMS-PAS-SUS-16-019        #eff-maps not implemented in SModelS
+- CMS-PAS-SUS-16-016        #eff-maps not implemented in SModelS
+- CMS-EXO-20-008            #eff-maps not implemented in SModelS
+- CMS-EXO-19-019            #eff-maps not implemented in SModelS
+- CMS-EXO-19-010
+- CMS-EXO-19-012            #eff-maps not implemented in SModelS
+- CMS-EXO-19-001
+CMS-SUS-18-004-wbplus-agg: # MET + two or three soft leptons
+- CMS-PAS-EXO-16-036        #eff-maps not implemented in SModelS
 - CMS-EXO-20-004
-- CMS-SUS-19-006
-- CMS-SUS-19-006-agg
-- CMS-SUS-16-050
-- CMS-SUS-16-050-agg
-- CMS-SUS-16-048
-- CMS-SUS-16-033
-CMS-SUS-18-004: # MET + two or three soft leptons FIXME check
-- CMS-SUS-21-002
-- CMS-PAS-EXO-16-036
-- CMS-SUS-20-004
+- CMS-SUS-18-007            #eff-maps not implemented in SModelS
+- CMS-SUS-18-002            #eff-maps not implemented in SModelS
+- CMS-SUS-16-047            #eff-maps not implemented in SModelS
+- CMS-SUS-16-046            #eff-maps not implemented in SModelS
+- CMS-SUS-16-045            #eff-maps not implemented in SModelS
+- CMS-EXO-19-019            #eff-maps not implemented in SModelS
+- CMS-EXO-19-001
+- CMS-EXO-19-010
+CMS-SUS-18-004-wbplus: # MET + two or three soft leptons
+- CMS-PAS-EXO-16-036        #eff-maps not implemented in SModelS
 - CMS-EXO-20-004
-- CMS-SUS-19-006
-- CMS-SUS-19-006-agg
-- CMS-SUS-16-050
-- CMS-SUS-16-050-agg
-- CMS-SUS-16-048
-- CMS-SUS-16-033
+- CMS-SUS-18-007            #eff-maps not implemented in SModelS
+- CMS-SUS-18-002            #eff-maps not implemented in SModelS
+- CMS-SUS-16-047            #eff-maps not implemented in SModelS
+- CMS-SUS-16-046            #eff-maps not implemented in SModelS
+- CMS-SUS-16-045            #eff-maps not implemented in SModelS
+- CMS-EXO-19-019            #eff-maps not implemented in SModelS
+- CMS-EXO-19-001
+- CMS-EXO-19-010
+CMS-SUS-18-004: # MET + two or three soft leptons
+- CMS-PAS-EXO-16-036        #eff-maps not implemented in SModelS
+- CMS-EXO-20-004
+- CMS-SUS-18-007            #eff-maps not implemented in SModelS
+- CMS-SUS-18-002            #eff-maps not implemented in SModelS
+- CMS-SUS-16-047            #eff-maps not implemented in SModelS
+- CMS-SUS-16-046            #eff-maps not implemented in SModelS
+- CMS-SUS-16-045            #eff-maps not implemented in SModelS
+- CMS-EXO-19-019            #eff-maps not implemented in SModelS
+- CMS-EXO-19-001
+- CMS-EXO-19-010
 CMS-EXO-19-001:
 - CMS-EXO-19-010
 - CMS-EXO-20-004
@@ -65,6 +105,8 @@ CMS-EXO-19-001:
 - CMS-SUS-17-010            #eff-maps not implemented in SModelS
 - CMS-SUS-18-002            #eff-maps not implemented in SModelS
 - CMS-SUS-18-004            #eff-maps not implemented in SModelS
+- CMS-SUS-18-004-wbplus-agg
+- CMS-SUS-18-004-wbplus
 - CMS-SUS-18-007            #eff-maps not implemented in SModelS
 - CMS-SUS-19-006
 - CMS-SUS-19-006-agg
@@ -110,6 +152,8 @@ CMS-EXO-19-010:
 - CMS-SUS-17-010            #eff-maps not implemented in SModelS
 - CMS-SUS-18-002            #eff-maps not implemented in SModelS
 - CMS-SUS-18-004            #eff-maps not implemented in SModelS
+- CMS-SUS-18-004-wbplus-agg
+- CMS-SUS-18-004-wbplus
 - CMS-SUS-18-007            #eff-maps not implemented in SModelS
 - CMS-SUS-19-006
 - CMS-SUS-19-006-agg
@@ -156,6 +200,8 @@ CMS-PAS-EXO-16-036: # hscp search       #eff-maps not implemented in SModelS
 - CMS-SUS-17-010
 - CMS-SUS-18-002
 - CMS-SUS-18-004
+- CMS-SUS-18-004-wbplus-agg
+- CMS-SUS-18-004-wbplus
 - CMS-SUS-18-007
 - CMS-SUS-19-006
 - CMS-SUS-19-006-agg
@@ -168,17 +214,6 @@ CMS-PAS-EXO-16-036: # hscp search       #eff-maps not implemented in SModelS
 - CMS-SUS-20-002
 - CMS-SUS-20-004
 - CMS-SUS-21-002
-CMS-EXO-20-004:
-- CMS-EXO-19-001
-- CMS-EXO-19-010
-- CMS-PAS-SUS-16-052
-- CMS-PAS-SUS-16-052-agg
-- CMS-SUS-16-039
-- CMS-SUS-16-039-agg
-- CMS-SUS-16-048
-- CMS-SUS-16-050
-- CMS-SUS-16-050-agg
-- CMS-SUS-20-004
 CMS-PAS-SUS-16-022: # >= 3 leptons + Etmiss     #eff-maps not implemented in SModelS
 - CMS-PAS-EXO-16-036
 - CMS-PAS-SUS-16-052
@@ -1385,6 +1420,8 @@ CMS-SUS-16-045:         #eff-maps not implemented in SModelS
 - CMS-SUS-17-010
 - CMS-SUS-18-002
 - CMS-SUS-18-004
+- CMS-SUS-18-004-wbplus-agg
+- CMS-SUS-18-004-wbplus
 - CMS-SUS-19-006
 - CMS-SUS-19-006-agg
 - CMS-SUS-19-008
@@ -1421,6 +1458,8 @@ CMS-SUS-16-046:         #eff-maps not implemented in SModelS
 - CMS-SUS-16-051
 - CMS-SUS-17-003
 - CMS-SUS-17-004
+- CMS-SUS-18-004-wbplus-agg
+- CMS-SUS-18-004-wbplus
 - CMS-SUS-17-005
 - CMS-SUS-17-006
 - CMS-SUS-17-009
@@ -1468,6 +1507,8 @@ CMS-SUS-16-047:         #eff-maps not implemented in SModelS
 - CMS-SUS-17-009
 - CMS-SUS-17-010
 - CMS-SUS-18-004
+- CMS-SUS-18-004-wbplus-agg
+- CMS-SUS-18-004-wbplus
 - CMS-SUS-18-007
 - CMS-SUS-19-006
 - CMS-SUS-19-006-agg
@@ -1516,7 +1557,6 @@ CMS-SUS-16-049: # All hadronic stop     #eff-maps not implemented in SModelS
 CMS-SUS-16-050: # 0L + top tag
 - CMS-EXO-19-001
 - CMS-EXO-19-010
-- CMS-EXO-20-004            #check combinability
 - CMS-PAS-EXO-16-036
 - CMS-PAS-SUS-16-022
 - CMS-PAS-SUS-16-052
@@ -1551,7 +1591,6 @@ CMS-SUS-16-050: # 0L + top tag
 CMS-SUS-16-050-agg: # 0L + top tag
 - CMS-EXO-19-001
 - CMS-EXO-19-010
-- CMS-EXO-20-004
 - CMS-PAS-EXO-16-036
 - CMS-PAS-SUS-16-022
 - CMS-PAS-SUS-16-052
@@ -1802,6 +1841,8 @@ CMS-SUS-18-002: # photon, jets, b-jets+ Etmiss, top tagging, lepton veto        
 - CMS-SUS-17-006
 - CMS-SUS-17-010
 - CMS-SUS-18-004
+- CMS-SUS-18-004-wbplus-agg
+- CMS-SUS-18-004-wbplus
 - CMS-SUS-18-007
 - CMS-SUS-19-008
 - CMS-SUS-19-009
@@ -1812,15 +1853,6 @@ CMS-SUS-18-002: # photon, jets, b-jets+ Etmiss, top tagging, lepton veto        
 - CMS-SUS-20-002
 - CMS-SUS-20-004
 - CMS-SUS-21-002
-CMS-SUS-18-004:         #eff-maps not implemented in SModelS
-- CMS-EXO-19-001
-- CMS-EXO-19-010
-- CMS-PAS-EXO-16-036
-- CMS-SUS-16-045
-- CMS-SUS-16-046
-- CMS-SUS-16-047
-- CMS-SUS-18-002
-- CMS-SUS-18-007
 CMS-SUS-18-007:         #eff-maps not implemented in SModelS
 - CMS-EXO-19-001
 - CMS-EXO-19-010
@@ -1853,6 +1885,8 @@ CMS-SUS-18-007:         #eff-maps not implemented in SModelS
 - CMS-SUS-17-010
 - CMS-SUS-18-002
 - CMS-SUS-18-004
+- CMS-SUS-18-004-wbplus-agg
+- CMS-SUS-18-004-wbplus
 - CMS-SUS-19-006
 - CMS-SUS-19-006-agg
 - CMS-SUS-19-008
