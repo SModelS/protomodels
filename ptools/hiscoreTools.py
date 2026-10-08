@@ -142,6 +142,23 @@ def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",
         oldV = sum(pentry.masses.values()) + \
                sum(pentry.ssmultipliers.values())
 
+        if "widths" in dentry and not hasattr ( pentry, "widths" ):
+            return True, "pentry has no widths"
+        if hasattr ( pentry, "widths" ) and not "widths" in dentry:
+            return True, "dentry has no widths"
+
+        def similarWidths ( w1 : float, w2 : float ) -> bool:
+            """ determine if widths are comparable """
+
+        for k,v in dentry.items():
+            if not k in pentry.widths:
+                return True, f"pentry.widths has no {k}"
+            if v == 0. and pentry.widths[k]==0.:
+                continue
+            dlt = abs ( v - pentry.widths[k] ) / ( v + pentry.widths[k] )
+            if dlt > 1e-8:
+                return True, "widths have changed"
+
         if "K" in dentry and dentry["K"] is not None:
             newV += dentry["K"]
             oldV += pentry.K
