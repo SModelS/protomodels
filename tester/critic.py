@@ -366,7 +366,8 @@ class Critic ( LoggerBase ):
         """
 
         if not predictions: # If empty list
-            return True, 0, 0 # the model is not excluded
+            return { "allowed": True, "n_sensitive": 0, 
+                     "n_excluding": 0 } # the model is not excluded
 
         from scipy.stats import binom
 
@@ -419,8 +420,6 @@ class Critic ( LoggerBase ):
                 "n_excluding": n_excluding }
         return ret
         # return max_allowed >= n_excluding, n_sensitive, n_excluding
-
-
 
     def llhd_critic(self, predictions, cut : float =0,
             keep_predictions : bool = False) -> Tuple:

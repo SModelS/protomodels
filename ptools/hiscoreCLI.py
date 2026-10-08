@@ -91,6 +91,9 @@ def cli( infile : str = "hiscores_global.dict",
     pprint ( f"{YELLOW}pr.predict(ma,keep_predictions=True,force_computation_K=False,{RESET}" )
     pprint ( f"{YELLOW}           keep_slhafile=True{RESET}" )
     pprint ( f"{RED}statsModelsTimer{RESET}" )
+    from pbase.unit_conversion import lifetimeToWidth, widthToLifetime, hbar, \
+         GeV, ns
+    pprint ( f"{RED}lifetimeToWidth, widthToLifetime{RESET}" )
     pr.predict( ma, keep_predictions=True, force_computation_K=False,
                 keep_slhafile=True )
 
