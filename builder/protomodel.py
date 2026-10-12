@@ -638,7 +638,7 @@ class ProtoModel ( LoggerBase ):
 
                     #Replace mass tag:
                     if f"M{pid}" in l:
-                        l = l.replace( f"M{pid}", f"{mass:.1f}" )
+                        l = l.replace( f"M{pid}", f"{mass:.10g}" )
                     else:
                         decayTag = l.strip().split()[0]
                         decayPids = decayTag.replace('D','').split('_')
