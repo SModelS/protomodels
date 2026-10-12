@@ -264,6 +264,25 @@ class Combiner ( LoggerBase ):
             self.log ( f"penalty! we only have {num} {','.join( k for k,v in hasExperiment.items() if v )} results" )
             return 0.5 # penalize!
 
+    def hasNBodyDecays ( self, decays : dict , n : int = 3 ) -> bool:
+        """ among the decays are there also n-body decays?
+        :returns: true if pid decays via n-body decays
+        """
+        for decay,br in decays.items():
+            if len(decay)==n:
+                return True
+        return False
+
+    def hasHeavyBosonDecays ( self, decays : dict ) -> bool:
+        """ amonst decays, are there also decays via heavy gauge bosons?
+        :returns: true if pid decays via W or Z or higgs
+        """
+        for decay,br in decays.items():
+            for g in [ 23, 24, 25 ]:
+                if g in decay:
+                    return True
+        return False
+
     def penaltyForUndemocraticFlavors ( self, protomodel ) -> float:
         """ very simple hack for now, penalize for undemocratic flavor decays
 
@@ -278,11 +297,14 @@ class Combiner ( LoggerBase ):
 
             if all( [ len(decay) == 2 for decay in decays.keys() ] ):  # On-shell, continue
                 continue
-            if not all( [ len(decay) == 3 for decay in decays.keys() ] ): # If both on- and off-shell decays, disallow
+            if self.hasHeavyBosonDecays( decays ) and self.hasNBodyDecays ( decays ):
                 #from termcolor import colored
-                self.highlight("error", f"ERROR: pID {pid} of mass {protomodel.masses[pid]} has both on- AND off-shell decays: {decays}! Returning a prior of 0.05")
-                from termcolor import colored
-                return 0.05
+                self.highlight("error", f"ERROR: pID {pid} of mass {protomodel.masses[pid]} has both on- AND off-shell decays: {decays}! Ignoring for now")
+# self.highlight("error", f"ERROR: pID {pid} of mass {protomodel.masses[pid]} has both on- AND off-shell decays: {decays}! Returning a prior of 0.05")
+                #import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+                # from termcolor import colored
+                # return 0.05
+                continue
             if len ( decays ) == 1:
                 if list(decays.keys())[0] in [(1000022, 2, 1), (1000022, 2, 2), (1000022, 5, 5)]: # If the open channel is for light quarks or bb, allow
                     continue
