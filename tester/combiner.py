@@ -6,7 +6,7 @@ __all__ = [ "Combiner" ]
 
 from smodels.decomposition import decomposer
 from smodels.share.models.SMparticles import SMList
-from share.model_spec import BSMList
+from pshare.model_spec import BSMList
 from smodels.base.physicsUnits import fb
 from smodels.statistics.basicStats import NllEvalType, observed, apriori
 from smodels.matching.theoryPrediction import TheoryPrediction, \

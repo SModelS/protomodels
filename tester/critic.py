@@ -23,7 +23,7 @@ from smodels.base.exceptions import SModelSBaseError as SModelSError
 sys.path.insert(0,"../")
 
 from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
-from share.model_spec import BSMList
+from pshare.model_spec import BSMList
 from pbase.loggerbase import LoggerBase
 from pbase.runEnviron import RunEnviron
 from builder.protomodel import ProtoModel
