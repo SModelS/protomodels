@@ -25,7 +25,7 @@ if False:
     runtime._experimental["truncatedgaussians"] = True
 from smodels.base.model import Model
 from smodels.share.models.SMparticles import SMList
-from share.model_spec import BSMList
+from pshare.model_spec import BSMList
 from smodels.matching.theoryPrediction import theoryPredictionsFor
 from smodels.statistics.simplifiedLikelihoods import SLData, SLUpperLimitComputer, \
          SLLikelihoodComputer

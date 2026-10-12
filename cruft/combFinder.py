@@ -188,7 +188,7 @@ class combFinder(object):
 if __name__ == "__main__":
     from smodels.experiment.databaseObj import Database
     from smodels.base.model import Model
-    from share.model_spec import BSMList
+    from pshare.model_spec import BSMList
     from smodels.share.models.SMparticles import SMList
     from smodels.base.physicsUnits import fb, GeV
     from smodels.decomposition import decomposer
