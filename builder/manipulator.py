@@ -531,6 +531,15 @@ class Manipulator ( LoggerBase ):
     #    self.manipulator.proposal_density( move='add_par', force_unfreeze=True)
     #    self.manipulator.backupModel()
 
+    def checkConsistencyOfDict ( self, D : dict ) -> bool:
+        """ check for some obvious mistakes in D.
+        :returns: true if it looks ok
+        """
+        for k,v in D.items():
+            if "\n" in k or "\n" in str(v):
+                raise Exception ( f"dictionary {D} looking weird" )
+        return True
+
     def initFromDict ( self, D : Dict, filename : str = "",
             initTestStats : bool = False ):
         """ setup the protomodel from dictionary D.
@@ -538,6 +547,7 @@ class Manipulator ( LoggerBase ):
         :param filename: name of origin. not necessary, only for logging.
         :param initTestStats: if True, set also test statistics K and TL
         """
+        self.checkConsistencyOfDict( D )
         scom = ""
         if "comment" in D:
                 scom = f": {D['comment']}"
