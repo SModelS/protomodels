@@ -495,6 +495,7 @@ class RefXSecComputer ( LoggerBase ):
                     os.unlink(pythia.pythiacard)
                     pythia.pythiacard = None
                     self.warning (f'PYTHIA cross section: {xsec*1000:.2f}*fb')
+                    xsec.comment = comment
                 except Exception as e:
                     if pythia.pythiacard != None:
                         os.unlink(pythia.pythiacard)
@@ -516,16 +517,13 @@ class RefXSecComputer ( LoggerBase ):
                 orderStr = crossSection.orderToString(order,False,False)
                 channel["label"] = f"{int(sqrts)} TeV ({orderStr})"
                 a = self.dictToXSection ( channel )
-                a.comment = comment
                 xsecs.add ( a )
+                xsecs[-1].comment = comment ## needs to be done after
             else:
                 self.debug ( f"No signal strength multiplier for {pids}" )
                 # self.debug ( f"pids {pids} in ssms {pids in ssmultipliers}" )
                 self.debug (ssmultipliers)
-            
         self.xsecs = xsecs
-        #if len(self.xsecs)>0:
-        #    self.xsecs[0].comment = comment
 
     def findOpenChannels ( self, slhafile ):
         slhadata = pyslha.readSLHAFile ( slhafile )
