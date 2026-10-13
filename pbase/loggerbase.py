@@ -74,7 +74,7 @@ class LoggerBase:
         """ logging to file, but also write to screen """
         self.log ( *args )
         if self.verbose < 21:
-            print ( f"[self.module] {' '.join(map(str, args))}" )
+            print ( f"[{self.module}] {' '.join(map(str, args))}" )
 
     def highlight ( self, msgType : str = "info", *args ):
         """ logging, hilit """
