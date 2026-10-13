@@ -661,6 +661,12 @@ class Manipulator ( LoggerBase ):
             sId = f"{anaId}:{dId}"
             txnames = " ".join ( map ( str,  tp.txnames ) )
             print ( f"- {sId:40s} {txnames} robs={d['robs']:.2f} rexp={d['rexp']:.2f}" )
+        print ( )
+        robs = self.llhd_critic["robs"]
+        rexp = self.llhd_critic["rexp"]
+        print ( f"Likelihood based critic: robs {robs:.1f} rexp {rexp:.1f}" )
+        lpreds = " ".join ( self.llhd_critic["datasets"] )
+        print ( f"   - combines: {lpreds}" )
 
     def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
             detailed : bool = False, add_nlls : bool = False ):
