@@ -684,6 +684,8 @@ class RefXSecComputer ( LoggerBase ):
         isEWK = False
         comment = ""
         # comment="refxsec [pb]"
+        if sqrts == int(sqrts):
+            sqrts=int(sqrts)
         if pid1 in [ 35 ] and pid2 == None:
             #if sqrts == 8: # we dont have xsecs for that
             #    return None, None, None
@@ -699,36 +701,36 @@ class RefXSecComputer ( LoggerBase ):
             isEWK=False
             order = LO
         if pid1 in [ 1000021 ] and pid2 == pid1: # Gluino pair production
-            filename = f"xsecgluino{int(sqrts)}.txt"
+            filename = f"xsecgluino{sqrts}.txt"
             columns["xsec"] = 2
             order = NNLL # 4
             if masses[0] < 500:
                 order = NLL
         if (pid1 in [ 1000001, 1000002, 1000003, 1000004, 1000005, 1000006 ] and pid2 in [ 1000021 ]) or (pid1 in [ 1000021 ] and pid2 in [ 2000005, 2000006 ]):
         # Gluino-squark productions
-            filename = f"xsecsquark{int(sqrts)}.txt"
+            filename = f"xsecsquark{sqrts}.txt"
             columns["xsec"] = 2
             order = NNLL
         if pid1 in [ -1000001, -1000002, -1000003, -1000004 ] and pid2 == -pid1: # Squark-antisquark productions (light quarks)
-            filename = f"xsecsquark{int(sqrts)}.txt"
+            filename = f"xsecsquark{sqrts}.txt"
             columns["xsec"] = 2
             order = NNLL
         if pid1 in [ -1000005, -2000005, -1000006, -2000006 ] and pid2 == -pid1: # Squark-antisquark productions (heavy quarks)
-            filename = f"xsecstop{int(sqrts)}.txt"
+            filename = f"xsecstop{sqrts}.txt"
             columns["xsec"] = 2
             order = NNLL
         if pid1 in [ -1000011, -1000012, -1000013, -1000014, -1000015, -1000016 ] and pid2 in [ 1000011, 1000012, 1000013, 1000014, 1000015, 1000016 ]: # Slepton pair productions
-            filename = f"xsecslepslep{int(sqrts)}.txt"
+            filename = f"xsecslepslep{sqrts}.txt"
             if sqrts == 8:
                 pb == False
         if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000022, 1000023, 1000025 ]: # Charginos(-) neutralinos production
-            filename = f"xsecN2C1m{int(sqrts)}.txt"
+            filename = f"xsecN2C1m{sqrts}.txt"
             order = NLL
             isEWK = True
             if sqrts == 13:
                 pb = False
         if (pid1 in [ 1000022, 1000023, 1000025 ] and pid2 in [ 1000024, 1000037 ]) or (pid1 == 1000024 and pid2 == 1000025): # Charginos(+) neutralinos productions -- 'or' condition because pid1 < pid2
-            filename = f"xsecN2C1p{int(sqrts)}.txt"
+            filename = f"xsecN2C1p{sqrts}.txt"
             order = NLL
             if sqrts == 13:
                 pb = False
@@ -743,8 +745,8 @@ class RefXSecComputer ( LoggerBase ):
                 self.info ( f"Asking for massless {(pid1,pid2)} production. Will return None." )
                 return None, None, None
             self.info ( f"Asking for {(pid1,pid2)} production. Will use C1 C1 xsecs (No N1 N2 cross sections at 8 TeV)." )
-            filename = f"xsecC1C1{int(sqrts)}.txt"
-            #filename = "xsecN2N1p%d.txt" % sqrts
+            filename = f"xsecC1C1{sqrts}.txt"
+            # filename = f"xsecN2N1{sqrts}.txt"
             order = NLL
             pb = False
             isEWK = True
@@ -769,6 +771,7 @@ class RefXSecComputer ( LoggerBase ):
             self.error ( f"{path} missing" )
             sys.exit(-1)
         xsecs = self.getXSecsFrom ( path, pb, columns )
+        comment = f"from {filename}"
         return xsecs,order,comment
 
 if __name__ == "__main__":
