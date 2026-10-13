@@ -658,6 +658,8 @@ class Manipulator ( LoggerBase ):
             tp=d["tp"]
             anaId = tp.analysisId()
             dId = tp.dataId()
+            if dId is None:
+                dId = "ul"
             sId = f"{anaId}:{dId}"
             txnames = " ".join ( map ( str,  tp.txnames ) )
             print ( f"- {sId:40s} {txnames} robs={d['robs']:.2f} rexp={d['rexp']:.2f}" )
@@ -1033,8 +1035,9 @@ class Manipulator ( LoggerBase ):
         if abs ( s - 1.0 ) < 1e-5:
             return
         if s > cap_ssm: s = cap_ssm                                 #Do not rescale ssms by more than 100 (?)
-        self.log ( f"rescaling signal by muhat of {s:.2f}" )
-        self.pprint ( f"rescaling signal by muhat of {s:.2f}" )
+        if abs(s-1)>1e-4:
+            self.log ( f"rescaling signal by muhat of {s:.2f}" )
+            self.pprint ( f"rescaling signal by muhat of {s:.2f}" )
         self.M.rvalues = [r*s for r in self.M.rvalues[:]]
         self.M.muhat *= 1./s
         if self.M.mumax: self.M.mumax*= 1./s
