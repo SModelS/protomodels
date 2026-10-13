@@ -661,12 +661,15 @@ class Manipulator ( LoggerBase ):
             sId = f"{anaId}:{dId}"
             txnames = " ".join ( map ( str,  tp.txnames ) )
             print ( f"- {sId:40s} {txnames} robs={d['robs']:.2f} rexp={d['rexp']:.2f}" )
+        if not hasattr ( self, "llhd_critic" ):
+            return
         print ( )
         robs = self.llhd_critic["robs"]
         rexp = self.llhd_critic["rexp"]
-        print ( f"Likelihood based critic: robs {robs:.1f} rexp {rexp:.1f}" )
+        print ( f"Likelihood based critic: robs {robs:.1f} rexp {rexp:.1f} combines:" )
         lpreds = " ".join ( self.llhd_critic["datasets"] )
-        print ( f"   - combines: {lpreds}" )
+        for ds in self.llhd_critic["datasets"]:
+            print ( f"    - {ds}" )
 
     def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
             detailed : bool = False, add_nlls : bool = False ):

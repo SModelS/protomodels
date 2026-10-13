@@ -137,7 +137,7 @@ def updateHiscores( dictfile : os.PathLike = "{rundir}/hiscores_global.dict",
     dictfile = dictfile.replace("{rundir}",environ.rundir)
     cachefile = cachefile.replace("{rundir}",environ.rundir)
     from ptools import hiscoreTools
-    hi = hiscoreTools.fetchHiscoresObj ( dictfile, cachefile, environ = environ, 
+    hi = hiscoreTools.fetchHiscoresObj ( dictfile, cachefile, environ = environ,
             walkerid = walkerid )
 
     from builder.manipulator import Manipulator
@@ -183,7 +183,7 @@ def plot( TL : float, K : float, environ : RunEnviron, upload : str ="230",
     plotHiscore.runPlotting ( args )
 
 def loop( maxruns : Union[None,int] = 3, createPlots : bool=True,
-          uploadTo : str = "temp", environ : Union[RunEnviron, None] = None,
+          uploadTo : str = "temp", environ : RunEnviron|str|None = None,
           verbose : bool = False, dictfile = "{rundir}/hiscores_global.dict",
           cachefile = "{rundir}/hiscores_global.cache",
           walkerid : Union[str,int] = 0, git_commit : bool = True,
@@ -200,6 +200,8 @@ def loop( maxruns : Union[None,int] = 3, createPlots : bool=True,
     """
     if environ == None:
         environ = RunEnviron()
+    if type(environ)==str:
+        environ = RunEnviron ( environ )
     rundir = setup( environ.rundir )
     i = 0
     TL, TLold, step, K, Kold = 0., 0., 0, -90., -90.
@@ -260,4 +262,19 @@ def loop( maxruns : Union[None,int] = 3, createPlots : bool=True,
                     Kold = -90.
 
 if __name__ == "__main__":
-    loop()
+    import argparse
+    argparser = argparse.ArgumentParser('run the updateHiscores loop')
+    argparser.add_argument ( '--maxruns',
+            help='maxruns', type=int, default=3 )
+    argparser.add_argument ( '--createPlots',
+            help='create the plots', action="store_true" )
+    argparser.add_argument ( '--uploadTo',
+            help='where to upload', type=str, default=None )
+    argparser.add_argument ( '--environ',
+            help='path to environment file', type=str,
+            default=None )
+    argparser.add_argument ( '--dictfile',
+            help='dictfile', type=str, default="{rundir}/hiscores_global.dict" )
+    args = argparser.parse_args()
+    vargs=vars(args)
+    loop( **vargs )
