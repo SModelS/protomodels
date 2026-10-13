@@ -3,6 +3,7 @@
 """ code that combines the ruler and the decays plotter """
 
 import math
+import numpy as np
 from typing import Union
 
 from smodels_utils.plotting.mpkitty import timg
@@ -234,7 +235,14 @@ class MassesAndDecays ( LoggerBase ):
             self.ax.set_yscale('symlog', linthresh=200, linscale=1. )
             ymin = ceil_to_step ( self.yrange[0], dm )
             ymax = ceil_to_step ( self.yrange[1], dm )
-            ticks = range ( ymin, ymax+1, dm )
+            if self.options["ymin"] != None:
+                ymin = self.options["ymin"]
+            if self.options["ymax"] != None:
+                ymax = self.options["ymax"]
+                dm = ( ymax - ymin ) / 5.
+            ticks = np.arange ( ymin, ymax+1, dm )
+            ticks = [ round(t) for t in ticks ]
+            # ticks = [ f"{x:.3g}" for x in ticks ]
             self.ax.set_yticks(ticks)
             self.ax.set_yticklabels([f"{t}" for t in ticks])
             self.ax.set_xlim(0,100)
