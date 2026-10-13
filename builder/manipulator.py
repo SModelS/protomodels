@@ -690,7 +690,7 @@ class Manipulator ( LoggerBase ):
                     if bgErr == int(bgErr):
                         bgErr=int(bgErr)
                     toterr = math.sqrt ( bgErr**2 + eBG )
-                    line += f"obs={int(dI.observedN):d} exp={eBG:.2f}+-{bgErr}"
+                    line += f"obs={int(dI.observedN):d} exp={eBG:.2f}+-{bgErr:.2f}"
                     if toterr > 0.:
                         line += f" Z={RED}{(dI.observedN - eBG ) / toterr :.1f}*sigma{RESET}"
                     print ( line )
@@ -1025,6 +1025,7 @@ class Manipulator ( LoggerBase ):
             return
         if s > cap_ssm: s = cap_ssm                                 #Do not rescale ssms by more than 100 (?)
         self.log ( f"rescaling signal by muhat of {s:.2f}" )
+        self.pprint ( f"rescaling signal by muhat of {s:.2f}" )
         self.M.rvalues = [r*s for r in self.M.rvalues[:]]
         self.M.muhat *= 1./s
         if self.M.mumax: self.M.mumax*= 1./s
