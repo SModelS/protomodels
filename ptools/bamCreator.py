@@ -178,7 +178,7 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     if min(weights) < 0.0:
         offset = abs(min(weights)) + 1          #dont allow for any negative weights
 
-    importPathFinder()
+    pf=importPathFinder()
     bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights + offset, allow_negative_weights=False)
     results = {}
     if sort_bam:
