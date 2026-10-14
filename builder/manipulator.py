@@ -673,21 +673,6 @@ class Manipulator ( LoggerBase ):
         for ds in self.llhd_critic["datasets"]:
             print ( f"    - {ds}" )
 
-    def zFromNLLs ( self, nll_sm : float, nll_bsm : float ) -> float:
-        """ compute Z value from the NLLs """
-        chi2_v = 2 * ( nll_sm - nll_bsm )
-        sign = +1
-        if chi2_v < 0.:
-            # if the SM is actually the better fit, lets just
-            # revert the roles, neither is really nll_min though
-            chi2_v = abs ( chi2_v )
-            sign = -1
-        df = 1
-        p = chi2.cdf ( chi2_v, df= df )
-        from ptools.helpers import computeZFromP
-        Z = computeZFromP ( 1. - p )
-        return sign * Z
-
     def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
             detailed : bool = False, add_nlls : bool = False,
             sort_by : str = "Z" ):
@@ -713,7 +698,8 @@ class Manipulator ( LoggerBase ):
             if sort_by == "z":
                 nll = i.nll ( mu=1. )
                 nll_sm = i.nll ( mu=0. )
-                k = self.zFromNLLs ( nll_sm, nll )
+                from ptools.helpers import zFromNLLs
+                k = zFromNLLs ( nll_sm, nll )
                 while k in sortedCombos:
                     k+=1e-10
             sortedCombos[k]=i
@@ -738,7 +724,8 @@ class Manipulator ( LoggerBase ):
                     line += f"obs={int(dI.observedN):d} exp={eBG:.2f}+-{bgErr:.2f}"
                     nll = i.nll ( mu=1. )
                     nll_sm = i.nll ( mu=0. )
-                    Z = self.zFromNLLs ( nll_sm, nll )
+                    from ptools.helpers import zFromNLLs
+                    Z = zFromNLLs ( nll_sm, nll )
                     sZ = f"{Z:.1f}"
                     line += f" Z={RED}{sZ}*sigma{RESET}"
                     print ( line )
