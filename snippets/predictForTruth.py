@@ -4,8 +4,8 @@
     test statistic, etc
 """
 
-from multiverse.mhelpers import createMyFile
+from multiverse.mhelpers import createMyTruthFile
 
 if __name__ == "__main__":
-    createMyFile ( signal_model = "signal_model.dict",
+    createMyTruthFile ( signal_model = "signal_model.dict",
         outfile = "truth.dict", interactive = False )
