@@ -43,6 +43,8 @@ class MassesAndDecays ( LoggerBase ):
                          1000012: "gold" }
         ret["scale"]="symlog"
         ret["record"]=False
+        ret["ymin"]=None
+        ret["ymax"]=None
         # ret["scale"]="linear"
         return ret
 
