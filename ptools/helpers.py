@@ -28,6 +28,7 @@ g_countObsAtExp = "full"
 
 hasWritten = { "computeP": 0 }
 
+
 def repr_double_quotes(obj):
     import json, math
     if isinstance(obj, str):
@@ -217,7 +218,7 @@ def experimentalId(pred : TheoryPrediction) -> str:
             print ( f"[helpers] ERROR in experimentalId: sc0 is None in {pred.dataset.globalInfo.id} dsId is {dsId}" )
             return f"{anaId}:{dsId}"
 
-        sc0_type = sc0.dataType 
+        sc0_type = sc0.dataType
         return f"{anaId}:{sc0.name}"
     else:
         dsId = pred.dataId()                                #for em-type results
@@ -304,6 +305,32 @@ def simplifyUnixPath ( path : str ) -> str:
     while "//" in path:
         path = path.replace("//","/")
     return path
+
+def zFromNLLs ( nll_sm : float, nll_bsm : float ) -> float:
+    """ compute Z value from the NLLs at 0 and at 1
+    note that this kind of assumes that mu is bounded at zero
+    """
+    T = 2 * ( nll_sm - nll_bsm )
+    from ptools.helpers import computeZFromP
+    from scipy.stats import norm
+    if T > 0:
+        p = 1 - norm.cdf ( np.sqrt ( T ) )
+    else:
+        p = norm.cdf ( np.sqrt ( -T ) )
+    Z = computeZFromP ( p )
+    return Z
+    """
+    sign = +1
+    if T < 0.:
+        # if the SM is actually the better fit, lets just
+        # revert the roles, neither is really nll_min though
+        chi2_v = abs ( T )
+        sign = -1
+    df = 1
+    p = chi2.cdf ( T, df= df )
+    Z = computeZFromP ( 1. - p )
+    return sign * Z
+    """
 
 def computeZFromP ( pvalue : float|tuple ) -> float:
     """ compute significance Z from p-value, i.e. compute Phi^-1 ( p )
@@ -464,7 +491,7 @@ def computeP ( obs : float, bg : float, bgerr : float,
     #    print ( f"[helpers] computing p numerically nmax={nmax} (sometimes this hangs)" )
 
     ret = computePNumerically ( obs, bg, bgerr, lognormal, sigN = sigN,
-            nmin = nmin, nmax = nmax, srName = srName, 
+            nmin = nmin, nmax = nmax, srName = srName,
             countObsAtExp = countObsAtExp )
     """
     if hasWritten["computeP"]<2:
@@ -830,16 +857,16 @@ def lightObjCopy(obj,rmAttr=['elements','avgElement', 'computer', 'txnameList',
             setattr(newObj,lightObjCopy(key,rmAttr=rmAttr),lightObjCopy(val,rmAttr=rmAttr))
         return newObj
 
-def viewImage ( imgfile : str ):                                                    
-    """ view an image on the terminal, if the timg tool exists. """                 
-    from smodels_utils.plotting.mpkitty import timg                                 
-    timg ( imgfile )                                                                
-    """                                                                             
-    import shutil                                                                   
-    if shutil.which ("timg") is not None:                                           
-        import subprocess                                                           
-        o = subprocess.getoutput ( f"timg {imgfile}" )                              
-        print ( o )                                                                 
+def viewImage ( imgfile : str ):
+    """ view an image on the terminal, if the timg tool exists. """
+    from smodels_utils.plotting.mpkitty import timg
+    timg ( imgfile )
+    """
+    import shutil
+    if shutil.which ("timg") is not None:
+        import subprocess
+        o = subprocess.getoutput ( f"timg {imgfile}" )
+        print ( o )
     """
 
 if __name__ == "__main__":

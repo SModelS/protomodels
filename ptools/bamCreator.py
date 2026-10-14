@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
 import numpy as np
-try:
-    import pathfinder as pf
-except ImportError as e:
-    # FIXME in the long run the line below should disappear
-    import sys,os
-    for path in [ "~/PathFinder", "~/git/PathFinder" ]:
-        epath = os.path.expanduser ( path )
-        if os.path.exists ( epath ):
-            sys.path.insert(0, epath )
-    import pathfinder as pf
 from typing import Iterable, Dict, List, Optional, Union
 from numpy.typing import NDArray
 from smodels.matching.theoryPrediction import theoryPredictionsFor, TheoryPrediction
@@ -17,6 +7,19 @@ from smodels.statistics.basicStats import apriori, observed, NllEvalType
 #from pbase.loggerbase import LoggerBase
 
 __all__ = [ "selectMostSignificantSRs", "bamAndWeights", "find_best_comb"  ]
+
+def importPathFinder():
+    try:
+        import pathfinder as pf
+    except ImportError as e:
+        # FIXME in the long run the line below should disappear
+        import sys,os
+        for path in [ "~/PathFinder", "~/git/PathFinder" ]:
+            epath = os.path.expanduser ( path )
+            if os.path.exists ( epath ):
+                sys.path.insert(0, epath )
+        import pathfinder as pf
+    return pf
 
 def selectMostSignificantSRs ( predictions: list[TheoryPrediction],
         min_rel_weight: float = 0.05 ) -> List:
@@ -175,6 +178,7 @@ def get_best_set(binary_acceptance_matrix: NDArray, weights: NDArray, sort_bam=F
     if min(weights) < 0.0:
         offset = abs(min(weights)) + 1          #dont allow for any negative weights
 
+    importPathFinder()
     bam = pf.BinaryAcceptance(binary_acceptance_matrix, weights=weights + offset, allow_negative_weights=False)
     results = {}
     if sort_bam:
