@@ -673,18 +673,52 @@ class Manipulator ( LoggerBase ):
         for ds in self.llhd_critic["datasets"]:
             print ( f"    - {ds}" )
 
+    def zFromNLLs ( self, nll_sm : float, nll_bsm : float ) -> float:
+        """ compute Z value from the NLLs """
+        chi2_v = 2 * ( nll_sm - nll_bsm )
+        sign = +1
+        if chi2_v < 0.:
+            # if the SM is actually the better fit, lets just
+            # revert the roles, neither is really nll_min though
+            chi2_v = abs ( chi2_v )
+            sign = -1
+        df = 1
+        p = chi2.cdf ( chi2_v, df= df )
+        from ptools.helpers import computeZFromP
+        Z = computeZFromP ( 1. - p )
+        return sign * Z
+
     def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
-            detailed : bool = False, add_nlls : bool = False ):
+            detailed : bool = False, add_nlls : bool = False,
+            sort_by : str = "Z" ):
         """ pretty print prediction combos.
             If None, print best combo
         :param combo: None, to print the best combo, else print that combo
         :param detailed: if true, print more detailed report
         :param add_nlls: if true, also add nll values
+        :param sort_by: 'Z' to sort by significance, 'anaId',
+        to sort lexigraphically by analysis id
         """
+        sort_by = sort_by.lower()
+        legal_sort_bys = [ "z", "anaid" ]
+        assert sort_by in legal_sort_bys, \
+            f"sort_by {sort_by} unknown, should be one of {','.join(legal_sort_bys)}"
         print ( "best combo:" )
         if combo == None:
             combo = self.M.bestCombo
+        sortedCombos = {}
         for i in combo:
+            dId = i.dataId() if i.dataId() != None else "UL"
+            k = i.analysisId()+":"+dId
+            if sort_by == "z":
+                nll = i.nll ( mu=1. )
+                nll_sm = i.nll ( mu=0. )
+                k = self.zFromNLLs ( nll_sm, nll )
+                while k in sortedCombos:
+                    k+=1e-10
+            sortedCombos[k]=i
+
+        for k,i in sortedCombos.items():
             txns = ",".join ( set ( map ( str, i.txnames ) ) )
             dId = i.dataId() if i.dataId() != None else "UL"
             print ( f" `- {GREEN}{i.analysisId()}:{dId}: {txns}{RESET}" )
@@ -702,8 +736,11 @@ class Manipulator ( LoggerBase ):
                         bgErr=int(bgErr)
                     toterr = math.sqrt ( bgErr**2 + eBG )
                     line += f"obs={int(dI.observedN):d} exp={eBG:.2f}+-{bgErr:.2f}"
-                    if toterr > 0.:
-                        line += f" Z={RED}{(dI.observedN - eBG ) / toterr :.1f}*sigma{RESET}"
+                    nll = i.nll ( mu=1. )
+                    nll_sm = i.nll ( mu=0. )
+                    Z = self.zFromNLLs ( nll_sm, nll )
+                    sZ = f"{Z:.1f}"
+                    line += f" Z={RED}{sZ}*sigma{RESET}"
                     print ( line )
                 if dtype in [ "upperLimit", "combined" ]:
                     try:
@@ -711,23 +748,10 @@ class Manipulator ( LoggerBase ):
                     except Exception as e:
                         eUL = i.getUpperLimit ( evaluationType = True ).asNumber(fb)
                     oUL = i.getUpperLimit ( ).asNumber(fb)
-                    # sigma_exp = eUL / 1.96 # the expected scale, sigma
-                    # Zold = ( oUL - eUL ) / sigma_exp
                     nll = i.nll ( mu=1.  )
                     nll_sm = i.nll ( mu=0.  )
-                    chi2_v = 2 * ( nll_sm - nll )
-                    sign = ""
-                    if chi2_v < 0.:
-                        # if the SM is actually the better fit, lets just
-                        # revert the roles, neither is really nll_min though
-                        chi2_v = abs ( chi2_v )
-                        sign = "-"
-                    df = 1
-                    p = chi2.cdf ( chi2_v, df= df )
-                    from ptools.helpers import computeZFromP
-                    Z = computeZFromP ( 1. - p )
-                    # line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Zold={Zold:.1f} Z={RED}{Z:.1f}*sigma{RESET}"
-                    line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={RED}{sign}{Z:.1f}*sigma{RESET}"
+                    Z = self.zFromNLLs ( nll_sm, nll )
+                    line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={RED}{Z:.1f}*sigma{RESET}"
                     print ( line )
             if add_nlls:
                 nll = i.nll ( mu=1.  )
