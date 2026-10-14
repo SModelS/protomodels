@@ -324,9 +324,9 @@ class Critic ( LoggerBase ):
             if num_preds == 0:  # No constraints for the model, it is excluded
                 self.log("Model has no UL critic preds or Llhd based critic preds. Excluding Model")
                 return True, "no predictions for model"
-            self.log(f"Model passed llhd-based critic with critic robs = {robsComb}.")
+            self.log(f"Model passed llhd-based critic with critic robs = {robsComb:.2f}.")
             return True, "passed both critics"
-        self.info(f"Model failed llhd-based critic with critic robs = {robsComb}.")
+        self.info(f"Model failed llhd-based critic with critic robs = {robsComb:.2f}, rexp={rexpComb:.2f}.")
         return False, f"failed llhd-based critic (robs={robsComb:.3f}, rexp={rexpComb:.3f})"
 
 

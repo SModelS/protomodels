@@ -44,7 +44,7 @@ def writeDict ( D : dict, outfile : str ):
     f.close()
 
 def obtainDictForDM ( dm : float, ma : "Manipulator", pr : "predictor",
-       origmasses : dict, environ : "RunEnviron" ) -> dict:
+       origmasses : dict, environ : "RunEnviron", cr : "Critic" ) -> dict:
     """ obtain our comprehensive dictionary for a specific mass change
     """
     environ.database.subs[0].setActiveExpResults( analysisIDs=[ "CMS-EXO-20-004" ] )
@@ -52,6 +52,14 @@ def obtainDictForDM ( dm : float, ma : "Manipulator", pr : "predictor",
     ma.M.masses[1000023] = origmasses[1000023]-dm
     predictions = pr.obtainPredictions ( ma.M )
     D = obtainTestStatsForAllPreds ( predictions )
+    ma.M.TL=float("nan")
+    ma.M.K=float("nan")
+    pr.predict ( ma, keep_predictions = False, force_computation_K = True )
+    D["TL"]=ma.M.TL
+    D["K"]=ma.M.K
+    crp,response = cr.predict_critic ( ma )
+    D["critic"]=crp
+    D["cr_response"]=response
     return D
 
 def logZs ( signal_model : str = "rundir2_stable.dict",
@@ -66,18 +74,20 @@ def logZs ( signal_model : str = "rundir2_stable.dict",
     from builder.manipulator import Manipulator
     # from builder.protomodel import ProtoModel
     from tester.predictor import Predictor
+    from tester.critic import Critic
     from pbase.runEnviron import RunEnviron
     environ = RunEnviron ( "run_Zs.dict" )
 
     walkerid = "logz"
     ma = Manipulator( signal_model, walkerid = walkerid, environ = environ )
     pr = Predictor( walkerid, environ )
+    cr = Critic ( "truth", environ ) 
     print ( f"[logZs] starting" )
     import copy
     origmasses = copy.deepcopy( ma.M.masses )
     ret = {}
     for dm in range(-10,30):
-        D = obtainDictForDM ( dm, ma, pr, origmasses, environ )
+        D = obtainDictForDM ( dm, ma, pr, origmasses, environ, cr )
         ret[dm]=D
     writeDict ( ret, outfile )
 
