@@ -298,9 +298,10 @@ class Critic ( LoggerBase ):
                 self.info( f"Keeping {protomodel.currentSLHA}, as requested" )
             else:
                 protomodel.delCurrentSLHA()
+            self.info(f"Model failed UL-based critic ({n_excluding}/{n_sensitive}.")
             return False, f"failed UL-based critic ({n_excluding}/{n_sensitive})"
 
-        self.info("Model allowed by UL-based critic. Starting llhd-based critic.")
+        self.log("Model allowed by UL-based critic. Starting llhd-based critic.")
 
         # --- llhd-based critic ---
 
@@ -324,7 +325,7 @@ class Critic ( LoggerBase ):
             if num_preds == 0:  # No constraints for the model, it is excluded
                 self.log("Model has no UL critic preds or Llhd based critic preds. Excluding Model")
                 return True, "no predictions for model"
-            self.log(f"Model passed llhd-based critic with critic robs = {robsComb:.2f}.")
+            self.info(f"Model passed llhd-based critic with robs = {robsComb:.2f}.")
             return True, "passed both critics"
         self.info(f"Model failed llhd-based critic with critic robs = {robsComb:.2f}, rexp={rexpComb:.2f}.")
         return False, f"failed llhd-based critic (robs={robsComb:.3f}, rexp={rexpComb:.3f})"

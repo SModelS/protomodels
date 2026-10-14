@@ -31,9 +31,11 @@ def obtainTestStatsForAllPreds ( preds : list ) -> dict:
     """
     ret = {}
     for pred in preds:
+        aId = pred.analysisId()
         dId = pred.dataId()
+        label = f"{aId}:{dId}"
         ts = obtainTestStatForPred ( pred )
-        ret[dId]=ts
+        ret[label]=ts
     return ret
 
 def writeDict ( D : dict, outfile : str ):
@@ -47,7 +49,7 @@ def obtainDictForDM ( dm : float, ma : "Manipulator", pr : "predictor",
        origmasses : dict, environ : "RunEnviron", cr : "Critic" ) -> dict:
     """ obtain our comprehensive dictionary for a specific mass change
     """
-    environ.database.subs[0].setActiveExpResults( analysisIDs=[ "CMS-EXO-20-004" ] )
+    # environ.database.subs[0].setActiveExpResults( analysisIDs=[ "CMS-EXO-20-004" ] )
     ma.M.masses[1000022] = origmasses[1000022]+dm
     ma.M.masses[1000023] = origmasses[1000023]-dm
     predictions = pr.obtainPredictions ( ma.M )
@@ -87,6 +89,7 @@ def logZs ( signal_model : str = "rundir2_stable.dict",
     origmasses = copy.deepcopy( ma.M.masses )
     ret = {}
     for dm in range(-10,30):
+        print ( f"[logZs] for dm={dm}:" )
         D = obtainDictForDM ( dm, ma, pr, origmasses, environ, cr )
         ret[dm]=D
     writeDict ( ret, outfile )
