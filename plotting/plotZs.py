@@ -64,7 +64,7 @@ def plot ( data : dict, outputfile : str = "Zs.png",
         label = dId
         if dId in ( "TL", "K" ):
             linestyle = "--"
-            linewidth = 3.0
+            linewidth = 5.0
         else:
             linestyle = "-"
             linewidth = 1.5

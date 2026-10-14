@@ -87,7 +87,6 @@ def cli( infile : str = "hiscores_global.dict",
     pr = Predictor( walkerid, environ = environ ) # instantiate for convenience
     pprint ( f"{RED}cr = Critic ( ){RESET}" )
     cr = Critic ( walkerid, environ = environ )
-    cr = Critic ( walkerid, environ = environ )
     pprint ( f"{YELLOW}pr.predict(ma,keep_predictions=True,force_computation_K=False,{RESET}" )
     pprint ( f"{YELLOW}           keep_slhafile=True{RESET}" )
     pprint ( f"{RED}statsModelsTimer{RESET}" )
