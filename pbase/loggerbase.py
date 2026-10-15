@@ -25,6 +25,7 @@ class LoggerBase:
         self.countLogs = {}
         self.printLogMessages = False
         self.logdir = "logs/"
+        self.logDebug = False # log the debug msgs in file?
         # self.printHigherThan = "critical"
         module = str(type(self)).replace("<class '","").replace("'>","")
         p1 = module.find(".")
@@ -101,7 +102,8 @@ class LoggerBase:
                 tmp[i] = 'DEBUG: ' + arg
                 break 
         args = tuple ( tmp )
-        self.log ( *args )
+        if self.logDebug:
+            self.log ( *args )
 
     def pprint ( self, *args ):
         """ logging """
@@ -112,7 +114,7 @@ class LoggerBase:
         if self.countLogs[line]==3 and not "@@@" in line:
             self.pprint ( f"skipping repeating messages" )
             return
-        if self.countLogs[line]>3:
+        if self.countLogs[line]>3 and not "@@@" in line:
             return
         swalkerid=""
         if self.walkerid is not None:

@@ -806,6 +806,8 @@ class Manipulator ( LoggerBase ):
         for pid in protomodel.frozenParticles():
             if pid in protomodel.decays:
                 protomodel.decays.pop(pid)
+                if hasattr ( protomodel, "widths" ) and pid in protomodel.widths:
+                    protomodel.widths.pop(pid)
 
         olddecays = list ( protomodel.decays.keys() )
         #Loop over all decays:
@@ -818,9 +820,14 @@ class Manipulator ( LoggerBase ):
             openChannels = protomodel.getOpenChannels(pid)
             #Check if any of the existing decays are forbidden:
             delDecays = [dpid for dpid in protomodel.decays[pid] if not  dpid in openChannels]
-            #if delDecays != []: print(f"removing decays of {pid}: {delDecays}")
+            if delDecays != []: 
+                self.pprint(f"removeIllegalBRs: removing decays of {pid}: {delDecays}")
+                # self.pprint(f"@@ why illegal? openChannels is {openChannels}" )
             for dpid in delDecays:
                 protomodel.decays[pid].pop(dpid)
+            if len(protomodel.decays[pid])==0 and len(delDecays)>0:
+                self.pprint(f"no branchings left after removing illegal ones, reinitialising!" )
+                self.initBranchings ( pid, protomodel )
             #if delDecays != []: print(f"remaining decays of {pid}: {protomodel.decays[pid]}")
             #Make sure to normalize the branchings
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs, protomodel=protomodel)
@@ -925,10 +932,20 @@ class Manipulator ( LoggerBase ):
                 else:
                     #print(f"decay of {pid}: {protomodel.decays[pid]}")
                     self.log(f"decay of {pid_name}: {protomodel.decays[pid]}")
-                    protomodel.pprint ( f"When attempting to normalize: total BR of {pid_name}({pid}) is zero, and it is not in decaylessParticles. we need to take out {pid}." )
-                    prototomodel.pprint ( f"has widths {hasattr ( self.M, 'widths' )}" )
+                    # protomodel.pprint ( f"When attempting to normalize: total BR of {pid_name}({pid}) is zero, and it is not in decaylessParticles. we need to take it out." )
+                    protomodel.pprint ( f"When attempting to normalize: total BR of {pid_name}({pid}) is zero, and it is not in decaylessParticles. lets make it stable." )
+                    """
+                    protomodel.pprint ( f"@@ has widths {hasattr ( self.M, 'widths' )}" )
+                    protomodel.pprint ( f"@@ self.M.decays {self.M.decays}" )
+                    protomodel.pprint ( f"@@ self.M.decays[pid] {self.M.decays[pid]}" )
+                    protomodel.pprint ( f"@@ self.M.decay_keys {self.M.decay_keys[pid]}" )
+                    protomodel.pprint ( f"@@ self.M.inv_decay_keys {self.M.inv_decay_keys[pid]}" )
                     if hasattr ( self.M, "widths" ):
-                        protomodel.pprint ( f"widths {self.M.widths}" )
+                        protomodel.pprint ( f"@@ widths {self.M.widths}" )
+                    """
+
+                    self.M.widths[pid]=0.
+
                     ## we need to freeze also <pid> now
                     ## (since we have no sensible channels anymore)
                     self.freezeParticles ( pid, force=True, protomodel=protomodel )
@@ -1317,20 +1334,19 @@ class Manipulator ( LoggerBase ):
         cw = self.widths[pid] ## current width
         ## we have three categories:
         # cw = 1.0 GeV -> promptly decaying
-        # cw in [ 10**-14, 10**-18 ]  long lived
-        # cw == 10**-20 detector stable
+        # cw in [ 10**-23, 10**-13 ]*GeV  long lived
+        # cw ==  0*GeV detector stable
         n_changes = 0
         if abs (cw-1.0) < 1e-6:
             # currently it is promptly decaying
             p = np.random.uniform ( 0,1)
             if p < .2:
                 # make it detector stable
-                nw=10**-20
+                nw=0
                 n_changes = 1
             else:
                 # make it long lived
-                p = np.random.uniform ( 14, 18 )
-                nw = 10**(-p)
+                nw = self.randomlyInitialiseWidth( pid )
                 n_changes = 1
         elif abs(cw*10**20)<1e-6:
             ## currently its detector stable
@@ -1341,8 +1357,7 @@ class Manipulator ( LoggerBase ):
                 n_changes = 1
             else:
                 # make it long lived
-                p = np.random.uniform ( 14, 18 )
-                nw = 10**(-p)
+                nw = self.randomlyInitialiseWidth( pid )
                 n_changes = 1
         else:
             ## currently its long lived
@@ -1359,8 +1374,9 @@ class Manipulator ( LoggerBase ):
                 ## change by a random factor
                 p = random.uniform ( .3, 3. )
                 nw = cw*p
-                nw = max(10**-20, min(nw, 10**-14))
-                assert ( 10**-20 <= nw <= 10**-14 ), f"width {nw} out of bounds"
+                from pbase.constants import llpWidthRange as r
+                nw = max( r["min"], min(nw, r["max"] ))
+                assert ( r["min"] <= nw <= r["max"] ), f"width {nw} out of bounds"
         self.widths[pid]=nw
         self.log ( f"Randomly changed width of {namer.asciiName(pid)}({pid}) from {cw:.3g} to {nw:.3g}" )
         return n_changes
@@ -1759,7 +1775,7 @@ class Manipulator ( LoggerBase ):
                 newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
                 if newSSM > cap_ssm: newSSM = cap_ssm
                 protomodel.ssmultipliers[dpd]= newSSM
-                self.log (f"Changing ssm of {namer.asciiName(dpd)} ({dpd}) to newSSM" )
+                self.log (f"Changing ssm of {namer.asciiName(dpd)} ({dpd}) to {newSSM}" )
                 #self.changeSSM ( dpd, newssm )
                 ssms.append ( newSSM )
 
@@ -1953,7 +1969,8 @@ class Manipulator ( LoggerBase ):
 
         if  pid in protomodel.masses: protomodel.masses.pop(pid)
         if  pid in protomodel.decays: protomodel.decays.pop(pid)
-        if hasattr ( protomodel, "widths" ) and pid in protomodel.widths: protomodel.decays.pop(pid)
+        if hasattr ( protomodel, "widths" ) and pid in protomodel.widths: 
+            protomodel.widths.pop(pid)
 
         newSSMs = {}
         if reassignPID != None:
@@ -2128,8 +2145,21 @@ class Manipulator ( LoggerBase ):
         #Add pid pair production and associated production to protomodel.ssmultipliers:
         self.log(f"Initializing Production Modes for {namer.asciiName(pid)}({pid})")
         self.initSSMFor(pid, protomodel=protomodel, cap_ssm=cap_ssm)
+        if hasattr ( self.M, "widths" ):
+            w = self.randomlyInitialiseWidth ( pid )
+            self.M.widths[pid]= w
 
         return tmpMass
+
+    def randomlyInitialiseWidth ( self, pid ):
+        if not pid in self.M.pids_with_widths:
+            return 1.
+        p = random.uniform(0,1)
+        if p < .5:
+            return 1.
+        from pbase.constants import llpWidthRange as r
+        lw = random.uniform ( r["lmin"], r["lmax"] )
+        return 10**(lw)
 
     def randomlyChangeMasses ( self, prob = 0.05, dx = 200.0 ):
         """ take a random step in mass space for a single unfrozen particle
@@ -2334,9 +2364,10 @@ class Manipulator ( LoggerBase ):
                 self.M.masses[pids[0]] = self.M.masses[pids[1]]
                 self.M.masses.pop(pids[1])
                 self.M.decays[pids[0]] = self.M.decays[pids[1]]
-                self.M.widths[pids[0]] = self.M.widths[pids[1]]
                 self.M.decays.pop(pids[1])
-                self.M.widths.pop(pids[1] )
+                if pids[1] in self.M.widths:
+                    self.M.widths[pids[0]] = self.M.widths[pids[1]]
+                    self.M.widths.pop(pids[1] )
 
                 newssms = {}
                 oldssms = self.M.ssmultipliers
@@ -2954,6 +2985,7 @@ class Manipulator ( LoggerBase ):
             "_xsecMasses" : copy.deepcopy(self.M._xsecMasses),
             "_xsecSSMs" : copy.deepcopy(self.M._xsecSSMs),
         }
+        if hasattr ( self.M, "widths" ): self._backup["widths"]=self.M.widths
         if hasattr ( self.M, "ul_critic" ): self._backup["ul_critic"]=self.M.ul_critic
         if hasattr ( self.M, "llhd_critic" ): self._backup["llhd_critic"]=self.M.llhd_critic
 
