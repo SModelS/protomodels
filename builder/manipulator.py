@@ -911,23 +911,27 @@ class Manipulator ( LoggerBase ):
         pid_name = namer.asciiName(pid)
 
         if not pid in protomodel.decays:
-            protomodel.pprint(f"When attempting to normalize: {pid_name}({pid}) not in decays")
+            protomodel.pprint(f"When attempting to normalize: {pid_name}({pid}) not in decays.")
             return False
 
         BRtot = self.sumBranchings ( protomodel, pid )
         if BRtot == 0:
-            self.log ( f"the decayless particles are {namer.asciiName(self.M.decaylessParticles)} [{self.M.decaylessParticles}]" )
+            self.log ( f"the decayless particles are {namer.asciiName(self.M.decaylessParticles)} [{self.M.decaylessParticles}]." )
             if pid not in self.M.decaylessParticles:
-                if hasattr ( self.M, "widths" ) and pid in self.M.widths \
-                        and self.M.widths[pid]<1e-25:
-                    protomodel.pprint ( f"When trying to normalize {pid}: width is {self.M.widths:.2g} -> stable, wont bother then" )
-                    continue
-                #print(f"decay of {pid}: {protomodel.decays[pid]}")
-                self.log(f"decay of {pid_name}: {protomodel.decays[pid]}")
-                protomodel.pprint ( f"When attempting to normalize: total BR of ({pid}) is zero, and it is not in decaylessParticles. we need to take out {pid}." )
-                ## we need to freeze also <pid> now
-                ## (since we have no sensible channels anymore)
-                self.freezeParticles ( pid, force=True, protomodel=protomodel )
+                if hasattr ( self.M, "widths" ) and pid in self.M.widths and \
+                        self.M.widths[pid]<1e-25:
+                    w = self.M.widths[pid]
+                    protomodel.pprint ( f"When trying to normalize {namer.asciiName(pid)}({pid}): width is {w:.2g} -> stable, wont bother." )
+                else:
+                    #print(f"decay of {pid}: {protomodel.decays[pid]}")
+                    self.log(f"decay of {pid_name}: {protomodel.decays[pid]}")
+                    protomodel.pprint ( f"When attempting to normalize: total BR of {pid_name}({pid}) is zero, and it is not in decaylessParticles. we need to take out {pid}." )
+                    prototomodel.pprint ( f"has widths {hasattr ( self.M, 'widths' )}" )
+                    if hasattr ( self.M, "widths" ):
+                        protomodel.pprint ( f"widths {self.M.widths}" )
+                    ## we need to freeze also <pid> now
+                    ## (since we have no sensible channels anymore)
+                    self.freezeParticles ( pid, force=True, protomodel=protomodel )
             return False
 
         if abs(BRtot-1.0) < 1e-5:
@@ -1050,9 +1054,9 @@ class Manipulator ( LoggerBase ):
         if abs ( s - 1.0 ) < 1e-5:
             return
         if s > cap_ssm: s = cap_ssm                                 #Do not rescale ssms by more than 100 (?)
-        if abs(s-1)>1e-4:
-            self.log ( f"rescaling signal by muhat of {s:.2f}" )
-            self.pprint ( f"rescaling signal by muhat of {s:.2f}" )
+        if abs(s-1)>1e-3:
+            self.log ( f"rescaling signal by muhat of {s:.3f}." )
+            self.pprint ( f"rescaling signal by muhat of {s:.3f}." )
         self.M.rvalues = [r*s for r in self.M.rvalues[:]]
         self.M.muhat *= 1./s
         if self.M.mumax: self.M.mumax*= 1./s
@@ -1949,6 +1953,7 @@ class Manipulator ( LoggerBase ):
 
         if  pid in protomodel.masses: protomodel.masses.pop(pid)
         if  pid in protomodel.decays: protomodel.decays.pop(pid)
+        if hasattr ( protomodel, "widths" ) and pid in protomodel.widths: protomodel.decays.pop(pid)
 
         newSSMs = {}
         if reassignPID != None:
@@ -2329,7 +2334,9 @@ class Manipulator ( LoggerBase ):
                 self.M.masses[pids[0]] = self.M.masses[pids[1]]
                 self.M.masses.pop(pids[1])
                 self.M.decays[pids[0]] = self.M.decays[pids[1]]
+                self.M.widths[pids[0]] = self.M.widths[pids[1]]
                 self.M.decays.pop(pids[1])
+                self.M.widths.pop(pids[1] )
 
                 newssms = {}
                 oldssms = self.M.ssmultipliers
@@ -2367,6 +2374,31 @@ class Manipulator ( LoggerBase ):
         else:
             return None
 
+    def compatibleParticles ( self, dmass : float, minDMass : float,
+           protomodel, pA, pB ) -> bool:
+        """ returns true if particles are compatible """
+        if dmass > minDMass:
+            return False
+        if hasattr ( protomodel, "widths" ):
+            if pA in protomodel.widths and pB in protomodel.widths:
+                if pA < 1e-11 and pB > 1e-11:
+                    return False
+                if pA > 1e-11 and pB < 1e-11:
+                    return False
+                if pA < 1e-25 and pB > 1e-25:
+                    return False
+                if pA > 1e-25 and pB < 1e-25:
+                    return False
+                if pA > 0 and pB > 0:
+                    dp = abs ( pA - pB ) / ( pA + pB )
+                    if dp > .2:
+                        return False
+            if pA in protomodel.widths and not pB in protomodel.widths:
+                return False
+            if pB in protomodel.widths and not pA in protomodel.widths:
+                return False
+        return True
+
     def mergeParticles( self, dm : float = 200,
         protomodel : Union[ProtoModel,None] = None ):
         """ Look for pair of candidates with mass difference smaller than dm and
@@ -2394,7 +2426,7 @@ class Manipulator ( LoggerBase ):
                 if (not pA in unfrozen) or not (pB in unfrozen):
                     continue #Only need to consider unfrozen particles
                 dmass = abs(protomodel.masses[pA]-protomodel.masses[pB])
-                if dmass < minDMass:
+                if self.compatibleParticles ( dmass, minDMass, protomodel, pA, pB ):
                     minDMass = dmass
                     pidA = pA
                     pidB = pB
