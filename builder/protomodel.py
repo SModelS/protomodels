@@ -329,7 +329,7 @@ class ProtoModel ( LoggerBase ):
             print("huh? we have 0 prod modes? We have {len(channels)} channels.")
         return prodModes
 
-    def getOpenChannels(self, pid : int ):
+    def getOpenChannels(self, pid : int ) -> list:
         """get the list of open decay channels for particle pid. Open channels are
         the decays to unfrozen particles and to lighter particles.
 
@@ -387,7 +387,10 @@ class ProtoModel ( LoggerBase ):
                     decay_chan = [key for key,value in self.decay_keys[pid].items() if value == dk]
                     dec_not_present = [dc for dc in decay_chan if dc not in openChannels]
                     if len(dec_not_present) > 0:
-                        self.highlight("warn", f"{dec_not_present} not in the open channels list which is: {openChannels}. It's probably not open. but {dpid} is open. For now we will remove {dpid} from the open channels")
+                        self.highlight("warn", f"For {pid}: {dec_not_present} not in the open channels list which is: " )
+                        self.highlight("warn", f"  - {openChannels}.") 
+                        self.highlight("warn", f"  - It's likely closed, but {dpid} is open. For now will remove {dpid} from open channels.")
+                        # self.pprint ( f"@@@XX openChannels.remove({dpid})" )
                         openChannels.remove(dpid)
                         self.highlight("info", f"Open channels are now {openChannels}")
 
