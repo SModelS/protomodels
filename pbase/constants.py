@@ -7,6 +7,11 @@
 #mass_Z = 91.1876
 #mwidth_Z = 2.5
 
+# for widths we will consider only values of 0 (stable),
+# 1 (promptly decaying) and values in the range given below
+# lmin = log_10 ( min )
+llpWidthRange = { "min": 1e-23, "max": 1e-13, "lmin": -23, "lmax": -13 }
+
 particleNames = { "W": 24, "Z": 23, "t": 6, "h": 25, "tau": 15,
                   "c": 4, "b": 5 }
 
