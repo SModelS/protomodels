@@ -87,7 +87,11 @@ class LoggerBase:
             col = GREEN
         else:
             self.highlight ( "red", "I think we called highlight without msg type" )
-        print ( f'{col}[{self.module}:{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}{RESET}' )
+        swalkerid=""
+        if self.walkerid is not None:
+            swalkerid=f":{self.walkerid}"
+        print ( f'{col}[{self.module}{swalkerid}] {" ".join(map(str,args))}{RESET}' )
+        # print ( f'{col}[{self.module}:{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}{RESET}' )
         self.log ( *args )
 
     def debug ( self, *args ):
