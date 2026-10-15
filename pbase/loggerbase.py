@@ -109,7 +109,7 @@ class LoggerBase:
         if not line in self.countLogs:
             self.countLogs[line]=0
         self.countLogs[line] += 1
-        if self.countLogs[line]==3:
+        if self.countLogs[line]==3 and not "@@@" in line:
             self.pprint ( f"skipping repeating messages" )
             return
         if self.countLogs[line]>3:
