@@ -2224,6 +2224,7 @@ class Manipulator ( LoggerBase ):
 
         :returns: number of masses that were changed
         """
+        spid = namer.asciiName(pid)
         denom = 1.0
 
         if self.M.TL is not None and self.M.TL > 0:
@@ -2235,7 +2236,7 @@ class Manipulator ( LoggerBase ):
         if dx < 0.:
             self.highlight ( "info", f"dx={dx}<0. this should not happen. pid={pid} mass={self.M.masses[pid]} denom={denom}" )
 
-        self.log(f"Current mass of {namer.asciiName(pid)}({pid}) = {self.M.masses[pid]:.3f} GeV, dx = {dx:.3f} GeV")
+        self.log(f"Current mass of {spid}({pid}) = {self.M.masses[pid]:.3f} GeV, dx = {dx:.3f} GeV")
 
         if not minMass:
             minMass = self.M.masses[LSP]
@@ -2249,7 +2250,7 @@ class Manipulator ( LoggerBase ):
             if self.run_mcmc: p = 1.0        #dont jump from onshell to offshell and vice-versa in mcmc walk
             if p < 0.1:
                 offshell = True
-                self.log ( f"randomly chose {namer.asciiName(pid)} to restrict to offshell mass!" )
+                self.log ( f"randomly chose {spid} to restrict to offshell mass!" )
                 if pid == 1000023: maxMax = minMass + smMasses["Z"] + smWidths["Z"]
                 else: maxMax = minMass + smMasses["W"] + smWidths["W"]
 
@@ -2278,25 +2279,26 @@ class Manipulator ( LoggerBase ):
                 massIsLegal = False
             if tmpmass in [ float("nan"), float("inf"), None ]:
                 massIsLegal = False
-                self.pprint ( f"huh? we have a tmpmass of {namer.asciiName(pid)} at {tmpmass}, was at {self.M.masses[pid]}, dx={dx}" )
+                self.pprint ( f"huh? we have a tmpmass of {spid}({pid}) at {tmpmass:.2f}, was at {self.M.masses[pid]:.2f}, dx={dx:.2g}" )
             dx = dx * 1.2 ## to make sure we always get out of this
             if ctIterations > 20: # seems like we are in a super constrained situation
-                self.pprint ( f"huh? we have a tmpmass of {pid} is {tmpmass} was at {self.M.masses[pid]} dx={dx} breaking off after {ctIterations} iterations" )
+                self.pprint ( f"huh? we have a tmpmass of {spid}({pid}) is {tmpmass:.2f} was at {self.M.masses[pid]:.2f} dx={dx:.2g} breaking off after {ctIterations} iterations" )
                 tmpmass = self.M.masses[pid]
                 break
 
         if pid == LSP:
             delta_mass = tmpmass - self.M.masses[LSP]
             self.M.masses[pid] = tmpmass
-            self.log(f"Randomly changing LSP mass to {tmpmass:.1f}.")
+            self.log(f"Randomly changing LSP mass to {tmpmass:.2f}.")
             shifted=self.shiftAllMassesBy(delta_mass, lsp=False)
             return len(shifted)
 
         allpids = self.forcedMassDegeneratePids(pid)
         nchanges = 0
-        self.log(f"Now randomly changing {pid}->{allpids}: masses {self.M.masses[pid]}->{tmpmass}" )
+        self.log(f"Now randomly changing {spid}({pid})->{allpids}: masses {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
 
         for ipid in allpids:
+            sipid=namer.asciiName(ipid)
             self.M.masses[ipid]=tmpmass
             if ipid in [ 1000023, 1000024 ]:
                 if ipid == 1000023: is_offshell = (tmpmass - self.M.masses[LSP]) < ( smMasses["Z"] + smWidths["Z"])
@@ -2305,12 +2307,12 @@ class Manipulator ( LoggerBase ):
                     if self.run_mcmc:
                         self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {ipid}.")
                     else:
-                        self.log ( f"randomly changing mass of {namer.asciiName ( ipid )}({ipid}) to {tmpmass:.1f}" )
+                        self.log ( f"randomly changing mass of {sipid}({ipid}) to {tmpmass:.1f}" )
                         self.record ( f"change mass of {namer.texName(ipid,addDollars=True)} to {tmpmass:.1f}" )
                         self.initBranchings(ipid)
                         nchanges += 1
             else:
-                self.log ( f"randomly changing mass of {namer.asciiName(ipid)}({ipid}) to {tmpmass:.1f}" )
+                self.log ( f"randomly changing mass of {sipid}({ipid}) to {tmpmass:.1f}" )
                 self.record ( f"change mass of {namer.texName(ipid,addDollars=True)} to {tmpmass:.1f}" )
                 nchanges += 1
 
