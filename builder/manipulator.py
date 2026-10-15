@@ -918,6 +918,10 @@ class Manipulator ( LoggerBase ):
         if BRtot == 0:
             self.log ( f"the decayless particles are {namer.asciiName(self.M.decaylessParticles)} [{self.M.decaylessParticles}]" )
             if pid not in self.M.decaylessParticles:
+                if hasattr ( self.M, "widths" ) and pid in self.M.widths \
+                        and self.M.widths[pid]<1e-25:
+                    protomodel.pprint ( f"When trying to normalize {pid}: width is {self.M.widths:.2g} -> stable, wont bother then" )
+                    continue
                 #print(f"decay of {pid}: {protomodel.decays[pid]}")
                 self.log(f"decay of {pid_name}: {protomodel.decays[pid]}")
                 protomodel.pprint ( f"When attempting to normalize: total BR of ({pid}) is zero, and it is not in decaylessParticles. we need to take out {pid}." )
