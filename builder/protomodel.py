@@ -387,7 +387,7 @@ class ProtoModel ( LoggerBase ):
                     decay_chan = [key for key,value in self.decay_keys[pid].items() if value == dk]
                     dec_not_present = [dc for dc in decay_chan if dc not in openChannels]
                     if len(dec_not_present) > 0:
-                        self.highlight("warn", f"{dec_not_present} not in the open channels {openChannels} -- it's probably not open. but {dpid} is open. For now we will remove {dpid} from the open channels, ok?")
+                        self.highlight("warn", f"{dec_not_present} not in the open channels list which is: {openChannels}. It's probably not open. but {dpid} is open. For now we will remove {dpid} from the open channels")
                         openChannels.remove(dpid)
                         self.highlight("info", f"Open channels are now {openChannels}")
 
