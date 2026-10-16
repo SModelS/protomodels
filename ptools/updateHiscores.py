@@ -182,33 +182,113 @@ def plot( TL : float, K : float, environ : RunEnviron, upload : str ="230",
     args.walkerid = walkerid
     plotHiscore.runPlotting ( args )
 
-def loop( maxruns : Union[None,int] = 3, createPlots : bool=True,
-          uploadTo : str = "temp", environ : RunEnviron|str|None = None,
-          verbose : bool = False, dictfile = "{rundir}/hiscores_global.dict",
-          cachefile = "{rundir}/hiscores_global.cache",
-          walkerid : Union[str,int] = 0, git_commit : bool = True,
-          hiscore_nr : int = 0 ):
+# default options, shared by updateOnce and loop. Any of these can be
+# overridden via keyword arguments, see updateOnce
+hiscoresOptions = {
+    "createPlots" : True,
+    "uploadTo"    : "temp",
+    "verbose"     : False,
+    "environ"     : None,
+    "dictfile"    : "{rundir}/hiscores_global.dict",
+    "cachefile"   : "{rundir}/hiscores_global.cache",
+    "walkerid"    : 0,
+    "git_commit"  : True,
+    "hiscore_nr"  : 0,
+}
+
+def updateOnce( rundir : str, Kold : float, **kwargs ) -> float:
+    """ perform a single update of hiscores_global.cache, and create
+    the plots
+
+    :param rundir: the run directory
+    :param Kold: the value of K from the previous iteration
+    :param kwargs: optional settings, any key of `hiscoresOptions` can be
+    overridden. In particular: createPlots (suppress plotting if False),
+    uploadTo (upload plots to "~/git/smodels.github.io/<uploadTo>"),
+    verbose (verbosity), environ (the run environ), walkerid (log
+    everything as walker #walkerid), hiscore_nr (which hiscore, 0 is the
+    first), dictfile, cachefile, git_commit
+    :returns: the updated value of Kold
+
+    As a side effect, a dictionary holding the timestamp, the
+    dictfile, and a human readable time is written to "uphi.log".
+    """
+    opts = dict ( hiscoresOptions )
+    opts.update ( kwargs )
+    createPlots = opts["createPlots"]
+    TLfile = f"{rundir}/TLold.conf"
+    Kfile = f"{rundir}/Kold.conf"
+    D = updateHiscores( opts["dictfile"], opts["cachefile"], opts["environ"],
+            walkerid=opts["walkerid"], hiscore_nr = opts["hiscore_nr"] )
+    TL, step, K = float("nan"),0,float("nan")
+    model = D["model"]
+    if "TL" in D:
+        TL = D["TL"]
+    if "step" in D:
+        step = D["step"]
+    if "K" in D:
+        K = D["K"]
+    if K is not None and K > Kold + 1e-10: #  + .001:
+        from builder.manipulator import Manipulator
+        m = Manipulator ( model, opts["environ"] )
+        T=str(int(time.time()))
+        m.writeDictFile ( f"pmodel-{T}.dict", comment="history keeper" )
+        with open ( f"{rundir}history.txt", "at" ) as f:
+            f.write ( f"{time.asctime()}, step={step}, TL={TL:.4f}, K={K:.4f}, t={T}\n" )
+            f.close()
+        with open ( TLfile, "wt" ) as f:
+            f.write ( f"{str(TL)}\n" )
+            f.close()
+        with open ( Kfile, "wt" ) as f:
+            f.write ( f"{str(K)}\n" )
+            f.close()
+        Kold = K
+    if createPlots:
+        plot ( TL, K, opts["environ"], opts["uploadTo"], opts["verbose"],
+               dictfile = opts["dictfile"], walkerid = opts["walkerid"],
+               git_commit = opts["git_commit"] )
+    else:
+        print ( "[updateHiscores] was not asked to create plots" )
+    if os.path.exists ( Kfile ): ## so we can meddle from outside
+        with open ( Kfile, "rt" ) as f:
+            try:
+                Kold = float ( f.read().strip() )
+            except ValueError as e:
+                Kold = -90.
+    now = time.time()
+    info = { "timestamp" : int(now), "dictfile" : opts["dictfile"],
+             "time" : time.asctime ( time.localtime ( now ) ) }
+    from ptools.helpers import py_dumps
+    with open ( "uphi.log", "wt" ) as f:
+        f.write ( py_dumps ( info ) + "\n" )
+    return Kold
+
+def loop( maxruns : Union[None,int] = 3, **kwargs ):
     """ loop (maxruns times) that updates hiscores_global.cache
 
     :param maxruns: maximally iterate that many times, if None then loop endlessly
-    :param createPlots: if False, suppress plotting
-    :param uploadTo: upload plots to directory "~/git/smodels.github.io/<uploadTo>"
-    :param verbose: verbosity
-    :param environ: the run environ, set to None for default (run.dict)
-    :param walkerid: log everything as walker #walkerid
-    :param hiscore_nr: which hiscore, 0 is the firsst
+    :param kwargs: optional settings, handed on to `updateOnce`. Any key of
+    `hiscoresOptions` can be overridden, in particular environ (the run
+    environ, set to None for default (run.dict)) and createPlots (if
+    False, suppress plotting). A rundir keyword overrides the rundir of
+    the environ.
     """
+    opts = dict ( hiscoresOptions )
+    opts.update ( kwargs )
+    if "doPlots" in opts: ## backwards compatibility, doPlots -> createPlots
+        opts["createPlots"] = opts.pop ( "doPlots" )
+    environ = opts["environ"]
     if environ == None:
         environ = RunEnviron()
     if type(environ)==str:
         environ = RunEnviron ( environ )
-    rundir = setup( environ.rundir )
+    opts["environ"] = environ
+    rundir = opts.pop ( "rundir", None )
+    if rundir == None:
+        rundir = environ.rundir
+    rundir = setup ( rundir )
     i = 0
-    TL, TLold, step, K, Kold = 0., 0., 0, -90., -90.
-    TLfile = f"{rundir}/TLold.conf"
-    if os.path.exists ( TLfile ):
-        with open ( TLfile, "rt" ) as f:
-            TLold = float ( f.read().strip() )
+    Kold = -90.
     Kfile = f"{rundir}/Kold.conf"
     if os.path.exists ( Kfile ):
         with open ( Kfile, "rt" ) as f:
@@ -222,44 +302,7 @@ def loop( maxruns : Union[None,int] = 3, createPlots : bool=True,
             break
         if i>1:
             time.sleep(60.)
-        D = updateHiscores( dictfile, cachefile, environ,
-                walkerid=walkerid, hiscore_nr = hiscore_nr )
-        TL, step, K = float("nan"),0,float("nan")
-        model = D["model"]
-        if "TL" in D:
-            TL = D["TL"]
-        if "step" in D:
-            step = D["step"]
-        if "K" in D:
-            K = D["K"]
-        if K is not None and K > Kold + 1e-10: #  + .001:
-            from builder.manipulator import Manipulator
-            m = Manipulator ( model, environ )
-            T=str(int(time.time()))
-            m.writeDictFile ( f"pmodel-{T}.dict", comment="history keeper" )
-            with open ( f"{rundir}history.txt", "at" ) as f:
-                f.write ( f"{time.asctime()}, step={step}, TL={TL:.4f}, K={K:.4f}, t={T}\n" )
-                f.close()
-            with open ( TLfile, "wt" ) as f:
-                f.write ( f"{str(TL)}\n" )
-                f.close()
-            with open ( Kfile, "wt" ) as f:
-                f.write ( f"{str(K)}\n" )
-                f.close()
-            TLold = TL
-            Kold = K
-        if createPlots:
-            plot ( TL, K, environ, uploadTo, verbose,
-                   dictfile = dictfile, walkerid = walkerid,
-                   git_commit = git_commit )
-        else:
-            print ( "[updateHiscores] was not asked to create plots" )
-        if os.path.exists ( Kfile ): ## so we can meddle from outside
-            with open ( Kfile, "rt" ) as f:
-                try:
-                    Kold = float ( f.read().strip() )
-                except ValueError as e:
-                    Kold = -90.
+        Kold = updateOnce( rundir, Kold, **opts )
 
 if __name__ == "__main__":
     import argparse
