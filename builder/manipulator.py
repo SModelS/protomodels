@@ -945,6 +945,7 @@ class Manipulator ( LoggerBase ):
                     """
 
                     self.M.widths[pid]=0.
+                    self.M.decays[pid]={}
 
                     ## we need to freeze also <pid> now
                     ## (since we have no sensible channels anymore)
@@ -2359,6 +2360,8 @@ class Manipulator ( LoggerBase ):
         unfrozen = self.M.unFrozenParticles()
         frozen = self.M.frozenParticles()
         for pids in self.canonicalOrder:
+            if pids[1] in unfrozen and pids[1] not in self.M.masses:
+                raise Exception ( f"contradiction! {pids[1]} in unfrozen {unfrozen} but not in masses {self.M.masses} frozen is {frozen}" )
             if pids[0] in frozen and pids[1] in unfrozen:
                 self.log(f"{namer.asciiName(pids[0])} not present but {namer.asciiName(pids[1])} present. Reassigning {namer.asciiName(pids[1])} to {namer.asciiName(pids[0])}")
                 self.M.masses[pids[0]] = self.M.masses[pids[1]]
