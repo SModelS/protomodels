@@ -97,6 +97,44 @@ def sortEntries ( D : list, nmax : Union[None,int],
             break
     return ret
 
+def formatTimestamp ( timestamp : str ) -> str:
+    """ format the timestamp of a hiscore entry, and grey it out if the
+    entry is recent.
+
+    If a uphi.log file exists, an entry counts as recent if it is more
+    recent than the timestamp stored in uphi.log. Otherwise an entry
+    counts as recent if it is less than two hours old.
+
+    :param timestamp: the timestamp string of the hiscore entry
+    :returns: the (possibly greyed out) timestamp, without the year
+    """
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    when = datetime.strptime ( timestamp, "%a %b %d %H:%M:%S %Y" )
+    r1 = timestamp.find(" ")
+    r2 = timestamp.rfind(" ")
+    ret = timestamp[r1:r2]
+    ret = ret.strip()
+    tz = ZoneInfo("Europe/Vienna")
+    now = datetime.now(tz)
+    when = when.replace(year=now.year, tzinfo=tz)
+    ref = None
+    if os.path.exists ( "uphi.log" ):
+        import ast
+        try:
+            with open ( "uphi.log", "rt" ) as f:
+                ref = float ( ast.literal_eval ( f.read() )["timestamp"] )
+        except Exception as e:
+            print ( f"[printSimpleHiscoreList.formatTimestamp] could not read uphi.log: {e}" )
+    if ref != None:
+        recent = when.timestamp() > ref
+    else:
+        hours_ago = (now - when).total_seconds() / 3600
+        recent = hours_ago < 2
+    if recent:
+        ret = f"{GREY}{ret}{RESET}"
+    return ret
+
 def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
     extended : bool = False, nmax : Union[None,int] = None,
     nmax_analysis : Union[None,int] = None ) -> int:
@@ -141,20 +179,7 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
             sparticles += f"{color}{name}{RESET}={mass:.1f}"
         timestamp = ""
         if "timestamp" in entry:
-            from datetime import datetime
-            from zoneinfo import ZoneInfo
-            timestamp = entry["timestamp"]
-            when = datetime.strptime(timestamp, "%a %b %d %H:%M:%S %Y")
-            r1 = timestamp.find(" ")
-            r2 = timestamp.rfind(" ")
-            timestamp = timestamp[r1:r2]
-            timestamp = timestamp.strip()
-            tz = ZoneInfo("Europe/Vienna")
-            now = datetime.now(tz)
-            when = when.replace(year=now.year, tzinfo=tz)
-            hours_ago = (now - when).total_seconds() / 3600
-            if hours_ago < 2:
-                timestamp = f"{GREY}{timestamp}{RESET}"
+            timestamp = formatTimestamp ( entry["timestamp"] )
         if extended:
             step = entry["step"]
             print ( f"#{i+1:2d}({wid:3d}): K={GREEN}{K:6.3f}{RESET} TL={TL:6.3f}; {sparticles}" )
