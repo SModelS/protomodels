@@ -49,6 +49,15 @@ class HiscorePlotter ( LoggerBase ):
         self.url = "https://smodels.github.io/"
         self.readRunDict()
 
+    def insideContainer ( self ) -> bool:
+        """ are we inside a singularity container?
+
+        returns: true if we are
+        """
+        if "SINGULARITY_CONTAINER" in os.environ:
+            return True
+        return False
+
     def gitCommit ( self, dest, upload, wanted : bool ):
         """ if wanted, then git commit and git push to smodels.githuib.io
         :param dest: e.g. "/scratch-cbe/users/w.w/git/smodels.github.io/protomodels/latest/"
@@ -63,7 +72,15 @@ class HiscorePlotter ( LoggerBase ):
         destdir = dest
         destdir = destdir.replace(upload,"")
         destdir = destdir.replace("//","")
-        cmd = f"cd {destdir}; git pull; git add '{upload}'; git commit -m '{comment}'; git push"
+        git_push = "git push"
+        if self.insideContainer():
+            home = os.environ["HOME"]
+            rhome = home.replace("/scratch-cbe","")
+            # git_push = "git push"
+            sshdir = f"{rhome}/.ssh"
+            if os.path.exists ( f"{sshdir}/id_ecdsa" ):
+                git_push = 'GIT_SSH_COMMAND="ssh -i {sshdir}/id_ecdsa -o IdentitiesOnly=yes" git push'
+        cmd = f"cd {destdir}; git pull; git add '{upload}'; git commit -m '{comment}'; {git_push}"
         self.pprint ( f"exec: {cmd}" )
         out = subprocess.getoutput ( cmd )
         if out != "":
@@ -356,7 +373,7 @@ class HiscorePlotter ( LoggerBase ):
             if ( obsN - int(obsN) ) < 1e-6:
                 obsN=int(obsN)
             Zsigma = ""
-            err = np.sqrt ( eBG + bgErr**2 ) 
+            err = np.sqrt ( eBG + bgErr**2 )
             sigma = ( obsN - eBG ) / err
             Zsigma = f"{sigma:.1f} sigma"
             print ( f"  `- {dI.dataId}: observedN {obsN}, bg {dI.expectedBG} +/- {dI.bgError:.2g} {Zsigma}" )
@@ -422,7 +439,7 @@ class HiscorePlotter ( LoggerBase ):
         return orderedXsec
 
     def writeTex ( self, keep_tex : bool ) -> str:
-        """ write the comment about ss multipliers and particle contributions, 
+        """ write the comment about ss multipliers and particle contributions,
         in tex.  Creates texdoc.png.
         :param keep_tex: keep tex source of texdoc.png as texdoc.tex
 
@@ -1015,7 +1032,7 @@ class HiscorePlotter ( LoggerBase ):
         print ( f"[plotHiscore] plot hiscore #{number}" )
 
         # obtain hiscore but retain walkerid
-        pm = hiscoreTools.obtainHiscore ( number, hiscorefile, 
+        pm = hiscoreTools.obtainHiscore ( number, hiscorefile,
                 walkerid=None, environ = environ )
         # pm.walkerid = walkerid
         self.environ = environ
@@ -1096,7 +1113,7 @@ def runPlotting ( args ):
     options = { "ruler": args.ruler, "decays": args.decays,
                 "predictions": args.predictions, "html": args.html,
                 "keep": args.keep, "tex": args.tex,
-                "horizontal": args.horizontal, 
+                "horizontal": args.horizontal,
                 "masses_decays": args.masses_decays }
     # options = vars(args)
 

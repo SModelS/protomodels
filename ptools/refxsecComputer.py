@@ -37,13 +37,13 @@ class RefXSecComputer ( LoggerBase ):
     version = "1.0" ## make sure we can trace changes in the tables
     hasWarned = { "omitted": 0 }
 
-    def __init__( self, allowN1N1Prod : bool = False, 
+    def __init__( self, allowN1N1Prod : bool = False,
                   walkerid : Union[None,int] = 0,
                   verbosity : str = "warn" ):
         """
         :param allowN1N1Prod: if true, then allow also N1 N1 production
         """
-        super ( RefXSecComputer, self ).__init__ ( walkerid = walkerid, 
+        super ( RefXSecComputer, self ).__init__ ( walkerid = walkerid,
                 verbosity = verbosity )
         self._allowN1N1Prod = allowN1N1Prod
         codedir = "../"
@@ -57,8 +57,8 @@ class RefXSecComputer ( LoggerBase ):
         self.samesignmodes = [ 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 ]
         self.addN1N1ProdMode()
         # production of opposite-sign-pid pairs when the particle is within reach
-        self.oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005, 
-                2000005, 1000006, 2000006, 1000011, 1000013, 1000015, 1000024, 
+        self.oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005,
+                2000005, 1000006, 2000006, 1000011, 1000013, 1000015, 1000024,
                 1000037 )
 
         # associate production
@@ -67,7 +67,7 @@ class RefXSecComputer ( LoggerBase ):
                 ( 1000003, 1000021 ), ( 1000004, 1000021 ), ( 1000005, 1000021),
                 ( 1000021, 2000005 ), ( 1000006, 1000021 ), ( 1000021, 2000006),
                 ( -1000012, 1000011), ( -1000014, 1000013), (-1000016, 1000015),
-                ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016),             
+                ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016),
                 #removing charge for charginos in chargino-neutralino prod as doesnt matter
                 ( 1000022, 1000023 ), ( 1000023, 1000025 ),
                 # ( 1000022, 1000024 ), #( -1000024, 1000022),
@@ -80,11 +80,11 @@ class RefXSecComputer ( LoggerBase ):
         ## these are productions where we explicitly disallow the negative sign versions,
         ## e.g. C1+,N2 ## this is based on the assumption that our database of chargino results
         ## is entirely charge symmetrical!! this might change with e.g. protomodels v3
-        self.associatesamesignproduction = ( ( 1000022, 1000024 ), 
-                ( 1000023, 1000024 ), ( 1000024, 1000025 ), 
-                ( 1000022, 1000037 ), ( 1000023, 1000037 ), 
+        self.associatesamesignproduction = ( ( 1000022, 1000024 ),
+                ( 1000023, 1000024 ), ( 1000024, 1000025 ),
+                ( 1000022, 1000037 ), ( 1000023, 1000037 ),
                 ( 1000025, 1000037 ), ( 1000022, 1000025 ) )
-                 
+
         # self.schannel = ( 35, 55, )
         self.schannel = tuple()
 
@@ -449,7 +449,7 @@ class RefXSecComputer ( LoggerBase ):
                 given as dictionary of the tuple of the mothers' pids as keys and
                 multipliers as values, e.g { (1000001,1000021):1.1 }.
         :param ignore_pids: ignore pids for production
-        :param ewk: 
+        :param ewk:
         :returns: List of cross sections to be added
         """
         channels = self.findOpenChannels ( slhafile )
@@ -506,6 +506,17 @@ class RefXSecComputer ( LoggerBase ):
                 continue
             if ssmultipliers != None and ( pids[1], pids[0] ) in ssmultipliers:
                 pids = ( pids[1], pids[0] )
+            if pids[1] == pids[0] and abs(pids[0]) in [ 1000024, 1000037 ]:
+                self.warning ( f"we have a cross section for {pids}, you sure you didnt meant {-pids[0],pids[1]}?" )
+            """
+            if pids[0]==-pids[1]:
+                if ( -pids[0], pids[1] ) in ssmultipliers and not pids in ssmultipliers:
+                    newpids = ( -pids[0], pids[1] )
+                    self.pprint ( f"weird, we have dont have {pids} in ssmultipliers but {newpids}" )
+                    self.pprint ( f"will use {newpids}" )
+                    pids = newpids
+            """
+
             if ssmultipliers != None and pids in ssmultipliers:
                 ssm = ssmultipliers[pids]
                 channel["ssm"] = ssm
@@ -772,6 +783,8 @@ class RefXSecComputer ( LoggerBase ):
             sys.exit(-1)
         xsecs = self.getXSecsFrom ( path, pb, columns )
         comment = f"from {filename}"
+        #if pid2 == 1000037:
+        #    self.pprint ( f"for {pid1},{pid2} we get {str(xsecs)[:100]} {order} {comment}" )
         return xsecs,order,comment
 
 if __name__ == "__main__":
