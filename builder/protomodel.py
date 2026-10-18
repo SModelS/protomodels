@@ -353,6 +353,9 @@ class ProtoModel ( LoggerBase ):
         elif pid == 1000024 and pid in self.masses and self.LSP in self.masses and \
                   (self.masses[pid] - self.masses[self.LSP]) < (smMasses["W"] + smWidths["W"]):
             offshell = True
+        elif pid == 1000025 and pid in self.masses and self.LSP in self.masses and \
+                (self.masses[pid] - self.masses[self.LSP]) < (smMasses["Z"] + smWidths["Z"]):
+            offshell = True
         else: offshell = False
 
         for dpid in self.possibledecays[pid]:
@@ -372,7 +375,7 @@ class ProtoModel ( LoggerBase ):
             if not pid in self.masses or mdaughter >= self.masses[pid]:
                 continue
 
-            if not offshell and len(dpid) == 3 and pid in [1000023, 1000024]:       #turn off 3-body decays for onshell X^2_Z and X^1_W
+            if not offshell and len(dpid) == 3 and pid in [1000023, 1000024,1000025]:       #turn off 3-body decays for onshell X^2_Z and X^1_W
                 continue
 
             openChannels.add ( dpid )

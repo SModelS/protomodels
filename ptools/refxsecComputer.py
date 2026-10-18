@@ -723,20 +723,20 @@ class RefXSecComputer ( LoggerBase ):
             filename = f"xsecslepslep{sqrts}.txt"
             if sqrts == 8:
                 pb == False
-        if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000022, 1000023, 1000025 ]: # Charginos(-) neutralinos production
+        if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000022, 1000023, 1000025, 1000035 ]: # Charginos(-) neutralinos production
             filename = f"xsecN2C1m{sqrts}.txt"
             order = NLL
             isEWK = True
             if sqrts == 13:
                 pb = False
-        if (pid1 in [ 1000022, 1000023, 1000025 ] and pid2 in [ 1000024, 1000037 ]) or (pid1 == 1000024 and pid2 == 1000025): # Charginos(+) neutralinos productions -- 'or' condition because pid1 < pid2
+        if (pid1 in [ 1000022, 1000023, 1000025, 1000035 ] and pid2 in [ 1000024, 1000037 ]) or (pid1 == 1000024 and pid2 == 1000025): # Charginos(+) neutralinos productions -- 'or' condition because pid1 < pid2
             filename = f"xsecN2C1p{sqrts}.txt"
             order = NLL
             if sqrts == 13:
                 pb = False
             isEWK = True
-        N1N2N3 = ( 1000022, 1000023, 1000025 )
-        N2N3 = ( 1000023, 1000025 )
+        N1N2N3 = ( 1000022, 1000023, 1000025, 1000035 )
+        N2N3 = ( 1000023, 1000025, 1000035 )
         neutralinos = N2N3
         if self.allowN1N1Prod:
             neutralinos = N1N2N3

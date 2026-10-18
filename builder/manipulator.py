@@ -110,7 +110,7 @@ class Manipulator ( LoggerBase ):
 
         #Define groups of particles to be merged if their mass difference is below a given mass gap
         self.mergerCandidates =   [(1000001, 1000002, 1000003), ( 1000005, 2000005 ), (1000006, 2000006),
-                                    ( 1000024, 1000037 ), ( 1000023, 1000025 )]
+                                    ( 1000024, 1000037 ), ( 1000023, 1000025 ), ( 1000025, 1000035 ) ]
         self.do_record = do_record ## if True, then record changes
         self.recording = [] ## just in case
 
@@ -148,11 +148,11 @@ class Manipulator ( LoggerBase ):
         if protomodel is None:
             protomodel = self.M
         offshell = False
-        if 1000023 in protomodel.unFrozenParticles() or 1000024 in protomodel.unFrozenParticles():
-            if pid == 1000023 and (protomodel.masses[pid] - protomodel.masses[LSP]) < (smMasses["Z"] + smWidths["Z"]): offshell = True
-            elif pid == 1000024 and (protomodel.masses[pid] - protomodel.masses[LSP]) < (smMasses["W"] + smWidths["W"]): offshell = True
+        if 1000023 in protomodel.unFrozenParticles() or 1000024 in protomodel.unFrozenParticles() or 1000025 in protomodel.unFrozenParticles() \
+                or 1000037 in protomodel.unFrozenParticles():
+            if pid in [ 1000023, 1000025 ] and (protomodel.masses[pid] - protomodel.masses[LSP]) < (smMasses["Z"] + smWidths["Z"]): offshell = True
+            elif pid in [ 1000024, 1000037 ] and (protomodel.masses[pid] - protomodel.masses[LSP]) < (smMasses["W"] + smWidths["W"]): offshell = True
             else: offshell = False
-        else: offshell = False
 
         return offshell
 
@@ -662,7 +662,10 @@ class Manipulator ( LoggerBase ):
                 dId = "ul"
             sId = f"{anaId}:{dId}"
             txnames = " ".join ( map ( str,  tp.txnames ) )
-            print ( f"- {sId:40s} {txnames} robs={d['robs']:.2f} rexp={d['rexp']:.2f}" )
+            srexp = str(d["rexp"])
+            if type(d["rexp"]) != type(None):
+                srexp = f"{d['rexp']:.2f}"
+            print ( f"- {sId:40s} {txnames} robs={d['robs']:.2f} rexp={srexp}" )
         if not hasattr ( self, "llhd_critic" ):
             return
         print ( )
@@ -1217,7 +1220,7 @@ class Manipulator ( LoggerBase ):
             probSSingle : float = 0.8, ssmSigma : float = 1.0,
             probMerge : float = 0.05, sigmaFreeze : float = 0.5,
             probMassive : float = 0.3, probMass : float = 0.05,
-            run_mcmc : bool = False, cap_ssm : floor = 100 ):
+            run_mcmc : bool = False, cap_ssm : float = 100 ):
         """Randomly modify the proto-model following the steps:
 
         1) A random particle can be unfrozen with a probability
@@ -2089,13 +2092,13 @@ class Manipulator ( LoggerBase ):
             minMass = max ( self.walledpids[pid], minMass )
 
         # offshell = False
-        if pid in [ 1000023, 1000024 ]:
-            # for C1 and N2 we want a 10% chance to start in the offshell regime -> increase prob?
+        if pid in [ 1000023, 1000024, 1000025, 1000037 ]:
+            # for C1 and N2 and N3 we want a 10% chance to start in the offshell regime -> increase prob?
             p = np.random.uniform ( 0, 1 )
             if p < 0.1:
                 # offshell = True
                 self.log ( f"Unfreezing {namer.asciiName(pid)}, randomly chose to restrict to offshell mass!" )
-                if pid == 1000023: maxMass = minMass + smMasses["Z"] + smWidths["Z"]
+                if pid in [  1000023, 1000025 ]: maxMass = minMass + smMasses["Z"] + smWidths["Z"]
                 else: maxMass = minMass + smMasses["W"] + smWidths["W"]
 
         m_random = float(np.random.uniform ( 0., 1. ))
@@ -2287,7 +2290,7 @@ class Manipulator ( LoggerBase ):
             if p < 0.1:
                 offshell = True
                 self.log ( f"randomly chose {spid} to restrict to offshell mass!" )
-                if pid == 1000023: maxMax = minMass + smMasses["Z"] + smWidths["Z"]
+                if pid in [ 1000023, 1000025 ]: maxMax = minMass + smMasses["Z"] + smWidths["Z"]
                 else: maxMax = minMass + smMasses["W"] + smWidths["W"]
 
         massIsLegal = False
@@ -2336,9 +2339,9 @@ class Manipulator ( LoggerBase ):
         for ipid in allpids:
             sipid=namer.asciiName(ipid)
             self.M.masses[ipid]=tmpmass
-            if ipid in [ 1000023, 1000024 ]:
-                if ipid == 1000023: is_offshell = (tmpmass - self.M.masses[LSP]) < ( smMasses["Z"] + smWidths["Z"])
-                if ipid == 1000024: is_offshell = (tmpmass - self.M.masses[LSP]) < (smMasses["W"] + smWidths["W"])
+            if ipid in [ 1000023, 1000024, 1000025, 1000037 ]:
+                if ipid in [ 1000023, 1000025 ]: is_offshell = (tmpmass - self.M.masses[LSP]) < ( smMasses["Z"] + smWidths["Z"])
+                if ipid in [ 1000024, 1000037 ]: is_offshell = (tmpmass - self.M.masses[LSP]) < (smMasses["W"] + smWidths["W"])
                 if was_offshell != is_offshell:     #initialize branchings
                     if self.run_mcmc:
                         self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {ipid}.")
