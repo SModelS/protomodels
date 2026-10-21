@@ -18,6 +18,7 @@ from smodels.share.models.SMparticles import SMList
 from smodels.base.physicsUnits import fb, GeV, TeV, UnitXSec, UnitEnergy
 from smodels.base.model import Model
 from smodels.base.exceptions import SModelSBaseError as SModelSError
+from smodels.statistics.basicStats import observed, apriori, aposteriori
 
 sys.path.insert(0,"../")
 from smodels_utils.helper.databaseManipulations import removeNonAggregatedFromDB
@@ -381,7 +382,8 @@ class Predictor ( LoggerBase ):
             return predictions
 
     def printPredictions ( self, predictions : Union[list,None] = None,
-            add_index : bool = False, sort : bool = False ):
+            add_index : bool = False, sort : bool = False,
+            add_rvalues : bool = False ):
         """ pretty print a list of predictions
         :param predictions: if None, print self.predictions (if exist)
         :param add_index: add an index in front
@@ -394,7 +396,7 @@ class Predictor ( LoggerBase ):
         if sort:
             orig_predictions = predictions[:]
             predictions = sorted ( predictions, 
-                key = lambda x: f"{x.analysisId()}:{x.dataset.dataInfo.dataId}" )
+                key = lambda x: f"{x.analysisId()}:{x.dataId()}" )
         print ( )
         print ( f"[predictor] {len(self.predictions)} predictions for combiner:" )
         for i,p in enumerate(predictions):
@@ -410,6 +412,12 @@ class Predictor ( LoggerBase ):
                     i = orig_predictions.index ( p )
                 sidx = f"{i}: "
             print ( f" - {sidx}{p.analysisId()}:{dataId}: {txns}" )
+            if add_rvalues:
+                rexp = p.getRValue(apriori)
+                srexp  = str(rexp)
+                if rexp != None:
+                    srexp = f"{rexp:.2g}"
+                print ( f"     `- robs={p.getRValue(observed):.2g} rexp={srexp}" )
         if hasattr ( self, "critic_preds" ):
             print ( )
             print ( f"[predictor] {len(self.critic_preds)} predictions for critic:" )
@@ -477,10 +485,10 @@ class Predictor ( LoggerBase ):
             return
         if force_computation_K and abs(muhat - 1.0) > 1e-2:
             ma = Manipulator ( protomodel, environ = self.environ )
-            ma.rescaleSignalBy ( s = None ) # rescale by muhat ("None")
+            # ma.rescaleSignalBy ( s = None ) # rescale by muhat ("None")
             muhat = ma.M.muhat
 
-        if abs(muhat - 1.0) <= 1e-2:
+        if abs(muhat - 1.0) <= 1e-2 or force_computation_K:
             prior = self.combiner.computePrior ( protomodel, nll = False )
             ## temporary hack: penalize for missing experiment
             missingExpPenalty = self.combiner.penaltyForMissingResults ( predictions )

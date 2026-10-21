@@ -111,9 +111,9 @@ class Critic ( LoggerBase ):
 
             robs.append(r)
             try:
-                rexp = theorypred.getRValue(expected=True)
+                rexp = theorypred.getRValue(evaluationType=apriori)
             except Exception as e:
-                rexp = theorypred.getRValue(evaluationType=True)
+                rexp = theorypred.getRValue(expected=True)
             tpList.append( { "robs": r, "rexp": rexp, "tp": theorypred } )
 
 
@@ -263,10 +263,13 @@ class Critic ( LoggerBase ):
         :returns: Tuple[bool, Text]: bool is False, if the critic failed, true if passed
         Text is explanation.
         """
+        
+        """
         if abs(protomodel.muhat-1.0)>1e-4:
             # rescale signals by muhat, set muhat to 1.0
             from builder.manipulator import Manipulator
             Manipulator ( protomodel, self.environ ).rescaleSignalBy ( None )
+        """
         # Create SLHA file (for running SModelS)
         slhafile = protomodel.createSLHAFile()
         self.protomodel = protomodel
@@ -381,11 +384,11 @@ class Critic ( LoggerBase ):
 
         for pred in predictions:
             try:
-                robs = pred.getRValue (expected=False)
-                rexp = pred.getRValue (expected=True)
-            except Exception as e:
                 robs = pred.getRValue (evaluationType=observed)
                 rexp = pred.getRValue (evaluationType=apriori)
+            except Exception as e:
+                robs = pred.getRValue (expected=False)
+                rexp = pred.getRValue (expected=True)
 
             if rexp is None:
                 rexp = robs
