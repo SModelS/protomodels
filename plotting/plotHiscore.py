@@ -79,7 +79,7 @@ class HiscorePlotter ( LoggerBase ):
             # git_push = "git push"
             sshdir = f"{rhome}/.ssh"
             if os.path.exists ( f"{sshdir}/id_ecdsa" ):
-                git_push = 'GIT_SSH_COMMAND="ssh -i {sshdir}/id_ecdsa -o IdentitiesOnly=yes" git push'
+                git_push = f'GIT_SSH_COMMAND="ssh -i {sshdir}/id_ecdsa -o IdentitiesOnly=yes" git push'
         cmd = f"cd {destdir}; git pull; git add '{upload}'; git commit -m '{comment}'; {git_push}"
         self.pprint ( f"exec: {cmd}" )
         out = subprocess.getoutput ( cmd )

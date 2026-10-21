@@ -740,7 +740,8 @@ class Manipulator ( LoggerBase ):
                     oUL = i.getUpperLimit ( ).asNumber(fb)
                     nll = i.nll ( mu=1.  )
                     nll_sm = i.nll ( mu=0.  )
-                    Z = self.zFromNLLs ( nll_sm, nll )
+                    from ptools.helpers import zFromNLLs
+                    Z = zFromNLLs ( nll_sm, nll )
                     line += f"obs={oUL:.1f}*fb exp={eUL:.1f}*fb Z={RED}{Z:.1f}*sigma{RESET}"
                     print ( line )
             if add_nlls:
