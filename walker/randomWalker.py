@@ -162,7 +162,7 @@ class RandomWalker ( LoggerBase ):
         self.pprint ( f"Ramping up with slurm jobid {jobid}" )
         self.pprint ( f"It is {time.asctime()}" )
         self.pprint ( f"Template {self.environ.templateSLHA} allowN1N1={self.environ.allowN1N1Prod} susy_mode={self.environ.susy_mode}" )
-        
+
         #keep track of log llhd ratio
         self.trace_logllhdratio = []
         self.run_mcmc = run_mcmc
@@ -194,7 +194,7 @@ class RandomWalker ( LoggerBase ):
                 self.manipulator.M.K, self.manipulator.M.TL = 1.0,1.0
                 self.currentK = self.manipulator.M.K
                 self.currentTL = self.manipulator.M.TL
-            
+
             else:
                 self.predict(self.manipulator)
                 if type(self.manipulator.M.TL) != type(None) and type(self.manipulator.M.K) != type(None):
@@ -241,7 +241,7 @@ class RandomWalker ( LoggerBase ):
     def defaults ( cls, rvars ):
         """ define the defaults """
         defs = { "walkerid": "default", "jmin": 0, "continueFrom": "",
-                 "cheatcode": "no_cheat", "maxsteps": 1000, 
+                 "cheatcode": "no_cheat", "maxsteps": 1000,
                  "cap_ssm": 100.,
                  "test_param_space": False, "seed": None, "expected": False,
                  "record_history": False, "catch_exceptions": True,
@@ -300,9 +300,13 @@ class RandomWalker ( LoggerBase ):
     def protomodel(self, protomodel):
         self.manipulator.M = protomodel
 
-    def printStats ( self, substep=None ):
+    def printStats ( self, substep : int|None = None,
+                     detailed : bool = True ):
         """ print the stats, i.e. number of unfrozen particles.
-            for debugging. """
+            for debugging.
+        :param substep: the substep were in (for debugging)
+        :param detailed: if true, give detailed feedback
+        """
         #print(f"best Combo {self.manipulator.M.bestCombo}, step {self.manipulator.M.step}")
         nUnfrozen = len( self.protomodel.unFrozenParticles() )
         nTotal = len ( self.protomodel.particles )
@@ -315,10 +319,16 @@ class RandomWalker ( LoggerBase ):
             pidsbc = list ( self.manipulator.getAllPidsOfBestCombo() )
             pidsbc.sort()
             prtclesbc = ", ".join ( map ( namer.asciiName, pidsbc ) )
-            self.log ( f"Step {self.protomodel.step} has {nUnfrozen}/{nTotal} unfrozen particles: {prtcles} [in best combo: {prtclesbc}]" )
+            # self.log ( f"Step {self.protomodel.step} has {nUnfrozen}/{nTotal} unfrozen particles: {prtcles} [in best combo: {prtclesbc}]" )
+            self.pprint ( f"Step {self.protomodel.step} has {nUnfrozen}/{nTotal} unfrozen particles: {prtcles} [in best combo: {prtclesbc}]" )
             if len(pidsbc)>0 and not set(pidsbc).issubset ( set(pidsp) ):
                 self.pprint ( f"  `-- error! best combo pids ({pidsbc}) arent subset of masses pids ({pidsp})!" )
                 self.manipulator.M.bestCombo = None
+            if detailed:
+                self.pprint ( f"massses {self.protomodel.masses}" )
+                self.pprint ( f"decays {self.protomodel.decays}" )
+                self.pprint ( f"widths {self.protomodel.widths}" )
+                self.pprint ( f"ssms {self.protomodel.ssmultipliers}" )
 
     def writeToDictFile(self, proto_dict):
             # Load existing list or initialize a new one
@@ -330,7 +340,7 @@ class RandomWalker ( LoggerBase ):
                     except (SyntaxError,ValueError) as e:
                         logger.error ( f"when trying to read {self.dictfile}: {e}" )
                         dicts = []
-                    
+
             else: dicts = []
             dicts.append(proto_dict)
             # helpers.mkdir ( os.path.dirname ( self.dictfile ) )
@@ -342,9 +352,9 @@ class RandomWalker ( LoggerBase ):
 
 
     def predict ( self, manipulator : Manipulator) -> bool:
-        """ Calls predictor.predict to get the theory predictions for model. 
-        Loops for 5 times till model.muhat is close to 1.0 
-        
+        """ Calls predictor.predict to get the theory predictions for model.
+        Loops for 5 times till model.muhat is close to 1.0
+
         :returns: true if worked
         """
         #print(f"Adress of manip : {id(manipulator)}")
@@ -381,11 +391,11 @@ class RandomWalker ( LoggerBase ):
             proto_dict = manipulator.getPmodelDict()
             if predict:
                 self.log ( f"Step {model.step} did not converge to muhat 1.0, model muhat is {previousMuhat}. Going back to previous step." )
-                self.log(f"Protomodel: {proto_dict}")   
+                self.log(f"Protomodel: {proto_dict}")
                 self.writeToDictFile(proto_dict)
             else:
                 self.log ( f"Step {model.step} did not converge to muhat 1.0. Model did not find any prediction." )
-                self.log(f"Protomodel: {proto_dict}") 
+                self.log(f"Protomodel: {proto_dict}")
                 self.writeToDictFile(proto_dict)
             return False
 
@@ -436,9 +446,9 @@ class RandomWalker ( LoggerBase ):
             try:
                 if not self.predict(self.manipulator):
                     self.protomodel.K = None
-                    return 
+                    return
                 if protomodelSimp:
-                    boolProtoSimp = self.predict(manipulatorSimp) 
+                    boolProtoSimp = self.predict(manipulatorSimp)
             except Exception as e:
                 self.pprint ( f"@@@ caught exception @@@" )
                 self.pprint ( f"{type(e)} ``{str(e)}'' encountered when trying to predict. lets revert and not count it as a step." )
@@ -557,7 +567,7 @@ class RandomWalker ( LoggerBase ):
         if K == None: # if the old is none, we do everything
             self.takeStep()
             return
-        
+
         if self.run_mcmc:       #check if combination of results changes during mcmc walk
             newcombo = set(self.protomodel.description.split(','))
             if newcombo != self.currentBestCombo:
@@ -568,12 +578,12 @@ class RandomWalker ( LoggerBase ):
                 return
         newK = self.protomodel.K
         log_llhdRatio_new = self.protomodel.TL
-        
+
         if self.test_param_space:
             self.takeStep()
             self.log("Testing parameter space, K,TL = 1.0. Take step")
             return
-        
+
         if newK == None:
             # if the new is none, but the old isnt, we go back
             self.manipulator.restoreModel( reportReversion=True )
@@ -656,14 +666,14 @@ class RandomWalker ( LoggerBase ):
             self.log("Only LSP present. Forcing to unfreeze random particle")
             self.manipulator.propose_model = self.manipulator.M.copy()
             self.manipulator.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0}, 'br':{'q':1.0}, 'ssm':{'q':1.0}, 'q_total':1.0}
-            
+
             unfrozenParticle = self.manipulator.randomlyUnfreezeParticle()
             self.manipulator.run_mcmc = False
             self.manipulator.proposal_density( move='add_par', force_move=True)
             self.manipulator.backupModel()
-        
+
         old_handler = signal.getsignal(signal.SIGTERM)
-        
+
         def handle_termination(signum=None, frame=None):
             """Handles both SLURM termination signals and manual interruptions."""
             if signum in [ signal.SIGTERM, signal.SIGINT ]:
@@ -698,7 +708,7 @@ class RandomWalker ( LoggerBase ):
                 except KeyboardInterrupt:
                     self.highlight(f"error", "Interrupted by user/ Killed by slurm.")
                     handle_termination()
-                    
+
             else:
                 try:
                     self.onestep()
@@ -735,7 +745,7 @@ class RandomWalker ( LoggerBase ):
             if self.maxsteps < 0:
                 smaxstp = "inf"
             self.pprint ( f"Step {self.protomodel.step}/{smaxstp} finished." )
-        
+
         self.manipulator.M.delCurrentSLHA()
         self.pprint ( f"Was asked to stop after {self.maxsteps} steps" )
         self.pprint(f"Writing last protomodel to pmodel{self.walkerid}.dict")
@@ -744,15 +754,15 @@ class RandomWalker ( LoggerBase ):
 
 def model1():
     masses = {1000022: 46.514732, 1000023: 350, 1000024: 350 }
-    
-    ssms = {(1000022, 1000022): 0.191043, (1000023, 1000023): 0.204701, 
-        (1000022, 1000023): 0.0, (1000024, 1000024): 1.829998, 
-        (-1000024, 1000024): 1.829998, (-1000024, -1000024): 1.829998, 
-        (1000022, 1000024): 1.329093, (-1000024, 1000022): 1.329093, 
+
+    ssms = {(1000022, 1000022): 0.191043, (1000023, 1000023): 0.204701,
+        (1000022, 1000023): 0.0, (1000024, 1000024): 1.829998,
+        (-1000024, 1000024): 1.829998, (-1000024, -1000024): 1.829998,
+        (1000022, 1000024): 1.329093, (-1000024, 1000022): 1.329093,
         (1000023, 1000024): 0.0, (-1000024, 1000023): 0.0 }
-    
+
     decays = {1000022: {}, 1000023: {(1000022, 25): 1.0}, 1000024: {(1000022, 24): 1.0}, 1000037: {(1000022, 24): 1.0}}
-    
+
     D = {'masses': masses, 'ssmultipliers': ssms, 'decays': decays }
     return D
 
@@ -789,7 +799,7 @@ if __name__ == "__main__":
     select = "all"
     D = model2()
     environ = RunEnviron.create ( dbpath = dbpath, select = "all" )
-    
+
     rvars = { "walkerid": 0 }
     ## if you want to use your own prior, put it into the run environment:
     ## environ = RunEnviron.create ( dbpath = dbpath, select = "all",

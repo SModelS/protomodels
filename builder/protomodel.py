@@ -347,14 +347,15 @@ class ProtoModel ( LoggerBase ):
         allMasses.update(smMasses)
 
         offshell = False
+        mLSP = self.masses[self.LSP]
         if pid == 1000023 and pid in self.masses and self.LSP in self.masses and \
-                (self.masses[pid] - self.masses[self.LSP]) < (smMasses["Z"] + smWidths["Z"]):
+                (self.masses[pid] - mLSP ) < (smMasses["Z"] + smWidths["Z"]):
             offshell = True
         elif pid == 1000024 and pid in self.masses and self.LSP in self.masses and \
-                  (self.masses[pid] - self.masses[self.LSP]) < (smMasses["W"] + smWidths["W"]):
+                  (self.masses[pid] - mLSP ) < (smMasses["W"] + smWidths["W"]):
             offshell = True
         elif pid == 1000025 and pid in self.masses and self.LSP in self.masses and \
-                (self.masses[pid] - self.masses[self.LSP]) < (smMasses["Z"] + smWidths["Z"]):
+                (self.masses[pid] - mLSP ) < (smMasses["Z"] + smWidths["Z"]):
             offshell = True
         else: offshell = False
 
@@ -375,7 +376,8 @@ class ProtoModel ( LoggerBase ):
             if not pid in self.masses or mdaughter >= self.masses[pid]:
                 continue
 
-            if not offshell and len(dpid) == 3 and pid in [1000023, 1000024,1000025]:       #turn off 3-body decays for onshell X^2_Z and X^1_W
+            if not offshell and len(dpid) == 3 and pid in [1000023, 1000024, 1000025, 1000037 ]:
+                #turn off 3-body decays for onshell X^2_Z and X^1_W
                 continue
 
             openChannels.add ( dpid )
@@ -391,7 +393,7 @@ class ProtoModel ( LoggerBase ):
                     dec_not_present = [dc for dc in decay_chan if dc not in openChannels]
                     if len(dec_not_present) > 0:
                         self.highlight("warn", f"For {pid}: {dec_not_present} not in the open channels list which is: " )
-                        self.highlight("warn", f"  - {openChannels}.") 
+                        self.highlight("warn", f"  - {openChannels}.")
                         self.highlight("warn", f"  - It's likely closed, but {dpid} is open. For now will remove {dpid} from open channels.")
                         # self.pprint ( f"@@@XX openChannels.remove({dpid})" )
                         openChannels.remove(dpid)

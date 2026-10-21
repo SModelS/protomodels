@@ -832,7 +832,7 @@ class Manipulator ( LoggerBase ):
             delDecays = [dpid for dpid in protomodel.decays[pid] if not  dpid in openChannels]
             if delDecays != []: 
                 self.pprint(f"removeIllegalBRs: removing decays of {pid}: {delDecays}")
-                # self.pprint(f"@@ why illegal? openChannels is {openChannels}" )
+                self.pprint(f"@@ why illegal? openChannels is {openChannels} masses are {protomodel.masses}" )
             for dpid in delDecays:
                 protomodel.decays[pid].pop(dpid)
             if len(protomodel.decays[pid])==0 and len(delDecays)>0:
@@ -1136,15 +1136,15 @@ class Manipulator ( LoggerBase ):
         deg_current = n_par_current + n_decays_current + n_ssms_current
         if self.run_mcmc:
             if deg_prop != deg_current:
-                self.highlight("error", f"Error! Dimension Changed during mcmc walk!")
+                self.highlight("error", f"Error! Dimension changed ({deg_prop}->{deg_current}) during mcmc walk!")
                 if n_par_current != n_par_propose:
                     self.log(f"Particle content changed during mcmc walk. Prev num of par {n_par_current}, current num of par {n_par_propose}")
                 if n_decays_current != n_decays_propose:
-                    self.log(f"Decays changed during mcmc walk. Prev num of decays {n_decays_current}, current num of decays {n_decays_propose}")
-                    print(f"current: {model_propose.decays}, {n_decays_propose}")
-                    print(f"prev: {model_current.decays}, {n_decays_current}")
+                    self.pprint(f"Decays changed during mcmc walk. Prev num of decays {n_decays_current}, current num of decays {n_decays_propose}")
+                    self.pprint(f"current: {model_propose.decays}, {n_decays_propose}")
+                    self.pprint(f"prev: {model_current.decays}, {n_decays_current}")
                 if n_ssms_current != n_ssms_propose:
-                    self.log(f"Production modes changed during mcmc walk. Prev num of prod modes {n_ssms_current}, current num of prod modes {n_ssms_propose}")
+                    self.pprint(f"Production modes changed during mcmc walk. Prev num of prod modes {n_ssms_current}, current num of prod modes {n_ssms_propose}")
                 return False
             return True
         #print(f"Current deg: {deg_current}")
