@@ -495,7 +495,10 @@ class RefXSecComputer ( LoggerBase ):
                     os.unlink(pythia.pythiacard)
                     pythia.pythiacard = None
                     self.warning (f'PYTHIA cross section: {xsec*1000:.2f}*fb')
-                    xsec.comment = comment
+                    try:
+                        xsec.comment = comment
+                    except (AttributeError,TypeError) as e:
+                        pass
                 except Exception as e:
                     if pythia.pythiacard != None:
                         os.unlink(pythia.pythiacard)
