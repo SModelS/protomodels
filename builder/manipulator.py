@@ -650,7 +650,7 @@ class Manipulator ( LoggerBase ):
         """ set the walker id of protomodel """
         self.M.walkerid = Id
 
-    def printCritic ( self ):
+    def printCritic ( self, add_details : bool = True ):
         """ form ul_critic_tpList nicely """
         if not hasattr ( self, "ul_critic_tpList" ):
             return
@@ -674,7 +674,10 @@ class Manipulator ( LoggerBase ):
         print ( f"Likelihood based critic: robs {robs:.1f} rexp {rexp:.1f} combines:" )
         lpreds = " ".join ( self.llhd_critic["datasets"] )
         for ds in self.llhd_critic["datasets"]:
-            print ( f"    - {ds}" )
+            details = ""
+            if add_details:
+                details = f"{type(ds)}"
+            print ( f"    - {ds}: {details}" )
 
     def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
             detailed : bool = False, add_nlls : bool = False,

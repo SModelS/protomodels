@@ -167,10 +167,13 @@ class Critic ( LoggerBase ):
         if mostSensiComb is None:
             protomodel.description += "; llhd-based critic has no theory prediction."
         else:
+            # FIXME redundant information, long term simplify
             datasets = [experimentalId(comb) for comb in mostSensiComb]
+            tpDict = { experimentalId(comb):comb for comb in mostSensiComb }
             protomodel.llhd_critic = {'datasets': datasets,
                 'robs': round(robsComb,2), 'rexp': round(rexpComb,2),
-                'passed': allowed_by_llhd_critic
+                'passed': allowed_by_llhd_critic, "tpDict": tpDict
+
             }
 
 
