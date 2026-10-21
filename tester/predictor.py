@@ -42,7 +42,8 @@ class Predictor ( LoggerBase ):
         the predictor class, i.e. the class that computes the predictions,
         finds the best combinations, and computes the final test statistics
         :param walkerid: walkerid to run this as
-        :param environ: the run environment
+        :param environ: the run environment (which also provides the
+        optional user prior, see environ.userprior)
         :param expected: ?
         """
         super ( Predictor, self ).__init__ ( walkerid )
@@ -50,13 +51,15 @@ class Predictor ( LoggerBase ):
         self.environ = environ
         self.modifier = None
         self.expected = expected
+        ## the (optional) user-provided prior comes from the run environment
+        self.userprior = getattr ( environ, "userprior", None )
 
         if expected:
             from expResModifier import ExpResModifier
             self.modifier = ExpResModifier()
 
         self.fetchResults()
-        self.combiner = Combiner(self.walkerid)
+        self.combiner = Combiner(self.walkerid, userprior=self.userprior)
 
     def filterForAnaIdsTopos ( self, anaIds, topo ):
         """ filter the list of expRes, keep only anaIds """

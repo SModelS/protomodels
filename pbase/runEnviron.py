@@ -6,6 +6,7 @@ all parameters that are specific to a run
 
 import os
 import time
+from typing import Union
 from ptools.helpers import py_dump, py_dumps
 from pbase.loggerbase import LoggerBase
 from pbase.pbase import openWithRetry
@@ -44,6 +45,10 @@ class RunEnviron ( LoggerBase ):
         :ivar rundir(str): the run directory
         :ivar extrapolation_acceptance(float): the extrapolation acceptance
         in SModelS txnameObj
+        :ivar userprior(Union[None,str]): optional path to a python file that
+        contains a 'myprior' function (which takes the protomodel and the nll
+        flag and returns a float). That value is then added to the standard
+        prior (for nll=True) or multiplied to it (for nll=False).
         """
         super ( RunEnviron, self ).__init__ ( "env" )
         self._db = None # we instantiate only when needed
@@ -53,7 +58,56 @@ class RunEnviron ( LoggerBase ):
         self.run_dict = self.defaults()
         self.readRunDict()
         self._setAttrs()
+        self.checkUserPrior()
         self.setAcceptedExtrapolationErrors ( self.run_dict["extrapolation_acceptance"] )
+
+    def checkUserPrior ( self ) -> None:
+        """ check that the (optional) user prior file exists
+
+        :returns: None (but exits if the file does not exist)
+        """
+        userprior = getattr ( self, "userprior", None )
+        if userprior in [ None, "", False ]:
+            return
+        if not os.path.exists ( userprior ):
+            self.error ( f"the user prior file {userprior} does not exist" )
+            import sys; sys.exit(-1)
+
+    @classmethod
+    def resolveUserPrior ( cls, userprior, rundir : Union[None,str] = None ):
+        """ resolve the path to the (optional) user prior file
+
+        Relative paths are interpreted relative to the run directory (if
+        given), otherwise relative to the current working directory.
+
+        :param userprior: the path to the user prior file (or None)
+        :param rundir: the run directory
+        :returns: the absolute path to the user prior file (or None)
+        """
+        if userprior in [ None, "", False ]:
+            return None
+        if isinstance ( userprior, os.PathLike ):
+            userprior = os.fspath ( userprior )
+        if not isinstance ( userprior, str ):
+            raise ValueError ( f"the user prior has to be given as a path (a string), "\
+                               f"but is {type(userprior)}" )
+        path = os.path.expanduser ( userprior )
+        if not os.path.isabs ( path ) and rundir not in [ None, "" ]:
+            path = os.path.join ( os.path.expanduser ( rundir ), path )
+        return os.path.abspath ( path )
+
+    @property
+    def userprior ( self ) -> Union[None,str]:
+        """ the (optional) path to the user prior file """
+        return getattr ( self, "_userprior", None )
+
+    @userprior.setter
+    def userprior ( self, value ):
+        """ set the (optional) user prior file, resolving the path """
+        resolved = self.resolveUserPrior ( value, rundir = getattr ( self, "rundir", None ) )
+        self._userprior = resolved
+        if hasattr ( self, "run_dict" ):
+            self.run_dict["userprior"] = resolved
 
 
     def setAcceptedExtrapolationErrors ( self, err : float ):
@@ -91,6 +145,9 @@ class RunEnviron ( LoggerBase ):
         if "rundir" in newdict:
             path = os.path.abspath ( os.path.expanduser ( newdict["rundir"] ) )
             newdict["rundir"] = path
+        ## the (optional) user prior: resolve it to an absolute path
+        newdict["userprior"] = cls.resolveUserPrior ( newdict.get ( "userprior", None ),
+                                      rundir = newdict.get ( "rundir", None ) )
         old_dbver = "???"
         if oldret != None:
             ## dbver we check later
@@ -103,7 +160,7 @@ class RunEnviron ( LoggerBase ):
                 for k,v in dd.items():
                     line = f"[RunEnviron] {k:>16}: {v[0]} != {v[1]}"
                     print ( line )
-                    if k not in [ "use_initialiser" ]:
+                    if k not in [ "use_initialiser", "userprior" ]:
                         print ( f"[RunEnviron] correct this!" )
                         raise Exception ( line )
                 else:
@@ -146,7 +203,8 @@ class RunEnviron ( LoggerBase ):
             "allowN1N1Prod": False, "susy_mode": False,
             "rundir": os.getcwd(), "strategy": "aggressive",
             "use_initialiser": None, "dbversion": "???",
-            "extrapolation_acceptance": 0.
+            "extrapolation_acceptance": 0.,
+            "userprior": None
         }
         return defaults
 
@@ -166,6 +224,9 @@ class RunEnviron ( LoggerBase ):
                     txt = f.read()
             d = eval ( txt )
             self.run_dict.update ( d )
+            ## the (optional) user prior: resolve it to an absolute path
+            self.run_dict["userprior"] = self.resolveUserPrior ( self.run_dict.get ( "userprior", None ),
+                                          rundir = self.run_dict.get ( "rundir", None ) )
             self.didReadRunDict = True
         except ( SyntaxError, ValueError ) as e:
             self.error (f"when parsing {os.path.abspath(self.runDictFile)} {type(e)}: {e}" )

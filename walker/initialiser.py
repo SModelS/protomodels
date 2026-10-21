@@ -101,7 +101,8 @@ class Initialiser ( LoggerBase ):
         """ constructor.
 
         :param walkerid: the walkerid we run this under
-        :param environ: a run environment
+        :param environ: a run environment (which also provides the optional
+        user prior, see environ.userprior)
         :param verbosity: verbosity level: debug, info, warn, or error
         """
         super ( Initialiser, self ).__init__ ( walkerid,
@@ -1202,7 +1203,7 @@ if __name__ == "__main__":
             type=str, default="*_database.dict" )
     argparser.add_argument ( '-v', '--verbosity',
             help='verbosity level: debug, info, warn, error', 
-            type=str, default="info"
+            type=str, default="info" )
     argparser.add_argument ( '-r', '--recompute_cache',
             help='dont use pids.cache and xsecs.cache cache files', 
             action="store_true" )

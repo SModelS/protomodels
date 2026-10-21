@@ -2,7 +2,7 @@
 
 """ Try out combinations from pickle file. """
 
-__all__ = [ "Combiner" ]
+__all__ = [ "Combiner", "loadUserPrior" ]
 
 from smodels.decomposition import decomposer
 from smodels.share.models.SMparticles import SMList
@@ -11,20 +11,124 @@ from smodels.base.physicsUnits import fb
 from smodels.statistics.basicStats import NllEvalType, observed, apriori
 from smodels.matching.theoryPrediction import TheoryPrediction, \
          TheoryPredictionsCombiner
-import sys, os
+import sys, os, inspect, importlib.util
 sys.path.insert(0,os.path.abspath ( os.path.dirname(__file__) ) )
 from pbase.loggerbase import LoggerBase
 import numpy, math, copy, sys, time
 from colorama import Fore
-from typing import List, Union, Tuple, Set
+from typing import List, Union, Tuple, Set, Callable
 from ptools.helpers import getAllPidsOfTheoryPred, getAllProdModesOfTheoryPred
 from ptools.bamCreator import selectMostSignificantSRs, bamAndWeights, \
          find_best_comb
 
+def loadUserPrior ( path : str ) -> Callable:
+    """ load the (optional) user-provided prior from a python file
+
+    The file has to contain a function 'myprior' which takes the protomodel
+    and the nll flag (as options, i.e. keyword arguments 'protomodel' and
+    'nll') and returns a float. That float is then added to the standard
+    prior (for nll=True) or multiplied to it (for nll=False).
+
+    We do a few basic checks on the file and on the function:
+    - the file has to exist
+    - the file has to be importable (no exceptions while loading it)
+    - it has to contain a callable 'myprior'
+    - 'myprior' has to accept the protomodel and the nll flag
+
+    :param path: path to the python file containing the 'myprior' function
+    :returns: a function that takes (protomodel, nll) and returns a float
+    :raises: Exception, if any of the checks above fails
+    """
+    if path is None:
+        raise ValueError ( "no path to a user prior given" )
+    if isinstance ( path, os.PathLike ):
+        path = os.fspath ( path )
+    if not isinstance ( path, str ):
+        raise ValueError ( f"the path to the user prior has to be a string, but is {type(path)}" )
+    fname = os.path.abspath ( os.path.expanduser ( path ) )
+    if not os.path.exists ( fname ):
+        raise FileNotFoundError ( f"the user prior file {fname} does not exist" )
+    if not os.path.isfile ( fname ):
+        raise FileNotFoundError ( f"the user prior file {fname} is not a file" )
+    ## make the directory of the user file importable, so that the user can
+    ## import helper modules from there
+    dirname = os.path.dirname ( fname )
+    if dirname not in sys.path:
+        sys.path.insert ( 0, dirname )
+    modname = "userprior_" + os.path.basename ( fname ).replace ( ".", "_" )
+    try:
+        spec = importlib.util.spec_from_file_location ( modname, fname )
+    except Exception as e:
+        raise Exception ( f"could not load the user prior file {fname}: {e}" )
+    if spec is None or spec.loader is None:
+        raise Exception ( f"could not load the user prior file {fname}" )
+    module = importlib.util.module_from_spec ( spec )
+    sys.modules [ modname ] = module
+    try:
+        spec.loader.exec_module ( module )
+    except Exception as e:
+        raise Exception ( f"error while executing the user prior file {fname}: {e}" )
+    if not hasattr ( module, "myprior" ):
+        raise Exception ( f"the user prior file {fname} does not contain a 'myprior' function" )
+    func = getattr ( module, "myprior" )
+    if not callable ( func ):
+        raise Exception ( f"the 'myprior' in {fname} is not callable" )
+    ## now check that we can call it with the protomodel and the nll flag
+    try:
+        sig = inspect.signature ( func )
+    except ( TypeError, ValueError ) as e:
+        raise Exception ( f"could not determine the signature of 'myprior' in {fname}: {e}" )
+    params = list ( sig.parameters.values() )
+    has_var_positional = any ( p.kind == p.VAR_POSITIONAL for p in params )
+    has_var_keyword = any ( p.kind == p.VAR_KEYWORD for p in params )
+    npositional = len ( [ p for p in params if p.kind in
+                        ( p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD ) ] )
+    keyword_names = [ p.name for p in params if p.kind in
+                     ( p.POSITIONAL_OR_KEYWORD, p.KEYWORD_ONLY ) ]
+    use_keywords = ( ( "protomodel" in keyword_names or has_var_keyword ) and
+                     ( "nll" in keyword_names or has_var_keyword ) )
+    use_positional = npositional >= 2 or has_var_positional
+    if not use_keywords and not use_positional:
+        raise Exception ( f"the 'myprior' function in {fname} has to accept the protomodel "\
+                          f"and the nll flag, but its signature is {sig}" )
+    def userprior ( protomodel, nll : bool ) -> float:
+        """ the wrapper that calls the user function """
+        if use_keywords:
+            return func ( protomodel=protomodel, nll=nll )
+        return func ( protomodel, nll )
+    userprior.__doc__ = f"user prior from {fname}"
+    return userprior
+
 class Combiner ( LoggerBase ):
-    def __init__ ( self, walkerid: int=0 ):
+    def __init__ ( self, walkerid: int=0,
+                   userprior : Union[None,str,Callable] = None ):
+        """ initialise the combiner
+
+        :param walkerid: the id of the walker (for logging)
+        :param userprior: optional path to a python file that contains a
+        'myprior' function (taking the protomodel and the nll flag), which is
+        then used to modify the standard prior. See loadUserPrior.
+        """
         super ( Combiner, self ).__init__ ( walkerid )
         self.walkerid = walkerid
+        self.userprior = None
+        self.userpriorFile = None
+        if userprior not in [ None, "", False ]:
+            self.setUserPrior ( userprior )
+
+    def setUserPrior ( self, userprior : Union[str,Callable] ) -> None:
+        """ set the (optional) user-provided prior
+
+        :param userprior: path to a python file containing a 'myprior'
+        function, or the function itself.
+        """
+        if callable ( userprior ):
+            self.userprior = userprior
+            self.userpriorFile = None
+            return
+        self.userpriorFile = os.path.abspath ( os.path.expanduser ( userprior ) )
+        self.userprior = loadUserPrior ( self.userpriorFile )
+        self.pprint ( f"using the user prior from {self.userpriorFile}" )
 
     def getAllPidsOfCombo ( self, combo : List[TheoryPrediction] ) -> Set:
         """ get all particle IDs (PIDs) that make it into one combo """
@@ -132,6 +236,10 @@ class Combiner ( LoggerBase ):
         """ compute the prior for protomodel, used to introduce regularization,
             i.e. penalizing for non-zero parameters, imposing sparsity.
 
+        If a user prior has been provided (see self.setUserPrior), it is
+        applied at the very end: the value returned by the user function is
+        added to the prior (for nll=True) or multiplied to it (for nll=False).
+
         :param nll: if True, return negative log likelihood
         :param verbose: print how you get the prior.
         :param name: name of prior (expo1, gauss1, etc). See self.priorForNDF.
@@ -161,8 +269,8 @@ class Combiner ( LoggerBase ):
         if len(xsecs)==0:
             self.pprint( f"could not get xsecs for protomodel with masses {protomodel.masses!s}" )
             if nll:
-                return -float("inf")
-            return 0.
+                return self.applyUserPrior ( -float("inf"), protomodel, nll )
+            return self.applyUserPrior ( 0., protomodel, nll )
         modelXSecs = xsecs[0]
         for pids,ssm in protomodel.ssmultipliers.items():
             if (abs(pids[0]) not in unfrozen) or (abs(pids[1]) not in unfrozen):
@@ -224,7 +332,42 @@ class Combiner ( LoggerBase ):
             ret += pen_widths
         else:
             ret *= numpy.exp ( pen_widths )
+        ## and finally the (optional) user-provided prior
+        ret = self.applyUserPrior ( ret, protomodel, nll )
         return float(ret)
+
+    def applyUserPrior ( self, prior : float, protomodel,
+                          nll : bool ) -> float:
+        """ apply the (optional) user-provided prior to the standard prior
+
+        :param prior: the standard prior (or nll, if nll=True)
+        :param protomodel: the model the prior is computed for
+        :param nll: if True, the user prior is added, else it is multiplied
+        :returns: the modified prior
+        """
+        if self.userprior is None:
+            return prior
+        try:
+            val = self.userprior ( protomodel, nll )
+        except Exception as e:
+            self.highlight ( "error", f"error in the user prior: {e}" )
+            raise
+        ## basic checks on the value returned by the user function
+        if isinstance ( val, bool ) or not isinstance ( val, ( int, float,
+                                                numpy.floating,
+                                                numpy.integer ) ):
+            raise TypeError ( f"the user prior has to return a float, "\
+                              f"but it returned {type(val)}" )
+        val = float ( val )
+        if math.isnan ( val ) or math.isinf ( val ):
+            raise ValueError ( f"the user prior has to return a finite float, "\
+                               f"but it returned {val}" )
+        if not nll and val < 0.:
+            raise ValueError ( f"the user prior must not be negative when it is "\
+                               f"multiplied to the prior, but it returned {val}" )
+        if nll:
+            return prior + val
+        return prior * val
 
     def penaltyForSillyWidths ( self, protomodel )-> float:
         """ if widths dont fit with the mass gaps, penalize for this here

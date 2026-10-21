@@ -85,6 +85,8 @@ class RandomWalker ( LoggerBase ):
           - use_initialiser: if string, then interpret it as path to database,
             dictionary file that we use for the initialiser. only works if
             not using cheatcode. if none, then dont use initialiser.
+        Note: the (optional) user-provided prior is not given here, but comes
+        from the run environment (see environ.userprior).
         """
         globals().update ( environ.run_dict ) # doesnt work for all
         rvars = self.defaults ( rvars )
@@ -98,6 +100,8 @@ class RandomWalker ( LoggerBase ):
         cheatcode = rvars["cheatcode"]
         stopTeleportationAfter = rvars["stopTeleportationAfter"]
         run_mcmc = rvars["run_mcmc"]
+        ## the (optional) user-provided prior comes from the run environment
+        userprior = getattr ( environ, "userprior", None )
 
         #call the super class of the random walker i.e Loggerbase
         super ( RandomWalker, self ).__init__ ( walkerid )
@@ -121,6 +125,7 @@ class RandomWalker ( LoggerBase ):
         helpers.mkdir ( "dictfiles" )
         self.dictfile = f"dictfiles/pmodel_{walkerid}.dict"
         #Initialize Predictor
+        self.userprior = userprior
         self.predictor =  Predictor( self.walkerid, environ=self.environ,
                 expected=expected )
         self.critic =  Critic( self.walkerid, environ=self.environ,
@@ -130,7 +135,8 @@ class RandomWalker ( LoggerBase ):
         picklefile = f"{self.environ.rundir}/H{walkerid}.cache"
         save_hiscores = True
         self.hiscoreList = Hiscores ( walkerid, save_hiscores=save_hiscores,
-                picklefile=picklefile, backup=False, predictor=self.predictor )
+                picklefile=picklefile, backup=False, predictor=self.predictor,
+                environ=self.environ )
         self.hiscoreList.nkeep = 1
 
         #Initialize ProtoModel and Manipulator:
@@ -170,7 +176,7 @@ class RandomWalker ( LoggerBase ):
                 from walker.initialiser import Initialiser
                 from pbase.runEnviron import RunEnviron
                 environ = RunEnviron()
-                self.initialiser  = Initialiser ( self.walkerid, 
+                self.initialiser  = Initialiser ( self.walkerid,
                         self.use_initialiser, environ, verbosity = "info" )
                 #init_model = self.initialiser.propose()
                 init_model = self.initialiser.bestOfN(5)
@@ -785,5 +791,8 @@ if __name__ == "__main__":
     environ = RunEnviron.create ( dbpath = dbpath, select = "all" )
     
     rvars = { "walkerid": 0 }
+    ## if you want to use your own prior, put it into the run environment:
+    ## environ = RunEnviron.create ( dbpath = dbpath, select = "all",
+    ##         userprior = "../snippets/exampleUserPrior.py" )
     walker = RandomWalker.fromDictionary ( D, environ, rvars )
     walker.walk()

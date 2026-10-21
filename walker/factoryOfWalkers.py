@@ -96,6 +96,11 @@ def createWalkers ( rvars: dict ):
       - allowN1N1Prod: allow N1 N1 production mode
       - susy_mode: susy mode, dont touch ssms
       - use_initialiser: if string, then interpret it as path to database
+      - userprior: optional path to a python file that contains a 'myprior'
+        function (which takes the protomodel and the nll flag and returns a
+        float). That value is then added to the standard prior (for nll=True)
+        or multiplied to it (for nll=False). It is put into the run
+        environment (run.dict), from where the walkers pick it up.
     """
     globals().update ( rvars ) # doesnt work for all
     dbpath = rvars["dbpath"]
@@ -104,6 +109,15 @@ def createWalkers ( rvars: dict ):
     continueFrom = rvars["continueFrom"]
     cheatcode = rvars["cheatcode"]
     do_srcombine = rvars["do_srcombine"]
+    ## the (optional) user-provided prior: it goes into the run environment
+    userprior = rvars.get ( "userprior", None )
+    if userprior not in [ None, "", False ]:
+        ## resolve it the same way the run environment does it
+        userprior = RunEnviron.resolveUserPrior ( userprior, rundir = rvars["rundir"] )
+        if not os.path.exists ( userprior ):
+            print ( f"[factoryOfWalkers] error: the user prior file {userprior} does not exist" )
+            sys.exit()
+        print ( f"[factoryOfWalkers] using the user prior from {userprior}" )
     if "disallowN1N1Prod" in rvars:
         if not "allowN1N1Prod" in rvars:
             rvars["allowN1N1Prod"]=not rvars["disallowN1N1Prod"]
@@ -118,7 +132,8 @@ def createWalkers ( rvars: dict ):
              "templateSLHA": templateSLHA,
              "allowN1N1Prod": allowN1N1Prod, "susy_mode": susy_mode,
              "rundir": rvars["rundir"],
-             "use_initialiser": use_initialiser }
+             "use_initialiser": use_initialiser,
+             "userprior": userprior }
     from ptools.moreHelpers import namesForSetsOfPids
     meta["forbiddenparticles"] = namesForSetsOfPids ( forbiddenparticles )
     meta["extrapolation_acceptance"] = rvars["extrapolation_acceptance"]

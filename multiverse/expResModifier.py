@@ -422,6 +422,7 @@ Just filter the database:
         newargs = { "dbpath": dbpath, "dbversion": self.dbversion }
         for i in [ "allowN1N1Prod", ]:
             newargs[i]=args[i]
+        newargs["userprior"] = getattr ( self.environ, "userprior", None )
         ## this line triggers creation of the new run.dict
         self.environ = RunEnviron.new ( **newargs )
 
@@ -434,7 +435,8 @@ Just filter the database:
         :returns: none if not succesful, else protomodel object
         """
         self.environ = RunEnviron.new( allowN1N1Prod = allowN1N1Prod,
-                dbversion = dbversion, dbpath = self.dbpath )
+                dbversion = dbversion, dbpath = self.dbpath,
+                userprior = getattr ( self.environ, "userprior", None ) )
         if filename == "":
             return None
         if not os.path.exists ( filename ):

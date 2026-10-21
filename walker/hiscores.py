@@ -28,13 +28,17 @@ class Hiscores ( LoggerBase ):
             save_hiscores: bool = False,
             picklefile: PathLike="hiscores.cache", backup : bool = True,
             keep_separate_hiscores = False,
-            hiscores = None, predictor = None ):
+            hiscores = None, predictor = None,
+            environ : Union[None,RunEnviron] = None ):
         """ the constructor
         :param save_hiscores: if true, then assume you want to save, not just read.
         :param picklefile: path of pickle file name to connect hiscore list with
         :param backup: if True, make a backup pickle file old_<name>.pcl
         :param hiscores: if None, try to get them from file, if a list,
                          then these are the hiscore protomodels.
+        :param environ: the run environment (which also provides the optional
+        user prior, see environ.userprior). If None, we try to get it from
+        the predictor.
         """
         super ( Hiscores, self ).__init__ ( walkerid )
         self.walkerid = walkerid # the hiscore walkerid
@@ -43,6 +47,11 @@ class Hiscores ( LoggerBase ):
         self.nkeep = 3 ## how many do we keep.
         self.hiscores = [ None ]*self.nkeep
         self.predictor = predictor
+        if environ is None and predictor is not None:
+            environ = getattr ( predictor, "environ", None )
+        self.environ = environ
+        ## the (optional) user-provided prior comes from the run environment
+        self.userprior = getattr ( environ, "userprior", None )
         self.fileAttempts = 0 ## unsucessful attempts at reading or writing
         self.pickleFile = picklefile
         self.mtime = 0 ## last modification time of current list
@@ -522,7 +531,7 @@ class Hiscores ( LoggerBase ):
                           f", TL={manipulator.M.TL:.2f}" )
             contributionsTL = {}
             contributionsK = {}
-            combiner = Combiner()
+            combiner = Combiner( userprior = self.userprior )
             dTLtot, dKtot = 0., 0.
             bestCombo = copy.deepcopy ( manipulator.M.bestCombo )
             #self.pprint ( f"we have {len(bestCombo)} entries in best combo" )

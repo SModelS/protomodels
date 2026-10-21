@@ -45,15 +45,19 @@ class Critic ( LoggerBase ):
         """
         :param dbpath: either the path to a database, or the database object
         itself
+        :param environ: the run environment (which also provides the optional
+        user prior, see environ.userprior)
         """
         #call the super class of the critic i.e Loggerbase
         super ( Critic, self ).__init__ ( walkerid )
         self.walkerid = walkerid
         self.environ = environ
         self.verbose = 1
+        ## the (optional) user-provided prior comes from the run environment
+        self.userprior = getattr ( environ, "userprior", None )
 
         self.fetchResults()
-        self.combiner = Combiner(self.walkerid)
+        self.combiner = Combiner(self.walkerid, userprior=self.userprior)
 
     def fetchResults ( self ):
         """ fetch the list of results, perform all selecting
