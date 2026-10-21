@@ -430,7 +430,10 @@ class Manipulator ( LoggerBase ):
         if hasattr ( self.M, "ul_critic" ):
             D["ul_critic"]=self.M.ul_critic
         if hasattr ( self.M, "llhd_critic" ):
-            D["llhd_critic"]=self.M.llhd_critic
+            cleaned_llhds = copy.deepcopy ( self.M.llhd_critic )
+            if "tpDict" in cleaned_llhds:
+                cleaned_llhds.pop ( "tpDict" )
+            D["llhd_critic"]=cleaned_llhds
         if hasattr ( self.M, "description" ) and D["description"]=="":
             D.pop ( "description" )
         if len(comment)>0:
