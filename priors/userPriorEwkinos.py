@@ -52,7 +52,27 @@ or set it directly:
     environ.userprior = "/path/to/userPriorewkinos.py"
 """
 
-def ewkinoPenalty ( protomodel ):
+def higgsinoXSecPenalty ( protomodel ) -> tuple:
+    """ a penalty for ewkino cross sections away from higgsino hypotheses
+    """
+    prod_modes = [ (1000022,1000022), (1000023,1000023),
+                   (1000023,1000023), (-1000024,1000024),
+                   (1000022,1000024), ( 1000023, 1000024 ) ]
+    penalty = 0
+    ssms = protomodel.ssmultipliers
+    for prod_mode in prod_modes:
+        if not prod_mode in ssms:
+            penalty += 20
+            continue
+        deviation = ssms[prod_mode]-.25
+        if deviation>0.:
+            p = float ( np.log ( 1 + deviation ) )
+            penalty += p
+        else:
+            p = float ( np.log ( (1 - deviation)/4. ) )
+    return penalty, f"{penalty} from deviation form higgsino xsec"
+
+def ewkinoPenalty ( protomodel ) -> tuple:
     """ compute the penalty and the reason for it
 
     :param protomodel: the model the prior is computed for
@@ -82,8 +102,12 @@ def myprior ( protomodel, nll : bool = False ) -> float:
     :returns: a float
     """
     penalty, reason = ewkinoPenalty ( protomodel )
-    print ( f"@@userPriorewkinos penalty {penalty} reason {reason}" )
+    print ( f"[userPriorEwkinos] penalty {penalty} reason {reason}" )
+    if False:
+        p2, r2 = higgsinoXSecPenalty ( protomodel )
+        penalty += p2
+        reson = f"{reason}, {r2}"
     if nll:
         return penalty ## added to the nll
     import numpy
-    return numpy.exp ( - penalty ) ## multiplied to the prior
+    return float ( numpy.exp ( - penalty ) ) ## multiplied to the prior
