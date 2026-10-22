@@ -1,5 +1,14 @@
 todo:
 =====
+*) detailed balance for widths
+*) i took out the rescaleSignalsBy ( None ),  should probably
+   be put back in but smarter
+*) for 1000025 and 1000037 implement similar logics as 1000023, 1000024
+   (so try to put them to same masses, onshell versus offshell etc)
+*) inspect the models that give smodels
+ERROR in basicStats.determineBrentBracket() in 327: cannot find a b that is right of the root (i.e. rootfinder(b) < 0).
+   errors
+
 *) if BRs are similar to each other, try forcing them to be the same
 
 old todo:
@@ -13,9 +22,9 @@ old todo:
 *) fix the issue with negative weights in - 2 ln ( L0/L1 )
 *) smodels only reports the most sensitive of several combined likelihoods
    within a single analysis, even if reportAllSRs = True (happens
-	 only if several jsons are given for a single analysis). Fix that.
+   only if several jsons are given for a single analysis). Fix that.
 *) expResModifier, test that the distributions are ok, for SL, for pyhf, 
-	 fudge, etc
+   fudge, etc
 *) fit simplified likelihoods for full pyhf likelihoods for speedup (MMA, waiting for JYA)
 *) introduce smart initialisation of walker (WW)
 *) the code that introduces offshell branching ratios, put it into a
