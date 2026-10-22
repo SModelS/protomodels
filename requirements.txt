@@ -8,3 +8,4 @@ pyhf
 matplotlib
 numba
 bibtexparser
+matplotlib-backend-kitty
