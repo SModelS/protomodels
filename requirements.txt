@@ -7,3 +7,4 @@ pyslha
 pyhf
 matplotlib
 numba
+bibtexparser
