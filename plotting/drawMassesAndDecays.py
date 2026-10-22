@@ -148,7 +148,8 @@ class MassesAndDecays ( LoggerBase ):
         for mpid,decay in toDraw.items():
             for bsm_dpid,radiates in decay.items():
                 for i,(label,br) in enumerate(radiates.items()):
-                    self.drawDecay ( mpid, bsm_dpid, label, br, i, len(decay) )
+                    if br>0.01:
+                        self.drawDecay ( mpid, bsm_dpid, label, br, i, len(decay) )
 
     def dpidsToStr ( self, dpids : tuple,
             br : Union[None,float] = None ) -> str:
@@ -174,7 +175,9 @@ class MassesAndDecays ( LoggerBase ):
                     i : int, n : int ):
         """ draw a single grey arrow connecting mother pid
         with daughter pid """
-        if br is not None and br < 0.999:
+        if br < .01:
+            return
+        if br is not None and br < 0.99:
             label = f"{label}:{int(round(100*br)):d}%"
         y_start = self.masses[mpid]
         y_end = self.masses[dpid]
@@ -190,7 +193,7 @@ class MassesAndDecays ( LoggerBase ):
         dx = x_end - x_start
         dy = y_end - y_start
         x_coord =  x_start + .5 * dx
-        di = i * self.delta_y / 20.
+        di = i * self.delta_y / 10.
         dm = 100.
         if self.options["scale"]=="symlog":
             di = i * self.delta_y / 40. * y_start / dm
@@ -200,6 +203,7 @@ class MassesAndDecays ( LoggerBase ):
             x_coord += 8
         if y_coord < self.yrange[0]:
             y_coord = self.yrange[0]
+        self.pprint ( f"will draw {label} at {x_coord:.2f},{y_coord:.2f}" )
         self.plt.text( x_coord, y_coord, label, fontsize=15 )
 
     def init ( self ):
