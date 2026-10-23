@@ -173,11 +173,10 @@ class Critic ( LoggerBase ):
         else:
             # FIXME redundant information, long term simplify
             datasets = [experimentalId(comb) for comb in mostSensiComb]
-            tpDict = { experimentalId(comb):comb for comb in mostSensiComb }
+            # tpDict = { experimentalId(comb):comb for comb in mostSensiComb }
             protomodel.llhd_critic = {'datasets': datasets,
                 'robs': round(robsComb,2), 'rexp': round(rexpComb,2),
-                'passed': allowed_by_llhd_critic, "tpDict": tpDict
-
+                'passed': allowed_by_llhd_critic #, "tpDict": tpDict
             }
 
 
