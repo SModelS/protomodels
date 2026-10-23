@@ -11,7 +11,7 @@ import copy, math, time, random, subprocess, os, unum
 from smodels.experiment.datasetObj import DataSet
 from smodels.experiment.expResultObj import ExpResult
 from smodels.experiment.infoObj import Info
-from smodels.base.physicsUnits import GeV
+from smodels.base.physicsUnits import GeV, pb
 from smodels.matching.theoryPrediction import TheoryPrediction
 import scipy.stats
 from os import PathLike
@@ -344,14 +344,84 @@ def computeZFromP ( pvalue : float|tuple ) -> float:
 
 def compareCrossSectionLists ( l1 : list, l2 : list ) -> tuple:
     """ compare two lists of cross sections, but fuzzily
-    (smodels compares exact values)
+    (smodels compares exact values). The lists need not be sorted the same
+    way; cross sections are matched by their pids and center-of-mass energy.
+    The perturbation order is ignored. Values are considered equal if their
+    relative difference is at most 1e-5.
 
     :returns: tuple(bool,str) True if mostly equal, str gives reason
     """
+    def normalizePid ( pid ):
+        if pid is None:
+            return None
+        if isinstance ( pid, (list, tuple) ):
+            pids = list ( pid )
+            try:
+                pids.sort ( key = lambda p: ( p is None, p ) )
+            except TypeError:
+                pass
+            return tuple ( pids )
+        return ( pid, )
+
+    def getSqrts ( xsec ):
+        sqrts = xsec.info.sqrts
+        if sqrts is None:
+            return None
+        try:
+            return float ( sqrts.asNumber(GeV) )
+        except AttributeError:
+            return float ( sqrts )
+
+    def getValue ( xsec ):
+        value = xsec.value
+        if value is None:
+            return None
+        try:
+            return float ( value.asNumber(pb) )
+        except AttributeError:
+            return float ( value )
+
+    def getKey ( xsec ):
+        return normalizePid ( xsec.pid ), getSqrts ( xsec )
+
+    def group ( xsecs ):
+        ret = {}
+        for xsec in xsecs:
+            ret.setdefault ( getKey(xsec), [] ).append ( xsec )
+        return ret
+
     if len(l1)!=len(l2):
         return False, f"lengths differ {len(l1)} != {len(l2)}"
-    # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
-    return True
+    g1, g2 = group(l1), group(l2)
+    keys1, keys2 = set(g1), set(g2)
+    if keys1 != keys2:
+        pids1 = sorted ( ( k for k in keys1 - keys2 ), key = str )
+        pids2 = sorted ( ( k for k in keys2 - keys1 ), key = str )
+        return False, f"different (pid, sqrts) entries: only in first {pids1}, only in second {pids2}"
+
+    for key in keys1:
+        pid, sqrts = key
+        values1 = [ getValue(xsec) for xsec in g1[key] ]
+        values2 = [ getValue(xsec) for xsec in g2[key] ]
+        values1.sort ( key = lambda v: ( v is None, v if v is not None else 0. ) )
+        values2.sort ( key = lambda v: ( v is None, v if v is not None else 0. ) )
+        if len(values1) != len(values2):
+            return False, f"different number of cross sections for pid {pid} at sqrts {sqrts}: {len(values1)} != {len(values2)}"
+        for value1, value2 in zip ( values1, values2 ):
+            if value1 is None or value2 is None:
+                if value1 != value2:
+                    return False, f"cross sections for pid {pid} at sqrts {sqrts} differ: {value1} != {value2}"
+                continue
+            if value1 == value2:
+                continue
+            denominator = max ( abs(value1), abs(value2) )
+            if denominator == 0.:
+                relativeDifference = 0.
+            else:
+                relativeDifference = abs ( value1 - value2 ) / denominator
+            if relativeDifference > 1e-5:
+                return False, f"cross sections for pid {pid} at sqrts {sqrts} differ: {value1} pb vs {value2} pb (relative difference {relativeDifference:.3g})"
+    return True, "cross sections agree"
 
 def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
        nmax : int = 200_000, nmin : int = 50_000 ) -> float:
