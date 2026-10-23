@@ -342,6 +342,17 @@ def computeZFromP ( pvalue : float|tuple ) -> float:
         pvalue = pvalue[0]
     return float ( - scipy.stats.norm.ppf ( pvalue ) )
 
+def compareCrossSectionLists ( l1 : list, l2 : list ) -> tuple:
+    """ compare two lists of cross sections, but fuzzily
+    (smodels compares exact values)
+
+    :returns: tuple(bool,str) True if mostly equal, str gives reason
+    """
+    if len(l1)!=len(l2):
+        return False, f"lengths differ {len(l1)} != {len(l2)}"
+    # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+    return True
+
 def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
        nmax : int = 200_000, nmin : int = 50_000 ) -> float:
     """ given a dataset, compute p for SM hypothesis

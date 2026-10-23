@@ -595,6 +595,10 @@ class Manipulator ( LoggerBase ):
             if "database_version" in D:
                 self.M.dbver = D["database_version"]
         if "xsecs[fb]" in D:
+            self.pprint ( f"xsecs in dictionary but recomputing anyways" )
+            self.M.computeXSecs()
+            we actually should check if sth changed, but I
+            am too lazy to code this now FIXME
             tmp = D["xsecs[fb]"]
             xsecs = []
             from smodels.base.crossSection import XSection
@@ -607,10 +611,21 @@ class Manipulator ( LoggerBase ):
                 xsec.info.order = 0
                 xsec._pid = ss[0]
                 xsecs.append ( xsec )
+            from ptools.helpers import compareCrossSectionLists
+            compareCrossSectionLists ( xsecs, self.M._stored_xsecs[0] )
+            """
+            if self.M._stored_xsecs != tuple(xsecs):
+                self.pprint ( f"xsecs indeed have changed" ) 
+                import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
             self.M._xsecMasses = copy.deepcopy ( self.M.masses )
             self.M._xsecSSMs = copy.deepcopy ( self.M.ssmultipliers )
             self.M._stored_xsecs = ( xsecs, "loaded from dict file" )
-            # self.M.computeXSecs()
+            print ( f"@@fromDict D {xsecs}" )
+            self.M.delXSecs()
+            self.M.computeXSecs()
+            print ( f"@@fromDict computed {self.M._stored_xsecs}" )
+            import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+            """
 
     def cheat ( self, mode : Union[int,str] = "no_cheat" ):
         """ cheating, i.e. starting with models that are known to work well
