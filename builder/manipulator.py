@@ -595,10 +595,8 @@ class Manipulator ( LoggerBase ):
             if "database_version" in D:
                 self.M.dbver = D["database_version"]
         if "xsecs[fb]" in D:
-            self.pprint ( f"xsecs in dictionary but recomputing anyways" )
+            self.debug ( f"xsecs in dictionary but recomputing anyways" )
             self.M.computeXSecs()
-            we actually should check if sth changed, but I
-            am too lazy to code this now FIXME
             tmp = D["xsecs[fb]"]
             xsecs = []
             from smodels.base.crossSection import XSection
@@ -612,20 +610,9 @@ class Manipulator ( LoggerBase ):
                 xsec._pid = ss[0]
                 xsecs.append ( xsec )
             from ptools.helpers import compareCrossSectionLists
-            compareCrossSectionLists ( xsecs, self.M._stored_xsecs[0] )
-            """
-            if self.M._stored_xsecs != tuple(xsecs):
-                self.pprint ( f"xsecs indeed have changed" ) 
-                import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
-            self.M._xsecMasses = copy.deepcopy ( self.M.masses )
-            self.M._xsecSSMs = copy.deepcopy ( self.M.ssmultipliers )
-            self.M._stored_xsecs = ( xsecs, "loaded from dict file" )
-            print ( f"@@fromDict D {xsecs}" )
-            self.M.delXSecs()
-            self.M.computeXSecs()
-            print ( f"@@fromDict computed {self.M._stored_xsecs}" )
-            import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
-            """
+            c = compareCrossSectionLists ( xsecs, self.M._stored_xsecs[0] )
+            if c[0]==False:
+                self.pprint ( f"recomputed cross sections differ from the ones in file {filename}: {c[1]}" )
 
     def cheat ( self, mode : Union[int,str] = "no_cheat" ):
         """ cheating, i.e. starting with models that are known to work well
@@ -668,35 +655,6 @@ class Manipulator ( LoggerBase ):
     def setWalkerId ( self, Id : int ):
         """ set the walker id of protomodel """
         self.M.walkerid = Id
-
-    def printCritic ( self, add_details : bool = True ):
-        """ form ul_critic_tpList nicely """
-        if not hasattr ( self, "ul_critic_tpList" ):
-            return
-        for d in self.ul_critic_tpList:
-            tp=d["tp"]
-            anaId = tp.analysisId()
-            dId = tp.dataId()
-            if dId is None:
-                dId = "ul"
-            sId = f"{anaId}:{dId}"
-            txnames = " ".join ( map ( str,  tp.txnames ) )
-            srexp = str(d["rexp"])
-            if type(d["rexp"]) != type(None):
-                srexp = f"{d['rexp']:.2f}"
-            print ( f"- {sId:40s} {txnames} robs={d['robs']:.2f} rexp={srexp}" )
-        if not hasattr ( self, "llhd_critic" ):
-            return
-        print ( )
-        robs = self.llhd_critic["robs"]
-        rexp = self.llhd_critic["rexp"]
-        print ( f"Likelihood based critic: robs {robs:.1f} rexp {rexp:.1f} combines:" )
-        lpreds = " ".join ( self.llhd_critic["datasets"] )
-        for ds in self.llhd_critic["datasets"]:
-            details = ""
-            if add_details:
-                details = f"{type(ds)}"
-            print ( f"    - {ds}: {details}" )
 
     def printCombo ( self, combo : Union[None,List[TheoryPrediction]] = None,
             detailed : bool = False, add_nlls : bool = False,

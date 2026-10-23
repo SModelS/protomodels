@@ -199,6 +199,9 @@ def experimentalId(pred : TheoryPrediction) -> str:
         - anaId:jsonFileName    if dataType = combined,pyhf
         - anaId:onnxFileName    if dataType = combined,nn
     """
+    if hasattr ( pred, "experimentalId" ):
+        ## slowly introducing this upstream
+        return pred.experimentalId()
 
     anaId = pred.analysisId()
     dtype = pred.dataType()
@@ -406,7 +409,7 @@ def compareCrossSectionLists ( l1 : list, l2 : list ) -> tuple:
         values1.sort ( key = lambda v: ( v is None, v if v is not None else 0. ) )
         values2.sort ( key = lambda v: ( v is None, v if v is not None else 0. ) )
         if len(values1) != len(values2):
-            return False, f"different number of cross sections for pid {pid} at sqrts {sqrts}: {len(values1)} != {len(values2)}"
+            return False, f"different number of cross sections for pid {pid} at sqrts={sqrts/1000:.1f} TeV: {len(values1)} != {len(values2)}"
         for value1, value2 in zip ( values1, values2 ):
             if value1 is None or value2 is None:
                 if value1 != value2:
@@ -420,7 +423,7 @@ def compareCrossSectionLists ( l1 : list, l2 : list ) -> tuple:
             else:
                 relativeDifference = abs ( value1 - value2 ) / denominator
             if relativeDifference > 1e-5:
-                return False, f"cross sections for pid {pid} at sqrts {sqrts} differ: {value1} pb vs {value2} pb (relative difference {relativeDifference:.3g})"
+                return False, f"cross sections for pid {pid} at sqrts={sqrts/1000:.1f} TeV differ: {value1:.2g} pb vs {value2:.2g} pb (relative difference {relativeDifference:.3g})"
     return True, "cross sections agree"
 
 def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,

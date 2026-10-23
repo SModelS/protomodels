@@ -131,6 +131,7 @@ class Critic ( LoggerBase ):
         if keep_predictions:
             protomodel.ul_critic_robs = robs
             protomodel.ul_critic_tpList = tpList[:]
+            self.ul_critic_tpList = protomodel.ul_critic_tpList
 
         critic_description = {}
         for tp in tpList[:3]:
@@ -151,8 +152,27 @@ class Critic ( LoggerBase ):
             critic_description.update({'...':'...'})
 
         protomodel.ul_critic.update({'datasets':critic_description})
+        self.ul_critic = protomodel.ul_critic
         return
 
+    def printULCritic ( self, add_details : bool = True ):
+        """ format ul_critic_tpList nicely """
+        ## FIXME this needs to go into the critic
+        if not hasattr ( self, "ul_critic_tpList" ):
+            return False
+        ulc = self.ul_critic
+        print ( f"UL Critic: passes={ulc['passes']}" )
+        print ( f"  - n_sensitive {ulc['n_sensitive']} n_excluding {ulc['n_excluding']} max_allowed {ulc['max_allowed']}" )
+        print ( f"============================================" )
+        for d in self.ul_critic_tpList:
+            tp=d["tp"]
+            from ptools.helpers import experimentalId
+            eId = experimentalId ( tp )
+            txnames = " ".join ( map ( str,  tp.txnames ) )
+            srexp = str(d["rexp"])
+            if type(d["rexp"]) != type(None):
+                srexp = f"{d['rexp']:.2f}"
+            print ( f"- {eId:40s} {txnames} robs={d['robs']:.2f} rexp={srexp}" )
 
     def updateModelWithCombinedPreds(self,
             protomodel, mostSensiComb, robsComb : float, rexpComb : float,
@@ -179,6 +199,28 @@ class Critic ( LoggerBase ):
                 'passed': allowed_by_llhd_critic #, "tpDict": tpDict
             }
 
+    def printCritics ( self, add_details : bool = True ) -> bool:
+        self.printULCritic ( add_details )
+        self.printLlhdCritic ( add_details )
+        return True
+
+    def printLlhdCritc ( self, add_details : bool = True ) -> bool:
+        """ print the passes of the llhd based critic """
+        if not hasattr ( self, "llhd_critic_preds" ):
+            return False
+        v = self.llhd_critic_verdict
+        robs = v["robs"]
+        rexp = v["rexp"]
+        passes = v["passes"]
+        print ( f"LLHD Critic: robs={robs:.2g} rexp={rexp:.2g} passes={passes}" )
+        print ( f"===========================================" )
+        for pred in self.llhd_critic_preds:
+            from ptools.helpers import experimentalId
+            eId = experimentalId ( pred )
+            robs = pred.getRValue ( observed )
+            rexp = pred.getRValue ( apriori )
+            txnames = set ( map ( str, pred.txnames ) )
+            print ( f" - {eId}: robs={robs:.2g} rexp={rexp:.2g} ({' '.join(txnames)})" )
 
     def runSModelS(self, inputFile : PathLike, combineSRs : bool, ULpreds: bool, sigmacut : float, mingap:float,
                     mingapISR:float, maxcond : float = 0.2 ) -> List[TheoryPrediction]:
@@ -509,4 +551,9 @@ class Critic ( LoggerBase ):
 
         ## change r threshold?
         # we pass if r < 1.2, or if r < 1.5 but rexp is at least twice that of r(obs)
-        return (r < 1.2) or (r < 1.5 and r/rexp < .5), best_comb, r, rexp
+        passes =  (r < 1.2) or (r < 1.5 and r/rexp < .5)
+        ret = passes, best_comb, r, rexp
+        if keep_predictions:
+            self.llhd_critic_verdict = { "robs": r, "rexp": rexp, "best_comb": best_comb,
+                "passes": passes }
+        return ret
