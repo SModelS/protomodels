@@ -152,7 +152,7 @@ class Critic ( LoggerBase ):
             critic_description.update({'...':'...'})
 
         protomodel.ul_critic.update({'datasets':critic_description})
-        self.ul_critic = protomodel.ul_critic
+        self._ul_critic = protomodel.ul_critic
         return
 
     def printULCritic ( self, add_details : bool = True ):
@@ -160,7 +160,7 @@ class Critic ( LoggerBase ):
         ## FIXME this needs to go into the critic
         if not hasattr ( self, "ul_critic_tpList" ):
             return False
-        ulc = self.ul_critic
+        ulc = self._ul_critic
         print ( f"UL Critic: passes={ulc['passes']}" )
         print ( f"  - n_sensitive {ulc['n_sensitive']} n_excluding {ulc['n_excluding']} max_allowed {ulc['max_allowed']}" )
         print ( f"============================================" )
