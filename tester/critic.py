@@ -159,7 +159,12 @@ class Critic ( LoggerBase ):
         """ format ul_critic_tpList nicely """
         ## FIXME this needs to go into the critic
         if not hasattr ( self, "ul_critic_tpList" ):
-            return False
+            if hasattr ( self, "protomodel" ):
+                self.predict_critic ( self.protomodel )
+                if not hasattr ( self, "ul_critic_tpList" ):
+                    return False
+            else:
+                return False
         ulc = self._ul_critic
         print ( f"UL Critic: passes={ulc['passes']}" )
         print ( f"  - n_sensitive {ulc['n_sensitive']} n_excluding {ulc['n_excluding']} max_allowed {ulc['max_allowed']}" )
@@ -199,15 +204,23 @@ class Critic ( LoggerBase ):
                 'passed': allowed_by_llhd_critic #, "tpDict": tpDict
             }
 
-    def printCritics ( self, add_details : bool = True ) -> bool:
+    def printCritics ( self, add_details : bool = True,
+           protomodel : "ProtoModel"|None = None ) -> bool:
+        if protomodel != None:
+            self.protomodel = protomodel
         self.printULCritic ( add_details )
         self.printLlhdCritic ( add_details )
         return True
 
-    def printLlhdCritc ( self, add_details : bool = True ) -> bool:
+    def printLlhdCritic ( self, add_details : bool = True ) -> bool:
         """ print the passes of the llhd based critic """
         if not hasattr ( self, "llhd_critic_preds" ):
-            return False
+            if hasattr ( self, "protomodel" ):
+                self.predict_critic ( self.protomodel )
+                if not hasattr ( self, "llhd_critic_preds" ):
+                    return False
+            else:
+                return False
         v = self.llhd_critic_verdict
         robs = v["robs"]
         rexp = v["rexp"]

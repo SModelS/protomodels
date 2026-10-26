@@ -912,7 +912,7 @@ class Manipulator ( LoggerBase ):
                 if hasattr ( self.M, "widths" ) and pid in self.M.widths and \
                         self.M.widths[pid]<1e-25:
                     w = self.M.widths[pid]
-                    protomodel.pprint ( f"When trying to normalize {namer.asciiName(pid)}({pid}): width is {w:.2g} -> stable, wont bother." )
+                    protomodel.pprint ( f"When trying to normalize {pid_name}({pid}): width is {w:.2g} -> stable, wont bother." )
                 else:
                     #print(f"decay of {pid}: {protomodel.decays[pid]}")
                     self.log(f"decay of {pid_name}: {protomodel.decays[pid]}")
@@ -940,15 +940,16 @@ class Manipulator ( LoggerBase ):
             #BRs are already normalized.
             return True
 
-        self.log ( f"Scaled branchings of {pid_name} by 1/{BRtot:.2f}" )
-
+        self.log ( f"Scaled branchings of {pid_name} by 1/{BRtot:.2g}" )
         for dpid in protomodel.decays[pid]:
             protomodel.decays[pid][dpid] *= 1/BRtot
-            self.log ( f"for {pid}:{dpid} we now have {protomodel.decays[pid][dpid]}" )
+            self.log ( f"for {pid_name}({pid}):{dpid} we now have {protomodel.decays[pid][dpid]}" )
         if len(protomodel.decays[pid])==1:
             # make sure this always is exactly 1, not 0.999999999
             dpid = list ( protomodel.decays[pid].keys() )[0]
-            protomodel.decays[pid][dpid]=1.0
+            dkey = protomodel.decay_keys[pid][dpid]
+            n_decays = len ( protomodel.inv_decay_keys[pid][dkey] )
+            protomodel.decays[pid][dpid]=1.0 / n_decays
 
         ## adjust the signal strength multipliers to keep everything else
         ## as it was

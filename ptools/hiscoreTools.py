@@ -84,8 +84,12 @@ def obtainHiscore ( number : int,
     TL = hi[number].TL
     K = hi[number].K
     sK = formatObject ( K, 3 )
+    sTL = formatObject ( TL, 2 )
     ret = hi[ number ]
-    print ( f"[hiscoreTools:{walkerid}] obtaining #{number}(walkerid {ret.walkerid}): K={sK}" )
+    swalkerid=""
+    if walkerid not in [ None, "None", "" ]:
+        swalkerid=f":{walkerid}"
+    print ( f"[hiscoreTools{swalkerid}] obtaining #{number}(walkerid {ret.walkerid}): K={sK} TL={sTL}" )
     return ret
 
 def hiscoreHiNeedsUpdate ( dictfile : str = "hiscores_global.dict",

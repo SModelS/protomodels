@@ -333,7 +333,9 @@ class Combiner ( LoggerBase ):
         else:
             ret *= numpy.exp ( pen_widths )
         ## and finally the (optional) user-provided prior
+        #print ( f"@@2 computePrior {ret} nll {nll}" )
         ret = self.applyUserPrior ( ret, protomodel, nll )
+        # print ( f"@@3 computePrior {ret}" )
         return float(ret)
 
     def applyUserPrior ( self, prior : float, protomodel,

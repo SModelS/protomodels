@@ -280,7 +280,10 @@ class Predictor ( LoggerBase ):
         # we keep track of the database version, when predicting
         protomodel.dbversion = self.environ.database.databaseVersion
         if give_explanation:
-            return ( True, f"K is {protomodel.K} TL is {protomodel.TL}" )
+            from ptools.helpers import formatObject
+            sK = formatObject ( protomodel.K, 3 )
+            sTL = formatObject ( protomodel.TL, 2 )
+            return ( True, f"K is {sK} TL is {sTL}" )
         return True
 
     def runSModelS(self, inputFile : PathLike, sigmacut : UnitXSec = 0.02*fb,

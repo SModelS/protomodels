@@ -12,7 +12,7 @@ __all__ = [ "LoggerBase" ]
 class LoggerBase:
     __slots__ = [ "walkerid", "module", "logdir" ]
 
-    def __init__ ( self, walkerid : Union[str,int] = 0,
+    def __init__ ( self, walkerid : str|int|None = 0,
                    verbosity : Union[int,str] = "info" ):
         """ instantiate the logger class with a walkerid 
         :param walkerid: the label that we identify the log's author
@@ -88,12 +88,16 @@ class LoggerBase:
             col = GREEN
         else:
             self.highlight ( "red", "I think we called highlight without msg type" )
-        swalkerid=""
-        if self.walkerid is not None:
-            swalkerid=f":{self.walkerid}"
-        print ( f'{col}[{self.module}{swalkerid}] {" ".join(map(str,args))}{RESET}' )
+        print ( f'{col}[{self.module}{self.swalkerid()}] {" ".join(map(str,args))}{RESET}' )
         # print ( f'{col}[{self.module}:{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}{RESET}' )
         self.log ( *args )
+
+    def swalkerid ( self ):
+        """ walkerid as string, for msgs """
+        swalkerid=""
+        if self.walkerid not in [ None, "None", "" ]:
+            swalkerid=f":{self.walkerid}"
+        return swalkerid
 
     def debug ( self, *args ):
         tmp = list ( args )
@@ -116,10 +120,7 @@ class LoggerBase:
             return
         if self.countLogs[line]>3 and not "@@@" in line:
             return
-        swalkerid=""
-        if self.walkerid is not None:
-            swalkerid=f":{self.walkerid}"
-        print ( f"[{self.module}{swalkerid}] {line}" )
+        print ( f"[{self.module}{self.swalkerid()}] {line}" )
         self.prevMessage = line
         self.log ( *args )
 
@@ -135,7 +136,7 @@ class LoggerBase:
             return
         if self.countLogs[line]>3:
             return
-        print ( f"[{self.module}:{self.walkerid}] {colordict[color]}{line}{RESET}" )
+        print ( f"[{self.module}{self.swalkerid()}] {colordict[color]}{line}{RESET}" )
         self.prevMessage = line
         self.log ( *args )
 
