@@ -166,9 +166,13 @@ class Critic ( LoggerBase ):
             else:
                 return False
         ulc = self._ul_critic
-        print ( f"UL Critic: passes={ulc['passes']}" )
+        from smodels_utils.helper.terminalcolors import GREEN, RED, RESET
+        col=RED
+        if ulc['passes']:
+            col=GREEN
+        print ( f"UL Critic: {col}passes={ulc['passes']}{RESET}" )
         print ( f"  - n_sensitive {ulc['n_sensitive']} n_excluding {ulc['n_excluding']} max_allowed {ulc['max_allowed']}" )
-        print ( f"============================================" )
+        print ( f"=================================================" )
         for d in self.ul_critic_tpList:
             tp=d["tp"]
             from ptools.helpers import experimentalId
@@ -209,6 +213,7 @@ class Critic ( LoggerBase ):
         if protomodel != None:
             self.protomodel = protomodel
         self.printULCritic ( add_details )
+        print ( )
         self.printLlhdCritic ( add_details )
         return True
 
@@ -225,7 +230,9 @@ class Critic ( LoggerBase ):
         robs = v["robs"]
         rexp = v["rexp"]
         passes = v["passes"]
-        print ( f"LLHD Critic: robs={robs:.2g} rexp={rexp:.2g} passes={passes}" )
+        from smodels_utils.helper.terminalcolors import GREEN, RED, RESET
+        col=GREEN if passes else RED
+        print ( f"LLHD Critic: robs={robs:.2g} rexp={rexp:.2g} {col}passes={passes}{RESET}" )
         print ( f"===========================================" )
         for pred in self.llhd_critic_preds:
             from ptools.helpers import experimentalId
