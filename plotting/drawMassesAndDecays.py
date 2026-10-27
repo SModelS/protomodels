@@ -39,7 +39,8 @@ class MassesAndDecays ( LoggerBase ):
     def defaults ( self ):
         ret = { "outfile": "mass_hierarchy.png" }
         ret["colors"]= { 1000022: "black", 1000023: "navy",
-                         1000024: "navy", 1000025: "navy",
+                         1000024: "crimson", 1000025: "navy",
+                         1000035: "navy", 1000037: "crimson",
                          1000006: "brown", 1000016: "gold",
                          1000012: "gold" }
         ret["scale"]="symlog"
