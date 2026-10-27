@@ -209,7 +209,7 @@ class Critic ( LoggerBase ):
             }
 
     def printCritics ( self, add_details : bool = True,
-           protomodel : "ProtoModel"|None = None ) -> bool:
+           protomodel = None ) -> bool:
         if protomodel != None:
             self.protomodel = protomodel
         self.printULCritic ( add_details )
