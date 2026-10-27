@@ -348,14 +348,11 @@ class ProtoModel ( LoggerBase ):
 
         offshell = False
         mLSP = self.masses[self.LSP]
-        if pid == 1000023 and pid in self.masses and self.LSP in self.masses and \
+        if pid in [ 1000023, 1000025, 1000035 ] and pid in self.masses and self.LSP in self.masses and \
                 (self.masses[pid] - mLSP ) < (smMasses["Z"] + smWidths["Z"]):
             offshell = True
-        elif pid == 1000024 and pid in self.masses and self.LSP in self.masses and \
+        elif pid in [ 1000024, 1000037 ] and pid in self.masses and self.LSP in self.masses and \
                   (self.masses[pid] - mLSP ) < (smMasses["W"] + smWidths["W"]):
-            offshell = True
-        elif pid == 1000025 and pid in self.masses and self.LSP in self.masses and \
-                (self.masses[pid] - mLSP ) < (smMasses["Z"] + smWidths["Z"]):
             offshell = True
         else: offshell = False
 
@@ -692,6 +689,7 @@ class ProtoModel ( LoggerBase ):
                             dpds = ", ".join ( map ( str, inSLHAFile[pid] ) )
                             self.error ( f"channels mentioned in template file: {dpds}" )
                 sys.exit(-1)
+            doFix = True
             for pid, allbrs in totalBRs.items():
                 totalbr = sum( [ x[1] for x in allbrs ])
                 if abs(totalbr-0.) > 1e-3 and abs(totalbr-1.) > 1e-3:
@@ -699,6 +697,11 @@ class ProtoModel ( LoggerBase ):
                     self.error ( f"contributions are:" )
                     for dpids_br in totalBRs[pid]:
                         self.error ( f"{dpids_br[0]}: {dpids_br[1]:.3f}" )
+                        self.decays[pid][dpids_br[0]] = dpids_br[1] / totalbr
+                    if doFix:
+                        self.error ( f"will fix for now:" )
+                        for dpids,br in self.decays[pid].items():
+                            self.error ( f" updated {dpids}: {br:.3f}" )
                     # sys.exit(-1)
             frozen = self.frozenParticles()
             # now make the frozen particles stable (to quench smodels warnings,

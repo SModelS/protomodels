@@ -105,6 +105,8 @@ class RandomWalker ( LoggerBase ):
 
         #call the super class of the random walker i.e Loggerbase
         super ( RandomWalker, self ).__init__ ( walkerid )
+        if "printLogMessages" in rvars:
+            self.printLogMessages = rvars["printLogMessages"]
         dbpath = os.path.expanduser ( dbpath )
         if type(walkerid) != int or type(maxsteps) != int or type(strategy)!= str:
             self.pprint ( f"Wrong call of constructor: {walkerid}, {maxsteps}, {strategy}" )

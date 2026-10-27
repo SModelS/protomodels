@@ -781,17 +781,21 @@ class Manipulator ( LoggerBase ):
                 pidline += ( " ..." )
             print ( pidline )
 
-    def removeIllegalBRs(self, rescaleSSMs=False, protomodel = None):
-        """ remove all illegal decays and decays of frozen particles. Renormalize all branchings """
+    def removeIllegalBRs(self, rescaleSSMs=False, protomodel = None) -> int:
+        """ remove all illegal decays and decays of frozen particles. 
+        Renormalize all branchings """
+        ret = 0
 
         if protomodel is None:
             protomodel = self.M
 
         for pid in protomodel.frozenParticles():
             if pid in protomodel.decays:
+                ret += 1
                 protomodel.decays.pop(pid)
                 if hasattr ( protomodel, "widths" ) and pid in protomodel.widths:
                     protomodel.widths.pop(pid)
+                    ret += 1
 
         olddecays = list ( protomodel.decays.keys() )
         #Loop over all decays:
@@ -806,33 +810,36 @@ class Manipulator ( LoggerBase ):
             delDecays = [dpid for dpid in protomodel.decays[pid] if not  dpid in openChannels]
             if delDecays != []: 
                 self.pprint(f"removeIllegalBRs: removing decays of {pid}: {delDecays}")
-                self.pprint(f"@@ why illegal? openChannels is {openChannels} masses are {protomodel.masses}" )
+                self.pprint(f"  - why illegal? because openChannels is {openChannels} masses are {protomodel.masses}" )
             for dpid in delDecays:
                 protomodel.decays[pid].pop(dpid)
+                ret += 1
             if len(protomodel.decays[pid])==0 and len(delDecays)>0:
                 self.pprint(f"no branchings left after removing illegal ones, reinitialising!" )
                 self.initBranchings ( pid, protomodel )
+                ret += 1
             #if delDecays != []: print(f"remaining decays of {pid}: {protomodel.decays[pid]}")
             #Make sure to normalize the branchings
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs, protomodel=protomodel)
+        return ret
 
     def initBranchings ( self, pid : int ,
             protomodel : Union[ProtoModel,None] = None,
-            randomly : bool = True ) -> bool:
+            randomly : bool = True ) -> int:
         """ Initialize BRs to different open decay channels for pid.
         Either assign 'democratic' BRs or assign random BRs.
         :param pid: particle id
         :param protomodel: if None, then use self.M
         :param randomly: if true, initialize to random values, else democratically
 
-        :returns: true if really initialized, false if could not initialize
+        :returns: number of changes
         """
         if protomodel is None:
             protomodel = self.M
 
         #Do not modify the LSP decays
         if pid in self.decaylessParticles:
-            return False
+            return 0
         pid_name = namer.asciiName(pid)
 
         #Erase BRs (if any has been stored)
@@ -863,14 +870,17 @@ class Manipulator ( LoggerBase ):
                 br_tot += br
 
         if br_tot == 0.:
-            self.error ( f"could not initialize {pid_name}: br_tot={br_tot}." )
-            self.error ( f"openChannels were {openChannels}. will freeze." )
+            self.error ( f"could not initialize {pid_name}({pid}): br_tot={br_tot}." )
+            self.error ( f"openChannels were {openChannels}. will freeze. {hasattr(protomodel,'widths')}" )
+            if hasattr ( protomodel, "widths" ):
+                self.error ( f"@@ widths {protomodel.widths}" )
+            import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
             self.freezeParticle ( pid )
-            return False
+            return 0
         ## finally normalize
         for dpids,br in protomodel.decays[pid].items():
             protomodel.decays[pid][dpids]=br/br_tot
-        return True
+        return 1
 
     def sumBranchings ( self, protomodel, pid : int )-> float:
         """ sum up the current branchings, so we can rescale
@@ -885,7 +895,7 @@ class Manipulator ( LoggerBase ):
         return BRtot
 
     def normalizeBranchings(self, pid : int, rescaleSSMs : bool =False,
-            protomodel : Union[ProtoModel,None] = None) -> bool:
+            protomodel : Union[ProtoModel,None] = None) -> int:
         """ normalize branchings of a particle if the total BR is differs
         from 1.0.
 
@@ -894,7 +904,7 @@ class Manipulator ( LoggerBase ):
         :param rescaleSSMs: if True, rescale the corresponding signal strength
         multipliers, so that sigma x br stays the same.
 
-        :returns: true if succesful
+        :returns: number of changes
         """
 
         if not protomodel:
@@ -903,7 +913,7 @@ class Manipulator ( LoggerBase ):
 
         if not pid in protomodel.decays:
             protomodel.pprint(f"When attempting to normalize: {pid_name}({pid}) not in decays.")
-            return False
+            return 0
 
         BRtot = self.sumBranchings ( protomodel, pid )
         if BRtot == 0:
@@ -918,27 +928,18 @@ class Manipulator ( LoggerBase ):
                     self.log(f"decay of {pid_name}: {protomodel.decays[pid]}")
                     # protomodel.pprint ( f"When attempting to normalize: total BR of {pid_name}({pid}) is zero, and it is not in decaylessParticles. we need to take it out." )
                     protomodel.pprint ( f"When attempting to normalize: total BR of {pid_name}({pid}) is zero, and it is not in decaylessParticles. lets make it stable." )
-                    """
-                    protomodel.pprint ( f"@@ has widths {hasattr ( self.M, 'widths' )}" )
-                    protomodel.pprint ( f"@@ self.M.decays {self.M.decays}" )
-                    protomodel.pprint ( f"@@ self.M.decays[pid] {self.M.decays[pid]}" )
-                    protomodel.pprint ( f"@@ self.M.decay_keys {self.M.decay_keys[pid]}" )
-                    protomodel.pprint ( f"@@ self.M.inv_decay_keys {self.M.inv_decay_keys[pid]}" )
-                    if hasattr ( self.M, "widths" ):
-                        protomodel.pprint ( f"@@ widths {self.M.widths}" )
-                    """
 
                     self.M.widths[pid]=0.
                     self.M.decays[pid]={}
 
                     ## we need to freeze also <pid> now
                     ## (since we have no sensible channels anymore)
-                    self.freezeParticles ( pid, force=True, protomodel=protomodel )
-            return False
+                    # self.freezeParticles ( pid, force=True, protomodel=protomodel )
+            return 0
 
         if abs(BRtot-1.0) < 1e-5:
             #BRs are already normalized.
-            return True
+            return 0
 
         self.log ( f"Scaled branchings of {pid_name} by 1/{BRtot:.2g}" )
         for dpid in protomodel.decays[pid]:
@@ -954,8 +955,9 @@ class Manipulator ( LoggerBase ):
         ## adjust the signal strength multipliers to keep everything else
         ## as it was
         if not rescaleSSMs:
-            return True
+            return 1
 
+        ret = 0
         # rescaling ssms?
         for pidpair,ssm in protomodel.ssmultipliers.items():
             if pidpair in [ (pid,pid),(-pid,-pid),(-pid,pid),(pid,-pid) ]:
@@ -967,8 +969,9 @@ class Manipulator ( LoggerBase ):
             else:
                 continue
             protomodel.ssmultipliers[pidpair]=newssm
+            ret += 1
 
-        return True
+        return 1
 
     def initSSMFor(self, pid : int, protomodel : Union[ProtoModel,None] =None,
             ssmSigma : float = 1.0, cap_ssm : float = 100. ):
@@ -2147,11 +2150,14 @@ class Manipulator ( LoggerBase ):
         lw = random.uniform ( r["lmin"], r["lmax"] )
         return 10**(lw)
 
-    def randomlyChangeMasses ( self, prob = 0.05, dx = 200.0 ):
+    def randomlyChangeMasses ( self, prob = 0.05, dx = 200.0 ) -> int:
         """ take a random step in mass space for a single unfrozen particle
 
         :param prob: Probability for changing the mass
-        :param dx: Defines the interval for selecting the delta m (-dx,dx) """
+        :param dx: Defines the interval for selecting the delta m (-dx,dx) 
+
+        :returns: number of changes
+        """
 
         uMass = np.random.uniform ( 0., 1. )
         if uMass < (1-prob):
@@ -2164,11 +2170,13 @@ class Manipulator ( LoggerBase ):
             return 0
 
         pid = int(np.random.choice ( unfrozen ))
+        pid_name = namer.asciiName ( pid )
 
         #Define mass interval
         maxMass = self.M.maxMass
         minMass = self.M.masses[LSP]
-        #In case the pid corresponds to a lighter or heavier state of a pair of particles,
+        #In case the pid corresponds to a lighter or heavier state 
+        # of a pair of particles,
         #make sure the mass ordering is respected:
         for pids in self.canonicalOrder:
             if pid == pids[0] and pids[1] in unfrozen:
@@ -2188,39 +2196,96 @@ class Manipulator ( LoggerBase ):
             ## heed the wall!
             minMass = max ( self.walledpids[abs(pid)], minMass )
 
-        ret = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass, maxMass=maxMass )
+        ret = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass, 
+                maxMass=maxMass )
+        if pid in [ 1000023, 1000024, 1000025, 1000035, 1000037 ] and \
+                pid in self.M.unFrozenParticles():
+            # for the ewkinos randomly sync partners (e.g. N2 for C1)
+            ret += self.randomlySyncOtherEwkinos ( pid )
+
+        # Fix branching ratios and rescale signal strenghts, 
+        # so other channels are not affected
+        ret += self.removeIllegalBRs(rescaleSSMs=True)
+
+        return ret
+
+    def randomlySyncOtherEwkinos ( self, pid : int ) -> int:
+        pid_name = namer.asciiName ( pid )
+        p = np.random.uniform (0, 1 )
+        ret = 0
+        if pid in [ 1000037 ] and pid in self.M.unFrozenParticles():
+            # we have an unfrozen C2
+            if 1000025 in self.M.unFrozenParticles() and p < .25:
+                # N3 is unfrozen, can we sync?
+                if self.M.masses[1000037] > self.M.masses[1000023]:
+                    # C2 is larger than N2, we can sync!
+                    # N3 can take on C2!
+                    self.M.masses[1000025] = self.M.masses[1000037]
+        if pid in [ 1000025 ] and pid in self.M.unFrozenParticles():
+            # we have an unfrozen N3
+            if 1000037 in self.M.unFrozenParticles() and p < .25:
+                # C2 is unfrozen, can we sync?
+                if self.M.masses[1000025] > self.M.masses[1000024]:
+                    # N3 is larger than C1, we can sync!
+                    self.M.masses[1000037] = self.M.masses[1000025]
+                    # C2 can be synced to N3!
+
         if pid in [ 1000023, 1000024 ] and pid in self.M.unFrozenParticles():
-            # for C1 and N2, if one of the two gets changed, have a 10% chance that the other gets set to the same value
-            p = np.random.uniform(0,1)
+            # for C1 and N2, if one of the two gets changed, 
+            # have a 10% chance that the other gets set to the same value
+            # if they already have the same mass, make the chance be 50%
             offshell = self.checkIfOffshell(pid)
-            if offshell: p = np.random.uniform(0,0.5)        #SN: check if this makes sense?
-            if self.run_mcmc: p = 1.0
-            if p < .1:
+            if offshell: 
+                p_max = .2
+                # p = np.random.uniform(0,0.5)        
+                # SN: check if this makes sense?
+            #if self.run_mcmc: ## why?
+            #    p = 1.0
+            p_max = .1
+            if abs ( self.M.masses[1000023]-self.M.masses[1000024] ) < 1e-2:
+                p_max = .25
+            if p < p_max:
                 mass = self.M.masses[pid]
                 otherpid = 1000024 if pid == 1000023 else 1000023
-                heavypid = 1000037 if pid == 1000023 else 1000025 #get N3 and C2 masses
-                # remember the frozen particles, so we can check if we just unfroze this guy
                 were_frozen = self.M.frozenParticles()
+                if pid == 1000023 and not 1000037 in were_frozen:
+                    p2 = np.random.uniform ( 0, 1 )
+                    if p2 < .25:
+                        otherpid = 1000037
+                if pid == 1000024 and not 10000035 in were_frozen:
+                    p2 = np.random.uniform ( 0, 1 )
+                    if p2 < .25:
+                        otherpid = 1000035
+                heavypid = 1000037 if pid == 1000023 else 1000025 
+                #get N3 and C2 masses
+                # remember the frozen particles,
+                # so we can check if we just unfroze this guy
                 was_offshell = False
-                if otherpid not in were_frozen: was_offshell = self.checkIfOffshell(otherpid)
-                self.M.masses[otherpid] = float(mass * np.random.uniform ( .99, 1.01 ))
+                if otherpid not in were_frozen: 
+                    was_offshell = self.checkIfOffshell(otherpid)
+                self.M.masses[otherpid] = float(mass) 
+                ret += 1
+                #  * np.random.uniform ( .99, 1.01 ))
                 if heavypid not in were_frozen: #check for canonical ordering
-                    if self.M.masses[otherpid] > self.M.masses[heavypid]: self.M.masses[otherpid] = self.M.masses[heavypid] - 10.
-                self.log ( f"mass of {namer.asciiName(pid)} got changed to {mass:.1f}. hattrick, changing also for {namer.asciiName(otherpid)}!" )
+                    if self.M.masses[otherpid] > self.M.masses[heavypid]: 
+                        self.M.masses[otherpid] = self.M.masses[heavypid] - 10.
+                        ret += 1
+                #  * np.random.uniform ( .99, 1.01 ))
+                self.log ( f"mass of {pid_name} got changed to {mass:.1f}. hattrick, changing also for {namer.asciiName(otherpid)}!" )
                 # If the particle was frozen before, we need to unfreeze
                 if otherpid in were_frozen:
                     initialized = self.initBranchings(otherpid)
-                    if initialized: self.initSSMFor(otherpid)
+                    if initialized: 
+                        self.initSSMFor(otherpid)
+                    ret += 1
                 #if otherpid was not offshell before but now is offshell and vice versa, initialize branchings
                 else:
-                    if self.checkIfOffshell(otherpid) != was_offshell: self.initBranchings(otherpid)
+                    if self.checkIfOffshell(otherpid) != was_offshell: 
+                        self.initBranchings(otherpid)
+                        ret += 1
                 if otherpid in self.M.unFrozenParticles(): #added check since sometimes after initBranchings, total br is 0 and particle is removed
                     self.record ( f"change mass of {namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
                     ret+=1
-
-        #Fix branching ratios and rescale signal strenghts, so other channels are not affected
-        self.removeIllegalBRs(rescaleSSMs=True)
-
         return ret
 
     def inCorridorRegion ( self, mstop, mlsp ):
@@ -2264,7 +2329,8 @@ class Manipulator ( LoggerBase ):
         if not maxMass:
             maxMass = self.M.maxMass
 
-        was_offshell, offshell = self.checkIfOffshell(pid), False
+        was_offshell = self.checkIfOffshell(pid)
+        offshell = False
         if pid in [ 1000023, 1000024 ] and not was_offshell:
             # for C1 and N2 we want a 10% chance to move into the offshell region
             p = np.random.uniform ( 0, 1 )
@@ -2274,15 +2340,20 @@ class Manipulator ( LoggerBase ):
                 self.log ( f"randomly chose {spid} to restrict to offshell mass!" )
                 if pid in [ 1000023, 1000025 ]: maxMax = minMass + smMasses["Z"] + smWidths["Z"]
                 else: maxMax = minMass + smMasses["W"] + smWidths["W"]
+        if was_offshell and self.run_mcmc:
+            offshell = True
 
         massIsLegal = False
         ctIterations = 0
         while not massIsLegal:
             ctIterations += 1
             massIsLegal = True
+            # offshell = self.checkIfOffshell ( pid )
             #tmpmass = float(self.M.masses[pid] + np.random.uniform(-dx,dx))
-            tmpmass = float(norm.rvs(loc=self.M.masses[pid], scale=dx))
-            if offshell: tmpMass = float(np.random.uniform ( minMass, maxMass ))
+            if offshell: 
+                tmpmass = float(np.random.uniform ( minMass, maxMass ))
+            else:
+                tmpmass = float(norm.rvs(loc=self.M.masses[pid], scale=dx))
             # Enforce mass interval:
             if pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpmass, self.M.masses[LSP] ):
                 massIsLegal = False
@@ -2300,10 +2371,11 @@ class Manipulator ( LoggerBase ):
                 massIsLegal = False
             if tmpmass in [ float("nan"), float("inf"), None ]:
                 massIsLegal = False
-                self.pprint ( f"huh? we have a tmpmass of {spid}({pid}) at {tmpmass:.2f}, was at {self.M.masses[pid]:.2f}, dx={dx:.2g}" )
+                self.pprint ( f"huh? we have a tmpmass of m[{spid}({pid})]={tmpmass:.2f}, was at {self.M.masses[pid]:.2f}, dx={dx:.2g}" )
             dx = dx * 1.2 ## to make sure we always get out of this
             if ctIterations > 20: # seems like we are in a super constrained situation
-                self.pprint ( f"huh? we have a tmpmass of {spid}({pid}) is {tmpmass:.2f} was at {self.M.masses[pid]:.2f} dx={dx:.2g} breaking off after {ctIterations} iterations" )
+                self.pprint ( f"huh? we have a tmpmass of m[{spid}({pid})]={tmpmass:.2f} was at {self.M.masses[pid]:.2f} dx={dx:.2g} breaking off after {ctIterations} iterations" )
+                self.pprint ( f"  -- debug minMass {minMass} maxMass {maxMass} offshell {offshell}" )
                 tmpmass = self.M.masses[pid]
                 break
 
@@ -2317,6 +2389,7 @@ class Manipulator ( LoggerBase ):
         allpids = self.forcedMassDegeneratePids(pid)
         nchanges = 0
         self.log(f"Now randomly changing {spid}({pid})->{allpids}: masses {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
+        self.pprint(f"Now randomly changing {spid}({pid})->{allpids}: masses {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
 
         for ipid in allpids:
             sipid=namer.asciiName(ipid)
