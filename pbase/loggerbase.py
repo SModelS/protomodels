@@ -128,7 +128,7 @@ class LoggerBase:
             self.howFarBack[line]=0
         for mline,count in self.howFarBack.items():
             self.howFarBack[mline]=count+1
-            if count > 100 and mline in self.countLogs:
+            if count > 10 and mline in self.countLogs:
                 self.countLogs.pop( mline )
                 self.howFarBack[mline]=0
         self.prevMessage = line

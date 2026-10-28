@@ -217,15 +217,16 @@ def experimentalId(pred : TheoryPrediction) -> str:
         # print ( f"@@127 FIXME this is wrong" )
         # sc0 = pred._statsComputer.subComputers[0]
         if sc0 is None:
+            # prediction has no most sensitive model, so we go with dataId (likely "combined")
             dsId = pred.dataId()
-            print ( f"[helpers] ERROR in experimentalId: sc0 is None in {pred.dataset.globalInfo.id} dsId is {dsId}" )
+            # print ( f"[helpers] INFO in experimentalId: sc0 is None in
+            # {pred.dataset.globalInfo.id} dsId is {dsId}" )
             return f"{anaId}:{dsId}"
 
-        sc0_type = sc0.dataType
+        # sc0_type = sc0.dataType
         return f"{anaId}:{sc0.name}"
-    else:
-        dsId = pred.dataId()                                #for em-type results
-        return f"{anaId}:{dsId}"
+    dsId = pred.dataId()  #for em-type results
+    return f"{anaId}:{dsId}"
 
 def getAllProdModesOfTheoryPred (pred : TheoryPrediction) -> Set:
     """ Get all Prod Modes assoaciated with a theory pred i.e (PV->PID1,PID2..)"""

@@ -352,7 +352,7 @@ class RandomWalker ( LoggerBase ):
         self.pprint ( f"======", dontSuppress=True )
         for pid,width in self.protomodel.widths.items():
             pid_name = namer.asciiName(pid)
-            self.pprint ( f"   {pid_name}({pid}): {width}", dontSuppress=True )
+            self.pprint ( f"   {pid_name}({pid}): {width:.3g}", dontSuppress=True )
         # self.pprint ( f"widths {self.protomodel.widths}" )
         self.pprint ( f"ssms", dontSuppress=True )
         self.pprint ( f"======", dontSuppress=True )
