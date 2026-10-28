@@ -800,6 +800,7 @@ class Manipulator ( LoggerBase ):
         olddecays = list ( protomodel.decays.keys() )
         #Loop over all decays:
         for pid in olddecays:
+            pid_name = namer.asciiName(pid)
             if not pid in protomodel.decays:
                 ## self.normalizeBranchings is allowed to take out
                 ## pids, thus we need to check
@@ -809,12 +810,20 @@ class Manipulator ( LoggerBase ):
             #Check if any of the existing decays are forbidden:
             delDecays = [dpid for dpid in protomodel.decays[pid] if not  dpid in openChannels]
             if delDecays != []: 
-                self.pprint(f"removeIllegalBRs: removing decays of {pid}: {delDecays}")
+                self.pprint(f"removeIllegalBRs: removing decays of {pid_name}({pid}): {delDecays}")
                 # self.pprint(f"  - why illegal? because openChannels is {openChannels} masses are {protomodel.masses}" )
                 onoffshell = "onshell"
                 if self.checkIfOffshell ( pid ):
                     onoffshell = "offshell"
-                self.pprint(f"  - why illegal? m({pid})={protomodel.masses[pid]:.2f}, m(LSP)={protomodel.masses[LSP]:.2f}: {onoffshell}" )
+                self.pprint(f"  - why illegal? m[{pid_name}({pid})]={protomodel.masses[pid]:.2f}, m(LSP)={protomodel.masses[LSP]:.2f}: {onoffshell}" )
+                for del_pids in delDecays:
+                    for del_pid in del_pids:
+                        if abs(del_pid)>999999:
+                            del_pid_name = namer.asciiName ( del_pid )
+                            if del_pid in protomodel.masses:
+                                self.pprint ( f"  -         m[{del_pid_name}({del_pid})]={protomodel.masses[del_pid]}" )
+                            else:
+                                self.pprint ( f"  -         no {del_pid_name}({del_pid}) in masses" )
             for dpid in delDecays:
                 protomodel.decays[pid].pop(dpid)
                 ret += 1
@@ -876,9 +885,9 @@ class Manipulator ( LoggerBase ):
         if br_tot == 0.:
             self.error ( f"could not initialize {pid_name}({pid}): br_tot={br_tot}." )
             self.error ( f"openChannels were {openChannels}. will freeze. {hasattr(protomodel,'widths')}" )
-            if hasattr ( protomodel, "widths" ):
-                self.error ( f"@@ widths {protomodel.widths}" )
-            import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
+            #if hasattr ( protomodel, "widths" ):
+            #    self.error ( f"@@ widths {protomodel.widths}" )
+            # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
             self.freezeParticle ( pid )
             return 0
         ## finally normalize
@@ -2123,6 +2132,7 @@ class Manipulator ( LoggerBase ):
         protomodel.masses[pid] = tmpMass
 
         self.record ( f"Unfreeze mass of {pid}({namer.texName(pid,addDollars=True)}) to {tmpMass:.1f}" )
+        self.pprint ( f"Unfreeze mass of {namer.asciiName(pid)} to {protomodel.masses[pid]:.1f}" )
         self.log ( f"Unfreeze mass of {namer.asciiName(pid)} to {protomodel.masses[pid]:.1f}" )
 
         # Set branchings
