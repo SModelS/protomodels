@@ -474,7 +474,8 @@ class RefXSecComputer ( LoggerBase ):
                 try:
                     masses = channel['masses']
                     masses = tuple(map(lambda x: round(x,2),masses))
-                    self.warning (f"No cross section obtained for channel {channel['pids']} m={masses} at {sqrts} TeV. Will try with PYTHIA.")
+                    self.warning (f"No reference xsec obtained for channel {channel['pids']} m={masses} at {sqrts} TeV.")
+                    self.warning (f"Lets try with PYTHIA!")
                     from smodels.tools.xsecComputer import XSecComputer, NLL
                     xsecComputer = XSecComputer ( NLL, 5000, pythiaVersion=8, maycompile=True )
                     pythia = xsecComputer.getPythia()
