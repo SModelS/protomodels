@@ -662,7 +662,7 @@ class RefXSecComputer ( LoggerBase ):
         if not os.path.exists ( path ):
             self.info ( f"could not find {path}" )
             return ret
-        self.info ( f"getting xsecs from {path}" )
+        self.debug ( f"getting xsecs from {path}" )
         f = open ( path, "rt" )
         lines=f.readlines()
         f.close()
@@ -756,9 +756,9 @@ class RefXSecComputer ( LoggerBase ):
             neutralinos = N1N2N3
         if pid1 in N1N2N3 and pid2 in neutralinos: # Neutralinos pair production
             if masses[1]+masses[0] == 0.:
-                self.info ( f"Asking for massless {(pid1,pid2)} production. Will return None." )
+                self.debug ( f"Asking for massless {(pid1,pid2)} production. Will return None." )
                 return None, None, None
-            self.info ( f"Asking for {(pid1,pid2)} production. Will use C1 C1 xsecs (No N1 N2 cross sections at 8 TeV)." )
+            self.debug ( f"Asking for {(pid1,pid2)} production. Will use C1 C1 xsecs (No N1 N2 cross sections at 8 TeV)." )
             filename = f"xsecC1C1{sqrts}.txt"
             # filename = f"xsecN2N1{sqrts}.txt"
             order = NLL
@@ -770,8 +770,7 @@ class RefXSecComputer ( LoggerBase ):
             pb = False
             isEWK = True
         if filename == None:
-            self.info ( f"could not identify filename for xsecs for {pid1,pid2}" )
-            # self.info ( "seems like we dont have ref xsecs for the pids %d/%d?" % ( pid1, pid2 ) )
+            self.debug ( f"could not identify filename for xsecs for {pid1,pid2}" )
             return None, None, None
             # sys.exit()
         if ewk == "hino":
@@ -780,7 +779,7 @@ class RefXSecComputer ( LoggerBase ):
             if comment == "":
                 comment = f"({ewk})"
         path = os.path.join ( self.shareDir, filename )
-        self.info ( f"[refxsecComputer] will query {filename}" )
+        self.debug ( f"[refxsecComputer] will query {filename}" )
         if not os.path.exists ( path ):
             self.error ( f"{path} missing" )
             sys.exit(-1)

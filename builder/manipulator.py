@@ -810,7 +810,11 @@ class Manipulator ( LoggerBase ):
             delDecays = [dpid for dpid in protomodel.decays[pid] if not  dpid in openChannels]
             if delDecays != []: 
                 self.pprint(f"removeIllegalBRs: removing decays of {pid}: {delDecays}")
-                self.pprint(f"  - why illegal? because openChannels is {openChannels} masses are {protomodel.masses}" )
+                # self.pprint(f"  - why illegal? because openChannels is {openChannels} masses are {protomodel.masses}" )
+                onoffshell = "onshell"
+                if self.checkIfOffshell ( pid ):
+                    onoffshell = "offshell"
+                self.pprint(f"  - why illegal? m({pid})={protomodel.masses[pid]:.2g}, m(LSP)={protomodel.masses[LSP]:.2g}: {onoffshell}" )
             for dpid in delDecays:
                 protomodel.decays[pid].pop(dpid)
                 ret += 1
@@ -917,7 +921,7 @@ class Manipulator ( LoggerBase ):
 
         BRtot = self.sumBranchings ( protomodel, pid )
         if BRtot == 0:
-            self.log ( f"the decayless particles are {namer.asciiName(self.M.decaylessParticles)} [{self.M.decaylessParticles}]." )
+            self.log ( f"the hardcoded decayless particles are {namer.asciiName(self.M.decaylessParticles)} [{self.M.decaylessParticles}]." )
             if pid not in self.M.decaylessParticles:
                 if hasattr ( self.M, "widths" ) and pid in self.M.widths and \
                         self.M.widths[pid]<1e-25:
@@ -1102,9 +1106,11 @@ class Manipulator ( LoggerBase ):
         n_par_current = len(model_current.unFrozenParticles() )
         n_par_propose = len(model_propose.unFrozenParticles())
 
-        #total number of non-trivial br
-        n_decays_current = sum([len(dc.keys())- 1 for par, dc in model_current.decays.items() if par != LSP ])
-        n_decays_propose = sum([len(dc.keys())- 1 for par, dc in model_propose.decays.items() if par != LSP ])
+        # total number of non-trivial br
+        # the max(0,... is because we're counting non-trivial brs,
+        # so we subtract 1
+        n_decays_current = max(0,sum([len(dc.keys())- 1 for par, dc in model_current.decays.items() if par != LSP ]))
+        n_decays_propose = max(0,sum([len(dc.keys())- 1 for par, dc in model_propose.decays.items() if par != LSP ]))
 
         #total number of production modes
         n_ssms_current = len([ssm for ssm in model_current.ssmultipliers.values() if ssm > 1e-04])
@@ -1764,7 +1770,7 @@ class Manipulator ( LoggerBase ):
                 newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
                 if newSSM > cap_ssm: newSSM = cap_ssm
                 protomodel.ssmultipliers[dpd]= newSSM
-                self.log (f"Changing ssm of {namer.asciiName(dpd)} ({dpd}) to {newSSM}" )
+                self.log (f"Changing ssm of {namer.asciiName(dpd)} ({dpd}) to {newSSM:.4g}" )
                 #self.changeSSM ( dpd, newssm )
                 ssms.append ( newSSM )
 
@@ -2388,8 +2394,12 @@ class Manipulator ( LoggerBase ):
 
         allpids = self.forcedMassDegeneratePids(pid)
         nchanges = 0
-        self.log(f"Now randomly changing {spid}({pid})->{allpids}: masses {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
-        self.pprint(f"Now randomly changing {spid}({pid})->{allpids}: masses {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
+        if len(allpids)==1:
+            self.log(f"Now randomly changing m[{spid}({pid})] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
+            self.pprint(f"Now randomly changing m[{spid}({pid})] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
+        else:
+            self.log(f"Now randomly changing m[{allpids}]: {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
+            self.pprint(f"Now randomly changing [{allpids}]: {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
 
         for ipid in allpids:
             sipid=namer.asciiName(ipid)
