@@ -814,7 +814,7 @@ class Manipulator ( LoggerBase ):
                 onoffshell = "onshell"
                 if self.checkIfOffshell ( pid ):
                     onoffshell = "offshell"
-                self.pprint(f"  - why illegal? m({pid})={protomodel.masses[pid]:.2g}, m(LSP)={protomodel.masses[LSP]:.2g}: {onoffshell}" )
+                self.pprint(f"  - why illegal? m({pid})={protomodel.masses[pid]:.2f}, m(LSP)={protomodel.masses[LSP]:.2f}: {onoffshell}" )
             for dpid in delDecays:
                 protomodel.decays[pid].pop(dpid)
                 ret += 1
@@ -2248,8 +2248,9 @@ class Manipulator ( LoggerBase ):
             #if self.run_mcmc: ## why?
             #    p = 1.0
             p_max = .1
-            if abs ( self.M.masses[1000023]-self.M.masses[1000024] ) < 1e-2:
-                p_max = .25
+            if 1000023 in self.M.masses and 1000024 in self.M.masses:
+                if abs ( self.M.masses[1000023]-self.M.masses[1000024] ) < 1e-2:
+                    p_max = .25
             if p < p_max:
                 mass = self.M.masses[pid]
                 otherpid = 1000024 if pid == 1000023 else 1000023

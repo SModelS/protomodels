@@ -327,10 +327,40 @@ class RandomWalker ( LoggerBase ):
                 self.pprint ( f"  `-- error! best combo pids ({pidsbc}) arent subset of masses pids ({pidsp})!" )
                 self.manipulator.M.bestCombo = None
             if detailed:
-                self.pprint ( f"massses {self.protomodel.masses}" )
-                self.pprint ( f"decays {self.protomodel.decays}" )
-                self.pprint ( f"widths {self.protomodel.widths}" )
-                self.pprint ( f"ssms {self.protomodel.ssmultipliers}" )
+                self.printModel()
+
+    def printModel ( self ):
+        self.pprint ( dontSuppress=True )
+        self.pprint ( f"Our current model:", dontSuppress=True )
+        self.pprint ( f"masses", dontSuppress=True )
+        self.pprint ( f"======", dontSuppress=True )
+        from ptools.sparticleNames import namer
+        for pid,m in self.protomodel.masses.items():
+            pid_name = namer.asciiName(pid)
+            self.pprint ( f"   {pid_name:6s}({pid}): {m:.2f}", dontSuppress=True )
+        # self.pprint ( f"massses {self.protomodel.masses}" )
+        self.pprint ( f"decays", dontSuppress=True )
+        self.pprint ( f"======", dontSuppress=True )
+        for pid,values in self.protomodel.decays.items():
+            pid_name = namer.asciiName(pid)
+            self.pprint ( f"   {pid_name}({pid}):", dontSuppress=True )
+            for dpids,br in values.items():
+                pid_names = namer.asciiName ( dpids )
+                self.pprint ( f"        {pid_names:12s} [{dpids}]: {br:.3g}", dontSuppress=True )
+        # self.pprint ( f"decays {self.protomodel.decays}" )
+        self.pprint ( f"widths", dontSuppress=True )
+        self.pprint ( f"======", dontSuppress=True )
+        for pid,width in self.protomodel.widths.items():
+            pid_name = namer.asciiName(pid)
+            self.pprint ( f"   {pid_name}({pid}): {width}", dontSuppress=True )
+        # self.pprint ( f"widths {self.protomodel.widths}" )
+        self.pprint ( f"ssms", dontSuppress=True )
+        self.pprint ( f"======", dontSuppress=True )
+        # self.pprint ( f"ssms {self.protomodel.ssmultipliers}" )
+        for pids,ssm in self.protomodel.ssmultipliers.items():
+            pid_name = namer.asciiName(pids)
+            self.pprint ( f"   {pid_name}({pids}): {ssm:.3g}", dontSuppress=True )
+        self.pprint ( dontSuppress=True )
 
     def writeToDictFile(self, proto_dict):
             # Load existing list or initialize a new one

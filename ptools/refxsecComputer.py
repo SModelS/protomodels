@@ -472,7 +472,9 @@ class RefXSecComputer ( LoggerBase ):
                 self.debug (f"No cross section table found for {channel}")
             if xsec == None:
                 try:
-                    self.warning (f'No cross section obtained for channel {channel} at {sqrts} TeV. Will try with PYTHIA.')
+                    masses = channel['masses']
+                    masses = tuple(map(lambda x: round(x,2),masses))
+                    self.warning (f"No cross section obtained for channel {channel['pids']} m={masses} at {sqrts} TeV. Will try with PYTHIA.")
                     from smodels.tools.xsecComputer import XSecComputer, NLL
                     xsecComputer = XSecComputer ( NLL, 5000, pythiaVersion=8, maycompile=True )
                     pythia = xsecComputer.getPythia()

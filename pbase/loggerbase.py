@@ -23,6 +23,7 @@ class LoggerBase:
         self.verbose = self.getVerbosity ( verbosity )
         self.walkerid = walkerid
         self.countLogs = {}
+        self.howFarBack = {} # count how far back the lines are
         self.printLogMessages = False
         self.logdir = "logs/"
         self.logDebug = False # log the debug msgs in file?
@@ -109,18 +110,27 @@ class LoggerBase:
         if self.logDebug:
             self.log ( *args )
 
-    def pprint ( self, *args ):
+    def pprint ( self, *args, dontSuppress : bool = False ):
         """ logging """
         line = ' '.join(map(str,args))
         if not line in self.countLogs:
             self.countLogs[line]=0
         self.countLogs[line] += 1
-        if self.countLogs[line]==3 and not "@@@" in line:
+        if "@@@" in line:
+            dontSuppress = True
+        if self.countLogs[line]==3 and not dontSuppress:
             self.pprint ( f"skipping repeating messages" )
             return
-        if self.countLogs[line]>3 and not "@@@" in line:
+        if self.countLogs[line]>3 and not dontSuppress:
             return
         print ( f"[{self.module}{self.swalkerid()}] {line}" )
+        if not line in self.howFarBack:
+            self.howFarBack[line]=0
+        for mline,count in self.howFarBack.items():
+            self.howFarBack[mline]=count+1
+            if count > 100 and mline in self.countLogs:
+                self.countLogs.pop( mline )
+                self.howFarBack[mline]=0
         self.prevMessage = line
         self.log ( *args )
 
