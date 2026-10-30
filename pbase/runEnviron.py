@@ -42,7 +42,7 @@ class RunEnviron ( LoggerBase ):
         :ivar susy_mode(bool): susy mode (penalize for unusual xsecs)
         :ivar use_initialiser(Union[None,str]): use given dict file
         for initialisation, or dont use initialiser (None)
-        :ivar rundir(str): the run directory
+        :ivar rundir(str): the run directory phasing out FIXME
         :ivar extrapolation_acceptance(float): the extrapolation acceptance
         in SModelS txnameObj
         :ivar userprior(Union[None,str]): optional path to a python file that
@@ -57,9 +57,11 @@ class RunEnviron ( LoggerBase ):
         self.didReadRunDict = False # did we get the info from run.dict?
         self.run_dict = self.defaults()
         self.readRunDict()
+        self.rundir = os.getcwd()
         self._setAttrs()
         self.checkUserPrior()
-        self.setAcceptedExtrapolationErrors ( self.run_dict["extrapolation_acceptance"] )
+        self.setAcceptedExtrapolationErrors ( \
+                self.run_dict["extrapolation_acceptance"] )
 
     def checkUserPrior ( self ) -> None:
         """ check that the (optional) user prior file exists
@@ -89,8 +91,9 @@ class RunEnviron ( LoggerBase ):
         if isinstance ( userprior, os.PathLike ):
             userprior = os.fspath ( userprior )
         if not isinstance ( userprior, str ):
-            raise ValueError ( f"the user prior has to be given as a path (a string), "\
-                               f"but is {type(userprior)}" )
+            raise ValueError ( \
+                    f"the user prior has to be given as a path (a string), "\
+                    f"but is {type(userprior)}" )
         path = os.path.expanduser ( userprior )
         if not os.path.isabs ( path ) and rundir not in [ None, "" ]:
             path = os.path.join ( os.path.expanduser ( rundir ), path )
@@ -142,7 +145,7 @@ class RunEnviron ( LoggerBase ):
         if os.path.exists ( runDictFile ):
             oldret = RunEnviron ( runDictFile )
         newdict.update ( **args )
-        if "rundir" in newdict:
+        if False and "rundir" in newdict:
             path = os.path.abspath ( os.path.expanduser ( newdict["rundir"] ) )
             newdict["rundir"] = path
         ## the (optional) user prior: resolve it to an absolute path
@@ -202,11 +205,12 @@ class RunEnviron ( LoggerBase ):
             "do_srcombine": True, "forbiddenparticles": [],
             "templateSLHA": "template_default.slha",
             "allowN1N1Prod": False, "susy_mode": False,
-            "rundir": os.getcwd(), "strategy": "aggressive",
+            "strategy": "aggressive",
             "use_initialiser": None, "dbversion": "???",
             "extrapolation_acceptance": 0.,
             "userprior": None
         }
+        # defaults["rundir"]=os.getcwd()
         return defaults
 
     def __str__ ( self ):
@@ -226,8 +230,9 @@ class RunEnviron ( LoggerBase ):
             d = eval ( txt )
             self.run_dict.update ( d )
             ## the (optional) user prior: resolve it to an absolute path
-            self.run_dict["userprior"] = self.resolveUserPrior ( self.run_dict.get ( "userprior", None ),
-                                          rundir = self.run_dict.get ( "rundir", None ) )
+            self.run_dict["userprior"] = self.resolveUserPrior ( 
+                    self.run_dict.get ( "userprior", None ) )
+                    # rundir = self.run_dict.get ( "rundir", None ) )
             self.didReadRunDict = True
         except ( SyntaxError, ValueError ) as e:
             self.error (f"when parsing {os.path.abspath(self.runDictFile)} {type(e)}: {e}" )
@@ -281,8 +286,8 @@ class RunEnviron ( LoggerBase ):
         for key, value in self.run_dict.items():
             if key == "templateSLHA":
                 key = "templateName"
-            if key == "rundir":
-                value = os.path.expanduser ( value )
+            #if key == "rundir":
+            #    value = os.path.expanduser ( value )
             setattr ( self, key, value )
 
 if __name__ == "__main__":

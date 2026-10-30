@@ -117,7 +117,7 @@ def ewkinoPenalty ( protomodel ) -> tuple:
 
     for ewkino in mass_gaps.keys():
         if not ewkino in protomodel.masses:
-            return large_penalty, f"no ewkino {ekwino} in the model"
+            return large_penalty, f"no ewkino {ewkino} in the model"
     dms = {}
     for ewkino, gap in mass_gaps.items():
         dm = protomodel.masses[ewkino]-protomodel.masses[LSP]
