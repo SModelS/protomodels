@@ -31,7 +31,7 @@ class ProtoModel ( LoggerBase ):
     """
     # __slots__ = [ "walkerid", "keep_meta" ]
 
-    LSP = 1000022 ## the LSP is hard coded
+    from pbase.constants import LSP # LSP is hard coded
     SLHATEMPDIR = "/tmp/" # "./" where do i keep the temporary SLHA files?
     #SLHATEMPDIR = "/dev/shm/" # "./" where do i keep the temporary SLHA files?
 
@@ -47,7 +47,7 @@ class ProtoModel ( LoggerBase ):
         super(ProtoModel,self).__init__ ( walkerid )
         self.walkerid = walkerid
         self.keep_meta = keep_meta ## keep all meta info? big!
-        self.version = 32101 ## version of this class
+        self.version = 32201 ## version of this class
         self.maxMass = 2400. ## maximum masses we consider
         self.environ = environ
         self.step = 0 ## count the steps
@@ -112,7 +112,8 @@ class ProtoModel ( LoggerBase ):
         slha = ""
         ## this is a list of force degeneracies
         self.forced_degeneracies = []
-        self.decaylessParticles = ( ProtoModel.LSP, )
+        from pbase.constants import LSP
+        self.decaylessParticles = ( LSP, )
         # decaylessParticles = [ ProtoModel.LSP, 1000023, 1000024 ]
         with open ( self.environ.templateSLHA, "rt" ) as f:
             lines = f.readlines()
@@ -159,10 +160,13 @@ class ProtoModel ( LoggerBase ):
         self.particles = list ( particles ) # thats the particles
 
     def initializeModel(self):
-        """Use the template SLHA file to store possible decays and initialize the LSP"""
+        """Use the template SLHA file to store possible decays and initialize
+        the LSP
+        """
 
         #Make sure the masses, decays and multipliers are empty
-        self.ul_critic_tpList = [] ## store information about the theory predictions
+        ## store information about the theory predictions
+        self.ul_critic_tpList = []
         self.rvalues = [] ## store the r values of the exclusion attempt
         self.llhd=0.
         self.muhat = 1.
@@ -179,8 +183,10 @@ class ProtoModel ( LoggerBase ):
         self.inv_decay_keys = {} # { pid: { slha_label: [ dpids ] } }
         #list the tuples used in the slha template file with each decay of a pid
         self.decay_tuples = {} # { pid: { dpids: [ pid_tuples ] } }
-        self._stored_xsecs = () #Store cross-sections. It should only be accesses through getXsecs()!
-        self._xsecMasses = {} #Store the masses used for computing the cross-sections
+        # Store cross-sections. It should only be accesses through getXsecs()!
+        self._stored_xsecs = ()
+        # Store the masses used for computing the cross-sections
+        self._xsecMasses = {}
         self._xsecSSMs = {} #Store the signal strenght multiplier used for computing the cross-sections
         self.ssmultipliers = {} ## signal strength multipliers
         ## Initialize LSP

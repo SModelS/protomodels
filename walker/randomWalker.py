@@ -836,7 +836,7 @@ if __name__ == "__main__":
     else:
         environ = RunEnviron ( runfile )
 
-    rvars = { "walkerid": 0 }
+    rvars = { "walkerid": 1 }
     ## if you want to use your own prior, put it into the run environment:
     ## environ = RunEnviron.create ( dbpath = dbpath, select = "all",
     ##         userprior = "../snippets/exampleUserPrior.py" )

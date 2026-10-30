@@ -215,7 +215,7 @@ class Predictor ( LoggerBase ):
 
         return predictions
 
-    def predict ( self, manipulator : Manipulator,
+    def predict ( self, model : Manipulator|ProtoModel,
                   sigmacut : UnitXSec = 0.02*fb,
                   mingap : UnitEnergy = 10*GeV, mingapISR : UnitEnergy = 1*GeV,
                   strategy : str = "aggressive",keep_predictions : bool = False,
@@ -242,7 +242,9 @@ class Predictor ( LoggerBase ):
         if give_explanation is true, then return tuple, e.g.
         ( False, "no predictions" )
         """
-        protomodel = manipulator.M
+        protomodel = model
+        if type( model ) == Manipulator:
+            protomodel = model.M
         predictions = self.obtainPredictions ( protomodel, sigmacut, mingap,
                 mingapISR, keep_predictions )
         if not predictions:
