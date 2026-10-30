@@ -146,8 +146,9 @@ class RunEnviron ( LoggerBase ):
             path = os.path.abspath ( os.path.expanduser ( newdict["rundir"] ) )
             newdict["rundir"] = path
         ## the (optional) user prior: resolve it to an absolute path
-        newdict["userprior"] = cls.resolveUserPrior ( newdict.get ( "userprior", None ),
-                                      rundir = newdict.get ( "rundir", None ) )
+        newdict["userprior"] = cls.resolveUserPrior (
+                newdict.get ( "userprior", None ),
+                rundir = newdict.get ( "rundir", None ) )
         old_dbver = "???"
         if oldret != None:
             ## dbver we check later
@@ -160,11 +161,11 @@ class RunEnviron ( LoggerBase ):
                 for k,v in dd.items():
                     line = f"[RunEnviron] {k:>16}: {v[0]} != {v[1]}"
                     print ( line )
-                    if k not in [ "use_initialiser", "userprior" ]:
+                    if k not in [ "use_initialiser" ]: # , "userprior" ]:
                         print ( f"[RunEnviron] correct this!" )
                         raise Exception ( line )
-                else:
-                    print ( f"[RunEnviron] thats allowed!" )
+                    else:
+                        print ( f"[RunEnviron] thats allowed!" )
         #    else: # newdict is compatible with old dict
         #        return oldret
         if not "dbversion" in newdict:

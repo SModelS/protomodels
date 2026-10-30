@@ -474,8 +474,9 @@ class RefXSecComputer ( LoggerBase ):
                 try:
                     masses = channel['masses']
                     masses = tuple(map(lambda x: round(x,2),masses))
-                    self.warning (f"No reference xsec obtained for channel {channel['pids']} m={masses} at {sqrts} TeV.")
-                    self.warning (f"Lets try with PYTHIA!")
+                    self.warning (f"No reference xsec obtained for {channel['pids']}" )
+                    self.warning ( f" `- at m={masses} at {sqrts} TeV.")
+                    self.warning (f"  `- Lets try with PYTHIA!")
                     from smodels.tools.xsecComputer import XSecComputer, NLL
                     xsecComputer = XSecComputer ( NLL, 5000, pythiaVersion=8, maycompile=True )
                     pythia = xsecComputer.getPythia()
@@ -497,7 +498,7 @@ class RefXSecComputer ( LoggerBase ):
                     comment += " Computed with PYTHIA"
                     os.unlink(pythia.pythiacard)
                     pythia.pythiacard = None
-                    self.warning (f'PYTHIA cross section: {xsec*1000:.2f}*fb')
+                    self.warning (f'  `- PYTHIA cross section: {xsec*1000:.2f}*fb')
                     try:
                         xsec.comment = comment
                     except (AttributeError,TypeError) as e:

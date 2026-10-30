@@ -7,7 +7,6 @@ __all__ = [ "RandomWalker" ]
 import signal
 import pickle, sys, time, math, socket, os
 import subprocess
-import colorama
 import numpy as np
 
 sys.path.insert(0,f"{os.environ['HOME']}/git/protomodels/")
@@ -436,7 +435,8 @@ class RandomWalker ( LoggerBase ):
     def onestep ( self ):
         #Add one step
         self.protomodel.step+=1
-        self.pprint (f"Step {self.protomodel.step} begins.")
+        from smodels_utils.helper.terminalcolors import CYAN, RESET
+        self.pprint (f"{CYAN}Step {self.protomodel.step} begins.{RESET}")
         self.printStats( )
         #Remove data about best combo
         self.log("Clean best combo")
@@ -830,7 +830,11 @@ if __name__ == "__main__":
     select = "txnames:electroweakinos,electroweakinos_offshell"
     select = "all"
     D = model2()
-    environ = RunEnviron.create ( dbpath = dbpath, select = "all" )
+    runfile = "run.dict"
+    if not os.path.exists ( runfile ):
+        environ = RunEnviron.create ( dbpath = dbpath, select = "all" )
+    else:
+        environ = RunEnviron ( runfile )
 
     rvars = { "walkerid": 0 }
     ## if you want to use your own prior, put it into the run environment:
