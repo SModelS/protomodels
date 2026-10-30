@@ -113,10 +113,10 @@ class RandomWalker ( LoggerBase ):
         self.walkerid = walkerid ## walker id, for parallel runs
         self.templateSLHA = templateSLHA
         self.environ = environ
-        self.environ.rundir = rundir
+        # self.environ.rundir = rundir
         self.cap_ssm = cap_ssm
-        if rundir == None:
-            self.environ.rundir = "./"
+        #if rundir == None:
+        #    self.environ.rundir = "./"
         self.random_seed = np.random.seed()
         self.test_param_space = test_param_space
         if seed is not None:
