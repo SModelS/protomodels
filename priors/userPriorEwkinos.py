@@ -142,6 +142,10 @@ def myprior ( protomodel, nll : bool = False ) -> float:
     """
     penalty, reason = ewkinoPenalty ( protomodel )
     print ( f"[userPriorEwkinos] penalty {penalty} reason {reason}" )
+    if False:
+        p1, r1 = tpredsBasedPrior ( protomodel )
+        penalty += p1
+        reason = f"{reason}, {r1}"
     if True:
         p2, r2 = higgsinoXSecPenalty ( protomodel )
         penalty += p2
