@@ -4,6 +4,9 @@
     
 import os, subprocess
 
+SQUEUE_FORMAT = "%.8i %.9P %.80j %.8u %.10T %.10M %.6D %R"
+SQUEUE = f'squeue --me -o "{SQUEUE_FORMAT}" --sort=-i'
+
 def launchBestOfN ( bestOfN : int ):
     """ launch best-of-<n> """
     repetitions = int ( bestOfN ) # best-of-200 gets 200 processes, etc
@@ -15,7 +18,7 @@ def launchBestOfN ( bestOfN : int ):
         print ( cmd, o )
 
 def cancel():
-    cmd = "for i in `slurm q | grep cr  | cut -d ' ' -f1`; do scancel $i; done"
+    cmd = f"for i in `{SQUEUE} | grep cr  | cut -d ' ' -f1`; do scancel $i; done"
     subprocess.getoutput ( cmd )
 
 

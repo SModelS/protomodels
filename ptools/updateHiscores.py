@@ -85,7 +85,7 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
                     p = rundir.rfind("/")
                     rundir = rundir[p+1:]
                     g.write ( f"rm -rf {os.environ['HOME']}/{rundir}/H{nr}.hi\n" )
-                    g.write ( f"./slurm.py -R {rundir} -n {int(nr)} -N {int(nr + 1)} -M 1000\n" )
+                    g.write ( f"./slurm_walk.py -R {rundir} -n {int(nr)} -N {int(nr + 1)} -M 1000\n" )
                     if slurmfile != "":
                         g.write ( f"rm -rf {slurmfile}\n" )
                 break
@@ -113,7 +113,7 @@ def countSteps( printout = True, writeSubmitFile = False, doSubmit = False ):
                     rundir=rundir[:-1]
                 p = rundir.rfind("/")
                 rundir = rundir[p+1:]
-                g.write ( f"./slurm.py -R {rundir} -n {int(k)} -N {int(k + 1)} -M 1000\n" )
+                g.write ( f"./slurm_walk.py -R {rundir} -n {int(k)} -N {int(k + 1)} -M 1000\n" )
         g.close()
         os.chmod ( "submit.sh", 0o755 )
         cmd = f"cp submit.sh {os.environ['HOME']}"
