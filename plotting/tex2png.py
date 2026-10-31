@@ -5,6 +5,7 @@
 import os
 import re
 import sys
+import shutil
 import tempfile
 import subprocess
 
@@ -43,6 +44,8 @@ class Latex(object):
       TEX = self.INLINE
     else:
       TEX = self.BLOCK
+    if not shutil.which('dvipng'):
+      TEX = self._prepare_pdf_template(TEX, inline)
 
     try:
       workdir = tempfile.gettempdir()
@@ -60,33 +63,35 @@ class Latex(object):
       if os.path.exists(texfile):
         os.remove(texfile)
 
+  def _prepare_pdf_template(self, TEX, inline):
+    if inline:
+      return TEX.replace('[active,textmath]', '[active,tightpage,textmath]')
+    TEX = TEX.replace(r'\usepackage[latin1]{inputenc}',
+        r'\usepackage[latin1]{inputenc}' + '\n' + r'\usepackage[active,tightpage]{preview}')
+    return TEX.replace('%s', r'\begin{preview}%s\end{preview}')
+
   def convert_file(self, infile, workdir):
 
     try:
-      # Generate the DVI file
-      cmd = f'latex -halt-on-error -output-directory {workdir} {infile}'
+      dvipng = shutil.which('dvipng')
+      if dvipng:
+        cmd = f'latex -halt-on-error -output-directory {workdir} {infile}'
+      else:
+        cmd = f'pdflatex -halt-on-error -interaction=nonstopmode -output-directory {workdir} {infile}'
 
       p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       sout, serr = p.communicate()
       # Something bad happened, abort
       if p.returncode != 0:
-          raise Exception('latex error', serr, sout)
+          raise Exception('latex error' if dvipng else 'pdflatex error', serr, sout)
 
-      # Convert the DVI file to PNG's
-      dvifile = infile.replace('.tex', '.dvi')
-      pngfile = os.path.join(workdir, infile.replace('.tex', '.png'))
-      cmd = f"dvipng -T tight --depth -D {int(self.dpi)} -z 9 -bg White -o {pngfile} {dvifile}"
-      #cmd = "dvipng -T tight --depth -D %i -z 9 -bg Transparent -o %s %s" % (self.dpi, pngfile, dvifile)
-      p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-      sout, serr = p.communicate()
-      if p.returncode != 0:
-        raise Exception('dvipng error', serr)
-
-      try:
-        depth = int(re.search(r'\[1 depth=(-?\d+)\]', sout).group(1))
-      except:
-        depth = 0
+      # Convert the DVI or PDF file to PNG's
+      if dvipng:
+        dvifile = infile.replace('.tex', '.dvi')
+        pngfile, depth = self._convert_with_dvipng(dvifile, workdir)
+      else:
+        pdffile = infile.replace('.tex', '.pdf')
+        pngfile, depth = self._convert_with_poppler(pdffile)
 
       png = open(pngfile,'rb').read()
       return png, depth
@@ -94,11 +99,42 @@ class Latex(object):
     finally:
       # Cleanup temporaries
       basefile = infile.replace('.tex', '')
-      tempext = '.aux', '.dvi', '.log', '.png'
+      tempext = '.aux', '.dvi', '.log', '.pdf', '.png'
       for te in tempext:
         tempfile = basefile + te
         if os.path.exists(tempfile):
           os.remove(tempfile)
+
+  def _convert_with_dvipng(self, dvifile, workdir):
+    pngfile = os.path.join(workdir, os.path.basename(dvifile).replace('.dvi', '.png'))
+    cmd = f"dvipng -T tight --depth -D {int(self.dpi)} -z 9 -bg White -o {pngfile} {dvifile}"
+    #cmd = "dvipng -T tight --depth -D %i -z 9 -bg Transparent -o %s %s" % (self.dpi, pngfile, dvifile)
+    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    sout, serr = p.communicate()
+    if p.returncode != 0:
+      raise Exception('dvipng error', serr)
+
+    try:
+      depth = int(re.search(r'\[1 depth=(-?\d+)\]', sout).group(1))
+    except:
+      depth = 0
+
+    return pngfile, depth
+
+  def _convert_with_poppler(self, pdffile):
+    if not shutil.which('pdftoppm'):
+      raise Exception('dvipng not found and pdftoppm is unavailable; install poppler')
+
+    pngbase = pdffile.replace('.pdf', '')
+
+    cmd = f"pdftoppm -png -r {int(self.dpi)} -singlefile {pdffile} {pngbase}"
+    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    sout, serr = p.communicate()
+    if p.returncode != 0:
+      raise Exception('pdftoppm error', serr)
+
+    return pngbase + '.png', 0
 
 
 __cache = {}
