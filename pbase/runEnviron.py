@@ -164,7 +164,7 @@ class RunEnviron ( LoggerBase ):
                 for k,v in dd.items():
                     line = f"[RunEnviron] {k:>16}: {v[0]} != {v[1]}"
                     print ( line )
-                    if k not in [ "use_initialiser" ]: # , "userprior" ]:
+                    if k not in [ "use_initialiser", "rundir" ]: # , "userprior" ]:
                         print ( f"[RunEnviron] correct this!" )
                         raise Exception ( line )
                     else:

@@ -3,12 +3,16 @@
 """ summarize the data in hiscores.dict to have an overview """
 
 import os, time
+import sys
 from os import PathLike
+from typing import Union
+import numpy as np
+pmgit = f"{os.environ['HOME']}/git/protomodels/"
+if os.path.existss ( pmgit ):
+    sys.path.insert(0,pmgit )
 from ptools.sparticleNames import SParticleNames 
 from ptools.helpers import formatObject
 from smodels_utils.helper.terminalcolors import *
-from typing import Union
-import numpy as np
 
 def summarizeJobsForThisDir():
     from clip.cliphelpers import getJobStatus, readJobIds
@@ -196,7 +200,8 @@ def summarizeHiscores ( dictfile : PathLike = "hiscores_global.dict",
 
 def runSlurmWalk() -> int:
     rundir = os.getcwd()
-    cmd = f"slurm_walk.py -R {rundir} -q"
+    path_to_clip_tools = f"{os.environ['HOME']}/git/smodels-utils/clip/"
+    cmd = f"{path_to_clip_tools}/slurm_walk.py -R {rundir} -q"
     import subprocess
     o = subprocess.getoutput ( cmd )
     print ( f"{RED}Running Status:{RESET} {time.asctime()}" )

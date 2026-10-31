@@ -12,6 +12,9 @@
 import os, sys
 pmpath =os.path.abspath ( f"{os.path.dirname (  __file__ )}/../../" )
 sys.path.insert(0,pmpath)
+pmgit = f"{os.environ['HOME']}/git/protomodels"
+if os.path.exists ( pmgit ):
+    sys.path.insert(0,pmgit )
 from ptools import statsModelsTimer
 
 from typing import Union

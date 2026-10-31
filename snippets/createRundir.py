@@ -8,7 +8,9 @@ def create ( path : str ):
     """ create a rundir at <path> """
     import subprocess
     if not "/" in path:
-        path = f"/scratch-cbe/users/wolfgan.waltenberger/{path}"
+        path = f"/scratch/users/wolfgan.waltenberger/{path}"
+        if os.path.exists ( "/scratch-cbe" ):
+            path = f"/scratch-cbe/users/wolfgan.waltenberger/{path}"
     print ( "[createRundir] create", os.path.basename ( path ) )
     if not os.path.exists ( path ):
         cmd = f"mkdir {path}"

@@ -76,6 +76,7 @@ class HiscorePlotter ( LoggerBase ):
         if self.insideContainer():
             home = os.environ["HOME"]
             rhome = home.replace("/scratch-cbe","")
+            rhome = rhome.replace("/scratch/","/")
             # git_push = "git push"
             sshdir = f"{rhome}/.ssh"
             if os.path.exists ( f"{sshdir}/id_ecdsa" ):

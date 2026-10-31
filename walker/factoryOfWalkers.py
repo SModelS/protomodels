@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+## #!/usr/bin/env python3
+
 """
 .. module:: factoryOfWalkers
    :synopsis: facility that creates armies of randomWalkers
@@ -11,6 +13,7 @@
 __all__ = [ "createWalkers" ]
 
 import os, sys
+sys.path.insert(0,os.path.abspath( os.path.dirname ( __file__ ) + "../../" ) )
 from os import PathLike
 from typing import Union, Dict, List
 try:
