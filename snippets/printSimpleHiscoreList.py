@@ -8,7 +8,7 @@ from os import PathLike
 from typing import Union
 import numpy as np
 pmgit = f"{os.environ['HOME']}/git/protomodels/"
-if os.path.existss ( pmgit ):
+if os.path.exists ( pmgit ):
     sys.path.insert(0,pmgit )
 from ptools.sparticleNames import SParticleNames 
 from ptools.helpers import formatObject
