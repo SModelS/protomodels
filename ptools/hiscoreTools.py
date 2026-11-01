@@ -20,7 +20,6 @@ setup()
 from pbase.runEnviron import RunEnviron
 from builder.manipulator import Manipulator
 from builder.protomodel import ProtoModel
-from ptools.helpers import formatObject
 from walker.hiscores import Hiscores
 
 def count ( protomodels : List[ProtoModel] ) -> int:
@@ -35,12 +34,12 @@ def sortByK ( protomodels : List[ProtoModel], n : int = 5 ) -> List:
     return protomodels[:n] ## only n
 
 def discuss ( protomodel, name ):
-    print ( f"Currently {name:7s} K={formatObject(protomodel.K,3)}, TL={formatObject(protomodel.TL,3)} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{protomodel.walkerid})" )
+    print ( f"Currently {name:7s} K={protomodel.sK()}, TL={protomodel.sTL()} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{protomodel.walkerid})" )
 
 def discussBest ( protomodel, detailed ):
     """ a detailed discussion of number 1 """
     p = 2. * ( 1. - stats.norm.cdf ( protomodel.TL ) ) ## two times because one-sided
-    print ( f"Current      best K={formatObject(protomodel.K,3)}, TL={formatObject(protomodel.TL,3)}, p={p:.2g} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{int(protomodel.walkerid)})" )
+    print ( f"Current      best K={protomodel.sK()}, TL={protomodel.sTL()}, p={p:.2g} [{len(protomodel.unFrozenParticles())}/{len(protomodel.masses.keys())} particles, {len(protomodel.bestCombo)} predictions] (walker #{int(protomodel.walkerid)})" )
     if detailed:
         print ( f"Solution was found in step #{protomodel.step}" )
         for i in protomodel.bestCombo:
@@ -81,11 +80,9 @@ def obtainHiscore ( number : int,
     assert type(environ) != str, "set RunEnviron"
     hi = fetchHiscoresObj ( hiscorefile, walkerid = None,
            environ = environ )
-    TL = hi[number].TL
-    K = hi[number].K
-    sK = formatObject ( K, 3 )
-    sTL = formatObject ( TL, 2 )
     ret = hi[ number ]
+    sK = ret.sK()
+    sTL = ret.sTL ( 2 )
     swalkerid=""
     if walkerid not in [ None, "None", "" ]:
         swalkerid=f":{walkerid}"

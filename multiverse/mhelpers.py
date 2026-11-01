@@ -26,7 +26,6 @@ def createMyTruthFile ( signal_model : str = "signal_model.dict",
     from tester.predictor import Predictor
     from tester.critic import Critic
     from pbase.runEnviron import RunEnviron
-    from ptools.helpers import formatObject
     from smodels.experiment.databaseObj import Database
     environ = RunEnviron ( )
     if dbpath == None:
@@ -43,7 +42,7 @@ def createMyTruthFile ( signal_model : str = "signal_model.dict",
     cr, response = critic.predict_critic ( ma.M )
     print ( f"[predictForTruth] critic: {cr}, {response}" )
     predictor.predict ( ma, keep_predictions = True, force_computation_K = True )
-    print ( f"[predictForTruth] predict K={formatObject(ma.M.K)} TL={formatObject(ma.M.TL)}" )
+    print ( f"[predictForTruth] predict K={ma.M.sK()} TL={ma.M.sTL()}" )
     K,TL = ma.M.K, ma.M.TL
     ma = Manipulator( signal_model, walkerid = "truth", environ = environ )
     ma.M.dbpath = dbpath

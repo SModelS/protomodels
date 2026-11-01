@@ -270,7 +270,7 @@ class ProtoModel ( LoggerBase ):
 
     def __repr__(self):
         """ shortened version of __str__"""
-        sK, sTL = formatObject(self.K), formatObject(self.TL)
+        sK, sTL = self.sK(), self.sTL()
         pStr = f'ProtoModel ({sK}, {sTL})'
         return pStr
 

@@ -506,7 +506,7 @@ class Hiscores ( LoggerBase ):
                 percK = 0.
             else:
                 percK = ( manipulator.M.K - oldK ) / oldK
-                self.pprint ( f"when removing {self.namer.asciiName(pid)}, K changed: {formatObject(oldK,3)} -> {formatObject(manipulator.M.K,3)} ({100.*percK:.1f}%), TL: {formatObject(oldTL,3)} -> {formatObject(manipulator.M.TL,3)} ({manipulator.M.nevents} evts)" )
+                self.pprint ( f"when removing {self.namer.asciiName(pid)}, K changed: {formatObject(oldK,3)} -> {manipulator.M.sK()} ({100.*percK:.1f}%), TL: {formatObject(oldTL,3)} -> {manipulator.M.sTL()} ({manipulator.M.nevents} evts)" )
 
             #Store the new TL and K values in the original model:
             particleContributions[pid]=manipulator.M.K

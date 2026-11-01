@@ -1017,7 +1017,7 @@ class Manipulator ( LoggerBase ):
         """ lengthy description of protomodel
         :param allTheoryPredictions: if true, list all theory preds
         """
-        sK, sTL = formatObject(self.M.K), formatObject(self.M.TL)
+        sK, sTL = self.M.sK(), self.M.sTL()
         print( f'\nK = {sK}, TL = {sTL}, muhat = {self.M.muhat:1.2f}, mumax={self.M.mumax:1.3g}' )
         print('  * Best Combo:')
         for tp in self.M.bestCombo:
@@ -1181,7 +1181,7 @@ class Manipulator ( LoggerBase ):
         ## cap TL here or else you freeze in particle content for injected signals
         TL = self.M.TL
         if TL > 49:
-            self.highlight("warning", f"TL {formatObject(TL)}>49. we cap at 49 for computing the probability of the proposal!" )
+            self.highlight("warning", f"TL {self.M.sTL()}>49. we cap at 49 for computing the probability of the proposal!" )
             TL = 49
         ### FIXME add warning if this upper limit gets triggered!
 

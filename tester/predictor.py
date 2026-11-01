@@ -282,9 +282,8 @@ class Predictor ( LoggerBase ):
         # we keep track of the database version, when predicting
         protomodel.dbversion = self.environ.database.databaseVersion
         if give_explanation:
-            from ptools.helpers import formatObject
-            sK = formatObject ( protomodel.K, 3 )
-            sTL = formatObject ( protomodel.TL, 2 )
+            sK = protomodel.sK()
+            sTL = protomodel.sTL ( 2 )
             return ( True, f"K is {sK} TL is {sTL}" )
         return True
 

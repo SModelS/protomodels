@@ -31,8 +31,7 @@ from builder import protomodel
 from builder.protomodel import ProtoModel
 from ptools import hiscoreTools
 from ptools.sparticleNames import SParticleNames
-from ptools.helpers import computeP, computeZFromP, getAllPidsOfTheoryPred, \
-         formatObject
+from ptools.helpers import computeP, computeZFromP, getAllPidsOfTheoryPred
 from tester.predictor import Predictor
 from tester.critic import Critic
 from tester.combiner import Combiner
@@ -66,8 +65,8 @@ class HiscorePlotter ( LoggerBase ):
         """
         if not wanted:
             return False
-        sK = formatObject ( self.protomodel.K, 3 )
-        sTL = formatObject ( self.protomodel.TL, 2 )
+        sK = self.protomodel.sK()
+        sTL = self.protomodel.sTL ( 2 )
         comment = f"automated update by plotHiscore.py to {upload}:\n    K={sK} TL={sTL} walkerid={self.protomodel.walkerid}"
         destdir = dest
         destdir = destdir.replace(upload,"")
@@ -771,7 +770,7 @@ class HiscorePlotter ( LoggerBase ):
         f.write ( "<body>\n" )
         f.write ( "<center>\n" )
         f.write ( f"<table><td><h1>" )
-        sK = formatObject ( self.protomodel.K, 2 )
+        sK = self.protomodel.sK ( 2 )
         f.write ( f"Current best protomodel: <i>K</i>={sK}" )
         f.write ( f", <i>TL</i>={self.protomodel.TL:.2f}" )
         f.write ( f"</h1><td>" )
