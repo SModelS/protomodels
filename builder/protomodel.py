@@ -274,6 +274,14 @@ class ProtoModel ( LoggerBase ):
         pStr = f'ProtoModel ({sK}, {sTL})'
         return pStr
 
+    def sK ( self, digits : int = 3 ) -> str:
+        """ return K formatted with <digits> digits after the decimal point """
+        return formatObject ( self.K, digits )
+
+    def sTL ( self, digits : int = 3 ) -> str:
+        """ return TL formatted with <digits> digits after the decimal point """
+        return formatObject ( self.TL, digits )
+
     def hasAntiParticle ( self, pid ):
         """ for a given pid, do i also have to consider its antiparticle
             -pid in the signal strength multipliers? """
