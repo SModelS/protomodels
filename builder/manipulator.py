@@ -1106,6 +1106,24 @@ class Manipulator ( LoggerBase ):
                 #if hasattr(tp,'chi2'):
                 #    del tp.chi2
 
+    def diffDecays ( self, decays_current : dict, decays_propose : dict ) -> dict:
+        """ compute the difference between two decays dictionaries
+        :param decays_current: decays of the current model
+        :param decays_propose: decays of the proposed model
+        :returns: dictionary mapping mother pids to a dictionary of
+        differing decay products, with values (current, propose)
+        """
+        ret = {}
+        for mpid in set ( decays_current ) | set ( decays_propose ):
+            oldDecays = decays_current.get ( mpid, {} )
+            newDecays = decays_propose.get ( mpid, {} )
+            dpidDiff = { dpid : ( oldDecays.get ( dpid ), newDecays.get ( dpid ) )
+                    for dpid in set ( oldDecays ) | set ( newDecays )
+                    if oldDecays.get ( dpid ) != newDecays.get ( dpid ) }
+            if dpidDiff:
+                ret[mpid] = dpidDiff
+        return ret
+
     def z_model(self, model_current, model_propose, force_move=False):
 
         a,b,c = 2,4,8
@@ -1136,6 +1154,9 @@ class Manipulator ( LoggerBase ):
                     self.pprint(f"Decays changed during mcmc walk. Prev num of decays {n_decays_current}, current num of decays {n_decays_propose}")
                     self.pprint(f"current: {model_propose.decays}, {n_decays_propose}")
                     self.pprint(f"prev: {model_current.decays}, {n_decays_current}")
+                    decayDiff = self.diffDecays ( model_current.decays,
+                            model_propose.decays )
+                    self.pprint(f"diff (prev, current): {decayDiff}")
                 if n_ssms_current != n_ssms_propose:
                     self.pprint(f"Production modes changed during mcmc walk. Prev num of prod modes {n_ssms_current}, current num of prod modes {n_ssms_propose}")
                 return False
