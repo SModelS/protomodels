@@ -2406,10 +2406,10 @@ class Manipulator ( LoggerBase ):
         allpids = self.forcedMassDegeneratePids(pid)
         nchanges = 0
         if len(allpids)==1:
-            self.log(f"Now randomly changing m[{spid}({pid})] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
+            #self.log(f"Now randomly changing m[{spid}({pid})] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
             self.pprint(f"Now randomly changing m[{spid}({pid})] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
         else:
-            self.log(f"Now randomly changing m[{allpids}]: {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
+            #self.log(f"Now randomly changing m[{allpids}]: {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
             self.pprint(f"Now randomly changing [{allpids}]: {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
 
         for ipid in allpids:
