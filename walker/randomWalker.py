@@ -332,7 +332,9 @@ class RandomWalker ( LoggerBase ):
 
     def printModel ( self ):
         self.pprint ( dontSuppress=True )
-        self.pprint ( f"Our current model:", dontSuppress=True )
+        sK = self.protomodel.sK()
+        sTL = self.protomodel.sTL()
+        self.pprint ( f"Our current model: K={sK} TL={sTL}", dontSuppress=True )
         self.pprint ( f"masses", dontSuppress=True )
         self.pprint ( f"======", dontSuppress=True )
         from ptools.sparticleNames import namer

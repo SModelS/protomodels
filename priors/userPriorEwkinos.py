@@ -59,50 +59,55 @@ LSP = 1000022
 def higgsinoXSecPenalty ( protomodel ) -> tuple:
     """ a penalty for ewkino cross sections away from higgsino hypotheses 
     """
-    prod_modes = [ (1000022,1000022), (1000023,1000023),
+    prod_modes = [ (1000022,1000022), (1000022,1000023),
                    (1000023,1000023), (-1000024,1000024),
                    (1000022,1000024), ( 1000023, 1000024 ) ]
     penalty = 0
     ssms = protomodel.ssmultipliers
     hino = .25
     wino = 1.0
+    reasons = []
     for prod_mode in prod_modes:
         if not prod_mode in ssms:
             penalty += 20
+            reasons.append ( f"{20} for {prod_mode} not in ssms" )
             continue
         deviation = ssms[prod_mode]-wino
         if deviation>0.:
-            p = float ( np.log ( 1 + deviation ) )
+            p = float ( abs ( np.log ( 1 + deviation ) ) )
             penalty += p
+            reasons.append ( f"{p} for {prod_mode} deviating from higgsino" )
         else:
-            p = float ( np.log ( (1 - deviation)/4. ) )
-    return penalty, f"{penalty} from deviation form higgsino xsec"
+            p = float ( abs ( np.log ( (1 - deviation)/4. ) ) )
+            penalty += p
+            reasons.append ( f"{p} for {prod_mode} deviating from higgsino" )
+    return penalty, ", ".join ( reasons )
 
 def degenerateEWKinos ( protomodel ) -> tuple:
     """ punish if N2 and C1 arent mass degenerate """
     if not 1000023 in protomodel.masses:
-        return large_penalty, f"no X2Z in {protomodel.masses}"
+        return large_penalty, f"{large_penalty} for no X2Z in {protomodel.masses}"
     if not 1000024 in protomodel.masses:
-        return large_penalty, f"no X2Z in {protomodel.masses}"
+        return large_penalty, f"{large_penalty} for no X2Z in {protomodel.masses}"
     dm = abs(protomodel.masses[1000024]-protomodel.masses[1000023])/\
             (protomodel.masses[1000023]+protomodel.masses[1000024])
     if dm > 1e-5:
-        return large_penalty, f"dm(X1W,X2Z) is {dm:.3g}"
-    return 0, f"dm(X1W,X2Z) zero"
+        return large_penalty, f"{large_penalty} for dm(X1W,X2Z)={dm:.3g}"
+    return 0, f"0 for dm(X1W,X2Z) zero"
 
 def outsideCMS18004Penalty ( protomodel ) -> tuple:
     large_penalty = 20.
     if protomodel.masses[LSP] < 70:
-        return large_penalty, f"LSP mass at {protomodel.masses[LSP]}"
+        return large_penalty, f"{large_penalty} for LSP mass at {protomodel.masses[LSP]} (CMS-SUS-18-004)"
     if not 1000023 in protomodel.masses:
-        return large_penalty, f"no X2Z in {protomodel.masses}"
+        return large_penalty, f"{large_penalty} for no X2Z in {protomodel.masses} (CMS-SUS-18-004)"
     if protomodel.masses[1000023]<120:
-        return large_penalty, f"X2Z mass at {protomodel.masses[1000023]}"
+        return large_penalty, f"{large_penalty} for X2Z mass at {protomodel.masses[1000023]} (CMS-SUS-18-004)"
     if not 1000024 in protomodel.masses:
-        return large_penalty, f"no X1W particle in {protomodel.masses}"
+        return large_penalty, f"{large_penalty} for no X1W particle in {protomodel.masses} (CMS-SUS-18-004)"
     if protomodel.masses[1000024]<120:
-        return large_penalty, f"X1W mass at {protomodel.masses[1000024]}"
-    return 0, f"within CMS-SUS-18-004"
+        return large_penalty, f"{large_penalty} for X1W mass at {protomodel.masses[1000024]} (CMS-SUS-18-004)"
+    return 0, f"0 for staying within CMS-SUS-18-004 ranges"
 
 def ewkinoPenalty ( protomodel ) -> tuple:
     """ compute the penalty and the reason for it
@@ -123,7 +128,7 @@ def ewkinoPenalty ( protomodel ) -> tuple:
         dm = protomodel.masses[ewkino]-protomodel.masses[LSP]
         if dm > gap:
             return large_penalty, f"{ewkino} with mass gap {dm:.2f}"
-    return 0, f"N2,C1 offshell"
+    return 0, f"0 for N2,C1 offshell"
 
 def tpredsBasedPrior ( protomodel ) -> tuple[float,str]:
     """ a prior that penalizes based on the theorypredictions """
@@ -140,24 +145,27 @@ def myprior ( protomodel, nll : bool = False ) -> float:
     :param nll: if True, return a penalty, else return a factor
     :returns: a float
     """
+    reasons = []
     penalty, reason = ewkinoPenalty ( protomodel )
-    print ( f"[userPriorEwkinos] penalty {penalty} reason {reason}" )
+    reasons.append ( reason )
     if False:
         p1, r1 = tpredsBasedPrior ( protomodel )
         penalty += p1
-        reason = f"{reason}, {r1}"
+        reasons.append ( reason )
     if True:
         p2, r2 = higgsinoXSecPenalty ( protomodel )
         penalty += p2
-        reason = f"{reason}, {r2}"
+        reasons.append ( reason )
     if True:
         p3, r3 = outsideCMS18004Penalty ( protomodel )
         penalty += p3
-        reason = f"{reason}, {r3}"
+        reasons.append ( reason )
     if False:
         p4, r4 = degenerateEWKinos ( protomodel )
         penalty += p4
-        reason = f"{reason}, {r4}"
+        reasons.append ( reason )
+    sreasons = " - " + "\n - ".join ( reasons )
+    print ( f"[userPriorEwkinos] penalty={penalty} reason: '{sreasons}'" )
     if nll:
         return penalty ## added to the nll
     return np.exp ( - penalty ) ## multiplied to the prior
