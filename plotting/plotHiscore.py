@@ -295,7 +295,7 @@ class HiscorePlotter ( LoggerBase ):
         """ write out the raw numbers of the excess, as html """
         f=open("rawnumbers.html","wt")
         f.write("<table>\n" )
-        f.write("<tr><th>Analysis Name</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx &sigma;</th><th>Particles</th>" )
+        f.write("<tr><th>Analysis Name</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx Z</th><th>Particles</th>" )
         didordidnot,hassigs = self.hasSignals ( )
         self.pprint ( f"protomodel's database {didordidnot} have fake signals." )
         if hassigs:
@@ -312,7 +312,7 @@ class HiscorePlotter ( LoggerBase ):
             hasListed.append ( idfer )
         f.write("</table>\n" )
         f.write("<table style='color:grey'>\n" )
-        f.write("<tr><th>Not in Best Combo</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx &sigma;</th><th>Particles</th>" )
+        f.write("<tr><th>Not in Best Combo</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx Z</th><th>Particles</th>" )
         tpAndZ = self.createTpDictionaryWithZs ( self.predictor.predictions )
         Zvalues = list ( tpAndZ.keys() )
         # Zvalues.sort( key = lambda x: -x if type(x) in [ float, int ] else 100 )
