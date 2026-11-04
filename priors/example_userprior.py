@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
     
-""" an example of a user based prior, compased of pre-defined
-    penalty terms"""
-
-import ewkinoPenalty, higgsinoXSecPenalty, outsideCMS18004Penalty, \
-       degenerate, tpredsBasedPrior
+from priors.ewkino_priors import ewkinoPenalty, tpredsBasedPrior, \
+         higgsinoXSecPenalty, outsideCMS18004Penalty, \
+         degenerateEWKinos, degenerateNeutralinos, \
+         charginoMassWidthPenalty, mergeReasons
 
 def myprior ( protomodel, nll : bool = False ) -> float:
     """ the user prior
@@ -15,25 +14,35 @@ def myprior ( protomodel, nll : bool = False ) -> float:
     """
     reasons = []
     penalty, reason = ewkinoPenalty ( protomodel )
-    reasons.append ( reason )
+    mergeReasons ( reasons, reason )
     if False:
         p1, r1 = tpredsBasedPrior ( protomodel )
         penalty += p1
-        reasons.append ( reason )
+        mergeReasons ( reasons, r1 )
     if True:
         p2, r2 = higgsinoXSecPenalty ( protomodel )
         penalty += p2
-        reasons.append ( reason )
+        mergeReasons ( reasons, r2 )
     if True:
         p3, r3 = outsideCMS18004Penalty ( protomodel )
         penalty += p3
-        reasons.append ( reason )
+        mergeReasons ( reasons, r3 )
     if False:
         p4, r4 = degenerateEWKinos ( protomodel )
         penalty += p4
-        reasons.append ( reason )
+        mergeReasons ( reasons, r4 )
+    if True:
+        p5, r5 = degenerateNeutralinos ( protomodel )
+        penalty += p5
+        mergeReasons ( reasons, r5 )
+    if True:
+        p6, r6 = charginoMassWidthPenalty ( protomodel )
+        penalty += p6
+        mergeReasons ( reasons, r6 )
     sreasons = " - " + "\n - ".join ( reasons )
-    print ( f"[userPriorEwkinos] penalty={penalty} reason: '{sreasons}'" )
+    print ( f"[userPriorEwkinos] penalty={penalty:.3g} reason:" )
+    print ( f"{sreasons}" )
     if nll:
         return penalty ## added to the nll
+    import numpy as np
     return np.exp ( - penalty ) ## multiplied to the prior

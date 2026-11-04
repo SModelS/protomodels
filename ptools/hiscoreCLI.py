@@ -57,6 +57,7 @@ def cli( infile : str = "hiscores_global.dict",
     pprint ( f"     Constants: {RED}pb, fb, GeV, TeV{RESET}" )
     from ptools.hiscoreTools import fetchHiscoresObj
     from builder import manipulator
+    from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
     from walker import hiscores
     from tester import combiner, predictor
     from ptools import helpers
