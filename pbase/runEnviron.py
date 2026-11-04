@@ -129,7 +129,12 @@ class RunEnviron ( LoggerBase ):
 
     @classmethod
     def create ( cls, **args ):
-        """ create the run.dict, return the object """
+        """ create the run.dict, return the object
+
+        The rundir is not written into the run.dict, it is only used to
+        resolve the (optional) user prior. The user prior itself is stored
+        by its filename only.
+        """
         defaults = cls.defaults()
         import copy
         newdict = copy.deepcopy( defaults )
@@ -145,19 +150,29 @@ class RunEnviron ( LoggerBase ):
         if os.path.exists ( runDictFile ):
             oldret = RunEnviron ( runDictFile )
         newdict.update ( **args )
-        if False and "rundir" in newdict:
-            path = os.path.abspath ( os.path.expanduser ( newdict["rundir"] ) )
-            newdict["rundir"] = path
-        ## the (optional) user prior: resolve it to an absolute path
-        newdict["userprior"] = cls.resolveUserPrior (
-                newdict.get ( "userprior", None ),
-                rundir = newdict.get ( "rundir", None ) )
+        ## rundir is not part of the run dictionary. It is only used to
+        ## resolve the (optional) user prior.
+        rundir = newdict.pop ( "rundir", None )
+        ## the (optional) user prior: resolve it to an absolute path in order
+        ## to find the file, but store only its filename in the run.dict
+        userprior = cls.resolveUserPrior (
+                newdict.get ( "userprior", None ), rundir = rundir )
+        if userprior is not None:
+            userprior = os.path.basename ( userprior )
+        newdict["userprior"] = userprior
         old_dbver = "???"
         if oldret != None:
             ## dbver we check later
             old_dbver = oldret.run_dict["dbversion"]
             oldret.run_dict.pop ( "dbversion" )
             newdict.pop ( "dbversion" )
+            ## normalize the old run dictionary for the comparison: rundir
+            ## is not stored anymore, and the user prior is stored by its
+            ## filename only
+            oldret.run_dict.pop ( "rundir", None )
+            olduserprior = oldret.run_dict.get ( "userprior", None )
+            if olduserprior is not None:
+                oldret.run_dict["userprior"] = os.path.basename ( olduserprior )
             if check and newdict != oldret.run_dict:
                 print ( f"[RunEnviron] {runDictFile} differs from previous version:" )
                 dd = dict_diff(oldret.run_dict,newdict)
@@ -175,6 +190,9 @@ class RunEnviron ( LoggerBase ):
             newdict["dbversion"]=old_dbver
         py_dump ( newdict, runDictFile )
         ret = RunEnviron ( runDictFile )
+        ## rundir is not stored in run.dict, but keep it as an attribute
+        if rundir not in [ None, "" ]:
+            ret.rundir = os.path.expanduser ( rundir )
         new_dbver = ret.databaseVersion
         if check and old_dbver != "???" and old_dbver != new_dbver:
             line= f"[RunEnviron] dbver changed from {old_dbver} to {new_dbver}"
@@ -229,10 +247,11 @@ class RunEnviron ( LoggerBase ):
                     txt = f.read()
             d = eval ( txt )
             self.run_dict.update ( d )
-            ## the (optional) user prior: resolve it to an absolute path
+            ## the (optional) user prior: it is stored by its filename only,
+            ## so resolve it relative to the directory of the run.dict file
+            basedir = os.path.dirname ( os.path.abspath ( self.runDictFile ) )
             self.run_dict["userprior"] = self.resolveUserPrior ( 
-                    self.run_dict.get ( "userprior", None ) )
-                    # rundir = self.run_dict.get ( "rundir", None ) )
+                    self.run_dict.get ( "userprior", None ), rundir = basedir )
             self.didReadRunDict = True
         except ( SyntaxError, ValueError ) as e:
             self.error (f"when parsing {os.path.abspath(self.runDictFile)} {type(e)}: {e}" )
