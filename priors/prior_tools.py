@@ -95,7 +95,20 @@ def discoverPriors ( directory : str|None = None,
         _loadPriorModule ( path, reload = reload )
     return PRIOR_REGISTRY
 
+def printRegisteredPriors ( priors : dict|None = None ) -> None:
+    """ print the names and short descriptions of registered priors
+
+    :param priors: registry to print; defaults to the global PRIOR_REGISTRY
+    """
+    if priors is None:
+        priors = PRIOR_REGISTRY
+    for name, entry in sorted ( priors.items () ):
+        description = entry.get ( "description", "" ).splitlines ()
+        first_line = description [ 0 ] if description else "(no description)"
+        print ( f"  {name}: {first_line}" )
+
 def makeUserPrior ( priorConfig : dict, verbose : bool = False,
+                    extraPriors : list|None = None,
                     **commonKwargs ) -> callable:
     """ build a user prior from a dictionary of registered priors
 
@@ -116,13 +129,21 @@ def makeUserPrior ( priorConfig : dict, verbose : bool = False,
 
     :param priorConfig: dictionary mapping prior names to their configuration
     :param verbose: print the individual reasons when the prior is evaluated
+    :param extraPriors: optional callable or list of callables to register
+        before building the prior
     :param commonKwargs: keyword arguments passed to every configured prior
     :returns: a function taking (protomodel, nll) and returning a float
     """
-    if not PRIOR_REGISTRY:
-        discoverPriors ()
     if not isinstance ( priorConfig, dict ):
         raise TypeError ( f"priorConfig has to be a dict, not {type(priorConfig)}" )
+    if extraPriors is not None:
+        if callable ( extraPriors ):
+            extraPriors = [ extraPriors ]
+        for function in extraPriors:
+            registerPrior ( function )
+    if not PRIOR_REGISTRY or \
+            any ( name not in PRIOR_REGISTRY for name in priorConfig ):
+        discoverPriors ()
     configured = []
     for name, options in priorConfig.items():
         if name not in PRIOR_REGISTRY:

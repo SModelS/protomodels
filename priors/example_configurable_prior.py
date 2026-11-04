@@ -12,8 +12,7 @@ from a configuration dictionary.
 """
 
 from pbase.constants import LSP
-from priors.prior_tools import PRIOR_REGISTRY, discoverPriors, \
-        makeUserPrior, registerPrior
+from priors.prior_tools import makeUserPrior, printRegisteredPriors
 
 def lspMassPenalty ( protomodel, min_mass : float = 70. ) -> tuple:
     """ penalise models with an LSP lighter than min_mass (in GeV)
@@ -31,41 +30,31 @@ def lspMassPenalty ( protomodel, min_mass : float = 70. ) -> tuple:
         return penalty, f"{penalty} for LSP mass {lsp_mass:.1f} < {min_mass:.1f} GeV"
     return 0., f"0 for LSP mass {lsp_mass:.1f} >= {min_mass:.1f} GeV"
 
+priorConfig = {
+    ## values that are dicts are passed as keyword arguments
+    "lspMassPenalty": { "min_mass": 100. },
+    ## True means: use this prior without extra arguments
+    "higgsinoXSecPenalty": True,
+    "outsideCMS18004Penalty": {},
+    "degenerateNeutralinos": {},
+    "charginoMassWidthPenalty": {},
+    ## disabled priors can simply stay in the configuration
+    "tpredsBasedPrior": False,
+    "degenerateEWKinos": None,
+}
+
+configuredPrior = makeUserPrior ( priorConfig, verbose = True,
+                                  extraPriors = [ lspMassPenalty ] )
+
+def myprior ( protomodel, nll : bool = False ) -> float:
+    """ the user prior """
+    return configuredPrior ( protomodel, nll = nll )
+
 def main ():
-    """ discover the priors and build an example user prior """
-    discoverPriors ()
-
+    """ print the registered priors and the configured user prior """
     print ( "registered priors:" )
-    for name, entry in sorted ( PRIOR_REGISTRY.items () ):
-        description = entry [ "description" ].splitlines ()
-        first_line = description [ 0 ] if description else "(no description)"
-        print ( f"  {name}: {first_line}" )
-
-    ## priors from other files can also be registered by hand
-    registerPrior ( lspMassPenalty )
-
-    priorConfig = {
-        ## values that are dicts are passed as keyword arguments
-        "lspMassPenalty": { "min_mass": 100. },
-        ## True means: use this prior without extra arguments
-        "higgsinoXSecPenalty": True,
-        "outsideCMS18004Penalty": {},
-        "degenerateNeutralinos": {},
-        "charginoMassWidthPenalty": {},
-        ## disabled priors can simply stay in the configuration
-        "tpredsBasedPrior": False,
-        "degenerateEWKinos": None,
-    }
-
-    myprior = makeUserPrior ( priorConfig, verbose = True )
-
-    ## The result can be used exactly like the 'myprior' functions in the
-    ## other examples, e.g. by a walker or the Combiner:
-    ##
-    ##     penalty = myprior ( protomodel, nll = True )
-    ##     factor = myprior ( protomodel, nll = False )
-    ##
-    print ( myprior.__doc__ )
+    printRegisteredPriors ()
+    print ( configuredPrior.__doc__ )
 
 if __name__ == "__main__":
     main ()
