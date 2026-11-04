@@ -14,6 +14,7 @@ sys.path.insert(0,"../")
 import unittest
 from walker.randomWalker import RandomWalker
 from ptools import helpers
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 class VerticalTest(unittest.TestCase):
 
@@ -31,9 +32,9 @@ class VerticalTest(unittest.TestCase):
         self.assertAlmostEqual ( walker.hiscoreList.hiscores[0].Z, 2.22952,2 )
         self.assertEqual ( walker.hiscoreList.hiscores[0].step, 4 )
         self.assertAlmostEqual ( walker.protomodel.masses[1000001], 791.1794, 2 )
-        self.assertAlmostEqual ( walker.protomodel.masses[1000022], 240.3092, 2 )
+        self.assertAlmostEqual ( walker.protomodel.masses[LSP], 240.3092, 2 )
         self.assertAlmostEqual ( walker.hiscoreList.hiscores[0].masses[1000001], 791.1794, 2 )
-        self.assertAlmostEqual ( walker.hiscoreList.hiscores[0].masses[1000022], 240.3092, 2 )
+        self.assertAlmostEqual ( walker.hiscoreList.hiscores[0].masses[LSP], 240.3092, 2 )
 
 
 if __name__ == "__main__":

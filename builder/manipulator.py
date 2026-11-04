@@ -23,14 +23,13 @@ import smodels
 from smodels_utils.helper.terminalcolors import *
 
 from pbase.loggerbase import LoggerBase
-from pbase.constants import smMasses, smWidths
+from pbase.constants import smMasses, smWidths, LSP, X2Z, X1W, X3Z, X2W
 from pbase.runEnviron import RunEnviron
 from builder.protomodel import ProtoModel
 from ptools.sparticleNames import namer
 from ptools.helpers import nround, getAllPidsOfTheoryPred, py_dumps, mkdir, \
          formatObject
 
-LSP = ProtoModel.LSP
 
 class Manipulator ( LoggerBase ):
     """ contains the protomodel manipulation algorithms. """
@@ -38,8 +37,8 @@ class Manipulator ( LoggerBase ):
     # walledpids are particle ids that have a minimum mass requirement,
     # given as the values in the dictionary
     walledpids = { 1000001 : 310, 1000002 : 310, 1000003 : 310, 1000004 : 310,
-                   1000021 : 310, 1000023 : 20, 1000024 :  100, 1000037 : 100,
-                   1000025 : 20 }
+                   1000021 : 310, X2Z : 20, X1W :  100, X2W : 100,
+                   X3Z : 20 }
     ## forbiddenparticles are particle ids that we do not touch in this run
     # forbiddenparticles = []
 
@@ -106,11 +105,11 @@ class Manipulator ( LoggerBase ):
         #Store a canonical order for the masses. So the ordering in each tuple is enforced
         #consider Xu and Xs as an extension of Xd, Xc not considered since charm-tagging results exist
         self.canonicalOrder =  [( 1000001, 1000002 ),(1000001, 1000003),( 1000005, 2000005 ),( 1000006, 2000006 ),
-                          ( 1000023, 1000025 ), ( 1000024, 1000037 ),( 1000025, 1000035 )]
+                          ( X2Z, X3Z ), ( X1W, X2W ),( X3Z, 1000035 )]
 
         #Define groups of particles to be merged if their mass difference is below a given mass gap
         self.mergerCandidates =   [(1000001, 1000002, 1000003), ( 1000005, 2000005 ), (1000006, 2000006),
-                                    ( 1000024, 1000037 ), ( 1000023, 1000025 ), ( 1000025, 1000035 ) ]
+                                    ( X1W, X2W ), ( X2Z, X3Z ), ( X3Z, 1000035 ) ]
         self.do_record = do_record ## if True, then record changes
         self.recording = [] ## just in case
 
@@ -148,10 +147,10 @@ class Manipulator ( LoggerBase ):
         if protomodel is None:
             protomodel = self.M
         offshell = False
-        if 1000023 in protomodel.unFrozenParticles() or 1000024 in protomodel.unFrozenParticles() or 1000025 in protomodel.unFrozenParticles() \
-                or 1000037 in protomodel.unFrozenParticles():
-            if pid in [ 1000023, 1000025 ] and (protomodel.masses[pid] - protomodel.masses[LSP]) < (smMasses["Z"] + smWidths["Z"]): offshell = True
-            elif pid in [ 1000024, 1000037 ] and (protomodel.masses[pid] - protomodel.masses[LSP]) < (smMasses["W"] + smWidths["W"]): offshell = True
+        if X2Z in protomodel.unFrozenParticles() or X1W in protomodel.unFrozenParticles() or X3Z in protomodel.unFrozenParticles() \
+                or X2W in protomodel.unFrozenParticles():
+            if pid in [ X2Z, X3Z ] and (protomodel.masses[pid] - protomodel.masses[LSP]) < (smMasses["Z"] + smWidths["Z"]): offshell = True
+            elif pid in [ X1W, X2W ] and (protomodel.masses[pid] - protomodel.masses[LSP]) < (smMasses["W"] + smWidths["W"]): offshell = True
             else: offshell = False
 
         return offshell
@@ -1657,7 +1656,7 @@ class Manipulator ( LoggerBase ):
 
     def equalDecays ( self, old_decays, new_decays ):
         """ check for equality between two decays dictionaries
-        dictionaries are for one mother, so e.g. {(1000022, 5, 5): 1.0}
+        dictionaries are for one mother, so e.g. {(LSP, 5, 5): 1.0}
 
         :returns: True if equal
         """
@@ -1817,7 +1816,7 @@ class Manipulator ( LoggerBase ):
         """ change the signal strength multiplier of pids to newssm,
             if we have stored xsecs, we correct them, also
 
-        :param pids: Tuple of particle ids, e.g. (1000024,1000023)
+        :param pids: Tuple of particle ids, e.g. (X1W,X2Z)
         :param recursive: if true, then change also for all other signs, e.g.
         (-pids[0],-pids[1]), etc
         :param verbose: if False, then dont mention it. used for recursive.
@@ -2113,13 +2112,13 @@ class Manipulator ( LoggerBase ):
             minMass = max ( self.walledpids[pid], minMass )
 
         # offshell = False
-        if pid in [ 1000023, 1000024, 1000025, 1000037 ]:
+        if pid in [ X2Z, X1W, X3Z, X2W ]:
             # for C1 and N2 and N3 we want a 10% chance to start in the offshell regime -> increase prob?
             p = np.random.uniform ( 0, 1 )
             if p < 0.1:
                 # offshell = True
                 self.log ( f"Unfreezing {namer.asciiName(pid)}, randomly chose to restrict to offshell mass!" )
-                if pid in [  1000023, 1000025 ]: maxMass = minMass + smMasses["Z"] + smWidths["Z"]
+                if pid in [  X2Z, X3Z ]: maxMass = minMass + smMasses["Z"] + smWidths["Z"]
                 else: maxMass = minMass + smMasses["W"] + smWidths["W"]
 
         m_random = float(np.random.uniform ( 0., 1. ))
@@ -2235,7 +2234,7 @@ class Manipulator ( LoggerBase ):
 
         ret = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass, 
                 maxMass=maxMass )
-        if pid in [ 1000023, 1000024, 1000025, 1000035, 1000037 ] and \
+        if pid in [ X2Z, X1W, X3Z, 1000035, X2W ] and \
                 pid in self.M.unFrozenParticles():
             # for the ewkinos randomly sync partners (e.g. N2 for C1)
             ret += self.randomlySyncOtherEwkinos ( pid )
@@ -2250,24 +2249,24 @@ class Manipulator ( LoggerBase ):
         pid_name = namer.asciiName ( pid )
         p = np.random.uniform (0, 1 )
         ret = 0
-        if pid in [ 1000037 ] and pid in self.M.unFrozenParticles():
+        if pid in [ X2W ] and pid in self.M.unFrozenParticles():
             # we have an unfrozen C2
-            if 1000025 in self.M.unFrozenParticles() and p < .25:
+            if X3Z in self.M.unFrozenParticles() and p < .25:
                 # N3 is unfrozen, can we sync?
-                if self.M.masses[1000037] > self.M.masses[1000023]:
+                if self.M.masses[X2W] > self.M.masses[X2Z]:
                     # C2 is larger than N2, we can sync!
                     # N3 can take on C2!
-                    self.M.masses[1000025] = self.M.masses[1000037]
-        if pid in [ 1000025 ] and pid in self.M.unFrozenParticles():
+                    self.M.masses[X3Z] = self.M.masses[X2W]
+        if pid in [ X3Z ] and pid in self.M.unFrozenParticles():
             # we have an unfrozen N3
-            if 1000037 in self.M.unFrozenParticles() and p < .25:
+            if X2W in self.M.unFrozenParticles() and p < .25:
                 # C2 is unfrozen, can we sync?
-                if self.M.masses[1000025] > self.M.masses[1000024]:
+                if self.M.masses[X3Z] > self.M.masses[X1W]:
                     # N3 is larger than C1, we can sync!
-                    self.M.masses[1000037] = self.M.masses[1000025]
+                    self.M.masses[X2W] = self.M.masses[X3Z]
                     # C2 can be synced to N3!
 
-        if pid in [ 1000023, 1000024 ] and pid in self.M.unFrozenParticles():
+        if pid in [ X2Z, X1W ] and pid in self.M.unFrozenParticles():
             # for C1 and N2, if one of the two gets changed, 
             # have a 10% chance that the other gets set to the same value
             # if they already have the same mass, make the chance be 50%
@@ -2279,22 +2278,22 @@ class Manipulator ( LoggerBase ):
             #if self.run_mcmc: ## why?
             #    p = 1.0
             p_max = .1
-            if 1000023 in self.M.masses and 1000024 in self.M.masses:
-                if abs ( self.M.masses[1000023]-self.M.masses[1000024] ) < 1e-2:
+            if X2Z in self.M.masses and X1W in self.M.masses:
+                if abs ( self.M.masses[X2Z]-self.M.masses[X1W] ) < 1e-2:
                     p_max = .25
             if p < p_max:
                 mass = self.M.masses[pid]
-                otherpid = 1000024 if pid == 1000023 else 1000023
+                otherpid = X1W if pid == X2Z else X2Z
                 were_frozen = self.M.frozenParticles()
-                if pid == 1000023 and not 1000037 in were_frozen:
+                if pid == X2Z and not X2W in were_frozen:
                     p2 = np.random.uniform ( 0, 1 )
                     if p2 < .25:
-                        otherpid = 1000037
-                if pid == 1000024 and not 10000035 in were_frozen:
+                        otherpid = X2W
+                if pid == X1W and not 10000035 in were_frozen:
                     p2 = np.random.uniform ( 0, 1 )
                     if p2 < .25:
                         otherpid = 1000035
-                heavypid = 1000037 if pid == 1000023 else 1000025 
+                heavypid = X2W if pid == X2Z else X3Z
                 #get N3 and C2 masses
                 # remember the frozen particles,
                 # so we can check if we just unfroze this guy
@@ -2369,14 +2368,14 @@ class Manipulator ( LoggerBase ):
 
         was_offshell = self.checkIfOffshell(pid)
         offshell = False
-        if pid in [ 1000023, 1000024 ] and not was_offshell:
+        if pid in [ X2Z, X1W ] and not was_offshell:
             # for C1 and N2 we want a 10% chance to move into the offshell region
             p = np.random.uniform ( 0, 1 )
             if self.run_mcmc: p = 1.0        #dont jump from onshell to offshell and vice-versa in mcmc walk
             if p < 0.1:
                 offshell = True
                 self.log ( f"randomly chose {spid} to restrict to offshell mass!" )
-                if pid in [ 1000023, 1000025 ]: maxMax = minMass + smMasses["Z"] + smWidths["Z"]
+                if pid in [ X2Z, X3Z ]: maxMax = minMass + smMasses["Z"] + smWidths["Z"]
                 else: maxMax = minMass + smMasses["W"] + smWidths["W"]
         if was_offshell and self.run_mcmc:
             offshell = True
@@ -2436,9 +2435,9 @@ class Manipulator ( LoggerBase ):
         for ipid in allpids:
             sipid=namer.asciiName(ipid)
             self.M.masses[ipid]=tmpmass
-            if ipid in [ 1000023, 1000024, 1000025, 1000037 ]:
-                if ipid in [ 1000023, 1000025 ]: is_offshell = (tmpmass - self.M.masses[LSP]) < ( smMasses["Z"] + smWidths["Z"])
-                if ipid in [ 1000024, 1000037 ]: is_offshell = (tmpmass - self.M.masses[LSP]) < (smMasses["W"] + smWidths["W"])
+            if ipid in [ X2Z, X1W, X3Z, X2W ]:
+                if ipid in [ X2Z, X3Z ]: is_offshell = (tmpmass - self.M.masses[LSP]) < ( smMasses["Z"] + smWidths["Z"])
+                if ipid in [ X1W, X2W ]: is_offshell = (tmpmass - self.M.masses[LSP]) < (smMasses["W"] + smWidths["W"])
                 if was_offshell != is_offshell:     #initialize branchings
                     if self.run_mcmc:
                         self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {ipid}.")

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os, sys
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 """ module to contain helper methods for the multiverse
 """
@@ -50,8 +51,8 @@ def obtainDictForDM ( dm : float, ma : "Manipulator", pr : "predictor",
     """ obtain our comprehensive dictionary for a specific mass change
     """
     # environ.database.subs[0].setActiveExpResults( analysisIDs=[ "CMS-EXO-20-004" ] )
-    ma.M.masses[1000022] = origmasses[1000022]+dm
-    ma.M.masses[1000023] = origmasses[1000023]-dm
+    ma.M.masses[LSP] = origmasses[LSP]+dm
+    ma.M.masses[X2Z] = origmasses[X2Z]-dm
     predictions = pr.obtainPredictions ( ma.M )
     D = obtainTestStatsForAllPreds ( predictions )
     ma.M.TL=float("nan")

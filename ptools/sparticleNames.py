@@ -11,6 +11,7 @@
 
 from typing import Union, List, Tuple
 import sys
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 class SParticleNames:
     """ a class that assigns names to sparticles """
@@ -29,9 +30,9 @@ class SParticleNames:
             2000011: "\\tilde{e}_R", 2000012: "\\tilde{\\nu}_eR",
             2000013: "\\tilde{\\mu}_R", 2000014: "\\tilde{\\nu}_muR",
             2000015: "\\tilde{\\tau}_R", 2000016: "\\tilde{\\nu}_tauR",
-            1000021: "\\tilde{g}", 1000022: "\\tilde{\\chi}_1^0",
-            1000024: "\\tilde{\\chi}_1^+", 1000023: "\\tilde{\\chi}_2^0",
-            1000037: "\\tilde{\\chi}_2^+", 1000025: "\\tilde{\\chi}_3^0",
+            1000021: "\\tilde{g}", LSP: "\\tilde{\\chi}_1^0",
+            X1W: "\\tilde{\\chi}_1^+", X2Z: "\\tilde{\\chi}_2^0",
+            X2W: "\\tilde{\\chi}_2^+", X3Z: "\\tilde{\\chi}_3^0",
             1000035: "\\tilde{\\chi}_4^0",
             -1000001: "\\tilde{d}_L^*", -2000001: "\\tilde{d}_R^*",
             -1000002: "\\tilde{u}_L^*", -2000002: "\\tilde{u}_R^*",
@@ -45,9 +46,9 @@ class SParticleNames:
             -2000011: "\\tilde{e}_R^*", -2000012: "\\tilde{nu}_{e_R}",
             -2000013: "\\tilde{\\mu}_R^*", -2000014: "\\tilde{\\nu}_{\\mu_R}",
             -2000015: "\\tilde{\\tau}_R^*", -2000016: "\\tilde{\\nu}_{\\tau_R}",
-            -1000021: "\\tilde{g}^*", -1000022: "\\tilde{\\chi}_1^0",
-            -1000024: "\\tilde{\\chi}_1^-", -1000023: "\\tilde{\\chi}_2^0",
-            -1000037: "\\tilde{\\chi}_2^-",- 1000025: "\\tilde{\\chi}_3^0",
+            -1000021: "\\tilde{g}^*", -LSP: "\\tilde{\\chi}_1^0",
+            -X1W: "\\tilde{\\chi}_1^-", -X2Z: "\\tilde{\\chi}_2^0",
+            -X2W: "\\tilde{\\chi}_2^-",- X3Z: "\\tilde{\\chi}_3^0",
         }
 
         self.ids.update ( self.susyIDs )
@@ -95,8 +96,8 @@ class SParticleNames:
             return "blue"
         if pid in [ 1000005, 1000006, 2000005, 2000006 ]:
             return "blue"
-        if pid in [ 1000022, 1000023, 1000025, 1000035, \
-                    1000024, 1000037 ]:
+        if pid in [ LSP, X2Z, X3Z, 1000035, \
+                    X1W, X2W ]:
             return "green"
         if pid in [ 1000011, 1000012, 1000013, 1000014, \
                     1000015, 1000016, 2000011, 2000012, \
@@ -118,9 +119,9 @@ class SParticleNames:
             2000011: "X_{e}", 2000012: "X_{\\nu}^{e}",
             2000013: "X_{\\mu}", 2000014: "X_{\\nu}^{\\mu}",
             2000015: "X_{\\tau}", 2000016: "X_{\\nu}^{\\tau}",
-            1000021: "X_{g}", 1000022: "X^{1}_{Z}",
-            1000024: "X^{1}_{W}", 1000023: "X^{2}_{Z}",
-            1000037: "X^{2}_{W}", 1000025: "X^{3}_{Z}",
+            1000021: "X_{g}", LSP: "X^{1}_{Z}",
+            X1W: "X^{1}_{W}", X2Z: "X^{2}_{Z}",
+            X2W: "X^{2}_{W}", X3Z: "X^{3}_{Z}",
             1000035: "X^{4}_{Z}",
             -1000001: "#bar{X}_{d}", -2000001: "#bar{X}_{d}^{2}",
             -1000002: "#bar{X}_{u}", -2000002: "#bar{X}_{u}^{2}",
@@ -134,9 +135,9 @@ class SParticleNames:
             -2000011: "#bar{X}_{e}", -2000012: "#bar{X}_{\\nu}^{e}",
             -2000013: "#bar{X}_{\\mu}", -2000014: "#bar{X}_{\\nu}^{\\mu}",
             -2000015: "#bar{X}_{\\tau}", -2000016: "#bar{X}_{\\nu}^{\\tau}",
-            -1000021: "#bar{X}_{g}", -1000022: "#bar{X}^{1}_{Z}",
-            -1000024: "#bar{X}^{1}_{W}", -1000023: "#bar{X}^{2}_{Z}",
-            -1000037: "#bar{X}^{2}_{W}", -1000025: "~#bar{X}^{3}_{Z}",
+            -1000021: "#bar{X}_{g}", -LSP: "#bar{X}^{1}_{Z}",
+            -X1W: "#bar{X}^{1}_{W}", -X2Z: "#bar{X}^{2}_{Z}",
+            -X2W: "#bar{X}^{2}_{W}", -X3Z: "~#bar{X}^{3}_{Z}",
             -1000035: "#bar{X}^{4}_{Z}"
         }
         self.ids.update ( self.xIDs )
@@ -400,7 +401,7 @@ class SParticleNames:
             return "t"
         if q==1000021:
             return "g"
-        if q in [ 1000022, 1000023, 1000025, 1000035, 1000024, 1000037 ]:
+        if q in [ LSP, X2Z, X3Z, 1000035, X1W, X2W ]:
             return "n"
         if q in [ 1000011, 1000013, 1000015, 2000011, 2000013, 2000015 ]:
             return "l"

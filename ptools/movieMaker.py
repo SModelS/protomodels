@@ -28,6 +28,7 @@ sns.set_context('paper', font_scale=1.8)
 sns.set_palette(sns.color_palette("deep"))
 
 import argparse
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 argparser = argparse.ArgumentParser( description="video maker of evolution of the protomodels while MCMC walking" )
 argparser.add_argument ( '-f', '--history',
         help='history file to use [history.list]',
@@ -72,7 +73,7 @@ namer = SParticleNames ( susy = False )
 colorPalette = 'deep' #Set color palette for particles, if None use default
 allpids = [ 1000001, 1000002, 1000003, 1000004, 1000005, 1000006,
 2000005, 2000006, 1000011, 1000012, 1000013, 1000014, 1000015,
-1000016, 1000021, 1000022, 1000023, 1000025, 1000024, 1000037 ]
+1000016, 1000021, LSP, X2Z, X3Z, X1W, X2W ]
 colorDict = dict(zip( allpids,sns.color_palette(palette=colorPalette,n_colors=len(namer.names))))
 
 maxstep = args.maxsteps

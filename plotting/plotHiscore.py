@@ -36,6 +36,7 @@ from tester.predictor import Predictor
 from tester.critic import Critic
 from tester.combiner import Combiner
 from tester.combinationsmatrix import getYamlMatrix
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 namer = SParticleNames ( susy = False )
 bibtex = BibtexWriter()
@@ -420,7 +421,7 @@ class HiscorePlotter ( LoggerBase ):
         """ find the cross sections for pids
 
         :param xsecs: list of all xsecs
-        :param pids: e.g. (1000022,1000022)
+        :param pids: e.g. (LSP,LSP)
         :returns: xsec, as unum object
         """
         highestOrder, orderedXsec = -1, 0.*fb
@@ -790,7 +791,7 @@ class HiscorePlotter ( LoggerBase ):
         # import sys, IPython; IPython.embed( colors = "neutral" ); sys.exit()
         f.write ( f" step {self.protomodel.step}.</b> " )
         if hasattr ( self.protomodel, "particleContributions" ):
-            f.write ( f"<i>K</i> plots for: <a href=./M1000022.png?{dt}>{namer.htmlName(1000022)}</a>" )
+            f.write ( f"<i>K</i> plots for: <a href=./M1000022.png?{dt}>{namer.htmlName(LSP)}</a>" )
             for k,v in self.protomodel.particleContributions.items():
                 f.write ( ", " )
                 f.write ( f"<a href=./M{k}.png?{dt}>{namer.htmlName(k)}</a>" )
@@ -929,7 +930,6 @@ class HiscorePlotter ( LoggerBase ):
                              takes precedence over integrateDataType
         :returns: dictionary with pid as key and sets of ana ids as value
         """
-        LSP = 1000022
         name = tpred.analysisId()
         if not integrateSRs:
             SR = tpred.dataId()

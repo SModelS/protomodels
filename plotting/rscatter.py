@@ -5,6 +5,7 @@ sys.path.append(".")
 
 from roughviz.charts.scatter import Scatter
 import glob, subprocess, os
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 def getData ():
     """ collect the data to scatter plot """
@@ -24,7 +25,7 @@ def getData ():
             if not 1000006 in D0m:
                 continue
             x.append ( D0m[1000006] )
-            y.append ( D0m[1000022] )
+            y.append ( D0m[LSP] )
     print ( f"{len(files)} files, {len(x)} points." )
     return x,y
 

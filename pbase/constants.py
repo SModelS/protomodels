@@ -11,7 +11,12 @@
 # 1 (promptly decaying) and values in the range given below
 # lmin = log_10 ( min )
 
-LSP = 1000022
+# electroweakinos
+LSP = 1000022  # N1
+X2Z = 1000023  # N2
+X1W = 1000024  # C1
+X3Z = 1000025  # N3
+X2W = 1000037  # C2
 
 llpWidthRange = { "min": 1e-23, "max": 1e-13, "lmin": -23, "lmax": -13 }
 

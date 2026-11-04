@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
     
 import numpy as np
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 """ Example of a user-provided prior: we only like models with an
 *off-shell* ewkino.
@@ -19,9 +20,9 @@ corresponding multiplicative factor (i.e. exp(-penalty) for the example below).
 
 The rules implemented here are:
 
-- if the model contains 1000023 (ewkino N2) or 1000024 (ewkino C1) that
+- if the model contains X2Z (ewkino N2) or X1W (ewkino C1) that
   decays *off-shell*, there is no penalty at all
-- if the model contains neither 1000023 nor 1000024, there is a large penalty
+- if the model contains neither X2Z nor X1W, there is a large penalty
 - if the model contains them, but they decay via *on-shell* W, Z or h,
   there is a large penalty as well
 - (if one of the two ewkinos decays off-shell, but the other one decays via
@@ -54,14 +55,13 @@ or set it directly:
     environ.userprior = "/path/to/userPriorewkinos.py"
 """
     
-LSP = 1000022
 
 def higgsinoXSecPenalty ( protomodel ) -> tuple:
     """ a penalty for ewkino cross sections away from higgsino hypotheses 
     """
-    prod_modes = [ (1000022,1000022), (1000022,1000023),
-                   (1000023,1000023), (-1000024,1000024),
-                   (1000022,1000024), ( 1000023, 1000024 ) ]
+    prod_modes = [ (LSP,LSP), (LSP,X2Z),
+                   (X2Z,X2Z), (-X1W,X1W),
+                   (LSP,X1W), ( X2Z, X1W ) ]
     penalty = 0
     ssms = protomodel.ssmultipliers
     hino = .25
@@ -85,12 +85,12 @@ def higgsinoXSecPenalty ( protomodel ) -> tuple:
 
 def degenerateEWKinos ( protomodel ) -> tuple:
     """ punish if N2 and C1 arent mass degenerate """
-    if not 1000023 in protomodel.masses:
+    if not X2Z in protomodel.masses:
         return large_penalty, f"{large_penalty} for no X2Z in {protomodel.masses}"
-    if not 1000024 in protomodel.masses:
+    if not X1W in protomodel.masses:
         return large_penalty, f"{large_penalty} for no X2Z in {protomodel.masses}"
-    dm = abs(protomodel.masses[1000024]-protomodel.masses[1000023])/\
-            (protomodel.masses[1000023]+protomodel.masses[1000024])
+    dm = abs(protomodel.masses[X1W]-protomodel.masses[X2Z])/\
+            (protomodel.masses[X2Z]+protomodel.masses[X1W])
     if dm > 1e-5:
         return large_penalty, f"{large_penalty} for dm(X1W,X2Z)={dm:.3g}"
     return 0, f"0 for dm(X1W,X2Z) zero"
@@ -99,14 +99,14 @@ def outsideCMS18004Penalty ( protomodel ) -> tuple:
     large_penalty = 20.
     if protomodel.masses[LSP] < 70:
         return large_penalty, f"{large_penalty} for LSP mass at {protomodel.masses[LSP]} (CMS-SUS-18-004)"
-    if not 1000023 in protomodel.masses:
+    if not X2Z in protomodel.masses:
         return large_penalty, f"{large_penalty} for no X2Z in {protomodel.masses} (CMS-SUS-18-004)"
-    if protomodel.masses[1000023]<120:
-        return large_penalty, f"{large_penalty} for X2Z mass at {protomodel.masses[1000023]} (CMS-SUS-18-004)"
-    if not 1000024 in protomodel.masses:
+    if protomodel.masses[X2Z]<120:
+        return large_penalty, f"{large_penalty} for X2Z mass at {protomodel.masses[X2Z]} (CMS-SUS-18-004)"
+    if not X1W in protomodel.masses:
         return large_penalty, f"{large_penalty} for no X1W particle in {protomodel.masses} (CMS-SUS-18-004)"
-    if protomodel.masses[1000024]<120:
-        return large_penalty, f"{large_penalty} for X1W mass at {protomodel.masses[1000024]} (CMS-SUS-18-004)"
+    if protomodel.masses[X1W]<120:
+        return large_penalty, f"{large_penalty} for X1W mass at {protomodel.masses[X1W]} (CMS-SUS-18-004)"
     return 0, f"0 for staying within CMS-SUS-18-004 ranges"
 
 def ewkinoPenalty ( protomodel ) -> tuple:
@@ -118,7 +118,7 @@ def ewkinoPenalty ( protomodel ) -> tuple:
     ## the penalty (in nll) that we give to the models we do not like
     large_penalty = 20.
 
-    mass_gaps = { 1000024: 80., 1000023: 90. }
+    mass_gaps = { X1W: 80., X2Z: 90. }
 
     for ewkino in mass_gaps.keys():
         if not ewkino in protomodel.masses:

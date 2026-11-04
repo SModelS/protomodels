@@ -6,6 +6,7 @@ import glob, subprocess, sys, os, colorama
 import numpy as np
 sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 namer = SParticleNames()
 
@@ -25,7 +26,7 @@ def produce():
             D = run ( fname )
             P = []
             for k,v in D[0]["masses"].items():
-                if v < 5000. and k != 1000022:
+                if v < 5000. and k != LSP:
                     P.append(k)
             P.sort()
             print ( fname, "K", D[0]["K"], "Z", D[0]["Z"], "particles", P )
@@ -129,7 +130,7 @@ def fetch( globber, useHiscores = False ):
 def belowMassWall ( D, name ):
     """ check if anything is below the mass wall """
     #walledpids = { 1000001 : 310, 1000002 : 310, 1000003 : 310, 1000004 : 310, 
-    #               1000021 : 310, 1000023 : 100, 1000024 : 100 }
+    #               1000021 : 310, X2Z : 100, X1W : 100 }
     from manipulator import Manipulator
     walledpids = Manipulator.walledpids
     masses = D["masses"]
@@ -149,9 +150,9 @@ def inCorridor ( D, name ):
     ctr=0
     for mpid in [ 1000006, 2000006 ]:
         if mpid in masses:
-            dm = masses[mpid]-masses[1000022]
+            dm = masses[mpid]-masses[LSP]
             if 150 < dm < 200 and masses[mpid]<280:
-                print ( f"{name} has {namer.asciiName(mpid)} in corridor: mLSP={masses[1000022]:.2f}, dm={dm:.2f}: walkerid: {D['walkerid']}, step: {D['step']}" )
+                print ( f"{name} has {namer.asciiName(mpid)} in corridor: mLSP={masses[LSP]:.2f}, dm={dm:.2f}: walkerid: {D['walkerid']}, step: {D['step']}" )
                 ctr+=1
     return ctr
 

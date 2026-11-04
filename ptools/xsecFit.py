@@ -7,6 +7,7 @@ import pandas as pd
 import glob
 import os
 from smodels.base.physicsUnits import pb, GeV
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 class XSecFitter():
     
@@ -68,7 +69,7 @@ class XSecFitter():
           
         '''
         xsec_pid = {"stoppb" : [1000006], "gluino":[1000021], "squark": [1000001, 1000002, 1000003, 1000004, 1000005], "slep": [1000011, 1000013, 1000015],
-                    "N2C1p": [1000023, 1000024], "N2C1m": [1000023, -1000024], "C1C1": [1000024, -1000024] }
+                    "N2C1p": [X2Z, X1W], "N2C1m": [X2Z, -X1W], "C1C1": [X1W, -X1W] }
         
         xsec_unit = {"fb":[],"pb":["stop",]}
         prod = [pname for key,value in xsec_pid.items() if particle_id in value]
@@ -82,7 +83,7 @@ class XSecFitter():
         else: self.getData(fname8)
         '''
         prod_name = {"stop" : [1000006], "gluino":[1000021], "squark-antisquark": [1000001, 1000002, 1000003, 1000004, 1000005], "slepton-pair": [1000011, 1000013, 1000015],
-                    "chargino-neutralino": [1000023], "chargino-chargino": [1000024]}
+                    "chargino-neutralino": [X2Z], "chargino-chargino": [X1W]}
         
         pname = [key for key,value in prod_name.items() if self.pid[1] in value]
         plot_title = f"{pname[0]}_{self.sqrt!s}"
@@ -151,7 +152,7 @@ class XSecFitter():
     
 if __name__ == '__main__':
     
-    func = findXsecFit(pid_pair=(-1000024,1000023), sqrt=13)
+    func = findXsecFit(pid_pair=(-X1W,X2Z), sqrt=13)
     #func.computeRelativeDifference()
     '''
     xsec = 10.0*pb

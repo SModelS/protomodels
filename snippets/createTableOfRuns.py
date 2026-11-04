@@ -4,6 +4,7 @@
 
 import glob, os
 from smodels_utils.helper.sparticleNames import SParticleNames
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 def getDicts():
     basedir = os.environ['CODEDIR']
@@ -39,7 +40,7 @@ def writeTex ( D ):
                 ## which is not the real order but a close bet
                 if x == 1000006:
                     x-=100000
-                if x == 1000022:
+                if x == LSP:
                     x+= 1000000
                 return x
             pids.sort( key= sorter )

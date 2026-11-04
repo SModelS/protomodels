@@ -18,6 +18,7 @@ sys.path.insert(0,"../")
 from ptools.sparticleNames import SParticleNames
 from matplotlib import pyplot as plt
 import matplotlib as mpl
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 mpl.rcParams['figure.dpi'] = 300
 
 def setLogLevel ( logger, verbose ):
@@ -293,7 +294,7 @@ class RulerPlot:
                 for d in decays[:1]:
                     ids = d["ids"]
                     br = d["br"]
-                    idBSM = 1000022
+                    idBSM = LSP
                     idNotBSM = []
                     for iD in ids:
                         if abs(iD)>1000000:

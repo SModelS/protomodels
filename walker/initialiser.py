@@ -16,6 +16,7 @@ from functools import lru_cache
 from smodels_utils.helper.terminalcolors import *
 
 from pbase.loggerbase import LoggerBase
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 from pbase.runEnviron import RunEnviron
 from pbase.locker import lock, unlock
 
@@ -28,7 +29,6 @@ from builder.manipulator import Manipulator
 from tester.predictor import Predictor
 from tester.critic import Critic
 
-LSP = ProtoModel.LSP
 
 namer = SParticleNames ( susy = False )
 
@@ -269,9 +269,9 @@ class Initialiser ( LoggerBase ):
             return ssms
 
         # step #0, rename some particles
-        onoffParticles = [ 1000006, 1000023, 1000024 ]
+        onoffParticles = [ 1000006, X2Z, X1W ]
         # for the particles above, we dont merge on with offshell variants
-        hasOffshell = set() ## for 1000023, 1000024, 1000006
+        hasOffshell = set() ## for X2Z, X1W, 1000006
         for model in models:
             for particle in onoffParticles:
                 if particle in model["masses"]:
@@ -281,7 +281,7 @@ class Initialiser ( LoggerBase ):
         for i,model in enumerate(models):
             for particle in onoffParticles:
                 if self.isOnshell ( particle, model["masses"] ) and particle in hasOffshell:
-                    newPids = { 1000023: 1000025, 1000024: 1000037,
+                    newPids = { X2Z: X3Z, X1W: X2W,
                                 1000006: 2000006 }
                     models[i]=renameParticle ( newPids[particle], particle, model )
 
@@ -299,7 +299,7 @@ class Initialiser ( LoggerBase ):
                 masses[pid]=mass
             piddecays = computeAverageDecaysForPid ( pid, models )
             decays[pid] = piddecays
-        ties = [ ( 1000023, 1000024 ) ]
+        ties = [ ( X2Z, X1W ) ]
         for pids in ties:
             if pids[0] in masses and pids[1] in masses:
                 if self.isOnshell ( pids[0], masses ) == \
@@ -413,7 +413,7 @@ class Initialiser ( LoggerBase ):
         if len(pids)==0:
             self.log ( f"pids length?? {pids} {txname} {masses}" )
             return None
-            # pids = [ 1000022, 1000022 ]
+            # pids = [ LSP, LSP ]
         pids = list ( pids )
         masses = dict (masses )
         for i,p in enumerate(pids):
@@ -428,8 +428,8 @@ class Initialiser ( LoggerBase ):
             pids = [ 1000001, 1000021 ]
         if pids == [ 1000004, 1000002, 1000001 ]:
             pids = [ -1000001, 1000001 ]
-        if len(pids)>2 and 1000022 in pids:
-            pids.remove ( 1000022 )
+        if len(pids)>2 and LSP in pids:
+            pids.remove ( LSP )
         if pids == [ 1000015, 1000015 ]:
             pids = [ -1000015, 1000015 ]
         if len(pids)==2 and pids[1]<pids[0]:
@@ -445,11 +445,11 @@ class Initialiser ( LoggerBase ):
                 massvec.append ( masses[abs(pid)] )
             else:
                 self.log ( f"could not find {pid} in {masses}?" )
-        if pids == [ 1000002, 1000022 ] or pids == [ 1000001, 1000022 ] or \
-                pids == [ 1000004, 1000022 ]:
+        if pids == [ 1000002, LSP ] or pids == [ 1000001, LSP ] or \
+                pids == [ 1000004, LSP ]:
             # for now replace with C1N2
             self.logThrice ( f"sq-N1 production: {pids}. will replace with C1N2" )
-            pids = [ 1000023, 1000024 ]
+            pids = [ X2Z, X1W ]
         # self.log ( f"asking for xsecs for {txname} {massvec} {masses} {pids}" )
         xsecall,order,comment = self.getXSecDictFor ( tuple(pids) )
         if xsecall is None:
@@ -534,9 +534,9 @@ class Initialiser ( LoggerBase ):
     def setMassRanges ( self ):
         """ set the mass ranges to draw from. for now set by hand.
         """
-        self.massRanges = { 1000022: [ 50, 500 ] } # N1
-        self.massRanges[1000023] = [60, 800 ] # N2
-        self.massRanges[1000024] = [60, 800 ] # C1
+        self.massRanges = { LSP: [ 50, 500 ] } # N1
+        self.massRanges[X2Z] = [60, 800 ] # N2
+        self.massRanges[X1W] = [60, 800 ] # C1
         self.massRanges[1000005] = [60, 1500 ] # ~b1
         self.massRanges[2000005] = [300, 1500 ] # ~b2
         self.massRanges[1000006] = [100, 1800 ] # ~t
@@ -560,7 +560,7 @@ class Initialiser ( LoggerBase ):
         ret = {}
         counts = {}
         for mpid, dpids in decays.items():
-            if mpid not in [ 1000023, 1000024 ]:
+            if mpid not in [ X2Z, X1W ]:
                 ret[mpid]=dpids # ugly hack for now
                 continue
             temp_tuples = list ( self._pm.decay_tuples[mpid].values() )
@@ -686,8 +686,8 @@ class Initialiser ( LoggerBase ):
 
     def fixPidsForTxnames  ( self ):
         # change manually for a few cases
-        self.pidsForTxnames["TChiQ"]={0:{1000002,1000022},1:{1000022}}
-        self.pidsForTxnames["TScharm"]={0:{1000004,1000022},1:{1000022}}
+        self.pidsForTxnames["TChiQ"]={0:{1000002,LSP},1:{LSP}}
+        self.pidsForTxnames["TScharm"]={0:{1000004,LSP},1:{LSP}}
 
     def getDefaultSSMs ( self, templatename : str ):
         """ get default ssms for templatename
@@ -711,11 +711,11 @@ class Initialiser ( LoggerBase ):
             f.close()
         tar.close()
         r = pyslha.readSLHAFile(self.tempslha)
-        associate_modes = [ ( -1000024, 1000023 ),
-                            ( -1000024, 1000022 ),
-                            ( -1000024, 1000025 ),
-                            ( -1000037, 1000022 ),
-                            ( -1000037, 1000023 ) ]
+        associate_modes = [ ( -X1W, X2Z ),
+                            ( -X1W, LSP ),
+                            ( -X1W, X3Z ),
+                            ( -X2W, LSP ),
+                            ( -X2W, X2Z ) ]
         try:
             xsecs = r.xsections
             ssmpids = set()
@@ -887,7 +887,7 @@ class Initialiser ( LoggerBase ):
 
         :returns: None if we dont tie pids, pid of other particle if yes
         """
-        ties = [ ( 1000023, 1000024 ) ]
+        ties = [ ( X2Z, X1W ) ]
         for tie in ties:
             if pid in tie:
                 otherpid = tie[0] if tie[1] == pid else tie[1]
@@ -896,7 +896,7 @@ class Initialiser ( LoggerBase ):
         return None
 
     def isOnshell ( self, pid : int, masses : dict ) -> bool:
-        """ determine if a pid like 1000023, 1000024 is onshell
+        """ determine if a pid like X2Z, X1W is onshell
 
         :returns: true if onshell, false if ofshell, none if
         doesnt apply
@@ -906,7 +906,7 @@ class Initialiser ( LoggerBase ):
         if not LSP in masses:
             return None
         massG = 0.
-        if pid in [ 1000023, 1000024, 1000006 ]:
+        if pid in [ X2Z, X1W, 1000006 ]:
             from pbase.constants import smMasses
             massG = smMasses[pid-1000000]
         else:
@@ -955,7 +955,7 @@ class Initialiser ( LoggerBase ):
         good_channels = {}
         self.debug ( f"for {txname} we filter:" )
         for mother,decays in all_channels.items():
-            #if mother == 1000024:
+            #if mother == X1W:
             #    self.log ( f"debug allowed {allowed_particles} constraints {constraints}" )
             good_decays = decays
             if len(decays)>1: # no choice for == 1
@@ -1070,12 +1070,12 @@ class Initialiser ( LoggerBase ):
                 self.log ( f"we randomly smear m({tpid}): {mass:.1f} -> {nmass:.1f}" )
                 newmasses[tpid]=nmass
 
-        if 1000023 in newmasses and 1000024 in newmasses:
+        if X2Z in newmasses and X1W in newmasses:
             p = np.random.uniform ( 0, 1 )
             if p < .2:
-                newmasses[1000023] = newmasses[1000024]
+                newmasses[X2Z] = newmasses[X1W]
             if p > .8:
-                newmasses[1000024] = newmasses[1000023]
+                newmasses[X1W] = newmasses[X2Z]
         return newmasses
 
     def getRandomSubmodelForTxname ( self, result : Dict ) -> Dict:
@@ -1116,7 +1116,7 @@ class Initialiser ( LoggerBase ):
             ## the factor of .2 below is because our reference xsecs for N1N1 are those of C1C1
             ## so too high
             ssm = float ( .2 * np.exp ( scipy.stats.norm.rvs() ) )
-            model["ssmultipliers"][(1000022,1000022)]=ssm
+            model["ssmultipliers"][(LSP,LSP)]=ssm
         if True:
             from ptools.helpers import py_dumps
             ds = py_dumps ( model )

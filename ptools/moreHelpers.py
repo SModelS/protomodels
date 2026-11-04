@@ -4,6 +4,7 @@
     specific modules """
 
 from typing import Union, Text, List, Tuple
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 def shortYVarName ( yvariable ):
     """ return a moniker of the name of the y variable,
@@ -28,11 +29,11 @@ def namesForSetsOfPids ( names: List[str|int] ) -> Tuple[int]:
             "squarks": [ 1000001, 2000001, 1000002, 2000002, 1000003, 2000003, \
                          1000004, 2000004 ],
             "gluinos": [ 1000021 ],
-            "charginos": [ 1000024, 1000037 ],
-            "neutralinos": [ 1000023, 1000025, 1000036 ],
+            "charginos": [ X1W, X2W ],
+            "neutralinos": [ X2Z, X3Z, 1000036 ],
             "sneutrinos": [ 1000012, 1000014, 1000016 ],
             "sleptons": [ 1000011, 1000013, 1000015 ],
-            "electroweakinos": [ 1000024, 1000037, 1000023, 1000025, 1000036 ]
+            "electroweakinos": [ X1W, X2W, X2Z, X3Z, 1000036 ]
     }
     ret = []
     for n in names:

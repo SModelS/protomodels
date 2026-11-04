@@ -9,6 +9,7 @@ from typing import Union
 from smodels_utils.plotting.mpkitty import timg
 from ptools import sparticleNames
 from pbase.loggerbase import LoggerBase
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 namer = sparticleNames.SParticleNames ( susy=False )
 
 def ceil_to_step(x : float, step : int = 50) -> float:
@@ -38,9 +39,9 @@ class MassesAndDecays ( LoggerBase ):
 
     def defaults ( self ):
         ret = { "outfile": "mass_hierarchy.png" }
-        ret["colors"]= { 1000022: "black", 1000023: "navy",
-                         1000024: "crimson", 1000025: "navy",
-                         1000035: "navy", 1000037: "crimson",
+        ret["colors"]= { LSP: "black", X2Z: "navy",
+                         X1W: "crimson", X3Z: "navy",
+                         1000035: "navy", X2W: "crimson",
                          1000006: "brown", 1000016: "gold",
                          1000012: "gold" }
         ret["scale"]="symlog"
@@ -72,16 +73,16 @@ class MassesAndDecays ( LoggerBase ):
     def dyLabel ( self, pid ):
         """ get the dy of the label, its a bit involved """
         ret = 11
-        if pid == 1000022:
+        if pid == LSP:
             ret = - self.delta_y / 10.
         if self.options["scale"] == "symlog":
-            if pid == 1000022:
+            if pid == LSP:
                 ret = - self.delta_y / 20.
             else:
                 mass = self.masses[pid]
                 ret = self.delta_y / 10. * mass / ( self.yrange[1]+self.yrange[0] )
         if self.options["scale"] == "linear":
-            if pid == 1000022:
+            if pid == LSP:
                 ret = -.1 * self.delta_y
             else:
                 ret = .05 * self.delta_y
@@ -97,7 +98,7 @@ class MassesAndDecays ( LoggerBase ):
         masses.sort ( key = lambda x: x[1] )
         for pid, mass in masses:
             stable = False
-            if pid == 1000022:
+            if pid == LSP:
                 stable = True
             color = "chocolate"
             if pid in self.options["colors"]:
@@ -113,7 +114,7 @@ class MassesAndDecays ( LoggerBase ):
             xpos = 45 + sgn * ctParticles * 10
             dx_line = 10 # length of the line
             dx_label = 2 # dx of the label
-            if stable: # pid == 1000022:
+            if stable: # pid == LSP:
                 xpos = 45
                 dx_line = 20
                 dx_label = 10
@@ -155,7 +156,7 @@ class MassesAndDecays ( LoggerBase ):
     def dpidsToStr ( self, dpids : tuple,
             br : Union[None,float] = None ) -> str:
         """ translate the decay pids to a string
-        e.g. (1000022, 11, 12) -> l+ nu
+        e.g. (LSP, 11, 12) -> l+ nu
         :param br: optional branching ratio
         """
         dpid = dpids[0]
@@ -185,7 +186,7 @@ class MassesAndDecays ( LoggerBase ):
         x_start = self.xpositions[mpid]
         x_end = self.xpositions[dpid]
         dx = 5
-        if dpid == 1000022:
+        if dpid == LSP:
             dx = 10
         arrowprops = dict(color='gray', arrowstyle='<-')
         self.plt.annotate( '', ( x_start+5, y_start ),

@@ -22,6 +22,7 @@ from tester.combiner import Combiner
 from pbase.runEnviron import RunEnviron
 from ptools.sparticleNames import SParticleNames
 from snippets import show_steps
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 def ceil_to_step(x : float, step : int = 50) -> float:
     return float ( np.ceil(x / step) * step )
@@ -138,9 +139,9 @@ class TenHiscores ( LoggerBase ):
         print ( os.path.abspath ( log_file[0] ) )
 
         #Set colors:
-        allPids = [ 1000022, 1000006, 1000001, 1000021, 1000012, 1000023,
+        allPids = [ LSP, 1000006, 1000001, 1000021, 1000012, X2Z,
                     1000013, 2000006, 1000011, 1000005, 1000014, 1000004,
-                    1000015, 1000016, 1000024 ]
+                    1000015, 1000016, X1W ]
         namer = SParticleNames ( susy = False )
         colors = sns.color_palette('deep',n_colors=len(namer.xIDs))
 

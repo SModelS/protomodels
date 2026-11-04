@@ -14,6 +14,7 @@ from smodels.base.physicsUnits import TeV, fb
 from smodels.base.smodelsLogging import setLogLevel
 
 from pbase.loggerbase import LoggerBase
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 from pbase.runEnviron import RunEnviron
 
 # the default tempdir of wrapper base is /tmp
@@ -114,7 +115,7 @@ class ProtoModel ( LoggerBase ):
         self.forced_degeneracies = []
         from pbase.constants import LSP
         self.decaylessParticles = ( LSP, )
-        # decaylessParticles = [ ProtoModel.LSP, 1000023, 1000024 ]
+        # decaylessParticles = [ ProtoModel.LSP, X2Z, X1W ]
         with open ( self.environ.templateSLHA, "rt" ) as f:
             lines = f.readlines()
             for line in lines:
@@ -285,7 +286,7 @@ class ProtoModel ( LoggerBase ):
     def hasAntiParticle ( self, pid ):
         """ for a given pid, do i also have to consider its antiparticle
             -pid in the signal strength multipliers? """
-        if pid in [ 1000021, 1000022, 1000023, 1000025, 1000035, 1000012,
+        if pid in [ 1000021, LSP, X2Z, X3Z, 1000035, 1000012,
                     1000014, 1000016, 2000012, 2000014, 2000016, 2000021 ]:
             return False
         return True
@@ -362,10 +363,10 @@ class ProtoModel ( LoggerBase ):
 
         offshell = False
         mLSP = self.masses[self.LSP]
-        if pid in [ 1000023, 1000025, 1000035 ] and pid in self.masses and self.LSP in self.masses and \
+        if pid in [ X2Z, X3Z, 1000035 ] and pid in self.masses and self.LSP in self.masses and \
                 (self.masses[pid] - mLSP ) < (smMasses["Z"] + smWidths["Z"]):
             offshell = True
-        elif pid in [ 1000024, 1000037 ] and pid in self.masses and self.LSP in self.masses and \
+        elif pid in [ X1W, X2W ] and pid in self.masses and self.LSP in self.masses and \
                   (self.masses[pid] - mLSP ) < (smMasses["W"] + smWidths["W"]):
             offshell = True
         else: offshell = False
@@ -387,7 +388,7 @@ class ProtoModel ( LoggerBase ):
             if not pid in self.masses or mdaughter >= self.masses[pid]:
                 continue
 
-            if not offshell and len(dpid) == 3 and pid in [1000023, 1000024, 1000025, 1000037 ]:
+            if not offshell and len(dpid) == 3 and pid in [X2Z, X1W, X3Z, X2W ]:
                 #turn off 3-body decays for onshell X^2_Z and X^1_W
                 continue
 

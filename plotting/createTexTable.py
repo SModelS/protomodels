@@ -11,6 +11,7 @@ __all__ = [ "Table" ]
 import glob, os, sys
 from ptools.sparticleNames import SParticleNames
 from os import PathLike
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 class Table:
     def __init__ ( self, pattern : PathLike, realpattern : PathLike ):
@@ -63,12 +64,12 @@ class Table:
             h.close()
             K = txt[0]["K"]
             pids = list ( txt[0]["masses"].keys() )
-            pids.remove ( 1000022 )
+            pids.remove ( LSP )
             def sorter ( x ):  ## we sort such that stop is first and the lbp is last
                 ## which is not the real order but a close bet
                 if x == 1000006:
                     x-=100000
-                if x == 1000022:
+                if x == LSP:
                     x+= 1000000
                 return x
             pids.sort( key= sorter )

@@ -3,6 +3,7 @@
 """ script that creates the data for the dilepton analysis """
     
 import os
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 def write ( values : dict ):
     """ write out the dictionary, add meta info """
@@ -59,11 +60,11 @@ def create():
         if v is not None:
             values[lr]=v
             continue
-        protomodel.decays[1000023][(1000022,11,11)]=lr
+        protomodel.decays[X2Z][(LSP,11,11)]=lr
         if lr == 0.:
-            protomodel.decays[1000023].pop ( (1000022,11,11) )
+            protomodel.decays[X2Z].pop ( (LSP,11,11) )
         nu_ratio = 1. - 3. * lr
-        protomodel.decays[1000023][(1000022,12,12)]=nu_ratio
+        protomodel.decays[X2Z][(LSP,12,12)]=nu_ratio
         pr.predict ( ma, keep_predictions = True, force_computation_K = True )
         v = { "K": ma.M.K, "TL": ma.M.TL }
         robsmax, rexpmax = 0., 0.

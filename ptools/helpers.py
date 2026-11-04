@@ -18,6 +18,7 @@ from os import PathLike
 from typing import Union, Set, List
 import numpy as np
 from ptools.randomNumbers import fast_rvs
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 ## (fake) observations that sit exactly at the expectation
 ## for p-value computation,
@@ -242,11 +243,11 @@ def getAllProdModesOfTheoryPred (pred : TheoryPrediction) -> Set:
                 for item in dppdg:
                     if isinstance(item, list): pdg2 += item; mass_comp = True
                     else: pdg1.append(item)
-                if mass_comp:                               #Ex: For cases such as: [1000023, [1000022, -1000022]]
+                if mass_comp:                               #Ex: For cases such as: [X2Z, [LSP, -LSP]]
                     import itertools
                     pprod = itertools.product(pdg1, pdg2)
                     for pids in pprod:
-                        if -1000022 in pids: continue       #FIXME! Hack for now, only checking for -LSP
+                        if -LSP in pids: continue       #FIXME! Hack for now, only checking for -LSP
                         dppdg = tuple(sorted(pids))
                         prod_modes.add(dppdg)
                     continue

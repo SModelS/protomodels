@@ -40,7 +40,7 @@ def cli( infile : str = "hiscores_global.dict",
     .. code-block:: python3
 
     >>> # change a mass, see how the prediction changes
-    >>> ma.M.masses[1000024] = 70.
+    >>> ma.M.masses[X1W] = 70.
     >>> pr.predict ( ma.M, keep_predictions = True )
     """
     import sys

@@ -20,6 +20,7 @@ from typing import List, Union, Tuple, Set, Callable
 from ptools.helpers import getAllPidsOfTheoryPred, getAllProdModesOfTheoryPred
 from ptools.bamCreator import selectMostSignificantSRs, bamAndWeights, \
          find_best_comb
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 def loadUserPrior ( path : str ) -> Callable:
     """ load the (optional) user-provided prior from a python file
@@ -435,7 +436,7 @@ class Combiner ( LoggerBase ):
         """
         ret = 1.
         for pid, decays in protomodel.decays.items():
-            if not pid in [ 1000024, 1000023 ]:
+            if not pid in [ X1W, X2Z ]:
                 continue
             if len (decays) == 0:
                 continue
@@ -451,18 +452,18 @@ class Combiner ( LoggerBase ):
                 # return 0.05
                 continue
             if len ( decays ) == 1:
-                if list(decays.keys())[0] in [(1000022, 2, 1), (1000022, 2, 2), (1000022, 5, 5)]: # If the open channel is for light quarks or bb, allow
+                if list(decays.keys())[0] in [(LSP, 2, 1), (LSP, 2, 2), (LSP, 5, 5)]: # If the open channel is for light quarks or bb, allow
                     continue
 
             lep_decays = 0
             lep_br = []
             C1_has_lep = False
             for decay in decays.keys():
-                if pid == 1000024 and decay in [(1000022, 11, 12), (1000022, 13, 14), (1000022, 15, 16)] and decays[decay] != 0.:
+                if pid == X1W and decay in [(LSP, 11, 12), (LSP, 13, 14), (LSP, 15, 16)] and decays[decay] != 0.:
                     lep_decays += 1
                     lep_br.append(decays[decay])
                     continue
-                if pid == 1000023 and decay in [(1000022, 11, 11), (1000022, 13, 13), (1000022, 15, 15)]:
+                if pid == X2Z and decay in [(LSP, 11, 11), (LSP, 13, 13), (LSP, 15, 15)]:
                     if decays[decay] == 0.:
                         C1_has_lep = True # Chargino 1 has leptonic decays but set to 0
                     else:
@@ -470,17 +471,17 @@ class Combiner ( LoggerBase ):
                         lep_br.append(decays[decay])
                     continue
             if lep_decays == 0: # Multiple open channels but no leptonic one, ok for neutralino 2, disallow for chargino 1
-                if pid == 1000023:
+                if pid == X2Z:
                     continue
-                elif pid == 1000024 and not C1_has_lep:
+                elif pid == X1W and not C1_has_lep:
                     self.pprint(f"Chargino 1 has multiple open channels but no leptonic one: {decays}! Returning a prior of 0.05")
                     return 0.05
 
             # Penalise for each missing leptonic channel
             mtau = 1.78 # GeV
-            if pid == 1000024:
+            if pid == X1W:
                 mtau *= 2 # the chargino decays into two taus
-            if (protomodel.masses[pid] - protomodel.masses[1000022]) >= mtau: # If tau decays are allowed
+            if (protomodel.masses[pid] - protomodel.masses[LSP]) >= mtau: # If tau decays are allowed
                 if lep_decays != 3:
                     ret *= 1/(4-lep_decays)
                     continue

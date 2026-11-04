@@ -36,6 +36,7 @@ from tester.critic import Critic
 from ptools.sparticleNames import SParticleNames
 from ptools import moreHelpers, helpers
 from ptools.helpers import py_dumps
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 namer = SParticleNames ( False )
 t0 = time.time() ## define t0, to measure how long things took
@@ -51,7 +52,7 @@ def findPids ( rundir ):
         p = f.find("nll")
         s = f[p+4:]
         s = s.replace(".pcl","")
-        s = s.replace("1000022","")
+        s = s.replace(str(LSP),"")
         s = s.replace("X1Z","")
         ret.add ( int(s) )
     print ( f"[NLLScanner] pids are {ret}" )
@@ -428,7 +429,7 @@ class NLLThread ( LoggerBase ):
         """ set mass or ssm of <pid> to <mass>
         :param heed_partners: if true, then also set partner particles masses
         """
-        partners = [ ( 1000023, 1000024 ) ]
+        partners = [ ( X2Z, X1W ) ]
         self.M.masses[pid]=mass
         if not heed_partners:
             return
@@ -457,7 +458,7 @@ class NLLThread ( LoggerBase ):
 
     def setDM ( self, pid : tuple, dm : float, coord : str ):
         """ set the delta_m
-        :param pid: e.g. ( 1000022, 1000023 )
+        :param pid: e.g. ( LSP, X2Z )
         :param dm: delta_m
         """
         assert len(pid)==2, "setDM needs two pids"
@@ -473,7 +474,7 @@ class NLLThread ( LoggerBase ):
         """
         if pids in self.M.ssmultipliers:
             self.M.ssmultipliers[pids]=ssm
-        if pids[1] == 1000024:
+        if pids[1] == X1W:
             pids1 = ( -pids[1], pids[0] )
             if pids1 in self.M.ssmultipliers:
                 self.M.ssmultipliers[pids1]=ssm
@@ -795,11 +796,11 @@ class NLLScanner ( LoggerBase ):
 
     def overrideWithDefaults ( self, args ):
         topo = { 1000005: "T2bb",1000006: "T2tt", 2000006: "T2tt", 1000021: "T1", \
-                 1000023: "electroweakinos,stops,TChiZISRqq,TChiISR",
-                 1000022: "electroweakinos,stops,TChiZISRqq,TChiISR",
-                 1000024: "electroweakinos,stops,TChiZISRqq,TChiISR",
-                 (1000024,1000023): "electroweakinos,stops,TChiZISRqq,TChiISR",
-                 1000025: "electroweakinos,stops,TChiZISRqq,TChiISR",
+                 X2Z: "electroweakinos,stops,TChiZISRqq,TChiISR",
+                 LSP: "electroweakinos,stops,TChiZISRqq,TChiISR",
+                 X1W: "electroweakinos,stops,TChiZISRqq,TChiISR",
+                 (X1W,X2Z): "electroweakinos,stops,TChiZISRqq,TChiISR",
+                 X3Z: "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000035: "electroweakinos,stops,TChiZISRqq,TChiISR",
                  1000001: "T2",  1000002: "T2", 1000003: "T2", 1000004: "T2" }
         ### make the LSP scan depend on the mother
@@ -851,7 +852,7 @@ def main ():
             help='variable for x axis, e.g. 1000006 or "Xt" [Xt]',
             type=str, default='Xt' )
     argparser.add_argument ( '-y', '--yvariable',
-            help='variable for y axis, e.g. 1000022 or "ssm(Xt,Xt)" or "dm(X2Z,X1Z)", [X1Z]',
+            help='variable for y axis, e.g. <pid> or "ssm(Xt,Xt)" or "dm(X2Z,X1Z)", [X1Z]',
             type=str, default="X1Z" )
     argparser.add_argument ( '-P', '--nproc',
             help='number of processes to run in parallel. zero is autodetect.'\

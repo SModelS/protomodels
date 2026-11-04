@@ -6,6 +6,7 @@ from typing import Union
 import numpy as np
 from math import exp
 import os, glob
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 def pprint ( *args ):
     """ logging """
@@ -152,7 +153,7 @@ def darken(color, amount=0.6):
 
 def getPlottingCoords ( args, truth ):
     """ determine what gets plotted on what axis """
-    coords={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
+    coords={ "x": X2Z, "y": LSP, "type_x": "mass", "type_y": "mass" }
     if truth is not None and 1000006 in truth["masses"]:
         coords[ "x" ] = 1000006
     if "xcoordinate" in args and args["xcoordinate"] is not None:
@@ -367,7 +368,7 @@ if __name__ == "__main__":
             help='what to plot on the x axis, e.g. "M1000022". None is automatic. [None]',
             type=str, default=None )
     argparser.add_argument ( '-y', '--ycoordinate',
-            help='what to plot on the y axis, e.g. "SSM1000022,1000023", "BR1000006,1000024,5" or "DM1000022,1000023". None is automatic [None]',
+            help='what to plot on the y axis, e.g. "SSM<pdg1>,<pdg2>", "BR<pdg>,<pdg>,<pdg>" or "DM<pdg1>,<pdg2>". None is automatic [None]',
             type=str, default=None )
     argparser.add_argument ( '-o', '--outfile',
             help='Name of output file, replacing @@X@@ and @@Y@@ [posterior_@@X@@_@@Y@@.png]',

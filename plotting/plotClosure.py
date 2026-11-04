@@ -6,6 +6,7 @@ from typing import Union
 import numpy as np
 from math import exp
 import os, glob
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 def getAllModels( directory : os.PathLike = "../data/fake_stops1",
        minF : float = .8, maxfiles : Union[None,int] = None,
@@ -114,7 +115,7 @@ def plotClosure( args : dict ):
     models, maxK = getAllModels( args["path"], args["minF"], args["maxfiles"],
             args["burnin"] )
     truth = getTruthModel( args["path"] )
-    coords={ "x": 1000023, "y": 1000022, "type_x": "mass", "type_y": "mass" }
+    coords={ "x": X2Z, "y": LSP, "type_x": "mass", "type_y": "mass" }
     sinjection = "ewkino"
     if truth is not None and 1000006 in truth["masses"]:
         coords[ "x" ] = 1000006

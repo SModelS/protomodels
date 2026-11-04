@@ -27,6 +27,7 @@ from smodels import installation as smodelsinstallation
 import os, sys, io, shutil, pyslha
 from pbase.loggerbase import LoggerBase
 from typing import Union
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 
 class RefXSecComputer ( LoggerBase ):
@@ -54,12 +55,12 @@ class RefXSecComputer ( LoggerBase ):
             pass
         self.shareDir = f"{codedir}/ptools/xsecTables/"
         # productions of same-sign-pid pairs when the particle is within reach
-        self.samesignmodes = [ 1000012, 1000014, 1000016, 1000021, 1000023, 1000025 ]
+        self.samesignmodes = [ 1000012, 1000014, 1000016, 1000021, X2Z, X3Z ]
         self.addN1N1ProdMode()
         # production of opposite-sign-pid pairs when the particle is within reach
         self.oppositesignmodes = ( 1000001, 1000002, 1000003, 1000004, 1000005,
-                2000005, 1000006, 2000006, 1000011, 1000013, 1000015, 1000024,
-                1000037 )
+                2000005, 1000006, 2000006, 1000011, 1000013, 1000015, X1W,
+                X2W )
 
         # associate production
         #IMP! When adding prod modes, make sure pid[0] < pid[1]!!
@@ -69,21 +70,21 @@ class RefXSecComputer ( LoggerBase ):
                 ( -1000012, 1000011), ( -1000014, 1000013), (-1000016, 1000015),
                 ( -1000011, 1000012 ), ( -1000013, 1000014 ), ( -1000015, 1000016),
                 #removing charge for charginos in chargino-neutralino prod as doesnt matter
-                ( 1000022, 1000023 ), ( 1000023, 1000025 ),
-                # ( 1000022, 1000024 ), #( -1000024, 1000022),
-                # ( 1000023, 1000024 ),  #( -1000024, 1000023 ),
-                #( 1000023, 1000037 ), ( 1000024, 1000025 ), ( -1000024, 1000037 ),
-                #( -1000037, 1000024 ), ( 1000025, 1000037 ) ) #, ( -1000037, 1000023 ),
+                ( LSP, X2Z ), ( X2Z, X3Z ),
+                # ( LSP, X1W ), #( -X1W, LSP),
+                # ( X2Z, X1W ),  #( -X1W, X2Z ),
+                #( X2Z, X2W ), ( X1W, X3Z ), ( -X1W, X2W ),
+                #( -X2W, X1W ), ( X3Z, X2W ) ) #, ( -X2W, X2Z ),
                 )
-                #( -1000024, 1000025 ), ( -1000037, 1000025 )
+                #( -X1W, X3Z ), ( -X2W, X3Z )
 
         ## these are productions where we explicitly disallow the negative sign versions,
         ## e.g. C1+,N2 ## this is based on the assumption that our database of chargino results
         ## is entirely charge symmetrical!! this might change with e.g. protomodels v3
-        self.associatesamesignproduction = ( ( 1000022, 1000024 ),
-                ( 1000023, 1000024 ), ( 1000024, 1000025 ),
-                ( 1000022, 1000037 ), ( 1000023, 1000037 ),
-                ( 1000025, 1000037 ), ( 1000022, 1000025 ) )
+        self.associatesamesignproduction = ( ( LSP, X1W ),
+                ( X2Z, X1W ), ( X1W, X3Z ),
+                ( LSP, X2W ), ( X2Z, X2W ),
+                ( X3Z, X2W ), ( LSP, X3Z ) )
 
         # self.schannel = ( 35, 55, )
         self.schannel = tuple()
@@ -101,7 +102,7 @@ class RefXSecComputer ( LoggerBase ):
         """ if allowN1N1Prod, add the mode """
         if not self.allowN1N1Prod:
             return
-        self.samesignmodes = tuple ( list ( self.samesignmodes ) + [ 1000022 ] )
+        self.samesignmodes = tuple ( list ( self.samesignmodes ) + [ LSP ] )
 
     def warn ( self, *txt ):
         stxt=str(*txt)
@@ -513,7 +514,7 @@ class RefXSecComputer ( LoggerBase ):
                 continue
             if ssmultipliers != None and ( pids[1], pids[0] ) in ssmultipliers:
                 pids = ( pids[1], pids[0] )
-            if pids[1] == pids[0] and abs(pids[0]) in [ 1000024, 1000037 ]:
+            if pids[1] == pids[0] and abs(pids[0]) in [ X1W, X2W ]:
                 self.warning ( f"we have a cross section for {pids}, you sure you didnt meant {-pids[0],pids[1]}?" )
             """
             if pids[0]==-pids[1]:
@@ -741,20 +742,20 @@ class RefXSecComputer ( LoggerBase ):
             filename = f"xsecslepslep{sqrts}.txt"
             if sqrts == 8:
                 pb == False
-        if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000022, 1000023, 1000025, 1000035 ]: # Charginos(-) neutralinos production
+        if pid1 in [ -X1W, -X2W ] and pid2 in [ LSP, X2Z, X3Z, 1000035 ]: # Charginos(-) neutralinos production
             filename = f"xsecN2C1m{sqrts}.txt"
             order = NLL
             isEWK = True
             if sqrts == 13:
                 pb = False
-        if (pid1 in [ 1000022, 1000023, 1000025, 1000035 ] and pid2 in [ 1000024, 1000037 ]) or (pid1 == 1000024 and pid2 == 1000025): # Charginos(+) neutralinos productions -- 'or' condition because pid1 < pid2
+        if (pid1 in [ LSP, X2Z, X3Z, 1000035 ] and pid2 in [ X1W, X2W ]) or (pid1 == X1W and pid2 == X3Z): # Charginos(+) neutralinos productions -- 'or' condition because pid1 < pid2
             filename = f"xsecN2C1p{sqrts}.txt"
             order = NLL
             if sqrts == 13:
                 pb = False
             isEWK = True
-        N1N2N3 = ( 1000022, 1000023, 1000025, 1000035 )
-        N2N3 = ( 1000023, 1000025, 1000035 )
+        N1N2N3 = ( LSP, X2Z, X3Z, 1000035 )
+        N2N3 = ( X2Z, X3Z, 1000035 )
         neutralinos = N2N3
         if self.allowN1N1Prod:
             neutralinos = N1N2N3
@@ -768,7 +769,7 @@ class RefXSecComputer ( LoggerBase ):
             order = NLL
             pb = False
             isEWK = True
-        if pid1 in [ -1000024, -1000037 ] and pid2 in [ 1000024, 1000037 ]: # Charginos pair productions
+        if pid1 in [ -X1W, -X2W ] and pid2 in [ X1W, X2W ]: # Charginos pair productions
             filename = f"xsecC1C1{int(sqrts)}.txt"
             order = NLL #3
             pb = False
@@ -789,7 +790,7 @@ class RefXSecComputer ( LoggerBase ):
             sys.exit(-1)
         xsecs = self.getXSecsFrom ( path, pb, columns )
         comment = f"from {filename}"
-        #if pid2 == 1000037:
+        #if pid2 == X2W:
         #    self.pprint ( f"for {pid1},{pid2} we get {str(xsecs)[:100]} {order} {comment}" )
         return xsecs,order,comment
 

@@ -23,6 +23,7 @@ from walker.hiscores import Hiscores
 from typing import Union, List, Dict
 from pbase.loggerbase import LoggerBase
 from ptools import helpers
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
         
 namer = SParticleNames ( susy = False )
 
@@ -56,7 +57,7 @@ class TeststatScanner ( LoggerBase ):
 
     def setMass ( self, model, pid : int, mass : float ):
         """ set mass of <pid> to <mass> """
-        partners = [ ( 1000023, 1000024 ) ]
+        partners = [ ( X2Z, X1W ) ]
         model.masses[pid]=mass
 
         for pair in partners:
@@ -192,7 +193,7 @@ class TeststatScanner ( LoggerBase ):
             f.write ( f"{{ 'ntotal': {ntot}, 'timestamp': '{time.asctime()}' }}\n" )
             f.close()
 
-    def produce( self, pid : int = 1000022 ):
+    def produce( self, pid : int = LSP ):
         """ produce pickle files of mass scans for pid
         """
         self.pid1 = pid
@@ -415,7 +416,7 @@ class TeststatScanner ( LoggerBase ):
                 entry = v
         return v
 
-    def draw( self, pid : int = 1000022, interactive : bool = False, 
+    def draw( self, pid : int = LSP, interactive : bool = False,
               pid2 : int = 0  ) -> Union[str,List]:
         """ draw plots
 

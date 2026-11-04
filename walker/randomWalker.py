@@ -45,6 +45,7 @@ from builder.manipulator import Manipulator
 from tester.predictor import Predictor
 from tester.critic import Critic
 from walker.hiscores import Hiscores
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 try:
     from smodels.statistics.pyhfInterface import setBackend
@@ -789,15 +790,15 @@ class RandomWalker ( LoggerBase ):
         self.manipulator.writeDictFile(outfile=f"Pmodels/pmodel{self.walkerid}.dict")
 
 def model1():
-    masses = {1000022: 46.514732, 1000023: 350, 1000024: 350 }
+    masses = {LSP: 46.514732, X2Z: 350, X1W: 350 }
 
-    ssms = {(1000022, 1000022): 0.191043, (1000023, 1000023): 0.204701,
-        (1000022, 1000023): 0.0, (1000024, 1000024): 1.829998,
-        (-1000024, 1000024): 1.829998, (-1000024, -1000024): 1.829998,
-        (1000022, 1000024): 1.329093, (-1000024, 1000022): 1.329093,
-        (1000023, 1000024): 0.0, (-1000024, 1000023): 0.0 }
+    ssms = {(LSP, LSP): 0.191043, (X2Z, X2Z): 0.204701,
+        (LSP, X2Z): 0.0, (X1W, X1W): 1.829998,
+        (-X1W, X1W): 1.829998, (-X1W, -X1W): 1.829998,
+        (LSP, X1W): 1.329093, (-X1W, LSP): 1.329093,
+        (X2Z, X1W): 0.0, (-X1W, X2Z): 0.0 }
 
-    decays = {1000022: {}, 1000023: {(1000022, 25): 1.0}, 1000024: {(1000022, 24): 1.0}, 1000037: {(1000022, 24): 1.0}}
+    decays = {LSP: {}, X2Z: {(LSP, 25): 1.0}, X1W: {(LSP, 24): 1.0}, X2W: {(LSP, 24): 1.0}}
 
     D = {'masses': masses, 'ssmultipliers': ssms, 'decays': decays }
     return D
@@ -805,24 +806,24 @@ def model1():
 def model2():
     D={
         'masses': {
-            1000022: 100.,
-            1000023: 110.,
-            1000024: 110.,
+            LSP: 100.,
+            X2Z: 110.,
+            X1W: 110.,
         },
         'ssmultipliers': {
-            (1000022, 1000022): 3.,
-            (1000022, 1000023): 0.5,
-            (1000022, 1000024): 0.25,
-            (1000023, 1000024): 1.,
-            (1000023, 1000023): 0.25,
+            (LSP, LSP): 3.,
+            (LSP, X2Z): 0.5,
+            (LSP, X1W): 0.25,
+            (X2Z, X1W): 1.,
+            (X2Z, X2Z): 0.25,
         },
         'decays': {
-            1000022: {},
-            1000023: {
-                (1000022, 12, 12): 1.0
+            LSP: {},
+            X2Z: {
+                (LSP, 12, 12): 1.0
             },
-            1000024: {
-                (1000022, 2, 1): 1.0
+            X1W: {
+                (LSP, 2, 1): 1.0
             }
         },
     }

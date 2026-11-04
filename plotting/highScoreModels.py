@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from ptools.sparticleNames import SParticleNames
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 def plot():
     # sns.set() #Set style
@@ -50,8 +51,8 @@ def plot():
     realname=args.realfiles
 
     #Set colors:
-    allPids = [1000022, 1000006, 1000001, 1000021, 1000012, 1000023, 
-                1000013, 2000006, 1000011, 1000005, 1000014, 1000004, 1000015, 1000016, 1000024]
+    allPids = [LSP, 1000006, 1000001, 1000021, 1000012, X2Z,
+                1000013, 2000006, 1000011, 1000005, 1000014, 1000004, 1000015, 1000016, X1W]
     namer = SParticleNames ( susy = False )
     colors = sns.color_palette('deep',n_colors=len(namer.xIDs))
 

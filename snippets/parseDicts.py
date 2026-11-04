@@ -3,6 +3,7 @@
 """ a bit of code to help us with parsing the dicts of the runs """
 
 import glob, subprocess, sys
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 def run( filename ):
     f = open ( filename, "rt" )
@@ -18,7 +19,7 @@ def produce():
             D = run ( fname )
             P = []
             for k,v in D[0]["masses"].items():
-                if v < 5000. and k != 1000022:
+                if v < 5000. and k != LSP:
                     P.append(k)
             P.sort()
             print ( fname, "K", D[0]["K"], "Z", D[0]["Z"], "particles", P )

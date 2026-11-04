@@ -10,6 +10,7 @@
 """
 
 from smodels.base.particle import Particle
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 ####  R-odd   ##########
 #1st generation squarks and its conjugates:
@@ -48,17 +49,17 @@ sta2 = Particle(isSM=False, label='sta_2', pdg=2000015, eCharge=-1, colordim=1, 
 #Gluino:
 gluino = Particle(isSM=False, label='gluino', pdg=1000021, eCharge=0, colordim=8, spin=1./2)
 #Neutralinos
-n1 = Particle(isSM=False, label='N1', pdg=1000022, eCharge=0, colordim=1, spin=1./2)
-n2 = Particle(isSM=False, label='N2', pdg=1000023, eCharge=0, colordim=1, spin=1./2)
-n3 = Particle(isSM=False, label='N3', pdg=1000025, eCharge=0, colordim=1, spin=1./2)
+n1 = Particle(isSM=False, label='N1', pdg=LSP, eCharge=0, colordim=1, spin=1./2)
+n2 = Particle(isSM=False, label='N2', pdg=X2Z, eCharge=0, colordim=1, spin=1./2)
+n3 = Particle(isSM=False, label='N3', pdg=X3Z, eCharge=0, colordim=1, spin=1./2)
 n4 = Particle(isSM=False, label='N4', pdg=1000035, eCharge=0, colordim=1, spin=1./2)
 
 #Gravitino:
 # g = Particle(isSM=False, label='G', pdg=1000039, eCharge=0, colordim=1, spin=3./2)
 
 #Charginos
-c1 = Particle(isSM=False, label='C1+', pdg=1000024, eCharge=1, colordim=1, spin=1./2)
-c2 = Particle(isSM=False, label='C2+', pdg=1000037, eCharge=1, colordim=1, spin=1./2)
+c1 = Particle(isSM=False, label='C1+', pdg=X1W, eCharge=1, colordim=1, spin=1./2)
+c2 = Particle(isSM=False, label='C2+', pdg=X2W, eCharge=1, colordim=1, spin=1./2)
 
 ##### R-even  ###############
 #Higgs

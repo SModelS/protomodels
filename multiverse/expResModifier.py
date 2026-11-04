@@ -46,6 +46,7 @@ from smodels.base.runtime import _deltas_rel_default
 from smodels.statistics.statsTools import CompRetriever
 from smodels.experiment.datasetObj import CombinedDataSet
 import pyhf
+from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 
 logger.setLevel("ERROR")
 
@@ -459,9 +460,9 @@ Just filter the database:
                 print ( f"[expResModifier] error parsing {filename}: {e}" )
                 print ( f"[expResModifier] is this a protomodel with 'masses', etc defined?" )
                 sys.exit()
-        if allowN1N1Prod and not (1000022,1000022) in m['ssmultipliers']:
+        if allowN1N1Prod and not (LSP,LSP) in m['ssmultipliers']:
             self.warn ( f"we allow N1N1 production but not N1N1 production in signal model" )
-        if not allowN1N1Prod and (1000022,1000022) in m['ssmultipliers']:
+        if not allowN1N1Prod and (LSP,LSP) in m['ssmultipliers']:
             self.warn ( f"we disallow N1N1 production but N1N1 production in signal model" )
         ma.initFromDict ( m, initTestStats=True )
         ma.M.computeXSecs( keep_slha = True )
