@@ -413,7 +413,7 @@ class HiscorePlotter ( LoggerBase ):
             particles = namer.texName ( pids, addDollars=True, addSign = False,
                                         addBrackets = False )
             sigmapred=f"{tp.xsection.asNumber(fb):.2f} fb"
-            print ( f"  `- observed {oUL:.2f}*fb, expected {eUL:.2f}*fb {Z:.1f} sigma" )
+            print ( f"  `- observed {oUL:.2g}*fb, expected {eUL:.2g}*fb {Z:.1f} sigma" )
             f.write ( f" & {oUL:.1f} fb & {eUL:.1f} fb & {S} & {particles} & {sigmapred} \\\\ \n" )
         return f"{anaId}:{dtype}"
 
