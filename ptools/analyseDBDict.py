@@ -6,7 +6,7 @@ import matplotlib
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
-import os, glob, pickle, sys
+import os, glob, pickle, sys, fnmatch
 sys.path.insert(0,"../")
 import scipy.stats
 import matplotlib.mlab as mlab
@@ -129,14 +129,14 @@ class Analyzer ( LoggerBase ):
         if len(self.topos)==0:
             return True
         hasOnlyNegativeTopos = True
-        ntopo = f"^{topo}"
         for t in self.topos:
             if not t.startswith ( "^" ):
                 hasOnlyNegativeTopos = False
-            if topo == t:
+            elif fnmatch.fnmatch ( topo, t[1:] ): # we explicitly veto these
+                return False
+        for t in self.topos:
+            if not t.startswith ( "^" ) and fnmatch.fnmatch ( topo, t ):
                 return True
-            if ntopo == t: # we explictly veto these
-                return False 
         if hasOnlyNegativeTopos:
             return True
         return None
@@ -366,7 +366,7 @@ def main():
             help=f'input dictionary file(s) [{displayDefault}]',
             type=str, default=[defaultdict] )
     argparser.add_argument ( '-t', '--topos', nargs='*',
-            help='filter for topologies, comma separated list or multiple arguments. prefix with ^ is negation. [None]',
+            help='filter for topologies, comma separated list or multiple arguments. Unix-type wildcards are allowed, e.g. THSCPM*. prefix with ^ is negation. [None]',
             type=str, default=None )
     argparser.add_argument ( '--sort_by',
             help='sort_by criterion, mean or max [max]',
