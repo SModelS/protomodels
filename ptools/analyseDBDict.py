@@ -355,9 +355,14 @@ class Analyzer ( LoggerBase ):
 def main():
     import argparse
     argparser = argparse.ArgumentParser(description="meta statistics analyzer")
+    scriptdir = os.path.dirname ( os.path.abspath ( __file__ ) )
+    repodir = os.path.dirname ( scriptdir )
+    with open ( os.path.join ( repodir, "version" ), "rt" ) as f:
+        version = f.read().strip().replace ( ".", "" )
+    defaultdict = os.path.join ( repodir, "historic_database_stats", f"{version}.dict" )
     argparser.add_argument ( '-d', '--dictfile', nargs='*',
-            help='input dictionary file(s) [../data/database/]',
-            type=str, default='.,/data/database/' )
+            help=f'input dictionary file(s) [{defaultdict}]',
+            type=str, default=[defaultdict] )
     argparser.add_argument ( '-t', '--topos', nargs='*',
             help='filter for topologies, comma separated list or multiple arguments. prefix with ^ is negation. [None]',
             type=str, default=None )
