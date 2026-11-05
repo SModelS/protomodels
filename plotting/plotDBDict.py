@@ -195,7 +195,13 @@ class Plotter ( LoggerBase ):
             if i > 0:
                 cmd += " "
             if "select_t" in prev or "--ti" in prev or "--op" in prev or prev in [ "-O", "-T" ]:
-                a = f'"{a}"'
+                # if the value itself contains double quotes (e.g. an options
+                # dictionary), wrap it in single quotes so the logged command
+                # stays copy-pasteable
+                if '"' in a:
+                    a = f"'{a}'"
+                else:
+                    a = f'"{a}"'
             cmd += a
             prev = a
         cmd += "\n"
