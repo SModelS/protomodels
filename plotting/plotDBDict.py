@@ -24,6 +24,48 @@ from smodels_utils.helper.various import hasLLHD, removeAnaIdSuffices
 from smodels_utils.helper.terminalcolors import GREEN, YELLOW, RESET, RED
 from pathlib import Path
 
+def splitSelections ( values, resolve_abbreviations : bool = False ):
+    """ split a comma-separated selection into positive and negative patterns.
+
+    A leading ``^`` negates a pattern. Unix-style wildcards (``*`` and ``?``)
+    are kept as they are. If ``resolve_abbreviations`` is true, topology
+    abbreviations (e.g. ``electroweakinos``) are expanded, except for entries
+    that already contain a wildcard.
+
+    :returns: tuple of (positive patterns, negative patterns)
+    """
+    positives, negatives = [], []
+    if values is None:
+        return positives, negatives
+    if isinstance ( values, str ):
+        entries = values.split ( "," )
+    elif isinstance ( values, ( list, tuple ) ):
+        entries = list ( values )
+    else:
+        entries = [ values ]
+    for entry in entries:
+        if entry is None:
+            continue
+        entry = str ( entry ).strip()
+        if entry == "":
+            continue
+        negated = entry.startswith ( "^" )
+        if negated:
+            entry = entry[1:].strip()
+            if entry == "":
+                continue
+        if resolve_abbreviations and not ( "*" in entry or "?" in entry ):
+            resolved, _ = namesForSetsOfTopologies ( entry )
+            resolved_entries = resolved.split ( "," )
+        else:
+            resolved_entries = [ entry ]
+        target = negatives if negated else positives
+        for resolved_entry in resolved_entries:
+            resolved_entry = resolved_entry.strip()
+            if resolved_entry != "":
+                target.append ( resolved_entry )
+    return positives, negatives
+
 def isSelectedCustomFunction ( anaid, txns : List ) -> bool:
     """ a generic hook to makes it easy to select based on any requirement.
     just write the python code here. """
@@ -88,28 +130,32 @@ class Plotter ( LoggerBase ):
                 else:
                     self.nbins = 30
                     # self.nbins = 10
-        self.origtopos = args["topologies"]
+        self.origtopos = args.get ( "topologies" )
         self.printMsgs = { "pass": 0 }
         if self.origtopos == None:
             self.origtopos = "all"
         self.description = None
-        if args['topologies'] != None:
-                if args["topologies"].endswith ( ".py" ):
-                    print ( f"[plotDBDict] you supplied {args['topologies']} as topologies. Did you supply the validation file instead?" )
-                args["topologies"], descr = namesForSetsOfTopologies ( args['topologies'] )
-                self.description = descr
-                if args["topologies"].startswith("^"):
-                    self.description = f"all but {descr} searches"
-        if "select_topologies" in args and args['select_topologies'] not in  [ None, [] ]:
-                # resolve abbreviations per comma-separated entry, but keep
-                # wildcard patterns (e.g. "T*" or "*") untouched
-                patterns = []
-                for t in args['select_topologies'].split(","):
-                    if "*" in t or "?" in t:
-                        patterns.append ( t )
+        topologies_arg = args.get ( "topologies" )
+        if topologies_arg not in [ None, "", [] ]:
+                if isinstance ( topologies_arg, str ) and topologies_arg.endswith ( ".py" ):
+                    print ( f"[plotDBDict] you supplied {topologies_arg} as topologies. Did you supply the validation file instead?" )
+                # determine a description for the selected topologies;
+                # wildcard patterns cannot be abbreviations, so leave them out
+                if isinstance ( topologies_arg, ( list, tuple ) ):
+                    entries = list ( topologies_arg )
+                else:
+                    entries = str ( topologies_arg ).split ( "," )
+                nonwildcard = [ str ( t ).strip() for t in entries
+                                if "*" not in str ( t ) and "?" not in str ( t )
+                                and str ( t ).strip() != "" ]
+                if len ( nonwildcard ) > 0:
+                    resolved, descr = namesForSetsOfTopologies ( ",".join ( nonwildcard ) )
+                    if resolved.startswith ( "^" ):
+                        if descr is None:
+                            descr = resolved.replace ( "^", "" )
+                        self.description = f"all but {descr} searches"
                     else:
-                        patterns.append ( namesForSetsOfTopologies ( t )[0] )
-                args["select_topologies"] = ",".join ( patterns )
+                        self.description = descr
         if 'select_collaboration' in args:
             collaboration = args['select_collaboration'].upper()
             if collaboration in [ "", "*" ]:
@@ -135,33 +181,17 @@ class Plotter ( LoggerBase ):
             self.verbose = v
         if "ulalso" in args:
             self.useAlsoULMaps = args['ulalso']
-        topologies = args['topologies']
-        if topologies not in [ None, "" ]:
-            topos = topologies.split(",")
-            for t in topos:
-                if t.startswith ( "^" ):
-                    self.negative_topologies.append ( t[1:] )
-                else:
-                    self.topologies.append ( t )
-        if "select_topologies" in args:
-            select_topologies = args['select_topologies']
-            if select_topologies not in  [ None, "", [] ]:
-                topos = select_topologies.split(",")
-                for t in topos:
-                    self.select_topologies.append ( t )
-        if len(self.select_topologies)>0 and self.ignore_sqrts == False:
+        self.topologies, self.negative_topologies = splitSelections (
+            args.get ( "topologies" ), resolve_abbreviations = True )
+        self.select_topologies, self.negative_select_topologies = splitSelections (
+            args.get ( "select_topologies" ), resolve_abbreviations = True )
+        if ( len(self.select_topologies) + len(self.negative_select_topologies) ) > 0 \
+                and self.ignore_sqrts == False:
             self.pprint ( f"select_topologies is on, we will set ignore_sqrts to True" )
             self.ignore_sqrts = True
 
-        if "analyses" in args and args["analyses"] not in [ None ]:
-            analyses = args['analyses']
-            if analyses not in [ None, "" ]:
-                analyses = analyses.split(",")
-                for a in analyses:
-                    if a.startswith ( "^" ):
-                        self.negativeanalyses.append ( a[1:] )
-                    else:
-                        self.analyses.append ( a )
+        self.analyses, self.negativeanalyses = splitSelections (
+            args.get ( "analyses" ), resolve_abbreviations = False )
         self.filenames = []
         if "comment" in args:
             comment = args['comment']
@@ -254,6 +284,7 @@ class Plotter ( LoggerBase ):
         self.ignore_sqrts = False
         self.filternegativesigma = None
         self.negative_topologies = []
+        self.negative_select_topologies = []
         self.negativeanalyses = []
         self.outfile = "not_specified.png"
         self.title = None
@@ -401,11 +432,27 @@ class Plotter ( LoggerBase ):
                     self.srCounts[anaid]=set()
                 self.srCounts[anaid].add ( sr )
 
+    @staticmethod
+    def matchesAny ( value : str, patterns : List ) -> bool:
+        """ does value match any of the given unix-style wildcard patterns? """
+        return any ( fnmatch.fnmatch ( value, pattern ) for pattern in patterns )
+
     def isSelected ( self, txns : List ) -> bool:
+        """ is the signal region selected via select_topologies?
+
+        Negated patterns exclude signal regions. If only negated patterns
+        are given, everything that is not excluded is selected.
+        """
+        if len(self.select_topologies)==0 and len(self.negative_select_topologies)==0:
+            return False
         for tx in txns:
-            for selected in self.select_topologies:
-                if fnmatch.fnmatch ( tx, selected ):
-                    return True
+            if self.matchesAny ( tx, self.negative_select_topologies ):
+                return False
+        if len(self.select_topologies) == 0:
+            return True
+        for tx in txns:
+            if self.matchesAny ( tx, self.select_topologies ):
+                return True
         return False
 
     def compute ( self ):
@@ -431,20 +478,11 @@ class Plotter ( LoggerBase ):
             for k,v in data.items():
                 p1 = k.find(":")
                 anaid = k[:p1]
-                passesAnas = False
-                if len(self.analyses)==0 and len(self.negativeanalyses)==0:
+                passesAnas = len(self.analyses)==0
+                if self.matchesAny ( anaid, self.analyses ):
                     passesAnas=True
-                for ana in self.analyses:
-                    if fnmatch.fnmatch ( anaid, ana ):
-                        passesAnas=True
-                        break
-                if len(self.negativeanalyses) != 0:
-                    passesAnas=True
-                    for ana in self.negativeanalyses:
-                        # print ( f"@@b does {anaid} match {ana}: {fnmatch.fnmatch ( anaid, ana )}" )
-                        if fnmatch.fnmatch ( anaid, ana ):
-                            passesAnas=False
-                            break
+                if self.matchesAny ( anaid, self.negativeanalyses ):
+                    passesAnas=False
                 if not passesAnas:
                     if not anaid in skipped:
                         if nSkipped < 4:
@@ -458,19 +496,15 @@ class Plotter ( LoggerBase ):
                 txns = []
                 if "txns" in v:
                     txns = v["txns"] # .split(",")
-                passesTx=False
-                if len(self.topologies)==0 and len(self.negative_topologies)==0:
-                    passesTx=True
-                for tx in self.topologies:
-                    if tx in txns:
+                if isinstance ( txns, str ):
+                    txns = [ t.strip() for t in txns.split(",") if t.strip() != "" ]
+                passesTx = len(self.topologies)==0
+                for tx in txns:
+                    if self.matchesAny ( tx, self.topologies ):
                         passesTx=True
+                    if self.matchesAny ( tx, self.negative_topologies ):
+                        passesTx=False
                         break
-                if len(self.negative_topologies) != 0:
-                    passesTx=True
-                    for tx in self.negative_topologies:
-                        if tx in txns:
-                            passesTx=False
-                            break
                 if not passesTx:
                     self.printMsgs["pass"]+=1
                     if self.printMsgs["pass"]<4:
@@ -680,7 +714,10 @@ class Plotter ( LoggerBase ):
             for i,t in enumerate(self.topologies):
                 if "+" in t and not "+off" in t:
                     self.pprint ( f"WARNING: topology {t} has a + sign, did you mean to instead have a comma ','?" )
-                stopos += prettyDescriptions.prettyTxname( t, False, "latex" )
+                pretty = prettyDescriptions.prettyTxname( t, False, "latex" )
+                if pretty is None:
+                    pretty = t
+                stopos += pretty
                 if i < len(self.topologies)-1:
                     stopos += ";"
             title += f", {selecting}{stopos}"
@@ -688,8 +725,11 @@ class Plotter ( LoggerBase ):
         if len (self.negative_topologies )>0 and self.description == None:
             stopos = ""
             for i,t in enumerate(self.negative_topologies):
-                stopos += f"^{prettyDescriptions.prettyTxname(t, False, 'latex')}"
-                if i < len(self.topologies)-1:
+                pretty = prettyDescriptions.prettyTxname(t, False, 'latex')
+                if pretty is None:
+                    pretty = t
+                stopos += f"^{pretty}"
+                if i < len(self.negative_topologies)-1:
                     stopos += ";"
             title += f", {selecting}{stopos}"
             selecting = ""
@@ -1045,10 +1085,10 @@ def getArgs( cmdline = None ):
             help='likelihood: gauss (g), gauss+poisson (gp), or lognormal+poisson (lp) [gauss+poisson]',
             type=str, default="gauss+poisson" )
     argparser.add_argument ( '-t', '--topologies', nargs='?',
-            help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. "^" before the name acts as negation [None]',
+            help='filter for certain topologies, e.g. T1, T2tt. Unix-type wildcards are allowed, e.g. T2* or T???. Comma separated. The signal region must have a map for any one of the given topologies. "^" before the name acts as negation [None]',
             type=str, default=None )
     argparser.add_argument ( '--select_topologies', nargs='?',
-            help='filter for certain topologies to hilight, e.g. T1, T2tt. Unix-type wildcards are allowed, e.g. T2* or T???. Comma separated. The signal region must have a map for any one of the given topologies. [None]',
+            help='filter for certain topologies to hilight, e.g. T1, T2tt. Unix-type wildcards are allowed, e.g. T2* or T???. Comma separated. "^" before the name acts as negation. The signal region must have a map for any one of the given topologies. [None]',
             type=str, default=None )
     argparser.add_argument ( '--select_text', nargs='?',
             help='the text to go in the legend for the selected topos [selected]',
