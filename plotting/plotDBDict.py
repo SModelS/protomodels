@@ -88,6 +88,8 @@ class Plotter ( LoggerBase ):
         :param filename: filename of dictionary
         :param filtervalue: filter out signal regions with
          expectedBG < filtervalue
+        :param filterobs: filter out signal regions with
+         observed N < filterobs
         :param comment: an optional comment, to write in the plot
         :param likelihood: form of likelihood: "gauss", "gauss+poisson", or
         "lognormal+poisson"
@@ -297,6 +299,7 @@ class Plotter ( LoggerBase ):
         self.fakes = False
         self.sqrts = [8,13,13.6]
         self.filter = 0.
+        self.filterobs = 0.
         self.filtersigma = 0.
         self.disclaimer = False
         self.warnedBefore = False # warned that --before is set
@@ -356,6 +359,13 @@ class Plotter ( LoggerBase ):
             return False
         return v["expectedBG"]>=self.filter
 
+    def filterObs ( self, v : dict ) -> bool:
+        """ very simple convenience to filter on observed N values
+        (stored as ``origN`` in the dictionary) """
+        if not "origN" in v:
+            return False
+        return v["origN"]>=self.filterobs
+
     def filterSigma ( self, ratio : float ) -> bool:
         """ filter according to self.filtersigma
         :param ratio: sqrt(expectedBG) / bgError
@@ -392,6 +402,7 @@ class Plotter ( LoggerBase ):
                     continue
 
                 if self.filterExpected ( v ) and \
+                   self.filterObs ( v ) and \
                    self.filterSigma ( math.sqrt(v["expectedBG"]) / v["bgError"] ):
 #                        v["expectedBG"]/v["bgError"]>=self.filtersigma:
                     newdata[i]=v
@@ -555,6 +566,8 @@ class Plotter ( LoggerBase ):
                     if self.unscale:
                         bgErr = v["bgError"]
                     if vexp < self.filter:
+                        continue
+                    if obs < self.filterobs:
                         continue
                     if not self.filterSigma ( math.sqrt(vexp) / bgErr ):
                     # if vexp / bgErr < self.filtersigma:
@@ -1110,6 +1123,9 @@ def getArgs( cmdline = None ):
             type=str, default=None )
     argparser.add_argument ( '-f', '--filter', nargs='?',
             help='filter out signal regions with expectedBG<x [x=0.]',
+            type=float, default=0. )
+    argparser.add_argument ( '--filterobs', nargs='?',
+            help='filter out signal regions with observed N<x [x=0.]',
             type=float, default=0. )
     argparser.add_argument ( '-s', '--filtersigma', nargs='?',
             help='filter out (remove) systematics dominated signal regions with sqrt(expectedBG)/bgErr<x. [x=0.]',
