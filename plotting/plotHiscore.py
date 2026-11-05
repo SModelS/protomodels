@@ -176,13 +176,36 @@ class HiscorePlotter ( LoggerBase ):
             return Z
         return None
 
+    def hasPrettyNames ( self, predictions : List[TheoryPrediction] ) -> bool:
+        """ check whether at least one theory prediction has a prettyName entry
+
+        :param predictions: list of theory predictions to check
+        :returns: True if at least one prediction has a prettyName
+        """
+        for tp in predictions:
+            if hasattr ( tp.dataset.globalInfo, "prettyName" ):
+                return True
+        return False
+
+    def prettyNameOfTP ( self, tp : TheoryPrediction ) -> str:
+        """ get the prettyName of a theory prediction
+
+        :param tp: the theory prediction
+        :returns: the prettyName, or 'n/a' if the prediction has none
+        """
+        if hasattr ( tp.dataset.globalInfo, "prettyName" ):
+            return tp.dataset.globalInfo.prettyName
+        return "n/a"
+
     def oneEntryHtmlRawNumbers ( self, tp : TheoryPrediction, f : TextIO,
-           isInBestCombo : bool, Zvalue : Union[None,float] ) -> str:
+           isInBestCombo : bool, Zvalue : Union[None,float],
+           showPrettyName : bool = False ) -> str:
         """ write one entry in rawnumbers.html into <f>
         :param tp: the theory prediction to be written the entry for.
         :param f: the file handle for rawnumbers.html
         :param isInBestCombo: indicate whether the theory prediction
         is part of the best combination. we will hilight these.
+        :param showPrettyName: add a pretty name column after the analysis name
 
         :returns: 'analysisid:datatype' as a string
         """
@@ -196,7 +219,10 @@ class HiscorePlotter ( LoggerBase ):
         topos = ", ".join ( ltopos )
         S = "?"
         dt = { "upperLimit": "ul", "efficiencyMap": "em", "combined": "comb" }
-        f.write ( f"<tr><td>{idAndUrl}</td><td>{dt[dtype]}</td> " )
+        f.write ( f"<tr><td>{idAndUrl}</td>" )
+        if showPrettyName:
+            f.write ( f"<td>{self.prettyNameOfTP ( tp )}</td>" )
+        f.write ( f"<td>{dt[dtype]}</td> " )
         Z = self.significanceOfTP ( tp )
         pids = getAllPidsOfTheoryPred ( tp )
         particles = namer.htmlName ( pids, addSign = False, addBrackets = False )
@@ -295,7 +321,12 @@ class HiscorePlotter ( LoggerBase ):
         """ write out the raw numbers of the excess, as html """
         f=open("rawnumbers.html","wt")
         f.write("<table>\n" )
-        f.write("<tr><th>Analysis Name</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx Z</th><th>Particles</th>" )
+        hasPrettyNames = self.hasPrettyNames (
+                list ( self.protomodel.bestCombo ) + list ( self.predictor.predictions ) )
+        f.write("<tr><th>Analysis Name</th>" )
+        if hasPrettyNames:
+            f.write("<th>Pretty Name</th>" )
+        f.write("<th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx Z</th><th>Particles</th>" )
         didordidnot,hassigs = self.hasSignals ( )
         self.pprint ( f"protomodel's database {didordidnot} have fake signals." )
         if hassigs:
@@ -308,11 +339,15 @@ class HiscorePlotter ( LoggerBase ):
         Zvalues.sort( reverse = True )
         for Zvalue in Zvalues:
             tp = tpAndZ[Zvalue]
-            idfer = self.oneEntryHtmlRawNumbers ( tp, f, True, Zvalue )
+            idfer = self.oneEntryHtmlRawNumbers ( tp, f, True, Zvalue,
+                    showPrettyName = hasPrettyNames )
             hasListed.append ( idfer )
         f.write("</table>\n" )
         f.write("<table style='color:grey'>\n" )
-        f.write("<tr><th>Not in Best Combo</th><th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx Z</th><th>Particles</th>" )
+        f.write("<tr><th>Not in Best Combo</th>" )
+        if hasPrettyNames:
+            f.write("<th>Pretty Name</th>" )
+        f.write("<th>Type</th><th>Dataset</th><th>Topos</th><th>Observed</th><th>Expected</th><th>Approx Z</th><th>Particles</th>" )
         tpAndZ = self.createTpDictionaryWithZs ( self.predictor.predictions )
         Zvalues = list ( tpAndZ.keys() )
         # Zvalues.sort( key = lambda x: -x if type(x) in [ float, int ] else 100 )
@@ -325,7 +360,8 @@ class HiscorePlotter ( LoggerBase ):
             dtype = tp.dataType()
             idfer = f"{anaId}:{dtype}"
             if not idfer in hasListed:
-                anaType = self.oneEntryHtmlRawNumbers ( tp, f, False, Zvalue )
+                anaType = self.oneEntryHtmlRawNumbers ( tp, f, False, Zvalue,
+                        showPrettyName = hasPrettyNames )
         f.write("</table>\n" )
         f.close()
 
