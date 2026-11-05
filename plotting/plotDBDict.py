@@ -799,6 +799,10 @@ class Plotter ( LoggerBase ):
             ax = plt.gca()
             ax.set_ylim(self.options["yrange"])
         mx = max ( H1[0][2] ) ## highest y-value, like at all
+        if stacked:
+            refmx = max ( np.sum ( H1[0], axis = 0 ) ) ## highest stacked y-value
+        else:
+            refmx = max ( max ( n ) for n in H1[0] ) ## highest y-value of any histogram
         # eps = .2
         eps = mx / 50.
         l8 = 0. + eps
@@ -856,12 +860,15 @@ class Plotter ( LoggerBase ):
             loc = "upper right"
             bbox_to_anchor = (1.12,1.02)
             if self.options["draw_reference"]:
-                #Ptot = float(sum(np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
-                #                          Pfake["13_gt"] ] )) )
-                hh = np.histogram ( np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
-                        Pfake["13_gt"] ] ) )
-                ex = np.mean(hh[0])/3.
-                # ex = Ptot / self.nbins
+                pfake = np.concatenate ( [ Pfake["8"], Pfake["13_lt"],
+                        Pfake["13_gt"] ] )
+                if weighted:
+                    fweights = np.concatenate ( [ weightsfake["8"],
+                            weightsfake["13_lt"], weightsfake["13_gt"] ] )
+                else:
+                    fweights = [ nm1 ] * len ( pfake )
+                hh = np.histogram ( pfake, bins=bins, weights=fweights )
+                ex = np.mean ( hh[0] )
                 plt.plot ( [0,1], [ex,ex], c=nmcolor, linestyle="dotted",
                            label="SM hypothesis" )
 
@@ -870,18 +877,18 @@ class Plotter ( LoggerBase ):
                 if self.options["no_stacked"]==False:
                     nmcolor = "black"
                     scale = 1. / 0.39894 * .75
-                    stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+                    stdnmy = [ scipy.stats.norm.pdf(x)*refmx * scale for x in stdnmx ]
                     plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
                                label="standard normal" )
                 else:
                     nmcolor = "tab:blue"
                     scale = 1. / 0.39894 * .75
-                    stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+                    stdnmy = [ scipy.stats.norm.pdf(x)*refmx * scale for x in stdnmx ]
                     plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
                                label="" )
                     nmcolor = "tab:red"
                     scale = 1. / 0.39894 * .75 *.6
-                    stdnmy = [ scipy.stats.norm.pdf(x)*mx * scale for x in stdnmx ]
+                    stdnmy = [ scipy.stats.norm.pdf(x)*refmx * scale for x in stdnmx ]
                     plt.plot ( stdnmx, stdnmy, c=nmcolor, linestyle="dotted",
                                label="" )
                     #nmcolor = "tab:red"
