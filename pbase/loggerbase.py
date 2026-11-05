@@ -2,7 +2,7 @@
 
 """ Class for all things around logging """
 
-import time, os
+import time, os, re
 from typing import Union
 from ptools import helpers
 from smodels_utils.helper.terminalcolors import *
@@ -10,7 +10,7 @@ from smodels_utils.helper.terminalcolors import *
 __all__ = [ "LoggerBase" ]
 
 class LoggerBase:
-    __slots__ = [ "walkerid", "module", "logdir" ]
+    __slots__ = [ "walkerid", "module", "logdir", "stripAnsi" ]
 
     def __init__ ( self, walkerid : str|int|None = 0,
                    verbosity : Union[int,str] = "info" ):
@@ -27,6 +27,7 @@ class LoggerBase:
         self.printLogMessages = False
         self.logdir = "logs/"
         self.logDebug = False # log the debug msgs in file?
+        self.stripAnsi = True # remove ansi escape sequences before logging
         # self.printHigherThan = "critical"
         module = str(type(self)).replace("<class '","").replace("'>","")
         p1 = module.find(".")
@@ -150,16 +151,23 @@ class LoggerBase:
         self.prevMessage = line
         self.log ( *args )
 
+    def stripAnsiCodes ( self, text : str ) -> str:
+        """ remove ansi escape sequences, e.g. terminal color codes """
+        return re.sub ( r'\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[@-_][0-?]*[ -/]*[@-~]',
+                        '', text )
+
     def log ( self, *args ):
         """ logging to file """
         helpers.mkdir ( self.logdir )
+        msg = " ".join(map(str,args))
+        logmsg = self.stripAnsiCodes ( msg ) if self.stripAnsi else msg
         ctr = 0
         while True:
             try:
                 with open( f"{self.logdir}/walker_{self.walkerid}.log", "a" ) as f:
-                    f.write ( f'[{self.module}-{time.strftime("%H:%M:%S")}] {" ".join(map(str,args))}\n' )
+                    f.write ( f'[{self.module}-{time.strftime("%H:%M:%S")}] {logmsg}\n' )
                 if self.printLogMessages:
-                    print ( f'[{self.module}-log] {" ".join(map(str,args))}' )
+                    print ( f'[{self.module}-log] {logmsg}' )
 
                 return
             except OSError as e:
