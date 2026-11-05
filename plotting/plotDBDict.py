@@ -350,6 +350,12 @@ class Plotter ( LoggerBase ):
             return True
         return False
 
+    def filterExpected ( self, v : dict ) -> bool:
+        """ very simple convenience to filter on expectedBG values """
+        if not "expectedBG" in v:
+            return False
+        return v["expectedBG"]>=self.filter
+
     def filterSigma ( self, ratio : float ) -> bool:
         """ filter according to self.filtersigma
         :param ratio: sqrt(expectedBG) / bgError
@@ -384,8 +390,9 @@ class Plotter ( LoggerBase ):
                     continue
                 if not self.filterByTime ( v ):
                     continue
-                if "expectedBG" in v and v["expectedBG"]>=self.filter and \
-                        self.filterSigma ( math.sqrt(v["expectedBG"]) / v["bgError"] ):
+
+                if self.filterExpected ( v ) and \
+                   self.filterSigma ( math.sqrt(v["expectedBG"]) / v["bgError"] ):
 #                        v["expectedBG"]/v["bgError"]>=self.filtersigma:
                     newdata[i]=v
                 else:
@@ -398,10 +405,13 @@ class Plotter ( LoggerBase ):
                             if self.verbose > 2:
                                 self.pprint ( f"[plotDBDict] removing {i} (is an UL)" )
                     else:
+                        pass
+                        """
                         eBG,bgerr=None,None
                         if "expectedBG" in v:
                             eBG = v["expectedBG"]
                             bgerr = v["bgError"]
+                        """
             self.data[ret["basename"]] = newdata
 
     def getSqrts100 ( self, anaid : str, lumi : Union[int,float] ) -> str:
