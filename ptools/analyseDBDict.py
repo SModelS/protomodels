@@ -360,8 +360,10 @@ def main():
     with open ( os.path.join ( repodir, "version" ), "rt" ) as f:
         version = f.read().strip().replace ( ".", "" )
     defaultdict = os.path.join ( repodir, "historic_database_stats", f"{version}.dict" )
+    home = os.path.expanduser ( "~" )
+    displayDefault = defaultdict.replace ( home, "~", 1 )
     argparser.add_argument ( '-d', '--dictfile', nargs='*',
-            help=f'input dictionary file(s) [{defaultdict}]',
+            help=f'input dictionary file(s) [{displayDefault}]',
             type=str, default=[defaultdict] )
     argparser.add_argument ( '-t', '--topos', nargs='*',
             help='filter for topologies, comma separated list or multiple arguments. prefix with ^ is negation. [None]',
