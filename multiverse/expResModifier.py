@@ -554,7 +554,8 @@ Just filter the database:
         return self.db
 
     def computeP ( self, obsN : float, bgExp : float, bgErr : float,
-            thirdMoment : Union[float,None] ):
+            thirdMoment : float|None, force : str = "any",
+            countObsAtExp : None|str = None ) -> float:
         """ a convenience function for computation of p values """
         assert  obsN != None, f"obsN is none?"
         nmin, nmax = self.nMCMC_min, self.nMCMC_max
@@ -562,14 +563,18 @@ Just filter the database:
             nmin, nmax = int ( nmin / 3 ), int ( nmax / 3 )
         if thirdMoment is None:
             p, computer = computeP ( obsN, bgExp, bgErr, nmin = nmin,
-                           nmax = nmax )
+                           nmax = nmax, force = force, 
+                           countObsAtExp = countObsAtExp )
             return p
+        # force is hardcoded to any for SLv2, because not yet fully implemented
         p, computer = computePSLv2 ( obsN, bgExp, bgErr, thirdMoment,
-                nmin = nmin, nmax = nmax )
+                nmin = nmin, nmax = nmax, force = force,
+                countObsAtExp = countObsAtExp )
         return p
 
     def computePForDataSet ( self, dataset,
-            obsN : Optional[int] = None )-> float:
+            obsN : Optional[int] = None, force : str = "any",
+            countObsAtExp : None|str = None )-> float:
         """ convenience function to compute p for dataset, with right
         nmin and nmax """
         nmin, nmax = self.nMCMC_min, self.nMCMC_max
@@ -578,7 +583,7 @@ Just filter the database:
         if obsN == None:
             obsN = dataset.dataInfo.observedN
         p, computer = computePForDataSet ( dataset, obsN, nmin = nmin,
-                                    nmax = nmax )
+            nmax = nmax, force=force, countObsAtExp = countObsAtExp )
         return p
 
     def addTxns ( self, D, txnames, dataset ):
@@ -594,11 +599,13 @@ Just filter the database:
         D["yields_only"]=True
         self.comments["yields_only"] = [ "true if we have a yields-only result,", "that is a result with neither UL nor eff maps" ]
         if not hasattr ( dataset.globalInfo, "comment" ):
-           self.pprint ( f"{anaid} has no comment in {dataset.globalInfo.path}" )
+           self.log ( f"{anaid} has no comment in {dataset.globalInfo.path}" )
+           # self.pprint ( f"{anaid} has no comment in {dataset.globalInfo.path}" )
            return
 
         if not hasattr ( dataset.globalInfo, "txnames" ):
-            self.pprint ( f"{anaid} has no txnames but no txnames line in globalInfo either! fix in {dataset.globalInfo.path}!" )
+            # self.pprint ( f"{anaid} has no txnames but no txnames line in globalInfo either! fix in {dataset.globalInfo.path}!" )
+            self.log ( f"{anaid} has no txnames but no txnames line in globalInfo either! fix in {dataset.globalInfo.path}!" )
             return
         ntxs = dataset.globalInfo.txnames.split(",")
         ntxs = tuple ( set ( [ x.strip() for x in ntxs ] ) )
@@ -1636,8 +1643,10 @@ Just filter the database:
                     for model_type in model_types:
                         mtype = model_type[0]
                         mname = model_type[1]
+                        """
                         if self.verbose < 5:
                             self.pprint ( f" `-  {regionSetName}:{mtype}" )
+                        """
                         if mtype == "onnx":
                             stopThis = False
                             continue

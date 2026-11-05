@@ -429,11 +429,15 @@ def compareCrossSectionLists ( l1 : list, l2 : list ) -> tuple:
     return True, "cross sections agree"
 
 def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
-       nmax : int = 200_000, nmin : int = 50_000 ) -> float:
+       nmax : int = 200_000, nmin : int = 50_000,
+       force : str = "any", countObsAtExp : None | str = None ) -> float:
     """ given a dataset, compute p for SM hypothesis
     :param obsN: if not None, compute for the observation
     :param nmax: maximum number of toys
     :param nmin: minimum number of toys
+    :param force: if "numerical" then force numerical method
+    if "analytical" then force analytical method, if "any" then let us choose
+    :param countObsAtExp: either full, or half, depending on how
 
     :returns: p-value
     """
@@ -446,10 +450,12 @@ def computePForDataSet ( dataset : DataSet, obsN : Union[int,None] = None,
         thirdMoment = dataset.dataInfo.thirdMoment
     if thirdMoment is None:
         p, computer = computeP ( obsN, exp, err, nmax = nmax, nmin = nmin,
-               srName = dataset.dataInfo.dataId )
+               srName = dataset.dataInfo.dataId, force = force,
+               countObsAtExp = countObsAtExp )
     else:
         p, computer = computePSLv2 ( obsN, exp, err, thirdMoment, nmax = nmax,
-                nmin = nmin, srName = dataset.dataInfo.dataId )
+                nmin = nmin, srName = dataset.dataInfo.dataId,
+                force = force, countObsAtExp = countObsAtExp )
     if p < 1e-100:
         print ( f"[helpers] {dataset.globalInfo.id}:{dataset.dataInfo.dataId} has p={p}: obs={obsN}, bg={exp:.3f}+-{err:.4f}" )
     return p, computer
@@ -553,7 +559,7 @@ def computeP ( obs : float, bg : float, bgerr : float,
     :param nmin: minimum number of toys
     :param sigN: if not none, then compute for this signal hypothesis
     :param force: if "numerical" then force numerical method
-    if "analytical" then force analytical method
+    if "analytical" then force analytical method, if "any" then let us choose
 
     :returns: p-value, computer
     """
@@ -675,6 +681,9 @@ def computePSLv2 ( obs : float, bg : float, bgerr : float,
     :param nmax: maximum number of toys
     :param nmin: minimum number of toys
     :param srName: name of this signal region
+    :param force: if "numerical" then force numerical method
+    if "analytical" then force analytical method, if "any" then let us choose
+    this isnt yet fully implemented
 
     :returns: p-value, computer
     """
