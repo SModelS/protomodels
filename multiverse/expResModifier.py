@@ -915,6 +915,10 @@ Just filter the database:
     def addToStats ( self, label, Dict, globalInfo ):
         """ add the content of dictionary Dict to the stats,
             under the label "label" """
+        if hasattr ( globalInfo, "prettyName" ) and \
+                globalInfo.prettyName is not None:
+            Dict["prettyName"] = globalInfo.prettyName
+            self.comments["prettyName"] = "pretty name of the analysis"
         if hasattr ( globalInfo, "supersedes" ):
             self.superseded.add ( globalInfo.supersedes )
         if hasattr ( globalInfo, "supersededBy" ):
@@ -1173,6 +1177,9 @@ Just filter the database:
                  "bsm_file": self.pmodel,
                  "fixedbackgrounds": self.fixedbackgrounds
         }
+        if self.compute_ps:
+            from ptools.helpers import g_countObsAtExp
+            meta["countObsAtExp"]=g_countObsAtExp
         if "K" in self.truth:
             meta["K_true"]=self.truth["K"]
         if "TL" in self.truth:

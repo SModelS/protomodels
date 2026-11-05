@@ -24,8 +24,8 @@ from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 ## for p-value computation,
 ## shall count them "half" (so that obs=0 -> p = 0.5)
 ## or shall we count them "full" (so that obs=0 -> p = 1.0 )
-# g_countObsAtExp = "half"
-g_countObsAtExp = "full"
+g_countObsAtExp = "half"
+# g_countObsAtExp = "full"
 
 hasWritten = { "computeP": 0 }
 
@@ -468,6 +468,9 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
     :param nmax: maximum number of toys
     :param nmin: minimum number of toys
     :param srName: name of signal region
+    :param countObsAtExp: either full, or half, depending on how
+    to count observations that are sitting exactly at the expectations
+    if None, use g_countObsAtExp
 
     :returns: p-value
     """
@@ -602,9 +605,14 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
     :param sigN: if not none, then compute for this signal hypothesis
     :param nmin: minimum number of toys
     :param srName: name of signal region
+    :param countObsAtExp: either full, or half, depending on how
+    to count observations that are sitting exactly at the expectations
+    if None, use g_countObsAtExp
 
     :returns: p-value
     """
+    if countObsAtExp == None:
+        countObsAtExp = g_countObsAtExp
     n = min ( nmin, nmax )
     ret = 0.
     central = bg
