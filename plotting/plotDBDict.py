@@ -101,7 +101,15 @@ class Plotter ( LoggerBase ):
                 if args["topologies"].startswith("^"):
                     self.description = f"all but {descr} searches"
         if "select_topologies" in args and args['select_topologies'] not in  [ None, [] ]:
-                args["select_topologies"], descr = namesForSetsOfTopologies ( args['select_topologies'] )
+                # resolve abbreviations per comma-separated entry, but keep
+                # wildcard patterns (e.g. "T*" or "*") untouched
+                patterns = []
+                for t in args['select_topologies'].split(","):
+                    if "*" in t or "?" in t:
+                        patterns.append ( t )
+                    else:
+                        patterns.append ( namesForSetsOfTopologies ( t )[0] )
+                args["select_topologies"] = ",".join ( patterns )
         if 'select_collaboration' in args:
             collaboration = args['select_collaboration'].upper()
             if collaboration in [ "", "*" ]:
@@ -395,8 +403,9 @@ class Plotter ( LoggerBase ):
 
     def isSelected ( self, txns : List ) -> bool:
         for tx in txns:
-            if tx in self.select_topologies:
-                return True
+            for selected in self.select_topologies:
+                if fnmatch.fnmatch ( tx, selected ):
+                    return True
         return False
 
     def compute ( self ):
@@ -1039,7 +1048,7 @@ def getArgs( cmdline = None ):
             help='filter for certain topologies, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. "^" before the name acts as negation [None]',
             type=str, default=None )
     argparser.add_argument ( '--select_topologies', nargs='?',
-            help='filter for certain topologies to hilight, e.g. T1, T2tt. Comma separated. The signal region must have a map for any one of the given topologies. [None]',
+            help='filter for certain topologies to hilight, e.g. T1, T2tt. Unix-type wildcards are allowed, e.g. T2* or T???. Comma separated. The signal region must have a map for any one of the given topologies. [None]',
             type=str, default=None )
     argparser.add_argument ( '--select_text', nargs='?',
             help='the text to go in the legend for the selected topos [selected]',
