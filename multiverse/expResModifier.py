@@ -586,6 +586,23 @@ Just filter the database:
             nmax = nmax, force=force, countObsAtExp = countObsAtExp )
         return p
 
+    def computeAllPsForDataSet ( self, dataset, D : dict ):
+        p = self.computePForDataSet ( dataset )
+        self.checkIfZero ( p, dataset )
+        D["orig_p"] = p
+        origZ = computeZFromP ( p )
+        D["orig_Z"]=origZ
+        if False:
+            p_num = self.computePForDataSet ( dataset, force="numerical" )
+            D["p_num"]=p_num
+            p_ana = self.computePForDataSet ( dataset, force="analytical" )
+            D["p_ana"]=p_ana
+            p_full = self.computePForDataSet ( dataset, countObsAtExp="full" )
+            D["p_full"]=p_full
+        self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation (no fudge factor applied)"
+        self.comments["orig_Z"]="the significance Z of the original observation (no factor applied)"
+        # return p
+
     def addTxns ( self, D, txnames, dataset ):
         """ add the 'txns' field """
         anaid = dataset.globalInfo.id
@@ -625,13 +642,7 @@ Just filter the database:
         D = { "origN": int(orig), "expectedBG": exp, "bgError": err,
               "fudge": self.fudge }
         self.addGlobalInfo ( D, dataset.globalInfo )
-        porig = self.computePForDataSet ( dataset )
-        self.checkIfZero ( porig, dataset )
-        D["orig_p"]=porig
-        self.comments["orig_p"]= [ "p-value (Gaussian nuisance) of original observation", "(no fudge factor applied)" ]
-        origZ = computeZFromP ( porig )
-        D["orig_Z"]=origZ
-        self.comments["orig_Z"]= [ "the significance Z of the original observation", "(no fudge factor applied)" ]
+        self.computeAllPsForDataSet ( dataset, D )
         label = f"{dataset.globalInfo.id}:{dataset.dataInfo.dataId}"
         txnames = [ tx.txName for tx in dataset.txnameList ]
         txnames.sort()
@@ -752,12 +763,7 @@ Just filter the database:
             D["thirdMoment"]=thirdMoment
             self.comments["thirdMoment"]="third moment for SLv2 likelihoods"
         if self.compute_ps:
-            p = self.computePForDataSet ( dataset )
-            D["orig_p"]=p
-            self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation (no fudge factor applied)"
-            origZ = computeZFromP ( p )
-            self.comments["orig_Z"]="the significance Z of the original observation (no factor applied)"
-            D["orig_Z"]=origZ
+            self.computeAllPsForDataSet ( dataset, D )
             p = self.computeP ( orig, exp, err, thirdMoment )
             self.comments["orig_p_fudged"]="p-value (Gaussian nuisance) of original observation (fudge factor applied)"
             self.checkIfZero ( p, dataset )
