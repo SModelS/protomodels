@@ -4,7 +4,7 @@ from os import PathLike
 from colorama import Fore
 from typing import Union, Dict, TextIO, List
 from unum import Unum
-import pickle, os, sys, subprocess, time, glob, colorama, math, scipy
+import pickle, os, sys, subprocess, time, glob, colorama, math, scipy, textwrap
 import numpy as np
 
 from smodels.base.physicsUnits import fb, TeV
@@ -807,7 +807,7 @@ class HiscorePlotter ( LoggerBase ):
         self.addLikelihoodPlots ( f )
         self.addSPlots ( f )
         f.write ( "<br>\n" )
-        f.write ( "<table width=80%>\n<tr><td>\n" )
+        f.write ( "<table width=100%>\n<tr><td>\n" )
         c_result, c_reason = True, "??"
         if len(self.protomodel.ul_critic_tpList) == 0:
             # from tester.critic import Critic
@@ -833,12 +833,17 @@ class HiscorePlotter ( LoggerBase ):
             f.write( f"<br><b>No UL Critic results!!</b>\n" )
         if hasattr ( self.protomodel, "llhd_critic" ):
             sdatasets = ", ".join ( self.protomodel.llhd_critic["datasets"] )
+            sdatasets = textwrap.fill ( sdatasets, width = 50,
+                    break_long_words = False, break_on_hyphens = False )
             robs = self.protomodel.llhd_critic['robs']
             rexp = self.protomodel.llhd_critic['rexp']
             col, endcol = "<span style='color: darkgreen;'>", "</span>"
             if robs>1.0:
                 col = "<span style='color: darkred;'>"
-            f.write ( f"<br><b>LLHD Critic:</b> {sdatasets}:: {col}r<sub>obs</sub>={robs}, r<sub>exp</sub>={rexp}{endcol}<br>\n" )
+            f.write ( "<br><b>LLHD Critic:</b>\n" )
+            f.write ( f"{sdatasets}::\n" )
+            f.write ( f"{col}r<sub>obs</sub>={robs},\n" )
+            f.write ( f"r<sub>exp</sub>={rexp}{endcol}<br>\n" )
         else:
             f.write ( f"<br><b>No LLHD Critic results!!</b><br>" )
 
