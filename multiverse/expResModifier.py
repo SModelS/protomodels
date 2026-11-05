@@ -597,6 +597,7 @@ Just filter the database:
             D["p_num"]=p_num
             p_ana = self.computePForDataSet ( dataset, force="analytical" )
             D["p_ana"]=p_ana
+        if False:
             p_full = self.computePForDataSet ( dataset, countObsAtExp="full" )
             D["p_full"]=p_full
         self.comments["orig_p"]="p-value (Gaussian nuisance) of original observation (no fudge factor applied)"
