@@ -24,8 +24,8 @@ from pbase.constants import LSP, X2Z, X1W, X3Z, X2W
 ## for p-value computation,
 ## shall count them "half" (so that obs=0 -> p = 0.5)
 ## or shall we count them "full" (so that obs=0 -> p = 1.0 )
-g_countObsAtExp = "half"
-# g_countObsAtExp = "full"
+# g_countObsAtExp = "half"
+g_countObsAtExp = "full"
 
 hasWritten = { "computeP": 0 }
 
