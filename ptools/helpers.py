@@ -489,6 +489,7 @@ def computePAnalytically ( obs : float, bg : float, bgerr : float,
 
     total_err = np.sqrt ( bg + bgerr**2 )
     lo,hi = max(0,bg - 5*total_err), bg + 5*total_err
+    assert countObsAtExp in [ "half", "full" ], f"countObsAtExp={countObsAtExp}" 
     if obs == 0:
         # the chances of observing zero or more is always one
         i,e = integrate.quad ( integrand, lo, hi, args=(0,),
@@ -619,6 +620,7 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
     if sigN != None:
         central = bg + sigN
     ctr = 0
+    assert countObsAtExp in [ "half", "full" ], f"countObsAtExp={countObsAtExp}" 
     while ret < .9 / nmax or ret > 1. - .9 / nmax:
         if ctr > 100:
             break
@@ -662,6 +664,7 @@ def computePNumerically ( obs : float, bg : float, bgerr : float,
 def computePSLv2 ( obs : float, bg : float, bgerr : float,
         third : float, nmax : int = 200_000,
         nmin : int = 50_000, srName : str = "?",
+        force : str = "any",
         countObsAtExp : None|str = None ) -> float:
     """ compute p value, gaussian nuisance model, w.r.t SM hypothesis, for SLv2
 
