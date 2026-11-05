@@ -1622,10 +1622,13 @@ Just filter the database:
         ret = []
         self.log ( "now fake backgrounds" )
         for expRes in listOfExpRes:
+            """
             if self.verbose < 15:
                 self.pprint ( f"starting {expRes.globalInfo.id} at {datetime.now().strftime('%H:%M:%S')}")
             else:
                 print ( ".", flush=True, end="" )
+            """
+            print ( ".", flush=True, end="" )
             t0 = time.time()
             if hasattr ( expRes.globalInfo, "statModels" ):
                 for regionSetName,model_types in expRes.globalInfo.statModels.items():
