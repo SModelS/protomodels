@@ -124,7 +124,7 @@ class LoggerBase:
             return
         if self.countLogs[line]>3 and not dontSuppress:
             return
-        print ( f"[{self.module}{self.swalkerid()}] {line}" )
+        print ( f"{GREY}[{self.module}{self.swalkerid()}]{RESET} {line}" )
         if not line in self.howFarBack:
             self.howFarBack[line]=0
         for mline,count in self.howFarBack.items():

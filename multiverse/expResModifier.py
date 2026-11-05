@@ -436,8 +436,8 @@ Just filter the database:
         :returns: none if not succesful, else protomodel object
         """
         self.environ = RunEnviron.new( allowN1N1Prod = allowN1N1Prod,
-                dbversion = dbversion, dbpath = self.dbpath,
-                userprior = getattr ( self.environ, "userprior", None ) )
+                dbversion = dbversion, dbpath = self.dbpath )
+                # userprior = getattr ( self.environ, "userprior", None ) )
         if filename == "":
             return None
         if not os.path.exists ( filename ):
@@ -1467,7 +1467,9 @@ Just filter the database:
 
     def replaceObservation ( self, expRes, sr, newObs, name ):
         #jsonEntries = expRes.globalInfo.jsons[ ws_i ]["observations"]
-        jsonEntries = expRes.globalInfo.cachedModels[ name ]["observations"]
+        model_name = self.getModelName ( name, expRes.globalInfo.id )
+        cMs = expRes.globalInfo.cachedModels
+        jsonEntries = cMs[ model_name ]["observations"]
         for i,jsonEntry in enumerate(jsonEntries):
             idx = 0
             pyhfbasename = sr["pyhf"]
@@ -1479,7 +1481,7 @@ Just filter the database:
             oldE = data[idx]
             if jsonEntry["name"]==pyhfbasename:
                 # print ( f"[expResModifier] replacing {oldE} with {newObs} in {jsonEntry} {expRes.globalInfo.id}" )
-                expRes.globalInfo.cachedModels[ name ]["observations"][i]["data"][idx]=newObs
+                cMs[ model_name ]["observations"][i]["data"][idx]=newObs
                 continue
 
     def removeOnnxes ( self, expRes : ExpResult ):
@@ -1494,6 +1496,14 @@ Just filter the database:
                 if mtype != "onnx":
                     n_models.append ( model_type )
             expRes.globalInfo.statModels[regionSetName]=n_models
+
+    def getModelName ( self, computer_name : str, anaId : str ) -> str:
+        """ tiny convenience function to get the statistical model name
+        """
+        if not computer_name.startswith ( f"{anaId}:" ):
+            return computer_name
+        ret = computer_name.replace(f"{anaId}:","")
+        return ret
 
     def fakeBackgroundsForPyhf ( self, expRes ):
         """ synthesize fake observations by sampling a pyhf model
@@ -1531,7 +1541,8 @@ Just filter the database:
                     stopThis = True
                 if stopThis:
                     break
-            srs = srs_in_workspaces[computer.name]
+            model_name = self.getModelName ( computer.name, anaId )
+            srs = srs_in_workspaces[model_name]
             ws = computer.workspace
             #if ws is None:
             #    print ( f"[expResModifier] pyhf.InvalidModel for {anaId} [{computer.name}]" )
