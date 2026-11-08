@@ -2204,7 +2204,7 @@ class Manipulator ( LoggerBase ):
 
         return tmpMass
 
-    def randomlyInitialiseWidth ( self, pid, protomodel : ProtoModel|None ):
+    def randomlyInitialiseWidth ( self, pid, protomodel : ProtoModel|None = None ) -> float:
         if protomodel is None:
             protomodel = self.M
         if not pid in protomodel.pids_with_widths:
