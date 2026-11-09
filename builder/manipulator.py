@@ -1250,7 +1250,7 @@ class Manipulator ( LoggerBase ):
             probSSingle : float = 0.8, ssmSigma : float = 1.0,
             probMerge : float = 0.05, sigmaFreeze : float = 0.5,
             probMassive : float = 0.3, probMass : float = 0.05,
-            run_mcmc : bool = False, cap_ssm : float = 100 ) -> int:
+            run_mcmc : bool = False, cap_ssm : float = 100 ) -> List[str]:
         """Randomly modify the proto-model following the steps:
 
         1) A random particle can be unfrozen with a probability
@@ -1264,7 +1264,7 @@ class Manipulator ( LoggerBase ):
         6) A random mass can be changed by a maximum value of dx
         with probability of probMass
 
-        :returns: number of changes made
+        :returns: list of strings describing the changes made
         """
 
         self.proposal_ratio = {'add_par':{'q':1.0}, 'rem_par':{'q':1.0},
@@ -1277,6 +1277,7 @@ class Manipulator ( LoggerBase ):
             self.propose_model = self.M.copy()
         changeDesc = {}
         nChanges = 0
+        change_descriptions = []
 
         # If TL < = 0, try to drastically change model,
         # else will be stuck in a model with low TL for many steps
@@ -1294,6 +1295,8 @@ class Manipulator ( LoggerBase ):
                 accept_move = self.proposal_density(move='add_par', force_move=force_move)
                 if accept_move:
                     nChanges += 1
+                    names = ", ".join(f"{namer.asciiName(p)}({p})" for p in recentlyUnfrozen)
+                    change_descriptions.append(f"unfroze {names}")
                     self.log(f"Accept unfreezing of {namer.asciiName(recentlyUnfrozen)} ({recentlyUnfrozen})")
                 else:
                     self.log(f"Reject unfreezing {namer.asciiName(recentlyUnfrozen)} ({recentlyUnfrozen})")
@@ -1304,43 +1307,56 @@ class Manipulator ( LoggerBase ):
                 accept_move = self.proposal_density(move='rem_par', force_move=force_move)
                 if accept_move:
                     nChanges += 1
+                    names = ", ".join(f"{namer.asciiName(p)}({p})" for p in frozenParticles)
+                    change_descriptions.append(f"froze {names}")
                     self.log(f"Accept freezing of {', '.join(map(str,frozenParticles))} ({namer.asciiName(frozenParticles)})")
                     #print(f"Protomodel now: {self.M.unFrozenParticles()}")
                 else:
                     self.log(f"Reject freezing of {namer.asciiName(frozenParticles)}({', '.join(map(str,frozenParticles))})")
 
             changes = self.randomlyChangeBranchings(protomodel=self.propose_model, prob=probBR)
-            if changes > 0:
+            if changes:
                 accept_move = self.proposal_density(move='br', force_move=force_move)
                 if accept_move :
                     nChanges += 1          #;print(f"Protomodel after: {self.M.decays}")
+                    change_descriptions += changes
                     self.log("Accept changes in branchings")
                 else: self.log(f"Reject changing branchings")
 
             changes = self.randomlyChangeSignalStrengths(protomodel=self.propose_model,
                     prob = probSS, probSingle = probSSingle, ssmSigma = ssmSigma, cap_ssm=cap_ssm )
-            if changes > 0:
+            if changes:
                 accept_move = self.proposal_density(move='ssm', force_move=force_move)
                 if accept_move:
                     nChanges += 1       #; print(f"Protomodel after: {self.M.ssmultipliers}")
+                    change_descriptions += changes
                     self.log("Accept changes in ssm")
                 else: self.log("Reject changes in ssm")
 
 
         else:
             changes = self.randomlyChangeBranchings(protomodel = self.M, prob=0.4, zeroBRprob = 0., singleBRprob = 0., addBRprob = 0.)
-            nChanges += changes
+            nChanges += len(changes)
+            change_descriptions += changes
             changes = self.randomlyChangeSignalStrengths(protomodel=self.M, prob=0.4, probSingle=1.0, ssmSigma=ssmSigma)
-            nChanges += changes
+            nChanges += len(changes)
+            change_descriptions += changes
 
-        nChanges += self.randomlyChangeWidths ( )
+        changes = self.randomlyChangeWidths ( )
+        nChanges += len(changes)
+        change_descriptions += changes
 
         if not nChanges: #If nothing has changed, force a random change of masses
             changes = self.randomlyChangeMasses(prob=1.0)
-            nChanges += changes
+            nChanges += len(changes)
+            change_descriptions += changes
         else: #Change masses with 5% probability
-            if self.run_mcmc: self.randomlyChangeMasses(prob = 0.7)
-            else: self.randomlyChangeMasses(prob = probMass)
+            if self.run_mcmc:
+                changes = self.randomlyChangeMasses(prob = 0.7)
+            else:
+                changes = self.randomlyChangeMasses(prob = probMass)
+            nChanges += len(changes)
+            change_descriptions += changes
 
         if self.run_mcmc:
             check_dim_change = self.z_model(old_model, self.M)
@@ -1350,28 +1366,30 @@ class Manipulator ( LoggerBase ):
         #print(f"q_total = {self.proposal_ratio['q_total']}")
         #Update cross-sections (if needed)
         self.M.getXsecs()
-        return nChanges
+        return change_descriptions
 
-    def randomlyChangeWidths ( self, pb : float = 0.05 ) -> int:
+    def randomlyChangeWidths ( self, pb : float = 0.05 ) -> List[str]:
         """ randomly change the widths of particles
         :param pb: probability for each particle per step to have its width changed
-        :returns: number of changes made
+        :returns: list of strings describing the changes made
         """
         if not hasattr ( self.M, "widths" ):
             self.log ( f"protomodel has no widths?" )
-            return 0
-        n_changes = 0
+            return []
+        changes = []
         ## get a list of unfrozen particles with widths -> "candidates"
         unfrozen = self.M.unFrozenParticles ( withLSP = False )
         candidates = [ x for x in unfrozen if x in self.M.widths ]
         for cpid in candidates:
             u = np.random.uniform(0,1)
             if u < pb:
-                n_changes += self.randomlyChangeWidthOf ( cpid )
-        return n_changes
+                changes += self.randomlyChangeWidthOf ( cpid )
+        return changes
 
-    def randomlyChangeWidthOf ( self, pid : int ) -> int:
-        """ randomly change the width of pid """
+    def randomlyChangeWidthOf ( self, pid : int ) -> List[str]:
+        """ randomly change the width of pid
+        :returns: list of strings describing the changes made
+        """
         cw = self.widths[pid] ## current width
         ## we have three categories:
         # cw = 1.0 GeV -> promptly decaying
@@ -1422,7 +1440,9 @@ class Manipulator ( LoggerBase ):
                 n_changes = 1
         self.widths[pid]=nw
         self.pprint ( f"Randomly changed width of {namer.asciiName(pid)}({pid}) from {cw:.3g} to {nw:.3g}" )
-        return n_changes
+        if not n_changes:
+            return []
+        return [ f"changed width of {namer.asciiName(pid)}({pid}) from {cw:.3g} to {nw:.3g}" ]
 
     def randomlyUnfreezeParticle ( self, cap_ssm : float = 100. ) -> int:
         """ Unfreezes a (random) frozen particle according to gaussian distribution
@@ -1466,7 +1486,7 @@ class Manipulator ( LoggerBase ):
 
     def randomlyChangeBranchings ( self, protomodel = None, prob : float =0.2,
             zeroBRprob : float = 0.05, singleBRprob : float = 0.05,
-            addBRprob : float = 0.1 ) -> int:
+            addBRprob : float = 0.1 ) -> List[str]:
         """ randomly change the branchings of a single particle
 
         :param prob: Probability for changing a branching ratio
@@ -1475,23 +1495,23 @@ class Manipulator ( LoggerBase ):
         keep only one decay channel
         :param addBRprob: With probability addBRprob, add a new decay channel
         for the pid
-        :returns: number of changes
+        :returns: list of strings describing the changes made
         """
         if protomodel is None:
             protomodel = self.M
         uBranch = np.random.uniform(0,1)
         if uBranch < (1-prob):
             self.log("Not changing branchings")
-            return 0
+            return []
 
         unfrozenparticles = self.M.unFrozenParticles( withLSP=False )
         if len(unfrozenparticles)<2:
             self.log( "Not enough unfrozen particles to change random branching" )
-            return 0
+            return []
         p = int(np.random.choice ( unfrozenparticles ))
         if not p in self.M.decays.keys():
             # this is now allowed to happen
-            return 0
+            return []
             self.highlight ( "error", f"why is {int(p)} not in decays?? {self.M.decays.keys()}" )
             # we dont know about this decay? we initialize with the default!
 
@@ -1511,9 +1531,9 @@ class Manipulator ( LoggerBase ):
     def randomlyChangeBranchingOfPid ( self, pid : int,
             protomodel : Union[ProtoModel,None] = None,
             zeroBRprob : float = 0.05, singleBRprob : float = 0.05,
-            addBRprob : float = 0.1 ) -> int:
+            addBRprob : float = 0.1 ) -> List[str]:
         """ randomly change the branching a particle pid
-        :returns: number of changes
+        :returns: list of strings describing the changes made
         """
 
         """
@@ -1527,6 +1547,7 @@ class Manipulator ( LoggerBase ):
             protomodel = self.M
 
         old_decays = copy.deepcopy ( protomodel.decays[pid] )
+        changes = []
 
         openChannels = protomodel.getOpenChannels(pid)
         dkeys = set()
@@ -1544,7 +1565,7 @@ class Manipulator ( LoggerBase ):
             if show_logs:
                 self.log = old_log
             """
-            return 0
+            return []
 
         self.proposal_ratio['br']['rem'] = 1.0
         self.proposal_ratio['br']['add'] = 1.0
@@ -1580,14 +1601,15 @@ class Manipulator ( LoggerBase ):
                 p_name = namer.asciiName(pid)
                 dp_name = namer.asciiName(dpid)
                 self.log ( f"changed decay of {pid_name} -> {dp_name} to {br:.2f}" )
+                changes.append ( f"changed decay of {pid_name}({pid}) -> {dp_name}({dpid}) to {br:.2f}" )
                 protomodel.decays[pid].update({dpid: br})
 
             # print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
             # self.log = old_log
             # if protomodel.decays[pid] == old_decays:
             if self.equalDecays ( old_decays, protomodel.decays[pid] ):
-                return 0
-            return 1
+                return []
+            return changes
 
         #Otherwise randomly change each channel(s) (based on the current BR)
         for dk in dkeys:
@@ -1613,6 +1635,7 @@ class Manipulator ( LoggerBase ):
                     for dpid in decay_chan:
                         self.record ( f"Removed decay {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} with br {oldbr:.2f}." )
                         self.log ( f"Removed decay {pid_name} -> {namer.asciiName(dpid)} with br {oldbr:.2f}." )
+                        changes.append ( f"removed decay of {pid_name}({pid}) -> {namer.asciiName(dpid)}({dpid}) with br {oldbr:.2f}" )
                         if dpid in protomodel.decays[pid]:
                             protomodel.decays[pid].pop(dpid)
                         else:
@@ -1628,6 +1651,7 @@ class Manipulator ( LoggerBase ):
                     protomodel.decays[pid][dpid] = br
                     self.record ( f"Change branchings of {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                     self.log ( f"Changed branchings of {pid_name} -> {namer.asciiName(dpid)} to {br:.2f}" )
+                    changes.append ( f"changed branching of {pid_name}({pid}) -> {namer.asciiName(dpid)}({dpid}) from {oldbr:.2f} to {br:.2f}" )
 
             else:
                 #Add channel(s) (with addBRprob probability)
@@ -1646,6 +1670,7 @@ class Manipulator ( LoggerBase ):
                         protomodel.decays[pid][dpid] = br
                         self.record ( f"Added decay of {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} with br {br:.2f}" )
                         self.log ( f"Added decay of {pid_name} -> {namer.asciiName(dpid)} with br {br:.2f}" )
+                        changes.append ( f"added decay of {pid_name}({pid}) -> {namer.asciiName(dpid)}({dpid}) with br {br:.2f}" )
 
 
         # Make sure there is at least one open channel:
@@ -1660,6 +1685,7 @@ class Manipulator ( LoggerBase ):
             for dpid in decay_chan:
                 self.record ( f"Canged decay of {namer.texName(pid,addDollars=True)} -> {namer.texName(dpid,addDollars=True)} to {br:.2f}" )
                 self.log ( f"Changed decay of {pid_name} -> {namer.asciiName(dpid)} to {br:.2f}" )
+                changes.append ( f"changed decay of {pid_name}({pid}) -> {namer.asciiName(dpid)}({dpid}) to {br:.2f}" )
                 protomodel.decays[pid].update({dpid: br})
 
         # Make sure BRsprot add up to 1:
@@ -1670,8 +1696,8 @@ class Manipulator ( LoggerBase ):
         #    self.log = old_log
         # if protomodel.decays[pid] == old_decays:
         if self.equalDecays ( old_decays, protomodel.decays[pid] ):
-            return 0
-        return 1
+            return []
+        return changes
 
     def equalDecays ( self, old_decays, new_decays ):
         """ check for equality between two decays dictionaries
@@ -1689,7 +1715,7 @@ class Manipulator ( LoggerBase ):
 
     def randomlyChangeSignalStrengths ( self, protomodel=None, prob : float =0.25,
             probSingle : float =0.8, ssmSigma : float = 1.0,
-            cap_ssm : float =100. ) -> int:
+            cap_ssm : float =100. ) -> List[str]:
         """ randomly change one of the signal strengths according to a gaussian
         distribution centered around the original SSM.
 
@@ -1698,16 +1724,16 @@ class Manipulator ( LoggerBase ):
         single particle
         :param ssmSigma: Width for the gaussian, put to 1.0?
 
-        :returns: 1 if something got changed, else 0
+        :returns: list of strings describing the changes made
         """
 
         uSSM = np.random.uniform(0,1)
         if uSSM < (1-prob):
             self.log("Not changing SSMs")
-            return 0
+            return []
 
         if protomodel is None:
-            protmodel = self.M
+            protomodel = self.M
 
         if np.random.uniform(0,1) < probSingle:
             return self.randomlyChangeSSOfOneParticle(protomodel = protomodel,
@@ -1717,7 +1743,7 @@ class Manipulator ( LoggerBase ):
 
         if len(unfrozenparticles)<2:
             self.log ( "Not enough unfrozen particles to change random ssm" )
-            return 0
+            return []
 
         #first get allowed production modes
         prodModes = protomodel.getAllowedProdModes()
@@ -1735,7 +1761,7 @@ class Manipulator ( LoggerBase ):
         a = np.random.uniform ( 0., 1. )
         if a > .9: ## sometimes, just knock out a random SSM
             prod_list = list(protomodel.ssmultipliers.keys())
-            if len(prod_list) == 0: return 0
+            if len(prod_list) == 0: return []
             random_ind = int(np.random.choice(len(prod_list)))
             randomProd = prod_list[random_ind]
             self.log(f"Remove prod mode {namer.texName(randomProd,addDollars=True)}" )
@@ -1748,24 +1774,26 @@ class Manipulator ( LoggerBase ):
             prob_rem = 0.1/len(prod_list)
             self.proposal_ratio['ssm']['rem'] = prob_add/prob_rem
             #print(f"Prob to rem {self.proposal_ratio['ssm']['rem']}")
-            return 1
+            return [ f"removed production mode {namer.asciiName(randomProd)} ({randomProd})" ]
         if a < .1: ## sometimes, just try to set ssm to 1.
             prod_list = list(protomodel.ssmultipliers.keys())
-            if len(prod_list) == 0: return 0
+            if len(prod_list) == 0: return []
             random_ind = int(np.random.choice(len(prod_list)))
             randomProd = prod_list[random_ind]
+            oldssm = protomodel.ssmultipliers[randomProd]
             self.log(f"Change ssm of {namer.texName(randomProd,addDollars=True)} to 1." )
             protomodel.ssmultipliers[randomProd]=1.
-            return 1
+            return [ f"changed ssm of {namer.asciiName(randomProd)} ({randomProd}) from {oldssm:.2f} to 1" ]
         if .1 < a < .2: ## sometimes, just try to set to ssm of different particle
             prod_list = list(protomodel.ssmultipliers.keys())
-            if len(prod_list) == 0: return 0
+            if len(prod_list) == 0: return []
             random_ind = int(np.random.choice(len(prod_list)))
             randomProd = prod_list[random_ind]
+            oldssm = protomodel.ssmultipliers[randomProd]
             v = np.random.choice ( list ( protomodel.ssmultipliers.values() ) )
             self.log ( f"Change ssm of {namer.texName(randomProd,addDollars=True)} to {v:.2f}" )
             protomodel.ssmultipliers[randomProd]= float(v)
-            return 1
+            return [ f"changed ssm of {namer.asciiName(randomProd)} ({randomProd}) from {oldssm:.2f} to {v:.2f}" ]
 
         #Else either add new ssm or change existing ssm of pair
         #Randomly choose which process pids to change:
@@ -1786,18 +1814,21 @@ class Manipulator ( LoggerBase ):
             self.proposal_ratio['ssm']['add'] = prob_rem/prob_add
             #print(f"Adding new pair of ssm {pidpair} with ratio {self.proposal_ratio['ssm']['add']}")
             self.log( f"Add new prod mode {namer.texName(pair,addDollars=True)} with ssm {newSSM}" )
+            return [ f"added production mode {namer.asciiName(pair)} ({pair}) with ssm {newSSM:.2f}" ]
         else:
+            oldssm = protomodel.ssmultipliers[pair]
             newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
             if newSSM > cap_ssm: newSSM = cap_ssm
             protomodel.ssmultipliers[pair] = newSSM
             #self.changeSSM(pair,newSSM)
             self.log ( f"Changing ssm of {namer.asciiName(pair[0])},{namer.asciiName(pair[1])}: {newSSM:.2f}." )
             self.record ( f"change ssm of {namer.texName(pair[0])},{namer.texName(pair[1])} to {newSSM:.2f}." )
-        return 1
+            return [ f"changed ssm of {namer.asciiName(pair)} ({pair}) from {oldssm:.2f} to {newSSM:.2f}" ]
 
-    def randomlyChangeSSOfOneParticle ( self, pid = None, protomodel=None, ssmSigma=1.0, cap_ssm=100. ):
+    def randomlyChangeSSOfOneParticle ( self, pid = None, protomodel=None, ssmSigma=1.0, cap_ssm=100. ) -> List[str]:
         """ randomly change the SS's consistently for one pid
         :param pid: change for this pid. If None, change of a random pid.
+        :returns: list of strings describing the changes made
         """
         if protomodel is None:
             protomodel = self.M
@@ -1806,23 +1837,24 @@ class Manipulator ( LoggerBase ):
 
         if len(unfrozenparticles)<2:
             self.log ( "Not enough unfrozen particles to change random ssm" )   #why? we are changing only for 1 particle?
-            return 0
+            return []
 
         p = int(np.random.choice ( unfrozenparticles ))
         if pid != None: p = pid
         self.log (f"Changing all ssms of {namer.asciiName(p)} ({p})" )
 
-        ssms = []
+        changes = []
         for dpd,v in protomodel.ssmultipliers.items():
             if p in dpd or -p in dpd:
+                oldssm = v
                 newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
                 if newSSM > cap_ssm: newSSM = cap_ssm
                 protomodel.ssmultipliers[dpd]= newSSM
                 self.log (f"Changing ssm of {namer.asciiName(dpd)} ({dpd}) to {newSSM:.4g}" )
                 #self.changeSSM ( dpd, newssm )
-                ssms.append ( newSSM )
+                changes.append ( f"changed ssm of {namer.asciiName(dpd)} ({dpd}) from {oldssm:.4g} to {newSSM:.4g}" )
 
-        return 1
+        return changes
 
     def pidPairIsInSSMs ( self, pids : Tuple ) -> bool:
         """ is a given pid pair in SSMs? """
@@ -2217,13 +2249,13 @@ class Manipulator ( LoggerBase ):
         return 10**(lw)
 
     def randomlyChangeMasses ( self, prob = 0.05, dx = 200.0,
-           protomodel : ProtoModel|None=None ) -> int:
+           protomodel : ProtoModel|None=None ) -> List[str]:
         """ take a random step in mass space for a single unfrozen particle
 
         :param prob: Probability for changing the mass
         :param dx: Defines the interval for selecting the delta m (-dx,dx)
 
-        :returns: number of changes
+        :returns: list of strings describing the changes made
         """
         if protomodel is None:
             protomodel = self.M
@@ -2231,12 +2263,12 @@ class Manipulator ( LoggerBase ):
         uMass = np.random.uniform ( 0., 1. )
         if uMass < (1-prob):
             self.log("Not changing masses")
-            return 0
+            return []
 
         unfrozen = protomodel.unFrozenParticles()
         if len(unfrozen)==0:
             self.log("Error: No particles to change masses?")
-            return 0
+            return []
 
         pid = int(np.random.choice ( unfrozen ))
         pid_name = namer.asciiName ( pid )
@@ -2265,23 +2297,23 @@ class Manipulator ( LoggerBase ):
             ## heed the wall!
             minMass = max ( self.walledpids[abs(pid)], minMass )
 
-        ret = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass,
+        changes = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass,
                 maxMass=maxMass )
         if pid in [ X2Z, X1W, X3Z, 1000035, X2W ] and \
                 pid in protomodel.unFrozenParticles():
             # for the ewkinos randomly sync partners (e.g. N2 for C1)
-            ret += self.randomlySyncOtherEwkinos ( pid )
+            changes += self.randomlySyncOtherEwkinos ( pid )
 
         # Fix branching ratios and rescale signal strenghts,
         # so other channels are not affected
-        ret += self.removeIllegalBRs(rescaleSSMs=True)
+        self.removeIllegalBRs(rescaleSSMs=True)
 
-        return ret
+        return changes
 
-    def randomlySyncOtherEwkinos ( self, pid : int ) -> int:
+    def randomlySyncOtherEwkinos ( self, pid : int ) -> List[str]:
         pid_name = namer.asciiName ( pid )
         p = np.random.uniform (0, 1 )
-        ret = 0
+        changes = []
         if pid in [ X2W ] and pid in self.M.unFrozenParticles():
             # we have an unfrozen C2
             if X3Z in self.M.unFrozenParticles() and p < .25:
@@ -2289,15 +2321,21 @@ class Manipulator ( LoggerBase ):
                 if self.M.masses[X2W] > self.M.masses[X2Z]:
                     # C2 is larger than N2, we can sync!
                     # N3 can take on C2!
+                    oldmass = self.M.masses[X3Z]
                     self.M.masses[X3Z] = self.M.masses[X2W]
+                    if self.M.masses[X3Z] != oldmass:
+                        changes.append ( f"changed mass of {namer.asciiName(X3Z)}({X3Z}) from {oldmass:.1f} to {self.M.masses[X3Z]:.1f}" )
         if pid in [ X3Z ] and pid in self.M.unFrozenParticles():
             # we have an unfrozen N3
             if X2W in self.M.unFrozenParticles() and p < .25:
                 # C2 is unfrozen, can we sync?
                 if self.M.masses[X3Z] > self.M.masses[X1W]:
                     # N3 is larger than C1, we can sync!
+                    oldmass = self.M.masses[X2W]
                     self.M.masses[X2W] = self.M.masses[X3Z]
                     # C2 can be synced to N3!
+                    if self.M.masses[X2W] != oldmass:
+                        changes.append ( f"changed mass of {namer.asciiName(X2W)}({X2W}) from {oldmass:.1f} to {self.M.masses[X2W]:.1f}" )
 
         if pid in [ X2Z, X1W ] and pid in self.M.unFrozenParticles():
             # for C1 and N2, if one of the two gets changed,
@@ -2333,13 +2371,17 @@ class Manipulator ( LoggerBase ):
                 was_offshell = False
                 if otherpid not in were_frozen:
                     was_offshell = self.checkIfOffshell(otherpid)
+                oldmass = self.M.masses[otherpid]
                 self.M.masses[otherpid] = float(mass)
-                ret += 1
+                if self.M.masses[otherpid] != oldmass:
+                    changes.append ( f"changed mass of {namer.asciiName(otherpid)}({otherpid}) from {oldmass:.1f} to {self.M.masses[otherpid]:.1f}" )
                 #  * np.random.uniform ( .99, 1.01 ))
                 if heavypid not in were_frozen: #check for canonical ordering
                     if self.M.masses[otherpid] > self.M.masses[heavypid]:
+                        oldmass = self.M.masses[otherpid]
                         self.M.masses[otherpid] = self.M.masses[heavypid] - 10.
-                        ret += 1
+                        if self.M.masses[otherpid] != oldmass:
+                            changes.append ( f"changed mass of {namer.asciiName(otherpid)}({otherpid}) from {oldmass:.1f} to {self.M.masses[otherpid]:.1f}" )
                 #  * np.random.uniform ( .99, 1.01 ))
                 self.log ( f"mass of {pid_name} got changed to {mass:.1f}. hattrick, changing also for {namer.asciiName(otherpid)}!" )
                 # If the particle was frozen before, we need to unfreeze
@@ -2347,16 +2389,13 @@ class Manipulator ( LoggerBase ):
                     initialized = self.initBranchings(otherpid)
                     if initialized:
                         self.initSSMFor(otherpid)
-                    ret += 1
                 #if otherpid was not offshell before but now is offshell and vice versa, initialize branchings
                 else:
                     if self.checkIfOffshell(otherpid) != was_offshell:
                         self.initBranchings(otherpid)
-                        ret += 1
                 if otherpid in self.M.unFrozenParticles(): #added check since sometimes after initBranchings, total br is 0 and particle is removed
                     self.record ( f"change mass of {namer.asciiName(otherpid)} to {self.M.masses[otherpid]}" )
-                    ret+=1
-        return ret
+        return changes
 
     def inCorridorRegion ( self, mstop, mlsp ):
         """ are we in the top corridor region, i.e. (mstop - mlsp) \approx mtop?
@@ -2369,7 +2408,7 @@ class Manipulator ( LoggerBase ):
 
     def randomlyChangeMassOf ( self, pid : int, dx : Union[float,None] = None,
             minMass : Union[float,None] = None,
-            maxMass : Union[float,None] = None ) -> int:
+            maxMass : Union[float,None] = None ) -> List[str]:
         """ randomly change the mass of pid
         :param dx: the delta x to change. If none, then use a model-dependent
                    default
@@ -2378,7 +2417,7 @@ class Manipulator ( LoggerBase ):
         :param maxMass: maximum allowed mass for the particle.
                         If not defined, use the protomodel maxMass.
 
-        :returns: number of masses that were changed
+        :returns: list of strings describing the changes made
         """
         spid = namer.asciiName(pid)
         denom = 1.0
@@ -2450,14 +2489,22 @@ class Manipulator ( LoggerBase ):
                 break
 
         if pid == LSP:
-            delta_mass = tmpmass - self.M.masses[LSP]
+            old_lsp_mass = self.M.masses[LSP]
+            delta_mass = tmpmass - old_lsp_mass
             self.M.masses[pid] = tmpmass
             self.pprint(f"Randomly changing m(LSP) to {tmpmass:.2f}.")
+            old_masses = { ipid : mass for ipid, mass in self.M.masses.items() if ipid != LSP }
             shifted=self.shiftAllMassesBy(delta_mass, lsp=False)
-            return len(shifted)
+            changes = []
+            if tmpmass != old_lsp_mass:
+                changes.append ( f"changed mass of {spid}({pid}) from {old_lsp_mass:.1f} to {tmpmass:.1f}" )
+            for ipid in shifted:
+                if ipid in old_masses and self.M.masses[ipid] != old_masses[ipid]:
+                    changes.append ( f"changed mass of {namer.asciiName(ipid)}({ipid}) from {old_masses[ipid]:.1f} to {self.M.masses[ipid]:.1f}" )
+            return changes
 
         allpids = self.forcedMassDegeneratePids(pid)
-        nchanges = 0
+        changes = []
         if len(allpids)==1:
             #self.log(f"Now randomly changing m[{spid}({pid})] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
             self.pprint(f"Now randomly changing m[{spid}({pid})] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
@@ -2467,7 +2514,10 @@ class Manipulator ( LoggerBase ):
 
         for ipid in allpids:
             sipid=namer.asciiName(ipid)
+            old_ipid_mass = self.M.masses[ipid]
             self.M.masses[ipid]=tmpmass
+            if tmpmass != old_ipid_mass:
+                changes.append ( f"changed mass of {sipid}({ipid}) from {old_ipid_mass:.1f} to {tmpmass:.1f}" )
             if ipid in [ X2Z, X1W, X3Z, X2W ]:
                 if ipid in [ X2Z, X3Z ]: is_offshell = (tmpmass - self.M.masses[LSP]) < ( smMasses["Z"] + smWidths["Z"])
                 if ipid in [ X1W, X2W ]: is_offshell = (tmpmass - self.M.masses[LSP]) < (smMasses["W"] + smWidths["W"])
@@ -2478,13 +2528,11 @@ class Manipulator ( LoggerBase ):
                         self.pprint ( f"randomly changing mass of {sipid}({ipid}) to {tmpmass:.1f}" )
                         self.record ( f"change mass of {namer.texName(ipid,addDollars=True)} to {tmpmass:.1f}" )
                         self.initBranchings(ipid)
-                        nchanges += 1
             else:
                 self.pprint ( f"randomly changing mass of {sipid}({ipid}) to {tmpmass:.1f}" )
                 self.record ( f"change mass of {namer.texName(ipid,addDollars=True)} to {tmpmass:.1f}" )
-                nchanges += 1
 
-        return nchanges
+        return changes
 
     def reassignPIDs(self):
         """ Check if a heavier mass eigenstate is present when the lighter one is
