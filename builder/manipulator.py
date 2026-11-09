@@ -210,7 +210,7 @@ class Manipulator ( LoggerBase ):
             if newmass == m:
                 continue
             self.M.masses[pid] = newmass
-            changes.append ( f"shifted m[{namer.asciiName(pid)}({pid})] from {m:.1f} to {newmass:.1f} (mass spectrum shift)" )
+            changes.append ( f"shifted m[{namer.nameAndPid(pid)}] from {m:.1f} to {newmass:.1f} (mass spectrum shift)" )
         return changes
 
     def changeMassAccToSSM(self, pid_pair: Tuple, new_ssm: Union[int, float], sqrts:Union[int,float,Unum] = 13):
@@ -561,7 +561,7 @@ class Manipulator ( LoggerBase ):
         if filename == "":
             line = "initializing from dictionary: "
             for k,v in D["masses"].items():
-                line += f"{namer.asciiName(k)}, "
+                line += f"{namer.nameAndPid(k)}, "
             line = line[:-2]
             self.pprint ( line )
         else:
@@ -735,7 +735,7 @@ class Manipulator ( LoggerBase ):
             allpids = list( getAllPidsOfTheoryPred ( i ) )
             pidline = f"        pids:"
             for pid in allpids[:]:
-                pidline += f" {namer.asciiName(pid)}"
+                pidline += f" {namer.nameAndPid(pid)}"
             if len(pidline) > 80:
                 pidline=f"{pidline[:76]} ..."
             if len(allpids)>3:
@@ -777,7 +777,7 @@ class Manipulator ( LoggerBase ):
             allpids = list ( getAllPidsOfTheoryPred ( i ) )
             pidline  = f"        pids:"
             for pid in allpids[:]:
-                pidline += f" {namer.asciiName(pid)}"
+                pidline += f" {namer.nameAndPid(pid)}"
                 if len(pidline) > 80:
                     pidline=f"{pidline[:76]} ..."
             if len(allpids)>3:
@@ -799,10 +799,10 @@ class Manipulator ( LoggerBase ):
             if pid in protomodel.decays:
                 pid_name = namer.asciiName(pid)
                 protomodel.decays.pop(pid)
-                changes.append ( f"removed decays of frozen particle {pid_name}({pid})" )
+                changes.append ( f"removed decays of frozen particle {namer.nameAndPid(pid)}" )
                 if hasattr ( protomodel, "widths" ) and pid in protomodel.widths:
                     protomodel.widths.pop(pid)
-                    changes.append ( f"removed width of frozen particle {pid_name}({pid})" )
+                    changes.append ( f"removed width of frozen particle {namer.nameAndPid(pid)}" )
 
         olddecays = list ( protomodel.decays.keys() )
         #Loop over all decays:
@@ -817,28 +817,28 @@ class Manipulator ( LoggerBase ):
             #Check if any of the existing decays are forbidden:
             delDecays = [dpid for dpid in protomodel.decays[pid] if not  dpid in openChannels]
             if delDecays != []:
-                self.pprint(f"removeIllegalBRs: removing decays of {pid_name}({pid}): {delDecays}")
+                self.pprint(f"removeIllegalBRs: removing decays of {namer.nameAndPid(pid)}: {delDecays}")
                 # self.pprint(f"  - why illegal? because openChannels is {openChannels} masses are {protomodel.masses}" )
                 onoffshell = "onshell"
                 if self.checkIfOffshell ( pid ):
                     onoffshell = "offshell"
-                self.pprint(f"  - why illegal? m[{pid_name}({pid})]={protomodel.masses[pid]:.2f}, m(LSP)={protomodel.masses[LSP]:.2f}: {onoffshell}" )
+                self.pprint(f"  - why illegal? m[{namer.nameAndPid(pid)}]={protomodel.masses[pid]:.2f}, m(LSP)={protomodel.masses[LSP]:.2f}: {onoffshell}" )
                 for del_pids in delDecays:
                     for del_pid in del_pids:
                         if abs(del_pid)>999999:
                             del_pid_name = namer.asciiName ( del_pid )
                             if del_pid in protomodel.masses:
-                                self.pprint ( f"  -         m[{del_pid_name}({del_pid})]={protomodel.masses[del_pid]}" )
+                                self.pprint ( f"  -         m[{namer.nameAndPid(del_pid)}]={protomodel.masses[del_pid]}" )
                             else:
-                                self.pprint ( f"  -         no {del_pid_name}({del_pid}) in protomodel.masses" )
+                                self.pprint ( f"  -         no {namer.nameAndPid(del_pid)} in protomodel.masses" )
             for dpid in delDecays:
                 dpid_name = namer.asciiName(dpid)
                 protomodel.decays[pid].pop(dpid)
-                changes.append ( f"removed illegal decay of {pid_name}({pid}) -> {dpid_name}({dpid})" )
+                changes.append ( f"removed illegal decay of {namer.nameAndPid(pid)} -> {namer.nameAndPid(dpid)}" )
             if len(protomodel.decays[pid])==0 and len(delDecays)>0:
                 self.pprint(f"no branchings left after removing illegal ones, reinitialising!" )
                 self.initBranchings ( pid, protomodel )
-                changes.append ( f"reinitialised branchings of {pid_name}({pid})" )
+                changes.append ( f"reinitialised branchings of {namer.nameAndPid(pid)}" )
             #if delDecays != []: print(f"remaining decays of {pid}: {protomodel.decays[pid]}")
             #Make sure to normalize the branchings
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs, protomodel=protomodel)
@@ -896,7 +896,7 @@ class Manipulator ( LoggerBase ):
                 break
 
         if br_tot == 0.:
-            self.error ( f"could not initialize {pid_name}({pid}): br_tot={br_tot}." )
+            self.error ( f"could not initialize {namer.nameAndPid(pid)}: br_tot={br_tot}." )
             self.error ( f"openChannels were {openChannels}. will freeze. {hasattr(protomodel,'widths')}" )
             #if hasattr ( protomodel, "widths" ):
             #    self.error ( f"@@ widths {protomodel.widths}" )
@@ -907,7 +907,7 @@ class Manipulator ( LoggerBase ):
         for dpids,br in protomodel.decays[pid].items():
             nbr = br / br_tot
             protomodel.decays[pid][dpids]=nbr
-            self.pprint ( f"initialising brs for {pid_name}({pid}) -> {namer.asciiName(dpids)}({dpids}) to {nbr:.2g}" )
+            self.pprint ( f"Initialising brs for {namer.nameAndPid(pid)} -> {namer.nameAndPid(dpids)} to {nbr:.2g}" )
         return 1
 
     def sumBranchings ( self, protomodel, pid : int )-> float:
@@ -940,22 +940,22 @@ class Manipulator ( LoggerBase ):
         pid_name = namer.asciiName(pid)
 
         if not pid in protomodel.decays:
-            protomodel.pprint(f"When attempting to normalize: {pid_name}({pid}) not in decays.")
+            protomodel.pprint(f"When attempting to normalize: {namer.nameAndPid(pid)} not in decays.")
             return 0
 
         BRtot = self.sumBranchings ( protomodel, pid )
         if BRtot == 0:
-            self.log ( f"the hardcoded decayless particles are {namer.asciiName(self.M.decaylessParticles)} [{self.M.decaylessParticles}]." )
+            self.log ( f"the hardcoded decayless particles are {namer.nameAndPid(self.M.decaylessParticles)} [{self.M.decaylessParticles}]." )
             if pid not in self.M.decaylessParticles:
                 if hasattr ( self.M, "widths" ) and pid in self.M.widths and \
                         self.M.widths[pid]<1e-25:
                     w = self.M.widths[pid]
-                    protomodel.pprint ( f"When trying to normalize {pid_name}({pid}): width is {w:.2g} -> stable, wont bother." )
+                    protomodel.pprint ( f"When trying to normalize {namer.nameAndPid(pid)}: width is {w:.2g} -> stable, wont bother." )
                 else:
                     #print(f"decay of {pid}: {protomodel.decays[pid]}")
                     self.log(f"decay of {pid_name}: {protomodel.decays[pid]}")
-                    # protomodel.pprint ( f"When attempting to normalize: total BR of {pid_name}({pid}) is zero, and it is not in decaylessParticles. we need to take it out." )
-                    protomodel.pprint ( f"When attempting to normalize: total BR of {pid_name}({pid}) is zero, and it is not in decaylessParticles. lets make it stable." )
+                    # protomodel.pprint ( f"When attempting to normalize: total BR of {namer.nameAndPid(pid)} is zero, and it is not in decaylessParticles. we need to take it out." )
+                    protomodel.pprint ( f"When attempting to normalize: total BR of {namer.nameAndPid(pid)} is zero, and it is not in decaylessParticles. lets make it stable." )
 
                     self.M.widths[pid]=0.
                     self.M.decays[pid]={}
@@ -972,7 +972,7 @@ class Manipulator ( LoggerBase ):
         self.log ( f"Scaled branchings of {pid_name} by 1/{BRtot:.2g}" )
         for dpid in protomodel.decays[pid]:
             protomodel.decays[pid][dpid] *= 1/BRtot
-            self.log ( f"for {pid_name}({pid}):{dpid} we now have {protomodel.decays[pid][dpid]}" )
+            self.log ( f"for {namer.nameAndPid(pid)}:{dpid} we now have {protomodel.decays[pid][dpid]}" )
         if len(protomodel.decays[pid])==1:
             # make sure this always is exactly 1, not 0.999999999
             dpid = list ( protomodel.decays[pid].keys() )[0]
@@ -1007,7 +1007,7 @@ class Manipulator ( LoggerBase ):
         particle/anti-particle): new ssm = lognorm.rvs(1.0, ssmSigma)
         """
         p_name = namer.asciiName(pid)
-        self.log ( f"initSSMFor {p_name}({pid}) with ssmSigma={ssmSigma:.1} cap_ssm={cap_ssm:.1f}" )
+        self.log ( f"initSSMFor {namer.nameAndPid(pid)} with ssmSigma={ssmSigma:.1} cap_ssm={cap_ssm:.1f}" )
 
         if protomodel is None:
             protomodel = self.M
@@ -1025,7 +1025,7 @@ class Manipulator ( LoggerBase ):
                     ssm = float(lognorm.rvs(s = ssmSigma, scale = 1.0))   #center ssm around 1.0, better to have log scale
                     if ssm > cap_ssm: ssm = cap_ssm
                     protomodel.ssmultipliers[ppair] = ssm
-                    self.log ( f"setting ssm of {ppair}({namer.asciiName(ppair)}) to {ssm:.2f}" )
+                    self.log ( f"setting ssm of {namer.nameAndPid(ppair)} to {ssm:.2f}" )
 
 
     def describe ( self, allTheoryPredictions : bool = False ):
@@ -1227,15 +1227,14 @@ class Manipulator ( LoggerBase ):
 
         u = np.random.uniform(0,1)
         if u > prob:
-            #print(f"Reject move {move}")
-            self.pprint(f"u={u:.2f} > proposal prob {prob:.2f}. Reject Move.")
+            self.pprint(f"u={u:.2f} > proposal prob {prob:.2f}. {RED}Reject Move{RESET}.")
             self.propose_model = self.M.copy()
             self.proposal_ratio[move] = {'q': 1.0}
             #print(f"q_total after {move}: {self.proposal_ratio['q_total']}")
             return False
         else:
             #print(f"accept move {move}")
-            self.pprint(f"u={u:.2f} <= proposal prob {prob:.2f}. Accept Move.")
+            self.pprint(f"u={u:.2f} <= proposal prob {prob:.2f}. {GREEN}Accept Move{RESET}.")
             self.M = self.propose_model
             self.propose_model = self.M.copy()
             self.proposal_ratio[move]['q'] *= prob_21/prob_12
@@ -1280,7 +1279,7 @@ class Manipulator ( LoggerBase ):
         if self.run_mcmc:
             old_model = self.M.copy()
         else:
-            self.pprint ( f"Start creating a proposal of a model" )
+            self.pprint ( f"Starting creation of model proposal" )
             self.propose_model = self.M.copy()
         changeDesc = {}
         nChanges = 0
@@ -1302,11 +1301,11 @@ class Manipulator ( LoggerBase ):
                 accept_move = self.proposal_density(move='add_par', force_move=force_move)
                 if accept_move:
                     nChanges += 1
-                    names = ", ".join(f"{namer.asciiName(p)}({p})" for p in recentlyUnfrozen)
+                    names = ", ".join(f"{namer.nameAndPid(p)}" for p in recentlyUnfrozen)
                     change_descriptions.append(f"unfroze {names}")
-                    self.log(f"Accept unfreezing of {namer.asciiName(recentlyUnfrozen)} ({recentlyUnfrozen})")
+                    self.log(f"Accept unfreezing of {namer.nameAndPid(recentlyUnfrozen)}")
                 else:
-                    self.log(f"Reject unfreezing {namer.asciiName(recentlyUnfrozen)} ({recentlyUnfrozen})")
+                    self.log(f"Reject unfreezing {namer.nameAndPid(recentlyUnfrozen)}")
                     recentlyUnfrozen = None
 
             frozenParticles = self.randomlyFreezeParticle(recentlyUnfrozen=recentlyUnfrozen)
@@ -1314,12 +1313,12 @@ class Manipulator ( LoggerBase ):
                 accept_move = self.proposal_density(move='rem_par', force_move=force_move)
                 if accept_move:
                     nChanges += 1
-                    names = ", ".join(f"{namer.asciiName(p)}({p})" for p in frozenParticles)
+                    names = ", ".join(f"{namer.nameAndPid(p)}" for p in frozenParticles)
                     change_descriptions.append(f"froze {names}")
-                    self.log(f"Accept freezing of {', '.join(map(str,frozenParticles))} ({namer.asciiName(frozenParticles)})")
+                    self.log(f"Accept freezing of {namer.nameAndPid(frozenParticles)}")
                     #print(f"Protomodel now: {self.M.unFrozenParticles()}")
                 else:
-                    self.log(f"Reject freezing of {namer.asciiName(frozenParticles)}({', '.join(map(str,frozenParticles))})")
+                    self.log(f"Reject freezing of {namer.nameAndPid(frozenParticles)}")
 
             changes = self.randomlyChangeBranchings(protomodel=self.propose_model, prob=probBR)
             if changes:
@@ -1446,10 +1445,18 @@ class Manipulator ( LoggerBase ):
                 assert ( r["min"] <= nw <= r["max"] ), f"width {nw} out of bounds"
                 n_changes = 1
         self.widths[pid]=nw
-        self.pprint ( f"Randomly changed width of {namer.asciiName(pid)}({pid}) from {cw:.3g} to {nw:.3g}" )
+        def describeWidth ( width ):
+            if abs ( width - 1.0 ) < 1e-6:
+                return "1 (prompt)"
+            if width == 0:
+                return "0 (stable)"
+            return f"{width:.3g}"
+        cw_desc = describeWidth ( cw )
+        nw_desc = describeWidth ( nw )
+        self.pprint ( f"Randomly changed width of {namer.nameAndPid(pid)} from {cw_desc} to {nw_desc}" )
         if not n_changes:
             return []
-        return [ f"changed width of {namer.asciiName(pid)}({pid}) from {cw:.3g} to {nw:.3g}" ]
+        return [ f"changed width of {namer.nameAndPid(pid)} from {cw_desc} to {nw_desc}" ]
 
     def randomlyUnfreezeParticle ( self, cap_ssm : float = 100. ) -> int:
         """ Unfreezes a (random) frozen particle according to gaussian distribution
@@ -1486,7 +1493,7 @@ class Manipulator ( LoggerBase ):
                 pid = pids[0] #Unfreeze the lighter state
                 break
 
-        self.log ( f"Propose unfreezing {namer.asciiName(pid)}({pid})" )
+        self.log ( f"Propose unfreezing {namer.nameAndPid(pid)}" )
         #print(f"Propose unfreezing {namer.asciiName(pid)}" )
         unfrozen = self.unFreezeParticles( pid, protomodel = self.propose_model, cap_ssm=cap_ssm)
         return unfrozen
@@ -1553,7 +1560,7 @@ class Manipulator ( LoggerBase ):
         pid_name = namer.asciiName(pid)
 
         dkeys = list(dkeys)
-        self.log( f"Trying to change branchings of {pid_name}({pid})." )
+        self.log( f"Trying to change branchings of {namer.nameAndPid(pid)}." )
         if len(openChannels) < 2:
             self.log( f"Number of open channels of {pid_name} is {len(openChannels)}. Cannot change branchings." )
             # not enough channels open to tamper with branchings!
@@ -1571,7 +1578,7 @@ class Manipulator ( LoggerBase ):
         #Keep only one channel (with probability singleBRprob)
         uSingle = np.random.uniform( 0., 1. )
         if uSingle < singleBRprob:
-            self.log(f"Keeping only one decay channel for {pid_name}({pid}).")
+            self.log(f"Keeping only one decay channel for {namer.nameAndPid(pid)}.")
             #Choose random decay key:
             dk = np.random.choice(dkeys)
             #get decay channel assocaiated with key, make sure all channels assocaited with same key get same branchings
@@ -1593,7 +1600,7 @@ class Manipulator ( LoggerBase ):
             #for dpid in decay_chan:
                 dp_name = namer.asciiName(dpid)
                 self.log ( f"changed decay of {pid_name} -> {dp_name} to {br:.2f}" )
-                changes.append ( f"changed decay of {pid_name}({pid}) -> {dp_name}({dpid}) to {br:.2f}" )
+                changes.append ( f"changed decay of {namer.nameAndPid(pid)} -> {namer.nameAndPid(dpid)} to {br:.2f}" )
                 protomodel.decays[pid].update({dpid: br})
 
             # print(f"Prob to rem {self.proposal_ratio['br']['rem']}")
@@ -1626,7 +1633,7 @@ class Manipulator ( LoggerBase ):
                     self.proposal_ratio['br']['rem'] *= addBRprob/zeroBRprob
                     for dpid in decay_chan:
                         self.log ( f"Removed decay {pid_name} -> {namer.asciiName(dpid)} with br {oldbr:.2f}." )
-                        changes.append ( f"removed decay of {pid_name}({pid}) -> {namer.asciiName(dpid)}({dpid}) with br {oldbr:.2f}" )
+                        changes.append ( f"removed decay of {namer.nameAndPid(pid)} -> {namer.nameAndPid(dpid)} with br {oldbr:.2f}" )
                         if dpid in protomodel.decays[pid]:
                             protomodel.decays[pid].pop(dpid)
                         else:
@@ -1641,7 +1648,7 @@ class Manipulator ( LoggerBase ):
                 for dpid in decay_chan:
                     protomodel.decays[pid][dpid] = br
                     self.log ( f"Changed branchings of {pid_name} -> {namer.asciiName(dpid)} to {br:.2f}" )
-                    changes.append ( f"changed branching of {pid_name}({pid}) -> {namer.asciiName(dpid)}({dpid}) from {oldbr:.2f} to {br:.2f}" )
+                    changes.append ( f"changed branching of {namer.nameAndPid(pid)} -> {namer.nameAndPid(dpid)} from {oldbr:.2f} to {br:.2f}" )
 
             else:
                 #Add channel(s) (with addBRprob probability)
@@ -1659,21 +1666,21 @@ class Manipulator ( LoggerBase ):
                     for dpid in decay_chan:
                         protomodel.decays[pid][dpid] = br
                         self.log ( f"Added decay of {pid_name} -> {namer.asciiName(dpid)} with br {br:.2f}" )
-                        changes.append ( f"added decay of {pid_name}({pid}) -> {namer.asciiName(dpid)}({dpid}) with br {br:.2f}" )
+                        changes.append ( f"added decay of {namer.nameAndPid(pid)} -> {namer.nameAndPid(dpid)} with br {br:.2f}" )
 
 
         # Make sure there is at least one open channel:
         # BRtot = sum(protomodel.decays[pid].values())
         BRtot = self.sumBranchings ( protomodel, pid )
         if BRtot == 0.0:
-            self.log(f"BRtot = 0 for {pid} ({pid_name}). Randomly Choosing one decay channel.")
+            self.log(f"BRtot = 0 for {namer.nameAndPid(pid)}. Randomly Choosing one decay channel.")
             dk = np.random.choice(dkeys)
             decay_chan = [key for key,value in protomodel.decay_keys[pid].items() if value == dk]
             br = 1.0/len(decay_chan)
             protomodel.decays[pid] = {}
             for dpid in decay_chan:
                 self.log ( f"Changed decay of {pid_name} -> {namer.asciiName(dpid)} to {br:.2f}" )
-                changes.append ( f"changed decay of {pid_name}({pid}) -> {namer.asciiName(dpid)}({dpid}) to {br:.2f}" )
+                changes.append ( f"changed decay of {namer.nameAndPid(pid)} -> {namer.nameAndPid(dpid)} to {br:.2f}" )
                 protomodel.decays[pid].update({dpid: br})
 
         # Make sure BRsprot add up to 1:
@@ -1762,7 +1769,7 @@ class Manipulator ( LoggerBase ):
             prob_rem = 0.1/len(prod_list)
             self.proposal_ratio['ssm']['rem'] = prob_add/prob_rem
             #print(f"Prob to rem {self.proposal_ratio['ssm']['rem']}")
-            return [ f"removed production mode {namer.asciiName(randomProd)} ({randomProd})" ]
+            return [ f"removed production mode {namer.nameAndPid(randomProd)}" ]
         if a < .1: ## sometimes, just try to set ssm to 1.
             prod_list = list(protomodel.ssmultipliers.keys())
             if len(prod_list) == 0: return []
@@ -1771,7 +1778,7 @@ class Manipulator ( LoggerBase ):
             oldssm = protomodel.ssmultipliers[randomProd]
             self.log(f"Change ssm of {namer.texName(randomProd,addDollars=True)} to 1." )
             protomodel.ssmultipliers[randomProd]=1.
-            return [ f"changed ssm of {namer.asciiName(randomProd)} ({randomProd}) from {oldssm:.2f} to 1" ]
+            return [ f"changed ssm of {namer.nameAndPid(randomProd)} from {oldssm:.2f} to 1" ]
         if .1 < a < .2: ## sometimes, just try to set to ssm of different particle
             prod_list = list(protomodel.ssmultipliers.keys())
             if len(prod_list) == 0: return []
@@ -1781,7 +1788,7 @@ class Manipulator ( LoggerBase ):
             v = np.random.choice ( list ( protomodel.ssmultipliers.values() ) )
             self.log ( f"Change ssm of {namer.texName(randomProd,addDollars=True)} to {v:.2f}" )
             protomodel.ssmultipliers[randomProd]= float(v)
-            return [ f"changed ssm of {namer.asciiName(randomProd)} ({randomProd}) from {oldssm:.2f} to {v:.2f}" ]
+            return [ f"changed ssm of {namer.nameAndPid(randomProd)} from {oldssm:.2f} to {v:.2f}" ]
 
         #Else either add new ssm or change existing ssm of pair
         #Randomly choose which process pids to change:
@@ -1802,15 +1809,15 @@ class Manipulator ( LoggerBase ):
             self.proposal_ratio['ssm']['add'] = prob_rem/prob_add
             #print(f"Adding new pair of ssm {pidpair} with ratio {self.proposal_ratio['ssm']['add']}")
             self.log( f"Add new prod mode {namer.texName(pair,addDollars=True)} with ssm {newSSM}" )
-            return [ f"added production mode {namer.asciiName(pair)} ({pair}) with ssm {newSSM:.2f}" ]
+            return [ f"added production mode {namer.nameAndPid(pair)} with ssm {newSSM:.2f}" ]
         else:
             oldssm = protomodel.ssmultipliers[pair]
             newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
             if newSSM > cap_ssm: newSSM = cap_ssm
             protomodel.ssmultipliers[pair] = newSSM
             #self.changeSSM(pair,newSSM)
-            self.log ( f"Changing ssm of {namer.asciiName(pair[0])},{namer.asciiName(pair[1])}: {newSSM:.2f}." )
-            return [ f"changed ssm of {namer.asciiName(pair)} ({pair}) from {oldssm:.2f} to {newSSM:.2f}" ]
+            self.log ( f"Changing ssm of {namer.nameAndPid(pair)}: {newSSM:.2f}." )
+            return [ f"changed ssm of {namer.nameAndPid(pair)} from {oldssm:.2f} to {newSSM:.2f}" ]
 
     def randomlyChangeSSOfOneParticle ( self, pid = None, protomodel=None, ssmSigma=1.0, cap_ssm=100. ) -> List[str]:
         """ randomly change the SS's consistently for one pid
@@ -1828,7 +1835,7 @@ class Manipulator ( LoggerBase ):
 
         p = int(np.random.choice ( unfrozenparticles ))
         if pid != None: p = pid
-        self.log (f"Changing all ssms of {namer.asciiName(p)} ({p})" )
+        self.log (f"Changing all ssms of {namer.nameAndPid(p)}" )
 
         changes = []
         for dpd,v in protomodel.ssmultipliers.items():
@@ -1837,9 +1844,9 @@ class Manipulator ( LoggerBase ):
                 newSSM = float(lognorm.rvs(s = ssmSigma, scale = 1.0))
                 if newSSM > cap_ssm: newSSM = cap_ssm
                 protomodel.ssmultipliers[dpd]= newSSM
-                self.log (f"Changing ssm of {namer.asciiName(dpd)} ({dpd}) to {newSSM:.4g}" )
+                self.log (f"Changing ssm of {namer.nameAndPid(dpd)} to {newSSM:.4g}" )
                 #self.changeSSM ( dpd, newssm )
-                changes.append ( f"changed ssm of {namer.asciiName(dpd)} ({dpd}) from {oldssm:.4g} to {newSSM:.4g}" )
+                changes.append ( f"changed ssm of {namer.nameAndPid(dpd)} from {oldssm:.4g} to {newSSM:.4g}" )
 
         return changes
 
@@ -1880,7 +1887,7 @@ class Manipulator ( LoggerBase ):
             newssm = cap_ssm
         self.M.ssmultipliers[pids]=newssm
         if oldssm != newssm:
-            changes.append ( f"changed ssm of {namer.asciiName(pids)} ({pids}) from {oldssm:.4g} to {newssm:.4g}" )
+            changes.append ( f"changed ssm of {namer.nameAndPid(pids)} from {oldssm:.4g} to {newssm:.4g}" )
         if (oldssm + newssm) > 0.:
             if 2. * abs ( oldssm - newssm ) / ( oldssm + newssm ) > 1e-4:
                 if verbose:
@@ -1948,7 +1955,7 @@ class Manipulator ( LoggerBase ):
                 minmass = self.M.masses[i]
                 pid = i
 
-        protomodel.log ( f"Propose freezing most massive particle {pid}({namer.asciiName(pid)}) minmass=({minmass:.1f})" )
+        protomodel.log ( f"Propose freezing most massive particle {namer.nameAndPid(pid)} minmass=({minmass:.1f})" )
         frozen = self.freezeParticles ( pid, protomodel = protomodel)
         return frozen
 
@@ -1991,8 +1998,8 @@ class Manipulator ( LoggerBase ):
 
         :returns: list of pids that really were frozen out
         """
-        # self.log ( f"Trying to freeze {namer.asciiName(pid)}({pid}) pm={protomodel}" )
-        self.log ( f"Trying to freeze {namer.asciiName(pid)}({pid})" )
+        # self.log ( f"Trying to freeze {namer.nameAndPid(pid)} pm={protomodel}" )
+        self.log ( f"Trying to freeze {namer.nameAndPid(pid)}" )
 
         if protomodel is None:
             protomodel = self.M
@@ -2012,9 +2019,9 @@ class Manipulator ( LoggerBase ):
         #protomodel.log ( f"Freezing {namer.asciiName(pid)}" )
         #Remove pid from masses, decays and signal multipliers:
         if not force:
-            self.log(f"Propose freezing pid: {pid}({namer.asciiName(pid)})")
+            self.log(f"Propose freezing pid: {namer.nameAndPid(pid)}")
         else:
-            self.log(f"Really trying to freeze pid: {namer.asciiName(pid)}({pid})")
+            self.log(f"Really trying to freeze pid: {namer.nameAndPid(pid)}")
         #print(f"Propose freezing pid: {pid}")
 
         #get total num of frozen and unfrozen par for proposal ratio
@@ -2037,7 +2044,7 @@ class Manipulator ( LoggerBase ):
         #print(f"Prob to freeze = {self.proposal_ratio['rem_par']['q']}")
 
         if pid in protomodel.masses:
-            self.pprint(f"Freezing pid: {namer.asciiName(pid)}({pid})")
+            self.pprint(f"Freezing {namer.nameAndPid(pid)}")
             protomodel.masses.pop(pid)
         if pid in protomodel.decays:
             protomodel.decays.pop(pid)
@@ -2182,7 +2189,7 @@ class Manipulator ( LoggerBase ):
                         degen_mass = protomodel.masses[degen_pid]
                         tmpMass = degen_mass
                         if mass is not None and degen_mass != mass:
-                            self.warning(f"Unfreeze {pid} at mass {mass} while it should be mass degenerate at {degen_mass} with {degen_pid}.")
+                            self.warning(f"Unfreezing {pid} at mass {mass} while it should be mass degenerate at {degen_mass} with {degen_pid}.")
                         break
 
         ctr = 0
@@ -2202,29 +2209,29 @@ class Manipulator ( LoggerBase ):
             tmpMass = mass
         protomodel.masses[pid] = tmpMass
 
-        self.pprint ( f"Unfreeze {namer.asciiName(pid)}({pid}) m={protomodel.masses[pid]:.1f}" )
+        self.pprint ( f"Unfreeze {namer.nameAndPid(pid)} m={protomodel.masses[pid]:.1f}" )
         # self.log ( f"Unfreeze mass of {namer.asciiName(pid)} to {protomodel.masses[pid]:.1f}" )
 
         # Set branchings
-        self.log(f"Initializing Branchings for {namer.asciiName(pid)}({pid})")
+        self.log(f"Initializing Branchings for {namer.nameAndPid(pid)}")
         initialized = self.initBranchings(pid, protomodel=protomodel)
         if not initialized and not pid in self.decaylessParticles:
             self.proposal_ratio['add_par']['q'] = 1.
             if pid in self.M.decaylessParticles:
-                self.log(f"No decays for {namer.asciiName(pid)}({pid}) -- but it's marked as decayless")
+                self.log(f"No decays for {namer.nameAndPid(pid)} -- but it's marked as decayless")
             else:
-                self.log(f"No decays for {namer.asciiName(pid)}({pid})")
+                self.log(f"No decays for {namer.nameAndPid(pid)}")
                 self.freezeParticles ( pid, force=True, protomodel=protomodel )
             return []
 
         #Add pid pair production and associated production to protomodel.ssmultipliers:
-        self.log(f"Initializing Production Modes for {namer.asciiName(pid)}({pid})")
+        self.log(f"Initializing Production Modes for {namer.nameAndPid(pid)}")
         self.initSSMFor(pid, protomodel=protomodel, cap_ssm=cap_ssm)
         if hasattr ( self.M, "widths" ):
             w = self.randomlyInitialiseWidth ( pid, protomodel = protomodel )
             protomodel.widths[pid]= w
 
-        return [ f"unfroze {namer.asciiName(pid)}({pid}) with mass {tmpMass:.1f}" ]
+        return [ f"unfroze {namer.nameAndPid(pid)} with mass {tmpMass:.1f}" ]
 
     def randomlyInitialiseWidth ( self, pid, protomodel : ProtoModel|None = None ) -> float:
         if protomodel is None:
@@ -2314,7 +2321,7 @@ class Manipulator ( LoggerBase ):
                     oldmass = self.M.masses[X3Z]
                     self.M.masses[X3Z] = self.M.masses[X2W]
                     if self.M.masses[X3Z] != oldmass:
-                        changes.append ( f"changed mass of {namer.asciiName(X3Z)}({X3Z}) from {oldmass:.1f} to {self.M.masses[X3Z]:.1f}" )
+                        changes.append ( f"changed m[{namer.nameAndPid(X3Z)}] from {oldmass:.1f} to {self.M.masses[X3Z]:.1f}" )
         if pid in [ X3Z ] and pid in self.M.unFrozenParticles():
             # we have an unfrozen N3
             if X2W in self.M.unFrozenParticles() and p < .25:
@@ -2325,7 +2332,7 @@ class Manipulator ( LoggerBase ):
                     self.M.masses[X2W] = self.M.masses[X3Z]
                     # C2 can be synced to N3!
                     if self.M.masses[X2W] != oldmass:
-                        changes.append ( f"changed mass of {namer.asciiName(X2W)}({X2W}) from {oldmass:.1f} to {self.M.masses[X2W]:.1f}" )
+                        changes.append ( f"changed m[{namer.nameAndPid(X2W)}] from {oldmass:.1f} to {self.M.masses[X2W]:.1f}" )
 
         if pid in [ X2Z, X1W ] and pid in self.M.unFrozenParticles():
             # for C1 and N2, if one of the two gets changed,
@@ -2364,14 +2371,14 @@ class Manipulator ( LoggerBase ):
                 oldmass = self.M.masses[otherpid]
                 self.M.masses[otherpid] = float(mass)
                 if self.M.masses[otherpid] != oldmass:
-                    changes.append ( f"changed mass of {namer.asciiName(otherpid)}({otherpid}) from {oldmass:.1f} to {self.M.masses[otherpid]:.1f}" )
+                    changes.append ( f"changed m[{namer.nameAndPid(otherpid)}] from {oldmass:.1f} to {self.M.masses[otherpid]:.1f}" )
                 #  * np.random.uniform ( .99, 1.01 ))
                 if heavypid not in were_frozen: #check for canonical ordering
                     if self.M.masses[otherpid] > self.M.masses[heavypid]:
                         oldmass = self.M.masses[otherpid]
                         self.M.masses[otherpid] = self.M.masses[heavypid] - 10.
                         if self.M.masses[otherpid] != oldmass:
-                            changes.append ( f"changed mass of {namer.asciiName(otherpid)}({otherpid}) from {oldmass:.1f} to {self.M.masses[otherpid]:.1f}" )
+                            changes.append ( f"changed m[{namer.nameAndPid(otherpid)}] from {oldmass:.1f} to {self.M.masses[otherpid]:.1f}" )
                 #  * np.random.uniform ( .99, 1.01 ))
                 self.log ( f"mass of {pid_name} got changed to {mass:.1f}. hattrick, changing also for {namer.asciiName(otherpid)}!" )
                 # If the particle was frozen before, we need to unfreeze
@@ -2419,7 +2426,7 @@ class Manipulator ( LoggerBase ):
         if dx < 0.:
             self.highlight ( "info", f"dx={dx}<0. this should not happen. pid={pid} mass={self.M.masses[pid]} denom={denom}" )
 
-        self.log(f"Current mass of {spid}({pid}) = {self.M.masses[pid]:.3f} GeV, dx = {dx:.3f} GeV")
+        self.log(f"Current mass of {namer.nameAndPid(pid)} = {self.M.masses[pid]:.3f} GeV, dx = {dx:.3f} GeV")
 
         if not minMass:
             minMass = self.M.masses[LSP]
@@ -2468,10 +2475,10 @@ class Manipulator ( LoggerBase ):
                 massIsLegal = False
             if tmpmass in [ float("nan"), float("inf"), None ]:
                 massIsLegal = False
-                self.pprint ( f"huh? we have a tmpmass of m[{spid}({pid})]={tmpmass:.2f}, was at {self.M.masses[pid]:.2f}, dx={dx:.2g}" )
+                self.pprint ( f"huh? we have a tmpmass of m[{namer.nameAndPid(pid)}]={tmpmass:.2f}, was at {self.M.masses[pid]:.2f}, dx={dx:.2g}" )
             dx = dx * 1.2 ## to make sure we always get out of this
             if ctIterations > 20: # seems like we are in a super constrained situation
-                self.pprint ( f"huh? we have a tmpmass of m[{spid}({pid})]={tmpmass:.2f} was at {self.M.masses[pid]:.2f} dx={dx:.2g} breaking off after {ctIterations} iterations" )
+                self.pprint ( f"huh? we have a tmpmass of m[{namer.nameAndPid(pid)}]={tmpmass:.2f} was at {self.M.masses[pid]:.2f} dx={dx:.2g} breaking off after {ctIterations} iterations" )
                 self.pprint ( f"  -- debug minMass {minMass} maxMass {maxMass} offshell {offshell}" )
                 tmpmass = self.M.masses[pid]
                 break
@@ -2483,36 +2490,36 @@ class Manipulator ( LoggerBase ):
             self.pprint(f"Randomly changing m(LSP) to {tmpmass:.2f}.")
             changes = []
             if tmpmass != old_lsp_mass:
-                changes.append ( f"changed mass of {spid}({pid}) from {old_lsp_mass:.1f} to {tmpmass:.1f}" )
+                changes.append ( f"changed m[{namer.nameAndPid(pid)}] from {old_lsp_mass:.1f} to {tmpmass:.1f}" )
             changes += self.shiftAllMassesBy(delta_mass, lsp=False)
             return changes
 
         allpids = self.forcedMassDegeneratePids(pid)
         changes = []
         if len(allpids)==1:
-            #self.log(f"Now randomly changing m[{spid}({pid})] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
-            self.pprint(f"Now randomly changing m[{spid}({pid})] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
+            #self.log(f"Now randomly changing m[{namer.nameAndPid(pid)}] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
+            self.pprint(f"Randomly changing m[{namer.nameAndPid(pid)}] {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
         else:
             #self.log(f"Now randomly changing m[{allpids}]: {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
-            self.pprint(f"Now randomly changing [{allpids}]: {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
+            self.pprint(f"Randomly changing [{allpids}]: {self.M.masses[pid]:.2f}->{tmpmass:.2f}" )
 
         for ipid in allpids:
             sipid=namer.asciiName(ipid)
             old_ipid_mass = self.M.masses[ipid]
             self.M.masses[ipid]=tmpmass
             if tmpmass != old_ipid_mass:
-                changes.append ( f"changed mass of {sipid}({ipid}) from {old_ipid_mass:.1f} to {tmpmass:.1f}" )
+                changes.append ( f"changed m[{namer.nameAndPid(ipid)}] from {old_ipid_mass:.1f} to {tmpmass:.1f}" )
             if ipid in [ X2Z, X1W, X3Z, X2W ]:
                 if ipid in [ X2Z, X3Z ]: is_offshell = (tmpmass - self.M.masses[LSP]) < ( smMasses["Z"] + smWidths["Z"])
                 if ipid in [ X1W, X2W ]: is_offshell = (tmpmass - self.M.masses[LSP]) < (smMasses["W"] + smWidths["W"])
                 if was_offshell != is_offshell:     #initialize branchings
                     if self.run_mcmc:
-                        self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {sipid}({ipid}).")
+                        self.log(f"Jumping from onshell to offshell mass or vice versa during mcmc walk. Not allowed. Dont change mass of {namer.nameAndPid(ipid)}.")
                     else:
-                        self.pprint ( f"randomly changing mass of {sipid}({ipid}) to {tmpmass:.1f}" )
+                        self.pprint ( f"randomly changing mass of {namer.nameAndPid(ipid)} to {tmpmass:.1f}" )
                         self.initBranchings(ipid)
             else:
-                self.pprint ( f"randomly changing mass of {sipid}({ipid}) to {tmpmass:.1f}" )
+                self.pprint ( f"randomly changing mass of {namer.nameAndPid(ipid)} to {tmpmass:.1f}" )
 
         return changes
 
@@ -2525,7 +2532,7 @@ class Manipulator ( LoggerBase ):
             if pids[1] in unfrozen and pids[1] not in self.M.masses:
                 raise Exception ( f"contradiction! {pids[1]} in unfrozen {unfrozen} but not in masses {self.M.masses} frozen is {frozen}" )
             if pids[0] in frozen and pids[1] in unfrozen:
-                self.log(f"{namer.asciiName(pids[0])} not present but {namer.asciiName(pids[1])} present. Reassigning {namer.asciiName(pids[1])} to {namer.asciiName(pids[0])}")
+                self.log(f"{namer.nameAndPid(pids[0])} not present but {namer.nameAndPid(pids[1])} present. Reassigning {namer.nameAndPid(pids[1])} to {namer.nameAndPid(pids[0])}")
                 self.M.masses[pids[0]] = self.M.masses[pids[1]]
                 self.M.masses.pop(pids[1])
                 self.M.decays[pids[0]] = self.M.decays[pids[1]]
@@ -2917,7 +2924,7 @@ class Manipulator ( LoggerBase ):
                 if len(mpids)==1:
                     mpids = mpids[0]
                 if useParticleNames:
-                    mpids = namer.asciiName ( mpids )
+                    mpids = namer.nameAndPid ( mpids )
                 else:
                     mpids = f"{str(mpids):>22s}"
                 xsec = xsecs[sqrts][pids]
