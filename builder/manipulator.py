@@ -199,7 +199,7 @@ class Manipulator ( LoggerBase ):
 
         :returns: list of strings describing the changes made
         """
-        self.log(f"Shifting all other masses by {dm:.2f}")
+        self.pprint(f"Shifting all other masses by {dm:.2f}")
         changes = []
         for pid,m in self.M.masses.items():
             if pid is LSP and not lsp:
