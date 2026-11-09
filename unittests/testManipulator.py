@@ -72,11 +72,11 @@ class PredictionsTest(unittest.TestCase):
 
         m = Manipulator(modelList[4])
         r = m.unFreezeParticle(pid = 2000006) #Should not work since 1000006 is frozen!
-        self.assertEqual(r,0)
+        self.assertFalse(r)
         self.assertEqual(sorted(m.M.unFrozenParticles()), [LSP, X1W])
         r = m.unFreezeParticle(pid = 1000006) #Should not work since 1000006 is frozen!
         r = m.unFreezeParticle(pid = 2000006) #Now it should work since 1000006 is unfrozen!
-        self.assertEqual(r,1)
+        self.assertTrue(r)
         self.assertEqual(sorted(m.M.unFrozenParticles()), [1000006, LSP, X1W, 2000006])
         self.assertTrue(m.M.masses[2000006] > m.M.masses[1000006]) #stop2 mass should be higher than stop1
         minMass = min([mass for mass in m.M.masses.values()])
@@ -85,7 +85,7 @@ class PredictionsTest(unittest.TestCase):
         #Check if the only open decays are created:
         m = Manipulator(modelList[1])
         r = m.unFreezeParticle(pid = 1000021, force=True)
-        self.assertEqual(r,1)
+        self.assertTrue(r)
         self.assertEqual(sorted(m.M.unFrozenParticles()), [1000001, 1000021, LSP])
         self.assertEqual(sorted(m.M.decays.keys()), [1000001, 1000021, LSP])
         self.assertEqual(sorted(m.M.decays[1000021].keys()),[(1000001, 1), (LSP, 1), (LSP, 4), (LSP, 5),

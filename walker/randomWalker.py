@@ -457,7 +457,8 @@ class RandomWalker ( LoggerBase ):
 
         #Take a step in the model space:
         self.log("Randomly change model")
-        self.manipulator.randomlyChangeModel(run_mcmc = self.run_mcmc, cap_ssm = self.cap_ssm)
+        changes = self.manipulator.randomlyChangeModel(run_mcmc = self.run_mcmc, cap_ssm = self.cap_ssm)
+        self.record ( changes )
         self.manipulator.reassignPIDs()
         # self.printStats( substep=13 )
 
@@ -574,7 +575,8 @@ class RandomWalker ( LoggerBase ):
             sDoTP = "a<p: do teleport."
         self.log ( f"check if to teleport, Kmax={bestK:.2f}, ours is={ourK:.2f}, p={prob:.2f}, a={a:.2f}, {sDoTP}" )
         if doTP:
-            self.manipulator.teleportToHiscore()
+            changes = self.manipulator.teleportToHiscore()
+            self.record ( changes )
         return doTP
 
     def takeStep ( self ):
@@ -594,7 +596,7 @@ class RandomWalker ( LoggerBase ):
         self.currentK = self.protomodel.K
         self.currentTL = self.protomodel.TL
         if self.run_mcmc: self.currentBestCombo = set(self.protomodel.description.split(','))
-        self.manipulator.record( "take step" )
+        self.record ( [ "take step" ] )
 
     def decideOnTakingStep ( self):
         """ depending on the ratio of K values, decide on whether to take the step or not.
@@ -687,8 +689,19 @@ class RandomWalker ( LoggerBase ):
                     self.writeToDictFile(proto_dict)
                     self.manipulator.restoreModel( reportReversion=True )
 
-    def record ( self ):
-        """ if recorder is defined, then record. """
+    def record ( self, changes : Union[list,None] = None ):
+        """ record changes, or add the current model to the history.
+
+        :param changes: if not None, the changes made to the model.
+                        If None, add the current model to the recorder.
+        """
+        if changes is not None:
+            if not self.manipulator.do_record:
+                return
+            self.manipulator.recording.extend ( changes )
+            if len ( self.manipulator.recording ) > 20: ## make sure this never explodes
+                self.manipulator.recording = self.manipulator.recording[-20:]
+            return
         ## do we have a history recorder?
         if not hasattr ( self, "recorder" ):
             return
