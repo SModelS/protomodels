@@ -23,7 +23,7 @@ import smodels
 from smodels_utils.helper.terminalcolors import *
 
 from pbase.loggerbase import LoggerBase
-from pbase.constants import smMasses, smWidths, LSP, X2Z, X1W, X3Z, X2W, X4Z,
+from pbase.constants import smMasses, smWidths, LSP, X2Z, X1W, X3Z, X2W, X4Z,\
      Xu, Xd, Xs, Xc, Xt, Xb, Xt2, Xb2
 from pbase.runEnviron import RunEnviron
 from builder.protomodel import ProtoModel
