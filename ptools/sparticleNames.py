@@ -340,6 +340,14 @@ class SParticleNames:
 
         return ret
 
+    def nameAndPid ( self, pid : Union[int,List,Tuple] ) -> str:
+        """ get the ascii name and pid, e.g. X2Z(1000023)
+        or a comma-separated list for a list or tuple of pids
+        """
+        if type(pid) in [ list, tuple ]:
+            return ",".join ( self.nameAndPid ( p ) for p in pid )
+        return f"{self.asciiName(pid)}({pid})"
+
     def pid ( self, name : Union[str,int,Tuple], signed : bool = True ) \
                 -> Union[None,int,Tuple]:
         """ get the pid for a particle name
