@@ -190,25 +190,28 @@ class Manipulator ( LoggerBase ):
         self.M.bestCombo = None
         return [ f"teleported to hiscore {ith}" ]
 
-    def shiftAllMassesBy ( self, dm : float, lsp : bool = False ) -> list:
+    def shiftAllMassesBy ( self, dm : float, lsp : bool = False ) -> List[str]:
         """ shift the masses of all unfrozen particles by dm [GeV]
         (simple covenience function)
 
         :param dm: the shift of all masses, in GeV
         :param lsp: if true, then shift also the lsp
 
-        :returns: list of all pids that got shifted
+        :returns: list of strings describing the changes made
         """
         self.log(f"Shifting all other masses by {dm:.2f}")
-        shifted = set()
+        changes = []
         for pid,m in self.M.masses.items():
             if pid is LSP and not lsp:
                 continue
-            self.M.masses[pid]=m+dm
-            shifted.add ( pid )
-            if self.M.masses[pid] > self.M.maxMass:
-                self.M.masses[pid] = self.M.maxMass
-        return shifted
+            newmass = m + dm
+            if newmass > self.M.maxMass:
+                newmass = self.M.maxMass
+            if newmass == m:
+                continue
+            self.M.masses[pid] = newmass
+            changes.append ( f"shifted m[{namer.asciiName(pid)}({pid})] from {m:.1f} to {newmass:.1f} (mass spectrum shift)" )
+        return changes
 
     def changeMassAccToSSM(self, pid_pair: Tuple, new_ssm: Union[int, float], sqrts:Union[int,float,Unum] = 13):
         """
@@ -2478,14 +2481,10 @@ class Manipulator ( LoggerBase ):
             delta_mass = tmpmass - old_lsp_mass
             self.M.masses[pid] = tmpmass
             self.pprint(f"Randomly changing m(LSP) to {tmpmass:.2f}.")
-            old_masses = { ipid : mass for ipid, mass in self.M.masses.items() if ipid != LSP }
-            shifted=self.shiftAllMassesBy(delta_mass, lsp=False)
             changes = []
             if tmpmass != old_lsp_mass:
                 changes.append ( f"changed mass of {spid}({pid}) from {old_lsp_mass:.1f} to {tmpmass:.1f}" )
-            for ipid in shifted:
-                if ipid in old_masses and self.M.masses[ipid] != old_masses[ipid]:
-                    changes.append ( f"changed mass of {namer.asciiName(ipid)}({ipid}) from {old_masses[ipid]:.1f} to {self.M.masses[ipid]:.1f}" )
+            changes += self.shiftAllMassesBy(delta_mass, lsp=False)
             return changes
 
         allpids = self.forcedMassDegeneratePids(pid)
