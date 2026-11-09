@@ -23,7 +23,8 @@ import smodels
 from smodels_utils.helper.terminalcolors import *
 
 from pbase.loggerbase import LoggerBase
-from pbase.constants import smMasses, smWidths, LSP, X2Z, X1W, X3Z, X2W
+from pbase.constants import smMasses, smWidths, LSP, X2Z, X1W, X3Z, X2W, X4Z,
+     Xu, Xd, Xs, Xc, Xt, Xb, Xt2, Xb2
 from pbase.runEnviron import RunEnviron
 from builder.protomodel import ProtoModel
 from ptools.sparticleNames import namer
@@ -36,8 +37,8 @@ class Manipulator ( LoggerBase ):
 
     # walledpids are particle ids that have a minimum mass requirement,
     # given as the values in the dictionary
-    walledpids = { 1000001 : 310, 1000002 : 310, 1000003 : 310, 1000004 : 310,
-                   1000021 : 310, X2Z : 20, X1W :  100, X2W : 100,
+    walledpids = { Xd : 310, Xu : 310, Xs : 310, Xs : 310,
+                   Xg : 310, X2Z : 20, X1W :  100, X2W : 100,
                    X3Z : 20 }
     ## forbiddenparticles are particle ids that we do not touch in this run
     # forbiddenparticles = []
@@ -104,12 +105,12 @@ class Manipulator ( LoggerBase ):
 
         #Store a canonical order for the masses. So the ordering in each tuple is enforced
         #consider Xu and Xs as an extension of Xd, Xc not considered since charm-tagging results exist
-        self.canonicalOrder =  [( 1000001, 1000002 ),(1000001, 1000003),( 1000005, 2000005 ),( 1000006, 2000006 ),
-                          ( X2Z, X3Z ), ( X1W, X2W ),( X3Z, 1000035 )]
+        self.canonicalOrder =  [( Xd, Xu ),(Xd, Xs),( Xb, Xb2 ),( Xt, Xt2 ),
+                          ( X2Z, X3Z ), ( X1W, X2W ),( X3Z, X4Z )]
 
         #Define groups of particles to be merged if their mass difference is below a given mass gap
-        self.mergerCandidates =   [(1000001, 1000002, 1000003), ( 1000005, 2000005 ), (1000006, 2000006),
-                                    ( X1W, X2W ), ( X2Z, X3Z ), ( X3Z, 1000035 ) ]
+        self.mergerCandidates =   [(Xd, Xu, Xs), ( Xb, Xb2 ), (Xt, Xt2),
+                                    ( X1W, X2W ), ( X2Z, X3Z ), ( X3Z, X4Z ) ]
         self.do_record = do_record ## if True, then record changes
         self.recording = [] ## just in case
 
@@ -217,7 +218,7 @@ class Manipulator ( LoggerBase ):
         """
         Change mass of a protomodel pid_pair according to an input signal strength multiplier keeping protomodel xsec
         at input sqrts the same. Update the protomodel pid_pair's mass and ssm
-        :param pid_pair: Tuple of pids whose mass and ssm needs to be changed. Ex:(-1000006,1000006)
+        :param pid_pair: Tuple of pids whose mass and ssm needs to be changed. Ex:(-Xt,Xt)
         :param new_ssm: The input signal strength multipier
         :param sqrts: The sqrts at which the protomodel xsec needs to remain the same. Default is 13(TeV)
         """
@@ -260,7 +261,7 @@ class Manipulator ( LoggerBase ):
         """
         Change signal strength multiplier of a protomodel pid_pair according to an input mass keeping the protomodel xsec
         at input sqrts the same. Update the protomodel pid_pair's mass and ssm
-        :param pid_pair: Tuple of pids whose mass and ssm needs to be changed. Ex:(-1000006,1000006)
+        :param pid_pair: Tuple of pids whose mass and ssm needs to be changed. Ex:(-Xt,Xt)
         :param new_mass: The input mass
         :param sqrts: The sqrts at which the protomodel xsec needs to remain the same
         """
@@ -2193,16 +2194,16 @@ class Manipulator ( LoggerBase ):
                         break
 
         ctr = 0
-        while pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpMass, protomodel.masses[LSP] ):
+        while pid in [ Xt, Xt2 ] and self.inCorridorRegion ( tmpMass, protomodel.masses[LSP] ):
             # if in corridor region, redraw!
             tmpMass =  minMass + (maxMass-minMass)*m_random
             mstop2 = 2000.
-            if 2000006 in protomodel.masses:
-                mstop2 = protomodel.masses[2000006]
-                protomodel.masses[2000006] = mstop2 + 20.
-                if pid == 2000006:
-                    tmpMass = protomodel.masses[2000006]
-            if pid == 1000006:
+            if Xt2 in protomodel.masses:
+                mstop2 = protomodel.masses[Xt2]
+                protomodel.masses[Xt2] = mstop2 + 20.
+                if pid == Xt2:
+                    tmpMass = protomodel.masses[Xt2]
+            if pid == Xt:
                 maxMass = mstop2 + 20.
 
         if mass is not None:
@@ -2296,7 +2297,7 @@ class Manipulator ( LoggerBase ):
 
         changes = self.randomlyChangeMassOf ( pid, dx=dx, minMass=minMass,
                 maxMass=maxMass )
-        if pid in [ X2Z, X1W, X3Z, 1000035, X2W ] and \
+        if pid in [ X2Z, X1W, X3Z, X4Z, X2W ] and \
                 pid in protomodel.unFrozenParticles():
             # for the ewkinos randomly sync partners (e.g. N2 for C1)
             changes += self.randomlySyncOtherEwkinos ( pid )
@@ -2357,10 +2358,10 @@ class Manipulator ( LoggerBase ):
                     p2 = np.random.uniform ( 0, 1 )
                     if p2 < .25:
                         otherpid = X2W
-                if pid == X1W and not 10000035 in were_frozen:
+                if pid == X1W and not X4Z in were_frozen:
                     p2 = np.random.uniform ( 0, 1 )
                     if p2 < .25:
-                        otherpid = 1000035
+                        otherpid = X4Z
                 heavypid = X2W if pid == X2Z else X3Z
                 #get N3 and C2 masses
                 # remember the frozen particles,
@@ -2459,11 +2460,11 @@ class Manipulator ( LoggerBase ):
             else:
                 tmpmass = float(norm.rvs(loc=self.M.masses[pid], scale=dx))
             # Enforce mass interval:
-            if pid in [ 1000006, 2000006 ] and self.inCorridorRegion ( tmpmass, self.M.masses[LSP] ):
+            if pid in [ Xt, Xt2 ] and self.inCorridorRegion ( tmpmass, self.M.masses[LSP] ):
                 massIsLegal = False
-            if pid == LSP and 1000006 in self.M.masses and self.inCorridorRegion ( self.M.masses[1000006], tmpmass ):
+            if pid == LSP and Xt in self.M.masses and self.inCorridorRegion ( self.M.masses[Xt], tmpmass ):
                 massIsLegal = False
-            if pid == LSP and 2000006 in self.M.masses and self.inCorridorRegion ( self.M.masses[2000006], tmpmass ):
+            if pid == LSP and Xt2 in self.M.masses and self.inCorridorRegion ( self.M.masses[Xt2], tmpmass ):
                 massIsLegal = False
             if tmpmass > maxMass: ## check again if we are legal
                 # tmpmass = maxMass-1.0
@@ -2638,7 +2639,7 @@ class Manipulator ( LoggerBase ):
             if self.M.masses[pidA] > self.M.masses[pidB]:
                 self.pprint(f"can not merge particles with wrong mass hierarchy ({int(pidA)} > {int(pidB)})")
                 return False
-            if pidA in [ 1000006, 2000006 ] and pidB in [ 1000006, 2000006 ]:
+            if pidA in [ Xt, Xt2 ] and pidB in [ Xt, Xt2 ]:
                 ## merging stops. check if we would end up in corridor.
                 avgM = self.computeAvgMass ( (pidA,pidB) )
                 if self.inCorridorRegion ( avgM, self.M.masses[LSP] ):
@@ -3196,6 +3197,6 @@ if __name__ == "__main__":
     f.close()
     ma = Manipulator ( protomodels[0], verbose=True )
     print ( ma.getAllPidsOfBestCombo() )
-    #ma.merge ( ( 1000001, 1000003 ), force_merge = True )
+    #ma.merge ( ( Xd, Xs ), force_merge = True )
     #import IPython
     #IPython.embed()

@@ -13,10 +13,23 @@
 
 # electroweakinos
 LSP = 1000022  # N1
+X1Z = 1000022  # N1
 X2Z = 1000023  # N2
 X1W = 1000024  # C1
 X3Z = 1000025  # N3
+X4Z = 1000035  # N4
 X2W = 1000037  # C2
+
+# others
+Xd = 1000001 # sdown
+Xu = 1000002 # sup
+Xs = 1000003 # sstrange
+Xc = 1000004 # scharm
+Xb = 1000005 # sbottom
+Xt = 1000006 # sstop
+Xb2 = 2000005 # sbottom
+Xt2 = 2000006 # sstop
+Xg = 1000021 # gluino
 
 llpWidthRange = { "min": 1e-23, "max": 1e-13, "lmin": -23, "lmax": -13 }
 
