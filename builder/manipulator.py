@@ -781,21 +781,25 @@ class Manipulator ( LoggerBase ):
                 pidline += ( " ..." )
             print ( pidline )
 
-    def removeIllegalBRs(self, rescaleSSMs=False, protomodel = None) -> int:
+    def removeIllegalBRs(self, rescaleSSMs=False, protomodel = None) -> List[str]:
         """ remove all illegal decays and decays of frozen particles.
-        Renormalize all branchings """
-        ret = 0
+        Renormalize all branchings
+
+        :returns: list of strings describing the changes made
+        """
+        changes = []
 
         if protomodel is None:
             protomodel = self.M
 
         for pid in protomodel.frozenParticles():
             if pid in protomodel.decays:
-                ret += 1
+                pid_name = namer.asciiName(pid)
                 protomodel.decays.pop(pid)
+                changes.append ( f"removed decays of frozen particle {pid_name}({pid})" )
                 if hasattr ( protomodel, "widths" ) and pid in protomodel.widths:
                     protomodel.widths.pop(pid)
-                    ret += 1
+                    changes.append ( f"removed width of frozen particle {pid_name}({pid})" )
 
         olddecays = list ( protomodel.decays.keys() )
         #Loop over all decays:
@@ -825,16 +829,17 @@ class Manipulator ( LoggerBase ):
                             else:
                                 self.pprint ( f"  -         no {del_pid_name}({del_pid}) in protomodel.masses" )
             for dpid in delDecays:
+                dpid_name = namer.asciiName(dpid)
                 protomodel.decays[pid].pop(dpid)
-                ret += 1
+                changes.append ( f"removed illegal decay of {pid_name}({pid}) -> {dpid_name}({dpid})" )
             if len(protomodel.decays[pid])==0 and len(delDecays)>0:
                 self.pprint(f"no branchings left after removing illegal ones, reinitialising!" )
                 self.initBranchings ( pid, protomodel )
-                ret += 1
+                changes.append ( f"reinitialised branchings of {pid_name}({pid})" )
             #if delDecays != []: print(f"remaining decays of {pid}: {protomodel.decays[pid]}")
             #Make sure to normalize the branchings
             self.normalizeBranchings(pid, rescaleSSMs=rescaleSSMs, protomodel=protomodel)
-        return ret
+        return changes
 
     def initBranchings ( self, pid : int ,
             protomodel : Union[ProtoModel,None] = None,
@@ -2288,7 +2293,7 @@ class Manipulator ( LoggerBase ):
 
         # Fix branching ratios and rescale signal strenghts,
         # so other channels are not affected
-        self.removeIllegalBRs(rescaleSSMs=True)
+        changes += self.removeIllegalBRs(rescaleSSMs=True)
 
         return changes
 
