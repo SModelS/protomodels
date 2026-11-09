@@ -817,26 +817,26 @@ class Manipulator ( LoggerBase ):
             #Check if any of the existing decays are forbidden:
             delDecays = [dpid for dpid in protomodel.decays[pid] if not  dpid in openChannels]
             if delDecays != []:
-                self.pprint(f"removeIllegalBRs: removing decays of {namer.nameAndPid(pid)}: {delDecays}")
+                self.pprint(f"Removing decays of {namer.nameAndPid(pid)}: {delDecays}: why?")
                 # self.pprint(f"  - why illegal? because openChannels is {openChannels} masses are {protomodel.masses}" )
                 onoffshell = "onshell"
                 if self.checkIfOffshell ( pid ):
                     onoffshell = "offshell"
-                self.pprint(f"  - why illegal? m[{namer.nameAndPid(pid)}]={protomodel.masses[pid]:.2f}, m(LSP)={protomodel.masses[LSP]:.2f}: {onoffshell}" )
+                self.pprint(f"  - m[{namer.nameAndPid(pid)}]={protomodel.masses[pid]:.2f}, m(LSP)={protomodel.masses[LSP]:.2f}: {onoffshell}" )
                 for del_pids in delDecays:
                     for del_pid in del_pids:
                         if abs(del_pid)>999999:
                             del_pid_name = namer.asciiName ( del_pid )
                             if del_pid in protomodel.masses:
-                                self.pprint ( f"  -         m[{namer.nameAndPid(del_pid)}]={protomodel.masses[del_pid]}" )
+                                self.pprint ( f"  - m[{namer.nameAndPid(del_pid)}]={protomodel.masses[del_pid]}" )
                             else:
-                                self.pprint ( f"  -         no {namer.nameAndPid(del_pid)} in protomodel.masses" )
+                                self.pprint ( f"  - no {namer.nameAndPid(del_pid)} in protomodel.masses" )
             for dpid in delDecays:
                 dpid_name = namer.asciiName(dpid)
                 protomodel.decays[pid].pop(dpid)
                 changes.append ( f"removed illegal decay of {namer.nameAndPid(pid)} -> {namer.nameAndPid(dpid)}" )
             if len(protomodel.decays[pid])==0 and len(delDecays)>0:
-                self.pprint(f"no branchings left after removing illegal ones, reinitialising!" )
+                self.pprint(f"No branchings left after removing illegal ones, reinitialising!" )
                 self.initBranchings ( pid, protomodel )
                 changes.append ( f"reinitialised branchings of {namer.nameAndPid(pid)}" )
             #if delDecays != []: print(f"remaining decays of {pid}: {protomodel.decays[pid]}")
@@ -2209,7 +2209,7 @@ class Manipulator ( LoggerBase ):
             tmpMass = mass
         protomodel.masses[pid] = tmpMass
 
-        self.pprint ( f"Unfreeze {namer.nameAndPid(pid)} m={protomodel.masses[pid]:.1f}" )
+        self.pprint ( f"Unfreezing {namer.nameAndPid(pid)} m={protomodel.masses[pid]:.1f}" )
         # self.log ( f"Unfreeze mass of {namer.asciiName(pid)} to {protomodel.masses[pid]:.1f}" )
 
         # Set branchings
